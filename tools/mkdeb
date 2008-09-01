@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$(basename "$PWD")" != "eina" ]; then
+	echo "No root"
+	exit
+fi
+
+./autogen.sh
+make -i distclean
+rm -rf -- $(svn status | grep  '^?' | awk '{print $2}') lib{ghub,util}/*{lo,la,a,o}
+./autogen.sh
+make dist
+TGZ=$PWD/$(find . -name 'eina-*tar.gz' | head -1)
+D=$(mktemp -d /tmp/eina-XXXXXX)
+(
+	cd "$D"
+	tar zxvf $TGZ
+	cd eina*
+	EMAIL="xuzo@cuarentaydos.com" NAME="xuzo" dch -i "New upstream version"
+	debuild
+)
+echo "Deb is at: $D"

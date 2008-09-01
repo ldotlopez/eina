@@ -1,0 +1,27 @@
+http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
+
+Migrate to GObject and GInterface
+
+Seek has some problems when stop or not playing
+
+Missing icon when player is in stop state
+
+Internacionalizacion
+
+Monstrar un nombre mejor que la URI cuando aun no se han cargado los metadatos
+
+eina_fs_* OK
+	Carga de directorios recursiva OK
+	DnD
+
+Single instance
+
+EinaFileChooserDialogInfoMsg OK
+
+eina_iface_* OK
+Plugin hooks OK
+   Join EinaPlugin and EinaPluginIFace OK
+	EinaCurl -> GelIOAsyncReapOp (some operations missing)
+		EinaCover GObject
+		LastFM Info plugin (Update on demand, CSS love)
+

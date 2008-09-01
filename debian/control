@@ -1,0 +1,12 @@
+Source: eina
+Section: universe/sound
+Priority: extra
+Maintainer: xuzo <xuzo@cuarentaydos.com>
+Build-Depends: debhelper (>= 5), autotools-dev
+Standards-Version: 3.7.2
+
+Package: eina
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, liblomo1 (>= 0.93.0), gstreamer0.10-ffmpeg, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-bad-multiverse, gstreamer0.10-plugins-base, gstreamer0.10-plugins-good, gstreamer0.10-plugins-ugly, gstreamer0.10-plugins-ugly-multiverse
+Description: Music player based on liblomo and Gtk2
+ Music player based on liblomo and Gtk2

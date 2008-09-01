@@ -1,0 +1,204 @@
+#define GEL_DOMAIN "Eina::FileChooserDialog"
+#include "eina-file-chooser-dialog.h"
+
+#include <glib/gi18n.h>
+#include <gel/gel.h>
+
+
+G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
+
+#define GET_PRIVATE(o) \
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogPrivate))
+
+typedef struct _EinaFileChooserDialogPrivate EinaFileChooserDialogPrivate;
+
+struct _EinaFileChooserDialogPrivate {
+	EinaFileChooserDialogAction action;
+	GtkBox   *info_box;
+	GtkImage *info_image;
+	GtkLabel *info_label;
+};
+
+void
+eina_file_chooser_dialog_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
+
+static GObject*
+eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectConstructParam *properties)
+{
+	gint i;
+	GObject *obj;
+
+	/* Override file-system-backend */
+	for (i = 0 ; i < n_properties; i++) {
+		if (g_str_equal(properties[i].pspec->name, "file-system-backend")) {
+			g_value_set_static_string(properties[i].value, "gio");
+		}
+	}
+	
+    {
+		/* Chain up to the parent constructor */
+		EinaFileChooserDialogClass *klass;
+		GObjectClass *parent_class;  
+		klass = EINA_FILE_CHOOSER_DIALOG_CLASS(g_type_class_peek(EINA_TYPE_FILE_CHOOSER_DIALOG));
+		parent_class = G_OBJECT_CLASS(g_type_class_peek_parent(klass));
+		obj = parent_class->constructor (gtype, n_properties, properties);
+	}
+#if 0
+	e_info("%d properties:", n_properties);
+	for (i = 0 ; i < n_properties; i++) {
+		e_info("[%s]  %s: %s",
+			G_VALUE_TYPE_NAME(properties[i].value), properties[i].pspec->name, g_strdup_value_contents(properties[i].value));
+	}
+#endif
+
+	return obj;
+}
+
+static void
+eina_file_chooser_dialog_dispose (GObject *object)
+{
+	if (G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->dispose)
+		G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->dispose (object);
+}
+
+static void
+eina_file_chooser_dialog_finalize (GObject *object)
+{
+	if (G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->finalize)
+		G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->finalize (object);
+}
+
+static void
+eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
+{
+	gchar *tmp;
+	GError  *err = NULL;
+	GdkPixbuf *pb;
+	GtkIconFactory *icon_factory;
+	GtkIconSet *icon_set;
+	GtkIconSource *icon_src;
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (EinaFileChooserDialogPrivate));
+
+	object_class->constructor = eina_file_chooser_dialog_constructor;
+	object_class->dispose = eina_file_chooser_dialog_dispose;
+	object_class->finalize = eina_file_chooser_dialog_finalize;
+
+	if ((tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "queue.png")) == NULL) {
+		gel_error("Cannot find and add to stock file queue.png");
+		return;
+	}
+	if ((pb = gdk_pixbuf_new_from_file(tmp, &err)) == NULL) {
+		gel_error("Cannot load %s into pixbuf: %s", tmp, err->message);
+		g_error_free(err);
+		g_free(tmp);
+		return;
+	}
+	g_free(tmp);
+
+	icon_src = gtk_icon_source_new();
+	gtk_icon_source_set_pixbuf(icon_src, pb);
+	gtk_icon_source_set_size(icon_src, GTK_ICON_SIZE_MENU);
+	gtk_icon_source_set_size_wildcarded(icon_src, TRUE);
+
+	icon_set = gtk_icon_set_new_from_pixbuf(pb);
+	gtk_icon_set_add_source(icon_set, icon_src);
+
+	icon_factory = gtk_icon_factory_new();
+	gtk_icon_factory_add(icon_factory, "eina-queue", icon_set);
+
+	gtk_icon_factory_add_default(icon_factory);
+}
+
+static void
+eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
+{
+}
+
+EinaFileChooserDialog*
+eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
+{
+	EinaFileChooserDialog *self;
+	EinaFileChooserDialogPrivate *priv;
+
+	self = g_object_new (EINA_TYPE_FILE_CHOOSER_DIALOG, NULL);
+	priv = GET_PRIVATE(self);
+	priv->action = action;
+
+	g_object_set(G_OBJECT(self), "local-only", FALSE, NULL);
+	eina_file_chooser_dialog_set_action(self, action);
+
+	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
+	priv->info_label = (GtkLabel *) gtk_label_new(NULL);
+	priv->info_image = (GtkImage *) gtk_image_new();
+
+	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->info_image), FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->info_label), FALSE, FALSE, 0);
+
+	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, FALSE, 0);
+	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
+
+	return self;
+}
+
+void
+eina_file_chooser_dialog_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
+{
+	GtkFileFilter *filter;
+	GtkButton *queue_button;
+	const gchar *music_folder;
+
+	music_folder = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC);
+	
+	switch (action)
+	{
+		// Load or queue
+		case EINA_FILE_CHOOSER_DIALOG_LOAD_FILES:
+			filter = gtk_file_filter_new();
+			gtk_file_filter_add_mime_type(filter, "audio/*");
+			gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(self), filter);
+			gtk_file_chooser_add_shortcut_folder(GTK_FILE_CHOOSER(self), music_folder, NULL);
+			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(self), music_folder);
+			gtk_file_chooser_set_action(GTK_FILE_CHOOSER(self), GTK_FILE_CHOOSER_ACTION_OPEN);
+			gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(self), TRUE);
+
+			queue_button = (GtkButton *) gtk_button_new_with_mnemonic(Q_("_Enqueue"));
+			gtk_button_set_image(queue_button, gtk_image_new_from_stock("eina-queue", GTK_ICON_SIZE_BUTTON));
+			gtk_widget_show_all(GTK_WIDGET(queue_button));
+
+			gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_MEDIA_PLAY, EINA_FILE_CHOOSER_RESPONSE_PLAY);
+			gtk_dialog_add_action_widget(GTK_DIALOG(self), GTK_WIDGET(queue_button), EINA_FILE_CHOOSER_RESPONSE_QUEUE);
+			gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
+
+			gtk_window_set_title(GTK_WINDOW(self), _("Enqueue files"));
+			break;
+
+		default:
+			gel_error("EinaFileChooserDialog unknow action %d", action);
+	}
+}
+
+void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
+	EinaFileChooserDialogMsgType type, gchar *msg)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	switch (type) {
+		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO:
+			gtk_image_set_from_stock(priv->info_image, GTK_STOCK_INFO, GTK_ICON_SIZE_MENU);
+			break;
+		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_WARN:
+			gtk_image_set_from_stock(priv->info_image, GTK_STOCK_DIALOG_WARNING, GTK_ICON_SIZE_MENU);
+			break;
+		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_ERROR:
+			gtk_image_set_from_stock(priv->info_image, GTK_STOCK_DIALOG_ERROR, GTK_ICON_SIZE_MENU);
+			break;
+
+		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE:
+		default:
+			gtk_widget_hide(GTK_WIDGET(priv->info_box));
+			return;
+	}
+	gtk_widget_show_all(GTK_WIDGET(priv->info_box));
+}
+

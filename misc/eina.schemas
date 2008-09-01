@@ -1,0 +1,130 @@
+<gconfschemafile>
+  <schemalist>
+  
+  <!-- 12 lines
+  <schema>
+    <key>/schemas/apps/eina/cat/key</key>
+    <applyto>/apps/eina/cat/key</applyto>
+    <owner>eina</owner>
+    <type></type>
+    <default></default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+
+  -->
+  
+  <schema>
+    <key>/schemas/apps/eina/schema_version</key>
+    <applyto>/apps/eina/schema_version</applyto>
+    <owner>eina</owner>
+    <type>int</type>
+    <default>2</default>
+    <locale name="C">
+      <short>Version of schema</short>
+      <long>Number of schema for eina, this is useful for upgrades
+purposes.</long>
+    </locale>
+  </schema>
+ 
+  <schema>
+    <key>/schemas/apps/eina/apps/eina/core/current</key>
+    <applyto>/apps/eina/apps/eina/core/current</applyto>
+    <owner>eina</owner>
+    <type>int</type>
+    <default>-1</default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+ 
+  <schema>
+    <key>/schemas/apps/eina/core/input</key>
+    <applyto>/apps/eina/core/input</applyto>
+    <owner>eina</owner>
+    <type>string</type>
+    <default>gnomevfssrc</default>
+    <locale name="C">
+      <short>Plugin for input</short>
+      <long>Gstreamer plugin used to read files. Try filesrc, gnomevfssrc, etc</long>
+    </locale>
+  </schema>
+
+  <!-- Deprected key, now eina uses /system/gstreamer/0.x/default/audiosink
+  <schema>
+    <key>/schemas/apps/eina/core/output</key>
+    <applyto>/apps/eina/core/output</applyto>
+    <owner>eina</owner>
+    <type>string</type>
+    <default>esdsink</default>
+    <locale name="C">
+      <short>Plugin for output</short>
+      <long>Gstreamer plugin used to output sound. Try osssink, esdsink, etc</long>
+    </locale>
+  </schema>
+  -->
+  <schema>
+    <key>/schemas/apps/eina/core/repeat</key>
+    <applyto>/apps/eina/core/repeat</applyto>
+    <owner>eina</owner>
+    <type>bool</type>
+    <default>false</default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+
+  <schema>
+    <key>/schemas/apps/eina/core/random</key>
+    <applyto>/apps/eina/core/random</applyto>
+    <owner>eina</owner>
+    <type>bool</type>
+    <default>false</default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+
+  <schema>
+    <key>/schemas/apps/eina/ui/show_playlist</key>
+    <applyto>/apps/eina/ui/show_playlist</applyto>
+    <owner>eina</owner>
+    <type>bool</type>
+    <default>true</default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+
+  <schema>
+    <key>/schemas/apps/eina/core/volume</key>
+    <applyto>/apps/eina/core/volume</applyto>
+    <owner>eina</owner>
+    <type>int</type>
+    <default>50</default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+
+  <schema>
+    <key>/schemas/apps/eina/ui/show_menubar</key>
+    <applyto>/apps/eina/ui/show_menubar</applyto>
+    <owner>eina</owner>
+    <type>bool</type>
+    <default>true</default>
+    <locale name="C">
+      <short></short>
+      <long></long>
+    </locale>
+  </schema>
+
+  </schemalist>
+</gconfschemafile>

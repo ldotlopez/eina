@@ -1,0 +1,76 @@
+0.3.9.000 2006/05/09
+  * Complete rewrite (including libeina, now named liblomo)
+  * Gst 0.10 based
+
+Summary of changes since 0.3.3 (may be incomplete)
+  * Renamed to eina since the -gnome suffix is no longer needed
+  * Systray dnd, menu and tooltip
+  * Support for http streams
+  * Plugin support
+  * Plugins: lyrics, karaoke, audioscroble, _very_ experimental CDBurn.
+  * Typeahead in playlist
+  * DBus interface
+
+2005/02/03
+  * Support for streaming by Matthew Gregg <greggmc@musc.edu>
+
+2005/01/28
+  * Plugin system revisited
+  * GrupyVFS -- A GnomeVFS fixed
+  * New plugins: lyrics, karaoke, ...
+  
+2005/01/19
+  * Typeahead in playlist
+  * Audioscrobbler plugin
+  * libutil added
+  * auto* stuff revisited
+  * More features... :P
+  
+2004/12/16
+  * Support for plugins
+  * Two test plugins. See plugins/ folder 
+
+2004/12/09
+  * Internal API rework
+  * Now DnD to play files over systray works
+
+2004/12/06
+  * Migration from GnomeAbout to GtkAboutDialog
+
+2004/12/04
+  * Daniel Ripolles come back to eina!
+  * About dialog fixed
+  * Message windows revisited
+
+2004/12/02
+  * Hot change of output sink 
+  * Intregration with gnome-media
+  * Added libegg/tray files
+  * Initial systray support (show/hide main window)
+  * Added autogen.sh/configure argument --enable-unstable to compile unstable features
+  * Debian package splited in eina-gnome and eina-gnome-unstable
+
+2004/11/29
+  * Fixed bugs #9 #13 #14
+  * Added features #4 #17
+  * Added ellipsize property for some labels (experimental, gtk >= 2,5)
+  
+2004/11/24
+  * Work on Command line parsing
+
+2004/11/23
+  * Activate -D*_DISABLE_DEPRECATED macros
+  * Cover subsistem added
+  * evfs improvements
+
+2004/11/19
+  * Added a message window for popup info/warn/error messages
+  * Added the message subsystem
+
+2004/11/05
+  * A lot of cleanup
+  * evfs: VFS layer
+  * More responsive interface
+  * Initial work on output path to cover
+  * Initial work for configurable time format
+  * Less hardcoded strings

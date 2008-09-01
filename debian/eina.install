@@ -1,0 +1,5 @@
+usr/bin
+usr/share/eina
+usr/lib/eina/{lastfminfo,recently}/*.so
+usr/lib/eina/{lastfminfo,recently}/*.png
+usr/share

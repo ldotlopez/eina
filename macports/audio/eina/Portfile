@@ -1,0 +1,20 @@
+PortSystem 1.0
+
+name              eina-svn
+version           20080402
+categories        devel
+platforms         darwin
+maintainers       xuzo
+description       eina
+long_description  ${description}
+
+homepage          http://www.ikossi.org/?page=eina-en
+
+master_sites      http://bolgo.cent.uji.es/~xuzo/files
+checksums         md5 cc03713a516937ae33911b25042f7f4f
+distfiles         eina-0.0.0+svn20080402.tar.gz
+
+depends_lib       port:gstreamer port:glib2 port:liblomo port:libglade2
+
+worksrcdir        eina-0.0.0+svn20080402
+

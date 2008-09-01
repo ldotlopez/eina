@@ -1,0 +1,252 @@
+" install as ~/.vim/after/syntax/c.vim
+
+" glib base types
+syn keyword cType gint8 guint8 gint16 guint16 gint32 guint32 gint64 guint64
+syn keyword cType gssize gsize gchar gshort glong gint gboolean guchar
+syn keyword cType gushort gulong guint gfloat gdouble gpointer gconstpointer
+
+" glib types
+syn keyword cType GAllocator GArray GAsyncQueue GBaseFinalizeFunc
+syn keyword cType GBaseInitFunc GBookmarkFile GBoxedCopyFunc
+syn keyword cType GBoxedFreeFunc GBSearchArray GBSearchCompareFunc
+syn keyword cType GBSearchConfig GByteArray GCache GCacheDestroyFunc
+syn keyword cType GCacheDupFunc GCallback GChildWatchFunc GClassFinalizeFunc
+syn keyword cType GClassInitFunc GClosure GClosureMarshal GClosureNotify
+syn keyword cType GCompareDataFunc GCompareFunc GCompletion GCompletionFunc
+syn keyword cType GCompletionStrncmpFunc GCond GConnectFlags GCopyFunc
+syn keyword cType GData GDataForeachFunc GDate GDateDay GDateMonth
+syn keyword cType GDateWeekday GDateYear GDebugKey GDestroyNotify GDir
+syn keyword cType GEnumClass GEnumValue GEqualFunc GError GFileError
+syn keyword cType GFileTest GFlagsClass GFlagsValue GFunc GHashFunc
+syn keyword cType GHashTable GHFunc GHook GHookCheckMarshaller
+syn keyword cType GHookCompareFunc GHookFinalizeFunc GHookFindFunc
+syn keyword cType GHookMarshaller GHRFunc GIConv GInstanceInitFunc
+syn keyword cType GInterfaceFinalizeFunc GInterfaceInfo GInterfaceInitFunc
+syn keyword cType GIOChannel GIOChannelError GIOCondition GIOError GIOFlags
+syn keyword cType GIOFunc GIOFuncs GIOStatus GKeyFile GKeyFileFlags
+syn keyword cType GList GLogFunc GLogLevelFlags GMainContext GMainLoop
+syn keyword cType GMappedFile GMarkupParseContext GMarkupParseFlags
+syn keyword cType GMemChunk GMemVTable GModule GModuleFlags GMutex GNode
+syn keyword cType GNodeForeachFunc GNodeTraverseFunc GNormalizeMode
+syn keyword cType GObject GObjectClass GObjectConstructParam GOnceStatus
+syn keyword cType GOptionArg GOptionContext GOptionEntry GOptionErrorFunc
+syn keyword cType GOptionGroup GOptionParseFunc GParameter GParamFlags
+syn keyword cType GParamSpec GParamSpecPool GParamSpecTypeInfo GPatternSpec
+syn keyword cType GPid GPollFD GPollFunc GPrintFunc GPrivate GPtrArray
+syn keyword cType GQuark GQueue GRand GRelation GScanner GScannerConfig
+syn keyword cType GScannerMsgFunc GSeekType GSignalAccumulator
+syn keyword cType GSignalCMarshaller GSignalEmissionHook GSignalFlags
+syn keyword cType GSignalInvocationHint GSignalMatchType GSignalQuery
+syn keyword cType GSList GSource GSourceCallbackFuncs GSourceDummyMarshal
+syn keyword cType GSourceFunc GSourceFuncs GSpawnChildSetupFunc GSpawnFlags
+syn keyword cType GStaticMutex GString GStringChunk GSystemThread
+syn keyword cType GThread GThreadFunc GThreadFunctions GThreadPool
+syn keyword cType GThreadPriority GTime GTimer GTimeVal GToggleNotify
+syn keyword cType GTokenType GTokenValue GTranslateFunc GTrashStack
+syn keyword cType GTraverseFlags GTraverseFunc GTraverseType GTree GTuples
+syn keyword cType GType GTypeClass GTypeClassCacheFunc GTypeCValue
+syn keyword cType GTypeDebugFlags GTypeFlags GTypeFundamentalFlags
+syn keyword cType GTypeFundamentalInfo GTypeInfo GTypeInstance GTypeInterface
+syn keyword cType GTypeInterfaceCheckFunc GTypeModule GTypeModuleClass
+syn keyword cType GTypePlugin GTypePluginCompleteInterfaceInfo
+syn keyword cType GTypePluginCompleteTypeInfo GTypePluginUnuse GTypePluginUse
+syn keyword cType GTypeQuery GTypeValueTable GUnicodeBreakType GUnicodeType
+syn keyword cType GValue GValueArray GValueTransform GWeakNotify
+
+" gdk types
+syn keyword cType GdkArgFunc GdkArgType GdkAtom GdkAxisInfo GdkAxisUse
+syn keyword cType GdkBitmap GdkByteOrder GdkCapStyle GdkColor GdkColorInfo
+syn keyword cType GdkColorInfoFlags GdkColormap GdkCrossingMode GdkCursor
+syn keyword cType GdkCursorType GdkDestroyNotify GdkDevice GdkDeviceAxis
+syn keyword cType GdkDeviceKey GdkDevicePrivate GdkDisplay GdkDisplayClass
+syn keyword cType GdkDisplayDFB GdkDisplayManager GdkDisplayPointerHooks
+syn keyword cType GdkDragAction GdkDragContext GdkDragProtocol GdkDrawable
+syn keyword cType GdkDrawableClass GdkDrawableFBClass GdkDrawableFBData
+syn keyword cType GdkDrawableImplDirectFB GdkDrawableImplDirectFBClass
+syn keyword cType GdkDrawableImplQuartz GdkDrawableImplQuartzClass GdkEvent
+syn keyword cType GdkEventAny GdkEventButton GdkEventClient GdkEventConfigure
+syn keyword cType GdkEventCrossing GdkEventDND GdkEventExpose GdkEventFocus
+syn keyword cType GdkEventFunc GdkEventGrabBroken GdkEventKey GdkEventMask
+syn keyword cType GdkEventMotion GdkEventNoExpose GdkEventOwnerChange
+syn keyword cType GdkEventProperty GdkEventProximity GdkEventScroll
+syn keyword cType GdkEventSelection GdkEventSetting GdkEventType
+syn keyword cType GdkEventVisibility GdkEventWindowState GdkExtensionMode
+syn keyword cType GdkFBAngle GdkFBDisplay GdkFBDrawingContext GdkFBWindow
+syn keyword cType GdkFill GdkFillRule GdkFilterFunc GdkFilterReturn GdkFont
+syn keyword cType GdkFontPrivate GdkFonts GdkFontType GdkFunction GdkGC
+syn keyword cType GdkGCClass GdkGCValues GdkGCValuesMask GdkGeometry
+syn keyword cType GdkGrabStatus GdkGravity GdkImage GdkImageType
+syn keyword cType GdkInputCondition GdkInputFunction GdkInputMode
+syn keyword cType GdkInputSource GdkInputVTable GdkInputWindow GdkJoinStyle
+syn keyword cType GdkKeymap GdkKeymapKey GdkLineStyle GdkModifierType
+syn keyword cType GdkNativeWindow GdkNotifyType GdkOverlapType
+syn keyword cType GdkOwnerChange GdkPangoRendererPrivate GdkPixbuf
+syn keyword cType GdkPixbufAlphaMode GdkPixmap GdkPoint GdkPointerHooks
+syn keyword cType GdkPropMode GdkQuartzView GdkQuartzWindow GdkRectangle
+syn keyword cType GdkRegion GdkRegionBox GdkRgbCmap GdkRgbDither
+syn keyword cType GdkScreen GdkScreenClass GdkScrollDirection
+syn keyword cType GdkSegment GdkSendXEventCallback GdkSettingAction
+syn keyword cType GdkSpan GdkSpanFunc GdkSubwindowMode GdkTimeCoord
+syn keyword cType GdkTrapezoid GdkTristate GdkVisibilityState GdkVisual
+syn keyword cType GdkVisualPrivate GdkVisualType GdkWChar GdkWindow
+syn keyword cType GdkWindowAttr GdkWindowChildChanged GdkWindowChildGetPos
+syn keyword cType GdkWindowClass GdkWindowEdge GdkWindowHints GdkWindowObject
+syn keyword cType GdkWindowState GdkWindowType GdkWindowTypeHint
+syn keyword cType GdkWMDecoration GdkWMFunction GdkXPositionInfo
+
+" gtk types
+syn keyword cType GtkAboutDialogActivateLinkFunc GtkAccelFlags GtkAccelGroup
+syn keyword cType GtkAccelGroupEntry GtkAccelGroupFindFunc GtkAccelKey
+syn keyword cType GtkAccelMap GtkAccelMapForeach GtkAction GtkActionClass
+syn keyword cType GtkActionEntry GtkActionGroup GtkActionGroupPrivate
+syn keyword cType GtkActionPrivate GtkAdjustment GtkAllocation GtkArg
+syn keyword cType GtkArrowType GtkAssistantPageFunc GtkAssistantPageType
+syn keyword cType GtkAssistantPrivate GtkAttachOptions GtkBin
+syn keyword cType GtkBinClass GtkBindingArg GtkBindingEntry GtkBindingSet
+syn keyword cType GtkBindingSignal GtkBorder GtkBox GtkBoxClass GtkButton
+syn keyword cType GtkButtonBox GtkButtonBoxClass GtkButtonBoxStyle
+syn keyword cType GtkButtonClass GtkButtonsType GtkCalendarDisplayOptions
+syn keyword cType GtkCalendarPrivate GtkCallback GtkCallbackMarshal GtkCell
+syn keyword cType GtkCellEditable GtkCellLayoutDataFunc GtkCellRenderer
+syn keyword cType GtkCellRendererAccelMode GtkCellRendererClass
+syn keyword cType GtkCellRendererProgressPrivate GtkCellRendererState
+syn keyword cType GtkCellRendererText GtkCellRendererTextClass
+syn keyword cType GtkCellType GtkCellViewPrivate GtkCheckButton
+syn keyword cType GtkCheckButtonClass GtkCheckMenuItem GtkCheckMenuItemClass
+syn keyword cType GtkClassInitFunc GtkClipboard GtkClipboardClearFunc
+syn keyword cType GtkClipboardGetFunc GtkClipboardImageReceivedFunc
+syn keyword cType GtkClipboardReceivedFunc GtkClipboardRichTextReceivedFunc
+syn keyword cType GtkClipboardTargetsReceivedFunc
+syn keyword cType GtkClipboardTextReceivedFunc GtkCList
+syn keyword cType GtkCListCellInfo GtkCListClass GtkCListColumn
+syn keyword cType GtkCListCompareFunc GtkCListDragPos GtkCListRow
+syn keyword cType GtkColorButtonPrivate GtkColorSelectionChangePaletteFunc
+syn keyword cType GtkColorSelectionChangePaletteWithScreenFunc
+syn keyword cType GtkComboBox GtkComboBoxClass GtkComboBoxEntryPrivate
+syn keyword cType GtkComboBoxPrivate GtkContainer GtkContainerClass
+syn keyword cType GtkCornerType GtkCTreeCompareDragFunc GtkCTreeExpanderStyle
+syn keyword cType GtkCTreeExpansionType GtkCTreeFunc GtkCTreeGNodeFunc
+syn keyword cType GtkCTreeLineStyle GtkCTreeNode GtkCTreeRow GtkCurveType
+syn keyword cType GtkDeleteType GtkDestDefaults GtkDestroyNotify
+syn keyword cType GtkDialog GtkDialogClass GtkDialogFlags GtkDirectionType
+syn keyword cType GtkDrawingArea GtkDrawingAreaClass GtkEntry GtkEntryClass
+syn keyword cType GtkEntryCompletion GtkEntryCompletionMatchFunc
+syn keyword cType GtkEntryCompletionPrivate GtkEnumValue GtkExpanderPrivate
+syn keyword cType GtkExpanderStyle GtkFileChooser GtkFileChooserAction
+syn keyword cType GtkFileChooserButtonPrivate GtkFileChooserConfirmation
+syn keyword cType GtkFileChooserDialogPrivate GtkFileChooserEmbed
+syn keyword cType GtkFileChooserSettings GtkFileChooserWidgetPrivate
+syn keyword cType GtkFileFilter GtkFileFilterFlags GtkFileFilterFunc
+syn keyword cType GtkFileFilterInfo GtkFileFolder GtkFileInfo GtkFileInfoType
+syn keyword cType GtkFilePath GtkFileSystem GtkFileSystemCreateFolderCallback
+syn keyword cType GtkFileSystemGetFolderCallback GtkFileSystemGetInfoCallback
+syn keyword cType GtkFileSystemHandle GtkFileSystemModel
+syn keyword cType GtkFileSystemModelFilter GtkFileSystemModelPathFunc
+syn keyword cType GtkFileSystemVolume GtkFileSystemVolumeMountCallback
+syn keyword cType GtkFileTime GtkFlagValue GtkFontButtonPrivate
+syn keyword cType GtkFrame GtkFrameClass GtkFunction GtkHBox
+syn keyword cType GtkHBoxClass GtkIconCache GtkIconData GtkIconFactory
+syn keyword cType GtkIconInfo GtkIconLookupFlags GtkIconSet GtkIconSize
+syn keyword cType GtkIconSource GtkIconTheme GtkIconThemePrivate
+syn keyword cType GtkIconViewDropPosition GtkIconViewForeachFunc
+syn keyword cType GtkIconViewPrivate GtkImageAnimationData
+syn keyword cType GtkImageIconNameData GtkImageIconSetData GtkImageImageData
+syn keyword cType GtkImagePixbufData GtkImagePixmapData GtkImageStockData
+syn keyword cType GtkImageType GtkIMContext GtkIMContextClass
+syn keyword cType GtkIMContextInfo GtkIMMulticontextPrivate GtkItem
+syn keyword cType GtkItemClass GtkItemFactory GtkItemFactoryCallback
+syn keyword cType GtkItemFactoryEntry GtkJustification GtkKeyHash
+syn keyword cType GtkLabel GtkLabelClass GtkLabelSelectionInfo
+syn keyword cType GtkLinkButtonPrivate GtkLinkButtonUriFunc GtkListStore
+syn keyword cType GtkMenu GtkMenuCallback GtkMenuClass GtkMenuDetachFunc
+syn keyword cType GtkMenuDirectionType GtkMenuEntry GtkMenuItem
+syn keyword cType GtkMenuItemClass GtkMenuPositionFunc GtkMenuShell
+syn keyword cType GtkMenuShellClass GtkMenuToolButtonPrivate GtkMessageType
+syn keyword cType GtkMetricType GtkMisc GtkMiscClass GtkMnemonicHash
+syn keyword cType GtkMnemonicHashForeach GtkMovementStep GtkNotebook
+syn keyword cType GtkNotebookPage GtkNotebookTab GtkObject GtkObjectClass
+syn keyword cType GtkObjectInitFunc GtkOldEditable GtkOldEditableClass
+syn keyword cType GtkOrientation GtkPackDirection GtkPackType
+syn keyword cType GtkPageOrientation GtkPageRange GtkPageSet GtkPageSetup
+syn keyword cType GtkPageSetupDoneFunc GtkPageSetupUnixDialogPrivate
+syn keyword cType GtkPaned GtkPanedClass GtkPanedPrivate GtkPaperSize
+syn keyword cType GtkPathPriorityType GtkPathType GtkPlug GtkPlugClass
+syn keyword cType GtkPolicyType GtkPositionType GtkPreviewInfo
+syn keyword cType GtkPrintBackend GtkPrintBackendPrivate GtkPrintCapabilities
+syn keyword cType GtkPrintContext GtkPrintDuplex GtkPrinter GtkPrinterOption
+syn keyword cType GtkPrinterOptionSet GtkPrinterOptionSetFunc
+syn keyword cType GtkPrinterOptionType GtkPrinterOptionWidgetPrivate
+syn keyword cType GtkPrinterPrivate GtkPrintJob GtkPrintJobCompleteFunc
+syn keyword cType GtkPrintJobPrivate GtkPrintOperation
+syn keyword cType GtkPrintOperationAction GtkPrintOperationPreview
+syn keyword cType GtkPrintOperationPrintFunc GtkPrintOperationPrivate
+syn keyword cType GtkPrintOperationResult GtkPrintPages
+syn keyword cType GtkPrintQuality GtkPrintSettings GtkPrintSettingsFunc
+syn keyword cType GtkPrintStatus GtkPrintUnixDialogPrivate GtkProgress
+syn keyword cType GtkProgressBarOrientation GtkProgressBarStyle
+syn keyword cType GtkProgressClass GtkPropertyMark GtkRadioAction
+syn keyword cType GtkRadioActionEntry GtkRadioActionPrivate GtkRange
+syn keyword cType GtkRangeClass GtkRangeLayout GtkRangeStepTimer
+syn keyword cType GtkRBNode GtkRBTree GtkRBTreeTraverseFunc GtkRcContext
+syn keyword cType GtkRcFlags GtkRcProperty GtkRcPropertyParser GtkRcStyle
+syn keyword cType GtkRecentChooser GtkRecentChooserDialogPrivate
+syn keyword cType GtkRecentChooserMenuPrivate GtkRecentChooserWidgetPrivate
+syn keyword cType GtkRecentData GtkRecentFilter GtkRecentFilterFlags
+syn keyword cType GtkRecentFilterFunc GtkRecentFilterInfo GtkRecentInfo
+syn keyword cType GtkRecentManager GtkRecentManagerPrivate GtkRecentSortFunc
+syn keyword cType GtkRecentSortType GtkReliefStyle GtkRequisition
+syn keyword cType GtkResizeMode GtkRuler GtkRulerClass GtkRulerMetric
+syn keyword cType GtkScale GtkScaleClass GtkScrollbar GtkScrollbarClass
+syn keyword cType GtkScrollType GtkSelectionData GtkSelectionMode
+syn keyword cType GtkSensitivityType GtkSeparator GtkSeparatorClass
+syn keyword cType GtkSeparatorToolItemPrivate GtkSequence GtkSequencePtr
+syn keyword cType GtkSequenceSearchFunc GtkSettings GtkSettingsPropertyValue
+syn keyword cType GtkSettingsValue GtkShadowType GtkSignalFunc
+syn keyword cType GtkSignalMarshaller GtkSignalRunType GtkSizeGroup
+syn keyword cType GtkSizeGroupMode GtkSocket GtkSocketPrivate GtkSortType
+syn keyword cType GtkSpinButtonUpdatePolicy GtkSpinType GtkStateType
+syn keyword cType GtkStatusIcon GtkStatusIconPrivate GtkStockItem
+syn keyword cType GtkStyle GtkTableRowCol GtkTargetEntry GtkTargetList
+syn keyword cType GtkTextAppearance GtkTextAttributes GtkTextBTree
+syn keyword cType GtkTextBTreeNode GtkTextBuffer GtkTextBufferDeserializeFunc
+syn keyword cType GtkTextBufferSerializeFunc GtkTextCharPredicate
+syn keyword cType GtkTextChildAnchor GtkTextChildBody GtkTextDirection
+syn keyword cType GtkTextFont GtkTextIter GtkTextLayout GtkTextLine
+syn keyword cType GtkTextLineData GtkTextLineDisplay GtkTextLineSegment
+syn keyword cType GtkTextLineSegmentClass GtkTextLogAttrCache
+syn keyword cType GtkTextMark GtkTextMarkBody GtkTextPendingScroll
+syn keyword cType GtkTextPixbuf GtkTextSearchFlags GtkTextSegCheckFunc
+syn keyword cType GtkTextSegCleanupFunc GtkTextSegDeleteFunc
+syn keyword cType GtkTextSegLineChangeFunc GtkTextSegSplitFunc GtkTextTag
+syn keyword cType GtkTextTagInfo GtkTextTagTable GtkTextTagTableForeach
+syn keyword cType GtkTextToggleBody GtkTextUtilCharChosenFunc
+syn keyword cType GtkTextWindow GtkTextWindowType GtkThemeEngine
+syn keyword cType GtkToggleAction GtkToggleActionClass GtkToggleActionEntry
+syn keyword cType GtkToggleActionPrivate GtkToggleButton GtkToggleButtonClass
+syn keyword cType GtkToggleToolButton GtkToggleToolButtonClass
+syn keyword cType GtkToggleToolButtonPrivate GtkToolbar GtkToolbarChildType
+syn keyword cType GtkToolbarStyle GtkToolButton GtkToolButtonClass
+syn keyword cType GtkToolButtonPrivate GtkToolItem GtkToolItemClass
+syn keyword cType GtkToolItemPrivate GtkTooltips GtkTooltipsData
+syn keyword cType GtkTranslateFunc GtkTrayIcon GtkTrayIconPrivate
+syn keyword cType GtkTree GtkTreeCellDataFunc GtkTreeDataList
+syn keyword cType GtkTreeDataSortHeader GtkTreeDestroyCountFunc GtkTreeIter
+syn keyword cType GtkTreeIterCompareFunc GtkTreeModel GtkTreeModelFilter
+syn keyword cType GtkTreeModelFilterModifyFunc GtkTreeModelFilterPrivate
+syn keyword cType GtkTreeModelFilterVisibleFunc GtkTreeModelFlags
+syn keyword cType GtkTreeModelForeachFunc GtkTreeModelSort
+syn keyword cType GtkTreePath GtkTreeRowReference GtkTreeSelection
+syn keyword cType GtkTreeSelectionForeachFunc GtkTreeSelectionFunc
+syn keyword cType GtkTreeSelectMode GtkTreeStore GtkTreeView
+syn keyword cType GtkTreeViewColumn GtkTreeViewColumnDropFunc
+syn keyword cType GtkTreeViewColumnReorder GtkTreeViewColumnSizing
+syn keyword cType GtkTreeViewDropPosition GtkTreeViewGridLines
+syn keyword cType GtkTreeViewMappingFunc GtkTreeViewMode GtkTreeViewPrivate
+syn keyword cType GtkTreeViewRowSeparatorFunc GtkTreeViewSearchEqualFunc
+syn keyword cType GtkTreeViewSearchPositionFunc GtkType GtkTypeInfo
+syn keyword cType GtkUIManager GtkUIManagerItemType GtkUIManagerPrivate
+syn keyword cType GtkUnit GtkUpdateType GtkVBox GtkVBoxClass GtkVisibility
+syn keyword cType GtkWidget GtkWidgetAuxInfo GtkWidgetClass GtkWidgetHelpType
+syn keyword cType GtkWindow GtkWindowClass GtkWindowGeometryInfo
+syn keyword cType GtkWindowGroup GtkWindowKeysForeachFunc GtkWindowPosition
+syn keyword cType GtkWrapMode
