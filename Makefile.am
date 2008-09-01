@@ -2,8 +2,8 @@
 
 # AUTOMAKE_OPTIONS = 1.8
 
-SUBDIRS = libghub gel misc pixmaps plugins src po ui misc debian
-DIST_SUBDIRS = libghub gel misc pixmaps plugins po src ui misc debian
+SUBDIRS = gel misc pixmaps plugins src po ui misc debian
+DIST_SUBDIRS = gel misc pixmaps plugins po src ui misc debian
 
 EXTRA_DIST = \
 	intltool-extract.in \

@@ -1,5 +1,4 @@
 // http://www.ajaxload.info/
-
 #define GEL_DOMAIN "Eina::Cover"
 #include <string.h>
 #include <sys/types.h>
@@ -9,7 +8,6 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <curl/curl.h>
-#include <gel/gel.h>
 #include "base.h"
 #include "player.h"
 #include "fs.h"
@@ -115,7 +113,7 @@ void on_cover_cover_img_drag_data_received
 /* Init/Exit functions */
 /* * * * * * * * * * * */
 G_MODULE_EXPORT gboolean cover_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaCover  *self;
 	EinaPlayer *player;
@@ -128,7 +126,7 @@ G_MODULE_EXPORT gboolean cover_init
 		return FALSE;
 	}
 
-	if ((player = g_hub_shared_get(HUB(self), "player")) == NULL) {
+	if ((player = gel_hub_shared_get(HUB(self), "player")) == NULL) {
 		gel_error("Cannot get player component");
 		return FALSE;
 	}
@@ -679,7 +677,7 @@ fail:
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */
 /* * * * * * * * * * * * * * * * * * */
-G_MODULE_EXPORT GHubSlave cover_connector = {
+G_MODULE_EXPORT GelHubSlave cover_connector = {
 	"cover",
 	&cover_init,
 	&cover_exit

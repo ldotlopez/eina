@@ -84,14 +84,14 @@ GelUISignalDef _vogon_signals[] = {
 	GEL_UI_SIGNAL_DEF_NONE
 };
 
-void on_g_hub_load(GHub *hub, const gchar *name) {
+void on_gel_hub_load(GelHub *hub, const gchar *name) {
 	gel_info("Got loaded %s", name);
 }
 
 /*
  * Init/Exit functions 
  */
-G_MODULE_EXPORT gboolean vogon_init(GHub *hub, gint *argc, gchar ***argv) {
+G_MODULE_EXPORT gboolean vogon_init(GelHub *hub, gint *argc, gchar ***argv) {
 	EinaVogon *self;
 	GdkPixbuf *pixbuf  = NULL;
 	GError *err = NULL;
@@ -132,13 +132,13 @@ G_MODULE_EXPORT gboolean vogon_init(GHub *hub, gint *argc, gchar ***argv) {
 	gel_ui_signal_connect_from_def_multiple(UI(self), _vogon_signals, self, NULL);
 
 	/* Load settings */
-	if (!g_hub_load(hub, "settings")) {
+	if (!gel_hub_load(hub, "settings")) {
 		gel_error("Cannot load settings component");
 		g_object_unref(self->icon);
 		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
-	self->conf = g_hub_shared_get(hub, "settings");
+	self->conf = gel_hub_shared_get(hub, "settings");
 	g_signal_connect(
 		self->conf, "change",
 		G_CALLBACK(on_vogon_settings_change), self);
@@ -176,7 +176,7 @@ G_MODULE_EXPORT gboolean vogon_exit
 {
 	EinaVogon *self = (EinaVogon *) data;
 	// eina_fs_filter_free(self->stream_filter);
-	g_hub_unload(HUB(self), "settings");
+	gel_hub_unload(HUB(self), "settings");
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
@@ -200,10 +200,10 @@ gboolean vogon_load_playlist(EinaVogon *self) {
 
 	/* Load playlist */
 
-	if (!g_hub_load(HUB(self), "playlist")) 
+	if (!gel_hub_load(HUB(self), "playlist")) 
 		goto fail;
 
-	if ((pl = g_hub_shared_get(HUB(self), "playlist")) == NULL)
+	if ((pl = gel_hub_shared_get(HUB(self), "playlist")) == NULL)
 		goto fail;
 
 	if ((pl_widget = playlist_get_widget(pl)) == NULL)
@@ -319,10 +319,10 @@ gboolean on_vogon_activate
 {
 	EinaPlayer *player;
 	GtkWidget  *window;
-	if (!g_hub_loaded(HUB(self), "player"))
+	if (!gel_hub_loaded(HUB(self), "player"))
 		return FALSE;
 
-	player = g_hub_shared_get(HUB(self), "player");
+	player = gel_hub_shared_get(HUB(self), "player");
 	window = W(player, "main-window");
 
 	if ( GTK_WIDGET_VISIBLE(window) ) {
@@ -401,7 +401,7 @@ void on_vogon_settings_change(EinaConf *conf, const gchar *key, EinaVogon *self)
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */
 /* * * * * * * * * * * * * * * * * * */
-G_MODULE_EXPORT GHubSlave vogon_connector = {
+G_MODULE_EXPORT GelHubSlave vogon_connector = {
 	"vogon",
 	&vogon_init,
 	&vogon_exit

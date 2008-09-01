@@ -112,7 +112,7 @@ GelUISignalDef _player_signals[] = {
  * Init/Exit functions 
  */
 G_MODULE_EXPORT gboolean eina_player_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaPlayer   *self;
 	GtkWidget    *playlist_widget;
@@ -139,17 +139,17 @@ G_MODULE_EXPORT gboolean eina_player_init
 	gtk_widget_show_all(W(self, "seek-volume-box"));
 
 	/* Insert cover */
-	if (!g_hub_load(HUB(self), "cover")) {
+	if (!gel_hub_load(HUB(self), "cover")) {
 		gel_warn("Cannot load cover");
 		gtk_widget_hide(W(self, "cover-button"));
 	}
 
 	/* Load settings */
-	if (!g_hub_load(HUB(self), "settings")) {
+	if (!gel_hub_load(HUB(self), "settings")) {
 		gel_warn("Cannot load settings");
 		return FALSE;
 	}
-	self->conf = g_hub_shared_get(HUB(self), "settings");
+	self->conf = gel_hub_shared_get(HUB(self), "settings");
 
 	/* Reference hub.
 	 * hub has the master control over the program exit.
@@ -223,13 +223,13 @@ G_MODULE_EXPORT gboolean eina_player_init
 	gtk_widget_hide(W(self, "dock-expander"));
 	gtk_widget_hide(W(self, "open-files"));
 
-	if (!g_hub_load(HUB(self), "playlist")) {
+	if (!gel_hub_load(HUB(self), "playlist")) {
 		gtk_widget_show_all(W(self, "open-files"));
         e_warn("Cannot load playlist");
         goto player_show;
     }	
 
-	if ((self->playlist = (EinaPlaylist *) g_hub_shared_get(HUB(self), "playlist")) == NULL) {
+	if ((self->playlist = (EinaPlaylist *) gel_hub_shared_get(HUB(self), "playlist")) == NULL) {
 		gtk_widget_show_all(W(self, "open-files"));
 		e_warn("Cannot create playlist object");
 		goto player_show;
@@ -285,9 +285,9 @@ G_MODULE_EXPORT gboolean eina_player_exit
 	
 	/* Unload */
 	if (self->playlist != NULL) 
-		g_hub_unload(HUB(self), "playlist");
-	g_hub_unload(HUB(self), "cover");
-	g_hub_unload(HUB(self), "settings");
+		gel_hub_unload(HUB(self), "playlist");
+	gel_hub_unload(HUB(self), "cover");
+	gel_hub_unload(HUB(self), "settings");
 
 	/* XXX: Free our data */
 	eina_base_fini((EinaBase *) self);
@@ -604,7 +604,7 @@ void on_player_settings_change(EinaConf *conf, gchar *key, EinaPlayer *self) {
 /* * * * * * */
 /* Connector */
 /* * * * * * */
-G_MODULE_EXPORT GHubSlave player_connector = {
+G_MODULE_EXPORT GelHubSlave player_connector = {
 	"player",
 	&eina_player_init,
 	&eina_player_exit,

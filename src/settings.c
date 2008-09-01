@@ -13,7 +13,7 @@ gboolean _settings_load(EinaConf *conf);
  * Init/Exit functions 
  */
 G_MODULE_EXPORT gboolean settings_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaConf *conf;
 	gchar *out;
@@ -25,7 +25,7 @@ G_MODULE_EXPORT gboolean settings_init
 	eina_conf_set_filename(conf, out);
 	g_free(out);
 
-	if (!g_hub_shared_set(hub, "settings", conf))
+	if (!gel_hub_shared_set(hub, "settings", conf))
 		goto fail;
 
 	_settings_load(conf);
@@ -52,7 +52,7 @@ gboolean _settings_load(EinaConf *conf) {
 	return FALSE;
 }
 
-G_MODULE_EXPORT GHubSlave settings_connector = {
+G_MODULE_EXPORT GelHubSlave settings_connector = {
 	"settings",
 	&settings_init,
 	&settings_exit

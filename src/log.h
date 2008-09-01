@@ -1,11 +1,15 @@
-#ifndef __TEMPLATE_H__
-#define __TEMPLATE_H__
+#ifndef _LOG_H
+#define _LOG_H
 
-#include "libghub/ghub.h"
+#include <gel/gel.h>
+
+G_BEGIN_DECLS
 
 typedef struct _EinaLog EinaLog;
 
-gboolean log_init(GHub *hub, gint *argc, gchar ***argv);
+gboolean log_init(GelHub *hub, gint *argc, gchar ***argv);
 gboolean log_exit(gpointer data);
 
-#endif
+G_END_DECLS
+
+#endif // _LOG_H

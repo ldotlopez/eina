@@ -110,6 +110,8 @@ gel_app_resource_get_pathname(GelAppResourceType type, gchar *resource);
 gchar *
 gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_parents, gint mode);
 
+#include <gel/gel-hub.h>
+
 G_END_DECLS
 
 #endif // _GEL_H

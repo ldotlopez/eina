@@ -11,13 +11,13 @@ void xxx_ugly_hack(void)
 	gel_io_async_read_op_new(NULL);
 }
 
-void on_app_dispose(GHub *app, gpointer data)
+void on_app_dispose(GelHub *app, gpointer data)
 {
 	gchar **modules = (gchar **) data;
 	gint i = -1;
 
 	while(modules[++i]);
-	while(i) g_hub_unload(app, modules[--i]);
+	while(i) gel_hub_unload(app, modules[--i]);
 
 	exit(0);
 }
@@ -25,7 +25,7 @@ void on_app_dispose(GHub *app, gpointer data)
 gint            main
                 (gint argc, gchar * argv[])
 {
-	GHub           *app;
+	GelHub           *app;
 	gint            i = 0;
 	gchar          *modules[] = { /* "log", */ "lomo", "player", "iface", "playlist", /* "vogon" , */ NULL};
 	gchar          *tmp;
@@ -44,14 +44,14 @@ gint            main
 	g_mkdir(tmp, 00700);
 	g_free(tmp);
 
-	app = g_hub_new(&argc, &argv);
-	g_hub_set_dispose_callback(app, on_app_dispose, modules);
+	app = gel_hub_new(&argc, &argv);
+	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 
 	while (modules[i])
-		g_hub_load(app, modules[i++]);
+		gel_hub_load(app, modules[i++]);
 
-	eina_iface_load_plugin(g_hub_shared_get(app, "iface"), "recently");
-	// eina_iface_load_plugin(g_hub_shared_get(app, "iface"), "lastfminfo");
+	eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "recently");
+	// eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "lastfminfo");
 
 	gtk_main();
 	return 0;

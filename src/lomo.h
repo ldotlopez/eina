@@ -3,7 +3,7 @@
 
 #include "libghub/ghub.h"
 
-gboolean eina_lomo_init(GHub *hub, gint *argc, gchar ***argv);
+gboolean eina_lomo_init(GelHub *hub, gint *argc, gchar ***argv);
 gboolean eina_lomo_fini(gpointer data);
 
 #endif

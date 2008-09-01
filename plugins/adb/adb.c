@@ -75,7 +75,7 @@ void adb_check_db(EinaAdb *self) {
 /*
  * Init/Exit functions 
  */
-G_MODULE_EXPORT gboolean adb_init(GHub *hub, gint argc, gchar *argv[]) {
+G_MODULE_EXPORT gboolean adb_init(GelHub *hub, gint argc, gchar *argv[]) {
 	EinaAdb *self;
 	gchar   *db_path;
 	
@@ -150,9 +150,9 @@ G_MODULE_EXPORT gboolean adb_exit(EinaAdb *self) {
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */
 /* * * * * * * * * * * * * * * * * * */
-G_MODULE_EXPORT GHubSlave adb_connector = {
+G_MODULE_EXPORT GelHubSlave adb_connector = {
 	"adb",
-	(GHubSlaveInitFunc) &adb_init,
-	(GHubSlaveExitFunc) &adb_exit
+	(GelHubSlaveInitFunc) &adb_init,
+	(GelHubSlaveExitFunc) &adb_exit
 };
 

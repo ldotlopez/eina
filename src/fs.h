@@ -101,7 +101,7 @@ GSList *eina_fs_filter_filter
 /* * * * * * * * * * * */
 /* EinaFs Dialog Class */
 /* * * * * * * * * * * */
-gboolean eina_fs_init(GHub *hub, gint *argc, gchar ***argv);
+gboolean eina_fs_init(GelHub *hub, gint *argc, gchar ***argv);
 gboolean eina_fs_exit(gpointer data);
 
 GtkWidget *eina_fs_create_dialog(EinaFs *self, EinaFsMode mode);

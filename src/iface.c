@@ -37,7 +37,7 @@ eina_iface_dock_init(EinaIFace *self);
 
 // Watch for load of player in case it's not already loaded before us
 void
-on_eina_iface_hub_load(GHub *hub, const gchar *modname, gpointer data);
+on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data);
 
 // LomoPlayer signals
 void
@@ -72,7 +72,7 @@ void
 on_eina_iface_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, gpointer data);
 
 G_MODULE_EXPORT gboolean eina_iface_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaIFace *self;
 	gint i;
@@ -109,7 +109,7 @@ G_MODULE_EXPORT gboolean eina_iface_init
 			(GCallback) signals[i].callback, self);
 	}
 
-	if ((self->player = g_hub_shared_get(HUB(self), "player")) == NULL)
+	if ((self->player = gel_hub_shared_get(HUB(self), "player")) == NULL)
 	{
 		gel_warn("Player is not loaded, schuld. dock setup");
 		g_signal_connect(hub, "module-load", G_CALLBACK(on_eina_iface_hub_load), self);
@@ -130,7 +130,7 @@ G_MODULE_EXPORT gboolean eina_iface_exit
 	return TRUE;
 }
 
-GHub *eina_iface_get_hub(EinaIFace *self)
+GelHub *eina_iface_get_hub(EinaIFace *self)
 {
 	return HUB(self);
 }
@@ -217,7 +217,7 @@ gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 			plugin->priv->pathname = g_strdup(plugin_filename);
 			plugin->priv->mod      = mod;
 			plugin->priv->iface    = self;
-			plugin->priv->lomo     = g_hub_shared_get(G_HUB(HUB(self)), "lomo");
+			plugin->priv->lomo     = gel_hub_shared_get(GEL_HUB(HUB(self)), "lomo");
 
 			self->plugins = g_list_append(self->plugins, plugin);
 
@@ -450,14 +450,14 @@ eina_plugin_get_iface(EinaPlugin *plugin)
 	return plugin->priv->iface;
 }
 
-void on_eina_iface_hub_load(GHub *hub, const gchar *modname, gpointer data)
+void on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data)
 {
 	EinaIFace  *self = (EinaIFace *) data;
 
 	if (!g_str_equal(modname, "player"))
 		return;
 
-	if ((self->player = g_hub_shared_get(hub, "player")) == NULL)
+	if ((self->player = gel_hub_shared_get(hub, "player")) == NULL)
 		return;
 
 	eina_iface_dock_init(self);
@@ -605,7 +605,7 @@ on_eina_iface_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, gpointer data)
 	magic(all_tags, stream, magic_arg);
 }
 
-G_MODULE_EXPORT GHubSlave iface_connector = {
+G_MODULE_EXPORT GelHubSlave iface_connector = {
 	"iface",
 	&eina_iface_init,
 	&eina_iface_exit

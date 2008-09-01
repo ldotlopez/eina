@@ -28,7 +28,7 @@ hooktest_exit(EinaPlugin *self)
 }
 
 EINA_PLUGIN_FUNC EinaPlugin*
-hooktest_init(GHub *app, EinaIFace *iface)
+hooktest_init(GelHub *app, EinaIFace *iface)
 {
 	EinaPlugin *self = eina_plugin_new(iface,
 		"hooktest", "test-cap", (gpointer) 0xdeadbeaf, hooktest_exit,

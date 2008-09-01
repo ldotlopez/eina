@@ -39,7 +39,7 @@ GelUISignalDef _template_signals[] = {
  * Init/Exit functions 
  */
 G_MODULE_EXPORT gboolean template_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaTemplate *self;
 
@@ -56,7 +56,7 @@ G_MODULE_EXPORT gboolean template_init
 	 * - template.glade was automagicaly loaded if exists
 	 * - You have 4 macros to access resources:
 	 *   LOMO(self):   access to LomoPlayer
-	 *   HUB(self):    access the GHub
+	 *   HUB(self):    access the GelHub
 	 *   UI(self):     access GladeXML from template.glade
 	 *   W(self,name): returns the GtkWidget named 'name' from template.glade
 	 */
@@ -107,7 +107,7 @@ G_MODULE_EXPORT gboolean template_exit
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */
 /* * * * * * * * * * * * * * * * * * */
-G_MODULE_EXPORT GHubSlave template_connector = {
+G_MODULE_EXPORT GelHubSlave template_connector = {
 	"template",
 	&template_init,
 	&template_exit

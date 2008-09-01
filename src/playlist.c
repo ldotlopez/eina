@@ -146,7 +146,7 @@ enum {
  * Init/Exit functions 
  */
 G_MODULE_EXPORT gboolean playlist_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaPlaylist *self;
 	gint i;
@@ -176,8 +176,8 @@ G_MODULE_EXPORT gboolean playlist_init
 	}
 
 	/* Load and/or ref settings module */
-	if (g_hub_load(HUB(self), "settings")) {
-		self->conf = g_hub_shared_get(HUB(self), "settings");
+	if (gel_hub_load(HUB(self), "settings")) {
+		self->conf = gel_hub_shared_get(HUB(self), "settings");
 		g_signal_connect(self->conf, "change",
 			G_CALLBACK(on_pl_settings_change), self);
 	} else {
@@ -261,7 +261,7 @@ G_MODULE_EXPORT gboolean playlist_init
 	i = eina_conf_get_int(self->conf, "/playlist/last_current", 0); 
 	lomo_player_go_nth(LOMO(self), i);
 
-	if ((iface = g_hub_shared_get(hub, "iface")) == NULL) {
+	if ((iface = gel_hub_shared_get(hub, "iface")) == NULL) {
 		gel_error("Cannot get EinaIFace");
 		return FALSE;
 	}
@@ -304,9 +304,9 @@ G_MODULE_EXPORT gboolean playlist_exit
 	i = lomo_player_get_current(LOMO(self));
 	eina_conf_set_int(self->conf, "/playlist/last_current", i);
 
-	g_hub_unload(HUB(self), "settings");
+	gel_hub_unload(HUB(self), "settings");
 
-	eina_iface_dock_remove(g_hub_shared_get(HUB(self), "iface"), "playlist");
+	eina_iface_dock_remove(gel_hub_shared_get(HUB(self), "iface"), "playlist");
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
@@ -946,7 +946,7 @@ void on_pl_settings_change(EinaConf *conf, const gchar *key, gpointer data) {
 /*
  * Connector
  */
-G_MODULE_EXPORT GHubSlave playlist_connector = {
+G_MODULE_EXPORT GelHubSlave playlist_connector = {
 	"playlist",
 	&playlist_init,
 	&playlist_exit

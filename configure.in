@@ -162,7 +162,6 @@ AC_OUTPUT([
 Makefile
 debian/Makefile
 gel/Makefile
-libghub/Makefile
 misc/Makefile
 misc/eina.desktop
 pixmaps/Makefile

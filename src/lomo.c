@@ -2,13 +2,12 @@
 #include <gmodule.h>
 #include <liblomo/player.h>
 #include <gel/gel.h>
-#include "lomo.h"
 
 /*
  * Init and fini functions
  */
 G_MODULE_EXPORT gboolean eina_lomo_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	GError   *err = NULL;
 	LomoPlayer *engine = NULL;
@@ -23,9 +22,9 @@ G_MODULE_EXPORT gboolean eina_lomo_init
 		return FALSE;
 	}
 
-    if (!g_hub_shared_set(hub, "lomo", engine))
+    if (!gel_hub_shared_set(hub, "lomo", engine))
 	{
-		gel_error("Cannot allocate engine into GHub");
+		gel_error("Cannot allocate engine into GelHub");
 		g_object_unref(engine);
         return FALSE;
     }
@@ -41,9 +40,9 @@ G_MODULE_EXPORT gboolean eina_lomo_fini
 }
 
 /*
- * GHub Slave
+ * GelHub Slave
  */
-G_MODULE_EXPORT GHubSlave lomo_connector =
+G_MODULE_EXPORT GelHubSlave lomo_connector =
 {
 	"lomo",
 	&eina_lomo_init,

@@ -4,14 +4,13 @@
 #include <gtk/gtk.h>
 #include <liblomo/player.h>
 #include <gel/gel.h>
-#include "libghub/ghub.h"
 
 G_BEGIN_DECLS
 
 /* Base type for all components/plugins */
 typedef struct EinaBase {
 	gchar      *name;
-	GHub       *hub;
+	GelHub       *hub;
 	LomoPlayer *lomo;
 	GtkBuilder *ui;
 } EinaBase;
@@ -21,9 +20,9 @@ typedef enum {
 	EINA_BASE_GTK_UI
 } EinaBaseFlag;
 
-gboolean    eina_base_init    (EinaBase *self, GHub *hub, gchar *name, EinaBaseFlag flags);
+gboolean    eina_base_init    (EinaBase *self, GelHub *hub, gchar *name, EinaBaseFlag flags);
 void        eina_base_fini    (EinaBase *self);
-GHub       *eina_base_get_hub (EinaBase *self);
+GelHub       *eina_base_get_hub (EinaBase *self);
 LomoPlayer *eina_base_get_lomo(EinaBase *self);
 GtkBuilder *eina_base_get_ui  (EinaBase *self);
 

@@ -464,7 +464,7 @@ recently_exit(EinaPlugin *self)
 }
 
 EINA_PLUGIN_FUNC EinaPlugin*
-recently_init(GHub *app, EinaIFace *iface)
+recently_init(GelHub *app, EinaIFace *iface)
 {
 	gchar *path;
 

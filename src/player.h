@@ -5,11 +5,11 @@
 #ifndef __EINA_PLAYER_H__
 #define __EINA_PLAYER_H__
 
-#include "libghub/ghub.h"
+#include <gel/gel.h>
 
 typedef struct _EinaPlayer EinaPlayer;
 
-gboolean eina_player_init(GHub *hub, gint *argc, gchar ***argv);
+gboolean eina_player_init(GelHub *hub, gint *argc, gchar ***argv);
 gboolean eina_player_exit(gpointer data);
 
 void eina_player_switch_state_play (EinaPlayer *self);

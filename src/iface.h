@@ -4,12 +4,12 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <liblomo/player.h>
+#include <gel/gel.h>
 #include <gel/gel-ui.h>
+
 #ifdef EINA_COMPILATION
-#include "libghub/ghub.h"
 #include "fs.h"
 #else
-#include <eina/ghub.h>
 #include <eina/fs.h>
 #endif
 
@@ -51,7 +51,7 @@ typedef struct EinaPlugin
 	EinaPluginPrivate *priv;
 } EinaPlugin;
 
-typedef EinaPlugin* (*EinaPluginInitFunc) (GHub *app, EinaIFace *iface);
+typedef EinaPlugin* (*EinaPluginInitFunc) (GelHub *app, EinaIFace *iface);
 typedef gboolean    (*EinaPluginExitFunc) (EinaPlugin *self);
 #define EINA_PLUGIN_FUNC G_MODULE_EXPORT
 // #define EINA_PLUGIN_DATA(x) (((EinaPlugin *)x)->data)
@@ -72,7 +72,7 @@ eina_plugin_get_iface(EinaPlugin *plugin);
 #endif
 
 
-GHub *
+GelHub *
 eina_iface_get_hub(EinaIFace *self);
 
 /*

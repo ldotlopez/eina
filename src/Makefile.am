@@ -36,6 +36,5 @@ eina_LDADD = \
 
 eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	-static $(top_builddir)/gel/libgel.la \
-	-static $(top_builddir)/libghub/libghub.la \
 	--no-gc-sections
 

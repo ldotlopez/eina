@@ -19,7 +19,7 @@ void on_notify_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaNotify *sel
 /*
  * Init/Exit functions 
  */
-G_MODULE_EXPORT gboolean eina_notify_init(GHub *hub, gint argc, gchar *argv[]) {
+G_MODULE_EXPORT gboolean eina_notify_init(GelHub *hub, gint argc, gchar *argv[]) {
 	EinaNotify *self;
 
 	self = g_new0(EinaNotify, 1);
@@ -69,9 +69,9 @@ void on_notify_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaNotify *sel
 	g_free(album);
 }
 
-G_MODULE_EXPORT GHubSlave notify_connector = {
+G_MODULE_EXPORT GelHubSlave notify_connector = {
 	"notify",
-	(GHubSlaveInitFunc) &eina_notify_init,
-	(GHubSlaveExitFunc) &eina_notify_exit
+	(GelHubSlaveInitFunc) &eina_notify_init,
+	(GelHubSlaveExitFunc) &eina_notify_exit
 };
 

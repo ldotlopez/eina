@@ -584,7 +584,7 @@ struct _EinaFs {
 };
 
 G_MODULE_EXPORT gboolean eina_fs_init
-(GHub *hub, gint *argc, gchar ***argv)
+(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaFs *self;
 
@@ -815,7 +815,7 @@ GtkWidget *eina_fs_create_dialog(EinaFs *self, EinaFsMode mode) {
 	return self->widget;
 }
 
-G_MODULE_EXPORT GHubSlave fs_connector = {
+G_MODULE_EXPORT GelHubSlave fs_connector = {
 	"fs",
 	&eina_fs_init,
 	&eina_fs_exit

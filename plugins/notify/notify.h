@@ -10,7 +10,7 @@
 
 typedef struct _EinaNotify EinaNotify;
 
-gboolean eina_notify_init(GHub *hub, gint argc, gchar *argv[]);
+gboolean eina_notify_init(GelHub *hub, gint argc, gchar *argv[]);
 gboolean eina_notify_exit(EinaNotify *self);
 
 #endif

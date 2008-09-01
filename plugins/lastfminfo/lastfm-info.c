@@ -110,7 +110,7 @@ lastfm_info_exit(EinaPlugin *self)
 }
 
 EINA_PLUGIN_FUNC EinaPlugin*
-lastfminfo_init(GHub *app, EinaIFace *iface)
+lastfminfo_init(GelHub *app, EinaIFace *iface)
 {
 	gchar *icon_pathname;
 

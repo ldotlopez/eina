@@ -1,11 +1,11 @@
 #ifndef __COVER_H__
 #define __COVER_H__
 
-#include "libghub/ghub.h"
+#include <gel/gel.h>
 
 typedef struct _EinaCover EinaCover;
 
-gboolean cover_init(GHub *hub, gint *argc, gchar ***argv);
+gboolean cover_init(GelHub *hub, gint *argc, gchar ***argv);
 gboolean cover_exit (gpointer data);
 
 /* * * * * * * * * * */

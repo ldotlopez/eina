@@ -3,18 +3,18 @@
 #include "base.h"
 
 gboolean eina_base_init
-(EinaBase *self, GHub *hub, gchar *name, EinaBaseFlag flags)
+(EinaBase *self, GelHub *hub, gchar *name, EinaBaseFlag flags)
 {
 	GError *err = NULL;
 
 	/* Try to get our place in hub */
-	if (!g_hub_shared_set(hub, name, (gpointer) self)) {
+	if (!gel_hub_shared_set(hub, name, (gpointer) self)) {
 		return FALSE;
 	}
 
 	self->name = g_strdup(name);
 	self->hub  = hub;
-	self->lomo = (LomoPlayer *) g_hub_shared_get(hub, "lomo");
+	self->lomo = (LomoPlayer *) gel_hub_shared_get(hub, "lomo");
 
 	if (flags & EINA_BASE_GTK_UI) {
 		// self->ui = gtk_ext_load_ui(self->name);
@@ -39,7 +39,7 @@ void eina_base_fini(EinaBase *self) {
 	g_free(self);
 }
 
-GHub *eina_base_get_hub(EinaBase *self) {
+GelHub *eina_base_get_hub(EinaBase *self) {
 	return self->hub;
 }
 
