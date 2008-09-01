@@ -2,8 +2,7 @@
 #include <gmodule.h>
 #include <libnotify/notify.h>
 #include <gel/gel.h>
-#include "config.h"
-#include "base.h"
+#include <eina/base.h>
 #include "notify.h"
 
 struct _EinaNotify {
@@ -28,7 +27,7 @@ G_MODULE_EXPORT gboolean eina_notify_init(GelHub *hub, gint argc, gchar *argv[])
 		return FALSE;
 	}
 
-	if (!notify_init(PACKAGE_NAME)) {
+	if (!notify_init("eina")) {
 		return FALSE;
 	}
 

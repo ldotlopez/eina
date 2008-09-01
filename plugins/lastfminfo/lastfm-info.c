@@ -6,7 +6,7 @@
 #include <WebKit/webkitwebview.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include "iface.h"
+#include <eina/iface.h>
 
 typedef struct LastFMInfoData {
 	GtkWidget *dock_widget;

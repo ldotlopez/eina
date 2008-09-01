@@ -1,5 +1,5 @@
 #define GEL_DOMAIN "Eina::Plugin::HookTest"
-#include "iface.h"
+#include <eina/iface.h>
 
 void
 on_hooktest_change(LomoPlayer *lomo, gint from, gint to, EinaPlugin *self)

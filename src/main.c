@@ -27,7 +27,7 @@ gint            main
 {
 	GelHub           *app;
 	gint            i = 0;
-	gchar          *modules[] = { /* "log", */ "lomo", "player", "iface", "playlist", /* "vogon" , */ NULL};
+	gchar          *modules[] = { "log", "lomo", "player", "iface", "playlist", /* "vogon" , */ NULL};
 	gchar          *tmp;
 
 #ifdef ENABLE_NLS

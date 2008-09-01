@@ -2,7 +2,7 @@
 #include <sqlite3.h>
 #include <glib.h>
 #include <gel/gel-ui.h>
-#include "base.h"
+#include <eina/base.h>
 #include "adb.h"
 
 /* * * * * * * * * * */

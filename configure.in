@@ -172,7 +172,7 @@ plugins/lastfminfo/Makefile
 plugins/notify/Makefile
 plugins/recently/Makefile
 po/Makefile.in
-src/Makefile
+eina/Makefile
 ui/Makefile
 ])
 

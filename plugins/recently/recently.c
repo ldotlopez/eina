@@ -4,7 +4,6 @@
 
 #include <string.h>
 #include <glib/gstdio.h>
-#include "iface.h"
 #include "recently.h"
 #include "scores.h"
 
