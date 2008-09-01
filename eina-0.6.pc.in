@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+datarootdir=${prefix}/share
+datadir=${datarootdir}
+sysconfdir=/etc
+
+Name: Eina
+Description: Eina music player
+Version: @EINA_VERSION@
+Requires: gtk+-2.0 liblomo-1.0
+Cflags: -I${includedir}/eina-@EINA_API_VERSION@
+

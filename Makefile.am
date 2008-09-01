@@ -5,6 +5,9 @@
 SUBDIRS = gel misc pixmaps plugins eina po ui misc debian
 DIST_SUBDIRS = gel misc pixmaps plugins po eina ui misc debian
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = eina-@EINA_API_VERSION@.pc
+
 EXTRA_DIST = \
 	intltool-extract.in \
 	intltool-merge.in \

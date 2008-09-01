@@ -1,10 +1,10 @@
 plugindir = $(libdir)/$(PACKAGE)/hooktest
 
 plugin_LTLIBRARIES = libhooktest.la
-libhooktest_la_LDFLAGS = @PACKAGE_LIBS@ @GMODULE_LIBS@ -module -avoid-version
+libhooktest_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 libhooktest_la_SOURCES = hook-test.c
 
-AM_CFLAGS = @PACKAGE_CFLAGS@ @GMODULE_CFLAGS@
+AM_CFLAGS = @PACKAGE_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
 
 install-data-local: 

@@ -1,10 +1,10 @@
 plugindir = $(libdir)/$(PACKAGE)/adb
 
 plugin_LTLIBRARIES = libadb.la
-libadb_la_LDFLAGS = @PACKAGE_LIBS@ @GMODULE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
+libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
 libadb_la_SOURCES = adb.c adb.h
 
-AM_CFLAGS = @PACKAGE_CFLAGS@ @GMODULE_CFLAGS@ @SQLITE3_CFLAGS@
+AM_CFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
 
 install-data-local: 

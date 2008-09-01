@@ -1,12 +1,12 @@
 plugindir = $(libdir)/$(PACKAGE)/recently
 
 plugin_LTLIBRARIES = librecently.la
-librecently_la_LDFLAGS = @PACKAGE_LIBS@ @GMODULE_LIBS@ -module -avoid-version
+librecently_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 librecently_la_SOURCES = \
 	scores.c   scores.h \
 	recently.c recently.h
 
-AM_CFLAGS = @PACKAGE_CFLAGS@ @GMODULE_CFLAGS@
+AM_CFLAGS = @PACKAGE_CFLAGS@ 
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
 
 install-data-local: 

@@ -1,4 +1,3 @@
-dnl Process this file with autoconf to produce a configure script.
 AC_INIT([eina], 0.6.0, xuzo@cuarentaydos.com)
 AM_INIT_AUTOMAKE([eina], [0.6.0])
 AM_CONFIG_HEADER(config.h)
@@ -9,18 +8,14 @@ ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
 AC_PROG_CC
 AC_ISC_POSIX
-dnl AM_PROG_CC_STDC <- Is useless?
 AC_HEADER_STDC
 AC_PROG_INTLTOOL
 AM_PROG_LIBTOOL
 
-dnl
-dnl Debug support
-dnl
-AC_ARG_ENABLE(debug, [  --disable-debug         compile with debug enable)],disable_debug=yes, disable_debug=no)
-if test "x$disable_debug" = "xno"; then
-	DEBUG_CFLAGS="$PACKAGE_CFLAGS -g -pg"
-fi
+EINA_API_VERSION="0.6"
+EINA_VERSION="$EINA_API_VERSION.1"
+AC_SUBST(EINA_VERSION)
+AC_SUBST(EINA_API_VERSION)
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
@@ -34,26 +29,37 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
 AM_GLIB_GNU_GETTEXT
 
-dnl In the future consider to:
-dnl  Add dbus interface
-dnl  Include some gnome deps (gconf)
-pkg_modules="glib-2.0 >= 2.14, \
-	gmodule-2.0 >= 2.14, \
-	gio-2.0 >= 2.16, \
-	gtk+-2.0 >= 2.12, \
-	liblomo-1.0 >= 0.94.0"
-dnl	WebKitGtk = 1d, \
+#dnl i18n Stuff
+#GETTEXT_PACKAGE=eina
+#AC_SUBST(GETTEXT_PACKAGE)
+#AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
+#ALL_LINGUAS="es ca"
+#AM_GLIB_GNU_GETTEXT
+
+GLIB_VERSION="2.16"
+GTK_VERSION="2.12"
+LIBLOMO_VERSION="0.94.0"
+
+pkg_modules="\
+	glib-2.0 >= $GLIB_VERSION,      \
+	gmodule-2.0 >= $GLIB_VERSION,   \
+	gio-2.0 >= $GLIB_VERSION,       \
+	gtk+-2.0 >= $GTK_VERSION,       \
+	liblomo-1.0 >= $LIBLOMO_VERSION"
 PKG_CHECK_MODULES(PACKAGE, $pkg_modules)
+AC_SUBST(PACKAGE_CFLAGS)
+AC_SUBST(PACKAGE_LIBS)
+PACKAGE_CFLAGS="\
+	$PACKAGE_CFLAGS \
+	-DG_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
+	-DGEL_DISABLE_DEPRECATED -DGEL_UI_DISABLE_DEPRECATED \
+	-Wall -Werror -g"
+AC_SUBST(LIBLOMO_VERSION)
 
-dnl gmodule is used by shared object aka plugins
-gmodule_modules="gmodule-2.0 >= 2.14"
-PKG_CHECK_MODULES(GMODULE, $gmodule_modules)
-AC_SUBST(GMODULE_CFLAGS)
-AC_SUBST(GMODULE_LIBS)
+PACKAGE_RELEASE_DATE="`date -R`"
+AC_SUBST(PACKAGE_RELEASE_DATE)
 
-dnl
-dnl Check for curl, cover is a core-component
-dnl
+dnl curl (eina-cover)
 AC_PATH_PROG(CURL_CONFIG, curl-config)
 if test -z "$CURL_CONFIG"; then
 	HAVE_CURL="no"
@@ -64,15 +70,14 @@ else
 	CURL_LIBS="`$CURL_CONFIG --libs`"
 	HAVE_CURL="yes"
 fi
-
+AC_SUBST(CURL_CXXFLAGS)
+AC_SUBST(CURL_LIBS)
 
 dnl
 dnl Plugins
 dnl
 
-dnl
-dnl sqlite3 flags for adb plugin
-dnl
+dnl sqlite3 (adb)
 sqlite3_modules="sqlite3 >= 3.2"
 PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 	[
@@ -86,9 +91,7 @@ PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 	)
 AM_CONDITIONAL(USE_ADB, test x"$HAVE_SQLITE3" = "xyes")
 
-dnl
-dnl libnotify plugin
-dnl
+dnl libnotify (notify)
 libnotify_modules="libnotify >= 0.4.0"
 PKG_CHECK_MODULES(LIBNOTIFY, $libnotify_modules,
      [
@@ -103,9 +106,7 @@ PKG_CHECK_MODULES(LIBNOTIFY, $libnotify_modules,
     )
 AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
 
-dnl
-dnl LastfmInfo plugin
-dnl
+dnl webkit (LastfmInfo)
 webkitgtk_modules="WebKitGtk = 1d"
 PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
      [
@@ -119,60 +120,26 @@ PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
     )
 AM_CONDITIONAL(USE_LASTFMINFO, test x"$HAVE_WEBKITGTK" = "xyes")
 
-PACKAGE_CFLAGS="$PACKAGE_CFLAGS $CURL_CXXFLAGS -DEINA_COMPILATION -DG_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED -DGEL_DISABLE_DEPRECATED -DGEL_UI_DISABLE_DEPRECATED"
-PACKAGE_CFLAGS="$PACKAGE_CFLAGS -Werror -Wall"
-PACKAGE_LIBS="$PACKAGE_LIBS $CURL_LIBS"
-AC_SUBST(PACKAGE_CFLAGS)
-AC_SUBST(PACKAGE_LIBS)
-
-dnl
-dnl Check for working sink
-dnl
-dnl AM_GST_ELEMENT_CHECK(osssink, HAVE_OSSSINK=yes,  HAVE_OSSSINK=no)
-dnl if ...
-dnl 	AC_MSG_ERROR([message])
-dnl fi
-
-dnl
-dnl Check for codecs support
-dnl
-dnl AM_GST_ELEMENT_CHECK(playbin,   HAVE_PLAYBIN=yes, HAVE_PLAYBIN=no)
-dnl AM_GST_ELEMENT_CHECK(mad,       HAVE_MP3=yes,     HAVE_MP3=no)
-dnl AM_GST_ELEMENT_CHECK(vorbisdec, HAVE_OGG=yes,     HAVE_OGG=no)
-dnl AM_GST_ELEMENT_CHECK(wavparse,  HAVE_WAV=yes,     HAVE_WAV=no)
-dnl AM_GST_ELEMENT_CHECK(flacdec,   HAVE_FLAC=yes,    HAVE_FLAC=no)
-
-dnl
-dnl GConf Stuff
-dnl AC_PATH_PROG(GCONFTOOL, gconftool-2)
-dnl AM_GCONF_SOURCE_2
-dnl
-
-dnl
-dnl i18n Stuff
-dnl 
-GETTEXT_PACKAGE=eina
-AC_SUBST(GETTEXT_PACKAGE)
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
-ALL_LINGUAS="es ca"
-AM_GLIB_GNU_GETTEXT
-
 dnl Keep in alphabetical order
 AC_OUTPUT([
-Makefile
+debian/changelog
+debian/control
+debian/eina-dev.install
 debian/Makefile
+eina-0.6.pc
+eina/Makefile
 gel/Makefile
-misc/Makefile
+Makefile
 misc/eina.desktop
+misc/Makefile
 pixmaps/Makefile
-plugins/Makefile
-plugins/hooktest/Makefile
 plugins/adb/Makefile
+plugins/hooktest/Makefile
 plugins/lastfminfo/Makefile
+plugins/Makefile
 plugins/notify/Makefile
 plugins/recently/Makefile
 po/Makefile.in
-eina/Makefile
 ui/Makefile
 ])
 

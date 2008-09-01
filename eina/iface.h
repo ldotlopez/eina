@@ -6,12 +6,7 @@
 #include <liblomo/player.h>
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
-
-#ifdef EINA_COMPILATION
-#include "fs.h"
-#else
 #include <eina/fs.h>
-#endif
 
 typedef struct _EinaIFace EinaIFace;
 
@@ -108,13 +103,8 @@ eina_iface_dock_switch(EinaIFace *self, gchar *id);
 #define eina_iface_warn(...)  gel_debug(GEL_DEBUG_LEVEL_WARN,  __VA_ARGS__)
 #define eina_iface_error(...) gel_debug(GEL_DEBUG_LEVEL_ERROR, __VA_ARGS__)
 
-/*
- * Internal functions related to EinaIFace but not for plugins
- */
-#ifdef EINA_COMPILATION
 gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name);
 gboolean eina_iface_unload_plugin(EinaIFace *self, gchar *id);
-#endif
 
 /*
  * Create/free a EinaPlugin struct

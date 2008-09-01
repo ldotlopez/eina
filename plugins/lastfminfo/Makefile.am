@@ -2,11 +2,11 @@ plugindir = $(libdir)/$(PACKAGE)/lastfminfo
 
 plugin_LTLIBRARIES = liblastfminfo.la
 
-liblastfminfo_la_LDFLAGS = @PACKAGE_LIBS@ @GMODULE_LIBS@ @WEBKITGTK_LIBS@ -module -avoid-version
+liblastfminfo_la_LDFLAGS = @PACKAGE_LIBS@ @WEBKITGTK_LIBS@ -module -avoid-version
 liblastfminfo_la_SOURCES = lastfm-info.c
 
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
-AM_CFLAGS = @PACKAGE_CFLAGS@ @GMODULE_CFLAGS@ @WEBKITGTK_CFLAGS@
+AM_CFLAGS = @PACKAGE_CFLAGS@ @WEBKITGTK_CFLAGS@
 
 EXTRA_DIST = lastfm-icon.png
 
