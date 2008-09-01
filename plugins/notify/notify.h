@@ -1,16 +1,16 @@
-#ifndef __NOTIFY_H__
-#define __NOTIFY_H__
-
-#ifndef MY_DOMAIN
-#define MY_DOMAIN "Eina::Notify"
-#endif
+#ifndef _NOTIFY_H
+#define _NOTIFY_H
 
 #include <glib.h>
-#include "libghub/ghub.h"
+#include <gel/gel.h>
+
+G_BEGIN_DECLS
 
 typedef struct _EinaNotify EinaNotify;
 
 gboolean eina_notify_init(GelHub *hub, gint argc, gchar *argv[]);
 gboolean eina_notify_exit(EinaNotify *self);
 
-#endif
+G_END_DECLS
+
+#endif // _NOTIFY_H
