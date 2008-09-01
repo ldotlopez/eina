@@ -22,7 +22,7 @@ noinst_LTLIBRARIES = libgel.la
 
 libgel_la_SOURCES =         \
 	gel.c \
-	gel-hub.c gel.hub.h \
+	gel-hub.c gel-hub.h \
 	gel-hub-marshal.c gel-hub-marshal.h \
 	gel-ui.c \
 	gel-io-async-read-op.c \
