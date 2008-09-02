@@ -2,3 +2,8 @@
 
 
 	* .: Changelog cleared. Let's do it right.
+	* ui/vogon.glade: Disable use of playlist module
+	* eina/player.c, eina/playlist.{c,h}: Delete functions for embed playlist
+	* eina/main.c: Re-enable vogon, log components
+	* eina/vogon.c: Disable handling of random/remove trying to get out some
+	warnings about GtkAction, GtkToggleAction and GtkWidget
