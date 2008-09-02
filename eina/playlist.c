@@ -29,7 +29,7 @@ struct _EinaPlaylist {
 	/* Internal links */
 	EinaConf     *conf;
 
-	GtkWidget    *embedable_widget;
+	GtkWidget    *dock;
 	GtkTreeView  *tv;
 	GtkListStore *model;
 	const gchar *title_fmtstr;
@@ -39,7 +39,7 @@ EinaFsFilterAction
 eina_playlist_fs_filter(GFileInfo *info);
 
 GtkWidget *
-eina_playlist_dock_new(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
+eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
 
 void
 eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemState state);
@@ -214,8 +214,7 @@ G_MODULE_EXPORT gboolean playlist_init
 		g_free(tmp);
 	}
 
-	self->embedable_widget = eina_playlist_dock_new(self, &(self->tv), &(self->model));
-
+	self->dock = eina_playlist_dock_init(self, &(self->tv), &(self->model));
 	// Disable search, needs refactorization
 	/*
 	gtk_tree_view_set_search_column(tv, PLAYLIST_COLUMN_TITLE);
@@ -266,9 +265,9 @@ G_MODULE_EXPORT gboolean playlist_init
 		return FALSE;
 	}
 
-	gtk_widget_show_all(self->embedable_widget);
+	gtk_widget_show(self->dock);
 	return eina_iface_dock_add(iface, "playlist",
-		self->embedable_widget, gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU));
+		self->dock, gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU));
 }
 
 G_MODULE_EXPORT gboolean playlist_exit
@@ -312,7 +311,7 @@ G_MODULE_EXPORT gboolean playlist_exit
 }
 
 GtkWidget *
-eina_playlist_dock_new(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model)
+eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model)
 {
 	GtkWidget    *ret;
 	GtkTreeView  *_tv;
@@ -383,17 +382,6 @@ eina_playlist_dock_new(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore 
 		*model = _model;
 
 	return ret;
-}
-
-GtkWidget *playlist_get_widget(EinaPlaylist *self) {
-	if (
-		(self->embedable_widget != NULL) &&
-		(self->embedable_widget->parent == NULL)) {
-		return self->embedable_widget;
-	} else {
-		gel_error("playlist_get_widget");
-		return NULL;
-	}
 }
 
 void eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemState state) {

@@ -219,44 +219,9 @@ G_MODULE_EXPORT gboolean eina_player_init
 	self->playlist = NULL;
 	playlist_widget = NULL;
 	goto player_show;
-#if 0
-	gtk_widget_hide(W(self, "dock-expander"));
-	gtk_widget_hide(W(self, "open-files"));
-
-	if (!gel_hub_load(HUB(self), "playlist")) {
-		gtk_widget_show_all(W(self, "open-files"));
-        e_warn("Cannot load playlist");
-        goto player_show;
-    }	
-
-	if ((self->playlist = (EinaPlaylist *) gel_hub_shared_get(HUB(self), "playlist")) == NULL) {
-		gtk_widget_show_all(W(self, "open-files"));
-		e_warn("Cannot create playlist object");
-		goto player_show;
-	}
-
-	if ((playlist_widget = playlist_get_widget(self->playlist)) == NULL) {
-		gtk_widget_show_all(W(self, "open-files"));
-		e_warn("Cannot get playlist widget");
-		goto player_show;
-	}
-
-	gtk_container_add(
-		GTK_CONTAINER(W(self, "dock-expander")),
-		playlist_widget);
-	gtk_widget_show_all(W(self, "dock-expander"));
-
-	if (eina_conf_get_bool(self->conf, "/player/playlist_expanded", TRUE)) {
-		gtk_expander_set_expanded(GTK_EXPANDER(W(self, "dock-expander")), TRUE);
-	}
-	else {
-		gtk_expander_set_expanded(GTK_EXPANDER(W(self, "dock-expander")), FALSE);
-	}
-#endif
 
 player_show:
 	gtk_widget_show_all(W(self, "open-files"));
-	// gtk_ext_multiple_signal_connect_from_def(UI(self), _player_signals, self);
 	gel_ui_signal_connect_from_def_multiple(UI(self), _player_signals, self, NULL);
 	g_signal_connect(self->conf, "change", G_CALLBACK(on_player_settings_change), self);
 	gtk_widget_show(W(self, "main-window"));
@@ -274,7 +239,6 @@ G_MODULE_EXPORT gboolean eina_player_exit
 
 	/* Stop seek timer */
 	if (self->seek != NULL) {
-		// eina_player_seek_free(self->seek);
 		g_object_unref(self->seek);
 	}
 	if (self->volume != NULL) {
