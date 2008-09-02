@@ -5,6 +5,7 @@ includedir=${prefix}/include
 datarootdir=${prefix}/share
 datadir=${datarootdir}
 sysconfdir=/etc
+pluginsdir=${exec_prefix}/lib/eina
 
 Name: Eina
 Description: Eina music player
