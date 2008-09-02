@@ -22,12 +22,12 @@ void on_app_dispose(GelHub *app, gpointer data)
 	exit(0);
 }
 
-gint            main
-                (gint argc, gchar * argv[])
+gint main
+(gint argc, gchar * argv[])
 {
 	GelHub           *app;
 	gint            i = 0;
-	gchar          *modules[] = { "log", "lomo", "player", "iface", "playlist", /* "vogon" , */ NULL};
+	gchar          *modules[] = { "lomo", "log", "player", "iface", "playlist", "vogon" , NULL};
 	gchar          *tmp;
 
 #ifdef ENABLE_NLS
