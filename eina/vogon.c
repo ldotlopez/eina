@@ -3,7 +3,6 @@
 #include "base.h"
 #include "vogon.h"
 #include "player.h"
-#include "playlist.h"
 #include "settings.h"
 #include "fs.h"
 #include <gmodule.h>
@@ -17,7 +16,6 @@ struct _EinaVogon {
 
 	// Add your own fields here
 	EinaConf      *conf;
-	// EinaFsFilter  *stream_filter;
 	GtkStatusIcon *icon;
 	GtkWidget     *widget;
 	GtkWidget     *menu;
@@ -25,8 +23,6 @@ struct _EinaVogon {
 
 	gint player_x, player_y;
 };
-
-gboolean vogon_load_playlist(EinaVogon *self);
 
 /* * * * * * * * * */
 /* Lomo Callbacks */
@@ -37,7 +33,6 @@ gboolean vogon_load_playlist(EinaVogon *self);
 /* * * * * * * * */
 /* UI Callbacks  */
 /* * * * * * * * */
-void on_vogon_menu_show_playlist_activate(GtkWidget *w, EinaVogon *self);
 void on_vogon_menu_activate(GtkWidget *w, EinaVogon *self);
 gboolean on_vogon_destroy(GtkWidget *w, EinaVogon *self);
 gboolean on_vogon_activate(GtkWidget *w , EinaVogon *self);
@@ -58,10 +53,6 @@ void on_vogon_popup_menu(GtkWidget *w, guint button, guint activate_time, EinaVo
 /* Signal definitions  */
 /* * * * * * * * * * * */
 GelUISignalDef _vogon_signals[] = {
-	{ "vogon-playlist-window", "delete-event",
-		G_CALLBACK(gtk_widget_hide_on_delete) },
-	{ "vogon-menu-show-playlist", "activate",
-		G_CALLBACK(on_vogon_menu_show_playlist_activate) },
 	{ "vogon-menu-play", "activate",
 		G_CALLBACK(on_vogon_menu_activate) },
 	{ "vogon-menu-stop", "activate",
@@ -72,10 +63,12 @@ GelUISignalDef _vogon_signals[] = {
 		G_CALLBACK(on_vogon_menu_activate) },
 	{ "vogon-menu-next", "activate",
 		G_CALLBACK(on_vogon_menu_activate) },
+		/*
 	{ "vogon-menu-repeat", "toggled",
 		G_CALLBACK(on_vogon_menu_activate) },
 	{ "vogon-menu-random", "toggled",
 		G_CALLBACK(on_vogon_menu_activate) },
+		*/
 	{ "vogon-menu-clear-playlist", "activate",
 		G_CALLBACK(on_vogon_menu_activate) },
 	{ "vogon-menu-quit", "activate",
@@ -111,7 +104,6 @@ G_MODULE_EXPORT gboolean vogon_init(GelHub *hub, gint *argc, gchar ***argv) {
 
 	/* Crete icon */
 	self->icon   = gtk_status_icon_new();
-	// gtk_ext_load_imagedef_to_pixbuf(img_def, &pixbuf);
 	pixbuf = gel_ui_load_pixbuf_from_imagedef(img_def, &err);
 	if (pixbuf == NULL) {
 		gel_error("Cannot load image '%s': %s", img_def.image, err->message);
@@ -138,36 +130,18 @@ G_MODULE_EXPORT gboolean vogon_init(GelHub *hub, gint *argc, gchar ***argv) {
 		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
+
 	self->conf = gel_hub_shared_get(hub, "settings");
+	/*
+	gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(W(self, "vogon-menu-repeat")),
+		eina_conf_get_bool(self->conf, "/core/repeat", FALSE));
+	gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(W(self, "vogon-menu-random")),
+		eina_conf_get_bool(self->conf, "/core/random", FALSE));
+	*/
 	g_signal_connect(
 		self->conf, "change",
 		G_CALLBACK(on_vogon_settings_change), self);
-	/*
-	g_signal_connect(
-		G_OBJECT(self->icon), "destroy",
-		G_CALLBACK(on_vogon_destroy), self);
-	g_signal_connect(
-		G_OBJECT(self->widget), "destroy",
-		G_CALLBACK(on_vogon_destroy), self);
-	g_signal_connect(
-		G_OBJECT(self->widget), "button_press_event",
-		G_CALLBACK(on_vogon_button_press_event), self);
-	g_signal_connect(
-		G_OBJECT(self->widget), "drag_data_received",
-		G_CALLBACK(on_vogon_drag_data_received), self);
-	*/
-#if 0
-	self->stream_filter = eina_fs_filter_new();
-	eina_fs_filter_add_suffix(self->stream_filter, ".mp3");
-	eina_fs_filter_add_suffix(self->stream_filter, ".ogg");
-	eina_fs_filter_add_suffix(self->stream_filter, ".wav");
-	eina_fs_filter_add_suffix(self->stream_filter, ".flac");
 
-	g_idle_add((GSourceFunc) vogon_load_playlist, self);
-
-
-	// gtk_widget_show_all(GTK_WIDGET(self->icon));
-#endif
 	return TRUE;
 }
 
@@ -194,45 +168,9 @@ void vogon_menu_show(EinaVogon *self) {
 	);
 }
 
-gboolean vogon_load_playlist(EinaVogon *self) {
-	EinaPlaylist  *pl;
-	GtkWidget     *pl_widget;
-
-	/* Load playlist */
-
-	if (!gel_hub_load(HUB(self), "playlist")) 
-		goto fail;
-
-	if ((pl = gel_hub_shared_get(HUB(self), "playlist")) == NULL)
-		goto fail;
-
-	if ((pl_widget = playlist_get_widget(pl)) == NULL)
-		goto fail;
-
-	gtk_container_add(GTK_CONTAINER(W(self, "vogon-playlist-window")), pl_widget);
-	gtk_widget_hide_on_delete(W(self, "vogon-playlist-window"));
-	
-	return FALSE;
-
-fail:
-	gel_warn("Cannot load playlist, disabling 'Show playlist item'");
-	gtk_widget_hide(W(self, "vogon-menu-show-playlist"));
-	gtk_widget_hide(W(self, "vogon-menu-separator-1"));
-	return FALSE;
-}
-
-void vogon_show_playlist(EinaVogon *self) {
-	gtk_widget_show(W(self, "vogon-playlist-window"));
-}
-
 /* * * * * * * * * * * * * */
 /* Implement UI Callbacks  */
 /* * * * * * * * * * * * * */
-void on_vogon_menu_show_playlist_activate(GtkWidget *w, EinaVogon *self) {
-	vogon_show_playlist(self);
-}
-
-
 void on_vogon_popup_menu(GtkWidget *w, guint button, guint activate_time, EinaVogon *self) {
     gtk_menu_popup(
         GTK_MENU(W(self, "vogon-menu")),
@@ -268,6 +206,7 @@ void on_vogon_menu_activate(GtkWidget *w, EinaVogon *self) {
 		lomo_player_go_next(LOMO(self));
 	}
 
+	/*
 	else if ( w == W(self, "vogon-menu-repeat")) {
 		lomo_player_set_repeat(
 			LOMO(self),
@@ -285,6 +224,7 @@ void on_vogon_menu_activate(GtkWidget *w, EinaVogon *self) {
 			self->conf, "/core/random",
 			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(w)));
 	}
+			*/
 
 	else if ( w == W(self, "vogon-menu-clear-playlist")) {
 		lomo_player_clear(LOMO(self));
@@ -293,7 +233,6 @@ void on_vogon_menu_activate(GtkWidget *w, EinaVogon *self) {
 	
 	else if ( w == W(self, "vogon-menu-quit")) {
 		g_object_unref(HUB(self));
-		// vogon_exit(self);
 	}
 
 	else {
@@ -381,6 +320,7 @@ void on_vogon_drag_data_received
 }
 
 void on_vogon_settings_change(EinaConf *conf, const gchar *key, EinaVogon *self) {
+/*
 	if (g_str_equal(key, "/core/repeat")) {
 		gtk_toggle_action_set_active (
 			GTK_TOGGLE_ACTION(W(self, "vogon-menu-repeat")),
@@ -392,6 +332,7 @@ void on_vogon_settings_change(EinaConf *conf, const gchar *key, EinaVogon *self)
 			GTK_TOGGLE_ACTION(W(self, "vogon-menu-random")),
 			eina_conf_get_bool(conf, "/core/random", TRUE));
 	}
+	*/
 }
 
 /* * * * * * * * * * ** * * */

@@ -1,231 +1,134 @@
-<?xml version="1.0" standalone="no"?> <!--*- mode: xml -*-->
-<!DOCTYPE glade-interface SYSTEM "http://glade.gnome.org/glade-2.0.dtd">
-
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
+<!--*- mode: xml -*-->
 <glade-interface>
-
-<widget class="GtkMenu" id="vogon-menu">
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-show-playlist">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Show playlist</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image264">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-stock-table-fill</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkSeparatorMenuItem" id="vogon-menu-separator-1">
-      <property name="visible">True</property>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-play">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Play</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image265">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-media-play</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-pause">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Pause</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image266">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-media-pause</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-stop">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Stop</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image267">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-media-stop</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkSeparatorMenuItem" id="separador3">
-      <property name="visible">True</property>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-prev">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Previous</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image268">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-media-previous</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-next">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Next</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image269">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-media-next</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-clear-playlist">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Clear playlist</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image270">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-clear</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkSeparatorMenuItem" id="separador5">
-      <property name="visible">True</property>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkCheckMenuItem" id="vogon-menu-repeat">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Repeat</property>
-      <property name="use_underline">True</property>
-      <property name="active">False</property>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkCheckMenuItem" id="vogon-menu-random">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Random</property>
-      <property name="use_underline">True</property>
-      <property name="active">False</property>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkSeparatorMenuItem" id="separador4">
-      <property name="visible">True</property>
-    </widget>
-  </child>
-
-  <child>
-    <widget class="GtkImageMenuItem" id="vogon-menu-quit">
-      <property name="visible">True</property>
-      <property name="label" translatable="yes">Quit</property>
-      <property name="use_underline">True</property>
-
-      <child internal-child="image">
-	<widget class="GtkImage" id="image271">
-	  <property name="visible">True</property>
-	  <property name="stock">gtk-quit</property>
-	  <property name="icon_size">1</property>
-	  <property name="xalign">0.5</property>
-	  <property name="yalign">0.5</property>
-	  <property name="xpad">0</property>
-	  <property name="ypad">0</property>
-	</widget>
-      </child>
-    </widget>
-  </child>
-</widget>
-
-<widget class="GtkWindow" id="vogon-playlist-window">
-  <property name="title" translatable="yes">Playlist</property>
-  <property name="type">GTK_WINDOW_TOPLEVEL</property>
-  <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">False</property>
-  <property name="resizable">True</property>
-  <property name="destroy_with_parent">False</property>
-  <property name="decorated">True</property>
-  <property name="skip_taskbar_hint">False</property>
-  <property name="skip_pager_hint">False</property>
-  <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
-  <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
-  <property name="focus_on_map">True</property>
-  <property name="urgency_hint">False</property>
-
-  <child>
-    <placeholder/>
-  </child>
-</widget>
-
+  <widget class="GtkMenu" id="vogon-menu">
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-play">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Play</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image265">
+            <property name="visible">True</property>
+            <property name="stock">gtk-media-play</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-pause">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Pause</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image266">
+            <property name="visible">True</property>
+            <property name="stock">gtk-media-pause</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-stop">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Stop</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image267">
+            <property name="visible">True</property>
+            <property name="stock">gtk-media-stop</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkSeparatorMenuItem" id="separador3">
+        <property name="visible">True</property>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-prev">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Previous</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image268">
+            <property name="visible">True</property>
+            <property name="stock">gtk-media-previous</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-next">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Next</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image269">
+            <property name="visible">True</property>
+            <property name="stock">gtk-media-next</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-clear-playlist">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Clear playlist</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image270">
+            <property name="visible">True</property>
+            <property name="stock">gtk-clear</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkSeparatorMenuItem" id="separador5">
+        <property name="visible">True</property>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkCheckMenuItem" id="vogon-menu-repeat">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Repeat</property>
+        <property name="use_underline">True</property>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkCheckMenuItem" id="vogon-menu-random">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Random</property>
+        <property name="use_underline">True</property>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkSeparatorMenuItem" id="separador4">
+        <property name="visible">True</property>
+      </widget>
+    </child>
+    <child>
+      <widget class="GtkImageMenuItem" id="vogon-menu-quit">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Quit</property>
+        <property name="use_underline">True</property>
+        <child internal-child="image">
+          <widget class="GtkImage" id="image271">
+            <property name="visible">True</property>
+            <property name="stock">gtk-quit</property>
+            <property name="icon_size">1</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+  </widget>
 </glade-interface>
