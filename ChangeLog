@@ -7,3 +7,7 @@
 	* eina/main.c: Re-enable vogon, log components
 	* eina/vogon.c: Disable handling of random/remove trying to get out some
 	warnings about GtkAction, GtkToggleAction and GtkWidget
+	* eina-0.6.pc.in: Added variable pluginsdir
+	* ui/vogon.glade, ui/vogon.gladep: Deleted
+	* ui/Makefile.in: Remove references to vogon interface
+	* src/vogon.{c,h}: Update to use GtkUIManager API

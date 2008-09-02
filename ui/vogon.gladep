@@ -1,8 +1,0 @@
-<?xml version="1.0" standalone="no"?> <!--*- mode: xml -*-->
-<!DOCTYPE glade-project SYSTEM "http://glade.gnome.org/glade-project-2.0.dtd">
-
-<glade-project>
-  <name>Eina</name>
-  <program_name>eina</program_name>
-  <gnome_help_support>TRUE</gnome_help_support>
-</glade-project>

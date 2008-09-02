@@ -5,10 +5,7 @@ EXTRA_DIST = \
 	player.gtkui \
 	playlist.glade \
 	playlist.gladep \
-	playlist.gtkui \
-	vogon.glade \
-	vogon.gladep \
-	vogon.gtkui
+	playlist.gtkui
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/$(PACKAGE)/ui; \
@@ -21,14 +18,11 @@ uninstall-local:
 		rm -- $(DESTDIR)$(datadir)/$(PACKAGE)/ui/$$ui; \
 	done
 
-BUILT_SOURCES = player.gtkui playlist.gtkui vogon.gtkui
+BUILT_SOURCES = player.gtkui playlist.gtkui
 
 player.gtkui: player.glade
 	gtk-builder-convert $< $@
 
 playlist.gtkui: playlist.glade
-	gtk-builder-convert $< $@
-
-vogon.gtkui: vogon.glade
 	gtk-builder-convert $< $@
 

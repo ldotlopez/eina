@@ -1,5 +1,6 @@
 #define GEL_DOMAIN "Eina::Vogon"
 
+#include <string.h>
 #include "base.h"
 #include "vogon.h"
 #include "player.h"
@@ -21,6 +22,8 @@ struct _EinaVogon {
 	GtkWidget     *menu;
 	guint          tooltip_show_timeout_id;
 
+	GtkUIManager  *ui_mng;
+
 	gint player_x, player_y;
 };
 
@@ -33,7 +36,7 @@ struct _EinaVogon {
 /* * * * * * * * */
 /* UI Callbacks  */
 /* * * * * * * * */
-void on_vogon_menu_activate(GtkWidget *w, EinaVogon *self);
+void on_vogon_menu_activate(GtkAction *action, EinaVogon *self);
 gboolean on_vogon_destroy(GtkWidget *w, EinaVogon *self);
 gboolean on_vogon_activate(GtkWidget *w , EinaVogon *self);
 void on_vogon_drag_data_received
@@ -47,43 +50,30 @@ void on_vogon_drag_data_received
 	EinaVogon *self);
 
 void on_vogon_settings_change(EinaConf *conf, const gchar *key, EinaVogon *self);
-void on_vogon_popup_menu(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
-
-/* * * * * * * * * * * */
-/* Signal definitions  */
-/* * * * * * * * * * * */
-GelUISignalDef _vogon_signals[] = {
-	{ "vogon-menu-play", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-	{ "vogon-menu-stop", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-	{ "vogon-menu-pause", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-	{ "vogon-menu-prev", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-	{ "vogon-menu-next", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-		/*
-	{ "vogon-menu-repeat", "toggled",
-		G_CALLBACK(on_vogon_menu_activate) },
-	{ "vogon-menu-random", "toggled",
-		G_CALLBACK(on_vogon_menu_activate) },
-		*/
-	{ "vogon-menu-clear-playlist", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-	{ "vogon-menu-quit", "activate",
-		G_CALLBACK(on_vogon_menu_activate) },
-
-	GEL_UI_SIGNAL_DEF_NONE
-};
-
-void on_gel_hub_load(GelHub *hub, const gchar *name) {
-	gel_info("Got loaded %s", name);
-}
+void on_vogon_menu_popup(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
 
 /*
  * Init/Exit functions 
  */
+
+static const gchar ui_def[] =
+"<ui>"
+"	<popup name='MainMenu'>"
+"		<menuitem action='Play'  />"
+"		<menuitem action='Pause' />"
+"		<menuitem action='Stop'  />"
+"		<separator />"
+"		<menuitem action='Next' />"
+"		<menuitem action='Previous'  />"
+"		<separator />"
+"		<menuitem action='Repeat' />"
+"		<menuitem action='Shuffle' />"
+"		<separator />"
+"		<menuitem action='Clear' />"
+"		<menuitem action='Quit' />"
+"	</popup>"
+"</ui>";
+
 G_MODULE_EXPORT gboolean vogon_init(GelHub *hub, gint *argc, gchar ***argv) {
 	EinaVogon *self;
 	GdkPixbuf *pixbuf  = NULL;
@@ -93,11 +83,37 @@ G_MODULE_EXPORT gboolean vogon_init(GelHub *hub, gint *argc, gchar ***argv) {
 		24, 24
 	};
 
+	GtkActionGroup *ag;
+
+	const GtkActionEntry ui_actions[] = {
+		/* Menu actions */
+		{ "Play", GTK_STOCK_MEDIA_PLAY, N_("Play"),
+			"<alt>x", "Play", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Pause", GTK_STOCK_MEDIA_PAUSE, N_("Pause"),
+			"<alt>c", "Pause", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Stop", GTK_STOCK_MEDIA_STOP, N_("Stop"),
+			"<alt>v", "Stop", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Next", GTK_STOCK_MEDIA_NEXT, N_("Next"),
+			"<alt>b", "Next stream", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"),
+			"<alt>z", "Previous stream", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Clear", GTK_STOCK_CLEAR, N_("C_lear"),
+			"<alt>l", "Clear playlist", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Quit", GTK_STOCK_QUIT, N_("_Quit"),
+			"<alt>q", "Quit Eina", G_CALLBACK(on_vogon_menu_activate) }
+	};
+	const GtkToggleActionEntry ui_toggle_actions[] = {
+		{ "Shuffle", NULL, N_("Shuffle"),
+			"<alt>s", "Shuffle playlist", G_CALLBACK(on_vogon_menu_activate) },
+		{ "Repeat", NULL , N_("Repeat"),
+			"<alt>r", "Repeat playlist", G_CALLBACK(on_vogon_menu_activate) }
+	};
+
 	/*
 	 * Create mem in hub (if needed)
 	 */
 	self = g_new0(EinaVogon, 1);
-	if(!eina_base_init((EinaBase *) self, hub, "vogon", EINA_BASE_GTK_UI)) {
+	if(!eina_base_init((EinaBase *) self, hub, "vogon", EINA_BASE_NONE)) {
 		gel_error("Cannot create component");
 		return FALSE;
 	}
@@ -115,32 +131,43 @@ G_MODULE_EXPORT gboolean vogon_init(GelHub *hub, gint *argc, gchar ***argv) {
 	gtk_status_icon_set_from_pixbuf(self->icon, pixbuf);
 
 	/* Create menu */
-	g_signal_connect(
-		G_OBJECT(self->icon), "popup-menu",
-		G_CALLBACK(on_vogon_popup_menu), self);
-	g_signal_connect(
-		G_OBJECT(self->icon), "activate",
-		G_CALLBACK(on_vogon_activate), self);
-	gel_ui_signal_connect_from_def_multiple(UI(self), _vogon_signals, self, NULL);
+	self->ui_mng = gtk_ui_manager_new();
+	gtk_ui_manager_add_ui_from_string(self->ui_mng, ui_def, -1, NULL);
+
+	ag = gtk_action_group_new("default");
+	gtk_action_group_add_actions(ag, ui_actions, G_N_ELEMENTS(ui_actions), self);
+	gtk_action_group_add_toggle_actions(ag, ui_toggle_actions, G_N_ELEMENTS(ui_toggle_actions), self);
+
+	gtk_ui_manager_insert_action_group(self->ui_mng, ag, 0);
+	gtk_ui_manager_ensure_update(self->ui_mng);
+
+	self->menu = gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu");
+
+	g_signal_connect(self->icon, "popup-menu",
+		G_CALLBACK(on_vogon_menu_popup), self);
 
 	/* Load settings */
 	if (!gel_hub_load(hub, "settings")) {
 		gel_error("Cannot load settings component");
+		g_object_unref(self->ui_mng);
 		g_object_unref(self->icon);
 		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
 
 	self->conf = gel_hub_shared_get(hub, "settings");
-	/*
-	gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(W(self, "vogon-menu-repeat")),
+
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat")),
 		eina_conf_get_bool(self->conf, "/core/repeat", FALSE));
-	gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(W(self, "vogon-menu-random")),
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
 		eina_conf_get_bool(self->conf, "/core/random", FALSE));
-	*/
+
 	g_signal_connect(
 		self->conf, "change",
 		G_CALLBACK(on_vogon_settings_change), self);
+	g_signal_connect(
+		G_OBJECT(self->icon), "activate",
+		G_CALLBACK(on_vogon_activate), self);
 
 	return TRUE;
 }
@@ -149,8 +176,12 @@ G_MODULE_EXPORT gboolean vogon_exit
 (gpointer data)
 {
 	EinaVogon *self = (EinaVogon *) data;
-	// eina_fs_filter_free(self->stream_filter);
+
+	g_object_unref(self->icon);
+	g_object_unref(self->ui_mng);
+
 	gel_hub_unload(HUB(self), "settings");
+
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
@@ -171,72 +202,68 @@ void vogon_menu_show(EinaVogon *self) {
 /* * * * * * * * * * * * * */
 /* Implement UI Callbacks  */
 /* * * * * * * * * * * * * */
-void on_vogon_popup_menu(GtkWidget *w, guint button, guint activate_time, EinaVogon *self) {
+void on_vogon_menu_popup(GtkWidget *w, guint button, guint activate_time, EinaVogon *self) {
     gtk_menu_popup(
-        GTK_MENU(W(self, "vogon-menu")),
-        NULL,
-        NULL,
-        NULL,
-        NULL,
+        GTK_MENU(self->menu),
+        NULL, NULL, NULL, NULL,
         button,
         activate_time
     );
 }
 
-void on_vogon_menu_activate(GtkWidget *w, EinaVogon *self) {
+void on_vogon_menu_activate(GtkAction *action, EinaVogon *self) {
 	GError *error = NULL;
-	
-	if ( w == W(self, "vogon-menu-play")) {
+	const gchar *name = gtk_action_get_name(action);
+
+	if (g_str_equal(name, "Play")) {
 		lomo_player_play(LOMO(self), &error);
 	}
 
-	else if ( w == W(self, "vogon-menu-pause")) {
+	else if (g_str_equal(name, "Pause")) {
 		lomo_player_pause(LOMO(self), &error);
 	}
 	
-	else if ( w == W(self, "vogon-menu-stop")) {
+	else if (g_str_equal(name, "Stop")) {
 		lomo_player_stop(LOMO(self), &error);
 	}
 
-	else if ( w == W(self, "vogon-menu-prev")) {
+	else if (g_str_equal(name, "Previous")) {
 		lomo_player_go_prev(LOMO(self));
 	}
 
-	else if ( w == W(self, "vogon-menu-next")) {
+	else if (g_str_equal(name, "Next")) {
 		lomo_player_go_next(LOMO(self));
 	}
 
-	/*
-	else if ( w == W(self, "vogon-menu-repeat")) {
+	else if (g_str_equal(name, "Repeat")) {
 		lomo_player_set_repeat(
 			LOMO(self),
-			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(w)));
+			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 		eina_conf_set_bool(
 			self->conf, "/core/repeat",
-			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(w)));
+			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 	}
 	
-	else if ( w == W(self, "vogon-menu-random")) {
+	else if (g_str_equal(name, "Shuffle")) {
 		lomo_player_set_random(
 			LOMO(self),
-			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(w)));
+			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 		eina_conf_set_bool(
 			self->conf, "/core/random",
-			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(w)));
+			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 	}
-			*/
 
-	else if ( w == W(self, "vogon-menu-clear-playlist")) {
+	else if (g_str_equal(name, "Clear")) {
 		lomo_player_clear(LOMO(self));
 	}
 
 	
-	else if ( w == W(self, "vogon-menu-quit")) {
+	else if (g_str_equal(name, "Quit")) {
 		g_object_unref(HUB(self));
 	}
 
 	else {
-		gel_warn("Unknow item");
+		gel_warn("Unknow item: %s", name);
 	}
 
 	if (error != NULL) {
@@ -320,24 +347,18 @@ void on_vogon_drag_data_received
 }
 
 void on_vogon_settings_change(EinaConf *conf, const gchar *key, EinaVogon *self) {
-/*
 	if (g_str_equal(key, "/core/repeat")) {
-		gtk_toggle_action_set_active (
-			GTK_TOGGLE_ACTION(W(self, "vogon-menu-repeat")),
+	    gtk_check_menu_item_set_active(
+			GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat")),
 			eina_conf_get_bool(conf, "/core/repeat", TRUE));
 	}
 	
 	else if (g_str_equal(key, "/core/random")) {
-		gtk_toggle_action_set_active (
-			GTK_TOGGLE_ACTION(W(self, "vogon-menu-random")),
+	    gtk_check_menu_item_set_active(
+			GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
 			eina_conf_get_bool(conf, "/core/random", TRUE));
 	}
-	*/
 }
-
-/* * * * * * * * * * ** * * */
-/* Implement Lomo Callbacks */
-/* * * * * * * * * * ** * * */
 
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */
