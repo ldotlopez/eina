@@ -13,7 +13,6 @@ eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 eina_LDADD = @PACKAGE_LIBS@ @CURL_LIBS@
 
 NOINST_H_FILES = \
-	class-base.h               \
 	class-conf-file.h          \
 	cover.h                    \
 	eina-file-chooser-dialog.h \
@@ -40,7 +39,6 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	base.c                     \
-	class-base.c               \
 	class-conf-file.c          \
 	cover.c                    \
 	eina-file-chooser-dialog.c \
