@@ -10,6 +10,7 @@ void on_eina_log_hub_module_load  (GelHub *hub, const gchar *name, gpointer data
 void on_eina_log_hub_module_unload(GelHub *hub, const gchar *name, gpointer data);
 void on_eina_log_hub_module_ref   (GelHub *hub, const gchar *name, guint refs, gpointer data);
 void on_eina_log_hub_module_unref (GelHub *hub, const gchar *name, guint refs, gpointer data);
+void on_eina_log_lomo_signal(gchar *signal);
 
 /*
  * Init/Exit functions 
@@ -17,6 +18,26 @@ void on_eina_log_hub_module_unref (GelHub *hub, const gchar *name, guint refs, g
 G_MODULE_EXPORT gboolean
 eina_log_init (GelHub *hub, gint *argc, gchar ***argv)
 {
+	const gchar *lomo_signals[] =
+	{
+		"play",
+		"pause",
+		"stop",
+		"seek",
+		"mute",
+		// "add",
+		// "del",
+		"change",
+		"clear",
+		"repeat",
+		"random",
+		"eos",
+		"error",
+		// "tag",
+		// "all_tags"
+	};
+	gint i;
+
 	g_signal_connect(gel_hub_shared_get(hub, "lomo"), "error",
 		G_CALLBACK(on_eina_log_lomo_error), NULL);
 
@@ -32,6 +53,9 @@ eina_log_init (GelHub *hub, gint *argc, gchar ***argv)
 	g_signal_connect(G_OBJECT(hub), "module-unref",
 		G_CALLBACK(on_eina_log_hub_module_unref), NULL);
 	
+	for (i = 0; i < G_N_ELEMENTS(lomo_signals); i++)
+		g_signal_connect_swapped(gel_hub_shared_get(hub, "lomo"), lomo_signals[i],
+		G_CALLBACK(on_eina_log_lomo_signal), (gpointer) lomo_signals[i]);
 	return TRUE;
 }
 
@@ -64,6 +88,10 @@ on_eina_log_hub_module_unref(GelHub *hub, const gchar *name, guint refs, gpointe
 	gel_info("Unreferenced module '%s': %d", name, refs);
 }
 
+void on_eina_log_lomo_signal(gchar *signal)
+{
+	gel_info("Lomo signal: %s", (gchar *) signal);
+}
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */
 /* * * * * * * * * * * * * * * * * * */

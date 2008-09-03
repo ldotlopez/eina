@@ -8,9 +8,12 @@
 	* src/main.c: Gel debug level set to 'warn'
 	* eina/iface.c: Adjust log level
 	* eina/class-base.{c,h}, eina/Makefile.am: Deleted class-base
-
 	* eina/base.{c,h}: Translation support for EinaBase and derivated
 	mini-classes, cleanups
+	* eina/playlist.c, ui/playlist.glade, plugins/recently/recently.c: Set some
+	ellipsize settings on playlist and recently plugin
+	* gel/gel.h, gel/gel.c, eina/log.c, eina/main.c: Preliminary support for
+	runtime configurable debug leve
 
 2008-09-02   xuzo <xuzo@cuarentaydos.com> 
 
