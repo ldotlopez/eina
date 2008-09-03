@@ -190,18 +190,18 @@ gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 
 		if ((mod = g_module_open(plugin_filename, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL)) == NULL)
 		{
-			gel_error("Cannot open %s", plugin_filename);
 			g_free(plugin_filename);
 			l = l->next;
 			continue;
 		}
 
-		// e_info("Plugin found: %s", plugin_filename);
 		if (!g_module_symbol(mod, plugin_symbol, &plugin_init)) {
-			gel_error("Unable to get plugin IFace");
+			gel_warn("Found matching plugin for '%s' at '%s' but has no symbol '%s'",
+				plugin_name,
+				plugin_filename,
+				plugin_symbol);
 			g_module_close(mod);
 		}
-		// e_info("plugin init func: %p", plugin_init);
 		g_free(plugin_filename);
 		break;
 
