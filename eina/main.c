@@ -38,6 +38,7 @@ gint main
 
 	gtk_init(&argc, &argv);
 	gel_init(PACKAGE_NAME, PACKAGE_DATA_DIR);
+	gel_set_debug_level(GEL_DEBUG_LEVEL_WARN);
 
 	g_setenv("G_BROKEN_FILENAMES", "1", TRUE);
 	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, NULL);

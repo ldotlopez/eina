@@ -5,6 +5,7 @@
 
 static gchar *_gel_package_name = NULL;
 static gchar *_gel_package_data_dir = NULL;
+static gint   _gel_debug_level = GEL_DEBUG_LEVEL_INFO;
 
 void _gel_atexit(void);
 
@@ -14,6 +15,18 @@ gel_init(gchar *name, gchar *data_dir)
 	_gel_package_name     = g_strdup(name);
 	_gel_package_data_dir = g_strdup(data_dir);
 	atexit(_gel_atexit);
+}
+
+GelDebugLevel
+gel_get_debug_level(void)
+{
+	return _gel_debug_level;
+}
+
+void
+gel_set_debug_level(GelDebugLevel level)
+{
+	_gel_debug_level = level;
 }
 
 void
@@ -38,9 +51,9 @@ gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const
 
 	va_list args;
 	char buffer[1025];
-	gboolean debugging = TRUE;
 
-	if (debugging == FALSE) return;
+	if (level < _gel_debug_level)
+		return;
 
 	va_start (args, format);
 	g_vsnprintf (buffer, 1024, format, args);

@@ -7,7 +7,7 @@ G_BEGIN_DECLS
 
 typedef enum GelDebugLevel
 {
-	GEL_DEBUG_LEVEL_INFO,
+	GEL_DEBUG_LEVEL_INFO = 0,
 	GEL_DEBUG_LEVEL_WARN,
 	GEL_DEBUG_LEVEL_ERROR,
 	GEL_DEBUG_LEVEL_APOCALIPSE,
@@ -59,6 +59,11 @@ gel_debug_real (const gchar *domain, GelDebugLevel level, const char *func, cons
 
 void
 gel_init(gchar *app_name, gchar *data_dir);
+
+GelDebugLevel
+gel_get_debug_level(void);
+void
+gel_set_debug_level(GelDebugLevel level);
 
 #define gel_glist_free(list, free_item, user_data) \
 	do { \
