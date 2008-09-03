@@ -348,8 +348,10 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 	gtk_tree_view_set_model(_tv, GTK_TREE_MODEL(_model));
 
 	/* Setup treeview step 3: set some properties */
-	g_object_set(G_OBJECT(title_renderer), "ellipsize-set", TRUE, NULL);
-
+	g_object_set(G_OBJECT(title_renderer),
+		"ellipsize-set", TRUE,
+		"ellipsize", PANGO_ELLIPSIZE_END,
+		NULL);
 	g_object_set(G_OBJECT(state_col),
 		"visible",   TRUE,
 		"resizable", FALSE,

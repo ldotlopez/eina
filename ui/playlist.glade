@@ -7,22 +7,29 @@
     <child>
       <widget class="GtkVBox" id="playlist-main-box">
         <property name="visible">True</property>
-        <property name="spacing">5</property>
         <child>
           <widget class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
             <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-            <property name="shadow_type">GTK_SHADOW_IN</property>
             <child>
               <widget class="GtkTreeView" id="playlist-treeview">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="reorderable">True</property>
               </widget>
             </child>
           </widget>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="hseparator1">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">5</property>
+            <property name="position">1</property>
+          </packing>
         </child>
         <child>
           <widget class="GtkHBox" id="hbox3">
@@ -148,7 +155,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </widget>

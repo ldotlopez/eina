@@ -294,6 +294,7 @@ GtkWidget *
 recently_dock_new(EinaPlugin *plugin)
 {
 	RecentlyData *self = (RecentlyData *) EINA_PLUGIN_GET_DATA(plugin);
+	GtkScrolledWindow *sw;
 	GtkTreeViewColumn *col, *col2;
 	GtkCellRenderer   *render;
 
@@ -333,7 +334,11 @@ recently_dock_new(EinaPlugin *plugin)
 
 	g_signal_connect(self->tv, "row-activated",
 		G_CALLBACK(on_recently_dock_row_activated), plugin);
-	return GTK_WIDGET(self->tv);
+	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
+
+	return GTK_WIDGET(sw);
 }
 
 void
