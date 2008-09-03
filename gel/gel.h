@@ -7,7 +7,9 @@ G_BEGIN_DECLS
 
 typedef enum GelDebugLevel
 {
-	GEL_DEBUG_LEVEL_INFO = 0,
+	GEL_DEBUG_LEVEL_VERBOSE = 0,
+	GEL_DEBUG_LEVEL_DEBUG,
+	GEL_DEBUG_LEVEL_INFO,
 	GEL_DEBUG_LEVEL_WARN,
 	GEL_DEBUG_LEVEL_ERROR,
 	GEL_DEBUG_LEVEL_APOCALIPSE,
@@ -40,17 +42,19 @@ typedef enum GelFileLoadCode {
  * Debug functions
  */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#define gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __func__, __FILE__, __LINE__, __VA_ARGS__)
+#define _gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __func__, __FILE__, __LINE__, __VA_ARGS__)
 #elif defined(__GNUC__) && __GNUC__ >= 3
-#define gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+#define _gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
 #else
-#define gel_debug
+#define _gel_debug
 #endif
 
-#define gel_info(...)       gel_debug(GEL_DEBUG_LEVEL_INFO, __VA_ARGS__)
-#define gel_warn(...)       gel_debug(GEL_DEBUG_LEVEL_WARN, __VA_ARGS__)
-#define gel_error(...)      gel_debug(GEL_DEBUG_LEVEL_ERROR, __VA_ARGS__)
-#define gel_apocalipse(...) gel_debug(GEL_DEBUG_LEVEL_APOCALIPSE, __VA_ARGS__)
+#define gel_verbose(...)    _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
+#define gel_debug(...)	    _gel_debug(GEL_DEBUG_LEVEL_DEBUG, __VA_ARGS__)
+#define gel_info(...)       _gel_debug(GEL_DEBUG_LEVEL_INFO, __VA_ARGS__)
+#define gel_warn(...)       _gel_debug(GEL_DEBUG_LEVEL_WARN, __VA_ARGS__)
+#define gel_error(...)      _gel_debug(GEL_DEBUG_LEVEL_ERROR, __VA_ARGS__)
+#define gel_apocalipse(...) _gel_debug(GEL_DEBUG_LEVEL_APOCALIPSE, __VA_ARGS__)
 #define gel_implement(...)  gel_warn("IMPLEMENT-ME -- " __VA_ARGS__)
 #define gel_fix(...)        gel_warn("FIX-ME -- " __VA_ARGS__)
 

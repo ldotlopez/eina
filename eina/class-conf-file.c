@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <glib-object.h>
 #include <glib/gstdio.h>
-#include <glib/gprintf.h>
 #include <gel/gel.h>
 #include "class-conf-file.h"
 
@@ -19,7 +18,8 @@
 /*
  * Value handling
  */
-typedef struct EinaConfValue {
+typedef struct EinaConfValue
+{
 	GType type;
 	union {
 		gboolean  _bool;
@@ -128,7 +128,8 @@ void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 	EinaConfValue *value = (EinaConfValue *) _value;
 	gchar *buff = NULL;
 
-	switch (value->type) {
+	switch (value->type)
+	{
 		case G_TYPE_BOOLEAN:
 			buff = g_strdup_printf("bool:%s=%d\n", key, value->value._bool);
 			break;
@@ -146,10 +147,11 @@ void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 			break;
 			
 		default:
-			g_printf("unknow(%s)\n", key);
+			gel_warn("unknow key type '%s'\n", key);
 	}
 
-	if (buff != NULL) {
+	if (buff != NULL)
+	{
 		write(priv->io_fd, buff, strlen(buff));
 		g_free(buff);
 	}
@@ -184,7 +186,7 @@ void eina_conf_load(EinaConf *self) {
 	
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	if (!g_file_get_contents(priv->filename, &buff, NULL, &error)) {
-		g_printf("Error: %s\n", error->message);
+		gel_error("Error loading '%s': %s\n", priv->filename, error->message);
 	   	g_error_free(error);
 		return;
 	}
@@ -229,7 +231,6 @@ void eina_conf_set(EinaConf *self, gchar *key, EinaConfValue *val) {
 		g_source_remove(priv->timeout_id);
 	priv->timeout_id = g_timeout_add(CLASS_CONF_FILE_TIMEOUT, (GSourceFunc) eina_conf_dump, self);
 
-	// priv->needs_update = TRUE;
 	g_signal_emit(G_OBJECT(self), eina_conf_signals[CHANGE], 0, key);
 }
 

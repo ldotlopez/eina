@@ -42,6 +42,8 @@ void
 gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...)
 {
     static const gchar *level_strs[] = {
+		"\033[1mVERBOSE\033[m",
+		"\033[1mDEBUG\033[m",
 		"\033[1mINFO\033[m",
 		"\033[1;33mWARN\033[m",
 		"\033[1;31mERROR\033[m",

@@ -13,7 +13,6 @@ typedef struct _EinaIFace EinaIFace;
 typedef struct _EinaPluginPrivate EinaPluginPrivate;
 typedef struct EinaPlugin
 {
-	// EinaIFace *iface;      // Interface for plugins
 	const gchar *name;     // Name of the plugin. Eg "test"
 	const gchar *provides; // "Capabilities" separated by comma. Eg. "playlist,cover"
 	gpointer data;         // Field to store data used by plugin
@@ -99,9 +98,11 @@ eina_iface_dock_remove(EinaIFace *self, gchar *id);
 gboolean
 eina_iface_dock_switch(EinaIFace *self, gchar *id);
 
-#define eina_iface_info(...)  gel_debug(GEL_DEBUG_LEVEL_INFO,  __VA_ARGS__)
-#define eina_iface_warn(...)  gel_debug(GEL_DEBUG_LEVEL_WARN,  __VA_ARGS__)
-#define eina_iface_error(...) gel_debug(GEL_DEBUG_LEVEL_ERROR, __VA_ARGS__)
+#define eina_iface_verbose(...) _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
+#define eina_iface_debug(...)   _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)
+#define eina_iface_info(...)    _gel_debug(GEL_DEBUG_LEVEL_INFO,    __VA_ARGS__)
+#define eina_iface_warn(...)    _gel_debug(GEL_DEBUG_LEVEL_WARN,    __VA_ARGS__)
+#define eina_iface_error(...)   _gel_debug(GEL_DEBUG_LEVEL_ERROR,   __VA_ARGS__)
 
 gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name);
 gboolean eina_iface_unload_plugin(EinaIFace *self, gchar *id);

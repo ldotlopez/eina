@@ -1,3 +1,17 @@
+2008-09-03   xuzo <xuzo@cuarentaydos.com> 
+
+
+	* macports/audio/eina/Portfile: Updated to 0.6.0
+	* src/vogon{c,h}: Minor changes in code and code style
+	* gel/gel.{c,h}: Added gel_get_debug_level and gel_set_debug_level to
+	control which messages to emit
+	* src/main.c: Gel debug level set to 'warn'
+	* eina/iface.c: Adjust log level
+	* eina/class-base.{c,h}, eina/Makefile.am: Deleted class-base
+
+	* eina/base.{c,h}: Translation support for EinaBase and derivated
+	mini-classes, cleanups
+
 2008-09-02   xuzo <xuzo@cuarentaydos.com> 
 
 

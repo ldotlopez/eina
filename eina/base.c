@@ -7,22 +7,21 @@ gboolean eina_base_init
 {
 	GError *err = NULL;
 
-	/* Try to get our place in hub */
-	if (!gel_hub_shared_set(hub, name, (gpointer) self)) {
+	if (!gel_hub_shared_set(hub, name, (gpointer) self))
 		return FALSE;
-	}
 
 	self->name = g_strdup(name);
 	self->hub  = hub;
 	self->lomo = (LomoPlayer *) gel_hub_shared_get(hub, "lomo");
 
-	if (flags & EINA_BASE_GTK_UI) {
-		// self->ui = gtk_ext_load_ui(self->name);
+	if (flags & EINA_BASE_GTK_UI)
+	{
 		self->ui = gel_ui_load_resource(self->name, &err);
-		if (!self->ui) {
-			gel_error("Error creating GelUI for '%s': %s", name, err->message);
+		if (self->ui == NULL)
+		{
+			gel_error(Q_("Error creating GelUI for '%s': %s"), name, err->message);
 			g_error_free(err);
-			g_free(self->name);
+			eina_base_fini(self);
 			return FALSE;
 		}
 	}
@@ -30,24 +29,34 @@ gboolean eina_base_init
 	return TRUE;
 }
 
-void eina_base_fini(EinaBase *self) {
-	if (self->ui != NULL) {
-		g_object_unref(self->ui);
+void eina_base_fini(EinaBase *self)
+{
+	if (self == NULL)
+	{
+		gel_warn(Q_("Trying to free a NULL pointer"));
+		return;
 	}
+		
+	if (self->ui != NULL)
+		g_object_unref(self->ui);
+	if (self->name != NULL)
+		g_free(self->name);
 
-	g_free(self->name);
 	g_free(self);
 }
 
-GelHub *eina_base_get_hub(EinaBase *self) {
+GelHub *eina_base_get_hub(EinaBase *self)
+{
 	return self->hub;
 }
 
-LomoPlayer *eina_base_get_lomo(EinaBase *self) {
+LomoPlayer *eina_base_get_lomo(EinaBase *self)
+{
 	return self->lomo;
 }
 
-GtkBuilder *eina_base_get_ui(EinaBase *self) {
+GtkBuilder *eina_base_get_ui(EinaBase *self)
+{
 	return self->ui;
 }
 

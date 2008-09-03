@@ -1,6 +1,8 @@
-#ifndef __EINA_BASE_H__
-#define __EINA_BASE_H__
+#ifndef _EINA_BASE_H
+#define _EINA_BASE_H
 
+#include <glib.h>
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <liblomo/player.h>
 #include <gel/gel.h>
@@ -20,19 +22,26 @@ typedef enum {
 	EINA_BASE_GTK_UI
 } EinaBaseFlag;
 
-gboolean    eina_base_init    (EinaBase *self, GelHub *hub, gchar *name, EinaBaseFlag flags);
-void        eina_base_fini    (EinaBase *self);
-GelHub       *eina_base_get_hub (EinaBase *self);
-LomoPlayer *eina_base_get_lomo(EinaBase *self);
-GtkBuilder *eina_base_get_ui  (EinaBase *self);
+gboolean
+eina_base_init(EinaBase *self, GelHub *hub, gchar *name, EinaBaseFlag flags);
+void
+eina_base_fini(EinaBase *self);
+
+GelHub*
+eina_base_get_hub (EinaBase *self);
+LomoPlayer*
+eina_base_get_lomo(EinaBase *self);
+GtkBuilder*
+eina_base_get_ui  (EinaBase *self);
 
 #define EINA_BASE(s) ((EinaBase *)s)
+#define LOMO(s)      ((EinaBase *)s)->lomo
+#define HUB(s)       ((EinaBase *)s)->hub
+#define UI(s)        ((EinaBase *)s)->ui
+#define W(s,n)       ((GtkWidget *)gtk_builder_get_object(UI(s),n))
+#define OBJ(s,n)     ((GtkObject *)gtk_builder_get_object(UI(s),n))
 
-#define LOMO(s) ((EinaBase *)s)->lomo
-#define HUB(s)  ((EinaBase *)s)->hub
-#define UI(s)   ((EinaBase *)s)->ui
-#define W(s,n)  ((GtkWidget *)gtk_builder_get_object(UI(s),n))
-
+/*
 #ifdef ENABLE_NLS
 #  include <libintl.h>
 #  undef _
@@ -51,8 +60,8 @@ GtkBuilder *eina_base_get_ui  (EinaBase *self);
 #  define _(String) (String)
 #  define N_(String) (String)
 #endif
-
+*/
 G_END_DECLS
 
-#endif
+#endif // _EINA_BASE_H
 
