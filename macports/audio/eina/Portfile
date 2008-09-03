@@ -1,20 +1,20 @@
 PortSystem 1.0
 
-name              eina-svn
-version           20080402
-categories        devel
+name              eina
+version           0.6.0
+categories        audio
 platforms         darwin
 maintainers       xuzo
-description       eina
-long_description  ${description}
+description       Eina music player
+long_description  ${description}, a classic player for the modern era
 
-homepage          http://www.ikossi.org/?page=eina-en
+homepage          http://eina.sourceforge.net/
 
-master_sites      http://bolgo.cent.uji.es/~xuzo/files
-checksums         md5 cc03713a516937ae33911b25042f7f4f
-distfiles         eina-0.0.0+svn20080402.tar.gz
+master_sites      http://kent.dl.sourceforge.net/eina
+checksums         md5 adb5bd724cb340314a4821ca4bbf8c11
+distfiles         eina-0.6.0.tar.gz
 
-depends_lib       port:gstreamer port:glib2 port:liblomo port:libglade2
+depends_lib       port:glib2 port:liblomo port:gtk2
 
-worksrcdir        eina-0.0.0+svn20080402
+worksrcdir        eina-0.6.0
 
