@@ -140,6 +140,7 @@ plugins/Makefile
 plugins/notify/Makefile
 plugins/recently/Makefile
 po/Makefile.in
+tests/Makefile
 ui/Makefile
 ])
 

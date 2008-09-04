@@ -3,7 +3,7 @@
 # AUTOMAKE_OPTIONS = 1.8
 
 SUBDIRS = gel misc pixmaps plugins eina po ui misc debian
-DIST_SUBDIRS = gel misc pixmaps plugins po eina ui misc debian
+DIST_SUBDIRS = gel misc pixmaps plugins po eina ui misc debian tests
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = eina-@EINA_API_VERSION@.pc
