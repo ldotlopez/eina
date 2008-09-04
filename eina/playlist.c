@@ -52,15 +52,19 @@ enum
  * Declarations
  */
 // API
-void playlist_init
+gboolean playlist_init
 (GelHub *hub, gint *argc, gchar ***argv);
-void G_MODULE_EXPORT gboolean playlist_exit
+gboolean playlist_exit
 (gpointer data);
 GtkWidget *
 eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
 
+
 void
 eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemState state);
+
+gboolean
+__eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self);
 
 EinaFsFilterAction
 eina_playlist_fs_filter(GFileInfo *info);
@@ -73,9 +77,9 @@ void on_pl_add_button_clicked
 gint // XXX
 __eina_playlist_sort_int_desc(gconstpointer a, gconstpointer b);
 void
-on_pl_remove_button_clicked(GtkWidget *w, EinaPlaylist *self)
+on_pl_remove_button_clicked(GtkWidget *w, EinaPlaylist *self);
 void // for swapped
-on_pl_clear_button_clicked (GtkWidget *w, EinaPlaylist *self)
+on_pl_clear_button_clicked (GtkWidget *w, EinaPlaylist *self);
 void
 on_pl_random_button_toggled(GtkWidget *w, EinaPlaylist *self);
 void
@@ -137,12 +141,6 @@ void on_pl_drag_data_get
 
 void on_pl_settings_change
 (EinaConf *conf, const gchar *key, gpointer data);
-
-void gtk_tree_view_set_search_equal_func(
-	GtkTreeView *tree_view,
-	GtkTreeViewSearchEqualFunc search_equal_func,
-	gpointer search_user_data,
-	GtkDestroyNotify search_destroy);
 
 /* Signal definitions */
 GelUISignalDef _playlist_signals[] = {
@@ -243,17 +241,6 @@ G_MODULE_EXPORT gboolean playlist_init
 	}
 
 	self->dock = eina_playlist_dock_init(self, &(self->tv), &(self->model));
-	// Disable search, needs refactorization
-	/*
-	gtk_tree_view_set_search_column(tv, PLAYLIST_COLUMN_TITLE);
-	gtk_tree_view_set_search_equal_func(tv, _playlist_equal_func, self, NULL);
-	*/
-
-	/* Add Dnd code */
-	/*
-	gtk_ext_make_widget_dropable(GTK_WIDGET(self->tv), NULL);
-	gtk_ext_make_widget_dragable(GTK_WIDGET(self->tv));
-	*/
 
 	/* Connect some UI signals */
 	gel_ui_signal_connect_from_def_multiple(
@@ -270,7 +257,7 @@ G_MODULE_EXPORT gboolean playlist_init
 	g_signal_connect(LOMO(self), "play",     G_CALLBACK(on_pl_lomo_play),     self);
 	g_signal_connect(LOMO(self), "stop",     G_CALLBACK(on_pl_lomo_stop),     self);
 	g_signal_connect(LOMO(self), "pause",    G_CALLBACK(on_pl_lomo_pause),    self);
-	g_signal_connect(LOMO(self), "random",   G_CALLBACK(on_pl_lomo_random),    self);
+	g_signal_connect(LOMO(self), "random",   G_CALLBACK(on_pl_lomo_random),   self);
 	g_signal_connect(LOMO(self), "eos",      G_CALLBACK(on_pl_lomo_eos),      self);
 	g_signal_connect(LOMO(self), "all-tags", G_CALLBACK(on_pl_lomo_all_tags), self);
 
@@ -286,7 +273,7 @@ G_MODULE_EXPORT gboolean playlist_init
 	g_free(buff);
 	lomo_player_go_nth(
 		LOMO(self), 
-		 eina_conf_get_int(self->conf, "/playlist/last_current", 0));
+		eina_conf_get_int(self->conf, "/playlist/last_current", 0));
 
 	if ((iface = gel_hub_shared_get(hub, "iface")) == NULL) {
 		gel_error("Cannot get EinaIFace");
@@ -393,10 +380,12 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 		"resizable", FALSE,
 		NULL);
 	g_object_set(G_OBJECT(_tv),
-		"search-column", -1,
+		// "search-column", -1,
 		"headers-clickable", FALSE,
 		"headers-visible", TRUE,
 		NULL);
+	gtk_tree_view_set_search_column(_tv, PLAYLIST_COLUMN_TITLE);
+	gtk_tree_view_set_search_equal_func(_tv, (GtkTreeViewSearchEqualFunc) __eina_playlist_search_func, self, NULL);
 
 	selection = gtk_tree_view_get_selection(_tv);
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
@@ -454,6 +443,34 @@ void eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemSta
     gtk_list_store_set(self->model, &iter,
 		PLAYLIST_COLUMN_STATE, stock_id,
 		-1);
+}
+
+gboolean
+__eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self)
+{
+	gchar *title = NULL, *title_lc, *key_lc;
+	gboolean ret = FALSE;
+
+	if (column != PLAYLIST_COLUMN_TITLE)
+	{
+		gel_warn("Invalid search column %d", column);
+		return TRUE;
+	}
+	gtk_tree_model_get(GTK_TREE_MODEL(self->model), iter,
+		PLAYLIST_COLUMN_TITLE, &title,
+		-1);
+	title_lc = g_utf8_strdown(title, -1);
+	key_lc = g_utf8_strdown(key, -1);
+	g_free(title);
+
+	if (strstr(title_lc, key_lc) != NULL)
+		ret = FALSE;
+	else
+		ret = TRUE;
+	g_free(title_lc);
+	g_free(key_lc);
+
+	return ret;
 }
 
 EinaFsFilterAction

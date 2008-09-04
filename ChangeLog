@@ -3,6 +3,9 @@
 
 	* eina/eina-player-seek.c: Killed g_source_remove warning
 	* run-local.sh, eina/player.c, eina/log.c, eina/main.c: Warnings killed
+	* eina/playlist.c: Enable search on playlist
+	* configure.in, Makefile.am, tests/: Add test streams
+	* eina/player.c: Fix some bugs in lomo's change hook
 
 2008-09-03   xuzo <xuzo@cuarentaydos.com> 
 

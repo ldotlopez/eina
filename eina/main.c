@@ -9,7 +9,8 @@
 static gint opt_debug_level = GEL_DEBUG_LEVEL_WARN;
 static const GOptionEntry opt_entries[] =
 {
-	{ "debug-level", 'd', 0, G_OPTION_ARG_INT, &opt_debug_level, "Debug level", "N" }
+	{ "debug-level", 'd', 0, G_OPTION_ARG_INT, &opt_debug_level, "Debug level", "N" },
+	{ NULL }
 };
 
 void xxx_ugly_hack(void)

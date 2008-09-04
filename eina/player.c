@@ -253,10 +253,105 @@ void eina_player_switch_state_pause(EinaPlayer *self) {
 }
 
 void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
-	gchar *str, *tmp;
-	gchar *title, *artist, *album;
-	gchar *window_title;
-	
+	gchar *tmp;
+	gchar *info_str = NULL;
+	gchar *tag;
+	gchar *markup;
+
+	// No stream, reset
+	if (stream == NULL)
+	{
+		gtk_window_set_title(
+			GTK_WINDOW(W(self, "main-window")),
+			_("Eina music player"));
+		gtk_label_set_markup(
+			GTK_LABEL(W(self, "stream-info")),
+			_("<b>Eina music player</b>\n\uFEFF"));
+		return;
+	}
+
+	// Create a working copy of title
+	tag = g_strdup(lomo_stream_get(stream, LOMO_TAG_TITLE));
+	if (tag == NULL)
+	{
+		tmp = g_path_get_basename(lomo_stream_get(stream, LOMO_TAG_URI));
+		tag = g_uri_unescape_string(tmp, NULL);
+		g_free(tmp);
+	}
+	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), tag);
+
+	tmp = g_markup_escape_text(tag, -1);
+	g_free(tag);
+	info_str = g_strdup_printf("<b>%s</b>", tmp);
+	g_free(tmp);
+
+	// Idem for artist, lomo_stream_get gets a reference, remember this.
+	tag = lomo_stream_get(stream, LOMO_TAG_ARTIST);
+	if (tag == NULL)
+	{
+		tmp = info_str;
+		info_str = g_strconcat(info_str, "\n\uFEFF", NULL);
+		g_free(tmp);
+	}
+	else
+	{
+		markup = g_markup_escape_text(tag, -1);
+		tmp = info_str;
+		info_str = g_strconcat(info_str, "\n ", _("by"), " ", "<i>", markup, "</i>", NULL);
+		g_free(tmp);
+		g_free(markup);
+	}
+
+	// Idem for album, lomo_stream_get gets a reference, remember this.
+	tag = lomo_stream_get(stream, LOMO_TAG_ALBUM);
+	if (tag != NULL)
+	{
+		tmp = info_str;
+		markup = g_markup_escape_text(tag, -1);
+		info_str = g_strconcat(info_str, " ", _("in"), " ", "<i>", markup, "</i>", NULL);
+		g_free(tmp);
+		g_free(markup);
+	}
+
+	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info")), info_str);
+	g_free(info_str);
+#if 0
+	// Got streama
+	else 
+	{
+		title  = lomo_stream_get(stream, LOMO_TAG_TITLE);
+		album  = lomo_stream_get(stream, LOMO_TAG_ALBUM);
+		artist = lomo_stream_get(stream, LOMO_TAG_ARTIST);
+
+		// Fix things in case of failure
+		if (title == NULL)
+		{
+			tmp   = g_path_get_basename(lomo_stream_get(stream, LOMO_TAG_URI));
+			tmp2  = g_uri_unescape_string(tmp);
+			g_free(tmp);
+
+			title = g_markup_escape_text(tmp2);
+			g_free(tmp2);
+		}
+		tmp = g_
+
+
+		if (artist == NULL)
+		{
+			artist = "\uFEFF";
+		}
+
+		if (album == NULL)
+		{
+			album = "\uFEFF";
+		}
+
+	}
+
+
+	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), title_simple);
+	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info")), info_str);
+
 	/* Set title */
 	if (stream == NULL ) {
 		str = g_strdup(_("<b>Eina Player</b>"));
@@ -286,6 +381,7 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 	} else {
 		str = g_strconcat("<b>", title, "</b>", NULL);
 		window_title = g_strconcat(title, " - ", "Eina Player", NULL);
+
 		if ((artist != NULL) || (album != NULL)) {
 			tmp = str;
 			str = g_strconcat(str, "\n", NULL);
@@ -296,6 +392,8 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 			tmp = str;
 			str = g_strconcat(str, " ", _("by"), " ", "<i>", artist, "</i>", NULL);
 			g_free(tmp);
+		} else {
+			str = "\uFEFF";
 		}
 
 		if ( album ) {
@@ -313,6 +411,7 @@ set_label:
 	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), window_title);
 	g_free(window_title);
 	g_free(str);
+#endif
 }
 
 

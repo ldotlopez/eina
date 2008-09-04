@@ -31,7 +31,7 @@ eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris , EinaFsFilterFunc fil
 
 		// Filter
 		if ((filter != NULL) && (filter(f_info) == EINA_FS_FILTER_REJECT)) {
-				gel_warn("Rejected '%s'", (gchar *) l->data);
+				gel_debug("Rejected '%s'", (gchar *) l->data);
 				goto  eina_fs_lomo_feed_uri_multi_next_iter;
 		}
 
