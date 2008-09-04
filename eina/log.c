@@ -67,30 +67,30 @@ void on_eina_log_lomo_error(LomoPlayer *lomo, GError *err, gchar *message)
 void
 on_eina_log_hub_module_load(GelHub *hub, const gchar *name, gpointer data)
 {
-	gel_info("Loaded module '%s'", name);
+	gel_debug("Loaded module '%s'", name);
 }
 
 void
 on_eina_log_hub_module_unload(GelHub *hub, const gchar *name, gpointer data)
 {
-	gel_info("Unloaded module '%s'", name);
+	gel_debug("Unloaded module '%s'", name);
 }
 
 void
 on_eina_log_hub_module_ref(GelHub *hub, const gchar *name, guint refs, gpointer data)
 {
-	gel_info("Referenced module '%s': %d", name, refs);
+	gel_debug("Referenced module '%s': %d", name, refs);
 }
 
 void
 on_eina_log_hub_module_unref(GelHub *hub, const gchar *name, guint refs, gpointer data)
 {
-	gel_info("Unreferenced module '%s': %d", name, refs);
+	gel_debug("Unreferenced module '%s': %d", name, refs);
 }
 
 void on_eina_log_lomo_signal(gchar *signal)
 {
-	gel_info("Lomo signal: %s", (gchar *) signal);
+	gel_debug("Lomo signal: %s", (gchar *) signal);
 }
 /* * * * * * * * * * * * * * * * * * */
 /* Create the connector for the hub  */

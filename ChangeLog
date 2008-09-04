@@ -1,3 +1,9 @@
+2008-09-04   xuzo <xuzo@cuarentaydos.com> 
+
+
+	* eina/eina-player-seek.c: Killed g_source_remove warning
+	* run-local.sh, eina/player.c, eina/log.c, eina/main.c: Warnings killed
+
 2008-09-03   xuzo <xuzo@cuarentaydos.com> 
 
 

@@ -1,9 +1,16 @@
+#define GEL_DOMAIN "Eina::Main"
 #include "config.h"
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <gel/gel-io.h>
 #include "iface.h"
+
+static gint opt_debug_level = GEL_DEBUG_LEVEL_WARN;
+static const GOptionEntry opt_entries[] =
+{
+	{ "debug-level", 'd', 0, G_OPTION_ARG_INT, &opt_debug_level, "Debug level", "N" }
+};
 
 void xxx_ugly_hack(void)
 {
@@ -23,12 +30,15 @@ void on_app_dispose(GelHub *app, gpointer data)
 }
 
 gint main
-(gint argc, gchar * argv[])
+(gint argc, gchar *argv[])
 {
-	GelHub           *app;
+	GelHub         *app;
 	gint            i = 0;
-	gchar          *modules[] = { "lomo", "log", "player", "iface", "playlist", "vogon" , NULL};
+	gchar          *modules[] = { "lomo", "log", "player", "iface", "playlist", "vogon", NULL};
 	gchar          *tmp;
+
+	GOptionContext *opt_ctx;
+	GError *err = NULL;
 
 #ifdef ENABLE_NLS
 	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -38,8 +48,21 @@ gint main
 
 	gtk_init(&argc, &argv);
 	gel_init(PACKAGE_NAME, PACKAGE_DATA_DIR);
-	gel_set_debug_level(GEL_DEBUG_LEVEL_INFO);
 
+	opt_ctx = g_option_context_new("Eina options");
+	g_option_context_set_help_enabled(opt_ctx, TRUE);
+	g_option_context_set_ignore_unknown_options(opt_ctx, TRUE);
+	g_option_context_add_main_entries(opt_ctx, opt_entries, GETTEXT_PACKAGE);
+	g_option_context_add_group(opt_ctx, gtk_get_option_group (TRUE));
+	if (!g_option_context_parse(opt_ctx, &argc, &argv, &err))
+	{
+		gel_error("option parsing failed: %s", err->message);
+		g_error_free(err);
+		exit (1);
+	}
+	g_option_context_free(opt_ctx);
+
+	gel_set_debug_level(opt_debug_level);
 	g_setenv("G_BROKEN_FILENAMES", "1", TRUE);
 	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, NULL);
 	g_mkdir(tmp, 00700);
@@ -48,6 +71,7 @@ gint main
 	app = gel_hub_new(&argc, &argv);
 	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 
+	i = 0;
 	while (modules[i])
 		gel_hub_load(app, modules[i++]);
 

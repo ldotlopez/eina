@@ -19,8 +19,6 @@ struct _EinaPlayer {
 	EinaPlayerSeek   *seek;
 	EinaPlayerVolume *volume;
 
-	EinaPlaylist     *playlist;
-	// EinaFsFilter     *stream_filter;
 	EinaConf         *conf;
 
 	GtkWidget *prev, *play, *pause, *next, *open;
@@ -58,7 +56,7 @@ gboolean on_main_window_delete_event
 void on_player_any_button_clicked
 (GtkWidget *w, EinaPlayer *self);
 
-void on_playlist_expander_activate
+void on_dock_expander_activate
 (GtkWidget *wid, EinaPlayer *self);
 
 void on_player_ebox_drag_data_received
@@ -100,7 +98,7 @@ GelUISignalDef _player_signals[] = {
 	G_CALLBACK(on_player_ebox_drag_data_received) },
 
 	{ "dock-expander", "activate",
-	G_CALLBACK(on_playlist_expander_activate) },
+	G_CALLBACK(on_dock_expander_activate) },
 
 	{ "main-window", "delete-event",
 	G_CALLBACK(on_main_window_delete_event) },
@@ -115,7 +113,6 @@ G_MODULE_EXPORT gboolean eina_player_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaPlayer   *self;
-	GtkWidget    *playlist_widget;
 
 	/* Load ourselves */
 	self = g_new0(EinaPlayer, 1);
@@ -151,13 +148,6 @@ G_MODULE_EXPORT gboolean eina_player_init
 	}
 	self->conf = gel_hub_shared_get(HUB(self), "settings");
 
-	/* Reference hub.
-	 * hub has the master control over the program exit.
-	 * We are a fundamental piece of eina, when player_exit is called the hub
-	 * is unrefed and the program can exit if there is not another fundamental
-	 * piece loaded
-	 */
-	// g_object_ref(HUB(self));
 
 	/*
 	 * Make player-ebox a dropable widget
@@ -216,8 +206,6 @@ G_MODULE_EXPORT gboolean eina_player_init
 		eina_conf_get_int(self->conf, "/core/volume", 50));
 
 	/* Playlist, hide widget on failure, setup on success */	
-	self->playlist = NULL;
-	playlist_widget = NULL;
 	goto player_show;
 
 player_show:
@@ -232,29 +220,19 @@ G_MODULE_EXPORT gboolean eina_player_exit
 (gpointer data)
 {
 	EinaPlayer *self = (EinaPlayer *) data;
-	/* Save settings */
+
+	// Save settings
 	eina_conf_set_int(self->conf,
 		"/core/volume",
 		lomo_player_get_volume(LOMO(self)));
 
-	/* Stop seek timer */
-	if (self->seek != NULL) {
-		g_object_unref(self->seek);
-	}
-	if (self->volume != NULL) {
-		g_object_unref(self->volume);
-	}
-
-	// eina_fs_filter_free(self->stream_filter);
-	
-	/* Unload */
-	if (self->playlist != NULL) 
-		gel_hub_unload(HUB(self), "playlist");
+	// Unref components
 	gel_hub_unload(HUB(self), "cover");
 	gel_hub_unload(HUB(self), "settings");
 
-	/* XXX: Free our data */
+	// Free base
 	eina_base_fini((EinaBase *) self);
+
 	return TRUE;
 }
 
@@ -531,7 +509,7 @@ void on_player_ebox_drag_data_received(GtkWidget *widget,
 #endif
 }
 
-void on_playlist_expander_activate(GtkWidget *wid, EinaPlayer *self) {
+void on_dock_expander_activate(GtkWidget *wid, EinaPlayer *self) {
 	GtkWindow *win;
 	gint w, h;
 	gboolean expanded;

@@ -171,14 +171,14 @@ void eina_player_seek_reset(EinaPlayerSeek *self) {
 
 void eina_player_seek_updater_start(EinaPlayerSeek *self) {
 	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
-	if (priv->updater_id >= 0)
+	if (priv->updater_id > 0)
 		g_source_remove(priv->updater_id);
 	priv->updater_id = g_timeout_add(400, (GSourceFunc) on_player_seek_timeout, (gpointer) self);
 }
 
 void eina_player_seek_updater_stop(EinaPlayerSeek *self) {
 	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
-	if (priv->updater_id >= 0)
+	if (priv->updater_id > 0)
 		g_source_remove(priv->updater_id);
 }
 
@@ -209,7 +209,7 @@ void on_player_seek_value_changed(GtkWidget *w, EinaPlayerSeek *self) {
 	 * Stop the timeout function if any 
 	 * XXX: Figure out a better way to detect this
 	 */
-	if ((priv->pos != -1) && priv->real_id) {
+	if ((priv->pos != -1) && priv->real_id && (priv->real_id > 0)) {
 		g_source_remove(priv->real_id);
 	}
 
