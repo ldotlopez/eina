@@ -36,7 +36,7 @@ typedef enum
 	EINA_PLAYLIST_ITEM_STATE_STOP      // GTK_STOCK_MEDIA_STOP
 } EinaPlaylistItemState;
 
-enum
+typedef enum
 {
 	PLAYLIST_COLUMN_STATE,
 	PLAYLIST_COLUMN_URI,
@@ -45,7 +45,7 @@ enum
 	PLAYLIST_COLUMN_TITLE,
 
 	PLAYLIST_N_COLUMNS
-};
+} EinaPlaylistColumn;
 
 
 /*
@@ -62,6 +62,10 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 
 void
 eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemState state);
+void
+eina_playlist_update_nth_item(EinaPlaylist *self, gint item, EinaPlaylistColumn columns);
+void
+eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
 
 gboolean
 __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self);
@@ -443,6 +447,142 @@ void eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemSta
     gtk_list_store_set(self->model, &iter,
 		PLAYLIST_COLUMN_STATE, stock_id,
 		-1);
+}
+
+void
+__eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint item, gchar *current_state, gint current_item)
+{
+	LomoState state = LOMO_STATE_INVALID;
+	gchar *new_state = NULL;
+
+	// If item is not the active one, new_state is NULL
+	if (item == current_item)
+	{
+		state = lomo_player_get_state(LOMO(self));
+		switch (state)
+		{
+			case LOMO_STATE_INVALID:
+				// leave stock-id as NULL
+				break;
+			case LOMO_STATE_PLAY:
+				new_state = GTK_STOCK_MEDIA_PLAY;
+				break;
+			case LOMO_STATE_PAUSE:
+				new_state = GTK_STOCK_MEDIA_PAUSE;
+				break;
+			case LOMO_STATE_STOP:
+				new_state = GTK_STOCK_MEDIA_STOP;
+				break;
+			default:
+				eina_iface_warn("Unknow state: %d", state);
+				break;
+		}
+	}
+
+	// Update only if needed
+	if (g_str_equal(new_state, current_state))
+		return;
+
+	gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
+		PLAYLIST_COLUMN_STATE, new_state,
+		-1);
+}
+
+void
+__eina_playlist_update_item_title(EinaPlaylist *self, GtkTreeIter *iter, gint item, gchar *current_title, gint current_item, gchar *current_raw_title)
+{
+	gchar *markup = NULL;
+
+	// Calculate new value
+	if (item == current_item)
+		markup = g_strdup_printf("<b>%s</b>", current_raw_title);
+	else
+		markup = g_strdup(current_raw_title);
+	
+	// Update only if needed
+	if (!g_str_equal(current_title, markup))
+	{
+		gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
+			PLAYLIST_COLUMN_TITLE, markup,
+			-1);
+	}
+	g_free(markup);
+}
+
+void
+eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
+{
+	GtkTreePath *treepath;
+	gint*        treepath_indices; // Don't free, it's owned by treepath
+	gint   current = -1;
+
+	gchar *state     = NULL;
+	gchar *title     = NULL;
+	gchar *raw_title = NULL;
+
+	va_list columns;
+	gint column;
+
+	if ((item == -1) && (iter == NULL))
+	{
+		eina_iface_error("You must supply an iter _or_ an item");
+		return;
+	}
+
+	// Get item from iter
+	if (item == -1)
+	{
+		treepath = gtk_tree_model_get_path(GTK_TREE_MODEL(self->model), iter);
+		if (treepath == NULL)
+		{
+			eina_iface_warn("Cannot get a GtkTreePath from index %d", item);
+			return;
+		}
+		treepath_indices = gtk_tree_path_get_indices(treepath);
+		item = treepath_indices[0];
+		gtk_tree_path_free(treepath);
+	}
+
+	// Get iter from item
+	if (iter == NULL)
+	{
+		treepath = gtk_tree_path_new_from_indices(item, -1);
+		gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), iter, treepath);
+		gtk_tree_path_free(treepath);
+	}
+
+	current = lomo_player_get_current(LOMO(self));
+
+	// Get data from GtkListStore supported columns
+	gtk_tree_model_get(GTK_TREE_MODEL(self->model), iter,
+		PLAYLIST_COLUMN_STATE, &state,
+		PLAYLIST_COLUMN_TITLE, &title,
+		PLAYLIST_COLUMN_RAW_TITLE, &raw_title,
+		-1);
+
+	// Start updating columns
+	va_start(columns, item);
+	do {
+		column = va_arg(columns,gint);
+		if (column == -1)
+			break;
+
+		eina_iface_debug("Updating column %d", column);
+		switch (column)
+		{
+			case PLAYLIST_COLUMN_STATE:
+				__eina_playlist_update_item_state(self, iter, item, state, current);
+				break;
+
+			case PLAYLIST_COLUMN_TITLE:
+				__eina_playlist_update_item_title(self, iter, item, title, current, raw_title);
+				break;
+
+			default:
+				eina_iface_warn("Unknow column %d", column);
+				break;
+		}
+	} while(0);
 }
 
 gboolean

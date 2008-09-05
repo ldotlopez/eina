@@ -109,6 +109,9 @@ currently_playlist_store(EinaPlugin *plugin, GError **err)
 
 	// Build buffer to dump into a playlist file
 	list = recently_playlist_extract_tag(lomo_pl, LOMO_TAG_URI);
+	if (list == NULL)
+		return FALSE;
+
 	buffer = gel_glist_join("\n", list);
 	if (buffer == NULL) {
 		g_list_free(list);

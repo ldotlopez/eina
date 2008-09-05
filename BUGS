@@ -14,7 +14,6 @@ TODO
 * Soporte para encolar dentro de una misma pl
 * Soporte para hacer loop sobre una sola cancion
 * Tooltips
-* Formato de la pl personalizable
 * Sacar la duracion desde el stream si no se encuentra el tag
 * Funcionar con HTTP (http://srbs.zonepro.com:8022/)
 * La busqueda de las caratulas en disco debe ser case insensitive
