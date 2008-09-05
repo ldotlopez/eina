@@ -166,7 +166,7 @@ eina_iface_get_plugin_paths(void)
 		g_strfreev(tmp2);
 	}
 
-	return g_list_reverse(ret);
+	return ret;
 }
 
 gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
@@ -187,6 +187,7 @@ gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 		gchar *plugin_dirname = g_build_filename((gchar *) l->data, plugin_name, NULL);
 		plugin_filename = g_module_build_path(plugin_dirname, plugin_name);
 		g_free(plugin_dirname);
+		eina_iface_debug("Testing %s", plugin_filename);
 
 		if ((mod = g_module_open(plugin_filename, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL)) == NULL)
 		{
@@ -195,13 +196,21 @@ gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 			continue;
 		}
 
-		if (!g_module_symbol(mod, plugin_symbol, &plugin_init)) {
+		if (!g_module_symbol(mod, plugin_symbol, &plugin_init))
+		{
+			// Not found
 			gel_warn("Found matching plugin for '%s' at '%s' but has no symbol '%s'",
 				plugin_name,
 				plugin_filename,
 				plugin_symbol);
 			g_module_close(mod);
 		}
+		else
+		{
+			// Found
+			break;
+		}
+
 		g_free(plugin_filename);
 		break;
 
@@ -214,7 +223,8 @@ gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 		if (plugin != NULL)
 		{
 			// Fill EinaPluginPrivate
-			plugin->priv->pathname = g_strdup(plugin_filename);
+			gel_info("Loading plugin %s for %s", plugin_filename, plugin_name);
+			plugin->priv->pathname = plugin_filename;
 			plugin->priv->mod      = mod;
 			plugin->priv->iface    = self;
 			plugin->priv->lomo     = gel_hub_shared_get(GEL_HUB(HUB(self)), "lomo");

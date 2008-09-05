@@ -93,7 +93,7 @@ recently_playlist_extract_tag(GList *pl, LomoTag tag)
 // Dumps current playlist to our store. This function also summarizes playlist
 // and saves meta-file with the statistics of the playlist.
 gboolean
-currently_playlist_store(EinaPlugin *plugin, GError **err)
+currently_playlist_store(EinaPlugin *plugin)
 {
 	LomoPlayer *lomo = eina_plugin_get_lomo_player(plugin);
 	GList  *lomo_pl, *list;
@@ -105,6 +105,7 @@ currently_playlist_store(EinaPlugin *plugin, GError **err)
 	GHashTable *agrupated_pl;
 	GList *score_records;
 
+	eina_iface_debug("LomoPlayer at: %p", lomo);
 	lomo_pl = (GList *) lomo_player_get_playlist(lomo);
 
 	// Build buffer to dump into a playlist file
@@ -451,12 +452,9 @@ on_recently_dock_row_activated(GtkWidget *w,
 void
 on_recently_lomo_clear(LomoPlayer *lomo, EinaPlugin *plugin)
 {
-	GError *err = NULL;
-
-	if (!currently_playlist_store(plugin, &err))
+	if (!currently_playlist_store(plugin))
 	{
-		eina_iface_error("Cannot store current playlist: %s", err->message);
-		g_error_free(err);
+		eina_iface_error("Cannot store current playlist");
 		return;
 	}
 
