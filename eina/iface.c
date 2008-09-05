@@ -463,44 +463,6 @@ void on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data)
 	eina_iface_dock_init(self);
 }
 
-#if 0
-#define magic0(field) \
-	do { \
-		GList *iter = ((EinaIFace *) data)->plugins; \
-		void (*callback)(LomoPlayer *lomo, ...);     \
-		while (iter) { \
-			callback = ((EinaPluginIFace *) iter->data)->data->field; \
-			if (callback) \
-				callback(lomo, ((EinaPluginIFace *) iter->data)->data); \
-			iter = iter->next; \
-		} \
-	} while(0)
-
-#define magic1(field, a) \
-	do { \
-		GList *iter = ((EinaIFace *) data)->plugins; \
-		void (*callback)(LomoPlayer *lomo, ...);     \
-		while (iter) { \
-			callback = ((EinaPluginIFace *) iter->data)->data->field; \
-			if (callback) \
-				callback(lomo, a, ((EinaPluginIFace *) iter->data)->data); \
-			iter = iter->next; \
-		} \
-	} while(0)
-
-#define magic2(field, a, b) \
-	do { \
-		GList *iter = ((EinaIFace *) data)->plugins; \
-		void (*callback)(LomoPlayer *lomo, ...);     \
-		while (iter) { \
-			callback = ((EinaPluginIFace *) iter->data)->data->field; \
-			if (callback) \
-				callback(lomo, a, b, ((EinaPluginIFace *) iter->data)->data); \
-			iter = iter->next; \
-		} \
-	} while(0)
-#endif
-
 #define magic_arg (((EinaPlugin *) iter->data))
 #define magic(field, ...) \
 	do { \

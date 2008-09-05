@@ -14,7 +14,7 @@
 #include "settings.h"
 #include "fs.h"
 #include "eina-file-chooser-dialog.h"
-#include "iface.h"
+#include <eina/iface.h>
 
 struct _EinaPlaylist
 {
@@ -27,7 +27,7 @@ struct _EinaPlaylist
 	GtkListStore *model;
 	const gchar  *title_fmtstr;
 };
-
+/
 typedef enum
 {
 	EINA_PLAYLIST_ITEM_STATE_INACTIVE, // NULL
@@ -35,7 +35,7 @@ typedef enum
 	EINA_PLAYLIST_ITEM_STATE_PAUSE,    // GTK_STOCK_MEDIA_PAUSE
 	EINA_PLAYLIST_ITEM_STATE_STOP      // GTK_STOCK_MEDIA_STOP
 } EinaPlaylistItemState;
-
+*/
 typedef enum
 {
 	PLAYLIST_COLUMN_STATE,
@@ -59,13 +59,16 @@ gboolean playlist_exit
 GtkWidget *
 eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
 
-
+/*
 void
 eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemState state);
 void
 eina_playlist_update_nth_item(EinaPlaylist *self, gint item, EinaPlaylistColumn columns);
+*/
 void
 eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
+#define eina_playlist_update_current_item(self,...) \
+	eina_playlist_update_item2(self, NULL,lomo_player_get_current(LOMO(self)),__VA_ARGS__)
 
 gboolean
 __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self);
@@ -96,12 +99,16 @@ void on_pl_lomo_del
 (LomoPlayer *lomo, gint pos, EinaPlaylist *self);
 void on_pl_lomo_change
 (LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self);
+void on_pl_lomo_state_change
+(LomoPlayer *lomo, EinaPlaylist *self);
+/*
 void on_pl_lomo_play
 (LomoPlayer *lomo, EinaPlaylist *self);
 void on_pl_lomo_stop
 (LomoPlayer *lomo, EinaPlaylist *self);
 void on_pl_lomo_pause
 (LomoPlayer *lomo, EinaPlaylist *self);
+*/
 void on_pl_lomo_random
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
 void on_pl_lomo_clear
@@ -258,9 +265,14 @@ G_MODULE_EXPORT gboolean playlist_init
 	g_signal_connect(LOMO(self), "del",      G_CALLBACK(on_pl_lomo_del),      self);
 	g_signal_connect(LOMO(self), "change",   G_CALLBACK(on_pl_lomo_change),   self);
 	g_signal_connect(LOMO(self), "clear",    G_CALLBACK(on_pl_lomo_clear),    self);
+	g_signal_connect(LOMO(self), "play",     G_CALLBACK(on_pl_lomo_state_change), self);
+	g_signal_connect(LOMO(self), "stop",     G_CALLBACK(on_pl_lomo_state_change), self);
+	g_signal_connect(LOMO(self), "pause",    G_CALLBACK(on_pl_lomo_state_change), self);
+	/*
 	g_signal_connect(LOMO(self), "play",     G_CALLBACK(on_pl_lomo_play),     self);
 	g_signal_connect(LOMO(self), "stop",     G_CALLBACK(on_pl_lomo_stop),     self);
 	g_signal_connect(LOMO(self), "pause",    G_CALLBACK(on_pl_lomo_pause),    self);
+	*/
 	g_signal_connect(LOMO(self), "random",   G_CALLBACK(on_pl_lomo_random),   self);
 	g_signal_connect(LOMO(self), "eos",      G_CALLBACK(on_pl_lomo_eos),      self);
 	g_signal_connect(LOMO(self), "all-tags", G_CALLBACK(on_pl_lomo_all_tags), self);
@@ -406,7 +418,7 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 
 	return ret;
 }
-
+/*
 void eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemState state) {
 	gint current;
 	GtkTreeIter iter;
@@ -448,6 +460,7 @@ void eina_playlist_active_item_set_state(EinaPlaylist *self, EinaPlaylistItemSta
 		PLAYLIST_COLUMN_STATE, stock_id,
 		-1);
 }
+*/
 
 void
 __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint item, gchar *current_state, gint current_item)
@@ -480,9 +493,11 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 	}
 
 	// Update only if needed
-	if (g_str_equal(new_state, current_state))
-		return;
+	if ((current_state != NULL) && (new_state != NULL))
+		if (g_str_equal(new_state, current_state))
+			return;
 
+	eina_iface_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_state, new_state);
 	gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
 		PLAYLIST_COLUMN_STATE, new_state,
 		-1);
@@ -502,6 +517,7 @@ __eina_playlist_update_item_title(EinaPlaylist *self, GtkTreeIter *iter, gint it
 	// Update only if needed
 	if (!g_str_equal(current_title, markup))
 	{
+		eina_iface_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_title, markup);
 		gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
 			PLAYLIST_COLUMN_TITLE, markup,
 			-1);
@@ -513,6 +529,7 @@ void
 eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 {
 	GtkTreePath *treepath;
+	GtkTreeIter  _iter;
 	gint*        treepath_indices; // Don't free, it's owned by treepath
 	gint   current = -1;
 
@@ -547,8 +564,9 @@ eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...
 	if (iter == NULL)
 	{
 		treepath = gtk_tree_path_new_from_indices(item, -1);
-		gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), iter, treepath);
+		gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &_iter, treepath);
 		gtk_tree_path_free(treepath);
+		iter = &_iter;
 	}
 
 	current = lomo_player_get_current(LOMO(self));
@@ -582,7 +600,10 @@ eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...
 				eina_iface_warn("Unknow column %d", column);
 				break;
 		}
-	} while(0);
+	} while(column != -1);
+	g_free(state);
+	g_free(title);
+	g_free(raw_title);
 }
 
 gboolean
@@ -835,28 +856,41 @@ on_pl_lomo_del(LomoPlayer *lomo, gint pos, EinaPlaylist *self)
 }
 
 void
+on_pl_lomo_state_change(LomoPlayer *lomo, EinaPlaylist *self)
+{
+	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
+}
+/*
+void
 on_pl_lomo_play(LomoPlayer *lomo, EinaPlaylist *self)
 {
-	eina_playlist_active_item_set_state(self, EINA_PLAYLIST_ITEM_STATE_PLAY);
+	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
+	// eina_playlist_update_item2(self, NULL, lomo_player_get_current(LOMO(self)), PLAYLIST_COLUMN_STATE, -1);
+	// eina_playlist_active_item_set_state(self, EINA_PLAYLIST_ITEM_STATE_PLAY);
 }
 
 void
 on_pl_lomo_pause(LomoPlayer *lomo, EinaPlaylist *self)
 {
-	eina_playlist_active_item_set_state(self, EINA_PLAYLIST_ITEM_STATE_PAUSE);
+	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
+	// eina_playlist_active_item_set_state(self, EINA_PLAYLIST_ITEM_STATE_PAUSE);
+	// eina_playlist_update_item2(self, NULL, lomo_player_get_current(LOMO(self)), PLAYLIST_COLUMN_STATE, -1);
 }
+
+void
+on_pl_lomo_stop(LomoPlayer *lomo, EinaPlaylist *self)
+{
+	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
+	// eina_playlist_active_item_set_state(self, EINA_PLAYLIST_ITEM_STATE_STOP);
+	// eina_playlist_update_item2(self, NULL, lomo_player_get_current(LOMO(self)), PLAYLIST_COLUMN_STATE, -1);
+}
+*/
 
 void
 on_pl_lomo_random(LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
 {
 	if (val)
 		lomo_player_randomize(lomo);
-}
-
-void
-on_pl_lomo_stop(LomoPlayer *lomo, EinaPlaylist *self)
-{
-	eina_playlist_active_item_set_state(self, EINA_PLAYLIST_ITEM_STATE_STOP);
 }
 
 void
@@ -938,20 +972,22 @@ on_pl_lomo_all_tags (
 
 void
 on_pl_lomo_change(LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self) {
-	GtkTreeIter old_iter, new_iter;
+	// GtkTreeIter old_iter, new_iter;
 	GtkTreePath *treepath;
-	gchar *raw_title    = NULL;
-	gchar *markup_title = NULL;
-	gchar *stock_id = NULL;
+	// gchar *raw_title    = NULL;
+	// gchar *markup_title = NULL;
+	// gchar *stock_id = NULL;
 
 	/* If old and new are invalid return */
 	if ((old < 0) && (new < 0)) {
 		gel_warn("old AND new positions are invalid (%d -> %d)", old, new);
 		return;
 	}
-	
+
+	eina_iface_debug("Handling change signal %d -> %d", old, new);
 	/* Restore normal state on old stream */
 	if (old >= 0) {
+		/*
 		treepath = gtk_tree_path_new_from_indices(old, -1);
 		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &old_iter, treepath))
 			gel_warn("Cannot get iter for old (%d) stream", old);
@@ -966,10 +1002,14 @@ on_pl_lomo_change(LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self) {
 				-1);
 		}
 		gtk_tree_path_free(treepath);
+		*/
+		eina_iface_debug("updating all columns from OLD %d", old);
+		eina_playlist_update_item2(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
 	}
 
 	/* Create markup for the new stream */
 	if (new >= 0) {
+		/*
 		treepath = gtk_tree_path_new_from_indices(new, -1);
 		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &new_iter, treepath))
 		{
@@ -1008,6 +1048,9 @@ on_pl_lomo_change(LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self) {
 			PLAYLIST_COLUMN_TITLE, markup_title,
 			-1);
 		g_free(markup_title);
+		*/
+		eina_iface_debug("updating all columns from NEW %d", new);
+		eina_playlist_update_item2(self, NULL, new, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
 
 		// Scroll to new stream
 		treepath = gtk_tree_path_new_from_indices(new, -1);
