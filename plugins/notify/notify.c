@@ -49,9 +49,9 @@ void on_notify_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaNotify *sel
 	gchar *body = NULL;
 
 	stream = lomo_player_get_stream(lomo);
-	title  = lomo_stream_get(stream, LOMO_TAG_TITLE);
-	artist = lomo_stream_get(stream, LOMO_TAG_ARTIST);
-	album  = lomo_stream_get(stream, LOMO_TAG_ALBUM);
+	title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+	artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
 
 	if (self->notification)
 		notify_notification_close(self->notification, NULL);

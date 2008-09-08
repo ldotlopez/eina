@@ -48,7 +48,7 @@ recently_agrupate_playlist_by_tag(GList *pl, LomoTag tag)
 	eina_iface_info("Agrupating playlist %p by tag %s", pl, tag);
 	while (iter)
 	{
-		key = (gpointer) lomo_stream_get(LOMO_STREAM(iter->data), tag);
+		key = (gpointer) lomo_stream_get_tag(LOMO_STREAM(iter->data), tag);
 		if (key != NULL)
 		{
 			if ((val = g_hash_table_lookup(ret, key)) == NULL)
@@ -78,7 +78,7 @@ recently_playlist_extract_tag(GList *pl, LomoTag tag)
 
 	eina_iface_info("Extracting tag '%s' from %p", tag, pl);
 	while (iter) {
-		data = lomo_stream_get(LOMO_STREAM(iter->data), tag);
+		data = lomo_stream_get_tag(LOMO_STREAM(iter->data), tag);
 		if (data == NULL)
 			nulls++;
 		ret = g_list_prepend(ret, (gpointer) data);

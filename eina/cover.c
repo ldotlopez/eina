@@ -442,13 +442,13 @@ void eina_cover_update_cover
 		return;
 	}
 
-	self->artist = lomo_stream_get(self->stream, LOMO_TAG_ARTIST);
-	self->album  = lomo_stream_get(self->stream, LOMO_TAG_ALBUM);
+	self->artist = lomo_stream_get_tag(self->stream, LOMO_TAG_ARTIST);
+	self->album  = lomo_stream_get_tag(self->stream, LOMO_TAG_ALBUM);
 
 	if ((self->artist == NULL) || (self->album == NULL)) {
 		/*
 		e_info("Streams(%s) need artist(%s) and album(%s) to get cover",
-			lomo_stream_get(self->stream, LOMO_TAG_URI),
+			lomo_stream_get_tag(self->stream, LOMO_TAG_URI),
 			self->artist,
 			self->album);
 		*/
@@ -470,7 +470,7 @@ void eina_cover_update_cover
 	}
 
 	/* Check from fs */
-	dirname = g_path_get_dirname(lomo_stream_get(self->stream, LOMO_TAG_URI));
+	dirname = g_path_get_dirname(lomo_stream_get_tag(self->stream, LOMO_TAG_URI));
 	path = g_filename_from_uri(dirname, NULL, NULL);
 	g_free(dirname);
 	if (path != NULL ) {

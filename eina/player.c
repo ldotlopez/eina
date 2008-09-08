@@ -271,10 +271,10 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 	}
 
 	// Create a working copy of title
-	tag = g_strdup(lomo_stream_get(stream, LOMO_TAG_TITLE));
+	tag = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
 	if (tag == NULL)
 	{
-		tmp = g_path_get_basename(lomo_stream_get(stream, LOMO_TAG_URI));
+		tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		tag = g_uri_unescape_string(tmp, NULL);
 		g_free(tmp);
 	}
@@ -285,8 +285,8 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 	info_str = g_strdup_printf("<b>%s</b>", tmp);
 	g_free(tmp);
 
-	// Idem for artist, lomo_stream_get gets a reference, remember this.
-	tag = lomo_stream_get(stream, LOMO_TAG_ARTIST);
+	// Idem for artist, lomo_stream_get_tag gets a reference, remember this.
+	tag = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
 	if (tag == NULL)
 	{
 		tmp = info_str;
@@ -302,8 +302,8 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 		g_free(markup);
 	}
 
-	// Idem for album, lomo_stream_get gets a reference, remember this.
-	tag = lomo_stream_get(stream, LOMO_TAG_ALBUM);
+	// Idem for album, lomo_stream_get_tag gets a reference, remember this.
+	tag = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
 	if (tag != NULL)
 	{
 		tmp = info_str;
@@ -319,14 +319,14 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 	// Got streama
 	else 
 	{
-		title  = lomo_stream_get(stream, LOMO_TAG_TITLE);
-		album  = lomo_stream_get(stream, LOMO_TAG_ALBUM);
-		artist = lomo_stream_get(stream, LOMO_TAG_ARTIST);
+		title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+		album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+		artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
 
 		// Fix things in case of failure
 		if (title == NULL)
 		{
-			tmp   = g_path_get_basename(lomo_stream_get(stream, LOMO_TAG_URI));
+			tmp   = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 			tmp2  = g_uri_unescape_string(tmp);
 			g_free(tmp);
 
@@ -363,9 +363,9 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 
 	else {
 		// Get title, album, artist
-		title  = lomo_stream_get(stream, LOMO_TAG_TITLE);
-		album  = lomo_stream_get(stream, LOMO_TAG_ALBUM);
-		artist = lomo_stream_get(stream, LOMO_TAG_ARTIST);
+		title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+		album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+		artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
 		if (title)  title  = g_markup_escape_text(title, -1);
 		if (album)  album  = g_markup_escape_text(album, -1);
 		if (artist) artist = g_markup_escape_text(artist, -1);
@@ -376,7 +376,7 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 	}
 
 	if (title == NULL) {
-		str = g_path_get_basename(lomo_stream_get(stream, LOMO_TAG_URI));
+		str = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		window_title = g_strconcat(str, " - ", "Eina Player", NULL);
 	} else {
 		str = g_strconcat("<b>", title, "</b>", NULL);

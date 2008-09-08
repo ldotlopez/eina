@@ -290,7 +290,7 @@ G_MODULE_EXPORT gboolean playlist_exit
 
 	out = g_new0(gchar*, g_list_length(l) + 1);
 	while (l) {
-		out[i++] = lomo_stream_get(
+		out[i++] = lomo_stream_get_tag(
 			LOMO_STREAM(l->data), LOMO_TAG_URI);
 		l = l->next;
 	}
@@ -746,7 +746,7 @@ on_pl_lomo_add (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *se
 	gtk_list_store_insert_with_values(self->model,
 		&iter, pos,
 		PLAYLIST_COLUMN_STATE,     NULL,
-		PLAYLIST_COLUMN_URI,       lomo_stream_get(stream, LOMO_TAG_URI),
+		PLAYLIST_COLUMN_URI,       lomo_stream_get_tag(stream, LOMO_TAG_URI),
 		PLAYLIST_COLUMN_DURATION,  NULL,
 		PLAYLIST_COLUMN_RAW_TITLE, title,
 		PLAYLIST_COLUMN_TITLE,     title,
@@ -830,7 +830,7 @@ on_pl_lomo_all_tags (
 	/* Search the stream on the treeview */
 	while(gtk_list_store_iter_is_valid(GTK_LIST_STORE(model), &iter)) {
 		gtk_tree_model_get(model, &iter, PLAYLIST_COLUMN_URI, &uri, -1);
-		if (g_str_equal(lomo_stream_get(stream, LOMO_TAG_URI), uri)) {
+		if (g_str_equal(lomo_stream_get_tag(stream, LOMO_TAG_URI), uri)) {
 	  		/* Title */
 			lomo_stream_format(stream,
 				self->title_fmtstr /*"%a - %t"*/, 0,
@@ -838,7 +838,7 @@ on_pl_lomo_all_tags (
 				&title);
 	
 			/* Duration */
-			if ((duration = lomo_stream_get(stream, LOMO_TAG_DURATION)) == NULL)
+			if ((duration = lomo_stream_get_tag(stream, LOMO_TAG_DURATION)) == NULL)
 				duration_str = NULL;
 			else {
 				duration_str = g_strdup_printf("%02d:%02d",
@@ -1003,7 +1003,7 @@ void on_pl_drag_data_get(GtkWidget *w,
 
 		gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter, PLAYLIST_COLUMN_NUMBER, &pos, -1);
 		stream = (LomoStream *) lomo_player_get_nth(LOMO(self), pos);
-		charv[i] = lomo_stream_get(stream, LOMO_TAG_URI); // Dont copy, its rigth.
+		charv[i] = lomo_stream_get_tag(stream, LOMO_TAG_URI); // Dont copy, its rigth.
 
 		i++;
 		l = l->next;
