@@ -11,7 +11,7 @@ long_description  ${description}, a classic player for the modern era
 homepage          http://eina.sourceforge.net/
 
 master_sites      http://kent.dl.sourceforge.net/eina
-checksums         md5 adb5bd724cb340314a4821ca4bbf8c11
+checksums         md5 20c839d21aa38cad503264db16f21902
 distfiles         eina-0.6.0.tar.gz
 
 depends_lib       port:glib2 port:liblomo port:gtk2
