@@ -1,5 +1,5 @@
-AC_INIT([eina], 0.6.0, xuzo@cuarentaydos.com)
-AM_INIT_AUTOMAKE([eina], [0.6.0])
+AC_INIT([eina], 0.6.1, xuzo@cuarentaydos.com)
+AM_INIT_AUTOMAKE([eina], [0.6.1])
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -38,7 +38,7 @@ AM_GLIB_GNU_GETTEXT
 
 GLIB_VERSION="2.16"
 GTK_VERSION="2.12"
-LIBLOMO_VERSION="0.94.0"
+LIBLOMO_VERSION="0.94.1"
 
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
