@@ -29,17 +29,17 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
 AM_GLIB_GNU_GETTEXT
 
-#dnl i18n Stuff
-#GETTEXT_PACKAGE=eina
-#AC_SUBST(GETTEXT_PACKAGE)
-#AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
-#ALL_LINGUAS="es ca"
-#AM_GLIB_GNU_GETTEXT
+# Some flags
+AC_ARG_ENABLE(release-build, [  --enable-release-build         build in release mode], release_build=yes, release_build=no)
+if test x$release_build = 'xyes'; then
+	BUILD_MODE_CFLAGS="-DG_DISABLE_CAST_CHECKS"
+else
+	BUILD_MODE_CFLAGS="-g -pg"
+fi
 
 GLIB_VERSION="2.16"
 GTK_VERSION="2.12"
 LIBLOMO_VERSION="0.94.1"
-
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
 	gmodule-2.0 >= $GLIB_VERSION,   \
@@ -53,10 +53,10 @@ PACKAGE_CFLAGS="\
 	$PACKAGE_CFLAGS \
 	-DG_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
 	-DGEL_DISABLE_DEPRECATED -DGEL_UI_DISABLE_DEPRECATED \
-	-Wall -Werror -g -std=c99"
+	-Wall -Werror -std=c99 $BUILD_MODE_CFLAGS"
 AC_SUBST(LIBLOMO_VERSION)
 
-PACKAGE_RELEASE_DATE="`date -R`"
+PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
 dnl curl (eina-cover)
