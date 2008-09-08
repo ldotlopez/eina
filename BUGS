@@ -1,7 +1,10 @@
 TODO
 ====
 
-* Recently falla cuando solo hay una lista y es seleccionada
+* (Solucionado? )La caratula debe tener en cuanta el stream actual y ante la señal
+all_tags de LomoPlayer actualizar la caratula
+* Autoplay al iniciar
+* (Solucionado?) Recently falla cuando solo hay una lista y es seleccionada
 * La primera vez que se ejecuta el plugin recently no carga
 * Aceptar streams como argumentos
 * Cuadros de dialogo por doquier
