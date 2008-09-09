@@ -54,7 +54,10 @@ gint main
 	g_option_context_set_help_enabled(opt_ctx, TRUE);
 	g_option_context_set_ignore_unknown_options(opt_ctx, TRUE);
 	g_option_context_add_main_entries(opt_ctx, opt_entries, GETTEXT_PACKAGE);
+
+	g_option_context_add_group(opt_ctx, lomo_get_option_group());
 	g_option_context_add_group(opt_ctx, gtk_get_option_group (TRUE));
+
 	if (!g_option_context_parse(opt_ctx, &argc, &argv, &err))
 	{
 		gel_error("option parsing failed: %s", err->message);

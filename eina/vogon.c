@@ -223,10 +223,10 @@ on_eina_vogon_menu_activate(GtkAction *action, EinaVogon *self)
 		lomo_player_stop(LOMO(self), &error);
 
 	else if (g_str_equal(name, "Previous"))
-		lomo_player_go_prev(LOMO(self));
+		lomo_player_go_prev(LOMO(self), NULL);
 
 	else if (g_str_equal(name, "Next"))
-		lomo_player_go_next(LOMO(self));
+		lomo_player_go_next(LOMO(self), NULL);
 
 	else if (g_str_equal(name, "Repeat"))
 	{

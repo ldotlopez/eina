@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <glib/gstdio.h>
+#include <liblomo/util.h>
 #include <gel/gel-ui.h>
 #include "config.h"
 #include "base.h"
@@ -261,7 +262,8 @@ G_MODULE_EXPORT gboolean playlist_init
 	g_free(buff);
 	lomo_player_go_nth(
 		LOMO(self), 
-		eina_conf_get_int(self->conf, "/playlist/last_current", 0));
+		eina_conf_get_int(self->conf, "/playlist/last_current", 0),
+		NULL);
 
 	if ((iface = gel_hub_shared_get(hub, "iface")) == NULL) {
 		gel_error("Cannot get EinaIFace");
@@ -597,7 +599,7 @@ on_pl_row_activated(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, 
 	GError *err = NULL;
 
 	indexes = gtk_tree_path_get_indices(path);
-	lomo_player_go_nth(LOMO(self), indexes[0]);
+	lomo_player_go_nth(LOMO(self), indexes[0], NULL);
 	if (lomo_player_get_state(LOMO(self)) != LOMO_STATE_PLAY )
 	{
 		lomo_player_play(LOMO(self), &err);
@@ -801,7 +803,7 @@ void
 on_pl_lomo_eos(LomoPlayer *lomo, EinaPlaylist *self)
 {
 	if (lomo_player_get_next(lomo) != -1) {
-		lomo_player_go_next(lomo);
+		lomo_player_go_next(lomo, NULL);
 		lomo_player_play(lomo, NULL); //XXX: Handle GError
 	}
 }

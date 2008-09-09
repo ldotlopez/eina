@@ -495,7 +495,7 @@ void on_player_any_button_clicked(GtkWidget *w, EinaPlayer *self) {
 	if (w == self->next) {
 		state = lomo_player_get_state(LOMO(self));
 
-		lomo_player_go_next(LOMO(self));
+		lomo_player_go_next(LOMO(self), NULL);
 		if (state == LOMO_STATE_PLAY) {
 			lomo_player_play(LOMO(self), NULL);
 		}
@@ -504,7 +504,7 @@ void on_player_any_button_clicked(GtkWidget *w, EinaPlayer *self) {
 	else if (w == self->prev) {
 		state = lomo_player_get_state(LOMO(self));
 
-		lomo_player_go_prev(LOMO(self));
+		lomo_player_go_prev(LOMO(self), NULL);
 		if (state == LOMO_STATE_PLAY) {
 			lomo_player_play(LOMO(self), NULL);
 		}

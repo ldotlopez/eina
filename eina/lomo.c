@@ -12,8 +12,8 @@ G_MODULE_EXPORT gboolean eina_lomo_init
 	GError   *err = NULL;
 	LomoPlayer *engine = NULL;
 
-	lomo_init();
-	engine = lomo_player_new_from_params("gconfaudiosink name=sink", &err);
+	lomo_init(argc, argv);
+	engine = lomo_player_new("autoaudiosink name=sink", &err);
 
 	if (!engine)
 	{
