@@ -135,7 +135,7 @@ G_MODULE_EXPORT gboolean cover_init
 		gel_error("Cannot get main-window widget");
 	}
 
-	if ((self->cover_img = W(player, "cover-img")) == NULL) {
+	if ((self->cover_img = W(player, "cover-image")) == NULL) {
 		gel_error("Cannot get cover widget");
 		return FALSE;
 	}
@@ -154,8 +154,9 @@ G_MODULE_EXPORT gboolean cover_init
 	/* Prepare default cover */
 	// path = g_ext_find_file(G_EXT_FILE_TYPE_PIXMAP, "icon.png");
 	path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "icon.png");
-	self->default_img = gdk_pixbuf_new_from_file_at_size(path,
-		48, 48,
+	self->default_img = gdk_pixbuf_new_from_file_at_scale(path,
+		96, 96,
+		FALSE,
 		NULL);
 	g_free(path);
 	g_object_ref(self->default_img);
@@ -357,7 +358,7 @@ void eina_cover_set_from_filename
 		return;
 	}
 	
-	pb = gdk_pixbuf_new_from_file_at_size(path, 48, 48, &error);
+	pb = gdk_pixbuf_new_from_file_at_scale(path, 96, 96, FALSE, &error);
 	if (pb == NULL) {
 		gel_error("Cannot load cover from '%s': %s",
 			path, error->message);

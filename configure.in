@@ -1,5 +1,5 @@
-AC_INIT([eina], 0.6.1, xuzo@cuarentaydos.com)
-AM_INIT_AUTOMAKE([eina], [0.6.1])
+AC_INIT([eina], 0.7.0, xuzo@cuarentaydos.com)
+AM_INIT_AUTOMAKE([eina], [0.7.0])
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -12,8 +12,8 @@ AC_HEADER_STDC
 AC_PROG_INTLTOOL
 AM_PROG_LIBTOOL
 
-EINA_API_VERSION="0.6"
-EINA_VERSION="$EINA_API_VERSION.1"
+EINA_API_VERSION="0.7"
+EINA_VERSION="$EINA_API_VERSION.0"
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_API_VERSION)
 
@@ -39,7 +39,7 @@ fi
 
 GLIB_VERSION="2.16"
 GTK_VERSION="2.12"
-LIBLOMO_VERSION="0.94.1"
+LIBLOMO_VERSION="0.95.0"
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
 	gmodule-2.0 >= $GLIB_VERSION,   \
@@ -126,7 +126,7 @@ debian/changelog
 debian/control
 debian/eina-dev.install
 debian/Makefile
-eina-0.6.pc
+eina-0.7.pc
 eina/Makefile
 gel/Makefile
 Makefile

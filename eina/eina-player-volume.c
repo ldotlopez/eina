@@ -3,7 +3,7 @@
 #include "eina-player-volume.h"
 #include <gel/gel.h>
 
-G_DEFINE_TYPE (EinaPlayerVolume, eina_player_volume, G_TYPE_OBJECT)
+G_DEFINE_TYPE (EinaPlayerVolume, eina_player_volume, GTK_TYPE_VOLUME_BUTTON)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_PLAYER_TYPE_VOLUME, EinaPlayerVolumePrivate))

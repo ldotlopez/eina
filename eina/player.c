@@ -21,7 +21,7 @@ struct _EinaPlayer {
 
 	EinaConf         *conf;
 
-	GtkWidget *prev, *play, *pause, *next, *open;
+	GtkWidget *prev, *play_pause, *play_pause_image, *next, *open;
 };
 
 EinaFsFilterAction eina_player_fs_filter(GFileInfo *info);
@@ -78,24 +78,23 @@ void on_player_settings_change
 /* Signal definitions */
 GelUISignalDef _player_signals[] = {
 	/* Main buttons signals */
- 	{ "play", "clicked",
+ 	{ "play-pause-button", "clicked",
 	G_CALLBACK(on_player_any_button_clicked) },
 
-	{ "pause", "clicked",
+	{ "prev-button", "clicked",
 	G_CALLBACK(on_player_any_button_clicked) },
 
-	{ "prev", "clicked",
+	{ "next-button", "clicked",
 	G_CALLBACK(on_player_any_button_clicked) },
 
-	{ "next", "clicked",
-	G_CALLBACK(on_player_any_button_clicked) },
-
-	{ "open-files", "clicked",
+	{ "open-button", "clicked",
 	G_CALLBACK(on_player_any_button_clicked) },
 
 	/* Misc */
+	/*
 	{ "player-ebox", "drag-data-received",
 	G_CALLBACK(on_player_ebox_drag_data_received) },
+	*/
 
 	{ "dock-expander", "activate",
 	G_CALLBACK(on_dock_expander_activate) },
@@ -124,16 +123,24 @@ G_MODULE_EXPORT gboolean eina_player_init
 	/* Insert seek */
 	self->seek = (EinaPlayerSeek *) eina_player_seek_new();
 	eina_player_seek_set_lomo(self->seek, LOMO(self));
-	eina_player_seek_set_label(self->seek, GTK_LABEL(W(self, "time-info")));
-	gtk_box_pack_start(GTK_BOX(W(self, "seek-volume-box")), GTK_WIDGET(self->seek),
-		TRUE, TRUE, 0);
+	eina_player_seek_set_label(self->seek, GTK_LABEL(W(self, "time-info-label")));
+	gtk_container_foreach(GTK_CONTAINER(W(self, "seek-hscale-container")),
+		(GtkCallback) gtk_widget_hide,
+		NULL);
+	gtk_box_pack_start(GTK_BOX(W(self, "seek-hscale-container")),
+		 GTK_WIDGET(self->seek),
+		 TRUE, TRUE, 0);
+	gtk_widget_show_all(GTK_WIDGET(self->seek));
 
 	/* Insert volume */
 	self->volume = eina_player_volume_new(LOMO(self));
-	gtk_box_pack_start(GTK_BOX(W(self, "seek-volume-box")), eina_player_volume_get_widget(self->volume),
-		FALSE, TRUE, 0);
-
-	gtk_widget_show_all(W(self, "seek-volume-box"));
+	gtk_container_foreach(GTK_CONTAINER(W(self, "volume-button-container")),
+		(GtkCallback) gtk_widget_hide,
+		NULL);
+	gtk_box_pack_start(GTK_BOX(W(self, "volume-button-container")),
+		 GTK_WIDGET(self->volume),
+		 TRUE, TRUE, 0);
+	gtk_widget_show_all(GTK_WIDGET(self->volume));
 
 	/* Insert cover */
 	if (!gel_hub_load(HUB(self), "cover")) {
@@ -159,11 +166,11 @@ G_MODULE_EXPORT gboolean eina_player_init
 	/*
 	 * Get references to the main widgets
 	 */
-	self->play      = W(self, "play");
-	self->pause     = W(self, "pause");
-	self->prev      = W(self, "prev");
-	self->next      = W(self, "next");
-	self->open      = W(self, "open-files");
+	self->play_pause       = W(self, "play-pause-button");
+	self->play_pause_image = W(self, "play-pause-image");
+	self->prev             = W(self, "prev-button");
+	self->next             = W(self, "next-button");
+	self->open             = W(self, "open-button");
 
 	/* Setup lomo signals */
 	g_signal_connect(LOMO(self), "play",
@@ -242,14 +249,14 @@ G_MODULE_EXPORT gboolean eina_player_exit
 
 /* Change UI to reflect a play state */
 void eina_player_switch_state_play(EinaPlayer *self) {
-	gtk_widget_hide(W(self, "play"));
-	gtk_widget_show(W(self, "pause"));
+	gtk_image_set_from_stock(GTK_IMAGE(self->play_pause_image),
+		"gtk-media-pause", GTK_ICON_SIZE_BUTTON);
 }
 
 /* Change UI to reflect a pause/stop state */
 void eina_player_switch_state_pause(EinaPlayer *self) {
-	gtk_widget_hide(W(self, "pause"));
-	gtk_widget_show(W(self, "play"));
+	gtk_image_set_from_stock(GTK_IMAGE(self->play_pause_image),
+		"gtk-media-play", GTK_ICON_SIZE_BUTTON);
 }
 
 void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
@@ -265,7 +272,7 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 			GTK_WINDOW(W(self, "main-window")),
 			_("Eina music player"));
 		gtk_label_set_markup(
-			GTK_LABEL(W(self, "stream-info")),
+			GTK_LABEL(W(self, "stream-label-info")),
 			_("<b>Eina music player</b>\n\uFEFF"));
 		return;
 	}
@@ -313,105 +320,8 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 		g_free(markup);
 	}
 
-	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info")), info_str);
+	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), info_str);
 	g_free(info_str);
-#if 0
-	// Got streama
-	else 
-	{
-		title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
-		album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
-		artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-
-		// Fix things in case of failure
-		if (title == NULL)
-		{
-			tmp   = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
-			tmp2  = g_uri_unescape_string(tmp);
-			g_free(tmp);
-
-			title = g_markup_escape_text(tmp2);
-			g_free(tmp2);
-		}
-		tmp = g_
-
-
-		if (artist == NULL)
-		{
-			artist = "\uFEFF";
-		}
-
-		if (album == NULL)
-		{
-			album = "\uFEFF";
-		}
-
-	}
-
-
-	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), title_simple);
-	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info")), info_str);
-
-	/* Set title */
-	if (stream == NULL ) {
-		str = g_strdup(_("<b>Eina Player</b>"));
-		// eina_player_seek_disable_widget(self->seek);
-		gtk_widget_set_sensitive(GTK_WIDGET(self->seek), FALSE);
-		window_title = g_strdup("Eina Player");
-		goto set_label;
-	}
-
-	else {
-		// Get title, album, artist
-		title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
-		album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
-		artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-		if (title)  title  = g_markup_escape_text(title, -1);
-		if (album)  album  = g_markup_escape_text(album, -1);
-		if (artist) artist = g_markup_escape_text(artist, -1);
-		if (GTK_IS_WIDGET(self->seek))
-			gtk_widget_set_sensitive(GTK_WIDGET(self->seek), TRUE);
-		else
-			gel_error("seek widget is not a widget");
-	}
-
-	if (title == NULL) {
-		str = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
-		window_title = g_strconcat(str, " - ", "Eina Player", NULL);
-	} else {
-		str = g_strconcat("<b>", title, "</b>", NULL);
-		window_title = g_strconcat(title, " - ", "Eina Player", NULL);
-
-		if ((artist != NULL) || (album != NULL)) {
-			tmp = str;
-			str = g_strconcat(str, "\n", NULL);
-			g_free(tmp);
-		}
-
-		if ( artist ) {
-			tmp = str;
-			str = g_strconcat(str, " ", _("by"), " ", "<i>", artist, "</i>", NULL);
-			g_free(tmp);
-		} else {
-			str = "\uFEFF";
-		}
-
-		if ( album ) {
-			tmp = str;
-			str = g_strconcat(str, " ", _("in"), " ", "<i>", album, "</i>", NULL);
-			g_free(tmp);
-		}
-	}
-	g_free(title);
-	g_free(album);
-	g_free(artist);
-
-set_label:
-	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info")), str);
-	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), window_title);
-	g_free(window_title);
-	g_free(str);
-#endif
 }
 
 
@@ -510,12 +420,11 @@ void on_player_any_button_clicked(GtkWidget *w, EinaPlayer *self) {
 		}
 	}
 	
-	else if (w == self->play) {
-		lomo_player_play(LOMO(self), &err);
-	}
-
-	else if ( w == self->pause ) {
-		lomo_player_pause(LOMO(self), NULL);
+	else if (w == self->play_pause) {
+		if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
+			lomo_player_pause(LOMO(self), &err);
+		else
+			lomo_player_play(LOMO(self), &err);
 	}
 
 	else if (w == self->open) {

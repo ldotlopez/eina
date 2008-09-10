@@ -12,7 +12,6 @@ G_MODULE_EXPORT gboolean eina_lomo_init
 	GError   *err = NULL;
 	LomoPlayer *engine = NULL;
 
-	lomo_init(argc, argv);
 	engine = lomo_player_new("autoaudiosink name=sink", &err);
 
 	if (!engine)

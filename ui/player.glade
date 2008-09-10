@@ -2,83 +2,182 @@
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
 <!--*- mode: xml -*-->
 <glade-interface>
-  <widget class="GtkWindow" id="main-window">
-    <property name="title" translatable="yes">Eina Player</property>
-    <child>
-      <widget class="GtkVBox" id="playerbox">
+  <widget class="GtkAboutDialog" id="player-about">
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Acerca de Eina</property>
+    <property name="resizable">False</property>
+    <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
+    <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
+    <property name="opacity">0.69999999999999996</property>
+    <property name="has_separator">False</property>
+    <property name="program_name">Eina</property>
+    <property name="version">0.7.0</property>
+    <property name="copyright" translatable="yes">Copyright © 2003-2008 xuzo
+Copyright © 2003-2005 xuzo and eru</property>
+    <property name="comments" translatable="yes">A classic player for the modern era</property>
+    <property name="website">http://eina.sourceforge.net/</property>
+    <property name="website_label" translatable="yes">http://eina.sourceforge.net/</property>
+    <property name="license" translatable="yes">Eina es software libre libre, puede redistribuirlo o modificarlobajo los términos de la Licencia Pública General de GNU tal comola publica la Free Software Foundation, tanto en su versión 2 de la Licencia como (a su elección) cualquier versión posterior.
+
+Eina se distribuye con la esperanza de que se sea útil,pero  SIN NINGUNA GARANTÍA; sin incluso la garantía implícita de MERCANTILIDAD o IDONEIDAD PARA UN PROPÓSITOPARTICULAR. Vea la Licencia Pública General de GNU paradetalles.
+
+Debería haber recibido una copia de la Licencia Pública General de GNUjunto con este programa, si no, escriba a la Free Software Foundation, Inc51 Franklin Street , Fifth Floor, Boston, MA 02110-1301, USA.</property>
+    <property name="authors">xuzo &lt;xuzo@cuarentaydos.com&gt;</property>
+    <property name="documenters">None yet :)</property>
+    <property name="translator_credits" translatable="yes">None yet :)</property>
+    <property name="logo">icon.png</property>
+    <property name="wrap_license">True</property>
+    <child internal-child="vbox">
+      <widget class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
-        <property name="border_width">5</property>
+        <property name="spacing">2</property>
         <child>
-          <widget class="GtkHBox" id="infobox">
+          <placeholder/>
+        </child>
+        <child internal-child="action_area">
+          <widget class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="layout_style">GTK_BUTTONBOX_END</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">GTK_PACK_END</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="GtkWindow" id="main-window">
+    <child>
+      <widget class="GtkVBox" id="vbox3">
+        <property name="visible">True</property>
+        <property name="spacing">5</property>
+        <child>
+          <widget class="GtkHBox" id="hbox2">
             <property name="visible">True</property>
             <property name="spacing">5</property>
             <child>
-              <widget class="GtkEventBox" id="cover-img-ebox">
+              <widget class="GtkAlignment" id="alignment2">
                 <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="xscale">0</property>
+                <property name="yscale">0</property>
                 <child>
-                  <widget class="GtkImage" id="cover-img">
-                    <property name="width_request">48</property>
-                    <property name="height_request">48</property>
+                  <widget class="GtkImage" id="cover-image">
+                    <property name="width_request">96</property>
+                    <property name="height_request">96</property>
                     <property name="visible">True</property>
-                    <property name="stock">gtk-missing-image</property>
+                    <property name="pixbuf">Amaral - Gato negro dragón rojo.jpg</property>
                   </widget>
                 </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="player-ebox">
+              <widget class="GtkVBox" id="vbox4">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkVBox" id="vbox2">
+                  <widget class="GtkHBox" id="hbox3">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkHBox" id="hbox7">
+                      <widget class="GtkLabel" id="stream-info-label">
                         <property name="visible">True</property>
-                        <child>
-                          <widget class="GtkLabel" id="stream-info">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="label" translatable="yes">&lt;b&gt;Eina Player&lt;/b&gt;</property>
-                            <property name="use_markup">True</property>
-                            <property name="selectable">True</property>
-                            <property name="ellipsize">PANGO_ELLIPSIZE_MIDDLE</property>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkLabel" id="time-info">
-                            <property name="visible">True</property>
-                            <property name="yalign">0</property>
-                            <property name="label" translatable="yes">&lt;tt&gt;--:--&lt;/tt&gt;</property>
-                            <property name="use_markup">True</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
+                        <property name="xalign">0</property>
+                        <property name="yalign">0</property>
+                        <property name="label" translatable="yes">&lt;span size="x-large"&gt;&lt;b&gt;Gato negro dragon rojo&lt;/b&gt;&lt;/span&gt;
+&lt;b&gt;Amaral&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
+                        <property name="ellipsize">PANGO_ELLIPSIZE_MIDDLE</property>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkHBox" id="seek-volume-box">
+                      <widget class="GtkAlignment" id="alignment1">
                         <property name="visible">True</property>
-                        <property name="spacing">5</property>
+                        <property name="xalign">1</property>
+                        <property name="yalign">0</property>
+                        <property name="xscale">0</property>
+                        <property name="yscale">0</property>
+                        <child>
+                          <widget class="GtkVBox" id="volume-button-container">
+                            <property name="visible">True</property>
+                            <child>
+                              <widget class="GtkButton" id="volume-placeholder-button">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="relief">GTK_RELIEF_NONE</property>
+                                <property name="response_id">0</property>
+                                <child>
+                                  <widget class="GtkImage" id="image7">
+                                    <property name="visible">True</property>
+                                    <property name="pixbuf">audio-volume-high.png</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
                       </widget>
                       <packing>
-                        <property name="fill">False</property>
+                        <property name="expand">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
+                  </widget>
+                </child>
+                <child>
+                  <widget class="GtkHBox" id="hbox4">
+                    <property name="visible">True</property>
                     <child>
-                      <placeholder/>
+                      <widget class="GtkLabel" id="time-current-label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&lt;small&gt;&lt;tt&gt;00:00&lt;/tt&gt;&lt;/small&gt;</property>
+                        <property name="use_markup">True</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="time-total-label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&lt;small&gt;&lt;tt&gt;07:59&lt;/tt&gt;&lt;/small&gt;</property>
+                        <property name="use_markup">True</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="pack_type">GTK_PACK_END</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </widget>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkHBox" id="seek-hscale-container">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkHScale" id="seek-placeholder-hscale">
+                        <property name="width_request">400</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="adjustment">0 0 100 1 10 10</property>
+                        <property name="draw_value">False</property>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">2</property>
+                  </packing>
                 </child>
               </widget>
               <packing>
@@ -88,20 +187,21 @@
           </widget>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">False</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkHBox" id="actionsbox">
+          <widget class="GtkHBox" id="actions-hbox">
             <property name="visible">True</property>
             <property name="spacing">5</property>
             <child>
-              <widget class="GtkButton" id="prev">
+              <widget class="GtkButton" id="prev-button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="tooltip" translatable="yes">Previous song</property>
                 <property name="response_id">0</property>
                 <child>
-                  <widget class="GtkImage" id="image142">
+                  <widget class="GtkImage" id="image2">
                     <property name="visible">True</property>
                     <property name="stock">gtk-media-previous</property>
                   </widget>
@@ -113,42 +213,15 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkVBox" id="vbox17">
+              <widget class="GtkButton" id="play-pause-button">
                 <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="response_id">0</property>
                 <child>
-                  <widget class="GtkButton" id="play">
+                  <widget class="GtkImage" id="play-pause-image">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="response_id">0</property>
-                    <child>
-                      <widget class="GtkImage" id="image143">
-                        <property name="visible">True</property>
-                        <property name="stock">gtk-media-play</property>
-                      </widget>
-                    </child>
+                    <property name="stock">gtk-media-pause</property>
                   </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkButton" id="pause">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="response_id">0</property>
-                    <child>
-                      <widget class="GtkImage" id="image144">
-                        <property name="visible">True</property>
-                        <property name="stock">gtk-media-pause</property>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
               </widget>
               <packing>
@@ -158,13 +231,13 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="next">
+              <widget class="GtkButton" id="next-button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="tooltip" translatable="yes">Next song</property>
                 <property name="response_id">0</property>
                 <child>
-                  <widget class="GtkImage" id="image141">
+                  <widget class="GtkImage" id="image4">
                     <property name="visible">True</property>
                     <property name="stock">gtk-media-next</property>
                   </widget>
@@ -177,12 +250,12 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="open-files">
+              <widget class="GtkButton" id="open-button">
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="response_id">0</property>
                 <child>
-                  <widget class="GtkImage" id="image1">
+                  <widget class="GtkImage" id="image5">
                     <property name="visible">True</property>
                     <property name="stock">gtk-open</property>
                   </widget>
@@ -204,35 +277,29 @@
         </child>
         <child>
           <widget class="GtkExpander" id="dock-expander">
-            <property name="width_request">350</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="expanded">True</property>
             <child>
-              <widget class="GtkNotebook" id="dock">
+              <widget class="GtkNotebook" id="dock-notebook">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="tab_pos">GTK_POS_LEFT</property>
-                <property name="show_border">False</property>
-                <property name="homogeneous">True</property>
                 <child>
-                  <widget class="GtkLabel" id="label3">
+                  <widget class="GtkLabel" id="label7">
                     <property name="visible">True</property>
+                    <property name="label" translatable="yes">	</property>
                   </widget>
                 </child>
                 <child>
-                  <widget class="GtkLabel" id="label2">
-                    <property name="visible">True</property>
-                  </widget>
+                  <placeholder/>
                   <packing>
                     <property name="type">tab</property>
-                    <property name="tab_fill">False</property>
                   </packing>
                 </child>
               </widget>
             </child>
             <child>
-              <widget class="GtkLabel" id="label1">
+              <widget class="GtkLabel" id="label6">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Dock</property>
               </widget>

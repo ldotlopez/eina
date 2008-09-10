@@ -48,6 +48,7 @@ gint main
 #endif
 
 	gtk_init(&argc, &argv);
+	lomo_init(&argc, &argv);
 	gel_init(PACKAGE_NAME, PACKAGE_DATA_DIR);
 
 	opt_ctx = g_option_context_new("Eina options");

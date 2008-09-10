@@ -24,14 +24,19 @@ G_BEGIN_DECLS
 #define EINA_PLAYER_VOLUME_GET_CLASS(obj) \
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_PLAYER_TYPE_VOLUME, EinaPlayerVolumeClass))
 
+struct _GtkVolumeButton
+{
+	GtkScaleButton scale;
+};
+
 typedef struct
 {
-	GObject parent;
+	GtkVolumeButton parent;
 } EinaPlayerVolume;
 
 typedef struct
 {
-	GObjectClass parent_class;
+	GtkVolumeButtonClass parent_class;
 } EinaPlayerVolumeClass;
 
 GType eina_player_volume_get_type (void);
