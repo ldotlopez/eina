@@ -3,6 +3,7 @@
 export EINA_UI_DIR="`dirname $0`/ui"
 export EINA_PIXMAPS_DIR="`dirname $0`/pixmaps"
 export EINA_PLUGINS_PATH="`dirname $0`/tools/plugins:"
+export LD_LIBRARY_PATH=/opt/local/lib:/usr/local/lib:$LD_LIBRARY_PATH
 
 rm -rf -- "`dirname $0`/tools/plugins"
 mkdir -p "`dirname $0`/tools/plugins"

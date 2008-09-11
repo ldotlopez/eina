@@ -45,8 +45,10 @@ typedef struct
 
 GType eina_player_volume_get_type (void);
 
-EinaPlayerVolume *eina_player_volume_new       (LomoPlayer *lomo);
-GtkWidget        *eina_player_volume_get_widget(EinaPlayerVolume *self);
+EinaPlayerVolume *eina_player_volume_new(void);
+
+void        eina_player_volume_set_lomo_player(EinaPlayerVolume *self, LomoPlayer *player);
+LomoPlayer *eina_player_volume_get_lomo_player(EinaPlayerVolume *self);
 
 G_END_DECLS
 

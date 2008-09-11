@@ -137,7 +137,7 @@ G_MODULE_EXPORT gboolean eina_player_init
 	gtk_widget_show_all(GTK_WIDGET(self->seek));
 
 	/* Insert volume */
-	self->volume = eina_player_volume_new(LOMO(self));
+	self->volume = g_object_new(EINA_PLAYER_TYPE_VOLUME, "lomo-player", LOMO(self), NULL);
 	gtk_container_foreach(GTK_CONTAINER(W(self, "volume-button-container")),
 		(GtkCallback) gtk_widget_hide,
 		NULL);
