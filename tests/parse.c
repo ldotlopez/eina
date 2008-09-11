@@ -2,40 +2,10 @@
 #include <glib/gprintf.h>
 #include <string.h>
 
-typedef gchar* (*EinaTransformFunc)(gchar key, gpointer data);
-gchar *transform_function(gchar abbr, gpointer data)
-{
-	gchar *ret;
-	if (abbr == 'a')
-		ret = "Artist";
-	else if (abbr == 'b')
-		ret = "Album";
-	else if (abbr == 't')
-		ret = "Title";
-	else
-		ret = NULL;
+typedef gchar* (*GelTransformFunc)(gchar key, gpointer data);
 
-	if (ret == NULL)
-		return NULL;
-	else
-		return g_strdup(ret);
-}
-
-const gchar *stream_get_tag(gchar abbr)
-{
-	if (abbr == 'a')
-		return "Artist";
-	else if (abbr == 'b')
-		return "Album";
-	else if (abbr == 't')
-		return "Title";
-	else
-		return NULL;
-}
-
-// Resolve a simple string, no conditionals.
-// Returns a newly allocated string
-gchar *resolver_string(gchar *str)
+static gchar *
+simple_solver(gchar *str, GelTransformFunc func, gpointer data)
 {
 	GString *output = g_string_new(NULL);
 	gchar *ret = NULL;
@@ -54,7 +24,7 @@ gchar *resolver_string(gchar *str)
 		// Match valid mark
 		else if ((str[i] == '%') && (str[i+1] != '\0'))
 		{
-			if ((tag_value = stream_get_tag(str[i+1])) != NULL) {
+			if ((tag_value = func(str[i+1], data)) != NULL) {
 				output = g_string_append(output, tag_value);
 				i++;
 			}
@@ -72,9 +42,7 @@ gchar *resolver_string(gchar *str)
 	return ret;
 }
 
-// Finds the closer of the current open token
-// Returns a pointer to the end token
-gchar *
+static gchar *
 find_closer(gchar *str)
 {
 	gint tokens = 0;
@@ -103,104 +71,7 @@ find_closer(gchar *str)
 	return NULL;
 }
 
-
-gchar *decondition_string(gchar *str)
-{
-	gchar *ret = NULL;
-	GString *buff = g_string_new(NULL);
-	gchar *token1, *token2;
-	gchar *tmp, *tmp_parsed;
-
-	while ((token1 = strchr(str, '{')) != NULL)
-	{
-		token2 = find_closer(token1);
-
-		// Broken format
-		if (token2 == NULL)
-		{
-			g_string_free(buff, TRUE);
-			return NULL;
-		}
-
-		// Copy pre-token1
-		buff = g_string_append_len(buff, str, token1 - str);
-
-		// Try to resolve conditional part
-		tmp = g_strndup(token1+1, token2 - token1);
-		if (tmp) 
-		{
-			tmp_parsed = resolver_string(tmp);
-			if (tmp_parsed)
-			{
-				buff = g_string_append(buff, tmp_parsed);
-				g_free(tmp_parsed);
-			}
-			g_free(tmp);
-		}
-
-		// Copy post-token2
-		buff = g_string_append(buff, token2+1);
-
-		str = token2+1;
-	}
-
-	ret = buff->str;
-	g_string_free(buff, FALSE);
-	return ret;
-}
-
-gchar *
-resolver_string_with_conditional(gchar *str)
-{
-	gchar *decond = decondition_string(str);
-	gchar *ret  = resolver_string(decond);
-	g_free(decond);
-	return ret;
-#if 0
-	gchar *token1, *token2;
-	GString *output = g_string_new(NULL);
-	gchar *tmp;
-	gchar *tmp_parsed;
-	gchar *decond, *ret;
-
-	while ((token1 = strchr(str, '{')) != NULL)
-	{
-		token2 = find_closer(token1);
-
-		// Broken format
-		if (token2 == NULL)
-			break;
-
-		output = g_string_append_len(output, str, token1 - str);
-		tmp = g_strndup(token1+1, token2 - token1);
-		if (tmp) 
-		{
-			tmp_parsed = resolver_string(tmp);
-			if (tmp_parsed)
-			{
-				output = g_string_append(output, tmp_parsed);
-				g_free(tmp_parsed);
-			}
-			g_free(tmp);
-		}
-
-		output = g_string_append(output, token2+1);
-
-		decond = output->str;
-		g_string_free(output, FALSE);
-	}
-
-	else
-	{
-		decond = g_strdup(str);
-	}
-
-	ret = resolver_string(decond);
-	g_free(decond);
-#endif
-}
-
-gchar *transform(gchar *str)
+gchar *gel_string_parse(gchar *str, GelTransformFunc func, gpointer data)
 {
 	GString *buffer = g_string_new(str), *buffer2;
 	gchar *token1, *token2;
@@ -211,7 +82,7 @@ gchar *transform(gchar *str)
 		if ((token2 = find_closer(token1)) == NULL)
 			goto transform_fail;
 		
-		g_printf("Got token: %s\n", token2);
+		// g_printf("Got token: %s\n", token2);
 
 		// Got two tokens
 		buffer2 = g_string_new_len(buffer->str, token1 - buffer->str);
@@ -219,13 +90,13 @@ gchar *transform(gchar *str)
 		tmp = g_strndup(token1 + 1, token2 - token1 - 1);
 		if (tmp)
 		{
-			tmp2 = transform(tmp);
-			g_free(tmp);
-			if (tmp2 != NULL)
+			tmp2 = gel_string_parse(tmp, func, data);
+			if ((tmp2 != NULL) && strcmp(tmp,tmp2))
 			{
 				buffer2 = g_string_append(buffer2, tmp2);
 				g_free(tmp2);
 			}
+			g_free(tmp);
 		}
 
 		buffer2 = g_string_append(buffer2, token2 + 1);
@@ -234,8 +105,9 @@ gchar *transform(gchar *str)
 		buffer = buffer2;
 	}
 
-	ret = buffer->str;
-	g_string_free(buffer, FALSE);
+	ret = simple_solver(buffer->str, func, data);
+	// g_printf("Resolving: '%s' => '%s'\n", buffer->str, ret);
+	g_string_free(buffer, TRUE);
 	return ret;
 
 transform_fail:
@@ -244,12 +116,26 @@ transform_fail:
 	return NULL;
 }
 
+gchar *transform_function(gchar abbr, gpointer data)
+{
+	gchar *ret;
+	if (abbr == 'a')
+		ret = "Artist";
+	else if (abbr == 'b')
+		ret = "Album";
+	else if (abbr == 't')
+		ret = "Title";
+	else
+		ret = NULL;
+
+	if (ret == NULL)
+		return NULL;
+	else
+		return g_strdup(ret);
+}
 gint main(gint argc, gchar *argv[])
 {
-	gchar *fmt_str = argv[1];
-	gchar *out = transform(fmt_str);
-	// gchar *out = resolver_string_with_conditional(fmt_str);
-	// g_printf("%s => %s\n", fmt_str, out);
+	gchar *out = gel_string_parse(argv[1], transform_function, NULL);
 	g_printf("%s\n", out);
 	g_free(out);
 	return 0;
