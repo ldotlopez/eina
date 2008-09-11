@@ -81,6 +81,7 @@ eina_fs_lomo_feed_uri_multi_next_iter:
 	g_list_free(directories);
 }
 
+#if 0
 GList *
 eina_fs_parse_playlist_buffer(gchar *buffer)
 {
@@ -99,6 +100,7 @@ eina_fs_parse_playlist_buffer(gchar *buffer)
 	g_strfreev(lines);
 	return g_list_reverse(ret);
 }
+#endif
 
 // Return a list with children's URIs from URI
 // Returned list and list data must be free

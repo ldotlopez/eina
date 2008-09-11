@@ -15,9 +15,13 @@ typedef EinaFsFilterAction (*EinaFsFilterFunc)(GFileInfo *fileinfo);
 void
 eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris, EinaFsFilterFunc filter, GCallback callback, gpointer data);
 
+void
+eina_fs_readdir_async(gchar *uri, gpointer data);
+
+#if 0
 GList *
 eina_fs_parse_playlist_buffer(gchar *buffer);
-
+#endif
 
 GList*
 eina_fs_uri_get_children(gchar *uri);

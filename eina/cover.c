@@ -14,6 +14,8 @@
 #include "cover.h"
 #include "config.h"
 
+#define COVER_W(w) GTK_WIDGET(w)->allocation.width
+#define COVER_H(w) GTK_WIDGET(w)->allocation.height
 
 /*
  * Workflow:
@@ -155,7 +157,7 @@ G_MODULE_EXPORT gboolean cover_init
 	// path = g_ext_find_file(G_EXT_FILE_TYPE_PIXMAP, "icon.png");
 	path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "icon.png");
 	self->default_img = gdk_pixbuf_new_from_file_at_scale(path,
-		96, 96,
+		COVER_W(self->cover_img), COVER_H(self->cover_img),
 		FALSE,
 		NULL);
 	g_free(path);
@@ -358,7 +360,7 @@ void eina_cover_set_from_filename
 		return;
 	}
 	
-	pb = gdk_pixbuf_new_from_file_at_scale(path, 96, 96, FALSE, &error);
+	pb = gdk_pixbuf_new_from_file_at_scale(path, COVER_W(self->cover_img), COVER_H(self->cover_img), FALSE, &error);
 	if (pb == NULL) {
 		gel_error("Cannot load cover from '%s': %s",
 			path, error->message);
@@ -525,7 +527,7 @@ void _eina_cover_save_cover
 	close(fd);
 
 	/* Resize */
-	pb = gdk_pixbuf_new_from_file_at_size(output, 48, 48, NULL);
+	pb = gdk_pixbuf_new_from_file_at_scale(output, COVER_W(self->cover_img), COVER_H(self->cover_img), FALSE, NULL);
 	gdk_pixbuf_save(pb, output, "jpeg", NULL, NULL);
 	eina_cover_set_from_gdk_pixbuf(self, pb);
 
@@ -642,7 +644,7 @@ void on_cover_cover_img_drag_data_received
 		goto fail;
 	}
 
-	pb = gdk_pixbuf_new_from_file_at_size(filename, 48, 48, &error);
+	pb = gdk_pixbuf_new_from_file_at_scale(filename, COVER_W(self->cover_img), COVER_H(self->cover_img), FALSE, &error);
 	if (pb == NULL) {
 		gel_error("Cannot load '%s' into a GdkPixbuf: '%s'",
 			filename,

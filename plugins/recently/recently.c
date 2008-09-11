@@ -406,7 +406,7 @@ on_recently_dock_row_activated(GtkWidget *w,
 	gchar *pl_file, *pl_path;
 	// void (*callback);
 	gchar *buffer = NULL;
-	GList *uris;
+	gchar **uris = NULL;
 
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &iter, path);
 	gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter,
@@ -422,7 +422,7 @@ on_recently_dock_row_activated(GtkWidget *w,
 		return;
 	}
 
-	uris = eina_fs_parse_playlist_buffer(buffer);
+	uris = g_uri_list_extract_uris((const gchar*) buffer);
 	g_free(buffer);
 
 	if (uris == NULL)
@@ -436,13 +436,15 @@ on_recently_dock_row_activated(GtkWidget *w,
 	lomo_player_clear(EINA_PLUGIN_LOMO_PLAYER(plugin));
 
 	// Add uris to lomo. playlist widget is still in background
-	lomo_player_add_uri_multi(EINA_PLUGIN_LOMO_PLAYER(plugin), uris);
+	// lomo_player_add_uri_multi(EINA_PLUGIN_LOMO_PLAYER(plugin), uris);
+	lomo_player_add_uri_strv(EINA_PLUGIN_LOMO_PLAYER(plugin), uris);
 
 	// Now switch to playlist widget
 	eina_iface_dock_switch(EINA_PLUGIN_IFACE(plugin), "playlist");
 
 	// Free data
-	gel_glist_free(uris, (GFunc) g_free, NULL);
+	// gel_glist_free(uris, (GFunc) g_free, NULL);
+	g_strfreev(uris);
 }
 
 

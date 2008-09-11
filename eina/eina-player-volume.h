@@ -24,10 +24,14 @@ G_BEGIN_DECLS
 #define EINA_PLAYER_VOLUME_GET_CLASS(obj) \
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_PLAYER_TYPE_VOLUME, EinaPlayerVolumeClass))
 
+#if !GTK_CHECK_VERSION(2,12,10)
+// Al least on 2.12.9 GtkVolumeButton headers don't declare this time making
+// impossible to subclass it
 struct _GtkVolumeButton
 {
 	GtkScaleButton scale;
 };
+#endif
 
 typedef struct
 {

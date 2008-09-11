@@ -123,7 +123,11 @@ G_MODULE_EXPORT gboolean eina_player_init
 	/* Insert seek */
 	self->seek = (EinaPlayerSeek *) eina_player_seek_new();
 	eina_player_seek_set_lomo(self->seek, LOMO(self));
-	eina_player_seek_set_label(self->seek, GTK_LABEL(W(self, "time-info-label")));
+	g_object_set(G_OBJECT(self->seek),
+		"current-label", GTK_LABEL(W(self, "time-current-label")),
+		"total-label",   GTK_LABEL(W(self, "time-total-label")),
+		NULL);
+
 	gtk_container_foreach(GTK_CONTAINER(W(self, "seek-hscale-container")),
 		(GtkCallback) gtk_widget_hide,
 		NULL);
@@ -200,23 +204,10 @@ G_MODULE_EXPORT gboolean eina_player_init
 		eina_player_switch_state_pause(self);
 	}
 
-	/* Setup filter subsystem */
-	/*
-	self->stream_filter = eina_fs_filter_new();
-	eina_fs_filter_add_suffix(self->stream_filter, ".mp3");
-	eina_fs_filter_add_suffix(self->stream_filter, ".ogg");
-	eina_fs_filter_add_suffix(self->stream_filter, ".wav");
-	eina_fs_filter_add_suffix(self->stream_filter, ".flac");
-	*/
-	
 	lomo_player_set_volume(LOMO(self),
 		eina_conf_get_int(self->conf, "/core/volume", 50));
 
-	/* Playlist, hide widget on failure, setup on success */	
-	goto player_show;
-
-player_show:
-	gtk_widget_show_all(W(self, "open-files"));
+	gtk_widget_show_all(W(self, "open-button"));
 	gel_ui_signal_connect_from_def_multiple(UI(self), _player_signals, self, NULL);
 	g_signal_connect(self->conf, "change", G_CALLBACK(on_player_settings_change), self);
 	gtk_widget_show(W(self, "main-window"));
@@ -272,8 +263,10 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 			GTK_WINDOW(W(self, "main-window")),
 			_("Eina music player"));
 		gtk_label_set_markup(
-			GTK_LABEL(W(self, "stream-label-info")),
-			_("<b>Eina music player</b>\n\uFEFF"));
+			GTK_LABEL(W(self, "stream-info-label")),
+			_("<span size=\"x-large\" weight=\"bold\">Eina music Player</span>")
+			//_("<b>Eina music player</b>\n\uFEFF")
+			);
 		return;
 	}
 
@@ -286,10 +279,14 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 		g_free(tmp);
 	}
 	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), tag);
-
+/*
+<span size="x-large" weight="bold">Gato negro dragon rojo</span>
+<span size="x-large" weight="normal">Amaral</span>
+*/
 	tmp = g_markup_escape_text(tag, -1);
 	g_free(tag);
-	info_str = g_strdup_printf("<b>%s</b>", tmp);
+	// info_str = g_strdup_printf("<b>%s</b>", tmp);
+	info_str = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", tmp);
 	g_free(tmp);
 
 	// Idem for artist, lomo_stream_get_tag gets a reference, remember this.
@@ -297,19 +294,21 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 	if (tag == NULL)
 	{
 		tmp = info_str;
-		info_str = g_strconcat(info_str, "\n\uFEFF", NULL);
+		info_str = g_strconcat(info_str, "\n<span size=\"x-large\" weight=\"normal\">\uFEFF</span>", NULL);
 		g_free(tmp);
 	}
 	else
 	{
 		markup = g_markup_escape_text(tag, -1);
 		tmp = info_str;
-		info_str = g_strconcat(info_str, "\n ", _("by"), " ", "<i>", markup, "</i>", NULL);
+		// info_str = g_strconcat(info_str, "\n ", _("by"), " ", "<i>", markup, "</i>", NULL);
+		info_str = g_strconcat(info_str, "\n<span size=\"x-large\" weight=\"normal\">", markup, "</span>", NULL);
 		g_free(tmp);
 		g_free(markup);
 	}
 
 	// Idem for album, lomo_stream_get_tag gets a reference, remember this.
+	/*
 	tag = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
 	if (tag != NULL)
 	{
@@ -319,7 +318,7 @@ void eina_player_set_info(EinaPlayer *self, LomoStream *stream) {
 		g_free(tmp);
 		g_free(markup);
 	}
-
+	*/
 	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), info_str);
 	g_free(info_str);
 }
