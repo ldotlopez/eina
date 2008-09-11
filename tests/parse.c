@@ -2,6 +2,25 @@
 #include <glib/gprintf.h>
 #include <string.h>
 
+typedef gchar* (*EinaTransformFunc)(gchar key, gpointer data);
+gchar *transform_function(gchar abbr, gpointer data)
+{
+	gchar *ret;
+	if (abbr == 'a')
+		ret = "Artist";
+	else if (abbr == 'b')
+		ret = "Album";
+	else if (abbr == 't')
+		ret = "Title";
+	else
+		ret = NULL;
+
+	if (ret == NULL)
+		return NULL;
+	else
+		return g_strdup(ret);
+}
+
 const gchar *stream_get_tag(gchar abbr)
 {
 	if (abbr == 'a')
@@ -180,11 +199,58 @@ resolver_string_with_conditional(gchar *str)
 	g_free(decond);
 #endif
 }
+
+gchar *transform(gchar *str)
+{
+	GString *buffer = g_string_new(str), *buffer2;
+	gchar *token1, *token2;
+	gchar *tmp, *tmp2, *ret;
+
+	while ((token1 = strchr(buffer->str, '{')) != NULL)
+	{
+		if ((token2 = find_closer(token1)) == NULL)
+			goto transform_fail;
+		
+		g_printf("Got token: %s\n", token2);
+
+		// Got two tokens
+		buffer2 = g_string_new_len(buffer->str, token1 - buffer->str);
+		
+		tmp = g_strndup(token1 + 1, token2 - token1 - 1);
+		if (tmp)
+		{
+			tmp2 = transform(tmp);
+			g_free(tmp);
+			if (tmp2 != NULL)
+			{
+				buffer2 = g_string_append(buffer2, tmp2);
+				g_free(tmp2);
+			}
+		}
+
+		buffer2 = g_string_append(buffer2, token2 + 1);
+
+		g_string_free(buffer, TRUE);
+		buffer = buffer2;
+	}
+
+	ret = buffer->str;
+	g_string_free(buffer, FALSE);
+	return ret;
+
+transform_fail:
+	if (buffer != NULL)
+		g_string_free(buffer, TRUE);
+	return NULL;
+}
+
 gint main(gint argc, gchar *argv[])
 {
 	gchar *fmt_str = argv[1];
-	gchar *out = resolver_string_with_conditional(fmt_str);
-	g_printf("%s => %s\n", fmt_str, out);
+	gchar *out = transform(fmt_str);
+	// gchar *out = resolver_string_with_conditional(fmt_str);
+	// g_printf("%s => %s\n", fmt_str, out);
+	g_printf("%s\n", out);
 	g_free(out);
 	return 0;
 }
