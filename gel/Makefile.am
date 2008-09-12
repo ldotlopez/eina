@@ -15,6 +15,7 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	gel.h                  \
+	gel-str-parser.h       \
 	gel-hub.h              \
 	gel-io-async-read-op.h \
 	gel-io.h               \
@@ -25,6 +26,7 @@ header_DATA = $(INST_H_FILES)
 
 libgel_la_SOURCES = \
 	gel.c                  \
+	gel-str-parser.c       \
 	gel-hub-marshal.c      \
 	gel-hub.c              \
 	gel-io-async-read-op.c \

@@ -48,11 +48,11 @@ typedef struct EinaPlugin
 typedef EinaPlugin* (*EinaPluginInitFunc) (GelHub *app, EinaIFace *iface);
 typedef gboolean    (*EinaPluginExitFunc) (EinaPlugin *self);
 #define EINA_PLUGIN_FUNC G_MODULE_EXPORT
-// #define EINA_PLUGIN_DATA(x) (((EinaPlugin *)x)->data)
 
 LomoPlayer *
 eina_plugin_get_lomo_player(EinaPlugin *plugin);
 #define EINA_PLUGIN_LOMO_PLAYER(p) LOMO_PLAYER(eina_plugin_get_lomo_player(p))
+
 
 EinaIFace *
 eina_plugin_get_iface(EinaPlugin *plugin);
@@ -64,7 +64,6 @@ eina_plugin_get_iface(EinaPlugin *plugin);
 #define PLUGIN_GET_DATA(p) ((PLUGIN_DATA_TYPE *) p->data)
 #define  EINA_PLUGIN_GET_DATA(p) ((PLUGIN_DATA_TYPE *) p->data)
 #endif
-
 
 GelHub *
 eina_iface_get_hub(EinaIFace *self);

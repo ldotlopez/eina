@@ -59,6 +59,10 @@ eina_player_seek_get_property (GObject *object, guint property_id,
 	EinaPlayerSeek *self = EINA_PLAYER_SEEK(object);
 	switch (property_id) {
 
+	case EINA_PLAYER_SEEK_PROPERTY_LOMO_PLAYER:
+		g_value_set_object(value, (gpointer) eina_player_seek_get_lomo_player(self));
+		break;
+
 	case EINA_PLAYER_SEEK_PROPERTY_TIME_CURRENT_LABEL:
 		g_value_set_object(value, (gpointer) eina_player_seek_get_current_label(self));
 		break;
@@ -83,6 +87,10 @@ eina_player_seek_set_property (GObject *object, guint property_id,
 	EinaPlayerSeek *self = EINA_PLAYER_SEEK(object);
 
 	switch (property_id) {
+	case EINA_PLAYER_SEEK_PROPERTY_LOMO_PLAYER:
+		eina_player_seek_set_lomo_player(self, LOMO_PLAYER(g_value_get_object(value)));
+		break;
+
 	case EINA_PLAYER_SEEK_PROPERTY_TIME_CURRENT_LABEL:
 		eina_player_seek_set_current_label(self, GTK_LABEL(g_value_get_object(value)));
 		break;
@@ -144,6 +152,11 @@ eina_player_seek_class_init (EinaPlayerSeekClass *klass)
 	object_class->dispose = eina_player_seek_dispose;
 	object_class->finalize = eina_player_seek_finalize;
 
+	g_object_class_install_property(object_class, EINA_PLAYER_SEEK_PROPERTY_LOMO_PLAYER,
+		g_param_spec_object("lomo-player", "Lomo player", "LomoPlayer object to control/watch",
+		LOMO_TYPE_PLAYER, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT
+		));
+
 	g_object_class_install_property(object_class, EINA_PLAYER_SEEK_PROPERTY_TIME_CURRENT_LABEL,
 		g_param_spec_object("current-label", "Current label", "GtkLabel widget to show current time",
 		GTK_TYPE_LABEL, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT
@@ -164,56 +177,31 @@ static void
 eina_player_seek_init (EinaPlayerSeek *self)
 {
 	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
+	gint i;
+
 	priv->total_is_desync = TRUE;
+	priv->lomo   = NULL;
+	for (i = 0; i < EINA_PLAYER_SEEK_N_TIMES; i++)
+		priv->time_labels[i] = NULL;
+    priv->real_id = -1;
 }
 
 EinaPlayerSeek*
 eina_player_seek_new (void)
 {
 	EinaPlayerSeek *self = g_object_new (EINA_PLAYER_TYPE_SEEK, NULL);
-	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
-	gint i;
 
 	g_object_set(G_OBJECT(self), "draw-value", FALSE, NULL);
 	gtk_range_set_range(GTK_RANGE(self), 0, 1000);
 	gtk_range_set_update_policy(GTK_RANGE(self), GTK_UPDATE_CONTINUOUS);
+
 	g_signal_connect(self, "value-changed",
 		G_CALLBACK(on_player_seek_value_changed), self);
-
 	g_signal_connect(self, "button-press-event",
 		G_CALLBACK(on_player_seek_button_press_event), self);
-
 	g_signal_connect(self, "button-release-event",
 		G_CALLBACK(on_player_seek_button_release_event), self);
-
-	priv->lomo   = NULL;
-	for (i = 0; i < EINA_PLAYER_SEEK_N_TIMES; i++)
-	{
-		priv->time_labels[i] = NULL;
-	}
-    priv->real_id = -1;
 	return self;
-}
-/*
-void
-eina_player_seek_set_label(EinaPlayerSeek *self, GtkLabel *label)
-{
-	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
-	g_return_if_fail(GTK_IS_LABEL(label));
-
-	if (priv->time_w)
-		g_object_unref(priv->time_w);
-	priv->time_w = label;
-	g_object_ref(priv->time_w);
-}
-
-void
-eina_player_seek_set_lomo_old(EinaPlayerSeek *self, LomoPlayer *lomo)
-{
-}
-*/
-void eina_player_seek_reset(EinaPlayerSeek *self) {
-	
 }
 
 void eina_player_seek_updater_start(EinaPlayerSeek *self) {
@@ -230,10 +218,11 @@ void eina_player_seek_updater_stop(EinaPlayerSeek *self) {
 }
 
 void
-eina_player_seek_set_lomo (EinaPlayerSeek *self, LomoPlayer *lomo)
+eina_player_seek_set_lomo_player(EinaPlayerSeek *self, LomoPlayer *lomo)
 {
 	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+	if ((lomo == NULL) || !LOMO_IS_PLAYER(lomo))
+		return;
 
 	if (priv->lomo)
 		g_object_unref(priv->lomo);
@@ -258,6 +247,13 @@ eina_player_seek_set_lomo (EinaPlayerSeek *self, LomoPlayer *lomo)
 
 	g_signal_connect(lomo, "change",
 		G_CALLBACK(on_player_seek_lomo_change), self);
+}
+
+LomoPlayer *
+eina_player_seek_get_lomo_player(EinaPlayerSeek *self)
+{
+	EinaPlayerSeekPrivate *priv = GET_PRIVATE(self);
+	return priv->lomo;
 }
 
 static void

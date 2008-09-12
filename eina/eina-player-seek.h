@@ -40,12 +40,12 @@ EinaPlayerSeek* eina_player_seek_new          (void);
 void            eina_player_seek_updater_start(EinaPlayerSeek *self);
 void            eina_player_seek_updater_stop (EinaPlayerSeek *self);
 
-void eina_player_seek_set_lomo           (EinaPlayerSeek *self, LomoPlayer *lomo);
+void eina_player_seek_set_lomo_player    (EinaPlayerSeek *self, LomoPlayer *lomo);
 void eina_player_seek_set_current_label  (EinaPlayerSeek *self, GtkLabel *label);
 void eina_player_seek_set_total_label    (EinaPlayerSeek *self, GtkLabel *label);
 void eina_player_seek_set_remaining_label(EinaPlayerSeek *self, GtkLabel *label);
 
-LomoPlayer* eina_player_seek_get_lomo           (EinaPlayerSeek *self);
+LomoPlayer* eina_player_seek_get_lomo_player    (EinaPlayerSeek *self);
 GtkLabel*   eina_player_seek_get_current_label  (EinaPlayerSeek *self);
 GtkLabel*   eina_player_seek_get_total_label    (EinaPlayerSeek *self);
 GtkLabel*   eina_player_seek_get_remaining_label(EinaPlayerSeek *self);

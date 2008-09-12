@@ -22,6 +22,8 @@ struct _EinaPlayer {
 	EinaConf         *conf;
 
 	GtkWidget *prev, *play_pause, *play_pause_image, *next, *open;
+
+	gchar *stream_info_fmt;
 };
 
 EinaFsFilterAction eina_player_fs_filter(GFileInfo *info);
@@ -69,26 +71,23 @@ void on_player_ebox_drag_data_received
 	guint             time,
 	EinaPlayer       *self);
 
-/* * * * * * * * * */
-/* Misc callbacks  */
-/* * * * * * * * * */
+/*
+ * Misc callbacks
+ */
 void on_player_settings_change
 (EinaConf *conf, gchar *key, EinaPlayer *self);
 
-/* Signal definitions */
+// Signal definitions 
 GelUISignalDef _player_signals[] = {
-	/* Main buttons signals */
+	// Main buttons signals 
  	{ "play-pause-button", "clicked",
-	G_CALLBACK(on_player_any_button_clicked) },
-
+		G_CALLBACK(on_player_any_button_clicked) },
 	{ "prev-button", "clicked",
-	G_CALLBACK(on_player_any_button_clicked) },
-
+		G_CALLBACK(on_player_any_button_clicked) },
 	{ "next-button", "clicked",
-	G_CALLBACK(on_player_any_button_clicked) },
-
+		G_CALLBACK(on_player_any_button_clicked) },
 	{ "open-button", "clicked",
-	G_CALLBACK(on_player_any_button_clicked) },
+		G_CALLBACK(on_player_any_button_clicked) },
 
 	/* Misc */
 	/*
@@ -122,10 +121,11 @@ G_MODULE_EXPORT gboolean eina_player_init
 
 	/* Insert seek */
 	self->seek = (EinaPlayerSeek *) eina_player_seek_new();
-	eina_player_seek_set_lomo(self->seek, LOMO(self));
 	g_object_set(G_OBJECT(self->seek),
-		"current-label", GTK_LABEL(W(self, "time-current-label")),
-		"total-label",   GTK_LABEL(W(self, "time-total-label")),
+		"lomo-player",     LOMO(self),
+		"current-label",   GTK_LABEL(W(self, "time-current-label")),
+		"remaining-label", GTK_LABEL(W(self, "time-remaining-label")),
+		"total-label",     GTK_LABEL(W(self, "time-total-label")),
 		NULL);
 
 	gtk_container_foreach(GTK_CONTAINER(W(self, "seek-hscale-container")),
