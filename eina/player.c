@@ -9,6 +9,7 @@
 #include "player.h"
 #include "eina-player-seek.h"
 #include "eina-player-volume.h"
+#include "eina-cover.h"
 #include "eina-file-chooser-dialog.h"
 #include "playlist.h"
 #include "settings.h"
@@ -147,10 +148,9 @@ G_MODULE_EXPORT gboolean eina_player_init
 	gtk_widget_show_all(GTK_WIDGET(self->volume));
 
 	/* Insert cover */
-	if (!gel_hub_load(HUB(self), "cover")) {
+	if (!gel_hub_load(HUB(self), "cover")) 
 		gel_warn("Cannot load cover");
-		gtk_widget_hide(W(self, "cover-button"));
-	}
+	eina_cover_set_lomo_player(eina_cover_new(), LOMO(self));
 
 	/* Load settings */
 	if (!gel_hub_load(HUB(self), "settings")) {

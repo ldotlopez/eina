@@ -14,8 +14,9 @@
 #include "cover.h"
 #include "config.h"
 
-#define COVER_W(w) GTK_WIDGET(w)->allocation.width
+// #define COVER_W(w) GTK_WIDGET(w)->allocation.width
 #define COVER_H(w) GTK_WIDGET(w)->allocation.height
+#define COVER_W(w) COVER_H(w)
 
 /*
  * Workflow:

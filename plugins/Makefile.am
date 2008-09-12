@@ -1,4 +1,4 @@
-SUBDIRS = hooktest recently cover2
+SUBDIRS = hooktest recently
 
 if USE_ADB
 SUBDIRS += adb

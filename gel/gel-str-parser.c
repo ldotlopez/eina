@@ -1,7 +1,8 @@
 #include <gel/gel-str-parser.h>
+#include <string.h>
 
 static gchar *
-simple_solver(gchar *str, GelTransformFunc func, gpointer data)
+simple_solver(gchar *str, GelStrParserFunc func, gpointer data)
 {
 	GString *output = g_string_new(NULL);
 	gchar *ret = NULL;
@@ -87,7 +88,7 @@ gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer data)
 		tmp = g_strndup(token1 + 1, token2 - token1 - 1);
 		if (tmp)
 		{
-			tmp2 = gel_string_parse(tmp, func, data);
+			tmp2 = gel_str_parser(tmp, callback, data);
 			if ((tmp2 != NULL) && strcmp(tmp,tmp2))
 			{
 				buffer2 = g_string_append(buffer2, tmp2);
@@ -102,7 +103,7 @@ gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer data)
 		buffer = buffer2;
 	}
 
-	ret = simple_solver(buffer->str, func, data);
+	ret = simple_solver(buffer->str, callback, data);
 	// g_printf("Resolving: '%s' => '%s'\n", buffer->str, ret);
 	g_string_free(buffer, TRUE);
 	return ret;
