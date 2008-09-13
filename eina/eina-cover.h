@@ -32,7 +32,7 @@ typedef struct {
 	GtkImageClass parent_class;
 } EinaCoverClass;
 
-typedef void (*EinaCoverProviderFunc)(EinaCover *self, const LomoStream *stream);
+typedef void (*EinaCoverProviderFunc)(EinaCover *self, const LomoStream *stream, gpointer data);
 typedef void (*EinaCoverProviderCancelFunc)(EinaCover *self, gpointer data);
 
 GType eina_cover_get_type (void);
@@ -42,16 +42,13 @@ EinaCover* eina_cover_new (void);
 void        eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo);
 LomoPlayer* eina_cover_get_lomo_player(EinaCover *self);
 
-void eina_cover_reset(EinaCover* self);
-
 void eina_cover_add_provider(EinaCover *self, const gchar *name,
 	EinaCoverProviderFunc callback, EinaCoverProviderCancelFunc cancel,
 	gpointer data);
 void eina_cover_delete_provider(EinaCover *self, const gchar *name);
 
-void eina_cover_set_from_uri(EinaCover *self, gchar *uri);
-void eina_cover_set_from_pathname(EinaCover *self, gchar *pathname);
-void eina_cover_set_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf);
+void eina_cover_provider_fail   (EinaCover *self);
+void eina_cover_provider_success(EinaCover *self, GType type, gpointer data);
 
 G_END_DECLS
 
