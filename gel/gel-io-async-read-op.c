@@ -38,18 +38,15 @@ _gel_io_async_read_op_close_cb(GObject *source, GAsyncResult *res, gpointer data
 static void
 gel_io_async_read_op_dispose (GObject *object)
 {
+	gel_warn("===> %p", object);
 	GelIOAsyncReadOp *self = (GelIOAsyncReadOp *) object;
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
-
-	if (priv->callback_in_progress)
-		gel_warn("unref while callback, rejecting");
-	else
-		gel_info("No callback in progress, disposing");
 
 	if ((priv->phase != GEL_IO_ASYNC_READ_OP_PHASE_NONE) && (priv->phase != GEL_IO_ASYNC_READ_OP_PHASE_FINISH))
 	{
 		gel_warn("Disposing %p. Operation in progress will be cancelled");
 		g_cancellable_cancel(priv->cancellable);
+		priv->cancellable = NULL;
 	}
 
 	gel_free_and_invalidate(priv->file, NULL, g_object_unref);
@@ -115,6 +112,7 @@ gel_io_async_read_op_new (gchar *uri)
 	g_file_read_async(priv->file, G_PRIORITY_DEFAULT, priv->cancellable,
 		_gel_io_async_read_op_open_cb, self);
 
+	gel_warn("===> %p", self);
 	return self;
 }
 
@@ -130,6 +128,8 @@ _gel_io_async_read_op_open_cb(GObject *source, GAsyncResult *res, gpointer data)
 	GelIOAsyncReadOp *self = (GelIOAsyncReadOp *) data;
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
 	GError *err = NULL;
+
+	gel_warn("===> %p", self);
 
 	priv->stream = G_INPUT_STREAM(g_file_read_finish(priv->file, res, &err));
 	if (err != NULL)
@@ -155,6 +155,8 @@ _gel_io_async_read_op_read_cb(GObject *source, GAsyncResult *res, gpointer data)
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
 	gssize readed;
 	GError *err = NULL;
+
+	gel_warn("===> %p", self);
 
 	readed = g_input_stream_read_finish(priv->stream, res, &err);
 	if (err != NULL)
@@ -187,6 +189,8 @@ _gel_io_async_read_op_close_cb(GObject *source, GAsyncResult *res, gpointer data
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
 	GError *err = NULL;
 
+	gel_warn("===> %p", self);
+
 	if (!g_input_stream_close_finish(priv->stream, res, &err))
 	{
 		g_signal_emit(G_OBJECT(self), gel_io_async_read_op_signals[ERROR], 0, err);
@@ -197,12 +201,9 @@ _gel_io_async_read_op_close_cb(GObject *source, GAsyncResult *res, gpointer data
 	}
 
 	priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_FINISH;
-	gel_info("Reached finish state");
-	g_file_set_contents("/tmp/lala", (gchar *) priv->ba->data, priv->ba->len, NULL);
+
 	g_object_ref(G_OBJECT(self));
-	priv->callback_in_progress = TRUE;
 	g_signal_emit(G_OBJECT(self), gel_io_async_read_op_signals[FINISH], 0, priv->ba);
-	priv->callback_in_progress = FALSE;
 	g_object_unref(G_OBJECT(self));
 }
 

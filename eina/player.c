@@ -17,6 +17,7 @@
 
 struct _EinaPlayer {
 	EinaBase          parent;
+	EinaCover        *cover;
 	EinaPlayerSeek   *seek;
 	EinaPlayerVolume *volume;
 
@@ -148,9 +149,20 @@ G_MODULE_EXPORT gboolean eina_player_init
 	gtk_widget_show_all(GTK_WIDGET(self->volume));
 
 	/* Insert cover */
+#if 0
 	if (!gel_hub_load(HUB(self), "cover")) 
 		gel_warn("Cannot load cover");
-	eina_cover_set_lomo_player(eina_cover_new(), LOMO(self));
+#else
+	self->cover = eina_cover_new();
+	g_object_set(G_OBJECT(self->cover), "lomo-player", LOMO(self), NULL);
+	gtk_container_foreach(GTK_CONTAINER(W(self, "cover-image-container")),
+		(GtkCallback) gtk_widget_hide,
+		NULL);
+	gtk_box_pack_start(GTK_BOX(W(self, "cover-image-container")),
+		 GTK_WIDGET(self->cover),
+		 FALSE, FALSE, 0);
+	gtk_widget_show_all(GTK_WIDGET(self->cover));
+#endif
 
 	/* Load settings */
 	if (!gel_hub_load(HUB(self), "settings")) {

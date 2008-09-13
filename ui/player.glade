@@ -57,9 +57,17 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
             <property name="visible">True</property>
             <property name="spacing">5</property>
             <child>
-              <widget class="GtkImage" id="cover-image">
+              <widget class="GtkHBox" id="cover-image-container">
                 <property name="visible">True</property>
-                <property name="pixbuf">cover-unknow.png</property>
+                <child>
+                  <widget class="GtkImage" id="cover-image">
+                    <property name="visible">True</property>
+                    <property name="pixbuf">cover-unknow.png</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
