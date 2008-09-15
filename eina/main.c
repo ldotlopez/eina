@@ -81,7 +81,7 @@ gint main
 		gel_hub_load(app, modules[i++]);
 
 	eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "recently");
-	eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "cover2");
+	eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "coverplus");
 	// eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "lastfminfo");
 
 	gtk_main();

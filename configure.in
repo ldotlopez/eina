@@ -134,6 +134,7 @@ misc/eina.desktop
 misc/Makefile
 pixmaps/Makefile
 plugins/adb/Makefile
+plugins/coverplus/Makefile
 plugins/hooktest/Makefile
 plugins/lastfminfo/Makefile
 plugins/Makefile

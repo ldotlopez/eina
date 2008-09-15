@@ -42,6 +42,9 @@ EinaCover* eina_cover_new (void);
 void        eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo);
 LomoPlayer* eina_cover_get_lomo_player(EinaCover *self);
 
+void eina_cover_set_default_cover(EinaCover *self, gchar *filename);
+gchar *eina_cover_get_default_cover(EinaCover *self);
+
 void eina_cover_add_backend(EinaCover *self, const gchar *name,
 	EinaCoverBackendFunc callback, EinaCoverBackendCancelFunc cancel,
 	gpointer data);

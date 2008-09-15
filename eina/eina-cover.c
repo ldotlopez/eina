@@ -49,7 +49,8 @@ struct _EinaCoverPrivate {
 };
 
 enum {
-	EINA_COVER_LOMO_PLAYER_PROPERTY = 1
+	EINA_COVER_LOMO_PLAYER_PROPERTY = 1,
+	EINA_COVER_DEFAULT_COVER_PROPERTY
 };
 
 static void eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
@@ -81,6 +82,9 @@ eina_cover_get_property (GObject *object, guint property_id,
 	case EINA_COVER_LOMO_PLAYER_PROPERTY:
 		g_value_set_object(value, (gpointer) eina_cover_get_lomo_player(self));
 		break;
+	case EINA_COVER_DEFAULT_COVER_PROPERTY:
+		g_value_set_string(value, (gpointer) eina_cover_get_default_cover(self));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -95,6 +99,9 @@ eina_cover_set_property (GObject *object, guint property_id,
 	switch (property_id) {
 	case EINA_COVER_LOMO_PLAYER_PROPERTY:
 		eina_cover_set_lomo_player(self, LOMO_PLAYER(g_value_get_object(value)));
+		break;
+	case EINA_COVER_DEFAULT_COVER_PROPERTY:
+		// eina_cover_set_default_cover(self, g_value_get_string(value));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -191,6 +198,25 @@ eina_cover_get_lomo_player(EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 	return priv->lomo;
+}
+
+void
+eina_cover_set_default_cover(EinaCover *self, gchar *filename)
+{
+	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
+	if (filename == NULL)
+		return;
+
+	if (priv->default_cover != NULL)
+		g_free(priv->default_cover);
+	priv->default_cover = g_strdup(filename);
+}
+
+gchar *
+eina_cover_get_default_cover(EinaCover *self)
+{
+	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
+	return g_strdup(priv->default_cover);
 }
 
 static void
@@ -457,7 +483,7 @@ void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer
 	gchar *uri = lomo_stream_get_tag(LOMO_STREAM(stream), LOMO_TAG_URI);
 	gchar *pathname = g_filename_from_uri(uri, NULL, NULL);
 	gchar *dirname, *coverfile;
-
+#if COVER_DEBUG
 	if (g_random_int()%2)
 	{
 		g_free(pathname);
@@ -465,6 +491,7 @@ void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer
 	}
 	else
 	{
+#endif
 		dirname = g_path_get_dirname(pathname);
 		g_free(pathname);
 
@@ -478,5 +505,7 @@ void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer
 			g_free(coverfile);
 			eina_cover_backend_fail(self);
 		}
+#if COVER_DEBUG
 	}
+#endif
 }
