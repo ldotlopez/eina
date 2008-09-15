@@ -52,26 +52,24 @@ enum {
 	EINA_COVER_LOMO_PLAYER_PROPERTY = 1
 };
 
-/*
-void
-eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
-static gboolean
-eina_cover_provider_check_data(EinaCover *self);
-static void
-eina_cover_provider_set_data(EinaCover *self, EinaCoverProviderState state, GType type, gpointer data);
+static void eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
 
-*/
+static gboolean eina_cover_check_backend_state(EinaCover *self);
+static EinaCoverBackendData* eina_cover_get_backend_data(EinaCover *self);
+static void eina_cover_set_backend_data (EinaCover *self, EinaCoverBackendState state, GType type, gpointer data);
+static void eina_cover_reset_backends(EinaCover *self);
 
 static void eina_cover_reset_backends(EinaCover *self);
 static void eina_cover_run_backend(EinaCover *self);
 void eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType type, gpointer data);
 EinaCoverBackendData* eina_cover_get_backend_data(EinaCover *self);
-
-void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data);
-void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer data);
+static void eina_cover_run_backend(EinaCover *self);
 
 static void on_eina_cover_lomo_change(LomoPlayer *lomo, gint form, gint to, EinaCover *self);
 static void on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self);
+
+void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data);
+void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer data);
 
 static void
 eina_cover_get_property (GObject *object, guint property_id,
@@ -195,7 +193,7 @@ eina_cover_get_lomo_player(EinaCover *self)
 	return priv->lomo;
 }
 
-void
+static void
 eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 {
 	GdkPixbuf *pb;
@@ -299,7 +297,7 @@ eina_cover_check_backend_state(EinaCover *self)
 	return FALSE;
 }
 
-EinaCoverBackendData *
+static EinaCoverBackendData*
 eina_cover_get_backend_data(EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
@@ -307,7 +305,8 @@ eina_cover_get_backend_data(EinaCover *self)
 }
 
 // Sets data
-void eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType type, gpointer data)
+static void
+eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType type, gpointer data)
 {
 	EinaCoverBackendData *bd =  eina_cover_get_backend_data(self);
 
@@ -344,7 +343,6 @@ void eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, G
 		gel_warn("Invalid data to store, unknow type %s", g_type_name(type));
 	}
 }
-
 
 static void
 eina_cover_reset_backends(EinaCover *self)
