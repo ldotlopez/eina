@@ -19,39 +19,40 @@ typedef struct {
 	EinaCoverProviderFunc       callback;
 	EinaCoverProviderCancelFunc cancel;
 	gpointer data;
-} EinaCoverProvider;
+} EinaCoverBackend;
 
 typedef enum {
-	EINA_COVER_PROVIDER_STATE_NONE,
-	EINA_COVER_PROVIDER_STATE_READY,
-	EINA_COVER_PROVIDER_STATE_RUNNING,
-	EINA_COVER_PROVIDER_STATE_FAIL,
-	EINA_COVER_PROVIDER_STATE_SUCCESS,
-} EinaCoverProviderState;
+	EINA_COVER_BACKEND_STATE_NONE,
+	EINA_COVER_BACKEND_STATE_READY,
+	EINA_COVER_BACKEND_STATE_RUNNING,
+	EINA_COVER_BACKEND_STATE_FAIL,
+	EINA_COVER_BACKEND_STATE_SUCCESS,
+} EinaCoverBackendState;
 
 typedef struct {
-	EinaCoverProviderState state;
+	EinaCoverBackendState state;
 	GType                  type;
 	gpointer               data;
-} EinaCoverProviderData;
+} EinaCoverBackendData;
 
 struct _EinaCoverPrivate {
 	LomoPlayer *lomo;
 	gchar      *default_cover;
 	LomoStream *stream;
 
-	GHashTable *providers;
+	GHashTable *backends;
 
-	GList *providers_queue;
-	GList *active_provider;
+	GList *backends_queue;
+	GList *current_backend;
 
-	EinaCoverProviderData provider_data;
+	EinaCoverBackendData backend_data;
 };
 
 enum {
 	EINA_COVER_LOMO_PLAYER_PROPERTY = 1
 };
 
+/*
 void
 eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
 static gboolean
@@ -59,11 +60,19 @@ eina_cover_provider_check_data(EinaCover *self);
 static void
 eina_cover_provider_set_data(EinaCover *self, EinaCoverProviderState state, GType type, gpointer data);
 
+*/
+
+
+static void eina_cover_reset_backends(EinaCover *self);
+static void eina_cover_run_backend(EinaCover *self);
+void eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType type, gpointer data);
+EinaCoverBackendData* eina_cover_get_backend_data(EinaCover *self);
+
+void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data);
+void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer data);
+
 static void on_eina_cover_lomo_change(LomoPlayer *lomo, gint form, gint to, EinaCover *self);
 static void on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self);
-
-void eina_cover_builtin_provider(EinaCover *self, const LomoStream *stream, gpointer data);
-void eina_cover_infs_provider(EinaCover *self, const LomoStream *stream, gpointer data);
 
 static void
 eina_cover_get_property (GObject *object, guint property_id,
@@ -106,10 +115,11 @@ eina_cover_dispose (GObject *object)
 	
 	if (priv != NULL)
 	{
+		// XXX: Stop backends
 		gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
 		gel_free_and_invalidate(priv->default_cover, NULL, g_free);
-		gel_free_and_invalidate(priv->providers, NULL, g_hash_table_destroy);
-		gel_free_and_invalidate(priv->providers_queue, NULL, g_list_free);
+		gel_free_and_invalidate(priv->backends, NULL, g_hash_table_destroy);
+		gel_free_and_invalidate(priv->backends_queue, NULL, g_list_free);
 	}
 
 	if (G_OBJECT_CLASS (eina_cover_parent_class)->dispose)
@@ -144,12 +154,14 @@ eina_cover_init (EinaCover *self)
 		gel_error("Cannot find default cover.");
 	}
 
-	priv->providers       = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
-	priv->providers_queue = NULL;
-	priv->active_provider = NULL;
+	priv->backends = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+	priv->backends_queue = NULL;
+	priv->current_backend = NULL;
 
-	eina_cover_add_provider(self, "default-fallback", eina_cover_builtin_provider, NULL, self);
-	eina_cover_add_provider(self, "in-folder",        eina_cover_infs_provider, NULL, self);
+	eina_cover_add_provider(self, "default-fallback", eina_cover_builtin_backend, NULL, self);
+	eina_cover_add_provider(self, "in-folder",        eina_cover_infs_backend, NULL, self);
+
+	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_NONE, G_TYPE_INVALID, NULL);
 }
 
 EinaCover*
@@ -195,7 +207,6 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 			COVER_W(self), COVER_H(self), FALSE,
 			NULL);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), pb);
-		g_free(data);
 	}
 
 	else if (type == GDK_TYPE_PIXBUF)
@@ -220,15 +231,15 @@ eina_cover_add_provider(EinaCover *self, const gchar *name,
 	gpointer data)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	EinaCoverProvider *pack = g_new0(EinaCoverProvider, 1);
-	pack->self     = self;
-	pack->name     = name;
-	pack->callback = callback;
-	pack->cancel   = cancel;
-	pack->data     = data;
+	EinaCoverBackend *backend = g_new0(EinaCoverBackend, 1);
+	backend->self     = self;
+	backend->name     = name;
+	backend->callback = callback;
+	backend->cancel   = cancel;
+	backend->data     = data;
 
-	g_hash_table_insert(priv->providers, (gpointer) name, pack);
-	priv->providers_queue = g_list_prepend(priv->providers_queue, pack);
+	g_hash_table_insert(priv->backends, (gpointer) name, backend);
+	priv->backends_queue= g_list_prepend(priv->backends_queue, backend);
 }
 
 // Remove a provider
@@ -237,193 +248,159 @@ eina_cover_remove_provider(EinaCover *self, const gchar *name)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 
-	EinaCoverProvider * pack = (EinaCoverProvider *) g_hash_table_lookup(priv->providers, (gpointer) name);
-	if (pack == NULL)
+	EinaCoverBackend *backend = (EinaCoverBackend*) g_hash_table_lookup(priv->backends, (gpointer) name);
+	if (backend == NULL)
 	{
-		gel_warn("Provider '%s' not found", name);
+		gel_warn("Backend '%s' not found", name);
 		return;
 	}
 
-	priv->providers_queue = g_list_remove(priv->providers_queue, pack);
-	g_hash_table_remove(priv->providers, name);
-}
-
-// Start processing providers queue
-static void
-eina_cover_providers_start(EinaCover *self)
-{
-	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-
-	if (priv->active_provider != NULL)
-	{
-		gel_error("There is an active provider");
-		return;
-	}
-
-	if ((priv->active_provider = priv->providers_queue) == NULL)
-	{
-		gel_error("No providers available");
-		return;
-	}
-
-	gel_warn("Starting providers");
-	eina_cover_provider_set_data(self, EINA_COVER_PROVIDER_STATE_READY, G_TYPE_INVALID, NULL);
-	eina_cover_provider_check_data(self);
-	// g_idle_add((GSourceFunc) eina_cover_provider_check_data, self);
-}
-
-static void
-eina_cover_providers_stop(EinaCover *self)
-{
-    struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	EinaCoverProvider * pack;
-
-	if (priv->active_provider == NULL)
-	{
-		gel_warn("Cannot stop a NULL provider");
-		eina_cover_provider_set_data(self, EINA_COVER_PROVIDER_STATE_NONE, G_TYPE_INVALID, NULL);
-		return;
-	}
-
-	pack = (EinaCoverProvider *) priv->active_provider->data;
-	if (pack->cancel == NULL)
-		gel_warn("Provider dont have a cancel callback");
-	else
-		pack->cancel(self, pack->data);
-
-	priv->active_provider = NULL;
-	gel_warn("Stopping providers");
-}
-
-static void
-eina_cover_providers_run(EinaCover *self)
-{
-	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	EinaCoverProvider *pack;
-
-	if (priv->active_provider == NULL)
-	{
-		gel_warn("  Cannot run a NULL provider");
-		return;
-	}
-
-	pack = (EinaCoverProvider *) priv->active_provider->data;
-	if ((pack == NULL) || (pack->callback == NULL))
-	{
-		gel_warn("  Invalid provider %p callback %p to run", pack, (pack == NULL) ? NULL : pack->callback);
-		return;
-	}
-
-	gel_warn("  Run provider '%s'", pack->name);
-	eina_cover_provider_set_data(self, EINA_COVER_PROVIDER_STATE_RUNNING, G_TYPE_INVALID, NULL);
-
-	pack->callback(self, priv->stream, pack->data);
-}
-
-static void
-eina_cover_providers_go_next(EinaCover *self)
-{
-	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	EinaCoverProvider *pack;
-
-	if (priv->active_provider == NULL)
-	{
-		gel_warn("  Cannot go next from NULL provider");
-		eina_cover_providers_stop(self);
-		return;
-	}
-
-	if ((priv->active_provider = priv->active_provider->next) == NULL)
-	{
-		gel_warn("  No next provider, stop");
-		eina_cover_providers_stop(self);
-		return;
-	}
-
-	pack = (EinaCoverProvider *) priv->active_provider->data;
-	if ((pack == NULL) || (pack->callback == NULL))
-	{
-		gel_warn("  Invalid provider %p callback %p to go", pack, (pack == NULL) ? NULL : pack->callback);
-		eina_cover_providers_go_next(self);
-		return;
-	}
-
-	gel_warn("  Moved to next provider");
-	eina_cover_providers_run(self);
+	priv->backends_queue = g_list_remove(priv->backends_queue, backend);
+	g_hash_table_remove(priv->backends, name);
 }
 
 static gboolean
-eina_cover_provider_check_data(EinaCover *self)
+eina_cover_check_backend_state(EinaCover *self)
 {
-	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	EinaCoverProviderData data = priv->provider_data;
-	switch (data.state)
+	struct _EinaCoverPrivate *priv =  GET_PRIVATE(self);
+	EinaCoverBackendData *bd = eina_cover_get_backend_data(self);
+	gel_warn("Current state: %d", bd->state);
+
+	switch(bd->state)
 	{
-	case EINA_COVER_PROVIDER_STATE_READY:
-		eina_cover_providers_run(self);
-		break;
+		case EINA_COVER_BACKEND_STATE_READY:
+			gel_warn("State is ready, run");
+			eina_cover_run_backend(self);
+			break;
 
-	case EINA_COVER_PROVIDER_STATE_FAIL:
-		eina_cover_providers_go_next(self);
-		break;
+		case EINA_COVER_BACKEND_STATE_SUCCESS:
+			eina_cover_set_cover(self, bd->type, bd->data);
+			eina_cover_reset_backends(self);
+			break;
 
-	case EINA_COVER_PROVIDER_STATE_SUCCESS:
-		gel_warn("   Last provider got results: '%s'@%p", g_type_name(data.type), data.data);
-		eina_cover_set_cover(self, data.type, data.data);
-		eina_cover_providers_stop(self);
-		break;
+		case EINA_COVER_BACKEND_STATE_FAIL:
+			gel_warn("Got fail, goto next backend");
+			priv->current_backend = priv->current_backend->next;
+			eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_READY, G_TYPE_INVALID, NULL);
+			eina_cover_run_backend(self);
+			break;
 
-	case EINA_COVER_PROVIDER_STATE_NONE:
-	case EINA_COVER_PROVIDER_STATE_RUNNING:
-	default:
-		gel_error("   We shouldn't be called in this state");
-		break;
-
+		case EINA_COVER_BACKEND_STATE_NONE:
+		case EINA_COVER_BACKEND_STATE_RUNNING:
+		default:
+			gel_warn("Nothing to do in this state %d", bd->state);
 	}
+
 	return FALSE;
 }
 
-static void
-eina_cover_provider_set_data(EinaCover *self, EinaCoverProviderState state, GType type, gpointer data)
+EinaCoverBackendData *
+eina_cover_get_backend_data(EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	EinaCoverProviderData pdata = priv->provider_data;
+	return &(priv->backend_data);
+}
 
-	// Clear previous
-	if ((pdata.type == G_TYPE_STRING) && (pdata.data != NULL)) 
+// Sets data
+void eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType type, gpointer data)
+{
+	EinaCoverBackendData *bd =  eina_cover_get_backend_data(self);
+
+	bd->state = state;
+	gel_warn("Set state to %d", state);
+
+	// Clear type
+	if (bd->type == G_TYPE_INVALID)
 	{
-		g_free(pdata.data);
-		pdata.data = NULL;
+		gel_warn("Stored data is already invalid");
+	}
+	else if (bd->type == G_TYPE_STRING)
+	{
+		gel_warn("Clear backend data %p of type G_TYPE_STRING (%s)", bd->data, bd->data);
+		g_free(bd->data);
+		bd->data = NULL;
+		bd->type = G_TYPE_INVALID;
+	}
+	else
+	{
+		gel_warn("Unknow type to clear");
 	}
 
-	priv->provider_data.state = state;
-	priv->provider_data.type  = type;
-	priv->provider_data.data  = data;
+	// Set new data
+	if (type == G_TYPE_INVALID)
+	{
+		gel_warn("Invalidating internal data");
+		bd->type = G_TYPE_INVALID;
+		bd->data = NULL;
+	}
+	else if (type == G_TYPE_STRING)
+	{
+		bd->data = g_strdup(data);
+		bd->type = type;
+		gel_warn("Set backend data to %p (%s), type G_TYPE_STRING", bd->data, bd->data);
+	}
+	else
+	{
+		gel_warn("Invalid data to store, unknow type %s", g_type_name(type));
+	}
 }
 
-/*
-static EinaCoverProviderData
-eina_cover_provider_get_data(EinaCover *self)
+
+static void
+eina_cover_reset_backends(EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
-	return priv->provider_data;
+	EinaCoverBackend *backend;
+
+	if (priv->current_backend != NULL)
+	{
+		gel_warn("Active backend, call cancel backend");
+		backend = (EinaCoverBackend *) priv->current_backend->data;
+		if (backend->cancel)
+			backend->cancel(self, backend->data);
+	}
+
+	priv->current_backend = priv->backends_queue;
+	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_READY, G_TYPE_INVALID, NULL);
 }
-*/
+
+static void
+eina_cover_run_backend(EinaCover *self)
+{
+	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
+	EinaCoverBackend *backend;
+	EinaCoverBackendData bd = priv->backend_data;
+
+	if (bd.state != EINA_COVER_BACKEND_STATE_READY)
+	{
+		gel_warn("Cant run backend, not in ready mode");
+		return;
+	}
+
+	if ((priv->current_backend == NULL) || (priv->current_backend->data == NULL))
+	{
+		gel_warn("No more backends, go to none state");
+		eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_NONE, G_TYPE_INVALID, NULL);
+		return;
+	}
+
+	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_RUNNING, G_TYPE_INVALID, NULL);
+	backend = (EinaCoverBackend *) priv->current_backend->data;
+	backend->callback(self, priv->stream, backend->data);
+}
 
 void
-eina_cover_provider_success(EinaCover *self, GType type, gpointer data)
+eina_cover_backend_success(EinaCover *self, GType type, gpointer data)
 {
-	eina_cover_provider_set_data(self, EINA_COVER_PROVIDER_STATE_SUCCESS, type, data);
-	eina_cover_provider_check_data( self);
-	// g_idle_add((GSourceFunc) eina_cover_provider_check_data, self);
+	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_SUCCESS, type, data);
+	g_idle_add((GSourceFunc) eina_cover_check_backend_state, self);
 }
 
 void
-eina_cover_provider_fail(EinaCover *self)
+eina_cover_backend_fail(EinaCover *self)
 {
-	eina_cover_provider_set_data(self, EINA_COVER_PROVIDER_STATE_FAIL, G_TYPE_INVALID, NULL);
-	eina_cover_provider_check_data( self);
-	// g_idle_add((GSourceFunc) eina_cover_provider_check_data, self);
+	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_FAIL, G_TYPE_INVALID, NULL);
+	g_idle_add((GSourceFunc) eina_cover_check_backend_state, self);
 }
 
 static void
@@ -434,14 +411,14 @@ on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 	if (to == -1)
 	{
 		gel_debug("Change to -1, reset cover");
-		eina_cover_provider_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
+		eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
 		return;
 	}
 
 	if ((stream = lomo_player_get_nth(lomo, to)) == NULL)
 	{
 		gel_warn("Stream no. %d is NULL. reset cover");
-		eina_cover_provider_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
+		eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
 		return;
 	}
 
@@ -450,9 +427,13 @@ on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 
 	gel_warn("Stream changed to %p (%d -> %d)", stream, from, to);
 
+/*
 	if (from != -1)
 		eina_cover_providers_stop(self);
 	eina_cover_providers_start(self);
+*/
+	eina_cover_reset_backends(self);
+	eina_cover_run_backend(self);
 }
 
 static void
@@ -461,19 +442,19 @@ on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self)
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 
 	gel_free_and_invalidate(priv->stream, NULL, g_object_unref);
-	eina_cover_provider_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
+	eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
 }
 
 /* Build-in provider */
-void eina_cover_builtin_provider(EinaCover *self, const LomoStream *stream, gpointer data)
+void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data)
 {
 	EinaCover *obj = EINA_COVER(data);
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(obj);
 
-	eina_cover_provider_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
+	eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
 }
 
-void eina_cover_infs_provider(EinaCover *self, const LomoStream *stream, gpointer data)
+void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer data)
 {
 	gchar *uri = lomo_stream_get_tag(LOMO_STREAM(stream), LOMO_TAG_URI);
 	gchar *pathname = g_filename_from_uri(uri, NULL, NULL);
@@ -482,7 +463,7 @@ void eina_cover_infs_provider(EinaCover *self, const LomoStream *stream, gpointe
 	if (g_random_int()%2)
 	{
 		g_free(pathname);
-		eina_cover_provider_fail(self);
+		eina_cover_backend_fail(self);
 	}
 	else
 	{
@@ -493,11 +474,11 @@ void eina_cover_infs_provider(EinaCover *self, const LomoStream *stream, gpointe
 		g_free(dirname);
 
 		if (g_file_test(coverfile, G_FILE_TEST_IS_REGULAR))
-			eina_cover_provider_success(self, G_TYPE_STRING, coverfile);
+			eina_cover_backend_success(self, G_TYPE_STRING, coverfile);
 		else
 		{
 			g_free(coverfile);
-			eina_cover_provider_fail(self);
+			eina_cover_backend_fail(self);
 		}
 	}
 }
