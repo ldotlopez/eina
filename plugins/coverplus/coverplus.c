@@ -1,35 +1,45 @@
 #define GEL_DOMAIN "Eina::Plugin::CoverPlus"
 #include <eina/iface.h>
 
-static guint source_id = 0;
 
-gboolean coverplus_dummy(gpointer data)
+// Timeout-based cover backend. For testing
+static guint coverplus_timeout_test_source_id = 0;
+void coverplus_timeout_test_search(EinaCover *cover, const LomoStream *stream, gpointer data);
+void coverplus_timeout_test_cancel(EinaCover *cover, gpointer data);
+static gboolean coverplus_timeout_test_result(gpointer data);
+
+
+// Timeout-test
+void
+coverplus_timeout_test_search(EinaCover *cover, const LomoStream *stream, gpointer data)
 {
-	EinaCover *cover = EINA_COVER(data);
-	source_id = 0;
-	eina_cover_backend_fail(cover);
-	return FALSE;
+	 coverplus_timeout_test_source_id = g_timeout_add(5000, (GSourceFunc) coverplus_timeout_test_result, cover);
 }
 
-void coverplus_search(EinaCover *cover, const LomoStream *stream, gpointer data)
+void
+coverplus_timeout_test_cancel(EinaCover *cover, gpointer data)
 {
-	source_id = g_timeout_add(5000, (GSourceFunc) coverplus_dummy, cover);
-}
-
-void coverplus_cancel(EinaCover *cover, gpointer data)
-{
-	if (source_id <= 0)
+	if (coverplus_timeout_test_source_id <= 0)
 		return;
 
-	g_source_remove(source_id);
-	source_id = 0;
+	g_source_remove(coverplus_timeout_test_source_id);
+	coverplus_timeout_test_source_id = 0;
+}
+
+static gboolean
+coverplus_timeout_test_result(gpointer data)
+{
+	EinaCover *cover = EINA_COVER(data);
+	coverplus_timeout_test_source_id = 0;
+	eina_cover_backend_fail(cover);
+	return FALSE;
 }
 
 EINA_PLUGIN_FUNC gboolean
 coverplus_exit(EinaPlugin *self)
 {
-	if (source_id > 0)
-		g_source_remove(source_id);
+	if (coverplus_timeout_test_source_id > 0)
+		g_source_remove(coverplus_timeout_test_source_id);
 	eina_plugin_free(self);
 	return TRUE;
 }
@@ -50,7 +60,8 @@ coverplus_init(GelHub *app, EinaIFace *iface)
 		return NULL;
 	}
 
-	eina_cover_add_backend(cover, "coverplus", coverplus_search, coverplus_cancel, NULL);
+	eina_cover_add_backend(cover, "coverplus-timeout-test",
+		coverplus_timeout_test_search, coverplus_timeout_test_cancel, NULL);
 	return self;
 }
 
