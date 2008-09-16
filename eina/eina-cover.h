@@ -45,13 +45,16 @@ LomoPlayer* eina_cover_get_lomo_player(EinaCover *self);
 void eina_cover_set_default_cover(EinaCover *self, gchar *filename);
 gchar *eina_cover_get_default_cover(EinaCover *self);
 
+void eina_cover_set_loading_cover(EinaCover *self, gchar *filename);
+gchar *eina_cover_get_loading_cover(EinaCover *self);
+
 void eina_cover_add_backend(EinaCover *self, const gchar *name,
 	EinaCoverBackendFunc callback, EinaCoverBackendCancelFunc cancel,
 	gpointer data);
 void eina_cover_delete_backend(EinaCover *self, const gchar *name);
 
-void eina_cover_provider_fail   (EinaCover *self);
-void eina_cover_provider_success(EinaCover *self, GType type, gpointer data);
+void eina_cover_backend_fail   (EinaCover *self);
+void eina_cover_backend_success(EinaCover *self, GType type, gpointer data);
 
 G_END_DECLS
 

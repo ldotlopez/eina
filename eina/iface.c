@@ -135,6 +135,20 @@ GelHub *eina_iface_get_hub(EinaIFace *self)
 	return HUB(self);
 }
 
+EinaCover *eina_iface_get_cover(EinaIFace *self)
+{
+	GelHub *hub;
+	EinaPlayer *player;
+	
+	if ((hub = HUB(self)) == NULL)
+		return NULL;
+
+	if ((player = gel_hub_shared_get(hub, "player")) == NULL)
+		return NULL;
+
+	return eina_player_get_cover(player);
+}
+
 GList *
 eina_iface_get_plugin_paths(void)
 {
@@ -402,21 +416,6 @@ eina_iface_dock_switch(EinaIFace *self, gchar *id)
 /*
  * EinaPlugin functions
  */
-// XXX Check const
-#if 0
-EinaPluginIFace *
-eina_plugin_iface_new(gchar *plugin_filename, GModule *mod, EinaPlugin *plugin)
-{
-	EinaPluginIFace *ret = g_new0(EinaPluginIFace, 1);
-	ret->name = plugin->name;
-	ret->path = plugin_filename;
-	ret->mod  = mod;
-	ret->data = plugin;
-
-	return ret;
-}
-#endif
-
 EinaPlugin*
 eina_plugin_new(EinaIFace *iface,
 	const gchar *name, const gchar *provides, gpointer data, EinaPluginExitFunc fini,

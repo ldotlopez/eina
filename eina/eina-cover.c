@@ -38,7 +38,10 @@ typedef struct {
 struct _EinaCoverPrivate {
 	LomoPlayer *lomo;
 	gchar      *default_cover;
+	gchar      *loading_cover;
 	LomoStream *stream;
+
+	gboolean found;
 
 	GHashTable *backends;
 
@@ -50,14 +53,15 @@ struct _EinaCoverPrivate {
 
 enum {
 	EINA_COVER_LOMO_PLAYER_PROPERTY = 1,
-	EINA_COVER_DEFAULT_COVER_PROPERTY
+	EINA_COVER_DEFAULT_COVER_PROPERTY,
+	EINA_COVER_LOADING_COVER_PROPERTY
 };
 
 static void eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
 
-static gboolean eina_cover_check_backend_state(EinaCover *self);
 static EinaCoverBackendData* eina_cover_get_backend_data(EinaCover *self);
 static void eina_cover_set_backend_data (EinaCover *self, EinaCoverBackendState state, GType type, gpointer data);
+static gboolean eina_cover_check_backend_state(EinaCover *self);
 static void eina_cover_reset_backends(EinaCover *self);
 
 static void eina_cover_reset_backends(EinaCover *self);
@@ -68,8 +72,9 @@ static void eina_cover_run_backend(EinaCover *self);
 
 static void on_eina_cover_lomo_change(LomoPlayer *lomo, gint form, gint to, EinaCover *self);
 static void on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self);
+static void on_eina_cover_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, EinaCover *self);
 
-void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data);
+// void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data);
 void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer data);
 
 static void
@@ -82,9 +87,15 @@ eina_cover_get_property (GObject *object, guint property_id,
 	case EINA_COVER_LOMO_PLAYER_PROPERTY:
 		g_value_set_object(value, (gpointer) eina_cover_get_lomo_player(self));
 		break;
+
 	case EINA_COVER_DEFAULT_COVER_PROPERTY:
 		g_value_set_string(value, (gpointer) eina_cover_get_default_cover(self));
 		break;
+
+	case EINA_COVER_LOADING_COVER_PROPERTY:
+		g_value_set_string(value, (gpointer) eina_cover_get_loading_cover(self));
+		break;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -100,9 +111,15 @@ eina_cover_set_property (GObject *object, guint property_id,
 	case EINA_COVER_LOMO_PLAYER_PROPERTY:
 		eina_cover_set_lomo_player(self, LOMO_PLAYER(g_value_get_object(value)));
 		break;
+
 	case EINA_COVER_DEFAULT_COVER_PROPERTY:
-		// eina_cover_set_default_cover(self, g_value_get_string(value));
+		eina_cover_set_default_cover(self, (gchar *) g_value_get_string(value));
 		break;
+
+	case EINA_COVER_LOADING_COVER_PROPERTY:
+		eina_cover_set_loading_cover(self, (gchar *) g_value_get_string(value));
+		break;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -144,6 +161,12 @@ eina_cover_class_init (EinaCoverClass *klass)
 	g_object_class_install_property(object_class, EINA_COVER_LOMO_PLAYER_PROPERTY,
 		g_param_spec_object("lomo-player", "Lomo Player", "Lomo Player",
 		LOMO_TYPE_PLAYER,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, EINA_COVER_DEFAULT_COVER_PROPERTY,
+		g_param_spec_string("default-cover", "Default cover", "Default cover",
+		NULL,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, EINA_COVER_LOADING_COVER_PROPERTY,
+		g_param_spec_string("loading-cover", "Loading cover", "Loading cover",
+		NULL,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
 static void
@@ -152,18 +175,14 @@ eina_cover_init (EinaCover *self)
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 	priv->lomo = NULL;
 
-	priv->default_cover = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-unknow.png");
-	if (priv->default_cover == NULL)
-	{
-		gel_error("Cannot find default cover.");
-	}
+	priv->default_cover = priv->loading_cover = NULL;
+	priv->found = FALSE;
 
 	priv->backends = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
 	priv->backends_queue = NULL;
 	priv->current_backend = NULL;
-
-	eina_cover_add_backend(self, "default-fallback", eina_cover_builtin_backend, NULL, self);
-	eina_cover_add_backend(self, "in-folder",        eina_cover_infs_backend, NULL, self);
+	// eina_cover_add_backend(self, "default-fallback", eina_cover_builtin_backend, NULL, self);
+	// eina_cover_add_backend(self, "in-folder",        eina_cover_infs_backend, NULL, self);
 
 	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_NONE, G_TYPE_INVALID, NULL);
 }
@@ -184,11 +203,18 @@ eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo)
 
 	g_object_ref(lomo);
 	if (priv->lomo != NULL)
+	{
+		g_signal_handlers_disconnect_by_func(priv->lomo, on_eina_cover_lomo_change, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, on_eina_cover_lomo_all_tags, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, on_eina_cover_lomo_clear, self);
 		g_object_unref(priv->lomo);
-	priv->lomo = lomo;
+	}
 
+	priv->lomo = lomo;
 	g_signal_connect(priv->lomo, "change",
 	G_CALLBACK(on_eina_cover_lomo_change), self);
+	g_signal_connect(priv->lomo, "all-tags",
+	G_CALLBACK(on_eina_cover_lomo_all_tags), self);
 	g_signal_connect(priv->lomo, "clear",
 	G_CALLBACK(on_eina_cover_lomo_clear), self);
 }
@@ -217,6 +243,25 @@ eina_cover_get_default_cover(EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 	return g_strdup(priv->default_cover);
+}
+
+void
+eina_cover_set_loading_cover(EinaCover *self, gchar *filename)
+{
+	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
+	if (filename == NULL)
+		return;
+
+	if (priv->loading_cover != NULL)
+		g_free(priv->loading_cover);
+	priv->loading_cover = g_strdup(filename);
+}
+
+gchar *
+eina_cover_get_loading_cover(EinaCover *self)
+{
+	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
+	return g_strdup(priv->loading_cover);
 }
 
 static void
@@ -288,12 +333,12 @@ eina_cover_check_backend_state(EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv =  GET_PRIVATE(self);
 	EinaCoverBackendData *bd = eina_cover_get_backend_data(self);
-	// gel_warn("Current state: %d", bd->state);
 
 	switch(bd->state)
 	{
 		// Backend is ready, launch
 		case EINA_COVER_BACKEND_STATE_READY:
+			priv->found = FALSE;
 			eina_cover_run_backend(self);
 			break;
 
@@ -302,12 +347,14 @@ eina_cover_check_backend_state(EinaCover *self)
 			gel_warn(" last backend got results, set cover, and reset");
 			eina_cover_set_cover(self, bd->type, bd->data);
 			eina_cover_reset_backends(self);
+			priv->found = TRUE;
 			break;
 
 		// Backend failed, try next, if there is no next, run will stop the
 		// queue
 		case EINA_COVER_BACKEND_STATE_FAIL:
 			gel_warn(" last backend failed, go next");
+			priv->found = FALSE;
 			priv->current_backend = priv->current_backend->next;
 			eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_READY, G_TYPE_INVALID, NULL);
 			eina_cover_run_backend(self);
@@ -385,8 +432,11 @@ eina_cover_reset_backends(EinaCover *self)
 			backend->cancel(self, backend->data);
 	}
 
+	priv->found = FALSE;
 	priv->current_backend = priv->backends_queue;
 	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_READY, G_TYPE_INVALID, NULL);
+
+	eina_cover_set_cover(self, G_TYPE_STRING, priv->loading_cover);
 }
 
 static void
@@ -405,6 +455,7 @@ eina_cover_run_backend(EinaCover *self)
 	if ((priv->current_backend == NULL) || (priv->current_backend->data == NULL))
 	{
 		gel_warn("No more backends, go to none state");
+		eina_cover_set_cover(self, G_TYPE_STRING, priv->default_cover);
 		eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_NONE, G_TYPE_INVALID, NULL);
 		return;
 	}
@@ -469,7 +520,22 @@ on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self)
 	eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
 }
 
+static void
+on_eina_cover_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, EinaCover *self)
+{
+	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
+	if (priv->stream != stream)
+		return;
+
+	gel_warn("Got all tags on '%s'", (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI));
+	if (priv->found == TRUE)
+		gel_warn("Got all-tags signal but cover is already found");
+	else
+		gel_warn("Got all-tags signal, re-try cover search");
+}
+
 /* Build-in provider */
+#if 0
 void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data)
 {
 	EinaCover *obj = EINA_COVER(data);
@@ -509,3 +575,4 @@ void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer
 	}
 #endif
 }
+#endif

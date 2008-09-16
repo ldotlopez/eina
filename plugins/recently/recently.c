@@ -1,6 +1,6 @@
 #define GEL_DOMAIN "Eina::Plugin::Recently"
 #define PLUGIN_NAME "recently"
-#define PLUGIN_DATA_TYPE RecentlyData
+#define EINA_PLUGIN_DATA_TYPE RecentlyData
 
 #include <string.h>
 #include <glib/gstdio.h>
@@ -348,7 +348,7 @@ recently_dock_new(EinaPlugin *plugin)
 void
 recently_dock_update(EinaPlugin *plugin)
 {
-	RecentlyData *self = PLUGIN_GET_DATA(plugin);
+	RecentlyData *self = EINA_PLUGIN_GET_DATA(plugin);
 	GList *recent_playlists = NULL, *l;
 	GtkTreeIter iter;
 	GList *playlist_data;
@@ -401,7 +401,7 @@ on_recently_dock_row_activated(GtkWidget *w,
 	GtkTreeViewColumn *column,
 	EinaPlugin *plugin)
 {
-	RecentlyData *self = PLUGIN_GET_DATA(plugin);
+	RecentlyData *self = EINA_PLUGIN_GET_DATA(plugin);
 	GtkTreeIter iter;
 	gchar *pl_file, *pl_path;
 	// void (*callback);

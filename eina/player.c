@@ -113,6 +113,8 @@ G_MODULE_EXPORT gboolean eina_player_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaPlayer   *self;
+	gchar *cover_loading;
+	gchar *cover_default;
 
 	/* Load ourselves */
 	self = g_new0(EinaPlayer, 1);
@@ -149,12 +151,17 @@ G_MODULE_EXPORT gboolean eina_player_init
 	gtk_widget_show_all(GTK_WIDGET(self->volume));
 
 	/* Insert cover */
-#if 0
-	if (!gel_hub_load(HUB(self), "cover")) 
-		gel_warn("Cannot load cover");
-#else
 	self->cover = eina_cover_new();
-	g_object_set(G_OBJECT(self->cover), "lomo-player", LOMO(self), NULL);
+	cover_loading = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	cover_default = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.jpg");
+	g_object_set(G_OBJECT(self->cover),
+		"lomo-player", LOMO(self),
+		"loading-cover", cover_loading,
+		"default-cover", cover_default,
+		NULL);
+	g_free(cover_loading);
+	g_free(cover_default);
+
 	gtk_container_foreach(GTK_CONTAINER(W(self, "cover-image-container")),
 		(GtkCallback) gtk_widget_hide,
 		NULL);
@@ -162,7 +169,6 @@ G_MODULE_EXPORT gboolean eina_player_init
 		 GTK_WIDGET(self->cover),
 		 FALSE, FALSE, 0);
 	gtk_widget_show_all(GTK_WIDGET(self->cover));
-#endif
 
 	/* Load settings */
 	if (!gel_hub_load(HUB(self), "settings")) {
@@ -170,7 +176,6 @@ G_MODULE_EXPORT gboolean eina_player_init
 		return FALSE;
 	}
 	self->conf = gel_hub_shared_get(HUB(self), "settings");
-
 
 	/*
 	 * Make player-ebox a dropable widget
@@ -249,6 +254,11 @@ G_MODULE_EXPORT gboolean eina_player_exit
 /*
  * Functions
  */
+EinaCover *
+eina_player_get_cover(EinaPlayer *self)
+{
+	return self->cover;
+}
 
 /* Change UI to reflect a play state */
 void eina_player_switch_state_play(EinaPlayer *self) {

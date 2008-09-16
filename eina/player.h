@@ -6,6 +6,7 @@
 #define __EINA_PLAYER_H__
 
 #include <gel/gel.h>
+#include <eina/eina-cover.h>
 
 typedef struct _EinaPlayer EinaPlayer;
 
@@ -16,5 +17,7 @@ void eina_player_switch_state_play (EinaPlayer *self);
 void eina_player_switch_state_pause(EinaPlayer *self);
 
 void eina_player_set_info(EinaPlayer *self, LomoStream *stream);
+
+EinaCover *eina_player_get_cover(EinaPlayer *self);
 
 #endif

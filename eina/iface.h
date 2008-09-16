@@ -7,6 +7,7 @@
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
 #include <eina/fs.h>
+#include <eina/eina-cover.h>
 
 typedef struct _EinaIFace EinaIFace;
 
@@ -47,26 +48,37 @@ typedef struct EinaPlugin
 
 typedef EinaPlugin* (*EinaPluginInitFunc) (GelHub *app, EinaIFace *iface);
 typedef gboolean    (*EinaPluginExitFunc) (EinaPlugin *self);
+
 #define EINA_PLUGIN_FUNC G_MODULE_EXPORT
 
+/*
+ * Access to various resources from EinaPlugin, use defines in plugins code
+ */
+
+// Access GelHub
+GelHub *
+eina_iface_get_hub(EinaIFace *self);
+#define EIN_PLUGIN_GEL_HUB(p) eina_iface_get_hub(EINA_PLUGIN_IFACE(p))
+
+// Access LomoPlayer
 LomoPlayer *
 eina_plugin_get_lomo_player(EinaPlugin *plugin);
 #define EINA_PLUGIN_LOMO_PLAYER(p) LOMO_PLAYER(eina_plugin_get_lomo_player(p))
 
-
+// Access to EinaIFace
 EinaIFace *
 eina_plugin_get_iface(EinaPlugin *plugin);
 #define EINA_PLUGIN_IFACE(p) eina_plugin_get_iface(p)
 
-// Utility macros
+// Access to EinaCover object
+EinaCover *
+eina_iface_get_cover(EinaIFace *self);
+#define EINA_PLUGIN_COVER(p) eina_iface_get_cover(EINA_PLUGIN_IFACE(p))
 
-#ifdef PLUGIN_DATA_TYPE
-#define PLUGIN_GET_DATA(p) ((PLUGIN_DATA_TYPE *) p->data)
-#define  EINA_PLUGIN_GET_DATA(p) ((PLUGIN_DATA_TYPE *) p->data)
+// Access to plugin's data
+#ifdef EINA_PLUGIN_DATA_TYPE
+#define EINA_PLUGIN_GET_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) p->data)
 #endif
-
-GelHub *
-eina_iface_get_hub(EinaIFace *self);
 
 /*
  * Functions to load/unload a complete plugin using EinaPlugin struct
@@ -85,6 +97,7 @@ eina_iface_get_plugin_dir(gchar *plugin_name);
 
 gchar *
 eina_iface_plugin_resource_get_pathname(EinaPlugin *plugin, gchar *resource);
+
 /*
  * Advanced functions for accesing some internals
  */
@@ -96,6 +109,14 @@ eina_iface_dock_remove(EinaIFace *self, gchar *id);
 
 gboolean
 eina_iface_dock_switch(EinaIFace *self, gchar *id);
+
+/*
+ * Cover
+ */
+void eina_iface_cover_add_backend(EinaIFace *self, const gchar *name,
+	EinaCoverBackendFunc callback, EinaCoverBackendCancelFunc cancel,
+	gpointer data);
+void eina_iface_cover_delete_backend(EinaIFace *self, const gchar *name);
 
 #define eina_iface_verbose(...) _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
 #define eina_iface_debug(...)   _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)

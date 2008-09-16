@@ -14,8 +14,6 @@ eina_LDADD = @PACKAGE_LIBS@ @CURL_LIBS@
 
 NOINST_H_FILES = \
 	class-conf-file.h          \
-	cover.h                    \
-	eina-cover.h               \
 	eina-file-chooser-dialog.h \
 	eina-player-seek.h         \
 	eina-player-volume.h       \
@@ -30,6 +28,7 @@ NOINST_H_FILES = \
 INST_H_FILES = \
 	base.h                     \
 	iface.h                    \
+	eina-cover.h               \
 	fs.h                       \
 	settings.h
 
@@ -41,7 +40,6 @@ header_DATA = $(INST_H_FILES)
 eina_SOURCES = \
 	base.c                     \
 	class-conf-file.c          \
-	cover.c                    \
 	eina-cover.c               \
 	eina-file-chooser-dialog.c \
 	eina-player-seek.c         \
