@@ -1,12 +1,13 @@
 SUBDIRS = coverplus hooktest recently
+DIST_SUBDIRS = adb coverplus hooktest lastfminfo notify recently
 
 if USE_ADB
 SUBDIRS += adb
 endif
 
-if USE_LASTFMINFO
-SUBDIRS += lastfminfo
-endif
+#if USE_LASTFMINFO
+#SUBDIRS += lastfminfo
+#endif
 
 if USE_NOTIFY
 SUBDIRS += notify

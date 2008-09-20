@@ -1,6 +1,6 @@
 #define GEL_DOMAIN "Eina::Plugin::LastFM-Info"
 #define PLUGIN_NAME "lastfminfo"
-#define PLUGIN_DATA_TYPE LastFMInfoData 
+#define EINA_PLUGIN_DATA_TYPE LastFMInfoData 
 
 #include <string.h>
 #include <WebKit/webkitwebview.h>
@@ -43,7 +43,7 @@ void
 on_lastfm_info_xfer_finish(GelIOAsyncReadOp *xfer, GByteArray *xfer_data, gpointer data)
 {
 	EinaPlugin *plugin = (EinaPlugin *) data;
-	LastFMInfoData *self = PLUGIN_GET_DATA(plugin);
+	LastFMInfoData *self = EINA_PLUGIN_GET_DATA(plugin);
 
 	gchar *token1 = "<div id=\"wiki\">";
 	gchar *token2 =  "</div><!-- #wiki -->";
@@ -89,7 +89,7 @@ on_lastfm_info_lomo_change_change(LomoPlayer *lomo, gint from, gint to, EinaPlug
 GtkWidget *
 lastfm_info_dock_new(EinaPlugin *plugin)
 {
-	LastFMInfoData *self = PLUGIN_GET_DATA(plugin);
+	LastFMInfoData *self = EINA_PLUGIN_GET_DATA(plugin);
 
 	self->dock_widget =  gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(self->dock_widget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -116,7 +116,7 @@ lastfminfo_init(GelHub *app, EinaIFace *iface)
 
 	// Create struct
 	EinaPlugin *self = eina_plugin_new(iface,
-		PLUGIN_NAME, "lastfminfo", g_new0(PLUGIN_DATA_TYPE, 1), lastfm_info_exit,
+		PLUGIN_NAME, "lastfminfo", g_new0(EINA_PLUGIN_DATA_TYPE, 1), lastfm_info_exit,
 		NULL, NULL, NULL);
 
 	// Create dock widgets

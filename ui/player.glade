@@ -50,7 +50,7 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkMenuBar" id="menubar1">
+          <widget class="GtkMenuBar" id="menu-bar">
             <property name="visible">True</property>
             <child>
               <widget class="GtkMenuItem" id="menuitem1">
@@ -61,7 +61,7 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
                   <widget class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkImageMenuItem" id="imagemenuitem5">
+                      <widget class="GtkImageMenuItem" id="menu-file-quit">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_Quit</property>
                         <property name="use_underline">True</property>
@@ -86,7 +86,7 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
                   <widget class="GtkMenu" id="menu3">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkImageMenuItem" id="imagemenuitem10">
+                      <widget class="GtkImageMenuItem" id="menu-help-about">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_About</property>
                         <property name="use_underline">True</property>

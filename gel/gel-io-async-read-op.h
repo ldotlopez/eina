@@ -2,6 +2,7 @@
 #define _GEL_IO_ASYNC_READ_OP
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -31,7 +32,7 @@ typedef struct {
   void (*error)  (GelIOAsyncReadOp *self, GError *error);
   void (*finish) (GelIOAsyncReadOp *self, GByteArray *op_data);
 } GelIOAsyncReadOpClass;
-
+/*
 typedef enum GelIOAsyncReadOpPhase
 {
 	GEL_IO_ASYNC_READ_OP_PHASE_NONE,
@@ -41,18 +42,23 @@ typedef enum GelIOAsyncReadOpPhase
 	GEL_IO_ASYNC_READ_OP_PHASE_FINISH,
 	GEL_IO_ASYNC_READ_OP_PHASE_ERROR
 } GelIOAsyncReadOpPhase;
-
+*/
 GType gel_io_async_read_op_get_type (void);
 
 GelIOAsyncReadOp*
-gel_io_async_read_op_new (gchar *uri);
+gel_io_async_read_op_new (void);
+
+gboolean
+gel_io_async_read_op_fetch(GelIOAsyncReadOp* self, GFile *file);
 
 const gchar *
 gel_io_async_read_op_get_buffer(GelIOAsyncReadOp* self);
 
 gboolean
-gel_io_async_read_op_cancel(GelIOAsyncReadOp* self);
+gel_io_async_read_op_is_running(GelIOAsyncReadOp* self);
 
+gboolean
+gel_io_async_read_op_cancel(GelIOAsyncReadOp* self);
 
 G_END_DECLS
 

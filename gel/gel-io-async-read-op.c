@@ -11,13 +11,10 @@ G_DEFINE_TYPE (GelIOAsyncReadOp, gel_io_async_read_op, G_TYPE_OBJECT)
 typedef struct _GelIOAsyncReadOpPrivate GelIOAsyncReadOpPrivate;
 
 struct _GelIOAsyncReadOpPrivate {
-	GFile        *file;
-	GInputStream *stream;
 	GByteArray   *ba;
 	void         *buffer;
 	GCancellable *cancellable;
-	gboolean      callback_in_progress;
-	GelIOAsyncReadOpPhase phase;
+	gboolean      running;
 };
 
 typedef enum {
@@ -27,6 +24,9 @@ typedef enum {
 	LAST_SIGNAL
 } GelIOAsyncReadOpSignalType;
 static guint gel_io_async_read_op_signals[LAST_SIGNAL] = { 0 };
+
+static gboolean
+gel_io_async_read_op_reset(GelIOAsyncReadOp *self);
 
 void
 _gel_io_async_read_op_open_cb(GObject *source, GAsyncResult *res, gpointer data);
@@ -38,20 +38,13 @@ _gel_io_async_read_op_close_cb(GObject *source, GAsyncResult *res, gpointer data
 static void
 gel_io_async_read_op_dispose (GObject *object)
 {
-	gel_warn("===> %p", object);
 	GelIOAsyncReadOp *self = (GelIOAsyncReadOp *) object;
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
 
-	if ((priv->phase != GEL_IO_ASYNC_READ_OP_PHASE_NONE) && (priv->phase != GEL_IO_ASYNC_READ_OP_PHASE_FINISH))
-	{
-		gel_warn("Disposing %p. Operation in progress will be cancelled");
-		g_cancellable_cancel(priv->cancellable);
-		priv->cancellable = NULL;
-	}
+	if (gel_io_async_read_op_is_running(self))
+		gel_io_async_read_op_cancel(self);
 
-	gel_free_and_invalidate(priv->file, NULL, g_object_unref);
 	gel_free_and_invalidate(priv->cancellable, NULL, g_object_unref);
-	gel_free_and_invalidate(priv->stream, NULL, g_object_unref);
 	gel_free_and_invalidate(priv->buffer, NULL, g_free);
 	gel_free_and_invalidate_with_args(priv->ba, NULL, g_byte_array_free, TRUE);
 
@@ -93,33 +86,77 @@ gel_io_async_read_op_init (GelIOAsyncReadOp *self)
 {
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
 
-	priv->file = NULL;
-	priv->stream = NULL;
 	priv->cancellable = g_cancellable_new();
+
+	priv->ba     = g_byte_array_new();
 	priv->buffer = NULL;
-	priv->ba = NULL;
-	priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_NONE;
-	priv->callback_in_progress = FALSE;
 }
 
 GelIOAsyncReadOp*
-gel_io_async_read_op_new (gchar *uri)
+gel_io_async_read_op_new (void)
 {
-	GelIOAsyncReadOp* self = g_object_new (GEL_IO_TYPE_ASYNC_READ_OP, NULL);
+	return g_object_new (GEL_IO_TYPE_ASYNC_READ_OP, NULL);
+}
+
+gboolean
+gel_io_async_read_op_fetch(GelIOAsyncReadOp *self, GFile *file)
+{
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
 
-	priv->file = g_file_new_for_uri(uri);
-	g_file_read_async(priv->file, G_PRIORITY_DEFAULT, priv->cancellable,
-		_gel_io_async_read_op_open_cb, self);
+	if (gel_io_async_read_op_is_running(self))
+	{
+		// XXX: Emit cancel
+		gel_io_async_read_op_cancel(self);
+		gel_io_async_read_op_reset(self);
+	}
 
-	gel_warn("===> %p", self);
-	return self;
+	priv->running = TRUE;
+	g_file_read_async(file, G_PRIORITY_DEFAULT, priv->cancellable,
+		_gel_io_async_read_op_open_cb, self);
+	return TRUE;
+}
+
+gboolean
+gel_io_async_read_op_reset(GelIOAsyncReadOp *self)
+{
+	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
+
+	if (gel_io_async_read_op_is_running(self))
+		gel_io_async_read_op_cancel(self);
+
+	priv->running = FALSE;
+	gel_free_and_invalidate_with_args(priv->ba, NULL, g_byte_array_free, TRUE);
+	gel_free_and_invalidate(priv->buffer, NULL, g_free);
+	priv->ba = g_byte_array_new();
+
+	return TRUE;
+}
+
+gboolean
+gel_io_async_read_op_is_running(GelIOAsyncReadOp* self)
+{
+	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
+	return priv->running;
 }
 
 gboolean
 gel_io_async_read_op_cancel(GelIOAsyncReadOp* self)
 {
-	return FALSE;
+	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
+
+	// Bug detection
+	if (!g_cancellable_is_cancelled(priv->cancellable) && !priv->running)
+	{
+		gel_error("Bug detected, please file a bug report");
+		return FALSE;
+	}
+
+	if (priv->running && !g_cancellable_is_cancelled(priv->cancellable))
+		g_cancellable_cancel(priv->cancellable);
+	g_cancellable_reset(priv->cancellable);
+	priv->running = FALSE;
+
+	return TRUE;
 }
 
 void
@@ -127,24 +164,25 @@ _gel_io_async_read_op_open_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
 	GelIOAsyncReadOp *self = (GelIOAsyncReadOp *) data;
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
-	GError *err = NULL;
 
-	gel_warn("===> %p", self);
+	GFile        *file   = NULL;
+	GInputStream *stream = NULL;
+	GError       *err    = NULL;
 
-	priv->stream = G_INPUT_STREAM(g_file_read_finish(priv->file, res, &err));
+	file = G_FILE(source);
+	stream = G_INPUT_STREAM(g_file_read_finish(file, res, &err));
 	if (err != NULL)
 	{
 		g_signal_emit(G_OBJECT(self), gel_io_async_read_op_signals[ERROR], 0, err);
-		gel_error ("Cannot create stream: %s", err->message);
+		// gel_error ("Cannot create stream for file %p: %s", err->message, file);
 		g_error_free(err);
-		priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_ERROR;
+		priv->running = FALSE;
 		return;
 	}
 
-	priv->phase  = GEL_IO_ASYNC_READ_OP_PHASE_READ;
-	priv->ba     = g_byte_array_new();
-	priv->buffer = g_new0(guint8, 32*1024);  // 32kb
-	g_input_stream_read_async(priv->stream, priv->buffer, 32*1024,
+	priv->ba      = g_byte_array_new();
+	priv->buffer  = g_new0(guint8, 32*1024);  // 32kb
+	g_input_stream_read_async(stream, priv->buffer, 32*1024,
 		G_PRIORITY_DEFAULT, priv->cancellable, _gel_io_async_read_op_read_cb, self);
 }
 
@@ -153,32 +191,32 @@ _gel_io_async_read_op_read_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
 	GelIOAsyncReadOp *self = (GelIOAsyncReadOp *) data;
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
-	gssize readed;
-	GError *err = NULL;
 
-	gel_warn("===> %p", self);
+	GInputStream *stream;
+	gssize        readed;
+	GError        *err = NULL;
 
-	readed = g_input_stream_read_finish(priv->stream, res, &err);
+	stream = G_INPUT_STREAM(source);
+	readed = g_input_stream_read_finish(stream, res, &err);
 	if (err != NULL)
 	{
 		g_signal_emit(G_OBJECT(self), gel_io_async_read_op_signals[ERROR], 0, err);
-		gel_error("Got error while reading: '%s'", err->message);
+		// gel_error("Got error while reading: '%s'", err->message);
 		g_error_free(err);
-		priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_ERROR;
+		priv->running = FALSE;
 		return;
 	}
 
 	if (readed > 0)
 	{
 		g_byte_array_append(priv->ba, (const guint8*) priv->buffer, readed);
-		g_input_stream_read_async(priv->stream, priv->buffer, 32*1024,
+		g_input_stream_read_async(stream, priv->buffer, 32*1024,
 			G_PRIORITY_DEFAULT, priv->cancellable, _gel_io_async_read_op_read_cb, self);
 		return;
 	}
 
-	priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_CLOSE;
 	g_free(priv->buffer);
-	g_input_stream_close_async(priv->stream, G_PRIORITY_DEFAULT, priv->cancellable,
+	g_input_stream_close_async(stream, G_PRIORITY_DEFAULT, priv->cancellable,
 		_gel_io_async_read_op_close_cb, self);
 }
 
@@ -187,20 +225,20 @@ _gel_io_async_read_op_close_cb(GObject *source, GAsyncResult *res, gpointer data
 {
 	GelIOAsyncReadOp *self = (GelIOAsyncReadOp *) data;
 	GelIOAsyncReadOpPrivate *priv = GET_PRIVATE(self);
-	GError *err = NULL;
 
-	gel_warn("===> %p", self);
+	GInputStream *stream;
+	GError       *err = NULL;
 
-	if (!g_input_stream_close_finish(priv->stream, res, &err))
+	stream = G_INPUT_STREAM(source);
+	if (!g_input_stream_close_finish(stream, res, &err))
 	{
 		g_signal_emit(G_OBJECT(self), gel_io_async_read_op_signals[ERROR], 0, err);
-		gel_error("Cannot close '%s'", err->message);
+		// gel_error("Cannot close '%s'", err->message);
 		g_error_free(err);
-		priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_ERROR;
+		priv->running = FALSE;
 		return;
 	}
-
-	priv->phase = GEL_IO_ASYNC_READ_OP_PHASE_FINISH;
+	priv->running = FALSE;
 
 	g_object_ref(G_OBJECT(self));
 	g_signal_emit(G_OBJECT(self), gel_io_async_read_op_signals[FINISH], 0, priv->ba);

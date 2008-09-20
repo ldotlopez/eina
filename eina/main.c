@@ -16,7 +16,8 @@ static const GOptionEntry opt_entries[] =
 void xxx_ugly_hack(void)
 {
 	gel_glist_join(" ", NULL);
-	gel_io_async_read_op_new(NULL);
+	gel_io_async_read_op_new();
+	gel_io_async_read_dir_new();
 }
 
 void on_app_dispose(GelHub *app, gpointer data)

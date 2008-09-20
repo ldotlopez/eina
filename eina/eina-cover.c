@@ -89,7 +89,7 @@ eina_cover_get_property (GObject *object, guint property_id,
 		break;
 
 	case EINA_COVER_DEFAULT_COVER_PROPERTY:
-		g_value_set_string(value, (gpointer) eina_cover_get_default_cover(self));
+		g_value_set_string(value, eina_cover_get_default_cover(self));
 		break;
 
 	case EINA_COVER_LOADING_COVER_PROPERTY:
@@ -181,8 +181,6 @@ eina_cover_init (EinaCover *self)
 	priv->backends = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
 	priv->backends_queue = NULL;
 	priv->current_backend = NULL;
-	// eina_cover_add_backend(self, "default-fallback", eina_cover_builtin_backend, NULL, self);
-	// eina_cover_add_backend(self, "in-folder",        eina_cover_infs_backend, NULL, self);
 
 	eina_cover_set_backend_data(self, EINA_COVER_BACKEND_STATE_NONE, G_TYPE_INVALID, NULL);
 }
@@ -271,6 +269,7 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 
 	if (type == G_TYPE_STRING)
 	{
+		gel_warn("SEt from: %s", data);
 		pb = gdk_pixbuf_new_from_file_at_scale((gchar *) data,
 			COVER_W(self), COVER_H(self), FALSE,
 			NULL);
@@ -410,6 +409,7 @@ eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType 
 	{
 		bd->data = g_strdup(data);
 		bd->type = type;
+		gel_warn("set filename '%s'", (gchar*)bd->data);
 	}
 	else
 	{
