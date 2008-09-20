@@ -1,7 +1,7 @@
 #define GEL_DOMAIN "Eina::Plugin::CoverPlus"
+#include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <eina/iface.h>
-
 /*
  * Timeout-based cover backend. For testing
  */
@@ -54,7 +54,8 @@ typedef struct {
 	EinaCover *cover;   // Ref to Cover
 	GRegex    *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
 	GFile     *parent;
-	gchar     *name;  
+	GdkPixbuf *pixbuf;
+	gchar     *name;
 	gint       score;
 	gboolean   running;
 
@@ -127,6 +128,7 @@ coverplus_infolder_new(EinaCover *cover)
 	self->running = FALSE;
 	self->parent  = NULL;
 	self->name    = NULL;
+	self->pixbuf  = NULL;
 	self->score   = G_MAXINT;
 
 	return self;
@@ -142,6 +144,7 @@ coverplus_infolder_reset(CoverPlusInfolder* self)
 	// Free parent and name
 	gel_free_and_invalidate(self->parent, NULL, g_object_unref);
 	gel_free_and_invalidate(self->name,   NULL, g_free);
+	gel_free_and_invalidate(self->pixbuf, NULL, g_object_unref);
 
 	// Reset score
 	self->score = G_MAXINT;
@@ -163,6 +166,7 @@ coverplus_infolder_free(CoverPlusInfolder* self)
 	// Free parent and name
 	gel_free_and_invalidate(self->parent, NULL, g_object_unref);
 	gel_free_and_invalidate(self->name,   NULL, g_free);
+	gel_free_and_invalidate(self->pixbuf, NULL, g_object_unref);
 
 	// Unref cover
 	g_object_unref(self->cover);
@@ -214,7 +218,13 @@ coverplus_infolder_finish(EinaCover *cover, gpointer data)
 
 	// Send results now, if uri != NULL we got positive results, build a
 	// correct uri and send to cover, else, send a fail message
-	if (self->name != NULL)
+
+	if ((self->pixbuf != NULL) && GDK_IS_PIXBUF(self->pixbuf))
+	{
+		eina_cover_backend_success(cover, GDK_TYPE_PIXBUF, self->pixbuf);
+	}
+
+	else if (self->name != NULL)
 	{
 		f   = g_file_get_child(self->parent, self->name);
 		uri = g_file_get_uri(f);
@@ -223,14 +233,13 @@ coverplus_infolder_finish(EinaCover *cover, gpointer data)
 		gel_io_async_read_op_fetch(self->uri_reader, f);
 
 		g_free(uri);
-		// g_object_unref(f);
 	}
+
 	else
 	{
 		gel_error("No cover found");
+		eina_cover_backend_fail(self->cover);
 	}
-
-	eina_cover_backend_fail(self->cover);
 }
 
 void
@@ -262,6 +271,7 @@ coverplus_infolder_readdir_finish_cb(GelIOAsyncReadDir *obj, GList *children, gp
 			{
 				gel_free_and_invalidate(self->name, NULL, g_free);
 				self->name = g_strdup(name);
+				self->score = i;
 				break;
 			}
 		}	
@@ -282,7 +292,16 @@ void
 coverplus_infolder_readuri_finish_cb(GelIOAsyncReadOp *op, GByteArray *op_data,  gpointer data)
 {
 	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
+	GError *err = NULL;
 	gel_warn("Readed %d bytes from URI", op_data->len);
+
+	g_file_set_contents("/tmp/eina.cover", (gchar*) op_data->data, op_data->len, NULL);
+	self->pixbuf = gdk_pixbuf_new_from_file("/tmp/eina.cover", &err);
+	if (err != NULL)
+	{
+		gel_error("Cannot load file: %s", err->message);
+		g_error_free(err);
+	}
 	coverplus_infolder_finish(self->cover, self);
 }
 
@@ -363,14 +382,11 @@ coverplus_init(GelHub *app, EinaIFace *iface)
 		return NULL;
 	}
 
-	eina_cover_add_backend(cover, "coverplus-timeout-test",
-		coverplus_timeout_test_search, coverplus_timeout_test_cancel, NULL);
-
 	eina_cover_add_backend(cover, "coverplus-banshee",
 		coverplus_banshee_search, NULL, NULL);
-	/*eina_cover_add_backend(cover, "coverplus-infolder",
+	eina_cover_add_backend(cover, "coverplus-infolder",
  		coverplus_infolder_search, coverplus_infolder_finish,
-		coverplus_infolder_new(cover)); */
+		coverplus_infolder_new(cover));
 	return self;
 }
 

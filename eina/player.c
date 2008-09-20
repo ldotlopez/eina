@@ -152,8 +152,8 @@ G_MODULE_EXPORT gboolean eina_player_init
 
 	/* Insert cover */
 	self->cover = eina_cover_new();
-	cover_loading = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading-2.gif");
-	cover_default = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.jpg");
+	cover_loading = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	cover_default = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
 	g_object_set(G_OBJECT(self->cover),
 		"lomo-player", LOMO(self),
 		"loading-cover", cover_loading,

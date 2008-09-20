@@ -268,7 +268,8 @@ eina_cover_get_loading_cover(EinaCover *self)
 gboolean
 eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 {
-	GdkPixbuf *pb;
+	GdkPixbuf *pb, *orig;
+	// double sx, sy;
 
 	if (type == G_TYPE_STRING)
 	{
@@ -282,8 +283,24 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 
 	else if (type == GDK_TYPE_PIXBUF)
 	{
+		orig = GDK_PIXBUF(data);
+		/*
+		sx = COVER_W(self) / gdk_pixbuf_get_width(orig);
+		sy = COVER_H(self) / gdk_pixbuf_get_height(orig);
+		(sx > sy) ? (sx = sy) : (sy = sx) ;
+
+		pb = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, gdk_pixbuf_get_bits_per_sample(orig),
+			COVER_W(self), COVER_H(self));
+		gdk_pixbuf_scale(orig, pb,
+			0, 0,
+			COVER_W(self), COVER_H(self),
+			0, 0,
+			sx, sy,
+			GDK_INTERP_TILES);
+		*/
+		pb = gdk_pixbuf_scale_simple(orig, COVER_W(self), COVER_H(self), GDK_INTERP_TILES);
 		gel_warn("Set from pixbuf: %p", data);
-		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(data));
+		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(pb));
 		return TRUE;
 	}
 
@@ -309,7 +326,7 @@ on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 	if ((stream = lomo_player_get_nth(lomo, to)) == NULL)
 	{
 		gel_warn("Stream no. %d is NULL. reset cover");
-		eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
+		eina_cover_backend_success(self, G_TYPE_STRING, priv->default_cover);
 		return;
 	}
 
@@ -321,6 +338,7 @@ on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 	if (from == to)
 		return;
 
+	eina_cover_set_cover(self, G_TYPE_STRING, priv->loading_cover);
 	eina_cover_reset_backends(self);
 	eina_cover_run_backends(self);
 }
@@ -331,7 +349,7 @@ on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self)
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 
 	gel_free_and_invalidate(priv->stream, NULL, g_object_unref);
-	eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
+	eina_cover_backend_success(self, G_TYPE_STRING, priv->default_cover);
 }
 
 static void
