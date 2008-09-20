@@ -13,13 +13,13 @@ if USE_NOTIFY
 SUBDIRS += notify
 endif
 
-DIST_SUBDIRS = \
-	adb \
-	coverplus \
-	hooktest \
-	lastfminfo \
-	notify \
-	recently
+#DIST_SUBDIRS = \
+#	adb \
+#	coverplus \
+#	hooktest \
+#	lastfminfo \
+#	notify \
+#	recently
 
 #install-data-local:
 #	@$(NORMAL_INSTALL)
