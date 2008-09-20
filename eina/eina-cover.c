@@ -273,7 +273,6 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 
 	if (type == G_TYPE_STRING)
 	{
-		gel_warn("Set from string: %s", (gchar *) data);
 		pb = gdk_pixbuf_new_from_file_at_scale((gchar *) data,
 			COVER_W(self), COVER_H(self), FALSE,
 			NULL);
@@ -299,7 +298,6 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 			GDK_INTERP_TILES);
 		*/
 		pb = gdk_pixbuf_scale_simple(orig, COVER_W(self), COVER_H(self), GDK_INTERP_TILES);
-		gel_warn("Set from pixbuf: %p", data);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(pb));
 		return TRUE;
 	}
@@ -318,22 +316,18 @@ on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 	const LomoStream *stream;
 	if (to == -1)
 	{
-		gel_debug("Change to -1, reset cover");
 		eina_cover_backend_success(self, G_TYPE_STRING, g_strdup(priv->default_cover));
 		return;
 	}
 
 	if ((stream = lomo_player_get_nth(lomo, to)) == NULL)
 	{
-		gel_warn("Stream no. %d is NULL. reset cover");
 		eina_cover_backend_success(self, G_TYPE_STRING, priv->default_cover);
 		return;
 	}
 
 	g_object_ref(G_OBJECT(stream));
 	priv->stream = LOMO_STREAM(stream);
-
-	gel_warn("Stream changed to %p (%d -> %d)", stream, from, to);
 
 	if (from == to)
 		return;
@@ -360,11 +354,13 @@ on_eina_cover_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, EinaCover *sel
 		return;
 
 	return;
+	/*
 	gel_warn("Got all tags on '%s'", (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI));
 	if (priv->found == TRUE)
 		gel_warn("Got all-tags signal but cover is already found");
 	else
 		gel_warn("Got all-tags signal, re-try cover search");
+	*/
 }
 
 /*
@@ -431,7 +427,7 @@ eina_cover_stop_backend(EinaCover *self)
 		gel_warn("BUG: Invalid backend");
 	}
 
-	gel_warn("Canceling backend '%s'", backend->name);
+	// gel_warn("Canceling backend '%s'", backend->name);
 	if (backend->cancel != NULL)
 		backend->cancel(self, backend->data);
 }
@@ -530,7 +526,6 @@ eina_cover_backend_success(EinaCover *self, GType type, gpointer data)
 	}
 	else
 	{
-		gel_warn("Cover set correctly");
 		priv->backend_state = EINA_COVER_BACKEND_STATE_NONE;
 		priv->current_backend = NULL;
 	}

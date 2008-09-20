@@ -229,7 +229,6 @@ coverplus_infolder_finish(EinaCover *cover, gpointer data)
 		f   = g_file_get_child(self->parent, self->name);
 		uri = g_file_get_uri(f);
 
-		gel_warn("Got cover: %s, launch fetch", uri);
 		gel_io_async_read_op_fetch(self->uri_reader, f);
 
 		g_free(uri);
@@ -237,7 +236,6 @@ coverplus_infolder_finish(EinaCover *cover, gpointer data)
 
 	else
 	{
-		gel_error("No cover found");
 		eina_cover_backend_fail(self->cover);
 	}
 }
@@ -293,7 +291,6 @@ coverplus_infolder_readuri_finish_cb(GelIOAsyncReadOp *op, GByteArray *op_data, 
 {
 	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
 	GError *err = NULL;
-	gel_warn("Readed %d bytes from URI", op_data->len);
 
 	g_file_set_contents("/tmp/eina.cover", (gchar*) op_data->data, op_data->len, NULL);
 	self->pixbuf = gdk_pixbuf_new_from_file("/tmp/eina.cover", &err);
@@ -336,19 +333,12 @@ coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer da
 	str = g_string_append(str, ".jpg");
 
 	path = g_build_filename(g_get_home_dir(), ".config", "banshee", "covers", str->str, NULL);
-	gel_warn("%s", path);
 	g_string_free(str, TRUE);
 
 	if (g_file_test(path, G_FILE_TEST_IS_REGULAR|G_FILE_TEST_EXISTS))
-	{
-		gel_warn("Success!");
 		eina_cover_backend_success(cover, G_TYPE_STRING, path);
-	}
 	else
-	{
-		gel_warn("Fail");
 		eina_cover_backend_fail(cover);
-	}
 
 	g_free(path);
 }
