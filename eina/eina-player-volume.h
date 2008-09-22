@@ -1,5 +1,5 @@
-#ifndef _EINA_PLAYER_VOLUME
-#define _EINA_PLAYER_VOLUME
+#ifndef _EINA_VOLUME
+#define _EINA_VOLUME
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
@@ -7,22 +7,22 @@
 
 G_BEGIN_DECLS
 
-#define EINA_PLAYER_TYPE_VOLUME eina_player_volume_get_type()
+#define EINA_TYPE_VOLUME eina_volume_get_type()
 
-#define EINA_PLAYER_VOLUME(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_PLAYER_TYPE_VOLUME, EinaPlayerVolume))
+#define EINA_VOLUME(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_VOLUME, EinaVolume))
 
-#define EINA_PLAYER_VOLUME_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), EINA_PLAYER_TYPE_VOLUME, EinaPlayerVolumeClass))
+#define EINA_VOLUME_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_VOLUME, EinaVolumeClass))
 
-#define EINA_PLAYER_IS_VOLUME(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_PLAYER_TYPE_VOLUME))
+#define EINA_IS_VOLUME(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_VOLUME))
 
-#define EINA_PLAYER_IS_VOLUME_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_PLAYER_TYPE_VOLUME))
+#define EINA_IS_VOLUME_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_VOLUME))
 
-#define EINA_PLAYER_VOLUME_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_PLAYER_TYPE_VOLUME, EinaPlayerVolumeClass))
+#define EINA_VOLUME_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_VOLUME, EinaVolumeClass))
 
 #if !GTK_CHECK_VERSION(2,12,10)
 // Al least on 2.12.9 GtkVolumeButton headers don't declare this time making
@@ -36,21 +36,21 @@ struct _GtkVolumeButton
 typedef struct
 {
 	GtkVolumeButton parent;
-} EinaPlayerVolume;
+} EinaVolume;
 
 typedef struct
 {
 	GtkVolumeButtonClass parent_class;
-} EinaPlayerVolumeClass;
+} EinaVolumeClass;
 
-GType eina_player_volume_get_type (void);
+GType eina_volume_get_type (void);
 
-EinaPlayerVolume *eina_player_volume_new(void);
+EinaVolume *eina_volume_new(void);
 
-void        eina_player_volume_set_lomo_player(EinaPlayerVolume *self, LomoPlayer *player);
-LomoPlayer *eina_player_volume_get_lomo_player(EinaPlayerVolume *self);
+void        eina_volume_set_lomo_player(EinaVolume *self, LomoPlayer *player);
+LomoPlayer *eina_volume_get_lomo_player(EinaVolume *self);
 
 G_END_DECLS
 
-#endif /* _EINA_PLAYER_VOLUME */
+#endif /* _EINA_VOLUME */
 
