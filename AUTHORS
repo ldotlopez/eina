@@ -1,16 +1,15 @@
-Main Developers:
-Luis Lopez Lopez <xuzo@ikossi.org>
-Daniel Ripolles <ripolles@aditel.org>
+Main Developer:
+  xuzo <xuzo@cuarentaydos.com>
 
 Logo:
-Pau Tomas Carnero "PauTo" <ptomas@aditel.org>
+  Pau Tomas Carnero "PauTo" <ptomas@aditel.org>
 
-Preliminar streaming support:
-Matthew Gregg <greggmc@musc.edu>
+Website:
+  Jacobo Tarragon Cros <tarragon@aditel.org>
 
-GtkAbout Patch:
-Fernando Herrera <fherrera@onirica.com>
-
-AMD64 fixes:
-Philippe Mechaï <pmechai@free.fr>
+Previous developers and contributors from eina pre0.4.0:
+  Main developer: Daniel Ripolles <ripolles@aditel.org>
+  Preliminar streaming support: Matthew Gregg <greggmc@musc.edu>
+  GtkAbout Patch: Fernando Herrera <fherrera@onirica.com>
+  AMD64 fixes: Philippe Mechaï <pmechai@free.fr>
 
