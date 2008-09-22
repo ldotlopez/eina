@@ -10,7 +10,7 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 	gchar *ui_pathname;
 	gchar *tmp;
 
-	tmp = g_strconcat(ui_filename, ".gtkui", NULL);
+	tmp = g_strconcat(ui_filename, ".ui", NULL);
 	// XXX: Handle GError
 	ui_pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, tmp);
 	g_free(tmp);

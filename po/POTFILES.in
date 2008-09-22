@@ -2,4 +2,5 @@
 eina/base.c
 eina/eina-file-chooser-dialog.c
 
-ui/player.gtkui
+[type: gettext/glade]ui/player.gtkui
+[type: gettext/glade]ui/playlist.gtkui
