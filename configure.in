@@ -32,8 +32,12 @@ AM_GLIB_GNU_GETTEXT
 # Some flags
 AC_ARG_ENABLE(release-build, [  --enable-release-build         build in release mode], release_build=yes, release_build=no)
 if test x$release_build = 'xyes'; then
-	BUILD_MODE_CFLAGS="-DG_DISABLE_CAST_CHECKS"
+	CXXFLAGS="-O2"
+	CFLAGS="-O2"
+	BUILD_MODE_CFLAGS="-DG_DISABLE_CAST_CHECKS -O2"
 else
+	CXXFLAGS="-O02"
+	CFLAGS="-O0"
 	BUILD_MODE_CFLAGS="-g -O0"
 fi
 

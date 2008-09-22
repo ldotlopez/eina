@@ -1,7 +1,7 @@
 #define GEL_DOMAIN "Eina::Player::Seek"
-#include <gel/gel.h>
-#include "eina-player-seek.h"
+#include "eina-seek.h"
 #include <liblomo/util.h>
+#include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_HSCALE)
 
