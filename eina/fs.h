@@ -3,7 +3,7 @@
 
 #include <glib.h>
 #include <gio/gio.h>
-#include <liblomo/player.h>
+#include <lomo/player.h>
 
 typedef enum {
 	EINA_FS_FILTER_ACCEPT,

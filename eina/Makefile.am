@@ -8,9 +8,13 @@ INCLUDES = \
 bin_PROGRAMS = eina
 
 eina_LDFLAGS = -export-dynamic  -module -avoid-version \
-	-static $(top_builddir)/gel/libgel.la
+	-L$(top_srcdir)/gel/.libs \
+	-L$(top_srcdir)/lomo/.libs
 
-eina_LDADD = @PACKAGE_LIBS@ @CURL_LIBS@
+#-static $(top_builddir)/gel/libgel.la \
+#-static $(top_builddir)/lomo/liblomo-1.0.la
+
+eina_LDADD = @PACKAGE_LIBS@ @CURL_LIBS@ -lgel -llomo-1.0
 
 NOINST_H_FILES = \
 	class-conf-file.h          \

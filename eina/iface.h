@@ -3,7 +3,7 @@
 
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <liblomo/player.h>
+#include <lomo/player.h>
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
 #include <eina/fs.h>

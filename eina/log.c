@@ -1,16 +1,22 @@
 #define GEL_DOMAIN "Eina::Log"
 
 #include <gmodule.h>
-#include <liblomo/player.h>
+#include <lomo/player.h>
 #include <gel/gel.h>
 #include "log.h"
 
-void on_eina_log_lomo_error       (LomoPlayer *lomo, GError *err, gchar *message);
-void on_eina_log_hub_module_load  (GelHub *hub, const gchar *name, gpointer data);
-void on_eina_log_hub_module_unload(GelHub *hub, const gchar *name, gpointer data);
-void on_eina_log_hub_module_ref   (GelHub *hub, const gchar *name, guint refs, gpointer data);
-void on_eina_log_hub_module_unref (GelHub *hub, const gchar *name, guint refs, gpointer data);
-void on_eina_log_lomo_signal(gchar *signal);
+static void
+on_lomo_error       (LomoPlayer *lomo, GError *err, gchar *message);
+static void
+on_hub_module_load  (GelHub *hub, const gchar *name, gpointer data);
+static void
+on_hub_module_unload(GelHub *hub, const gchar *name, gpointer data);
+static void
+on_hub_module_ref   (GelHub *hub, const gchar *name, guint refs, gpointer data);
+static void
+on_hub_module_unref (GelHub *hub, const gchar *name, guint refs, gpointer data);
+static void
+on_lomo_signal(gchar *signal);
 
 /*
  * Init/Exit functions 
@@ -39,56 +45,56 @@ eina_log_init (GelHub *hub, gint *argc, gchar ***argv)
 	gint i;
 
 	g_signal_connect(gel_hub_shared_get(hub, "lomo"), "error",
-		G_CALLBACK(on_eina_log_lomo_error), NULL);
+		G_CALLBACK(on_lomo_error), NULL);
 
 	g_signal_connect(G_OBJECT(hub), "module-load",
-		G_CALLBACK(on_eina_log_hub_module_load), NULL);
+		G_CALLBACK(on_hub_module_load), NULL);
 
 	g_signal_connect(G_OBJECT(hub), "module-unload",
-		G_CALLBACK(on_eina_log_hub_module_unload), NULL);
+		G_CALLBACK(on_hub_module_unload), NULL);
 
 	g_signal_connect(G_OBJECT(hub), "module-unref",
-		G_CALLBACK(on_eina_log_hub_module_ref), NULL);
+		G_CALLBACK(on_hub_module_ref), NULL);
 
 	g_signal_connect(G_OBJECT(hub), "module-unref",
-		G_CALLBACK(on_eina_log_hub_module_unref), NULL);
+		G_CALLBACK(on_hub_module_unref), NULL);
 	
 	for (i = 0; i < G_N_ELEMENTS(lomo_signals); i++)
 		g_signal_connect_swapped(gel_hub_shared_get(hub, "lomo"), lomo_signals[i],
-		G_CALLBACK(on_eina_log_lomo_signal), (gpointer) lomo_signals[i]);
+		G_CALLBACK(on_lomo_signal), (gpointer) lomo_signals[i]);
 	return TRUE;
 }
 
-void on_eina_log_lomo_error(LomoPlayer *lomo, GError *err, gchar *message)
+void on_lomo_error(LomoPlayer *lomo, GError *err, gchar *message)
 {
 	gel_error("Got lomo error (%s): '%s'", message, err->message);
 }
 
 void
-on_eina_log_hub_module_load(GelHub *hub, const gchar *name, gpointer data)
+on_hub_module_load(GelHub *hub, const gchar *name, gpointer data)
 {
 	gel_debug("Loaded module '%s'", name);
 }
 
 void
-on_eina_log_hub_module_unload(GelHub *hub, const gchar *name, gpointer data)
+on_hub_module_unload(GelHub *hub, const gchar *name, gpointer data)
 {
 	gel_debug("Unloaded module '%s'", name);
 }
 
 void
-on_eina_log_hub_module_ref(GelHub *hub, const gchar *name, guint refs, gpointer data)
+on_hub_module_ref(GelHub *hub, const gchar *name, guint refs, gpointer data)
 {
 	gel_debug("Referenced module '%s': %d", name, refs);
 }
 
 void
-on_eina_log_hub_module_unref(GelHub *hub, const gchar *name, guint refs, gpointer data)
+on_hub_module_unref(GelHub *hub, const gchar *name, guint refs, gpointer data)
 {
 	gel_debug("Unreferenced module '%s': %d", name, refs);
 }
 
-void on_eina_log_lomo_signal(gchar *signal)
+void on_lomo_signal(gchar *signal)
 {
 	gel_debug("Lomo signal: %s", (gchar *) signal);
 }

@@ -1,6 +1,6 @@
 #define GEL_DOMAIN "Eina::Lomo"
 #include <gmodule.h>
-#include <liblomo/player.h>
+#include <lomo/player.h>
 #include <gel/gel.h>
 
 /*

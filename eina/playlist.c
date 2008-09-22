@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <liblomo/util.h>
+#include <lomo/util.h>
 #include <gel/gel-ui.h>
 #include "config.h"
 #include "base.h"

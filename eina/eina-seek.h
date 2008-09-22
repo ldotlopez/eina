@@ -3,7 +3,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
-#include <liblomo/player.h>
+#include <lomo/player.h>
 
 G_BEGIN_DECLS
 

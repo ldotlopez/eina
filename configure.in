@@ -43,13 +43,13 @@ fi
 
 GLIB_VERSION="2.16"
 GTK_VERSION="2.12"
-LIBLOMO_VERSION="0.95.0"
+GSTREAMER_VERSION="0.10"
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
 	gmodule-2.0 >= $GLIB_VERSION,   \
 	gio-2.0 >= $GLIB_VERSION,       \
-	gtk+-2.0 >= $GTK_VERSION,       \
-	liblomo-1.0 >= $LIBLOMO_VERSION"
+	gtk+-2.0 >= $GTK_VERSION,
+	gstreamer-0.10 >= $GSTREAMER_VERSION"
 PKG_CHECK_MODULES(PACKAGE, $pkg_modules)
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
@@ -132,6 +132,7 @@ debian/eina-dev.install
 eina-0.7.pc
 eina/Makefile
 gel/Makefile
+lomo/Makefile
 Makefile
 misc/eina.desktop
 misc/Makefile

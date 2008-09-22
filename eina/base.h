@@ -4,7 +4,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <liblomo/player.h>
+#include <lomo/player.h>
 #include <gel/gel.h>
 
 G_BEGIN_DECLS

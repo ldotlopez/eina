@@ -5,8 +5,6 @@
 
 G_BEGIN_DECLS
 
-typedef struct _EinaLog EinaLog;
-
 gboolean log_init(GelHub *hub, gint *argc, gchar ***argv);
 gboolean log_exit(gpointer data);
 
