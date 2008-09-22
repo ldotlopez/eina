@@ -329,8 +329,11 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
 	// inmediate queue on LomoMeta object to get them ASAP
-	if (!lomo_stream_get_all_tags(LOMO_STREAM(self->priv->stream)))
+	if (!lomo_stream_has_all_tags(LOMO_STREAM(self->priv->stream)))
+	{
+		g_printf("Stream '%s' has no tags!\n", (gchar *) lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI));
 		lomo_meta_parse(self->priv->meta, LOMO_STREAM(self->priv->stream), LOMO_META_PRIO_INMEDIATE);
+	}
 
 	// Now, create pipeline
 	if ((self->priv->pipeline = gst_element_factory_make("playbin2", "playbin2")) == NULL)
@@ -397,17 +400,20 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 	{
 	case LOMO_STATE_PAUSE:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PAUSED);
+		signal_to_emit = PAUSE;
 		// g_signal_emit(G_OBJECT(self), lomo_player_signals[PAUSE], 0);
 		break;
 
 	case LOMO_STATE_PLAY:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PLAYING);
+		signal_to_emit = PLAY;
 		// g_signal_emit(G_OBJECT(self), lomo_player_signals[PLAY], 0);
 		break;
 
 	case LOMO_STATE_STOP:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_NULL);
 		lomo_player_reset(self, NULL);
+		signal_to_emit = STOP;
 		// g_signal_emit(G_OBJECT(self), lomo_player_signals[STOP], 0);
 		break;
 

@@ -108,10 +108,10 @@ GType lomo_stream_get_type (void);
 
 LomoStream* lomo_stream_new (gchar *uri);
 gboolean lomo_stream_format(LomoStream *self, const gchar *fmt, gint max_fails, gint flags, gchar **dest);
-gboolean lomo_stream_get_all_tags(LomoStream *self);
+gboolean lomo_stream_has_all_tags(LomoStream *self);
 
 #ifdef LIBLOMO_COMPILATION
-void lomo_stream_set_all_tags(LomoStream *self, gboolean all_tags);
+void lomo_stream_set_all_tags(LomoStream *self, gboolean val);
 #endif
 
 #define lomo_stream_get_tag(stream,tag) \

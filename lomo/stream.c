@@ -89,17 +89,16 @@ lomo_stream_new (gchar *uri)
 }
 
 gboolean
-lomo_stream_get_all_tags(LomoStream *self)
+lomo_stream_has_all_tags(LomoStream *self)
 {
 	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
 	return priv->all_tags;
 }
 
-void
-lomo_stream_set_all_tags(LomoStream *self, gboolean all_tags)
+void lomo_stream_set_all_tags(LomoStream *self, gboolean val)
 {
 	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
-	priv->all_tags = all_tags;
+	priv->all_tags = val;
 }
 
 /* Functions to decode %NN escaped strings */

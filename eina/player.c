@@ -18,16 +18,14 @@
 
 struct _EinaPlayer {
 	EinaBase    parent;
-	GtkAboutDialog   *about;
-	GtkUIManager *ui_manager;
-	EinaCover    *cover;
-	EinaSeek     *seek;
-	EinaVolume   *volume;
-
-	EinaConf         *conf;
+	GtkAboutDialog *about;
+	GtkUIManager   *ui_manager;
+	EinaConf       *conf;
+	EinaCover      *cover;
+	EinaSeek       *seek;
+	EinaVolume     *volume;
 
 	GtkWidget *prev, *play_pause, *play_pause_image, *next, *open;
-
 	gchar *stream_info_fmt;
 };
 
@@ -52,19 +50,14 @@ fs_filter(GFileInfo *info);
 // --
 static void on_lomo_play
 (LomoPlayer *lomo, EinaPlayer *self);
-
 static void on_lomo_pause
 (LomoPlayer *lomo, EinaPlayer *self);
-
 static void on_lomo_stop
 (LomoPlayer *lomo, EinaPlayer *self);
-
 static void on_lomo_clear
 (LomoPlayer *lomo, EinaPlayer *self);
-
 static void on_lomo_change
 (LomoPlayer *lomo, gint from, gint to, EinaPlayer *self);
-
 static void on_lomo_all_tags
 (LomoPlayer *lomo, const LomoStream *stream, EinaPlayer *self);
 
@@ -75,6 +68,9 @@ static gboolean on_main_window_delete_event
 (GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 
 static void on_any_button_clicked
+(GtkWidget *w, EinaPlayer *self);
+
+static void on_player_cover_change
 (GtkWidget *w, EinaPlayer *self);
 
 static void on_dock_expander_activate
@@ -156,6 +152,7 @@ G_MODULE_EXPORT gboolean
 eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaPlayer   *self;
+	gchar *window_icon;
 	gchar *cover_loading;
 	gchar *cover_default;
 
@@ -205,6 +202,8 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		 GTK_WIDGET(self->cover),
 		 FALSE, FALSE, 0);
 	gtk_widget_show_all(GTK_WIDGET(self->cover));
+	g_signal_connect(self->cover, "change",
+	(GCallback) on_player_cover_change, (gpointer) self);
 
 	// Menu
 	ui_manager_file = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "player-menu.ui");
@@ -293,6 +292,10 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		eina_player_switch_state_pause(self);
 
 	// Update info from LomoStream
+	window_icon = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "icon.png");
+	gtk_window_set_default_icon_from_file(window_icon, NULL);
+	g_free(window_icon);
+
 	eina_player_set_info(self, (LomoStream *) lomo_player_get_stream(LOMO(self)));
 
 	// Make player-ebox a dropable widget
@@ -583,6 +586,23 @@ on_any_button_clicked(GtkWidget *w, EinaPlayer *self)
 	if (err != NULL) {
 		gel_error("Got error: %s\n", err->message);
 		g_error_free(err);
+	}
+}
+
+static void
+on_player_cover_change(GtkWidget *w, EinaPlayer *self)
+{
+	gchar *iconfile;
+
+	if (gtk_image_get_storage_type(GTK_IMAGE(w)) == GTK_IMAGE_PIXBUF)
+		gtk_window_set_icon(
+			GTK_WINDOW(W(self, "main-window")),
+			gtk_image_get_pixbuf(GTK_IMAGE(w)));
+	else
+	{
+		iconfile = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "icon.png");
+		gtk_window_set_icon_from_file(GTK_WINDOW(W(self, "main-window")), iconfile, NULL);
+		g_free(iconfile);
 	}
 }
 
