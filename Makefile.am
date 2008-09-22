@@ -2,8 +2,8 @@
 
 # AUTOMAKE_OPTIONS = 1.8
 
-SUBDIRS = gel misc pixmaps plugins eina po ui misc debian
-DIST_SUBDIRS = gel misc pixmaps plugins po eina ui misc debian tests
+SUBDIRS = gel misc pixmaps plugins eina po ui misc
+DIST_SUBDIRS = gel misc pixmaps plugins po eina ui misc tests
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = eina-@EINA_API_VERSION@.pc
@@ -20,7 +20,6 @@ EXTRA_DIST = \
 #	intltool-extract    \
 #	intltool-merge      \
 #	intltool-update
-
 
 #appsdir = $(datadir)/applications
 #apps_DATA = eina.desktop

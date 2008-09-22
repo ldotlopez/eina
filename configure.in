@@ -129,7 +129,6 @@ AC_OUTPUT([
 debian/changelog
 debian/control
 debian/eina-dev.install
-debian/Makefile
 eina-0.7.pc
 eina/Makefile
 gel/Makefile

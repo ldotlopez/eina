@@ -1,2 +1,5 @@
 [encoding: UTF-8]
-src/eina-file-chooser-dialog.c
+eina/base.c
+eina/eina-file-chooser-dialog.c
+
+ui/player.gtkui

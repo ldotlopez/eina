@@ -1,24 +1,18 @@
-/*
- * player.h
- * Public API for EinaPlayer component 
- */
-#ifndef __EINA_PLAYER_H__
-#define __EINA_PLAYER_H__
+#ifndef _PLAYER_H
+#define _PLAYER_H
 
 #include <gel/gel.h>
 #include <eina/eina-cover.h>
 
+G_BEGIN_DECLS
+
 typedef struct _EinaPlayer EinaPlayer;
 
-gboolean eina_player_init(GelHub *hub, gint *argc, gchar ***argv);
-gboolean eina_player_exit(gpointer data);
-/*
-void eina_player_switch_state_play (EinaPlayer *self);
-void eina_player_switch_state_pause(EinaPlayer *self);
-
-void eina_player_set_info(EinaPlayer *self, LomoStream *stream);
-*/
+gboolean   eina_player_init(GelHub *hub, gint *argc, gchar ***argv);
+gboolean   eina_player_exit(gpointer data);
 
 EinaCover *eina_player_get_cover(EinaPlayer *self);
 
-#endif
+G_END_DECLS
+
+#endif // _PLAYER_H

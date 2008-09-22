@@ -41,7 +41,8 @@ eina_player_switch_state_pause(EinaPlayer *self);
 // --
 // Backend for EinaFsFilter
 // --
-EinaFsFilterAction eina_player_fs_filter(GFileInfo *info);
+static EinaFsFilterAction
+fs_filter(GFileInfo *info);
 
 // --
 // Lomo Callbacks
@@ -134,14 +135,15 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		return FALSE;
 	}
 
+	// Load settings
+	if (!gel_hub_load(HUB(self), "settings")) {
+		gel_warn("Cannot load settings");
+		return FALSE;
+	}
+	self->conf = gel_hub_shared_get(HUB(self), "settings");
+
 	// Insert seek 
 	self->seek = (EinaSeek *) eina_seek_new();
-	g_object_set(G_OBJECT(self->seek),
-		"lomo-player",     LOMO(self),
-		"current-label",   GTK_LABEL(W(self, "time-current-label")),
-		"remaining-label", GTK_LABEL(W(self, "time-remaining-label")),
-		"total-label",     GTK_LABEL(W(self, "time-total-label")),
-		NULL);
 	gtk_container_foreach(GTK_CONTAINER(W(self, "seek-hscale-container")),
 		(GtkCallback) gtk_widget_hide,
 		NULL);
@@ -160,18 +162,8 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		 TRUE, TRUE, 0);
 	gtk_widget_show_all(GTK_WIDGET(self->volume));
 
-	/* Insert cover */
+	// Insert cover 
 	self->cover = eina_cover_new();
-	cover_loading = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
-	cover_default = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	g_object_set(G_OBJECT(self->cover),
-		"lomo-player", LOMO(self),
-		"loading-cover", cover_loading,
-		"default-cover", cover_default,
-		NULL);
-	g_free(cover_loading);
-	g_free(cover_default);
-
 	gtk_container_foreach(GTK_CONTAINER(W(self, "cover-image-container")),
 		(GtkCallback) gtk_widget_hide,
 		NULL);
@@ -180,63 +172,72 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		 FALSE, FALSE, 0);
 	gtk_widget_show_all(GTK_WIDGET(self->cover));
 
-	/* Load settings */
-	if (!gel_hub_load(HUB(self), "settings")) {
-		gel_warn("Cannot load settings");
-		return FALSE;
-	}
-	self->conf = gel_hub_shared_get(HUB(self), "settings");
-
-	/*
-	 * Make player-ebox a dropable widget
-	 */
-/*
-	if (!gtk_ext_make_widget_dropable(W(self, "player-ebox"), NULL))
-		e_warn("Cannot make infobox widget dropable");
-*/
-	/*
-	 * Get references to the main widgets
-	 */
+	// Get references to the main widgets
 	self->play_pause       = W(self, "play-pause-button");
 	self->play_pause_image = W(self, "play-pause-image");
 	self->prev             = W(self, "prev-button");
 	self->next             = W(self, "next-button");
 	self->open             = W(self, "open-button");
 
-	/* Setup lomo signals */
-	g_signal_connect(LOMO(self), "play",
-	G_CALLBACK(on_lomo_play), self);
+	// All widgets are complete at this point, setup them if needed
 
-	g_signal_connect(LOMO(self), "pause",
-	G_CALLBACK(on_lomo_pause), self);
+	// Set seek parameters
+	g_object_set(G_OBJECT(self->seek),
+		"lomo-player",     LOMO(self),
+		"current-label",   GTK_LABEL(W(self, "time-current-label")),
+		"remaining-label", GTK_LABEL(W(self, "time-remaining-label")),
+		"total-label",     GTK_LABEL(W(self, "time-total-label")),
+		NULL);
 
-	g_signal_connect(LOMO(self), "stop",
-	G_CALLBACK(on_lomo_stop), self);
+	// Set cover parameters
+	cover_default = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+	cover_loading = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	if ((cover_default == NULL) || (cover_loading == NULL))
+		gel_warn("Some cover resources cannot be found.");
 
-	g_signal_connect(LOMO(self), "change",
-	G_CALLBACK(on_lomo_change), self);
+	g_object_set(G_OBJECT(self->cover),
+		"lomo-player", LOMO(self),
+		"default-cover", cover_default,
+		"loading-cover", cover_loading,
+		NULL);
+	gel_free_and_invalidate(cover_default, NULL, g_free);
+	gel_free_and_invalidate(cover_loading, NULL, g_free);
 
-	g_signal_connect(LOMO(self), "clear",
-	G_CALLBACK(on_lomo_clear), self);
+	// Set play/pause state
+	if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
+		eina_player_switch_state_play(self);
+	else
+		eina_player_switch_state_pause(self);
 
-	g_signal_connect(LOMO(self), "all-tags",
-	G_CALLBACK(on_lomo_all_tags), self);
-
-	/* Setup some widgets */
+	// Update info from LomoStream
 	eina_player_set_info(self, (LomoStream *) lomo_player_get_stream(LOMO(self)));
 
-	if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY) {
-		eina_player_switch_state_play(self);
-	} else {
-		eina_player_switch_state_pause(self);
-	}
+	// Make player-ebox a dropable widget
+	/*
+	if (!gtk_ext_make_widget_dropable(W(self, "player-ebox"), NULL))
+		e_warn("Cannot make infobox widget dropable");
+	*/
 
-	lomo_player_set_volume(LOMO(self),
-		eina_conf_get_int(self->conf, "/core/volume", 50));
-
-	gtk_widget_show_all(W(self, "open-button"));
+	// Setup signals
+	g_signal_connect(LOMO(self), "play",
+		G_CALLBACK(on_lomo_play), self);
+	g_signal_connect(LOMO(self), "pause",
+		G_CALLBACK(on_lomo_pause), self);
+	g_signal_connect(LOMO(self), "stop",
+		G_CALLBACK(on_lomo_stop), self);
+	g_signal_connect(LOMO(self), "change",
+		G_CALLBACK(on_lomo_change), self);
+	g_signal_connect(LOMO(self), "clear",
+		G_CALLBACK(on_lomo_clear), self);
+	g_signal_connect(LOMO(self), "all-tags",
+		G_CALLBACK(on_lomo_all_tags), self);
+	g_signal_connect(self->conf, "change",
+		G_CALLBACK(on_settings_change), self);
 	gel_ui_signal_connect_from_def_multiple(UI(self), _player_signals, self, NULL);
-	g_signal_connect(self->conf, "change", G_CALLBACK(on_settings_change), self);
+
+	// Set LomoPlayer volume
+	lomo_player_set_volume(LOMO(self), eina_conf_get_int(self->conf, "/core/volume", 50));
+
 	gtk_widget_show(W(self, "main-window"));
 	return TRUE;
 }
@@ -252,7 +253,6 @@ G_MODULE_EXPORT gboolean eina_player_exit
 		lomo_player_get_volume(LOMO(self)));
 
 	// Unref components
-	gel_hub_unload(HUB(self), "cover");
 	gel_hub_unload(HUB(self), "settings");
 
 	// Free base
@@ -261,9 +261,9 @@ G_MODULE_EXPORT gboolean eina_player_exit
 	return TRUE;
 }
 
-/*
- * Functions
- */
+// --
+// External API
+// --
 EinaCover *
 eina_player_get_cover(EinaPlayer *self)
 {
@@ -303,7 +303,6 @@ eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 		gtk_label_set_markup(
 			GTK_LABEL(W(self, "stream-info-label")),
 			_("<span size=\"x-large\" weight=\"bold\">Eina music Player</span>")
-			//_("<b>Eina music player</b>\n\uFEFF")
 			);
 		return;
 	}
@@ -317,13 +316,9 @@ eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 		g_free(tmp);
 	}
 	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), tag);
-/*
-<span size="x-large" weight="bold">Gato negro dragon rojo</span>
-<span size="x-large" weight="normal">Amaral</span>
-*/
+
 	tmp = g_markup_escape_text(tag, -1);
 	g_free(tag);
-	// info_str = g_strdup_printf("<b>%s</b>", tmp);
 	info_str = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", tmp);
 	g_free(tmp);
 
@@ -339,30 +334,17 @@ eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 	{
 		markup = g_markup_escape_text(tag, -1);
 		tmp = info_str;
-		// info_str = g_strconcat(info_str, "\n ", _("by"), " ", "<i>", markup, "</i>", NULL);
 		info_str = g_strconcat(info_str, "\n<span size=\"x-large\" weight=\"normal\">", markup, "</span>", NULL);
 		g_free(tmp);
 		g_free(markup);
 	}
 
-	// Idem for album, lomo_stream_get_tag gets a reference, remember this.
-	/*
-	tag = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
-	if (tag != NULL)
-	{
-		tmp = info_str;
-		markup = g_markup_escape_text(tag, -1);
-		info_str = g_strconcat(info_str, " ", _("in"), " ", "<i>", markup, "</i>", NULL);
-		g_free(tmp);
-		g_free(markup);
-	}
-	*/
 	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), info_str);
 	g_free(info_str);
 }
 
-
-EinaFsFilterAction eina_player_fs_filter(GFileInfo *info)
+static EinaFsFilterAction
+fs_filter(GFileInfo *info)
 {
 	static const gchar *suffixes[] = {".mp3", ".ogg", ".wma", ".aac", ".flac", NULL };
 	gchar *lc_name;
@@ -493,7 +475,7 @@ on_any_button_clicked(GtkWidget *w, EinaPlayer *self)
 					uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
 					if (uris) {
 						lomo_player_clear(LOMO(self));
-						eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, eina_player_fs_filter, NULL, NULL);
+						eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter, NULL, NULL);
 						lomo_player_play(LOMO(self), NULL);
 						g_slist_free(uris);
 					}
@@ -503,7 +485,7 @@ on_any_button_clicked(GtkWidget *w, EinaPlayer *self)
 				case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 					uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
 					if (uris)
-						eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, eina_player_fs_filter, NULL, NULL);
+						eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter, NULL, NULL);
 					g_slist_free(uris);
 					eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, "test");
 					break;

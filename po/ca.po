@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-26 21:40+0200\n"
+"POT-Creation-Date: 2008-09-22 12:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,19 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/eina-file-chooser-dialog.c:175
+#: ../eina/base.c:22
+#, c-format
+msgid "Error creating GelUI for '%s': %s"
+msgstr ""
+
+#: ../eina/base.c:36
+msgid "Trying to free a NULL pointer"
+msgstr ""
+
+#: ../eina/eina-file-chooser-dialog.c:166
+msgid "_Enqueue"
+msgstr ""
+
+#: ../eina/eina-file-chooser-dialog.c:174
 msgid "Enqueue files"
 msgstr ""

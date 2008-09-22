@@ -304,6 +304,7 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
                         </child>
                         <child>
                           <widget class="GtkButton" id="open-button">
+                            <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="response_id">0</property>

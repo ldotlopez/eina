@@ -1,6 +1,6 @@
 #include "gel-string.h"
 
-struct GelStringPriv {
+struct _GelStringPriv {
 	guint ref_count;
 };
 

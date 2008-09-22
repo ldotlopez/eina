@@ -19,7 +19,7 @@ gboolean eina_base_init
 		self->ui = gel_ui_load_resource(self->name, &err);
 		if (self->ui == NULL)
 		{
-			gel_error(Q_("Error creating GelUI for '%s': %s"), name, err->message);
+			gel_error(_("Error creating GelUI for '%s': %s"), name, err->message);
 			g_error_free(err);
 			eina_base_fini(self);
 			return FALSE;
@@ -33,7 +33,7 @@ void eina_base_fini(EinaBase *self)
 {
 	if (self == NULL)
 	{
-		gel_warn(Q_("Trying to free a NULL pointer"));
+		gel_warn(_("Trying to free a NULL pointer"));
 		return;
 	}
 		
