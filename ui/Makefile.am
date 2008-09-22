@@ -1,4 +1,4 @@
-BUILT_SOURCES = player.ui playlist.ui
+BUILT_SOURCES = player.ui playlist.ui about.ui
 CLEANFILES = $(BUILT_SOURCES)
 
 player.ui: player.glade
@@ -7,9 +7,13 @@ player.ui: player.glade
 playlist.ui: playlist.glade
 	$(GTK_BUILDER_CONVERT) $< $@
 
+about.ui: about.glade
+	$(GTK_BUILDER_CONVERT) $< $@
+
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
-	player.glade \
+	about.glade      \
+	player.glade     \
 	playlist.glade
 
 install-data-local:

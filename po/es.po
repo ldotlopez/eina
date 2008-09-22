@@ -26,11 +26,11 @@ msgid "Trying to free a NULL pointer"
 msgstr ""
 
 #: ../eina/eina-file-chooser-dialog.c:166
-msgid "_Enqueue"
+msgid "_Encolar"
 msgstr ""
 
 #: ../eina/eina-file-chooser-dialog.c:174
-msgid "Enqueue files"
+msgid "Encolar ficheros"
 msgstr ""
 
 #: ../ui/player.gtkui.h:1

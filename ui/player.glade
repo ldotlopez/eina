@@ -2,111 +2,10 @@
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
 <!--*- mode: xml -*-->
 <glade-interface>
-  <widget class="GtkAboutDialog" id="player-about">
-    <property name="border_width">5</property>
-    <property name="title" translatable="yes">About Eina</property>
-    <property name="resizable">False</property>
-    <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
-    <property name="opacity">0.69999999999999996</property>
-    <property name="has_separator">False</property>
-    <property name="program_name">Eina</property>
-    <property name="copyright" translatable="yes">Copyright © 2003-2008 xuzo
-Copyright © 2003-2005 xuzo and eru</property>
-    <property name="comments" translatable="yes">A classic player for the modern era</property>
-    <property name="website">http://eina.sourceforge.net/</property>
-    <property name="website_label" translatable="yes">http://eina.sourceforge.net/</property>
-    <property name="license" translatable="yes">Eina es software libre libre, puede redistribuirlo o modificarlobajo los términos de la Licencia Pública General de GNU tal comola publica la Free Software Foundation, tanto en su versión 2 de la Licencia como (a su elección) cualquier versión posterior.
-
-Eina se distribuye con la esperanza de que se sea útil,pero  SIN NINGUNA GARANTÍA; sin incluso la garantía implícita de MERCANTILIDAD o IDONEIDAD PARA UN PROPÓSITOPARTICULAR. Vea la Licencia Pública General de GNU paradetalles.
-
-Debería haber recibido una copia de la Licencia Pública General de GNUjunto con este programa, si no, escriba a la Free Software Foundation, Inc51 Franklin Street , Fifth Floor, Boston, MA 02110-1301, USA.</property>
-    <property name="authors">xuzo &lt;xuzo@cuarentaydos.com&gt;</property>
-    <property name="documenters">None yet :)</property>
-    <property name="translator_credits" translatable="yes">None yet :)</property>
-    <property name="wrap_license">True</property>
-    <child internal-child="vbox">
-      <widget class="GtkVBox" id="dialog-vbox1">
-        <property name="visible">True</property>
-        <property name="spacing">2</property>
-        <child>
-          <placeholder/>
-        </child>
-        <child internal-child="action_area">
-          <widget class="GtkHButtonBox" id="dialog-action_area1">
-            <property name="visible">True</property>
-            <property name="layout_style">GTK_BUTTONBOX_END</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="pack_type">GTK_PACK_END</property>
-          </packing>
-        </child>
-      </widget>
-    </child>
-  </widget>
   <widget class="GtkWindow" id="main-window">
     <child>
-      <widget class="GtkVBox" id="vbox1">
+      <widget class="GtkVBox" id="main-box">
         <property name="visible">True</property>
-        <child>
-          <widget class="GtkMenuBar" id="menu-bar">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkMenuItem" id="menuitem1">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">_Archivo</property>
-                <property name="use_underline">True</property>
-                <child>
-                  <widget class="GtkMenu" id="menu1">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="menu-file-quit">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Quit</property>
-                        <property name="use_underline">True</property>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="menu-item-image11">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-quit</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-            </child>
-            <child>
-              <widget class="GtkMenuItem" id="menuitem4">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Ay_uda</property>
-                <property name="use_underline">True</property>
-                <child>
-                  <widget class="GtkMenu" id="menu3">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="menu-help-about">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_About</property>
-                        <property name="use_underline">True</property>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="menu-item-image12">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-about</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-          </packing>
-        </child>
         <child>
           <widget class="GtkVBox" id="vbox3">
             <property name="visible">True</property>
@@ -123,7 +22,7 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
                     <child>
                       <widget class="GtkImage" id="cover-image">
                         <property name="visible">True</property>
-                        <property name="pixbuf">cover-unknow.png</property>
+                        <property name="stock">gtk-missing-image</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -145,8 +44,8 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
                             <property name="visible">True</property>
                             <property name="xalign">0</property>
                             <property name="yalign">0</property>
-                            <property name="label" translatable="yes">&lt;span size="x-large" weight="bold"&gt;Gato negro dragon rojo&lt;/span&gt;
-&lt;span size="x-large" weight="normal"&gt;Amaral&lt;/span&gt;</property>
+                            <property name="label" translatable="yes">&lt;span size="x-large" weight="bold"&gt;%t&lt;/span&gt;
+&lt;span size="x-large" weight="normal"&gt;{%a}&lt;/span&gt;</property>
                             <property name="use_markup">True</property>
                             <property name="selectable">True</property>
                             <property name="ellipsize">PANGO_ELLIPSIZE_MIDDLE</property>
@@ -379,9 +278,6 @@ Debería haber recibido una copia de la Licencia Pública General de GNUjunto co
               </packing>
             </child>
           </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
         </child>
       </widget>
     </child>

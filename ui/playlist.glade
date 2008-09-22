@@ -43,6 +43,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="tooltip" translatable="yes">Activate or deactivate random mode</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="playlist-random-image">
@@ -57,6 +58,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="tooltip" translatable="yes">Activate or deactivate repeat mode</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="playlist-repeat-image">
@@ -83,6 +85,7 @@
                   <widget class="GtkButton" id="playlist-add-button">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="tooltip" translatable="yes">Add or enqueue songs to this playlist</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image3">
@@ -100,6 +103,7 @@
                   <widget class="GtkButton" id="playlist-remove-button">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="tooltip" translatable="yes">Remove selected songs from this playlist</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image4">
@@ -129,6 +133,7 @@
                   <widget class="GtkButton" id="playlist-clear-button">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="tooltip" translatable="yes">Clear the playlist</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image1">

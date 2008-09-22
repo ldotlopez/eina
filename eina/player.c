@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <gmodule.h>
 #include <gel/gel-ui.h>
+#include <config.h>
 #include "base.h"
 #include "player.h"
 #include "eina-seek.h"
@@ -17,9 +18,11 @@
 
 struct _EinaPlayer {
 	EinaBase    parent;
-	EinaCover  *cover;
-	EinaSeek   *seek;
-	EinaVolume *volume;
+	GtkAboutDialog   *about;
+	GtkUIManager *ui_manager;
+	EinaCover    *cover;
+	EinaSeek     *seek;
+	EinaVolume   *volume;
 
 	EinaConf         *conf;
 
@@ -94,6 +97,34 @@ static void on_settings_change
 (EinaConf *conf, gchar *key, EinaPlayer *self);
 
 // --
+// Actions definitions
+// --
+void
+on_menu_activate(GtkAction *action, EinaPlayer *self);
+static  GtkActionEntry ui_actions[] = {
+	// Menu
+	{ "FileMenu", NULL, N_("File"),
+	NULL, NULL, NULL},
+	{ "EditMenu", NULL, N_("Edit"),
+	NULL, NULL, NULL},
+	{ "HelpMenu", NULL, N_("Help"),
+	NULL, NULL, NULL},
+
+	// Menu item actions 
+	{ "Quit", GTK_STOCK_QUIT, N_("Quit"),
+	"<control>q", "Quit", G_CALLBACK(on_menu_activate) },
+
+	{ "Plugins", NULL, N_("Plugins"),
+	NULL, NULL, G_CALLBACK(on_menu_activate) },
+
+	{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
+	NULL, NULL, G_CALLBACK(on_menu_activate) },
+
+	{ "About", GTK_STOCK_ABOUT, N_("About"),
+	NULL, "About", G_CALLBACK(on_menu_activate) }
+};
+
+// --
 // Signal definitions 
 // --
 static GelUISignalDef _player_signals[] = {
@@ -127,6 +158,9 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	EinaPlayer   *self;
 	gchar *cover_loading;
 	gchar *cover_default;
+
+	GtkActionGroup *ag;
+	gchar *ui_manager_file;
 
 	self = g_new0(EinaPlayer, 1);
 	if (!eina_base_init((EinaBase *) self, hub, "player", EINA_BASE_GTK_UI))
@@ -171,6 +205,55 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		 GTK_WIDGET(self->cover),
 		 FALSE, FALSE, 0);
 	gtk_widget_show_all(GTK_WIDGET(self->cover));
+
+	// Menu
+	ui_manager_file = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "player-menu.ui");
+	if (ui_manager_file != NULL)
+	{
+		self->ui_manager = gtk_ui_manager_new();
+		if (gtk_ui_manager_add_ui_from_file(self->ui_manager, ui_manager_file, NULL) == 0)
+		{
+			gel_warn("Error adding UI");
+		}
+		else
+		{
+			ag = gtk_action_group_new("default");
+			gtk_action_group_add_actions(ag, ui_actions, G_N_ELEMENTS(ui_actions), self);
+			gtk_ui_manager_insert_action_group(self->ui_manager, ag, 0);
+			gtk_ui_manager_ensure_update(self->ui_manager);
+			gtk_box_pack_start(
+				GTK_BOX(W(self,"main-box")), 
+				gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"),
+				FALSE,FALSE, 0);
+			gtk_box_reorder_child(GTK_BOX(W(self,"main-box")),gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"), 0);
+			gtk_widget_show_all(gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"));
+		}
+		g_free(ui_manager_file);
+	}
+	else
+	{
+		gel_warn("Cannot load UI Manager definition");
+	}
+
+	// About
+	{
+	GtkBuilder *tmp  = gel_ui_load_resource("about", NULL);
+	self->about = GTK_ABOUT_DIALOG(gtk_builder_get_object(tmp, "about-window"));
+	if (self->about != NULL)
+	{
+		g_object_set(G_OBJECT(self->about),
+			"version", PACKAGE_VERSION,
+			NULL);
+		g_signal_connect(self->about, "delete-event",
+		(GCallback) gtk_widget_hide_on_delete, NULL);
+		g_signal_connect(self->about, "response",
+		(GCallback) gtk_widget_hide, NULL);
+	}
+	else
+	{
+		gel_warn("Cannot load about UI");
+	}
+	}
 
 	// Get references to the main widgets
 	self->play_pause       = W(self, "play-pause-button");
@@ -572,6 +655,17 @@ on_dock_expander_activate(GtkWidget *wid, EinaPlayer *self)
 		gtk_window_set_resizable(win, FALSE);
 	}
 	eina_conf_set_bool(self->conf, "/player/playlist_expanded", expanded);
+}
+
+void
+on_menu_activate(GtkAction *action, EinaPlayer *self)
+{
+	const gchar *name = gtk_action_get_name(action);
+
+	if (g_str_equal(name, "About") && self->about)
+	{
+		gtk_widget_show(GTK_WIDGET(self->about));
+	}
 }
 
 static void
