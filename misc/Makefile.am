@@ -1,5 +1,5 @@
-EXTRA_DIST = \
-	eina.desktop.in 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = eina-@EINA_API_VERSION@.pc
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/applications

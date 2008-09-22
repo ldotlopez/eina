@@ -4,13 +4,11 @@
 
 SUBDIRS =                 \
 	misc pixmaps ui       \
-	gel lomo eina plugins
+	gel lomo eina plugins \
+	po
 
 DIST_SUBDIRS = \
 	$(SUBDIRS)
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = eina-@EINA_API_VERSION@.pc
 
 EXTRA_DIST = \
 	intltool-extract.in \

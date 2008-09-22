@@ -4,23 +4,14 @@ EXTRA_DIST = \
 	audio-volume-low.png \
 	audio-volume-medium.png \
 	audio-volume-mute.png \
-	avatar-inet.png \
-	avatar.png \
-	avatar-zzz.png \
-	cover-unknow.png \
-	cover-unknow.xcf \
-	h1.png \
-	h2.png \
+	cover-default.png \
+	cover-loading.png \
 	icon.png \
 	logo.png \
-	logo.svg \
-	logo-v1.xcf \
 	queue.png \
 	random.png \
-	random-repeat.svg \
 	repeat.png \
-	vogon-icon.png \
-	volume.xcf
+	vogon-icon.png
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/$(PACKAGE)/pixmaps; \

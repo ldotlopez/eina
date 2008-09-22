@@ -1,11 +1,16 @@
-# :r ! /bin/ls -1 | sed -e 's/^\(.*\)$/\t\1 \\/' | grep -v Makefile
+BUILT_SOURCES = player.gtkui playlist.gtkui
+CLEANFILES = $(BUILT_SOURCES)
+
+player.gtkui: player.glade
+	$(GTK_BUILDER_CONVERT) $< $@
+
+playlist.gtkui: playlist.glade
+	$(GTK_BUILDER_CONVERT) $< $@
+
 EXTRA_DIST = \
+	$(BUILT_SOURCES) \
 	player.glade \
-	player.gladep \
-	player.gtkui \
-	playlist.glade \
-	playlist.gladep \
-	playlist.gtkui
+	playlist.glade
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/$(PACKAGE)/ui; \
@@ -17,12 +22,4 @@ uninstall-local:
 	for ui in `find . -iname '*.gtkui'`; do \
 		rm -- $(DESTDIR)$(datadir)/$(PACKAGE)/ui/$$ui; \
 	done
-
-BUILT_SOURCES = player.gtkui playlist.gtkui
-
-player.gtkui: player.glade
-	gtk-builder-convert $< $@
-
-playlist.gtkui: playlist.glade
-	gtk-builder-convert $< $@
 
