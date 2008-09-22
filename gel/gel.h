@@ -120,6 +120,7 @@ gchar *
 gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_parents, gint mode);
 
 #include <gel/gel-hub.h>
+#include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>
 
 G_END_DECLS
