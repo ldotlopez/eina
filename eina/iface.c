@@ -19,6 +19,15 @@ struct EinaIFaceSignalPack {
 	gpointer callback;
 };
 
+struct _EinaPluginPrivateV2 {
+	gchar      *plugin_name;
+	gchar      *pathname;
+	GModule    *module;
+
+	EinaIFace  *iface;
+	LomoPlayer *lomo;
+};
+
 typedef struct _EinaPluginPrivate
 {
 	gchar      *pathname;
@@ -183,6 +192,84 @@ eina_iface_get_plugin_paths(void)
 	return ret;
 }
 
+GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
+{
+	GList *search_paths, *iter;
+	GList *ret = NULL;
+
+	gel_debug("Searching for plugin '%s'", plugin_name);
+	iter = search_paths = eina_iface_get_plugin_paths();
+	while (iter)
+	{
+		GList *plugins, *iter2;
+
+		gel_debug(" Inspecting '%s'", (gchar *) iter->data);
+		iter2 = plugins = gel_dir_read((gchar *) iter->data, TRUE, NULL);
+		while (iter2)
+		{
+			gchar *plugin_pathname = (gchar *) iter2->data;
+			gchar *plugin_basename = g_path_get_basename(plugin_pathname);
+
+			if (g_str_equal(plugin_basename, plugin_name))
+			{
+				gchar *modname = g_module_build_path(plugin_pathname, plugin_name);
+				gel_debug("  Found candidate '%s'", modname);
+				ret = g_list_append(ret, modname);
+			}
+			g_free(plugin_basename);
+
+			iter2 = iter2->next;
+		}
+		gel_glist_free(plugins, (GFunc) g_free, NULL);
+
+		iter = iter->next;
+	}
+	gel_glist_free(search_paths, (GFunc) g_free, NULL);
+
+	return g_list_reverse(ret);
+}
+
+EinaPluginV2 *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path)
+{
+	EinaPluginV2 *ret = NULL;
+	GModule    *mod;
+	gchar      *symbol_name;
+	gpointer    symbol;
+
+	if (!g_module_supported())
+	{
+		gel_error("Module loading is NOT supported on this platform");
+		return NULL;
+	}
+
+	if ((mod = g_module_open(plugin_path, G_MODULE_BIND_LOCAL)) == NULL)
+	{
+		gel_debug("'%s' is not loadable", plugin_path);
+		return NULL;
+	}
+
+	symbol_name = g_strconcat(plugin_name, "_plugin", NULL);
+
+	if (!g_module_symbol(mod, symbol_name, &symbol))
+	{
+		gel_debug("Cannot find symbol '%s' in '%s'", symbol_name, plugin_path);
+		g_free(symbol_name);
+		g_module_close(mod);
+		return NULL;
+	}
+
+	ret = (EinaPluginV2 *) symbol;
+	ret->priv = g_new0(EinaPluginPrivateV2, 1);
+	ret->priv->plugin_name = g_strdup(plugin_name);
+	ret->priv->pathname    = g_strdup(plugin_path);
+	ret->priv->module      = mod;
+	ret->priv->iface       = self;
+	ret->priv->lomo        = gel_hub_shared_get(eina_iface_get_hub(self), "lomo");
+
+	gel_debug("Module '%s' has been loaded", plugin_path);
+	return ret;
+}
+
 gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 {
 	GList *plugin_paths = NULL, *l = NULL;
@@ -202,6 +289,7 @@ gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
 		plugin_filename = g_module_build_path(plugin_dirname, plugin_name);
 		g_free(plugin_dirname);
 		eina_iface_debug("Testing %s", plugin_filename);
+		eina_iface_load_plugin_by_path(self, plugin_name, plugin_filename);
 
 		if ((mod = g_module_open(plugin_filename, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL)) == NULL)
 		{

@@ -148,6 +148,26 @@ gel_file_strings_free(gchar **file_strings)
 }
 #endif
 
+GList *
+gel_dir_read(gchar *path, gboolean absolute, GError **error)
+{
+	GList *ret = NULL;
+	GDir *d;
+	const gchar *entry;
+
+	d = g_dir_open(path, 0, error);
+	if (d == NULL)
+		return NULL;
+	
+	while ((entry = g_dir_read_name(d)) != NULL)
+	{
+		if (absolute)
+			ret = g_list_prepend(ret, g_build_filename(path, entry, NULL));
+		else
+			ret = g_list_prepend(ret, g_strdup(entry));
+	}
+	return g_list_reverse(ret);
+}
 
 /*
  * App resource functions

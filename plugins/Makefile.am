@@ -1,4 +1,5 @@
-SUBDIRS = coverplus hooktest recently
+# SUBDIRS = coverplus hooktest recently
+SUBDIRS = hooktest
 DIST_SUBDIRS = adb coverplus hooktest lastfminfo notify recently
 
 if USE_ADB
@@ -9,9 +10,9 @@ endif
 #SUBDIRS += lastfminfo
 #endif
 
-if USE_NOTIFY
-SUBDIRS += notify
-endif
+#if USE_NOTIFY
+#SUBDIRS += notify
+#endif
 
 #DIST_SUBDIRS = \
 #	adb \

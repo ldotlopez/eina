@@ -2,6 +2,7 @@
 #define _EINA_IFACE
 
 #include <glib.h>
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <lomo/player.h>
 #include <gel/gel.h>
@@ -10,6 +11,23 @@
 #include <eina/eina-cover.h>
 
 typedef struct _EinaIFace EinaIFace;
+
+typedef struct _EinaPluginPrivateV2 EinaPluginPrivateV2;
+typedef struct EinaPluginV2 {
+	const gchar *name;       // "My cool plugin"
+	const gchar *short_desc; // "This plugins makes Eina cooler
+	const gchar *long_desc;  // "Blah blah blah..."
+	const gchar *icon;       // "icon.png", relative path
+	const gchar *author;     // "xuzo <xuzo@cuarentaydos.com>"
+	const gchar *url;        // "http://eina.sourceforge.net"
+
+	struct EinaPluginV2* (*init)(GelHub *app, EinaIFace *iface); // Init function
+	gboolean             (*fini)(struct EinaPluginV2 *self);     // Exit function
+
+	gpointer data; // Plugin's own data
+
+	EinaPluginPrivateV2 *priv;
+} EinaPluginV2;
 
 typedef struct _EinaPluginPrivate EinaPluginPrivate;
 typedef struct EinaPlugin

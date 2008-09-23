@@ -111,6 +111,9 @@ gel_file_strings_free(gchar **file_strings);
 	} while(0)
 
 GList *
+gel_dir_read(gchar *path, gboolean absolute, GError **error);
+
+GList *
 gel_app_resource_get_list(GelAppResourceType type, gchar *resource);
 
 gchar *

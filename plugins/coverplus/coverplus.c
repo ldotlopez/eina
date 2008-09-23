@@ -343,9 +343,19 @@ coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer da
 	g_free(path);
 }
 
-/*
- * Main
- */
+// --
+// Main
+// --
+
+G_MODULE_EXPORT EinaPluginInfo coverplus_info = {
+	N_("Cover plus"),
+	N_("Enhace your covers"),
+	N_("bla ble bli"),
+	"none.png",
+	"xuzo <xuzo@cuarentaydos.com>",
+	"http://eina.sourceforge.net/"
+};
+
 EINA_PLUGIN_FUNC gboolean
 coverplus_exit(EinaPlugin *self)
 {
