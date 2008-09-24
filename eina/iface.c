@@ -147,6 +147,9 @@ G_MODULE_EXPORT gboolean eina_iface_exit
 	return TRUE;
 }
 
+// --
+// Functions needed to access internal and deeper elements
+// --
 GelHub *eina_iface_get_hub(EinaIFace *self)
 {
 	return HUB(self);
@@ -157,20 +160,14 @@ LomoPlayer *eina_iface_get_lomo(EinaIFace *self)
 	return LOMO(self);
 }
 
-EinaCover *eina_iface_get_cover(EinaIFace *self)
+EinaIFace *eina_plugin_get_iface(EinaPlugin *plugin)
 {
-	GelHub *hub;
-	EinaPlayer *player;
-	
-	if ((hub = HUB(self)) == NULL)
-		return NULL;
-
-	if ((player = gel_hub_shared_get(hub, "player")) == NULL)
-		return NULL;
-
-	return eina_player_get_cover(player);
+	return plugin->priv->iface;
 }
 
+// --
+// Other ?
+// --
 GList *
 eina_iface_get_plugin_paths(void)
 {
@@ -347,84 +344,7 @@ eina_iface_unload_plugin(EinaIFace *self, EinaPluginV2 *plugin)
 	g_free(plugin->priv);
 }
 
-// --
-// EinaPlugin (V1)
-// --
-#if 0
-gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name)
-{
-	GList *plugin_paths = NULL, *l = NULL;
-	gchar *plugin_filename = NULL;
-	GModule *mod = NULL;
-	gchar *plugin_symbol = NULL; // Name of the symbol to lookup
-	gpointer plugin_init = NULL; // The symbol it self
-	EinaPlugin *plugin = NULL;   // EinaPlugin struct returned by plugin
-
-	plugin_paths = eina_iface_get_plugin_paths();
-
-	plugin_symbol = g_strdup_printf("%s_init", plugin_name);
-	l = plugin_paths;
-	while (l) {
-
-		gchar *plugin_dirname = g_build_filename((gchar *) l->data, plugin_name, NULL);
-		plugin_filename = g_module_build_path(plugin_dirname, plugin_name);
-		g_free(plugin_dirname);
-		eina_iface_debug("Testing %s", plugin_filename);
-		eina_iface_load_plugin_by_path(self, plugin_name, plugin_filename);
-
-		if ((mod = g_module_open(plugin_filename, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL)) == NULL)
-		{
-			g_free(plugin_filename);
-			l = l->next;
-			continue;
-		}
-
-		if (!g_module_symbol(mod, plugin_symbol, &plugin_init))
-		{
-			// Not found
-			gel_warn("Found matching plugin for '%s' at '%s' but has no symbol '%s'",
-				plugin_name,
-				plugin_filename,
-				plugin_symbol);
-			g_module_close(mod);
-		}
-		else
-		{
-			// Found
-			break;
-		}
-
-		g_free(plugin_filename);
-		break;
-
-		l = l->next;
-	}
-	g_free(plugin_symbol);
-
-	if (plugin_init != NULL) {
-		plugin = ((EinaPluginInitFunc)plugin_init)(HUB(self), self);
-		if (plugin != NULL)
-		{
-			// Fill EinaPluginPrivate
-			gel_info("Loading plugin %s for %s", plugin_filename, plugin_name);
-			plugin->priv->pathname = plugin_filename;
-			plugin->priv->mod      = mod;
-			plugin->priv->iface    = self;
-			plugin->priv->lomo     = gel_hub_shared_get(GEL_HUB(HUB(self)), "lomo");
-
-			self->plugins = g_list_append(self->plugins, plugin);
-
-			if (plugin->dock_widget != NULL)
-				eina_iface_dock_add(self, (gchar *) plugin->name, plugin->dock_widget, plugin->dock_label_widget);
-		}
-	}
-
-	g_list_foreach(plugin_paths, (GFunc) g_free, NULL);
-	g_list_free(plugin_paths);
-
-	return FALSE;
-}
-
+/*
 gchar *
 eina_iface_build_plugin_filename(gchar *plugin_name, gchar *filename)
 {
@@ -494,8 +414,11 @@ eina_iface_plugin_resource_get_pathname(EinaPlugin *plugin, gchar *resource)
 		return ret;
 	}
 }
-#endif
+*/
 
+// --
+// Dock management
+// --
 void eina_iface_dock_init(EinaIFace *self)
 {
 	gint i;
@@ -517,7 +440,7 @@ void eina_iface_dock_init(EinaIFace *self)
 	gel_info("Dock initialized");
 }
 
-gboolean eina_iface_dock_add(EinaIFace *self, gchar *id, GtkWidget *dock_widget, GtkWidget *label)
+gboolean eina_iface_dock_add_item(EinaIFace *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
 	if (!self->dock || (g_hash_table_lookup(self->dock_items, id) != NULL))
 	{
@@ -530,7 +453,6 @@ gboolean eina_iface_dock_add(EinaIFace *self, gchar *id, GtkWidget *dock_widget,
 		return FALSE;
 	}
 	gel_info("Added dock '%s'", id);
-	// g_object_ref(G_OBJECT(dock_widget));
 	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
@@ -539,7 +461,7 @@ gboolean eina_iface_dock_add(EinaIFace *self, gchar *id, GtkWidget *dock_widget,
 	return TRUE;
 }
 
-gboolean eina_iface_dock_remove(EinaIFace *self, gchar *id)
+gboolean eina_iface_dock_remove_item(EinaIFace *self, gchar *id)
 {
 	GtkWidget *dock_item;
 
@@ -557,7 +479,7 @@ gboolean eina_iface_dock_remove(EinaIFace *self, gchar *id)
 }
 
 gboolean
-eina_iface_dock_switch(EinaIFace *self, gchar *id)
+eina_iface_dock_switch_item(EinaIFace *self, gchar *id)
 {
 	gint page_num;
 	GtkWidget *dock_item;
@@ -590,6 +512,66 @@ void on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data)
 		return;
 
 	eina_iface_dock_init(self);
+}
+
+// --
+// LomoEvents handling
+// --
+void
+eina_plugin_attach_events(EinaPlugin *plugin, ...)
+{
+	va_list p;
+	gchar *signal;
+	gpointer callback;
+
+	va_start(p, plugin);
+	signal = va_arg(p, gchar*);
+	while (signal != NULL)
+	{
+		callback = va_arg(p, gpointer);
+		if (callback)
+			g_signal_connect(EINA_PLUGIN_LOMO(plugin), signal,
+			callback, plugin);
+		signal = va_arg(p, gchar*);
+	}
+	va_end(p);
+}
+
+void
+eina_plugin_deattach_events(EinaPlugin *plugin, ...)
+{
+	va_list p;
+	gchar *signal;
+	gpointer callback;
+
+	va_start(p, plugin);
+	signal = va_arg(p, gchar*);
+	while (signal != NULL)
+	{
+		callback = va_arg(p, gpointer);
+		if (callback)
+			 g_signal_handlers_disconnect_by_func(EINA_PLUGIN_LOMO(plugin), callback, plugin);
+		signal = va_arg(p, gchar*);
+	}
+	va_end(p);
+}
+
+gchar *
+eina_plugin_build_resource_path(EinaPlugin *plugin, gchar *resource)
+{
+	gchar *dirname, *ret;
+	dirname = g_path_get_dirname(plugin->priv->pathname);
+
+	ret = g_build_filename(dirname, resource, NULL);
+	g_free(dirname);
+
+	return ret;
+}
+
+gchar *
+eina_plugin_build_userdir_path (EinaPlugin *plugin, gchar *path)
+{
+	return g_build_filename(g_get_home_dir(), ".eina", plugin->priv->plugin_name, path, NULL);
 }
 
 G_MODULE_EXPORT GelHubSlave iface_connector = {

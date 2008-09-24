@@ -271,8 +271,8 @@ G_MODULE_EXPORT gboolean playlist_init
 	}
 
 	gtk_widget_show(self->dock);
-	return eina_iface_dock_add(iface, "playlist",
-		self->dock, gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU));
+	return eina_iface_dock_add_item(iface, "playlist",
+		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), self->dock);
 }
 
 G_MODULE_EXPORT gboolean playlist_exit
@@ -310,7 +310,7 @@ G_MODULE_EXPORT gboolean playlist_exit
 
 	gel_hub_unload(HUB(self), "settings");
 
-	eina_iface_dock_remove(gel_hub_shared_get(HUB(self), "iface"), "playlist");
+	eina_iface_dock_remove_item(gel_hub_shared_get(HUB(self), "iface"), "playlist");
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }

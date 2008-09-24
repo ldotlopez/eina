@@ -95,7 +95,7 @@ recently_playlist_extract_tag(GList *pl, LomoTag tag)
 gboolean
 currently_playlist_store(EinaPlugin *plugin)
 {
-	LomoPlayer *lomo = EINA_PLUGIN_LOMO_PLAYER(plugin);
+	LomoPlayer *lomo = EINA_PLUGIN_LOMO(plugin);
 	GList  *lomo_pl, *list;
 	gchar  *buffer;
 	GTimeVal  now;
