@@ -83,7 +83,7 @@ eina_iface_get_lomo(EinaIFace *iface);
 // --
 gboolean
 eina_iface_dock_add_item(EinaIFace *iface, gchar *id, GtkWidget *label, GtkWidget *widget);
-#define eina_plugin_add_dock(plugin,id,label,widget) \
+#define eina_plugin_dock_add_item(plugin,id,label,widget) \
 	eina_iface_dock_add_item(EINA_PLUGIN_IFACE(plugin), id, label, widget)
 
 gboolean

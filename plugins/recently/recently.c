@@ -10,6 +10,7 @@
 typedef struct RecentlyData {
 	GtkTreeView *tv;
 	GtkListStore *model;
+	GtkWidget *dock_label, *dock_widget;
 } RecentlyData;
 
 enum {
@@ -475,18 +476,11 @@ on_recently_lomo_clear(LomoPlayer *lomo, EinaPlugin *plugin)
 }
 
 gboolean
-recently_exit(EinaPlugin *plugin, GError *error)
-{
-	return TRUE;
-}
-
-gboolean
-recently_init(EinaPlugin *plugin, GError *error)
+recently_init(EinaPluginV2 *plugin, GError **error)
 {
 	gchar *path;
+	RecentlyData *self;
 
-	// Create folders to ensure a good environment
-	// path = eina_iface_get_plugin_dir(PLUGIN_NAME);
 	path = eina_plugin_build_userdir_path(plugin, NULL);
 	if (!g_file_test(path, G_FILE_TEST_IS_DIR) && !g_mkdir_with_parents(path, 0700))
 	{
@@ -496,27 +490,50 @@ recently_init(EinaPlugin *plugin, GError *error)
 	}
 	g_free(path);
 
-	// Create struct
-	/*
-	EinaPlugin *self = eina_plugin_new(iface,
-		PLUGIN_NAME, "playlist", g_new0(RecentlyData, 1), recently_exit,
-		NULL, NULL, NULL);
-	*/
+	self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
+
 	// Create dock widgets
-	plugin->dock_widget = recently_dock_new(plugin);
-	self->dock_label_widget = gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU);
+	self->dock_widget = recently_dock_new(plugin);
+	self->dock_label  = gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU);
 
 	gtk_widget_show_all(GTK_WIDGET(self->dock_widget));
-	gtk_widget_show_all(GTK_WIDGET(self->dock_label_widget));
+	gtk_widget_show_all(GTK_WIDGET(self->dock_label));
 
-	eina_plugin_dock_add_item(plugin, "recently", self->dock_label_widget, self->dock_widget);
+	eina_plugin_dock_add_item(plugin, "recently",
+		self->dock_label,
+		self->dock_widget);
 
 	// Setup signals
 	eina_plugin_attach_events(plugin,
 		"clear", on_recently_lomo_clear,
 		NULL);
-	// self->clear = on_recently_lomo_clear;
+
+	plugin->data = self;
 
 	return TRUE;
 }
 
+gboolean
+recently_exit(EinaPlugin *plugin, GError **error)
+{
+	eina_plugin_dock_remove_item(plugin, "recently");
+    eina_plugin_attach_events(plugin,
+		"clear", on_recently_lomo_clear,
+		NULL);
+
+	return TRUE;
+}
+
+G_MODULE_EXPORT EinaPluginV2 recently_plugin = {
+	N_("Recently"),
+	N_("Recently playlists"),
+	N_("Recently saves your previously listen playlists"),
+	NULL,
+	N_("xuzo <xuzo@cuarentaydos.com>"),
+	N_("http://eina.sourceforge.net/"),
+
+	recently_init,
+	recently_exit,
+
+	NULL, NULL
+};
