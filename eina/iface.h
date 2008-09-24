@@ -12,8 +12,8 @@
 
 typedef struct _EinaIFace EinaIFace;
 
-typedef struct _EinaPluginPrivateV2 EinaPluginPrivateV2;
-typedef struct EinaPluginV2 {
+typedef struct _EinaPluginPrivate EinaPluginPrivate;
+typedef struct EinaPlugin {
 	const gchar *name;       // "My cool plugin"
 	const gchar *short_desc; // "This plugins makes Eina cooler
 	const gchar *long_desc;  // "Blah blah blah..."
@@ -21,20 +21,19 @@ typedef struct EinaPluginV2 {
 	const gchar *author;     // "xuzo <xuzo@cuarentaydos.com>"
 	const gchar *url;        // "http://eina.sourceforge.net"
 
-	gboolean  (*init)(struct EinaPluginV2 *self, GError **error); // Init function
-	gboolean  (*fini)(struct EinaPluginV2 *self, GError **error); // Exit function
+	gboolean  (*init)(struct EinaPlugin *self, GError **error); // Init function
+	gboolean  (*fini)(struct EinaPlugin *self, GError **error); // Exit function
 
 	gpointer data; // Plugin's own data
 
-	EinaPluginPrivateV2 *priv;
-} EinaPluginV2;
-typedef EinaPluginV2 EinaPlugin;
+	EinaPluginPrivate *priv;
+} EinaPlugin;
 
 // --
 // Access to plugin's data
 // --
 #ifdef EINA_PLUGIN_DATA_TYPE
-#define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) p->data)
+#define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) ((EinaPlugin *) p)->data)
 #endif
 
 #if 0
@@ -97,12 +96,25 @@ eina_iface_dock_switch_item(EinaIFace *iface, gchar *id);
 	eina_iface_dock_switch_item(EINA_PLUGIN_IFACE(plugin), id)
 
 // --
+// Cover handling
+// --
+//
+EinaCover*
+eina_plugin_get_player_cover(EinaPlugin *plugin);
+
+void
+eina_plugin_cover_add_backend(EinaPlugin *plugin, gchar *id,
+	EinaCoverBackendFunc search, EinaCoverBackendCancelFunc cancel);
+void
+eina_plugin_cover_remove_backend(EinaPlugin *plugin, gchar *id);
+
+// --
 // Lomo events
 // --
 void
-eina_plugin_attach_events(EinaPluginV2 *plugin, ...);
+eina_plugin_attach_events(EinaPlugin *plugin, ...);
 void
-eina_plugin_deattach_events(EinaPluginV2 *plugin, ...);
+eina_plugin_deattach_events(EinaPlugin *plugin, ...);
 
 // --
 // Utility functions

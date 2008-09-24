@@ -186,7 +186,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	// Insert volume
 	self->volume = g_object_new(EINA_TYPE_VOLUME, "lomo-player", LOMO(self), NULL);
 	gtk_container_foreach(GTK_CONTAINER(W(self, "volume-button-container")),
-		(GtkCallback) gtk_widget_hide,
+		(GtkCallback) gtk_widget_destroy,
 		NULL);
 	gtk_box_pack_start(GTK_BOX(W(self, "volume-button-container")),
 		 GTK_WIDGET(self->volume),

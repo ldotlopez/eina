@@ -52,7 +52,7 @@ gchar *eina_cover_get_loading_cover(EinaCover *self);
 void eina_cover_add_backend(EinaCover *self, const gchar *name,
 	EinaCoverBackendFunc callback, EinaCoverBackendCancelFunc cancel,
 	gpointer data);
-void eina_cover_delete_backend(EinaCover *self, const gchar *name);
+void eina_cover_remove_backend(EinaCover *self, const gchar *name);
 
 void eina_cover_backend_fail   (EinaCover *self);
 void eina_cover_backend_success(EinaCover *self, GType type, gpointer data);

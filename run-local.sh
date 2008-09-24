@@ -25,15 +25,15 @@ if [ ! -z "$1" ]; then
 	case "$1" in
 		ltrace)
 			shift
-			ltrace "`dirname $0`/eina/eina" "$@"
+			ltrace "`dirname $0`/eina/.libs/eina" "$@"
 			;;
 		strace)
 			shift
-			strace "`dirname $0`/eina/eina" "$@"
+			strace "`dirname $0`/eina/.libs/eina" "$@"
 			;;
 		gdb)
 			shift
-			gdb --args "`dirname $0`/eina/eina" "$@"
+			gdb --args "`dirname $0`/eina/.libs/eina" "$@"
 			;;
 		*)
 			"`dirname $0`/eina/eina" "$@"

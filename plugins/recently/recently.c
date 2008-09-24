@@ -304,7 +304,7 @@ recently_calculate_time_diff(GTimeVal now, GTimeVal prev)
 GtkWidget *
 recently_dock_new(EinaPlugin *plugin)
 {
-	RecentlyData *self = (RecentlyData *) EINA_PLUGIN_DATA(plugin);
+	RecentlyData *self = EINA_PLUGIN_DATA(plugin);
 	GtkScrolledWindow *sw;
 	GtkTreeViewColumn *col, *col2;
 	GtkCellRenderer   *render;
@@ -476,7 +476,7 @@ on_recently_lomo_clear(LomoPlayer *lomo, EinaPlugin *plugin)
 }
 
 gboolean
-recently_init(EinaPluginV2 *plugin, GError **error)
+recently_init(EinaPlugin *plugin, GError **error)
 {
 	gchar *path;
 	RecentlyData *self;
@@ -490,7 +490,7 @@ recently_init(EinaPluginV2 *plugin, GError **error)
 	}
 	g_free(path);
 
-	self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
+	plugin->data = self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
 
 	// Create dock widgets
 	self->dock_widget = recently_dock_new(plugin);
@@ -508,8 +508,6 @@ recently_init(EinaPluginV2 *plugin, GError **error)
 		"clear", on_recently_lomo_clear,
 		NULL);
 
-	plugin->data = self;
-
 	return TRUE;
 }
 
@@ -524,7 +522,7 @@ recently_exit(EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPluginV2 recently_plugin = {
+G_MODULE_EXPORT EinaPlugin recently_plugin = {
 	N_("Recently"),
 	N_("Recently playlists"),
 	N_("Recently saves your previously listen playlists"),

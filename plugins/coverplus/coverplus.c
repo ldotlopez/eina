@@ -1,7 +1,39 @@
 #define GEL_DOMAIN "Eina::Plugin::CoverPlus"
+#define EINA_PLUGIN_NAME "coverplus"
+#define EINA_PLUGIN_DATA_TYPE CoverPlus
+
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <eina/iface.h>
+
+typedef struct _CoverPlusInfolder CoverPlusInfolder;
+
+typedef struct CoverPlus {
+	CoverPlusInfolder *infolder;
+} CoverPlus;
+
+static gchar *coverplus_infolder_regex_str[] = {
+	".*front.*\\.(jpe?g|png|gif)$",
+	".*cover.*\\.(jpe?g|png|gif)$",
+	".*folder.*\\.(jpe?g|png|gif)$",
+	".*\\.(jpe?g|png|gif)$",
+	NULL
+};
+
+struct _CoverPlusInfolder {
+	EinaCover *cover;   // Ref to Cover
+	GRegex    *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
+	GFile     *parent;
+	GdkPixbuf *pixbuf;
+	gchar     *name;
+	gint       score;
+	gboolean   running;
+
+	GelIOAsyncReadDir *dir_reader;
+	GelIOAsyncReadOp  *uri_reader;
+};
+
+#if 0
 /*
  * Timeout-based cover backend. For testing
  */
@@ -38,30 +70,11 @@ coverplus_timeout_test_result(gpointer data)
 	eina_cover_backend_fail(cover);
 	return FALSE;
 }
+#endif
 
 /*
  * Coverplus in-folder: Search for '/.*(front|cover).*\.(jpe?g,png,gif)$/i'
  */
-static gchar *coverplus_infolder_regex_str[] = {
-	".*front.*\\.(jpe?g|png|gif)$",
-	".*cover.*\\.(jpe?g|png|gif)$",
-	".*folder.*\\.(jpe?g|png|gif)$",
-	".*\\.(jpe?g|png|gif)$",
-	NULL
-};
-
-typedef struct {
-	EinaCover *cover;   // Ref to Cover
-	GRegex    *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
-	GFile     *parent;
-	GdkPixbuf *pixbuf;
-	gchar     *name;
-	gint       score;
-	gboolean   running;
-
-	GelIOAsyncReadDir *dir_reader;
-	GelIOAsyncReadOp  *uri_reader;
-} CoverPlusInfolder;
 
 CoverPlusInfolder*
 coverplus_infolder_new(EinaCover *cover);
@@ -177,7 +190,7 @@ coverplus_infolder_free(CoverPlusInfolder* self)
 void
 coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer data)
 {
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
+	CoverPlusInfolder *self = EINA_PLUGIN_DATA(data)->infolder;
 
 	GFile *stream_file = g_file_new_for_uri(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 	GFile *f = g_file_get_parent(stream_file);
@@ -186,7 +199,7 @@ coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer d
 	{
 		gel_warn("Cannot get stream's parent");
 		g_object_unref(stream_file);
-		coverplus_infolder_finish(self->cover, self);
+		coverplus_infolder_finish(cover, self);
 		return;
 	}
 	g_object_unref(stream_file);
@@ -348,42 +361,36 @@ coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer da
 // --
 
 gboolean
-coverplus_exit(EinaPlugin *self, GError **error)
+coverplus_exit(EinaPlugin *plugin, GError **error)
 {
-	if (coverplus_timeout_test_source_id > 0)
-		g_source_remove(coverplus_timeout_test_source_id);
+	EinaCover *cover = eina_plugin_get_player_cover(plugin);
+
+	eina_cover_remove_backend(cover, "coverplus-banshee");
+	eina_cover_remove_backend(cover, "coverplus-infolder");
+
+	coverplus_infolder_free(EINA_PLUGIN_DATA(plugin)->infolder);
+	g_free(EINA_PLUGIN_DATA(plugin));
+
 	return TRUE;
 }
 
 gboolean
-coverplus_init(EinaPlugin *self, GError **error)
+coverplus_init(EinaPlugin *plugin, GError **error)
 {
-	/*
-	EinaCover *cover;
-	
-	EinaPlugin *self = eina_plugin_new(iface,
-		"coverplus", "cover", NULL, coverplus_exit,
-		NULL, NULL, NULL);
-	
-	cover = eina_iface_get_cover(iface);
-	if (cover == NULL)
-	{
-		gel_error("Cannot get a valid cover object, aborting");
-		eina_plugin_free(self);
-		return NULL;
-	}
+	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
+	plugin->data = self;
 
-	eina_cover_add_backend(cover, "coverplus-banshee",
+	self->infolder = coverplus_infolder_new(eina_plugin_get_player_cover(plugin));
+
+	eina_cover_add_backend(self->infolder->cover, "coverplus-banshee",
 		coverplus_banshee_search, NULL, NULL);
-	eina_cover_add_backend(cover, "coverplus-infolder",
- 		coverplus_infolder_search, coverplus_infolder_finish,
-		coverplus_infolder_new(cover));
-	return self;
-	*/
+
+	eina_cover_add_backend(self->infolder->cover, "coverplus-infolder",
+		coverplus_infolder_search, coverplus_infolder_finish, plugin);
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPluginV2 coverplus_info = {
+G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
 	N_("Cover plus"),
 	N_("Enhace your covers"),
 	N_("bla ble bli"),

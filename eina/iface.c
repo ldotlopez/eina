@@ -14,12 +14,7 @@ struct _EinaIFace {
 	GList       *plugins;
 };
 
-struct EinaIFaceSignalPack {
-	gchar *signal;
-	gpointer callback;
-};
-
-struct _EinaPluginPrivateV2 {
+struct _EinaPluginPrivate {
 	gboolean    enabled;
 	gchar      *plugin_name;
 	gchar      *pathname;
@@ -29,17 +24,18 @@ struct _EinaPluginPrivateV2 {
 	LomoPlayer *lomo;
 };
 
-typedef struct _EinaPluginPrivate
-{
-	gchar      *pathname;
-	GModule    *mod;
-	EinaIFace  *iface;
-	LomoPlayer *lomo;
-
-} _EinaPluginPrivate;
-
 void
 eina_iface_dock_init(EinaIFace *self);
+
+EinaPlugin*
+eina_iface_load_plugin_by_name(EinaIFace *self, gchar* plugin_name);
+EinaPlugin*
+eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path);
+
+gboolean
+eina_iface_init_plugin(EinaIFace *self, EinaPlugin *plugin);
+gboolean
+eina_iface_fini_plugin(EinaIFace *self, EinaPlugin *plugin);
 
 /*
  * Callbacks
@@ -49,65 +45,11 @@ eina_iface_dock_init(EinaIFace *self);
 void
 on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data);
 
-// LomoPlayer signals
-#if 0
-void
-on_eina_iface_lomo_play(LomoPlayer *lomo, gpointer data);
-void
-on_eina_iface_lomo_pause(LomoPlayer *lomo, gpointer data);
-void
-on_eina_iface_lomo_stop(LomoPlayer *lomo, gpointer data);
-void
-on_eina_iface_lomo_seek(LomoPlayer *lomo, gint64 old_pos, gint64 new_pos, gpointer data);
-void
-on_eina_iface_lomo_mute(LomoPlayer *lomo, gboolean mute, gpointer data);
-void
-on_eina_iface_lomo_add(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
-void
-on_eina_iface_lomo_del(LomoPlayer *lomo, gint pos, gpointer data);
-void
-on_eina_iface_lomo_change(LomoPlayer *lomo, gint from, gint to, gpointer data);
-void
-on_eina_iface_lomo_clear(LomoPlayer *lomo, gpointer data);
-void
-on_eina_iface_lomo_random(LomoPlayer *lomo, gboolean val, gpointer data);
-void
-on_eina_iface_lomo_repeat(LomoPlayer *lomo, gboolean val, gpointer data);
-void
-on_eina_iface_lomo_eos(LomoPlayer *lomo, gpointer data);
-void
-on_eina_iface_lomo_error(LomoPlayer *lomo, GError *err, gpointer data);
-void
-on_eina_iface_lomo_tag(LomoPlayer *lomo, LomoStream *stream, LomoTag tag, gpointer data);
-void
-on_eina_iface_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, gpointer data);
-#endif
-
 G_MODULE_EXPORT gboolean eina_iface_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaIFace *self;
-#if 0
-	gint i;
-	struct EinaIFaceSignalPack signals[] = {
-		{ "play",     on_eina_iface_lomo_play     },
-		{ "pause",    on_eina_iface_lomo_pause    },
-		{ "stop",     on_eina_iface_lomo_stop     },
-		{ "seek",     on_eina_iface_lomo_seek     },
-		{ "mute",     on_eina_iface_lomo_mute     },
-		{ "add",      on_eina_iface_lomo_add      },
-		{ "del",      on_eina_iface_lomo_del      },
-		{ "change",   on_eina_iface_lomo_change   },
-		{ "clear",    on_eina_iface_lomo_clear    },
-		{ "random",   on_eina_iface_lomo_random   },
-		{ "repeat",   on_eina_iface_lomo_repeat   },
-		{ "eos",      on_eina_iface_lomo_eos      },
-		{ "error",    on_eina_iface_lomo_error    },
-		{ "tag",      on_eina_iface_lomo_tag      },
-		{ "all-tags", on_eina_iface_lomo_all_tags },
-		{ NULL, NULL }
-	};
-#endif
+	EinaPlugin *plugin;
 
 	// Create mem in hub
 	self = g_new0(EinaIFace, 1);
@@ -115,15 +57,6 @@ G_MODULE_EXPORT gboolean eina_iface_init
 		gel_error("Cannot create component");
 		return FALSE;
 	}
-
-#if 0
-	// Connect all signals of LomoPlayer
-	for (i = 0; signals[i].signal != NULL; i++)
-	{
-		g_signal_connect(LOMO(self), signals[i].signal,
-			(GCallback) signals[i].callback, self);
-	}
-#endif
 
 	if ((self->player = gel_hub_shared_get(HUB(self), "player")) == NULL)
 	{
@@ -133,6 +66,9 @@ G_MODULE_EXPORT gboolean eina_iface_init
 	else
 	{
 		eina_iface_dock_init(self);
+		if ((plugin = eina_iface_load_plugin_by_name(self, "coverplus")) != NULL)
+			eina_iface_init_plugin(self, plugin);
+
 	}
 
 	return TRUE;
@@ -239,9 +175,9 @@ GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
 	return g_list_reverse(ret);
 }
 
-EinaPluginV2 *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path)
+EinaPlugin *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path)
 {
-	EinaPluginV2 *ret = NULL;
+	EinaPlugin *ret = NULL;
 	GModule    *mod;
 	gchar      *symbol_name;
 	gpointer    symbol;
@@ -268,8 +204,8 @@ EinaPluginV2 *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name
 		return NULL;
 	}
 
-	ret = (EinaPluginV2 *) symbol;
-	ret->priv = g_new0(EinaPluginPrivateV2, 1);
+	ret = (EinaPlugin *) symbol;
+	ret->priv = g_new0(EinaPluginPrivate, 1);
 	ret->priv->plugin_name = g_strdup(plugin_name);
 	ret->priv->pathname    = g_strdup(plugin_path);
 	ret->priv->module      = mod;
@@ -280,11 +216,11 @@ EinaPluginV2 *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name
 	return ret;
 }
 
-EinaPluginV2 *
+EinaPlugin *
 eina_iface_load_plugin_by_name(EinaIFace *self, gchar *plugin_name)
 {
 	GList *candidates, *iter;
-	EinaPluginV2 *ret = NULL;
+	EinaPlugin *ret = NULL;
 
 	iter = candidates = eina_iface_lookup_plugin(self, plugin_name);
 	gel_debug("Got %d candidates for plugin '%s'", g_list_length(candidates), plugin_name);
@@ -299,7 +235,7 @@ eina_iface_load_plugin_by_name(EinaIFace *self, gchar *plugin_name)
 }
 
 gboolean
-eina_iface_init_plugin(EinaIFace *self, EinaPluginV2 *plugin)
+eina_iface_init_plugin(EinaIFace *self, EinaPlugin *plugin)
 {
 	GError *err = NULL;
 
@@ -317,7 +253,7 @@ eina_iface_init_plugin(EinaIFace *self, EinaPluginV2 *plugin)
 }
 
 gboolean
-eina_iface_fini_plugin(EinaIFace *self, EinaPluginV2 *plugin)
+eina_iface_fini_plugin(EinaIFace *self, EinaPlugin *plugin)
 {
 	GError *err = NULL;
 
@@ -336,85 +272,13 @@ eina_iface_fini_plugin(EinaIFace *self, EinaPluginV2 *plugin)
 }
 
 void
-eina_iface_unload_plugin(EinaIFace *self, EinaPluginV2 *plugin)
+eina_iface_unload_plugin(EinaIFace *self, EinaPlugin *plugin)
 {
 	g_free(plugin->priv->plugin_name);
 	g_free(plugin->priv->pathname);
 	g_module_close(plugin->priv->module);
 	g_free(plugin->priv);
 }
-
-/*
-gchar *
-eina_iface_build_plugin_filename(gchar *plugin_name, gchar *filename)
-{
-	return  g_build_filename(g_get_home_dir(), ".eina", "plugins", plugin_name, filename, NULL);
-}
-
-gchar *
-eina_iface_get_plugin_dir(gchar *plugin_name)
-{
-	return  g_build_filename(g_get_home_dir(), ".eina", "plugins", plugin_name, NULL);
-}
-
-gchar *
-eina_iface_plugin_resource_get_pathname(EinaPlugin *plugin, gchar *resource)
-{
-	gchar *ret;
-	GList *plugin_paths, *iter;
-
-	gboolean found = FALSE;
-	gchar *plugin_dirname = NULL;
-
-	if (plugin == NULL) 
-	{
-		gel_error("Invalid plugin");
-		return NULL;
-	}
-
-	if ((plugin->priv == NULL) || (plugin->priv->pathname == NULL))
-	{
-		gel_warn("Oops, plugin is not initialize yet. Using heuristic mode to guess resource pathname");
-		iter = plugin_paths = eina_iface_get_plugin_paths();
-		while (iter && !found)
-		{
-			ret = g_build_filename(iter->data, plugin->name, resource, NULL);
-			if (g_file_test(ret, G_FILE_TEST_IS_REGULAR))
-			{
-				found = TRUE;
-				break;
-			}
-			g_free(ret);
-
-			iter = iter->next;
-		}
-		gel_glist_free(plugin_paths, (GFunc) g_free, NULL);
-
-		if (found)
-		{
-			gel_info("Found resource via heuristic method at '%s'", ret);
-			return ret;
-		}
-		else
-		{
-			gel_error("Heuristic mode: epic fail");
-			return NULL;
-		}
-	}
-
-	else
-	{
-		plugin_dirname = g_path_get_dirname(plugin->priv->pathname);
-		if (plugin_dirname == NULL)
-			return NULL;
-
-		ret = g_build_filename(plugin_dirname, resource, NULL);
-		gel_info("RET: '%s'", ret);
-		g_free(plugin_dirname);
-		return ret;
-	}
-}
-*/
 
 // --
 // Dock management
@@ -501,6 +365,52 @@ eina_iface_dock_switch_item(EinaIFace *self, gchar *id)
 	return TRUE;
 }
 
+// --
+// Cover management
+// --
+EinaCover*
+eina_plugin_get_player_cover(EinaPlugin *plugin)
+{
+	EinaCover  *cover;
+	EinaPlayer *player;
+	
+	player = gel_hub_shared_get(eina_iface_get_hub(eina_plugin_get_iface(plugin)), "player");
+	if (player == NULL)
+		return NULL;
+
+	cover = eina_player_get_cover(player);
+	if (cover == NULL)
+		return NULL;
+
+	return cover;
+}
+
+void
+eina_plugin_cover_add_backend(EinaPlugin *plugin, gchar *id,
+    EinaCoverBackendFunc search, EinaCoverBackendCancelFunc cancel)
+{
+	EinaCover *cover = eina_plugin_get_player_cover(plugin);
+	if (cover == NULL)
+	{
+		gel_warn("Unable to access cover");
+		return;
+	}
+	eina_cover_add_backend(cover, id, search, cancel, plugin);
+}
+
+void
+eina_plugin_cover_remove_backend(EinaPlugin *plugin, gchar *id)
+{
+	EinaCover *cover = eina_plugin_get_player_cover(plugin);
+	if (cover == NULL)
+	{
+		gel_warn("Unable to access cover");
+		return;
+	}
+	eina_cover_remove_backend(cover, id);
+}
+
+
 void on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data)
 {
 	EinaIFace  *self = (EinaIFace *) data;
@@ -556,6 +466,9 @@ eina_plugin_deattach_events(EinaPlugin *plugin, ...)
 	va_end(p);
 }
 
+// --
+// Utilities for plugins
+// --
 gchar *
 eina_plugin_build_resource_path(EinaPlugin *plugin, gchar *resource)
 {
