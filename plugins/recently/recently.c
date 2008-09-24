@@ -124,7 +124,10 @@ currently_playlist_store(EinaPlugin *plugin)
 	g_get_current_time(&now);
 	now_str = g_time_val_to_iso8601(&now);
 
-	pl_file = eina_iface_build_plugin_filename(PLUGIN_NAME, now_str);
+	// pl_file = eina_iface_build_plugin_filename(PLUGIN_NAME, now_str);
+	pl_file = eina_plugin_build_userdir_path(plugin, now_str);
+	gel_warn("Userdir path: '%s'", pl_file);
+
 	meta_file = g_strconcat(pl_file, ".meta", NULL);
 	g_free(now_str);
 
@@ -144,11 +147,12 @@ currently_playlist_store(EinaPlugin *plugin)
 }
 
 gboolean
-recently_playlist_unlink(gchar *id)
+recently_playlist_unlink(EinaPlugin *plugin, gchar *id)
 {
 	gboolean ret = TRUE;
 
-	gchar *pl_path   = eina_iface_build_plugin_filename(PLUGIN_NAME, id);
+	// gchar *pl_path   = eina_iface_build_plugin_filename(PLUGIN_NAME, id);
+	gchar *pl_path   = eina_plugin_build_userdir_path(plugin, id);
 	gchar *meta_path = g_strconcat(pl_path, ".meta", NULL);
 
 	if (g_unlink(pl_path) == -1)
@@ -212,7 +216,9 @@ GList *recently_get_playlists(EinaPlugin *plugin)
 	GDir *d;
 	const gchar *entry;
 
-	gchar *plugin_data_dir = eina_iface_get_plugin_dir(PLUGIN_NAME);
+	// gchar *plugin_data_dir = eina_iface_get_plugin_dir(PLUGIN_NAME);
+	gchar *plugin_data_dir = eina_plugin_build_userdir_path(plugin, NULL);
+	gel_warn("Build a userdir with NULL: '%s'", plugin_data_dir);
 
 	d = g_dir_open((const gchar *) plugin_data_dir, 0, NULL);
 	if (d == NULL)
@@ -297,7 +303,7 @@ recently_calculate_time_diff(GTimeVal now, GTimeVal prev)
 GtkWidget *
 recently_dock_new(EinaPlugin *plugin)
 {
-	RecentlyData *self = (RecentlyData *) EINA_PLUGIN_GET_DATA(plugin);
+	RecentlyData *self = (RecentlyData *) EINA_PLUGIN_DATA(plugin);
 	GtkScrolledWindow *sw;
 	GtkTreeViewColumn *col, *col2;
 	GtkCellRenderer   *render;
@@ -348,7 +354,7 @@ recently_dock_new(EinaPlugin *plugin)
 void
 recently_dock_update(EinaPlugin *plugin)
 {
-	RecentlyData *self = EINA_PLUGIN_GET_DATA(plugin);
+	RecentlyData *self = EINA_PLUGIN_DATA(plugin);
 	GList *recent_playlists = NULL, *l;
 	GtkTreeIter iter;
 	GList *playlist_data;
@@ -365,7 +371,9 @@ recently_dock_update(EinaPlugin *plugin)
 		GTimeVal when;
 		gchar *when_str;
 
-		gchar *filename = eina_iface_build_plugin_filename(PLUGIN_NAME, (gchar *) l->data);
+		// gchar *filename = eina_iface_build_plugin_filename(PLUGIN_NAME, (gchar *) l->data);
+		gchar *filename = eina_plugin_build_userdir_path(plugin, (gchar *) l->data);
+
 		playlist_data = recently_score_record_file_read(filename);
 		when_str = g_path_get_basename(filename);
 		pl_file_basename = g_strdup(when_str);
@@ -401,7 +409,7 @@ on_recently_dock_row_activated(GtkWidget *w,
 	GtkTreeViewColumn *column,
 	EinaPlugin *plugin)
 {
-	RecentlyData *self = EINA_PLUGIN_GET_DATA(plugin);
+	RecentlyData *self = EINA_PLUGIN_DATA(plugin);
 	GtkTreeIter iter;
 	gchar *pl_file, *pl_path;
 	// void (*callback);
@@ -413,7 +421,8 @@ on_recently_dock_row_activated(GtkWidget *w,
 		RECENTLY_COLUMN_PLAYLIST_FILE, &pl_file,
 		-1);
 
-	pl_path = eina_iface_build_plugin_filename(PLUGIN_NAME, pl_file);
+	// pl_path = eina_iface_build_plugin_filename(PLUGIN_NAME, pl_file);
+	pl_path = eina_plugin_build_userdir_path(plugin, pl_file);
 
 	if (!g_file_get_contents(pl_path, &buffer, NULL, NULL))
 	{
@@ -421,6 +430,7 @@ on_recently_dock_row_activated(GtkWidget *w,
 		g_free(pl_path);
 		return;
 	}
+	g_free(pl_path);
 
 	uris = g_uri_list_extract_uris((const gchar*) buffer);
 	g_free(buffer);
@@ -429,18 +439,19 @@ on_recently_dock_row_activated(GtkWidget *w,
 		return;
 
 	// Delete playlist and meta from disk.
-	recently_playlist_unlink(pl_file);
+	// recently_playlist_unlink(pl_file);
+	recently_playlist_unlink(plugin, pl_file);
 	g_free(pl_file);
 
 	// Do a clear, which also saves current playlist
-	lomo_player_clear(EINA_PLUGIN_LOMO_PLAYER(plugin));
+	lomo_player_clear(EINA_PLUGIN_LOMO(plugin));
 
 	// Add uris to lomo. playlist widget is still in background
 	// lomo_player_add_uri_multi(EINA_PLUGIN_LOMO_PLAYER(plugin), uris);
-	lomo_player_add_uri_strv(EINA_PLUGIN_LOMO_PLAYER(plugin), uris);
+	lomo_player_add_uri_strv(EINA_PLUGIN_LOMO(plugin), uris);
 
 	// Now switch to playlist widget
-	eina_iface_dock_switch(EINA_PLUGIN_IFACE(plugin), "playlist");
+	eina_plugin_dock_switch_item(plugin, "playlist");
 
 	// Free data
 	// gel_glist_free(uris, (GFunc) g_free, NULL);
@@ -463,43 +474,49 @@ on_recently_lomo_clear(LomoPlayer *lomo, EinaPlugin *plugin)
 	recently_dock_update(plugin);
 }
 
-EINA_PLUGIN_FUNC gboolean
-recently_exit(EinaPlugin *self)
+gboolean
+recently_exit(EinaPlugin *plugin, GError *error)
 {
-	eina_plugin_free(self);
 	return TRUE;
 }
 
-EINA_PLUGIN_FUNC EinaPlugin*
-recently_init(GelHub *app, EinaIFace *iface)
+gboolean
+recently_init(EinaPlugin *plugin, GError *error)
 {
 	gchar *path;
 
 	// Create folders to ensure a good environment
-	path = eina_iface_get_plugin_dir(PLUGIN_NAME);
+	// path = eina_iface_get_plugin_dir(PLUGIN_NAME);
+	path = eina_plugin_build_userdir_path(plugin, NULL);
 	if (!g_file_test(path, G_FILE_TEST_IS_DIR) && !g_mkdir_with_parents(path, 0700))
 	{
 		eina_iface_error("Cannot create plugin dir %s", path);
 		g_free(path);
-		return NULL;
+		return FALSE;
 	}
 	g_free(path);
 
 	// Create struct
+	/*
 	EinaPlugin *self = eina_plugin_new(iface,
 		PLUGIN_NAME, "playlist", g_new0(RecentlyData, 1), recently_exit,
 		NULL, NULL, NULL);
-
+	*/
 	// Create dock widgets
-	self->dock_widget = recently_dock_new(self);
+	plugin->dock_widget = recently_dock_new(plugin);
 	self->dock_label_widget = gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU);
 
 	gtk_widget_show_all(GTK_WIDGET(self->dock_widget));
 	gtk_widget_show_all(GTK_WIDGET(self->dock_label_widget));
 
-	// Setup signals
-	self->clear = on_recently_lomo_clear;
+	eina_plugin_dock_add_item(plugin, "recently", self->dock_label_widget, self->dock_widget);
 
-	return self;
+	// Setup signals
+	eina_plugin_attach_events(plugin,
+		"clear", on_recently_lomo_clear,
+		NULL);
+	// self->clear = on_recently_lomo_clear;
+
+	return TRUE;
 }
 
