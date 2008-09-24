@@ -196,7 +196,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	// Insert cover 
 	self->cover = eina_cover_new();
 	gtk_container_foreach(GTK_CONTAINER(W(self, "cover-image-container")),
-		(GtkCallback) gtk_widget_hide,
+		(GtkCallback) gtk_widget_destroy,
 		NULL);
 	gtk_box_pack_start(GTK_BOX(W(self, "cover-image-container")),
 		 GTK_WIDGET(self->cover),

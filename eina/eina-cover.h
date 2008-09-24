@@ -30,6 +30,7 @@ typedef struct {
 
 typedef struct {
 	GtkImageClass parent_class;
+	void (*change) (EinaCover *self);
 } EinaCoverClass;
 
 typedef void (*EinaCoverBackendFunc)(EinaCover *self, const LomoStream *stream, gpointer data);

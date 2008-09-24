@@ -46,7 +46,6 @@ struct _EinaCoverPrivate {
 	GList *backends_queue;
 	GList *current_backend;
 	EinaCoverBackendState backend_state;
-	// EinaCoverBackendData backend_data;
 };
 
 enum {
@@ -55,27 +54,15 @@ enum {
 	EINA_COVER_LOADING_COVER_PROPERTY
 };
 
-gboolean
-eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
-void
-eina_cover_run_backends(EinaCover *self);
-void
-eina_cover_reset_backends(EinaCover *self);
-/*
-static EinaCoverBackendData* eina_cover_get_backend_data(EinaCover *self);
-static void eina_cover_set_backend_data (EinaCover *self, EinaCoverBackendState state, GType type, gpointer data);
-static gboolean eina_cover_check_backend_state(EinaCover *self);
-static void eina_cover_reset_backends(EinaCover *self);
+enum {
+	CHANGE,
+	LAST_SIGNAL
+};
+static guint eina_cover_signals[LAST_SIGNAL] = { 0 };
 
-static void eina_cover_reset_backends(EinaCover *self);
-static void eina_cover_run_backend(EinaCover *self);
-void eina_cover_set_backend_data(EinaCover *self, EinaCoverBackendState state, GType type, gpointer data);
-EinaCoverBackendData* eina_cover_get_backend_data(EinaCover *self);
-static void eina_cover_run_backend(EinaCover *self);
-
-// void eina_cover_builtin_backend(EinaCover *self, const LomoStream *stream, gpointer data);
-void eina_cover_infs_backend(EinaCover *self, const LomoStream *stream, gpointer data);
-*/
+gboolean eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
+void     eina_cover_run_backends(EinaCover *self);
+void     eina_cover_reset_backends(EinaCover *self);
 
 static void on_eina_cover_lomo_change(LomoPlayer *lomo, gint form, gint to, EinaCover *self);
 static void on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self);
@@ -171,6 +158,15 @@ eina_cover_class_init (EinaCoverClass *klass)
 	g_object_class_install_property(object_class, EINA_COVER_LOADING_COVER_PROPERTY,
 		g_param_spec_string("loading-cover", "Loading cover", "Loading cover",
 		NULL,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+
+	eina_cover_signals[CHANGE] = g_signal_new ("change",
+		G_OBJECT_CLASS_TYPE (object_class),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET (EinaCoverClass, change),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE,
+		0);
 }
 
 static void
@@ -277,6 +273,7 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 			COVER_W(self), COVER_H(self), FALSE,
 			NULL);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), pb);
+		g_signal_emit(self, eina_cover_signals[CHANGE], 0);
 		return TRUE;
 	}
 
@@ -299,6 +296,7 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 		*/
 		pb = gdk_pixbuf_scale_simple(orig, COVER_W(self), COVER_H(self), GDK_INTERP_TILES);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(pb));
+		g_signal_emit(self, eina_cover_signals[CHANGE], 0);
 		return TRUE;
 	}
 
@@ -452,12 +450,14 @@ eina_cover_run_backends(EinaCover *self)
 	if ((priv->current_backend == NULL))
 	{
 		gel_warn("BUG: no current backend but available backends %d", g_list_length(priv->backends_queue));
+		eina_cover_set_cover(self, G_TYPE_STRING, priv->default_cover);
 		return;
 	}
 
 	if (priv->backend_state != EINA_COVER_BACKEND_STATE_READY)
 	{
 		gel_warn("BUG: not in ready state");
+		eina_cover_set_cover(self, G_TYPE_STRING, priv->default_cover);
 		return;
 	}
 
@@ -467,6 +467,7 @@ eina_cover_run_backends(EinaCover *self)
 		gel_warn("BUG: invalid backend");
 		priv->backend_state = EINA_COVER_BACKEND_STATE_NONE;
 		priv->current_backend = NULL;
+		eina_cover_set_cover(self, G_TYPE_STRING, priv->default_cover);
 		return;
 	}
 

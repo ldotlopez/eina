@@ -331,7 +331,6 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 	// inmediate queue on LomoMeta object to get them ASAP
 	if (!lomo_stream_has_all_tags(LOMO_STREAM(self->priv->stream)))
 	{
-		g_printf("Stream '%s' has no tags!\n", (gchar *) lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI));
 		lomo_meta_parse(self->priv->meta, LOMO_STREAM(self->priv->stream), LOMO_META_PRIO_INMEDIATE);
 	}
 
