@@ -192,6 +192,13 @@ coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer d
 {
 	CoverPlusInfolder *self = EINA_PLUGIN_DATA(data)->infolder;
 
+	gel_error("Me: %p", data);
+	if (stream == NULL)
+	{
+		eina_cover_backend_fail(cover);
+		return;
+	}
+
 	GFile *stream_file = g_file_new_for_uri(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 	GFile *f = g_file_get_parent(stream_file);
 
@@ -220,7 +227,8 @@ coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer d
 void
 coverplus_infolder_finish(EinaCover *cover, gpointer data)
 {
-	CoverPlusInfolder* self = (CoverPlusInfolder*) data;
+	gel_error("Me2: %p", data);
+	CoverPlusInfolder *self = EINA_PLUGIN_DATA(data)->infolder;
 	GFile *f;
 	gchar *uri;
 
@@ -366,7 +374,7 @@ coverplus_exit(EinaPlugin *plugin, GError **error)
 	EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	eina_cover_remove_backend(cover, "coverplus-banshee");
-	eina_cover_remove_backend(cover, "coverplus-infolder");
+	// eina_cover_remove_backend(cover, "coverplus-infolder");
 
 	coverplus_infolder_free(EINA_PLUGIN_DATA(plugin)->infolder);
 	g_free(EINA_PLUGIN_DATA(plugin));
@@ -378,15 +386,19 @@ gboolean
 coverplus_init(EinaPlugin *plugin, GError **error)
 {
 	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
+	EinaCover *cover = eina_plugin_get_player_cover(plugin);
+
 	plugin->data = self;
 
 	self->infolder = coverplus_infolder_new(eina_plugin_get_player_cover(plugin));
+	self->infolder->cover = cover;
 
-	eina_cover_add_backend(self->infolder->cover, "coverplus-banshee",
+	eina_cover_add_backend(cover, "coverplus-banshee",
 		coverplus_banshee_search, NULL, NULL);
-
-	eina_cover_add_backend(self->infolder->cover, "coverplus-infolder",
+/*
+	eina_cover_add_backend(cover, "coverplus-infolder",
 		coverplus_infolder_search, coverplus_infolder_finish, plugin);
+*/
 	return TRUE;
 }
 

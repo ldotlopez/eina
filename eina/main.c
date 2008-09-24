@@ -36,7 +36,7 @@ gint main
 {
 	GelHub         *app;
 	gint            i = 0;
-	gchar          *modules[] = { "lomo", "log", "player", "playlist", "vogon", "iface", NULL};
+	gchar          *modules[] = { "lomo", "log", "player", "iface", "playlist", "vogon", NULL};
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;

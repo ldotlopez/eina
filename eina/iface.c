@@ -102,7 +102,7 @@ EinaIFace *eina_plugin_get_iface(EinaPlugin *plugin)
 }
 
 // --
-// Other ?
+// Plugin handling
 // --
 GList *
 eina_iface_get_plugin_paths(void)
@@ -317,6 +317,7 @@ gboolean eina_iface_dock_add_item(EinaIFace *self, gchar *id, GtkWidget *label, 
 		return FALSE;
 	}
 	gel_info("Added dock '%s'", id);
+	// gtk_notebook_set_tab_reorderable(self->dock, dock_widget, TRUE);
 	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
