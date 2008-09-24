@@ -21,14 +21,17 @@ typedef struct EinaPluginV2 {
 	const gchar *author;     // "xuzo <xuzo@cuarentaydos.com>"
 	const gchar *url;        // "http://eina.sourceforge.net"
 
-	struct EinaPluginV2* (*init)(GelHub *app, EinaIFace *iface); // Init function
-	gboolean             (*fini)(struct EinaPluginV2 *self);     // Exit function
+	gboolean  (*init)(struct EinaPluginV2 *self, GError **error); // Init function
+	gboolean  (*fini)(struct EinaPluginV2 *self, GError **error); // Exit function
 
 	gpointer data; // Plugin's own data
 
 	EinaPluginPrivateV2 *priv;
 } EinaPluginV2;
+typedef EinaPluginV2 EinaPlugin;
 
+
+#if 0
 typedef struct _EinaPluginPrivate EinaPluginPrivate;
 typedef struct EinaPlugin
 {
@@ -66,13 +69,17 @@ typedef struct EinaPlugin
 
 typedef EinaPlugin* (*EinaPluginInitFunc) (GelHub *app, EinaIFace *iface);
 typedef gboolean    (*EinaPluginExitFunc) (EinaPlugin *self);
+#endif
 
 #define EINA_PLUGIN_FUNC G_MODULE_EXPORT
 
-/*
- * Access to various resources from EinaPlugin, use defines in plugins code
- */
+// --
+// Access to various resources from EinaPlugin, use defines in plugins code
+// --
+#define EINA_PLUGIN_LOMO_PLAYER(plugin) \
+	eina_plugin_get_lomo_player(plugin)
 
+#if 0
 // Access GelHub
 GelHub *
 eina_iface_get_hub(EinaIFace *self);
@@ -115,6 +122,7 @@ eina_iface_get_plugin_dir(gchar *plugin_name);
 
 gchar *
 eina_iface_plugin_resource_get_pathname(EinaPlugin *plugin, gchar *resource);
+#endif
 
 /*
  * Advanced functions for accesing some internals
@@ -128,6 +136,11 @@ eina_iface_dock_remove(EinaIFace *self, gchar *id);
 gboolean
 eina_iface_dock_switch(EinaIFace *self, gchar *id);
 
+void
+eina_plugin_attach_events(EinaPluginV2 *plugin, ...);
+void
+eina_plugin_deattach_events(EinaPluginV2 *plugin, ...);
+#if 0
 /*
  * Cover
  */
@@ -135,6 +148,7 @@ void eina_iface_cover_add_backend(EinaIFace *self, const gchar *name,
 	EinaCoverBackendFunc callback, EinaCoverBackendCancelFunc cancel,
 	gpointer data);
 void eina_iface_cover_delete_backend(EinaIFace *self, const gchar *name);
+#endif
 
 #define eina_iface_verbose(...) _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
 #define eina_iface_debug(...)   _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)
@@ -142,18 +156,22 @@ void eina_iface_cover_delete_backend(EinaIFace *self, const gchar *name);
 #define eina_iface_warn(...)    _gel_debug(GEL_DEBUG_LEVEL_WARN,    __VA_ARGS__)
 #define eina_iface_error(...)   _gel_debug(GEL_DEBUG_LEVEL_ERROR,   __VA_ARGS__)
 
+#if 0
 gboolean eina_iface_load_plugin(EinaIFace *self, gchar *plugin_name);
 gboolean eina_iface_unload_plugin(EinaIFace *self, gchar *id);
+#endif
 
 /*
  * Create/free a EinaPlugin struct
  */
+#if 0
 EinaPlugin *
 eina_plugin_new(EinaIFace *iface,
 	const gchar *name, const gchar *provides, gpointer data, EinaPluginExitFunc fini,
     GtkWidget *dock_widget, GtkWidget *dock_label, GtkWidget *conf_widget);
 void
 eina_plugin_free(EinaPlugin *self);
+#endif
 
 #endif /* _EINA_IFACE */
 

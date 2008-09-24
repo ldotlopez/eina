@@ -347,29 +347,20 @@ coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer da
 // Main
 // --
 
-G_MODULE_EXPORT EinaPluginInfo coverplus_info = {
-	N_("Cover plus"),
-	N_("Enhace your covers"),
-	N_("bla ble bli"),
-	"none.png",
-	"xuzo <xuzo@cuarentaydos.com>",
-	"http://eina.sourceforge.net/"
-};
-
-EINA_PLUGIN_FUNC gboolean
-coverplus_exit(EinaPlugin *self)
+gboolean
+coverplus_exit(EinaPlugin *self, GError **error)
 {
 	if (coverplus_timeout_test_source_id > 0)
 		g_source_remove(coverplus_timeout_test_source_id);
-	eina_plugin_free(self);
 	return TRUE;
 }
 
-EINA_PLUGIN_FUNC EinaPlugin*
-coverplus_init(GelHub *app, EinaIFace *iface)
+gboolean
+coverplus_init(EinaPlugin *self, GError **error)
 {
+	/*
 	EinaCover *cover;
-
+	
 	EinaPlugin *self = eina_plugin_new(iface,
 		"coverplus", "cover", NULL, coverplus_exit,
 		NULL, NULL, NULL);
@@ -388,5 +379,20 @@ coverplus_init(GelHub *app, EinaIFace *iface)
  		coverplus_infolder_search, coverplus_infolder_finish,
 		coverplus_infolder_new(cover));
 	return self;
+	*/
+	return TRUE;
 }
+
+G_MODULE_EXPORT EinaPluginV2 coverplus_info = {
+	N_("Cover plus"),
+	N_("Enhace your covers"),
+	N_("bla ble bli"),
+	"none.png",
+	"xuzo <xuzo@cuarentaydos.com>",
+	"http://eina.sourceforge.net/",
+
+	coverplus_init, coverplus_exit,
+
+	NULL, NULL
+};
 

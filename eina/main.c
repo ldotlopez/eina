@@ -80,10 +80,17 @@ gint main
 	i = 0;
 	while (modules[i])
 		gel_hub_load(app, modules[i++]);
-
-	eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "recently");
-	eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "coverplus");
+/*
+	i = 0;
+	while (plugins[i])
+	{
+		plugin = eina_iface_load_plugin_by_name(gel_hub_shared_get(app, "iface"), plugins[i++]);
+		if (plugin)
+			eina_iface_init_plugin(
+	eina_iface_load_plugin_by_name(gel_hub_shared_get(app, "iface"), "recently");
+	eina_iface_load_plugin_by_name(gel_hub_shared_get(app, "iface"), "coverplus");
 	// eina_iface_load_plugin(gel_hub_shared_get(app, "iface"), "lastfminfo");
+*/
 
 	gtk_main();
 	return 0;
