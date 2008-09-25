@@ -1,17 +1,23 @@
 #define GEL_DOMAIN "Eina::IFace"
 
+#include <string.h> // strcmp
 #include <gmodule.h>
 #include <gel/gel.h>
 #include "base.h"
 #include "iface.h"
 #include "player.h"
+#include "settings.h"
 
 struct _EinaIFace {
 	EinaBase     parent;
 	EinaPlayer  *player;
+	EinaConf    *conf;
+
+	GList       *plugins;
+
 	GtkNotebook *dock;
 	GHashTable  *dock_items;
-	GList       *plugins;
+	GList       *dock_idx;
 };
 
 struct _EinaPluginPrivate {
@@ -60,6 +66,11 @@ G_MODULE_EXPORT gboolean eina_iface_init
 		return FALSE;
 	}
 
+	if ((self->conf = gel_hub_shared_get(HUB(self), "settings")) == NULL)
+	{
+		gel_error("Cannot access settings, some functions will not work");
+	}
+
 	if ((self->player = gel_hub_shared_get(HUB(self), "player")) == NULL)
 	{
 		gel_warn("Player is not loaded, schuld. dock setup");
@@ -72,7 +83,6 @@ G_MODULE_EXPORT gboolean eina_iface_init
 			eina_iface_init_plugin(self, plugin);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "recently")) != NULL)
 			eina_iface_init_plugin(self, plugin);
-
 	}
 
 	return TRUE;
@@ -289,6 +299,8 @@ eina_iface_unload_plugin(EinaIFace *self, EinaPlugin *plugin)
 // --
 void eina_iface_dock_init(EinaIFace *self)
 {
+	const gchar *order;
+	gchar **split;
 	gint i;
 
 	if (!self->player || self->dock)
@@ -297,13 +309,26 @@ void eina_iface_dock_init(EinaIFace *self)
 	if ((self->dock = GTK_NOTEBOOK(W(self->player, "dock-notebook"))) == NULL)
 	{
 		gel_warn("Cannot get dock, disabled");
+		return;
 	}
+
+	if (self->conf == NULL)
+	{
+		gel_error("Cannot update dock index, unable to access settings");
+		return;
+	}
+	else
+	{
+		// Configure the dock route table
+		order = eina_conf_get_str(self->conf, "/dock/order", "playlist");
+		gel_glist_free(self->dock_idx, (GFunc) g_free, NULL);
+		split = g_strsplit(order, ",", 0);
+		self->dock_idx = gel_strv_to_glist(split, FALSE);
+		g_free(split); // NOT g_freestrv, look the FALSE in the prev. line
+	}
+
 	gtk_widget_realize(GTK_WIDGET(self->dock));
 
-	g_signal_connect(self->dock, "page-added",
-	G_CALLBACK(eina_iface_dock_page_signal_cb), self);
-	g_signal_connect(self->dock, "page-removed",
-	G_CALLBACK(eina_iface_dock_page_signal_cb), self);
 	g_signal_connect(self->dock, "page-reordered",
 	G_CALLBACK(eina_iface_dock_page_signal_cb), self);
 
@@ -312,12 +337,13 @@ void eina_iface_dock_init(EinaIFace *self)
 	self->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 	gtk_notebook_set_show_tabs(self->dock, FALSE);
 
-
 	gel_info("Dock initialized");
 }
 
 gboolean eina_iface_dock_add_item(EinaIFace *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
+	gint pos = g_list_position(self->dock_idx, g_list_find_custom(self->dock_idx, id, (GCompareFunc) strcmp));
+
 	if (!self->dock || (g_hash_table_lookup(self->dock_items, id) != NULL))
 	{
 		return FALSE;
@@ -330,8 +356,15 @@ gboolean eina_iface_dock_add_item(EinaIFace *self, gchar *id, GtkWidget *label, 
 		gel_error("Cannot add widget to dock");
 		return FALSE;
 	}
+
 	gel_info("Added dock '%s'", id);
 	gtk_notebook_set_tab_reorderable(self->dock, dock_widget, TRUE);
+	if (pos > -1)
+	{
+		gtk_notebook_reorder_child(self->dock, dock_widget, pos);
+		if (pos <= gtk_notebook_get_current_page(self->dock))
+			gtk_notebook_set_current_page(self->dock, pos);
+	}
 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
 		gtk_notebook_set_show_tabs(self->dock, TRUE);
@@ -404,14 +437,23 @@ eina_iface_dock_page_signal_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaI
 		dock_items = g_list_prepend(dock_items, gtk_notebook_get_nth_page(w, i));
 	}
 
-	g_hash_table_foreach(self->dock_items, eina_iface_dock_page_signal_cb_aux, dock_items);
+	if (self->dock_items != NULL)
+		g_hash_table_foreach(self->dock_items, eina_iface_dock_page_signal_cb_aux, dock_items);
 	for (i = 0; i < n_tabs; i++)
 	{
 		output = g_string_append(output, (gchar *) g_list_nth_data(dock_items, i));
 		if ((i+1) < n_tabs)
 			output = g_string_append_c(output, ',');
 	}
-	gel_warn("Set order: %s", output->str);
+
+	if (self->conf == NULL)
+	{
+		gel_error("Settings are not available, cannot save dock order");
+	}
+	else
+	{
+		eina_conf_set_str(self->conf, "/dock/order", output->str);
+	}
 	g_string_free(output, TRUE);
 }
 

@@ -80,6 +80,9 @@ gel_set_debug_level(GelDebugLevel level);
 gchar **
 gel_glist_to_strv(GList *list, gboolean copy);
 
+GList *
+gel_strv_to_glist(gchar **strv, gboolean copy);
+
 gchar *
 gel_glist_join(const gchar *separator, GList *list);
 

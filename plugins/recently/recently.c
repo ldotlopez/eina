@@ -219,7 +219,6 @@ GList *recently_get_playlists(EinaPlugin *plugin)
 
 	// gchar *plugin_data_dir = eina_iface_get_plugin_dir(PLUGIN_NAME);
 	gchar *plugin_data_dir = eina_plugin_build_userdir_path(plugin, NULL);
-	gel_warn("Build a userdir with NULL: '%s'", plugin_data_dir);
 
 	d = g_dir_open((const gchar *) plugin_data_dir, 0, NULL);
 	if (d == NULL)
