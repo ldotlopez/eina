@@ -190,9 +190,8 @@ coverplus_infolder_free(CoverPlusInfolder* self)
 void
 coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer data)
 {
-	CoverPlusInfolder *self = EINA_PLUGIN_DATA(data)->infolder;
+	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
 
-	gel_error("Me: %p", data);
 	if (stream == NULL)
 	{
 		eina_cover_backend_fail(cover);
@@ -227,8 +226,7 @@ coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer d
 void
 coverplus_infolder_finish(EinaCover *cover, gpointer data)
 {
-	gel_error("Me2: %p", data);
-	CoverPlusInfolder *self = EINA_PLUGIN_DATA(data)->infolder;
+	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
 	GFile *f;
 	gchar *uri;
 
@@ -259,6 +257,18 @@ coverplus_infolder_finish(EinaCover *cover, gpointer data)
 	{
 		eina_cover_backend_fail(self->cover);
 	}
+}
+
+static void
+coverplus_infolder_search_plugin_wrapper(EinaCover *cover, const LomoStream *stream, gpointer data)
+{
+	coverplus_infolder_search(cover, stream, EINA_PLUGIN_DATA(data)->infolder);
+}
+
+static void
+coverplus_infolder_finish_plugin_wrapper(EinaCover *cover, gpointer data)
+{
+	coverplus_infolder_finish(cover, EINA_PLUGIN_DATA(data)->infolder);
 }
 
 void
@@ -374,7 +384,7 @@ coverplus_exit(EinaPlugin *plugin, GError **error)
 	EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	eina_cover_remove_backend(cover, "coverplus-banshee");
-	// eina_cover_remove_backend(cover, "coverplus-infolder");
+	eina_cover_remove_backend(cover, "coverplus-infolder");
 
 	coverplus_infolder_free(EINA_PLUGIN_DATA(plugin)->infolder);
 	g_free(EINA_PLUGIN_DATA(plugin));
@@ -395,10 +405,12 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 
 	eina_cover_add_backend(cover, "coverplus-banshee",
 		coverplus_banshee_search, NULL, NULL);
-/*
+
 	eina_cover_add_backend(cover, "coverplus-infolder",
-		coverplus_infolder_search, coverplus_infolder_finish, plugin);
-*/
+		coverplus_infolder_search_plugin_wrapper,
+		coverplus_infolder_finish_plugin_wrapper,
+		plugin);
+
 	return TRUE;
 }
 

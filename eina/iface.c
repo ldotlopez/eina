@@ -24,9 +24,6 @@ struct _EinaPluginPrivate {
 	LomoPlayer *lomo;
 };
 
-void
-eina_iface_dock_init(EinaIFace *self);
-
 EinaPlugin*
 eina_iface_load_plugin_by_name(EinaIFace *self, gchar* plugin_name);
 EinaPlugin*
@@ -36,6 +33,11 @@ gboolean
 eina_iface_init_plugin(EinaIFace *self, EinaPlugin *plugin);
 gboolean
 eina_iface_fini_plugin(EinaIFace *self, EinaPlugin *plugin);
+
+void
+eina_iface_dock_init(EinaIFace *self);
+static void
+eina_iface_dock_page_signal_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaIFace *self);
 
 /*
  * Callbacks
@@ -67,6 +69,8 @@ G_MODULE_EXPORT gboolean eina_iface_init
 	{
 		eina_iface_dock_init(self);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "coverplus")) != NULL)
+			eina_iface_init_plugin(self, plugin);
+		if ((plugin = eina_iface_load_plugin_by_name(self, "recently")) != NULL)
 			eina_iface_init_plugin(self, plugin);
 
 	}
@@ -296,10 +300,18 @@ void eina_iface_dock_init(EinaIFace *self)
 	}
 	gtk_widget_realize(GTK_WIDGET(self->dock));
 
+	g_signal_connect(self->dock, "page-added",
+	G_CALLBACK(eina_iface_dock_page_signal_cb), self);
+	g_signal_connect(self->dock, "page-removed",
+	G_CALLBACK(eina_iface_dock_page_signal_cb), self);
+	g_signal_connect(self->dock, "page-reordered",
+	G_CALLBACK(eina_iface_dock_page_signal_cb), self);
+
 	for (i = 0; i < gtk_notebook_get_n_pages(self->dock); i++)
 		gtk_notebook_remove_page(self->dock, i);
 	self->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 	gtk_notebook_set_show_tabs(self->dock, FALSE);
+
 
 	gel_info("Dock initialized");
 }
@@ -311,14 +323,15 @@ gboolean eina_iface_dock_add_item(EinaIFace *self, gchar *id, GtkWidget *label, 
 		return FALSE;
 	}
 
+	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
 	if (gtk_notebook_append_page(self->dock, dock_widget, label) == -1)
 	{
+		g_hash_table_remove(self->dock_items, id);
 		gel_error("Cannot add widget to dock");
 		return FALSE;
 	}
 	gel_info("Added dock '%s'", id);
-	// gtk_notebook_set_tab_reorderable(self->dock, dock_widget, TRUE);
-	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
+	gtk_notebook_set_tab_reorderable(self->dock, dock_widget, TRUE);
 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
 		gtk_notebook_set_show_tabs(self->dock, TRUE);
@@ -364,6 +377,42 @@ eina_iface_dock_switch_item(EinaIFace *self, gchar *id)
 	}
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), page_num);
 	return TRUE;
+}
+
+static void eina_iface_dock_page_signal_cb_aux(gpointer k, gpointer v, gpointer data)
+{
+	GList *list       = (GList *) data;
+	GList *p;
+
+	p = g_list_find(list, v);
+	if (p == NULL)
+		return;
+	
+	p->data = k;
+}
+
+static void
+eina_iface_dock_page_signal_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaIFace *self)
+{
+	gint n_tabs, i;
+	GList *dock_items = NULL;
+	GString *output = g_string_new(NULL);
+
+	n_tabs = gtk_notebook_get_n_pages(w);
+	for (i = (n_tabs - 1); i >= 0; i--)
+	{
+		dock_items = g_list_prepend(dock_items, gtk_notebook_get_nth_page(w, i));
+	}
+
+	g_hash_table_foreach(self->dock_items, eina_iface_dock_page_signal_cb_aux, dock_items);
+	for (i = 0; i < n_tabs; i++)
+	{
+		output = g_string_append(output, (gchar *) g_list_nth_data(dock_items, i));
+		if ((i+1) < n_tabs)
+			output = g_string_append_c(output, ',');
+	}
+	gel_warn("Set order: %s", output->str);
+	g_string_free(output, TRUE);
 }
 
 // --

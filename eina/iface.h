@@ -63,6 +63,8 @@ eina_iface_plugin_resource_get_pathname(EinaPlugin *plugin, gchar *resource);
 // --
 // Direct access to other resources, use macros were possible
 // --
+#define EINA_PLUGIN(p) ((EinaPlugin *) p)
+
 EinaIFace*
 eina_plugin_get_iface(EinaPlugin *self);
 #define EINA_PLUGIN_IFACE(p) eina_plugin_get_iface(p)
