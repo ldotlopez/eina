@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-22 17:03+0200\n"
+"POT-Creation-Date: 2008-09-25 17:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,91 +33,96 @@ msgstr ""
 msgid "Enqueue files"
 msgstr ""
 
-#: ../ui/player.gtkui.h:1
+#: ../ui/player.ui.h:1
 msgid "\t"
 msgstr ""
 
-#: ../ui/player.gtkui.h:2
+#: ../ui/player.ui.h:2
 msgid "<small><tt>00:00</tt></small>"
 msgstr ""
 
-#: ../ui/player.gtkui.h:3
+#: ../ui/player.ui.h:3
 msgid "<small><tt>07:59</tt></small>"
 msgstr ""
 
-#: ../ui/player.gtkui.h:4
+#: ../ui/player.ui.h:5
+#, no-c-format
 msgid ""
-"<span size=\"x-large\" weight=\"bold\">Gato negro dragon rojo</span>\n"
-"<span size=\"x-large\" weight=\"normal\">Amaral</span>"
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
 
-#: ../ui/player.gtkui.h:6
+#: ../ui/player.ui.h:7
+msgid "Dock"
+msgstr ""
+
+#: ../ui/player.ui.h:8
+msgid "Next song"
+msgstr ""
+
+#: ../ui/player.ui.h:9
+msgid "Previous song"
+msgstr ""
+
+#: ../ui/playlist.ui.h:1
+msgid "Activate or deactivate random mode"
+msgstr ""
+
+#: ../ui/playlist.ui.h:2
+msgid "Activate or deactivate repeat mode"
+msgstr ""
+
+#: ../ui/playlist.ui.h:3
+msgid "Add or enqueue songs to this playlist"
+msgstr ""
+
+#: ../ui/playlist.ui.h:4
+msgid "Clear the playlist"
+msgstr ""
+
+#: ../ui/playlist.ui.h:5
+msgid "Playlist"
+msgstr ""
+
+#: ../ui/playlist.ui.h:6
+msgid "Remove selected songs from this playlist"
+msgstr ""
+
+#: ../ui/about.ui.h:1
 msgid "A classic player for the modern era"
 msgstr ""
 
-#: ../ui/player.gtkui.h:7
+#: ../ui/about.ui.h:2
 msgid "About Eina"
 msgstr ""
 
-#: ../ui/player.gtkui.h:8
-msgid "Ay_uda"
-msgstr ""
-
-#: ../ui/player.gtkui.h:9
+#: ../ui/about.ui.h:3
 msgid ""
 "Copyright &#xA9; 2003-2008 xuzo\n"
 "Copyright &#xA9; 2003-2005 xuzo and eru"
 msgstr ""
 
-#: ../ui/player.gtkui.h:11
-msgid "Dock"
-msgstr ""
-
-#: ../ui/player.gtkui.h:12
+#: ../ui/about.ui.h:5
 msgid ""
-"Eina es software libre libre, puede redistribuirlo o modificarlobajo los "
-"t&#xE9;rminos de la Licencia P&#xFA;blica General de GNU tal comola publica "
-"la Free Software Foundation, tanto en su versi&#xF3;n 2 de la Licencia como "
-"(a su elecci&#xF3;n) cualquier versi&#xF3;n posterior.\n"
+"Eina is free software; you can redistribute it and/or modify it under the "
+"terms of the GNU General Public License as published by the Free Software "
+"Foundation; either version 2 of the License, or (at your option) any later "
+"version.\n"
 "\n"
-"Eina se distribuye con la esperanza de que se sea &#xFA;til,pero  SIN "
-"NINGUNA GARANT&#xCD;A; sin incluso la garant&#xED;a impl&#xED;cita de "
-"MERCANTILIDAD o IDONEIDAD PARA UN PROP&#xD3;SITOPARTICULAR. Vea la Licencia "
-"P&#xFA;blica General de GNU paradetalles.\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
+"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
+"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
+"details.\n"
 "\n"
-"Deber&#xED;a haber recibido una copia de la Licencia P&#xFA;blica General de "
-"GNUjunto con este programa, si no, escriba a la Free Software Foundation, "
-"Inc51 Franklin Street , Fifth Floor, Boston, MA 02110-1301, USA."
+"You should have received a copy of the GNU General Public License along with "
+"Glade; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Street, Fifth Floor, Boston, MA 02110-1301, USA."
 msgstr ""
 
-#: ../ui/player.gtkui.h:17
-msgid "Next song"
-msgstr ""
-
-#: ../ui/player.gtkui.h:18
+#: ../ui/about.ui.h:10
 msgid "None yet :)"
 msgstr ""
 
-#: ../ui/player.gtkui.h:19
-msgid "Previous song"
-msgstr ""
-
-#: ../ui/player.gtkui.h:20
-msgid "_About"
-msgstr ""
-
-#: ../ui/player.gtkui.h:21
-msgid "_Archivo"
-msgstr ""
-
-#: ../ui/player.gtkui.h:22
-msgid "_Quit"
-msgstr ""
-
-#: ../ui/player.gtkui.h:23
-msgid "http://eina.sourceforge.net/"
-msgstr ""
-
-#: ../ui/playlist.gtkui.h:1
-msgid "Playlist"
+#: ../ui/about.ui.h:11
+msgid "Website"
 msgstr ""

@@ -10,11 +10,15 @@
 #include <eina/fs.h>
 #include <eina/eina-cover.h>
 
+#define EINA_PLUGIN_SERIAL 1
+
 typedef struct _EinaIFace EinaIFace;
 
 typedef struct _EinaPluginPrivate EinaPluginPrivate;
 typedef struct EinaPlugin {
+	guint serial;            // EINA_PLUGIN_SERIAL
 	const gchar *name;       // "My cool plugin"
+	const gchar *version;    // "1.0.0"
 	const gchar *short_desc; // "This plugins makes Eina cooler
 	const gchar *long_desc;  // "Blah blah blah..."
 	const gchar *icon;       // "icon.png", relative path

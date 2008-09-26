@@ -415,7 +415,9 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
+	EINA_PLUGIN_SERIAL,
 	N_("Cover plus"),
+	"0.7.0",
 	N_("Enhace your covers"),
 	N_("bla ble bli"),
 	"none.png",

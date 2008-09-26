@@ -31,6 +31,12 @@ struct _EinaPluginPrivate {
 };
 
 EinaPlugin*
+eina_iface_query_plugin(EinaIFace *iface, gchar *plugin_name);
+
+GList *
+eina_iface_list_available_plugins(EinaIFace *self);
+
+EinaPlugin*
 eina_iface_load_plugin_by_name(EinaIFace *self, gchar* plugin_name);
 EinaPlugin*
 eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path);
@@ -84,6 +90,7 @@ G_MODULE_EXPORT gboolean eina_iface_init
 		if ((plugin = eina_iface_load_plugin_by_name(self, "recently")) != NULL)
 			eina_iface_init_plugin(self, plugin);
 	}
+	eina_iface_list_available_plugins(self);
 
 	return TRUE;
 }
@@ -113,6 +120,21 @@ LomoPlayer *eina_iface_get_lomo(EinaIFace *self)
 EinaIFace *eina_plugin_get_iface(EinaPlugin *plugin)
 {
 	return plugin->priv->iface;
+}
+
+EinaPlugin*
+eina_iface_query_plugin(EinaIFace *iface, gchar *plugin_name)
+{
+	GList *l = iface->plugins;
+	while (l)
+	{
+		EinaPlugin* plugin = (EinaPlugin*) l->data;
+		if (g_str_equal(plugin->priv->plugin_name, plugin_name))
+			return plugin;
+		l = l->next;
+	}
+
+	return NULL;
 }
 
 // --
@@ -150,6 +172,41 @@ eina_iface_get_plugin_paths(void)
 	}
 
 	return ret;
+}
+
+GList *
+eina_iface_list_available_plugins(EinaIFace *self)
+{
+	GList *iter, *paths;
+	GList *ret = NULL;
+
+	iter = paths = eina_iface_get_plugin_paths();
+	while (iter)
+	{
+		EinaPlugin *plugin;
+		GList *e, *entries;
+		e = entries = gel_dir_read(iter->data, FALSE, NULL);
+		while (e)
+		{
+			if ((plugin = eina_iface_query_plugin(self, e->data)) != NULL)
+			{
+				gel_warn("Enabled %s", e->data);
+				ret = g_list_prepend(ret, plugin);
+			}
+			else if ((plugin = eina_iface_load_plugin_by_name(self, e->data)) != NULL)
+			{
+				ret = g_list_prepend(ret, plugin);
+				gel_warn("Not enabled %s", e->data);
+			}
+			e = e->next;
+		}
+		gel_glist_free(entries, (GFunc) g_free, NULL);
+
+		iter = iter->next;
+	}
+	gel_glist_free(paths, (GFunc) g_free, NULL);
+
+	return g_list_reverse(ret);
 }
 
 GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
@@ -214,6 +271,14 @@ EinaPlugin *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, 
 	{
 		gel_debug("Cannot find symbol '%s' in '%s'", symbol_name, plugin_path);
 		g_free(symbol_name);
+		g_module_close(mod);
+		return NULL;
+	}
+	g_free(symbol_name);
+
+	if (((EinaPlugin *) symbol)->serial != EINA_PLUGIN_SERIAL)
+	{
+		gel_warn("Invalid serial in %s", plugin_path);
 		g_module_close(mod);
 		return NULL;
 	}

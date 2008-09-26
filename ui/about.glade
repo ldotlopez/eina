@@ -7,6 +7,7 @@
     <property name="title" translatable="yes">About Eina</property>
     <property name="resizable">False</property>
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
+    <property name="destroy_with_parent">True</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <property name="program_name">Eina</property>
@@ -19,10 +20,12 @@ Copyright © 2003-2005 xuzo and eru</property>
 
 Eina is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with Glade; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</property>
+You should have received a copy of the GNU General Public License along with Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</property>
     <property name="authors">xuzo &lt;xuzo@cuarentaydos.com&gt;</property>
     <property name="documenters">None yet :)</property>
     <property name="translator_credits" translatable="yes">None yet :)</property>
+    <property name="artists">Logo: Pau Tomas &lt;pautomas@gmail.com&gt;
+Website: Jacobo Tarragon &lt;tarragon@aditel.org&gt;</property>
     <property name="wrap_license">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox1">

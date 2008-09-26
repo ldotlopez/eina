@@ -240,9 +240,31 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	self->about = GTK_ABOUT_DIALOG(gtk_builder_get_object(tmp, "about-window"));
 	if (self->about != NULL)
 	{
+		GError *err = NULL;
+		gchar *logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "logo.png");
+		GdkPixbuf *pb;
+		gchar *release_name = "Codename: The return of the plugins", *tmp;
+
+		if ((pb = gdk_pixbuf_new_from_file(logo_path, &err)) == NULL)
+		{
+			g_free(logo_path);
+			gel_warn("Cannot find logo.png: '%s'", err->message);
+			g_error_free(err);
+		}
+		else
+		{
+			g_object_set(G_OBJECT(self->about), "logo", pb, NULL);
+		}
+
 		g_object_set(G_OBJECT(self->about),
 			"version", PACKAGE_VERSION,
 			NULL);
+
+		tmp = g_strconcat("(", release_name, ")\n\n",
+			gtk_about_dialog_get_comments(self->about), NULL);
+		gtk_about_dialog_set_comments(self->about, tmp);
+		g_free(tmp);
+
 		g_signal_connect(self->about, "delete-event",
 		(GCallback) gtk_widget_hide_on_delete, NULL);
 		g_signal_connect(self->about, "response",
@@ -685,6 +707,10 @@ on_menu_activate(GtkAction *action, EinaPlayer *self)
 	if (g_str_equal(name, "About") && self->about)
 	{
 		gtk_widget_show(GTK_WIDGET(self->about));
+	}
+	else if (g_str_equal(name, "Quit"))
+	{
+		g_object_unref(HUB(self));
 	}
 }
 
