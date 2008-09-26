@@ -1,7 +1,7 @@
 Source: eina
 Section: sound
 Priority: extra
-Maintainer: xuzo <xuzo@cuarentaydos.com>
+Maintainer: Luis Lopez <xuzo@cuarentaydos.com>
 Build-Depends: debhelper (>= 5), autotools-dev
 Standards-Version: 3.7.3
 
@@ -12,8 +12,9 @@ Recommends: gstreamer0.10-ffmpeg, gstreamer0.10-plugins-bad, gstreamer0.10-plugi
 Replaces: liblomo1
 Conflicts: liblomo1
 Provides: liblomo1
-Description: Music player based on liblomo and gtk+-2.0
- Music player based on liblomo and gtk+-2.0
+Description: Music player based on gtk+-2.0 and gstreamer
+ Eina is a classic player for the modern era. It features a small screen
+ footprint, network capabilites and extensible functionality through plugins.
 
 Package: eina-dev
 Section: devel
