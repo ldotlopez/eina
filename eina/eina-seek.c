@@ -356,7 +356,7 @@ void on_player_seek_value_changed(GtkWidget *w, EinaSeek *self) {
 	// XXX: Handle remaining
 	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
 	{
-		markup = g_strdup_printf("<tt><i>%02d:%02d</i></tt>",
+		markup = g_strdup_printf("<small><tt><i>%02d:%02d</i></tt></small>",
 			(gint) (lomo_nanosecs_to_secs(pseudo_pos) / 60),
 			(gint) (lomo_nanosecs_to_secs(pseudo_pos) % 60));
 		gtk_label_set_markup(GTK_LABEL(priv->time_labels[EINA_SEEK_TIME_CURRENT]), markup);
@@ -404,7 +404,7 @@ gboolean on_player_seek_timeout(EinaSeek *self) {
 
 	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
 	{
-		markup = g_strdup_printf("<tt>%02d:%02d</tt>", (gint) (lomo_nanosecs_to_secs(pos) / 60), (gint)(lomo_nanosecs_to_secs(pos) % 60));
+		markup = g_strdup_printf("<small><tt>%02d:%02d</tt></small>", (gint) (lomo_nanosecs_to_secs(pos) / 60), (gint)(lomo_nanosecs_to_secs(pos) % 60));
 		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], markup);
 		g_free(markup);
 	}
@@ -437,7 +437,7 @@ on_player_seek_lomo_state_change(LomoPlayer *lomo, EinaSeek *self)
 
 	if (priv->time_labels[EINA_SEEK_TIME_TOTAL])
 	{
-		markup = g_strdup_printf("<tt>%02d:%02d</tt>", (gint) (lomo_nanosecs_to_secs(total) / 60), (gint)(lomo_nanosecs_to_secs(total) % 60));
+		markup = g_strdup_printf("<small><tt>%02d:%02d</tt></small>", (gint) (lomo_nanosecs_to_secs(total) / 60), (gint)(lomo_nanosecs_to_secs(total) % 60));
 		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], markup);
 		g_free(markup);
 	}

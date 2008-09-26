@@ -206,6 +206,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip" translatable="yes">Browse</property>
                             <property name="response_id">0</property>
                             <child>
                               <widget class="GtkImage" id="image5">
