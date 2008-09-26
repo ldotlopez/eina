@@ -44,7 +44,9 @@ hooktest_exit(EinaPlugin *self, GError **error)
 }
 
 G_MODULE_EXPORT EinaPlugin hooktest_plugin = {
+	EINA_PLUGIN_SERIAL,
 	N_("Hook test"),
+	N_("1.0.0"),
 	N_("A simple test plugin for hooks"),
 	N_("Nothing more to say"),
 	NULL,

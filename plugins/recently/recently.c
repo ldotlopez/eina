@@ -522,7 +522,9 @@ recently_exit(EinaPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT EinaPlugin recently_plugin = {
+	EINA_PLUGIN_SERIAL,
 	N_("Recently"),
+	N_("0.2.0"),
 	N_("Recently playlists"),
 	N_("Recently saves your previously listen playlists"),
 	NULL,
