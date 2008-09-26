@@ -137,9 +137,6 @@ AM_CONDITIONAL(USE_LASTFMINFO, test x"$HAVE_WEBKITGTK" = "xyes")
 
 dnl Keep in alphabetical order
 AC_OUTPUT([
-debian/changelog
-debian/control
-debian/eina-dev.install
 eina/Makefile
 gel/Makefile
 lomo/Makefile

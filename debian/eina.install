@@ -1,5 +1,6 @@
 usr/bin
-usr/share/eina
-usr/lib/eina/{lastfminfo,recently}/*.so
-usr/lib/eina/{lastfminfo,recently}/*.png
+usr/lib/*.so.*
 usr/share
+usr/lib/eina/hooktest/*.so
+usr/lib/eina/recently/*.so
+usr/lib/eina/coverplus/*.so

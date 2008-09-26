@@ -12,4 +12,5 @@ Description: Eina music player
 Version: @EINA_VERSION@
 Requires: gtk+-2.0 gstremer-0.10
 Cflags: -I${includedir}/eina-@EINA_API_VERSION@
+Libs: -L${libdir} -llomo-1.0 -lgel
 
