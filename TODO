@@ -1,5 +1,18 @@
 http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
 
+- EinaPlayer must follow markup from stream-info-label using gel_parse_str
+- Dock must be hidden if no dock items are enabled
+- EinaCover should have a timeout to cancel slow backends
+- Rethink the EinaCover interface to plugins
+- Load from commandline
+- Finish EinaFSDialog
+- Write preferences and plugin dialogs
+- Total/remaining time are not working perfectly
+- Volume icons are not perfect
+- EinaVogon should switch between play/pause, pluginize
+- Play/pause button hasn't tooltip
+- Format used in EinaPlayer and EinaPlaylist must be customizable
+
 Migrate to GObject and GInterface
 
 Seek has some problems when stop or not playing
