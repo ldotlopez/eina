@@ -328,7 +328,7 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 	_tv = GTK_TREE_VIEW(W(self, "playlist-treeview"));
 
 	/* Setup treeview step 1: build renderers and attach to colums and columns to treeview*/
-	state_col = gtk_tree_view_column_new_with_attributes(_(""),
+	state_col = gtk_tree_view_column_new_with_attributes(NULL,
 		gtk_cell_renderer_pixbuf_new(), "stock-id", PLAYLIST_COLUMN_STATE, NULL);
 
 	title_renderer = gtk_cell_renderer_text_new();

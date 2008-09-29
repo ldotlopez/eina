@@ -95,4 +95,42 @@ gel_ui_load_image_from_def(GelUI *ui, GelUIImageDef *def, GError **error);
 gboolean
 gel_ui_load_image_from_def_multiple(GelUI *ui, GelUIImageDef defs[], guint *count);
 
+gboolean
+gel_ui_stock_add(gchar *resource, gchar *stock_name, gint size, GError **error)
+{
+	gchar *tmp;
+	GdkPixbuf *pb;
+	GtkIconFactory *icon_factory;
+	GtkIconSet *icon_set;
+	GtkIconSource *icon_src;
+
+	if ((tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, resource)) == NULL)
+	{
+		gel_error("Cannot find and add to stock file %s", resource);
+		return FALSE;
+	}
+
+	if ((pb = gdk_pixbuf_new_from_file(tmp, error)) == NULL)
+	{
+		gel_error("Cannot load %s into pixbuf: %s", tmp, (*error)->message);
+		g_free(tmp);
+		return FALSE;
+	}
+	g_free(tmp);
+
+	icon_src = gtk_icon_source_new();
+	gtk_icon_source_set_pixbuf(icon_src, pb);
+	gtk_icon_source_set_size(icon_src, size);
+	gtk_icon_source_set_size_wildcarded(icon_src, TRUE);
+
+	icon_set = gtk_icon_set_new_from_pixbuf(pb);
+	gtk_icon_set_add_source(icon_set, icon_src);
+
+	icon_factory = gtk_icon_factory_new();
+	gtk_icon_factory_add(icon_factory, stock_name, icon_set);
+
+	gtk_icon_factory_add_default(icon_factory);
+	return TRUE;
+}
+
 G_END_DECLS

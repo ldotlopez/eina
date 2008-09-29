@@ -14,6 +14,7 @@ EXTRA_DIST = \
 	$(BUILT_SOURCES) \
 	about.glade      \
 	player.glade     \
+	player-menu.ui   \
 	playlist.glade
 
 install-data-local:

@@ -2,8 +2,7 @@
 #include "eina-file-chooser-dialog.h"
 
 #include <glib/gi18n.h>
-#include <gel/gel.h>
-
+#include <gel/gel-ui.h>
 
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
 
@@ -71,44 +70,15 @@ eina_file_chooser_dialog_finalize (GObject *object)
 static void
 eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 {
-	gchar *tmp;
-	GError  *err = NULL;
-	GdkPixbuf *pb;
-	GtkIconFactory *icon_factory;
-	GtkIconSet *icon_set;
-	GtkIconSource *icon_src;
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
 	g_type_class_add_private (klass, sizeof (EinaFileChooserDialogPrivate));
 
 	object_class->constructor = eina_file_chooser_dialog_constructor;
 	object_class->dispose = eina_file_chooser_dialog_dispose;
 	object_class->finalize = eina_file_chooser_dialog_finalize;
 
-	if ((tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "queue.png")) == NULL) {
+	if (!gel_ui_stock_add("queue.png", "eina-queue", GTK_ICON_SIZE_MENU, NULL))
 		gel_error("Cannot find and add to stock file queue.png");
-		return;
-	}
-	if ((pb = gdk_pixbuf_new_from_file(tmp, &err)) == NULL) {
-		gel_error("Cannot load %s into pixbuf: %s", tmp, err->message);
-		g_error_free(err);
-		g_free(tmp);
-		return;
-	}
-	g_free(tmp);
-
-	icon_src = gtk_icon_source_new();
-	gtk_icon_source_set_pixbuf(icon_src, pb);
-	gtk_icon_source_set_size(icon_src, GTK_ICON_SIZE_MENU);
-	gtk_icon_source_set_size_wildcarded(icon_src, TRUE);
-
-	icon_set = gtk_icon_set_new_from_pixbuf(pb);
-	gtk_icon_set_add_source(icon_set, icon_src);
-
-	icon_factory = gtk_icon_factory_new();
-	gtk_icon_factory_add(icon_factory, "eina-queue", icon_set);
-
-	gtk_icon_factory_add_default(icon_factory);
 }
 
 static void

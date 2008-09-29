@@ -52,6 +52,12 @@ gel_ui_load_image_from_def(GelUI *ui, GelUIImageDef *def, GError **error);
 gboolean
 gel_ui_load_image_from_def_multiple(GelUI *ui, GelUIImageDef defs[], guint *count);
 
+/*
+ * Stock icons
+ */
+gboolean
+gel_ui_stock_add(gchar *resource, gchar *stock_name, gint size, GError **error);
+
 G_END_DECLS
 
 #endif // _GEL_UI_H

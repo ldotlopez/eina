@@ -1,7 +1,7 @@
 PortSystem 1.0
 
 name              eina
-version           0.6.0
+version           0.7.0
 categories        audio
 platforms         darwin
 maintainers       xuzo
@@ -10,11 +10,12 @@ long_description  ${description}, a classic player for the modern era
 
 homepage          http://eina.sourceforge.net/
 
-master_sites      http://kent.dl.sourceforge.net/eina
-checksums         md5 adb5bd724cb340314a4821ca4bbf8c11
+#master_sites      http://kent.dl.sourceforge.net/eina
+master_sites      http://localhost/~xuzo/
+checksums         md5 915ab35b4f81e9f8f0f2228e18753e34
 distfiles         eina-0.6.0.tar.gz
 
-depends_lib       port:glib2 port:liblomo port:gtk2
+depends_lib       port:gstreamer port:gtk2 port:gst-ffmpeg port:gst-plugins-bad port:gst-plugins-base port:gst-plugins-good port:gst-plugins-ugly
 
-worksrcdir        eina-0.6.0
+worksrcdir        eina-0.7.0
 

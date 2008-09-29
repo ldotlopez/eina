@@ -1,7 +1,7 @@
 #define GEL_DOMAIN "Eina::Volume"
 
 #include "eina-volume.h"
-#include <gel/gel.h>
+#include <gel/gel-ui.h>
 
 G_DEFINE_TYPE (EinaVolume, eina_volume, GTK_TYPE_VOLUME_BUTTON)
 
@@ -81,14 +81,14 @@ eina_volume_class_init (EinaVolumeClass *klass)
 	GError *err = NULL;
 	gint i;
 	gchar *tmp;
-	static const gchar *icons[] = {
+	gchar *icons[] = {
 		"audio-volume-mute",
 		"audio-volume-high",
 		"audio-volume-low",
 		"audio-volume-medium",
 		NULL
 	};
-	static const gchar *filenames[] = {
+	gchar *filenames[] = {
 		"audio-volume-mute.png",
 		"audio-volume-high.png",
 		"audio-volume-low.png",
