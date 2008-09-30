@@ -31,7 +31,9 @@ struct _EinaPluginPrivate {
 };
 
 EinaPlugin*
-eina_iface_query_plugin(EinaIFace *iface, gchar *plugin_name);
+eina_iface_query_plugin_by_name(EinaIFace *iface, gchar *plugin_name);
+EinaPlugin*
+eina_iface_query_plugin_by_path(EinaIFace *iface, gchar *plugin_path);
 
 GList *
 eina_iface_list_available_plugins(EinaIFace *self);
@@ -89,6 +91,8 @@ G_MODULE_EXPORT gboolean eina_iface_init
 			eina_iface_init_plugin(self, plugin);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "recently")) != NULL)
 			eina_iface_init_plugin(self, plugin);
+		if ((plugin = eina_iface_load_plugin_by_name(self, "lastfmcover")) != NULL)
+			eina_iface_init_plugin(self, plugin);
 	}
 	eina_iface_list_available_plugins(self);
 
@@ -123,13 +127,28 @@ EinaIFace *eina_plugin_get_iface(EinaPlugin *plugin)
 }
 
 EinaPlugin*
-eina_iface_query_plugin(EinaIFace *iface, gchar *plugin_name)
+eina_iface_query_plugin_by_name(EinaIFace *iface, gchar *plugin_name)
 {
 	GList *l = iface->plugins;
 	while (l)
 	{
 		EinaPlugin* plugin = (EinaPlugin*) l->data;
 		if (g_str_equal(plugin->priv->plugin_name, plugin_name))
+			return plugin;
+		l = l->next;
+	}
+
+	return NULL;
+}
+
+EinaPlugin*
+eina_iface_query_plugin_by_path(EinaIFace *iface, gchar *plugin_path)
+{
+	GList *l = iface->plugins;
+	while (l)
+	{
+		EinaPlugin* plugin = (EinaPlugin*) l->data;
+		if (g_str_equal(plugin->priv->pathname, plugin_path))
 			return plugin;
 		l = l->next;
 	}
@@ -188,7 +207,7 @@ eina_iface_list_available_plugins(EinaIFace *self)
 		e = entries = gel_dir_read(iter->data, FALSE, NULL);
 		while (e)
 		{
-			if ((plugin = eina_iface_query_plugin(self, e->data)) != NULL)
+			if ((plugin = eina_iface_query_plugin_by_name(self, e->data)) != NULL)
 			{
 				gel_warn("Enabled %s", e->data);
 				ret = g_list_prepend(ret, plugin);
