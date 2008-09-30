@@ -111,6 +111,12 @@ G_MODULE_EXPORT gboolean eina_iface_exit
 // --
 // Functions needed to access internal and deeper elements
 // --
+gboolean
+eina_plugin_is_enabled(EinaPlugin *plugin)
+{
+	return plugin->priv->enabled;
+}
+
 GelHub *eina_iface_get_hub(EinaIFace *self)
 {
 	return HUB(self);
@@ -204,19 +210,23 @@ eina_iface_list_available_plugins(EinaIFace *self)
 	{
 		EinaPlugin *plugin;
 		GList *e, *entries;
-		e = entries = gel_dir_read(iter->data, FALSE, NULL);
+		e = entries = gel_dir_read(iter->data, TRUE, NULL);
 		while (e)
 		{
-			if ((plugin = eina_iface_query_plugin_by_name(self, e->data)) != NULL)
+			gchar *name = g_path_get_basename(e->data);
+			gchar *mod_name = g_module_build_path(e->data, name);
+			if ((plugin = eina_iface_query_plugin_by_path(self, mod_name)) != NULL)
 			{
 				gel_warn("Enabled %s", e->data);
 				ret = g_list_prepend(ret, plugin);
 			}
-			else if ((plugin = eina_iface_load_plugin_by_name(self, e->data)) != NULL)
+			else if ((plugin = eina_iface_load_plugin_by_path(self, name, mod_name)) != NULL)
 			{
 				ret = g_list_prepend(ret, plugin);
 				gel_warn("Not enabled %s", e->data);
 			}
+			g_free(mod_name);
+			g_free(name);
 			e = e->next;
 		}
 		gel_glist_free(entries, (GFunc) g_free, NULL);

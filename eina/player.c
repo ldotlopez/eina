@@ -13,6 +13,7 @@
 #include "eina-cover.h"
 #include "eina-file-chooser-dialog.h"
 #include "playlist.h"
+#include "plugins.h"
 #include "settings.h"
 #include "fs.h"
 
@@ -22,6 +23,7 @@ struct _EinaPlayer {
 	GtkUIManager   *ui_manager;
 	EinaConf       *conf;
 	EinaCover      *cover;
+	EinaPlugins    *plugins_mng;
 	EinaSeek       *seek;
 	EinaVolume     *volume;
 
@@ -232,6 +234,12 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	else
 	{
 		gel_warn("Cannot load UI Manager definition");
+	}
+
+	// Plugins Manager
+	if (!gel_hub_load(hub, "plugins") || ((self->plugins_mng = gel_hub_shared_get(hub, "plugins")) == NULL))
+	{
+		gel_warn("Cannot load plugin manager");
 	}
 
 	// About
@@ -704,13 +712,21 @@ on_menu_activate(GtkAction *action, EinaPlayer *self)
 {
 	const gchar *name = gtk_action_get_name(action);
 
-	if (g_str_equal(name, "About") && self->about)
+	if (g_str_equal(name, "Plugins") && self->plugins_mng)
+	{
+		eina_plugins_show(self->plugins_mng);
+	}
+	else if (g_str_equal(name, "About") && self->about)
 	{
 		gtk_widget_show(GTK_WIDGET(self->about));
 	}
 	else if (g_str_equal(name, "Quit"))
 	{
 		g_object_unref(HUB(self));
+	}
+	else
+	{
+		gel_warn("Unhandled action %s", name);
 	}
 }
 

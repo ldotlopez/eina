@@ -33,6 +33,9 @@ typedef struct EinaPlugin {
 	EinaPluginPrivate *priv;
 } EinaPlugin;
 
+gboolean
+eina_plugin_is_enabled(EinaPlugin *plugin);
+
 // --
 // Access to plugin's data
 // --
@@ -82,6 +85,16 @@ eina_iface_get_lomo(EinaIFace *iface);
 #define EINA_PLUGIN_LOMO(p) eina_iface_get_lomo(EINA_PLUGIN_IFACE(p))
 
 // --
+// Handling plugins by the EinaIFace
+// --
+GList *
+eina_iface_list_available_plugins(EinaIFace *iface);
+
+void
+eina_iface_unload_plugin(EinaIFace *iface, EinaPlugin *plugin);
+
+
+// --
 // Dock handling (dock is managed by EinaIFace currently, but there are plans
 // to use EinaPlugin in the future, so use eina_plugin_dock_* macros if you
 // are writting a plugin)
@@ -128,6 +141,10 @@ eina_plugin_deattach_events(EinaPlugin *plugin, ...);
 gchar *eina_plugin_build_resource_path(EinaPlugin *plugin, gchar *resource);
 gchar *eina_plugin_build_userdir_path (EinaPlugin *plugin, gchar *path);
 
+#ifdef EINA_COMPILATION
+GList *
+eina_iface_list_available_plugins(EinaIFace *self);
+#endif
 
 #define eina_iface_verbose(...) _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
 #define eina_iface_debug(...)   _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)

@@ -1,5 +1,12 @@
 #define GEL_DOMAIN "Gel"
 #include "gel-ui.h"
+
+// static GQuark gel_ui_quark = g_quark_from_static_string((const gchar *) "GelUI");
+
+enum {
+	GEL_UI_ERROR_RESOURCE_NOT_FOUND = 1
+};
+
 /*
  * UI creation
  */
@@ -11,11 +18,13 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 	gchar *tmp;
 
 	tmp = g_strconcat(ui_filename, ".ui", NULL);
-	// XXX: Handle GError
 	ui_pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, tmp);
 	g_free(tmp);
 
 	if (ui_pathname == NULL) {
+		*error = g_error_new(
+			g_quark_from_static_string( "GelUI"), GEL_UI_ERROR_RESOURCE_NOT_FOUND,
+			"Cannot load UI resource, resource '%s' not found", ui_filename);
 		return NULL;
 	}
 

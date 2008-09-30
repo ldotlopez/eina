@@ -12,6 +12,7 @@ http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
 - EinaVogon should switch between play/pause, pluginize
 - Play/pause button hasn't tooltip
 - Format used in EinaPlayer and EinaPlaylist must be customizable
+- Recently plugin doesnt work
 
 Migrate to GObject and GInterface
 
