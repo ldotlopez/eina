@@ -11,6 +11,8 @@ struct _EinaPlugins {
 	GtkWidget    *window;
 	GtkTreeView  *treeview;
 	GtkListStore *model;
+	GList        *plugins;
+	EinaPlugin   *active_plugin;
 };
 
 enum {
@@ -23,6 +25,9 @@ enum {
 
 static void
 plugins_treeview_fill(EinaPlugins *self);
+
+static void
+plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self);
 
 //--
 // Signal definitions
@@ -87,14 +92,19 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 		NULL);
 	plugins_treeview_fill(self);
 
+	gtk_widget_realize(self->window);
+
 	// Setup signals
 	self->window = W(self, "main-window");
 
-	g_signal_connect(self->window, "delete-event",
-	G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+	g_signal_connect_swapped(self->window, "delete-event",
+	G_CALLBACK(eina_plugins_hide), self);
 
-	g_signal_connect(self->window, "response",
-	G_CALLBACK(gtk_widget_hide), NULL);
+	g_signal_connect_swapped(self->window, "response",
+	G_CALLBACK(eina_plugins_hide), self);
+
+	g_signal_connect(self->treeview, "cursor-changed",
+	G_CALLBACK(plugins_treeview_cursor_changed_cb), self);
 
 	return TRUE;
 }
@@ -120,7 +130,23 @@ eina_plugins_show(EinaPlugins *self)
 void
 eina_plugins_hide(EinaPlugins *self)
 {
+	EinaIFace *iface;
+	GList *l;
+
 	gtk_widget_hide(self->window);
+	if ((iface = gel_hub_shared_get(HUB(self), "iface")) == NULL)
+		return;
+
+	l = self->plugins;
+	while (l)
+	{
+		EinaPlugin *plugin = (EinaPlugin *) l->data;
+		if (!eina_plugin_is_enabled(plugin))
+			eina_iface_unload_plugin(iface, plugin);
+		l = l->next;
+	}
+	g_list_free(self->plugins);
+	self->plugins = NULL;
 }
 
 //--
@@ -130,40 +156,101 @@ static void
 plugins_treeview_fill(EinaPlugins *self)
 {
 	EinaIFace *iface;
-	GList *plugins, *l;
+	GList *l;
 	GtkTreeIter iter;
 
 	if ((iface = gel_hub_shared_get(HUB(self), "iface")) == NULL)
-	{
-		gel_error("Cannot get EinaIFace");
 		return;
-	}
 
 	gtk_list_store_clear(self->model);
 
-	plugins = l = eina_iface_list_available_plugins(iface);
-	gel_warn("Got %d available plugins", g_list_length(plugins));
+	self->plugins = l = eina_iface_list_available_plugins(iface);
+	gel_warn("Got %d available plugins", g_list_length(self->plugins));
 	while (l)
 	{
 		EinaPlugin *plugin = (EinaPlugin *) l->data;
+		gchar *markup;
 
 		gel_warn("[%s] Path: %s",
 			eina_plugin_is_enabled(plugin) ? "ENAB" : "DISA",
 			plugin->name);
 
 		gtk_list_store_append(self->model, &iter);
+		markup = g_strdup_printf("<b>%s</b>\n%s", plugin->name, plugin->short_desc);
 		gtk_list_store_set(self->model, &iter,
 			PLUGINS_COLUMN_ENABLED, eina_plugin_is_enabled(plugin),
-			PLUGINS_COLUMN_NAME, plugin->name,
+			PLUGINS_COLUMN_NAME, markup,
 			-1);
-		if (!eina_plugin_is_enabled(plugin))
-			eina_iface_unload_plugin(iface, plugin);
+		g_free(markup);
+
 		l = l->next;
 	}
-	g_list_free(plugins);
-
-
 }
+
+static void
+plugins_update_plugin_properties(EinaPlugins *self)
+{
+	EinaPlugin *plugin;
+	gchar *tmp;
+
+	if (self->active_plugin == NULL)
+	{
+		gel_info("No active plugin, no need to update properties");
+		return;
+	}
+	plugin = self->active_plugin;
+	
+	tmp = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", plugin->name);
+	gtk_label_set_markup(GTK_LABEL(W(self, "name-label")), tmp);
+	g_free(tmp);
+
+	gtk_label_set_markup(GTK_LABEL(W(self, "short-desc-label")), plugin->short_desc);
+	gtk_label_set_markup(GTK_LABEL(W(self, "long-desc-label")), plugin->long_desc);
+
+	tmp = g_markup_escape_text(plugin->author, -1);
+	gtk_label_set_markup(GTK_LABEL(W(self, "author-label")), tmp);
+	g_free(tmp);
+
+	tmp = g_markup_escape_text(plugin->url, -1);
+	gtk_label_set_markup(GTK_LABEL(W(self, "website-label")), tmp);
+	g_free(tmp);
+}
+
+// --
+// Callbacks
+// --
+static void
+plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
+{
+	GtkTreeIter iter;
+	GtkTreePath *path;
+	EinaPlugin *plugin;
+	gint *indices;
+
+	GtkTreeSelection *sel = gtk_tree_view_get_selection(self->treeview);
+	if (!gtk_tree_selection_get_selected(sel, (GtkTreeModel **) &(self->model), &iter))
+	{
+		if (!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(self->model), &iter))
+			return;
+	}
+
+	if ((path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->model), &iter)) == NULL)
+	{
+		gel_warn("Cannot get treepath from selection");
+		eina_plugins_hide(self);
+		return;
+	}
+
+	indices = gtk_tree_path_get_indices(path);
+	plugin = (EinaPlugin *) g_list_nth_data(self->plugins, indices[0]);
+	if (self->active_plugin == plugin)
+		return;
+
+	self->active_plugin = plugin;
+	gel_warn("Active plugin: %p", plugin);
+	plugins_update_plugin_properties(self);
+}
+
 
 G_MODULE_EXPORT GelHubSlave plugins_connector = {
 	"plugins",
