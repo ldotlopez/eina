@@ -14,6 +14,7 @@ V EinaPlayer must follow markup from stream-info-label using gel_parse_str
 - Play/pause button hasn't tooltip
 V Format used in EinaPlayer and EinaPlaylist must be customizable
 - Recently plugin doesnt work
+- Keybindings like 'del' to delete songs.
 - Seek has some problems when stop or not playing
 - i18n
 - LastFM Info plugin (Update on demand, CSS love)

@@ -327,9 +327,9 @@ eina_seek_get_total_label(EinaSeek *self)
 	return priv->time_labels[EINA_SEEK_TIME_TOTAL];
 }
 
-/*
- * Private functions
- */
+// --
+// Private functions
+// --
 gboolean eina_seek_real_seek(EinaSeek *self) {
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	g_return_val_if_fail(LOMO_IS_PLAYER(priv->lomo), FALSE);
@@ -338,6 +338,49 @@ gboolean eina_seek_real_seek(EinaSeek *self) {
 	priv->pos = -1;
 
 	return FALSE;
+}
+
+static gchar*
+eina_seek_fmt_time(gint64 time, gboolean tempstr)
+{
+	if (time < 0)
+		return NULL;
+
+	gint secs = lomo_nanosecs_to_secs(total_time);
+	if (tempstr)
+		return g_strdup_printf("<small><tt><i>%02d:%02d</i></tt></small>", secs / 60, secs % 60);
+	else
+		return g_strdup_printf("<small><tt>%02d:%02d</tt></small>", secs / 60, secs % 60);
+}
+
+static void
+eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp)
+{
+	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	gchar *current, *remaining, *total;
+	gint secs;
+
+	// Sync total
+	if ((total_time >= 0) && priv->total_is_desync)
+	{
+		total = eina_seek_fmt_time(total_time, FALSE);
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], total);
+		g_free(total);
+
+		priv->total_is_desync = FALSE;
+	}
+	else
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], NULL);
+
+	else
+	{
+		secs = lomo_nanosecs_to_secs(total_time);
+		total = g_strdup_printf("<small><tt>%02d:%02d</tt></small>", secs / 60, secs % 60);
+	}
+
+	if (temp)
+	{
+	}
 }
 
 /*
