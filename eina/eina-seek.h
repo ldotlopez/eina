@@ -37,8 +37,8 @@ typedef struct
 GType eina_seek_get_type (void);
 
 EinaSeek* eina_seek_new          (void);
-void            eina_seek_updater_start(EinaSeek *self);
-void            eina_seek_updater_stop (EinaSeek *self);
+void      eina_seek_updater_start(EinaSeek *self);
+void      eina_seek_updater_stop (EinaSeek *self);
 
 void eina_seek_set_lomo_player    (EinaSeek *self, LomoPlayer *lomo);
 void eina_seek_set_current_label  (EinaSeek *self, GtkLabel *label);

@@ -30,25 +30,7 @@ struct _EinaPluginPrivate {
 	LomoPlayer *lomo;
 };
 
-EinaPlugin*
-eina_iface_query_plugin_by_name(EinaIFace *iface, gchar *plugin_name);
-EinaPlugin*
-eina_iface_query_plugin_by_path(EinaIFace *iface, gchar *plugin_path);
-
-GList *
-eina_iface_list_available_plugins(EinaIFace *self);
-
-EinaPlugin*
-eina_iface_load_plugin_by_name(EinaIFace *self, gchar* plugin_name);
-EinaPlugin*
-eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path);
-
-gboolean
-eina_iface_init_plugin(EinaIFace *self, EinaPlugin *plugin);
-gboolean
-eina_iface_fini_plugin(EinaIFace *self, EinaPlugin *plugin);
-
-void
+static void
 eina_iface_dock_init(EinaIFace *self);
 static void
 eina_iface_dock_page_signal_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaIFace *self);
@@ -391,7 +373,8 @@ eina_iface_unload_plugin(EinaIFace *self, EinaPlugin *plugin)
 // --
 // Dock management
 // --
-void eina_iface_dock_init(EinaIFace *self)
+static void
+eina_iface_dock_init(EinaIFace *self)
 {
 	const gchar *order;
 	gchar **split;
@@ -431,6 +414,9 @@ void eina_iface_dock_init(EinaIFace *self)
 	self->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 	gtk_notebook_set_show_tabs(self->dock, FALSE);
 
+	if (GTK_WIDGET_VISIBLE(W(self->player, "dock-expander")))
+		gtk_widget_hide(W(self->player, "dock-expander"));
+
 	gel_info("Dock initialized");
 }
 
@@ -463,6 +449,9 @@ gboolean eina_iface_dock_add_item(EinaIFace *self, gchar *id, GtkWidget *label, 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
 		gtk_notebook_set_show_tabs(self->dock, TRUE);
 
+	if (!GTK_WIDGET_VISIBLE(W(self->player, "dock-expander")))
+		gtk_widget_show(W(self->player, "dock-expander"));
+
 	return TRUE;
 }
 
@@ -477,8 +466,17 @@ gboolean eina_iface_dock_remove_item(EinaIFace *self, gchar *id)
 
 	gtk_notebook_remove_page(GTK_NOTEBOOK(self->dock), gtk_notebook_page_num(GTK_NOTEBOOK(self->dock), dock_item));
 
-	if (gtk_notebook_get_n_pages(self->dock) <= 1)
+	switch (gtk_notebook_get_n_pages(self->dock) <= 1)
+	{
+	case 0:
+		gtk_widget_hide(W(self->player, "dock-expander"));
+		break;
+	case 1:
 		gtk_notebook_set_show_tabs(self->dock, FALSE);
+		break;
+	default:
+		break;
+	}
 
 	return g_hash_table_remove(self->dock_items, id);
 }

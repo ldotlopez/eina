@@ -209,7 +209,7 @@ G_MODULE_EXPORT gboolean playlist_init
 	lomo_player_set_repeat(LOMO(self), repeat);
 	lomo_player_set_random(LOMO(self), random);
 
-	self->title_fmtstr = eina_conf_get_str(self->conf, "/playlist/title_fmtstr", "%a - %t");
+	self->title_fmtstr = eina_conf_get_str(self->conf, "/ui/playlist/fmt", "{%a - }%t");
 
 	/* Setup stock icons */
 	for (i = 0; rr_files[i] != NULL; i++) {
@@ -660,6 +660,18 @@ __eina_playlist_sort_int_desc(gconstpointer a, gconstpointer b)
 	return 0;
 }
 
+static gchar*
+playlist_format_stream_cb(gchar key, LomoStream *stream)
+{
+	return  lomo_stream_get_tag_by_id(stream, key);
+	/*
+	gchar *tag = lomo_stream_get_tag_by_id(stream, key);
+	gchar *ret = g_markup_escape_text(tag, -1);
+	g_free(tag);
+	return ret;
+	*/
+}
+
 void
 on_pl_remove_button_clicked(GtkWidget *w, EinaPlaylist *self)
 {
@@ -834,11 +846,9 @@ on_pl_lomo_all_tags (
 		gtk_tree_model_get(model, &iter, PLAYLIST_COLUMN_URI, &uri, -1);
 		if (g_str_equal(lomo_stream_get_tag(stream, LOMO_TAG_URI), uri)) {
 	  		/* Title */
-			lomo_stream_format(stream,
-				self->title_fmtstr /*"%a - %t"*/, 0,
-				LOMO_STREAM_URL_DECODE|LOMO_STREAM_BASENAME|LOMO_STREAM_UTF8,
-				&title);
-	
+			title = gel_str_parser((gchar *) self->title_fmtstr, 
+				(GelStrParserFunc) playlist_format_stream_cb, stream);
+
 			/* Duration */
 			if ((duration = lomo_stream_get_tag(stream, LOMO_TAG_DURATION)) == NULL)
 				duration_str = NULL;
@@ -868,7 +878,6 @@ on_pl_lomo_all_tags (
 					-1);
 			}
 			g_free(escape);
-
 		}
 
 		if(!gtk_tree_model_iter_next(model, &iter))

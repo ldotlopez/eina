@@ -34,23 +34,23 @@ struct _EinaSeekPrivate {
 	gchar    *time_fmts[EINA_SEEK_N_TIMES];
 };
 
-void
-on_player_seek_value_changed (GtkWidget *w, EinaSeek *self);
+static void
+player_seek_value_changed_cb (GtkWidget *w, EinaSeek *self);
 
-gboolean
-on_player_seek_button_press_event (GtkWidget *w, GdkEventButton *ev, EinaSeek *self);
+static gboolean
+player_seek_button_press_event_cb (GtkWidget *w, GdkEventButton *ev, EinaSeek *self);
 
-gboolean
-on_player_seek_button_release_event (GtkWidget *w, GdkEventButton *ev, EinaSeek *self);
+static gboolean
+player_seek_button_release_event_cb (GtkWidget *w, GdkEventButton *ev, EinaSeek *self);
 
-gboolean
-on_player_seek_timeout(EinaSeek *self);
+static gboolean
+player_seek_timeout_cb(EinaSeek *self);
 
-void
-on_player_seek_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaSeek *self);
+static void
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaSeek *self);
 
-void
-on_player_seek_lomo_state_change(LomoPlayer *lomo, EinaSeek *self);
+static void
+lomo_state_change_cb(LomoPlayer *lomo, EinaSeek *self);
 
 static void
 eina_seek_get_property (GObject *object, guint property_id,
@@ -196,23 +196,27 @@ eina_seek_new (void)
 	gtk_range_set_update_policy(GTK_RANGE(self), GTK_UPDATE_CONTINUOUS);
 
 	g_signal_connect(self, "value-changed",
-		G_CALLBACK(on_player_seek_value_changed), self);
+		G_CALLBACK(player_seek_value_changed_cb), self);
 	g_signal_connect(self, "button-press-event",
-		G_CALLBACK(on_player_seek_button_press_event), self);
+		G_CALLBACK(player_seek_button_press_event_cb), self);
 	g_signal_connect(self, "button-release-event",
-		G_CALLBACK(on_player_seek_button_release_event), self);
+		G_CALLBACK(player_seek_button_release_event_cb), self);
 
 	return self;
 }
 
-void eina_seek_updater_start(EinaSeek *self) {
+void
+eina_seek_updater_start(EinaSeek *self)
+{
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	if (priv->updater_id > 0)
 		g_source_remove(priv->updater_id);
-	priv->updater_id = g_timeout_add(400, (GSourceFunc) on_player_seek_timeout, (gpointer) self);
+	priv->updater_id = g_timeout_add(400, (GSourceFunc) player_seek_timeout_cb, (gpointer) self);
 }
 
-void eina_seek_updater_stop(EinaSeek *self) {
+void
+eina_seek_updater_stop(EinaSeek *self)
+{
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	if (priv->updater_id > 0)
 		g_source_remove(priv->updater_id);
@@ -226,7 +230,12 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 		return;
 
 	if (priv->lomo)
+	{
+		g_signal_handlers_disconnect_by_func(priv->lomo, eina_seek_updater_start, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, eina_seek_updater_stop, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_state_change_cb, self);
 		g_object_unref(priv->lomo);
+	}
 
 	priv->lomo = lomo;
 	g_object_ref(lomo);
@@ -240,14 +249,14 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 		G_CALLBACK(eina_seek_updater_stop), self);
 
 	g_signal_connect(lomo, "play",
-		G_CALLBACK(on_player_seek_lomo_state_change), self);
+		G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(lomo, "pause",
-		G_CALLBACK(on_player_seek_lomo_state_change), self);
+		G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(lomo, "stop",
-		G_CALLBACK(on_player_seek_lomo_state_change), self);
+		G_CALLBACK(lomo_state_change_cb), self);
 
 	g_signal_connect(lomo, "change",
-		G_CALLBACK(on_player_seek_lomo_change), self);
+		G_CALLBACK(lomo_change_cb), self);
 }
 
 LomoPlayer *
@@ -334,7 +343,7 @@ gboolean eina_seek_real_seek(EinaSeek *self) {
 /*
  * Callbacks
  */
-void on_player_seek_value_changed(GtkWidget *w, EinaSeek *self) {
+void player_seek_value_changed_cb(GtkWidget *w, EinaSeek *self) {
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	gint64  total;
 	gint64  pseudo_pos;
@@ -368,17 +377,17 @@ void on_player_seek_value_changed(GtkWidget *w, EinaSeek *self) {
 	priv->real_id = g_timeout_add(100, (GSourceFunc) eina_seek_real_seek, self);
 }
 
-gboolean on_player_seek_button_press_event(GtkWidget *w, GdkEventButton *ev, EinaSeek *self) {
+gboolean player_seek_button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self) {
 	eina_seek_updater_stop(self);
 	return FALSE;
 }
 
-gboolean on_player_seek_button_release_event(GtkWidget *w, GdkEventButton *ev, EinaSeek *self) {
+gboolean player_seek_button_release_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self) {
 	eina_seek_updater_start(self);
 	return FALSE;
 }
 
-gboolean on_player_seek_timeout(EinaSeek *self) {
+gboolean player_seek_timeout_cb(EinaSeek *self) {
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	gint64 len = 0, pos = 0;
 	gdouble percent;
@@ -394,12 +403,12 @@ gboolean on_player_seek_timeout(EinaSeek *self) {
 
     g_signal_handlers_block_by_func(
 		self,
-		on_player_seek_value_changed,
+		player_seek_value_changed_cb,
 		self);
 	gtk_range_set_value(GTK_RANGE(self), percent);
 	g_signal_handlers_unblock_by_func(
 		self,
-		on_player_seek_value_changed,
+		player_seek_value_changed_cb,
 		self);
 
 	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
@@ -413,7 +422,7 @@ gboolean on_player_seek_timeout(EinaSeek *self) {
 }
 
 void
-on_player_seek_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaSeek *self)
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaSeek *self)
 {
 	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
 	priv->total_is_desync = TRUE;
@@ -421,7 +430,7 @@ on_player_seek_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaSeek *self)
 }
 
 void
-on_player_seek_lomo_state_change(LomoPlayer *lomo, EinaSeek *self)
+lomo_state_change_cb(LomoPlayer *lomo, EinaSeek *self)
 {
 	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
 	gint64 total = -1;

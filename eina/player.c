@@ -293,6 +293,16 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 
 	// All widgets are complete at this point, setup them if needed
 
+	// Set stream-info-label: get from conf, get from UI, set from hardcode
+	self->stream_info_fmt = g_strdup(eina_conf_get_str(self->conf, "/ui/player/stream-info-fmt", NULL));
+	if (self->stream_info_fmt == NULL)
+		self->stream_info_fmt = g_strdup(gtk_label_get_label(GTK_LABEL(W(self, "stream-info-label"))));
+	if (self->stream_info_fmt == NULL)
+		self->stream_info_fmt = g_strdup(
+			"<span size=\"x-large\" weight=\"bold\">%t</span>"
+			"<span size=\"x-large\" weight=\"normal\">{%a}</span>");
+	gel_info("Stream info label format: '%s'", self->stream_info_fmt);
+
 	// Set seek parameters
 	g_object_set(G_OBJECT(self->seek),
 		"lomo-player",     LOMO(self),
@@ -363,6 +373,8 @@ G_MODULE_EXPORT gboolean eina_player_exit
 {
 	EinaPlayer *self = (EinaPlayer *) data;
 
+	g_free(self->stream_info_fmt);
+
 	// Save settings
 	eina_conf_set_int(self->conf,
 		"/core/volume",
@@ -402,13 +414,19 @@ eina_player_switch_state_pause(EinaPlayer *self)
 		"gtk-media-play", GTK_ICON_SIZE_BUTTON);
 }
 
+static gchar *
+eina_player_stream_info_parser_cb(gchar key, LomoStream *stream)
+{
+	gchar *tag_str = lomo_stream_get_tag_by_id(stream, key);
+	gchar *ret = g_markup_escape_text(tag_str, -1);
+	g_free(tag_str);
+	return ret;
+}
+
 static void
 eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 {
-	gchar *tmp;
-	gchar *info_str = NULL;
-	gchar *tag;
-	gchar *markup;
+	gchar *tmp, *title, *stream_info;
 
 	// No stream, reset
 	if (stream == NULL)
@@ -423,6 +441,22 @@ eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 		return;
 	}
 
+	stream_info = gel_str_parser(self->stream_info_fmt, (GelStrParserFunc) eina_player_stream_info_parser_cb, stream);
+	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), stream_info);
+	g_free(stream_info);
+
+	title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
+	if (tmp == NULL)
+	{
+		tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+		title =  g_uri_unescape_string(tmp, NULL);
+		g_free(tmp);
+	}
+	gtk_window_set_title(GTK_WINDOW(W(self,"main-window")), title);
+	g_free(title);
+
+	// Old code to handle "by-hand" the creation of markup for the label
+#if 0
 	// Create a working copy of title
 	tag = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
 	if (tag == NULL)
@@ -457,6 +491,7 @@ eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 
 	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), info_str);
 	g_free(info_str);
+#endif
 }
 
 static EinaFsFilterAction

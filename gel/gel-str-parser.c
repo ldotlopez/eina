@@ -6,7 +6,7 @@ simple_solver(gchar *str, GelStrParserFunc func, gpointer data)
 {
 	GString *output = g_string_new(NULL);
 	gchar *ret = NULL;
-	const gchar *tag_value = NULL;
+	gchar *tag_value = NULL;
 	gint i = 0;
 	
 	for (i = 0; str[i] != '\0'; i++)
@@ -23,6 +23,7 @@ simple_solver(gchar *str, GelStrParserFunc func, gpointer data)
 		{
 			if ((tag_value = func(str[i+1], data)) != NULL) {
 				output = g_string_append(output, tag_value);
+				g_free(tag_value);
 				i++;
 			}
 			else

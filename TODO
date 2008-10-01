@@ -1,7 +1,8 @@
-http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
+0.8 Series
+==========
 
-- EinaPlayer must follow markup from stream-info-label using gel_parse_str
-- Dock must be hidden if no dock items are enabled
+V EinaPlayer must follow markup from stream-info-label using gel_parse_str
+? Dock must be hidden if no dock items are enabled
 - EinaCover should have a timeout to cancel slow backends
 - Rethink the EinaCover interface to plugins
 - Load from commandline
@@ -11,32 +12,22 @@ http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
 - Volume icons are not perfect
 - EinaVogon should switch between play/pause, pluginize
 - Play/pause button hasn't tooltip
-- Format used in EinaPlayer and EinaPlaylist must be customizable
+V Format used in EinaPlayer and EinaPlaylist must be customizable
 - Recently plugin doesnt work
+- Seek has some problems when stop or not playing
+- i18n
+- LastFM Info plugin (Update on demand, CSS love)
+- Fix issues with stock icons
+- Kill eina_stream_format
 
-Migrate to GObject and GInterface
+0.10 Series
+===========
+- Unify GelHub/GelSlave and EinaPlugin
+- Reduce memory usage to target netbooks and MID devices
 
-Seek has some problems when stop or not playing
-
-Missing icon when player is in stop state
-
-Internacionalizacion
-
-Monstrar un nombre mejor que la URI cuando aun no se han cargado los metadatos
-
-eina_fs_* OK
-	Carga de directorios recursiva OK
-	DnD
-
-Single instance
-
-EinaFileChooserDialogInfoMsg OK
-
-eina_iface_* OK
-Plugin hooks OK
-   Join EinaPlugin and EinaPluginIFace OK
-	EinaCurl -> GelIOAsyncReapOp (some operations missing)
-		EinaCover GObject
-		LastFM Info plugin (Update on demand, CSS love)
-
-StockIcons
+Misc
+====
+- http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
+- Migrate to GObject and GInterface
+- DnD
+- Single instance

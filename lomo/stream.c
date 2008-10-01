@@ -101,6 +101,23 @@ void lomo_stream_set_all_tags(LomoStream *self, gboolean val)
 	priv->all_tags = val;
 }
 
+gchar *
+lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
+{
+	gint i;
+	gchar *ret = NULL;
+
+	for (i = 0; tag_fmt_table[i].key != 0; i++)
+	{
+		if (tag_fmt_table[i].key == id)
+		{
+			ret = g_strdup_printf(tag_fmt_table[i].fmt, lomo_stream_get_tag(self, tag_fmt_table[i].tag));
+			break;
+		}
+	}
+	return ret;
+}
+
 /* Functions to decode %NN escaped strings */
 gboolean lomo_stream_format
 (LomoStream *self, const gchar *fmt, gint max_fails, gint flags, gchar **dest)

@@ -33,39 +33,12 @@ typedef struct EinaPlugin {
 	EinaPluginPrivate *priv;
 } EinaPlugin;
 
-gboolean
-eina_plugin_is_enabled(EinaPlugin *plugin);
-
 // --
 // Access to plugin's data
 // --
 #ifdef EINA_PLUGIN_DATA_TYPE
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) ((EinaPlugin *) p)->data)
 #endif
-
-#if 0
-/*
- * Functions to load/unload a complete plugin using EinaPlugin struct
- */
-gboolean
-eina_iface_plugin_register(EinaIFace *self, const EinaPlugin plugin);
-
-gboolean
-eina_iface_plugin_unregister(EinaIFace *self, gchar plugin_name);
-
-gchar *
-eina_iface_build_plugin_filename(gchar *plugin_name, gchar *filename);
-
-gchar *
-eina_iface_get_plugin_dir(gchar *plugin_name);
-
-gchar *
-eina_iface_plugin_resource_get_pathname(EinaPlugin *plugin, gchar *resource);
-#endif
-
-/*
- * Advanced functions for accesing some internals
- */
 
 // --
 // Direct access to other resources, use macros were possible
@@ -84,15 +57,37 @@ LomoPlayer*
 eina_iface_get_lomo(EinaIFace *iface);
 #define EINA_PLUGIN_LOMO(p) eina_iface_get_lomo(EINA_PLUGIN_IFACE(p))
 
+gboolean
+eina_plugin_is_enabled(EinaPlugin *plugin);
+
 // --
 // Handling plugins by the EinaIFace
 // --
 GList *
 eina_iface_list_available_plugins(EinaIFace *iface);
 
+GList *
+eina_iface_list_available_plugins(EinaIFace *self);
+
+EinaPlugin*
+eina_iface_query_plugin_by_name(EinaIFace *iface, gchar *plugin_name);
+EinaPlugin*
+eina_iface_query_plugin_by_path(EinaIFace *iface, gchar *plugin_path);
+
+GList *
+eina_iface_list_available_plugins(EinaIFace *self);
+
+EinaPlugin*
+eina_iface_load_plugin_by_name(EinaIFace *self, gchar* plugin_name);
+EinaPlugin*
+eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path);
 void
 eina_iface_unload_plugin(EinaIFace *iface, EinaPlugin *plugin);
 
+gboolean
+eina_iface_init_plugin(EinaIFace *self, EinaPlugin *plugin);
+gboolean
+eina_iface_fini_plugin(EinaIFace *self, EinaPlugin *plugin);
 
 // --
 // Dock handling (dock is managed by EinaIFace currently, but there are plans
@@ -141,10 +136,6 @@ eina_plugin_deattach_events(EinaPlugin *plugin, ...);
 gchar *eina_plugin_build_resource_path(EinaPlugin *plugin, gchar *resource);
 gchar *eina_plugin_build_userdir_path (EinaPlugin *plugin, gchar *path);
 
-#ifdef EINA_COMPILATION
-GList *
-eina_iface_list_available_plugins(EinaIFace *self);
-#endif
 
 #define eina_iface_verbose(...) _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
 #define eina_iface_debug(...)   _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)
