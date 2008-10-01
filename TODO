@@ -18,7 +18,7 @@ V Format used in EinaPlayer and EinaPlaylist must be customizable
 - i18n
 - LastFM Info plugin (Update on demand, CSS love)
 - Fix issues with stock icons
-- Kill eina_stream_format
+V Kill eina_stream_format
 
 0.10 Series
 ===========

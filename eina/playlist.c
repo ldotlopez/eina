@@ -746,12 +746,18 @@ void
 on_pl_lomo_add (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
 	GtkTreeIter iter;
-	gchar *title = NULL, *tmp;
+	gchar *title = NULL, *tmp, *tmp2;
 
-	lomo_stream_format(stream,
-		"%t", 0,
-		LOMO_STREAM_URL_DECODE | LOMO_STREAM_BASENAME | LOMO_STREAM_UTF8,
-		&title);
+	title = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+	if (title == NULL)
+	{
+		tmp = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+		tmp2 = g_uri_unescape_string(tmp, NULL);
+		g_free(tmp);
+
+		title = g_path_get_basename(tmp2);
+		g_free(tmp2);
+	}
 
 	tmp = title;
 	title = g_markup_escape_text(title, -1);
