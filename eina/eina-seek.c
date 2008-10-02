@@ -35,6 +35,12 @@ struct _EinaSeekPrivate {
 };
 
 static void
+eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp);
+
+static void
+eina_seek_sync_values(EinaSeek *self);
+
+static void
 player_seek_value_changed_cb (GtkWidget *w, EinaSeek *self);
 
 static gboolean
@@ -51,6 +57,9 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaSeek *self);
 
 static void
 lomo_state_change_cb(LomoPlayer *lomo, EinaSeek *self);
+
+static void
+lomo_clear_cb(LomoPlayer *lomo, EinaSeek *self);
 
 static void
 eina_seek_get_property (GObject *object, guint property_id,
@@ -194,6 +203,7 @@ eina_seek_new (void)
 	g_object_set(G_OBJECT(self), "draw-value", FALSE, NULL);
 	gtk_range_set_range(GTK_RANGE(self), 0, 1000);
 	gtk_range_set_update_policy(GTK_RANGE(self), GTK_UPDATE_CONTINUOUS);
+	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
 
 	g_signal_connect(self, "value-changed",
 		G_CALLBACK(player_seek_value_changed_cb), self);
@@ -234,6 +244,7 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 		g_signal_handlers_disconnect_by_func(priv->lomo, eina_seek_updater_start, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, eina_seek_updater_stop, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_state_change_cb, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_clear_cb, self);
 		g_object_unref(priv->lomo);
 	}
 
@@ -257,6 +268,15 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 
 	g_signal_connect(lomo, "change",
 		G_CALLBACK(lomo_change_cb), self);
+	g_signal_connect(lomo, "clear",
+		G_CALLBACK(lomo_clear_cb), self);
+
+	priv->total_is_desync = TRUE;
+	eina_seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
+	if (lomo_player_get_current(priv->lomo) >= 0)
+		gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
+	else
+		gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
 }
 
 LomoPlayer *
@@ -279,6 +299,7 @@ eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label)
 		 g_object_unref(priv->time_labels[id]);
 	g_object_ref(label);
 	priv->time_labels[id] = label;
+	eina_seek_sync_values(self);
 }
 
 void
@@ -394,6 +415,16 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
    }
 }
 
+static void
+eina_seek_sync_values(EinaSeek *self)
+{
+	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
+	if (priv->lomo == NULL)
+		return;
+	priv->total_is_desync = TRUE;
+	eina_seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
+}
+
 /*
  * Callbacks
  */
@@ -436,7 +467,6 @@ gboolean player_seek_timeout_cb(EinaSeek *self) {
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	gint64 len = 0, pos = 0;
 	gdouble percent;
-	// gchar *markup;
 	
 	len = lomo_player_length_time(priv->lomo);
 	if ((lomo_player_get_state(priv->lomo) == LOMO_STATE_STOP) || len == 0 ) {
@@ -457,14 +487,6 @@ gboolean player_seek_timeout_cb(EinaSeek *self) {
 		self);
 
 	eina_seek_update_values(self, pos, len, FALSE);
-	/*
-	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
-	{
-		markup = g_strdup_printf("<small><tt>%02d:%02d</tt></small>", (gint) (lomo_nanosecs_to_secs(pos) / 60), (gint)(lomo_nanosecs_to_secs(pos) % 60));
-		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], markup);
-		g_free(markup);
-	}
-	*/
 	return TRUE;
 }
 
@@ -472,30 +494,32 @@ void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaSeek *self)
 {
 	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
+	if (from == to)
+		return;
+
+	if ((from == -1) && (to >= 0))
+	{
+		gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
+	}
+	if ((from >= 0) && (to == -1))
+	{
+		gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
+	}
 	priv->total_is_desync = TRUE;
 	gtk_range_set_value(GTK_RANGE(self), (gdouble) 0);
+}
+
+void lomo_clear_cb(LomoPlayer *lomo, EinaSeek *self)
+{
+	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
+	priv->total_is_desync = TRUE;
+	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
+	gtk_range_set_value(GTK_RANGE(self), (gdouble) 0);
+	eina_seek_update_values(self, -1, -1, FALSE);
 }
 
 void
 lomo_state_change_cb(LomoPlayer *lomo, EinaSeek *self)
 {
-	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
-	gint64 total = -1;
-	gchar *markup;
-
-	if (priv->time_labels[EINA_SEEK_TIME_TOTAL] == NULL)
-		return;
-	if (priv->total_is_desync == FALSE)
-		return;
-	total = lomo_player_length_time(lomo);
-	if (total == -1)
-		return;
-
-	if (priv->time_labels[EINA_SEEK_TIME_TOTAL])
-	{
-		markup = g_strdup_printf("<small><tt>%02d:%02d</tt></small>", (gint) (lomo_nanosecs_to_secs(total) / 60), (gint)(lomo_nanosecs_to_secs(total) % 60));
-		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], markup);
-		g_free(markup);
-	}
-	priv->total_is_desync = FALSE;
+	eina_seek_sync_values(self);
 }
