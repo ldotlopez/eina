@@ -346,7 +346,7 @@ eina_seek_fmt_time(gint64 time, gboolean tempstr)
 	if (time < 0)
 		return NULL;
 
-	gint secs = lomo_nanosecs_to_secs(total_time);
+	gint secs = lomo_nanosecs_to_secs(time);
 	if (tempstr)
 		return g_strdup_printf("<small><tt><i>%02d:%02d</i></tt></small>", secs / 60, secs % 60);
 	else
@@ -358,28 +358,37 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 {
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	gchar *current, *remaining, *total;
-	gint secs;
 
 	// Sync total
-	if ((total_time >= 0) && priv->total_is_desync)
+	if ((total_time >= 0) && priv->total_is_desync && priv->time_labels[EINA_SEEK_TIME_TOTAL])
 	{
 		total = eina_seek_fmt_time(total_time, FALSE);
 		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], total);
 		g_free(total);
-
 		priv->total_is_desync = FALSE;
 	}
 	else
 		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], NULL);
 
-	else
+	// Remaining
+	if (priv->time_labels[EINA_SEEK_TIME_REMAINING])
 	{
-		secs = lomo_nanosecs_to_secs(total_time);
-		total = g_strdup_printf("<small><tt>%02d:%02d</tt></small>", secs / 60, secs % 60);
+		if ((total_time >= 0) && (current_time >= 0) && (total_time >= current_time))
+			remaining =  eina_seek_fmt_time(total_time - current_time, temp);
+		else
+			remaining = NULL;
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_REMAINING], remaining);
+		g_free(remaining);
 	}
 
-	if (temp)
+	// Current
+	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
 	{
+		if (current_time >= 0)
+			current = eina_seek_fmt_time(current_time, temp);
+		else
+			current = NULL;
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], current);
 	}
 }
 
@@ -391,7 +400,7 @@ void player_seek_value_changed_cb(GtkWidget *w, EinaSeek *self) {
 	gint64  total;
 	gint64  pseudo_pos;
 	gdouble val;
-	gchar  *markup;
+	// gchar  *markup;
 
 	/* 
 	 * Stop the timeout function if any 
@@ -405,6 +414,8 @@ void player_seek_value_changed_cb(GtkWidget *w, EinaSeek *self) {
 	val = gtk_range_get_value(GTK_RANGE(self));
 	pseudo_pos = total * (val/1000);
 
+	eina_seek_update_values(self, pseudo_pos, total, TRUE);
+#if 0
 	// XXX: Handle remaining
 	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
 	{
@@ -414,7 +425,7 @@ void player_seek_value_changed_cb(GtkWidget *w, EinaSeek *self) {
 		gtk_label_set_markup(GTK_LABEL(priv->time_labels[EINA_SEEK_TIME_CURRENT]), markup);
 		g_free(markup);
 	}
-
+#endif
 	/* Create a timeout function */
 	priv->pos = pseudo_pos;
 	priv->real_id = g_timeout_add(100, (GSourceFunc) eina_seek_real_seek, self);
