@@ -29,23 +29,6 @@ typedef struct {
 typedef struct {
 	GObjectClass parent_class;
 } LomoStreamClass;
-#if 0
-enum {
-	LOMO_STREAM_NONE = 0,
-	LOMO_STREAM_URI  = 1,
-
-	/* Dirname, basename or all(nothing to do) */
-	LOMO_STREAM_FULLNAME = 1 << 2,
-	LOMO_STREAM_DIRNAME  = 1 << 3,
-	LOMO_STREAM_BASENAME = 1 << 4,
-
-	/* Other options */
-	LOMO_STREAM_UTF8       = 1 << 5,
-	LOMO_STREAM_ESCAPE     = 1 << 6,
-	LOMO_STREAM_LOCALE     = 1 << 7,
-	LOMO_STREAM_URL_DECODE = 1 << 8
-};
-#endif
 
 /* 
  * To (re-)generate this list, run:
@@ -108,7 +91,6 @@ typedef const gchar* LomoTag;
 GType lomo_stream_get_type (void);
 
 LomoStream* lomo_stream_new (gchar *uri);
-// gboolean lomo_stream_format(LomoStream *self, const gchar *fmt, gint max_fails, gint flags, gchar **dest);
 gboolean lomo_stream_has_all_tags(LomoStream *self);
 
 

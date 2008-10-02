@@ -746,18 +746,22 @@ void
 on_pl_lomo_add (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
 	GtkTreeIter iter;
-	gchar *title = NULL, *tmp, *tmp2;
+	gchar *title = NULL, *tmp;
 
 	title = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
 	if (title == NULL)
 	{
-		tmp = lomo_stream_get_tag(stream, LOMO_TAG_URI);
-		tmp2 = g_uri_unescape_string(tmp, NULL);
+		tmp = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+		title = g_path_get_basename(tmp);
 		g_free(tmp);
-
-		title = g_path_get_basename(tmp2);
-		g_free(tmp2);
 	}
+
+/*
+	lomo_stream_format(stream,
+		"%t", 0,
+		LOMO_STREAM_URL_DECODE | LOMO_STREAM_BASENAME | LOMO_STREAM_UTF8,
+		&title);
+*/
 
 	tmp = title;
 	title = g_markup_escape_text(title, -1);
@@ -848,9 +852,11 @@ on_pl_lomo_all_tags (
 	}
 
 	/* Search the stream on the treeview */
-	while(gtk_list_store_iter_is_valid(GTK_LIST_STORE(model), &iter)) {
+	while (gtk_list_store_iter_is_valid(GTK_LIST_STORE(model), &iter))
+	{
 		gtk_tree_model_get(model, &iter, PLAYLIST_COLUMN_URI, &uri, -1);
-		if (g_str_equal(lomo_stream_get_tag(stream, LOMO_TAG_URI), uri)) {
+		if (g_str_equal(lomo_stream_get_tag(stream, LOMO_TAG_URI), uri))
+		{
 	  		/* Title */
 			title = gel_str_parser((gchar *) self->title_fmtstr, 
 				(GelStrParserFunc) playlist_format_stream_cb, stream);
@@ -858,7 +864,8 @@ on_pl_lomo_all_tags (
 			/* Duration */
 			if ((duration = lomo_stream_get_tag(stream, LOMO_TAG_DURATION)) == NULL)
 				duration_str = NULL;
-			else {
+			else
+			{
 				duration_str = g_strdup_printf("%02d:%02d",
 					(gint) lomo_nanosecs_to_secs(*duration) / 60,
 					(gint) lomo_nanosecs_to_secs(*duration) % 60);
