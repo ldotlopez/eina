@@ -1,19 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Spanish po file for Eina
+# Copyright (C) 2008
+# This file is distributed under the same license as the Eina package.
+# xuzo . <xuzo@cuarentaydos.com>, 2008.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: Eina 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-25 17:44+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2008-10-03 13:28+0200\n"
+"PO-Revision-Date: 2008-10-03 13:25+0200\n"
+"Last-Translator: xuzo . <xuzo@cuarentaydos.com>\n"
+"Language-Team: ES <eina-users@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../eina/base.c:22
@@ -25,84 +25,33 @@ msgstr ""
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:166
+#: ../eina/eina-file-chooser-dialog.c:136
 msgid "_Enqueue"
-msgstr ""
+msgstr "_Encolar"
 
-#: ../eina/eina-file-chooser-dialog.c:174
+#: ../eina/eina-file-chooser-dialog.c:144
 msgid "Enqueue files"
-msgstr ""
-
-#: ../ui/player.ui.h:1
-msgid "\t"
-msgstr ""
-
-#: ../ui/player.ui.h:2
-msgid "<small><tt>00:00</tt></small>"
-msgstr ""
-
-#: ../ui/player.ui.h:3
-msgid "<small><tt>07:59</tt></small>"
-msgstr ""
-
-#: ../ui/player.ui.h:5
-#, no-c-format
-msgid ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
-msgstr ""
-
-#: ../ui/player.ui.h:7
-msgid "Dock"
-msgstr ""
-
-#: ../ui/player.ui.h:8
-msgid "Next song"
-msgstr ""
-
-#: ../ui/player.ui.h:9
-msgid "Previous song"
-msgstr ""
-
-#: ../ui/playlist.ui.h:1
-msgid "Activate or deactivate random mode"
-msgstr ""
-
-#: ../ui/playlist.ui.h:2
-msgid "Activate or deactivate repeat mode"
-msgstr ""
-
-#: ../ui/playlist.ui.h:3
-msgid "Add or enqueue songs to this playlist"
-msgstr ""
-
-#: ../ui/playlist.ui.h:4
-msgid "Clear the playlist"
-msgstr ""
-
-#: ../ui/playlist.ui.h:5
-msgid "Playlist"
-msgstr ""
-
-#: ../ui/playlist.ui.h:6
-msgid "Remove selected songs from this playlist"
-msgstr ""
+msgstr "_Encolar ficheros"
 
 #: ../ui/about.ui.h:1
 msgid "A classic player for the modern era"
-msgstr ""
+msgstr "Un reproductor clásico para los tiempos modernos"
 
 #: ../ui/about.ui.h:2
 msgid "About Eina"
-msgstr ""
+msgstr "Sobre Eina"
 
 #: ../ui/about.ui.h:3
+msgid "About|Website"
+msgstr "Página web"
+
+#: ../ui/about.ui.h:4
 msgid ""
 "Copyright &#xA9; 2003-2008 xuzo\n"
 "Copyright &#xA9; 2003-2005 xuzo and eru"
 msgstr ""
 
-#: ../ui/about.ui.h:5
+#: ../ui/about.ui.h:6
 msgid ""
 "Eina is free software; you can redistribute it and/or modify it under the "
 "terms of the GNU General Public License as published by the Free Software "
@@ -115,14 +64,115 @@ msgid ""
 "details.\n"
 "\n"
 "You should have received a copy of the GNU General Public License along with "
-"Glade; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
 "Street, Fifth Floor, Boston, MA 02110-1301, USA."
 msgstr ""
 
-#: ../ui/about.ui.h:10
-msgid "None yet :)"
-msgstr ""
-
 #: ../ui/about.ui.h:11
-msgid "Website"
+msgid "None yet :)"
+msgstr "Ninguno aún"
+
+#: ../ui/player.ui.h:1
+msgid "\t"
+msgstr "\t"
+
+#: ../ui/player.ui.h:2
+msgid "<small><tt>00:00</tt></small>"
+msgstr "<small><tt>00:00</tt></small>"
+
+#: ../ui/player.ui.h:3
+msgid "<small><tt>07:59</tt></small>"
+msgstr "<small><tt>07:59</tt></small>"
+
+#: ../ui/player.ui.h:5
+#, no-c-format
+msgid ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
 msgstr ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
+
+#: ../ui/player.ui.h:7
+msgid "Browse"
+msgstr "Examinar"
+
+#: ../ui/player.ui.h:8
+msgid "Dock"
+msgstr "Dock"
+
+#: ../ui/player.ui.h:9
+msgid "Next song"
+msgstr "Pasar al siguiente tema"
+
+#: ../ui/player.ui.h:10
+msgid "Previous song"
+msgstr "Volver al tema anterior"
+
+#: ../ui/playlist.ui.h:1
+msgid "Activate or deactivate random mode"
+msgstr "Activar o desactivar el modo aleatorio"
+
+#: ../ui/playlist.ui.h:2
+msgid "Activate or deactivate repeat mode"
+msgstr "Activar o desactivar el modo repeticin"
+
+#: ../ui/playlist.ui.h:3
+msgid "Add or enqueue songs to this playlist"
+msgstr "Aadir o encolar temas a la lista de reproduccin"
+
+#: ../ui/playlist.ui.h:4
+msgid "Clear the playlist"
+msgstr "Vaciar la lista de reproduccin"
+
+#: ../ui/playlist.ui.h:5
+msgid "Playlist"
+msgstr "Lista de reproduccin"
+
+#: ../ui/playlist.ui.h:6
+msgid "Remove selected songs from this playlist"
+msgstr "Eliminar los temas seleccionados de la lista de reproduccin"
+
+#: ../ui/plugins.ui.h:1
+msgid "<b>Author:</b>"
+msgstr "<b>Autor:</b>"
+
+#: ../ui/plugins.ui.h:2
+msgid "<b>Website:</b>"
+msgstr "<b>Página web:</b>"
+
+#: ../ui/plugins.ui.h:3
+msgid "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+msgstr "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+
+#: ../ui/plugins.ui.h:4
+msgid "<u>http://eina.sf.net</u>"
+msgstr "<u>http://eina.sf.net</u>"
+
+#: ../ui/plugins.ui.h:5
+msgid "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
+msgstr "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
+
+#: ../ui/plugins.ui.h:6
+msgid ""
+"Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
+"incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+"nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
+"consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
+"dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
+"proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+msgstr ""
+"Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
+"incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+"nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
+"consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
+"dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
+"proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
+#: ../ui/plugins.ui.h:7
+msgid "More for your covers"
+msgstr "Más para tus cartulas"
+
+#: ../ui/plugins.ui.h:8
+msgid "gtk-close"
+msgstr "gtk-close"

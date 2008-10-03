@@ -20,6 +20,9 @@ V Format used in EinaPlayer and EinaPlaylist must be customizable
 - LastFM Info plugin (Update on demand, CSS love)
 - Fix issues with stock icons
 V Kill eina_stream_format
+- Under some circunstances Eina shows no cover
+- If eina window is maximized, dock must be expanded, if no dock, eina cannot
+  will maximize
 
 0.10 Series
 ===========

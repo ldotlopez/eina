@@ -2,6 +2,8 @@
 eina/base.c
 eina/eina-file-chooser-dialog.c
 
-[type: gettext/glade]ui/player.ui
-[type: gettext/glade]ui/playlist.ui
 [type: gettext/glade]ui/about.ui
+[type: gettext/glade]ui/player.ui
+[type: gettext/glade]ui/player-menu.ui
+[type: gettext/glade]ui/playlist.ui
+[type: gettext/glade]ui/plugins.ui

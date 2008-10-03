@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-25 17:44+0200\n"
+"POT-Creation-Date: 2008-10-03 13:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,12 +25,51 @@ msgstr ""
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:166
+#: ../eina/eina-file-chooser-dialog.c:136
 msgid "_Enqueue"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:174
+#: ../eina/eina-file-chooser-dialog.c:144
 msgid "Enqueue files"
+msgstr ""
+
+#: ../ui/about.ui.h:1
+msgid "A classic player for the modern era"
+msgstr ""
+
+#: ../ui/about.ui.h:2
+msgid "About Eina"
+msgstr ""
+
+#: ../ui/about.ui.h:3
+msgid "About|Website"
+msgstr ""
+
+#: ../ui/about.ui.h:4
+msgid ""
+"Copyright &#xA9; 2003-2008 xuzo\n"
+"Copyright &#xA9; 2003-2005 xuzo and eru"
+msgstr ""
+
+#: ../ui/about.ui.h:6
+msgid ""
+"Eina is free software; you can redistribute it and/or modify it under the "
+"terms of the GNU General Public License as published by the Free Software "
+"Foundation; either version 2 of the License, or (at your option) any later "
+"version.\n"
+"\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
+"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
+"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
+"details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License along with "
+"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+msgstr ""
+
+#: ../ui/about.ui.h:11
+msgid "None yet :)"
 msgstr ""
 
 #: ../ui/player.ui.h:1
@@ -49,18 +88,22 @@ msgstr ""
 #, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
 msgstr ""
 
 #: ../ui/player.ui.h:7
-msgid "Dock"
+msgid "Browse"
 msgstr ""
 
 #: ../ui/player.ui.h:8
-msgid "Next song"
+msgid "Dock"
 msgstr ""
 
 #: ../ui/player.ui.h:9
+msgid "Next song"
+msgstr ""
+
+#: ../ui/player.ui.h:10
 msgid "Previous song"
 msgstr ""
 
@@ -88,41 +131,40 @@ msgstr ""
 msgid "Remove selected songs from this playlist"
 msgstr ""
 
-#: ../ui/about.ui.h:1
-msgid "A classic player for the modern era"
+#: ../ui/plugins.ui.h:1
+msgid "<b>Author:</b>"
 msgstr ""
 
-#: ../ui/about.ui.h:2
-msgid "About Eina"
+#: ../ui/plugins.ui.h:2
+msgid "<b>Website:</b>"
 msgstr ""
 
-#: ../ui/about.ui.h:3
+#: ../ui/plugins.ui.h:3
+msgid "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:4
+msgid "<u>http://eina.sf.net</u>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:5
+msgid "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:6
 msgid ""
-"Copyright &#xA9; 2003-2008 xuzo\n"
-"Copyright &#xA9; 2003-2005 xuzo and eru"
+"Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
+"incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+"nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
+"consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
+"dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
+"proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 msgstr ""
 
-#: ../ui/about.ui.h:5
-msgid ""
-"Eina is free software; you can redistribute it and/or modify it under the "
-"terms of the GNU General Public License as published by the Free Software "
-"Foundation; either version 2 of the License, or (at your option) any later "
-"version.\n"
-"\n"
-"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
-"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
-"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
-"details.\n"
-"\n"
-"You should have received a copy of the GNU General Public License along with "
-"Glade; if not, write to the Free Software Foundation, Inc., 51 Franklin "
-"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+#: ../ui/plugins.ui.h:7
+msgid "More for your covers"
 msgstr ""
 
-#: ../ui/about.ui.h:10
-msgid "None yet :)"
-msgstr ""
-
-#: ../ui/about.ui.h:11
-msgid "Website"
+#: ../ui/plugins.ui.h:8
+msgid "gtk-close"
 msgstr ""

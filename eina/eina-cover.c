@@ -233,6 +233,8 @@ eina_cover_set_default_cover(EinaCover *self, gchar *filename)
 	if (priv->default_cover != NULL)
 		g_free(priv->default_cover);
 	priv->default_cover = g_strdup(filename);
+	if (priv->backend_state != EINA_COVER_BACKEND_STATE_RUNNING)
+		eina_cover_set_cover(self, G_TYPE_STRING, priv->default_cover);
 }
 
 gchar *

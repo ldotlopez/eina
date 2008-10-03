@@ -15,7 +15,7 @@
 Copyright © 2003-2005 xuzo and eru</property>
     <property name="comments" translatable="yes">A classic player for the modern era</property>
     <property name="website">http://eina.sourceforge.net/</property>
-    <property name="website_label" translatable="yes">Website</property>
+    <property name="website_label" translatable="yes" context="yes" comments="aaa">About|Website</property>
     <property name="license" translatable="yes">Eina is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
 Eina is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
