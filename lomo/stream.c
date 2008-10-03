@@ -105,7 +105,10 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 	{
 		if (tag_fmt_table[i].key == id)
 		{
-			ret = g_strdup_printf(tag_fmt_table[i].fmt, lomo_stream_get_tag(self, tag_fmt_table[i].tag));
+			const gchar *tag_str = lomo_stream_get_tag(self, tag_fmt_table[i].tag);
+			if (tag_str == NULL)
+				return NULL;
+			ret = g_strdup_printf(tag_fmt_table[i].fmt, tag_str);
 			break;
 		}
 	}
