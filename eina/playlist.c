@@ -663,13 +663,13 @@ __eina_playlist_sort_int_desc(gconstpointer a, gconstpointer b)
 static gchar*
 playlist_format_stream_cb(gchar key, LomoStream *stream)
 {
-	return  lomo_stream_get_tag_by_id(stream, key);
-	/*
 	gchar *tag = lomo_stream_get_tag_by_id(stream, key);
-	gchar *ret = g_markup_escape_text(tag, -1);
-	g_free(tag);
-	return ret;
-	*/
+	if ((tag == NULL) && (key == 't'))
+	{
+		tag = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+	}
+
+	return tag;
 }
 
 void

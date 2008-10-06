@@ -458,53 +458,15 @@ eina_player_set_info(EinaPlayer *self, LomoStream *stream)
 	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), stream_info);
 	g_free(stream_info);
 
-	title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
-	if (tmp == NULL)
+	if ((title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE))) == NULL)
 	{
 		tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		title =  g_uri_unescape_string(tmp, NULL);
 		g_free(tmp);
 	}
+
 	gtk_window_set_title(GTK_WINDOW(W(self,"main-window")), title);
 	g_free(title);
-
-	// Old code to handle "by-hand" the creation of markup for the label
-#if 0
-	// Create a working copy of title
-	tag = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
-	if (tag == NULL)
-	{
-		tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
-		tag = g_uri_unescape_string(tmp, NULL);
-		g_free(tmp);
-	}
-	gtk_window_set_title(GTK_WINDOW(W(self, "main-window")), tag);
-
-	tmp = g_markup_escape_text(tag, -1);
-	g_free(tag);
-	info_str = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", tmp);
-	g_free(tmp);
-
-	// Idem for artist, lomo_stream_get_tag gets a reference, remember this.
-	tag = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-	if (tag == NULL)
-	{
-		tmp = info_str;
-		info_str = g_strconcat(info_str, "\n<span size=\"x-large\" weight=\"normal\">\uFEFF</span>", NULL);
-		g_free(tmp);
-	}
-	else
-	{
-		markup = g_markup_escape_text(tag, -1);
-		tmp = info_str;
-		info_str = g_strconcat(info_str, "\n<span size=\"x-large\" weight=\"normal\">", markup, "</span>", NULL);
-		g_free(tmp);
-		g_free(markup);
-	}
-
-	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), info_str);
-	g_free(info_str);
-#endif
 }
 
 static EinaFsFilterAction
