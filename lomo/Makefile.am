@@ -14,7 +14,7 @@ NO_INST_H_FILES =   \
 	meta.h          \
 	pl.h            \
 	player-priv.h   \
-	player-vtable.h
+	player-defaul-vtable.h
 
 INST_H_FILES = \
 	player.h   \
@@ -28,6 +28,7 @@ liblomo_1_0_la_SOURCES = \
 	lomo-marshal.c     \
 	meta.c             \
 	pl.c               \
+	player-default-vtable.c \
 	player-priv.c      \
 	player.c           \
 	stream.c           \

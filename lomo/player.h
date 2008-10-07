@@ -28,23 +28,6 @@ typedef enum {
 
 	LOMO_FORMATS
 } LomoFormat;
-/*
-typedef enum
-{
-	LOMO_PLAYER_ERROR_NO_INPUT_PLUGIN,
-	LOMO_PLAYER_ERROR_NO_QUEUE_PLUGIN,
-	LOMO_PLAYER_ERROR_NO_TYPEFIND_PLUGIN,
-	LOMO_PLAYER_ERROR_NO_DEMUX_PLUGIN,
-	LOMO_PLAYER_ERROR_NO_VOLUME_PLUGIN,
-	LOMO_PLAYER_ERROR_DEMUX_FAILED,
-	LOMO_PLAYER_ERROR_NO_AUDIO,
-	LOMO_PLAYER_ERROR_GENERAL,
-	LOMO_PLAYER_ERROR_INTERNAL
-} LomoPlayerError;
-#define LOMO_PLAYER_ERROR lomo_player_error_quark ()
-
-// GQuark lomo_player_error_quark (void);
-*/
 
 #define LOMO_TYPE_PLAYER         (lomo_player_get_type ())
 #define LOMO_PLAYER(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), LOMO_TYPE_PLAYER, LomoPlayer))
@@ -52,6 +35,27 @@ typedef enum
 #define LOMO_IS_PLAYER(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), LOMO_TYPE_PLAYER))
 #define LOMO_IS_PLAYER_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), LOMO_TYPE_PLAYER))
 #define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
+
+typedef struct {
+	GstPipeline* (*create)  (GHashTable *opts);
+	void         (*destroy) (GstPipeline *pipeline);
+
+	gboolean     (*set_stream)  (GstPipeline *pipeline, const gchar *uri);
+	gchar*       (*get_stream)  (GstPipeline *pipeline);
+
+	GstStateChangeReturn (*set_state) (GstPipeline *pipeline, GstState state);
+	GstState             (*get_state) (GstPipeline *pipeline);
+
+	gboolean             (*query_position) (GstPipeline *pipeline, GstFormat *format, gint64 *position);
+	gboolean             (*query_duration) (GstPipeline *pipeline, GstFormat *format, gint64 *duration);
+
+	gboolean (*set_volume) (GstPipeline *pipeline, gint volume);
+	gint     (*get_volume) (GstPipeline *pipeline);
+
+	gboolean (*set_mute) (GstPipeline *pipeline, gboolean mute);
+	gboolean (*get_mute) (GstPipeline *pipeline);
+} LomoPlayerVTable;
+
 
 typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
 
@@ -90,7 +94,10 @@ GType		lomo_player_get_type   (void);
 
 void lomo_init(gint *argc, gchar **argv[]);
 
-LomoPlayer       *lomo_player_new(gchar *audio_output, GError **error);
+// LomoPlayer       *lomo_player_new(gchar *audio_output, GError **error);
+LomoPlayer       *lomo_player_new_with_opts(const gchar *option_name, ...);
+#define lomo_player_new lomo_player_new_with_opts("audio-output", "autoaudiosink", NULL);
+
 gboolean          lomo_player_reset(LomoPlayer *self, GError **error);
 const LomoStream *lomo_player_get_stream(LomoPlayer *self);
 

@@ -12,7 +12,7 @@ G_MODULE_EXPORT gboolean eina_lomo_init
 	GError   *err = NULL;
 	LomoPlayer *engine = NULL;
 
-	engine = lomo_player_new("autoaudiosink", &err);
+	engine = lomo_player_new_with_opts("audio-output", "autoaudiosink", NULL);
 
 	if (!engine)
 	{
