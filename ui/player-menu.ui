@@ -10,6 +10,7 @@
 	</menu>
 
     <menu name="Help" action="HelpMenu">
+	  <menuitem name="Help" action="Help" />
 	  <menuitem name="About" action="About" />
 	</menu>
   </menubar>

@@ -360,7 +360,8 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 		NULL);
 	lomo_player_set_volume(self, self->priv->volume);
 	lomo_player_set_mute  (self, self->priv->mute);
-	gst_element_set_state (self->priv->pipeline, GST_STATE_READY);
+	if (gst_element_set_state (self->priv->pipeline, GST_STATE_READY) == GST_STATE_CHANGE_FAILURE)
+		g_printf("ERROR: change state\n");
 
 	return TRUE;
 }
@@ -420,6 +421,7 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 		return LOMO_STATE_CHANGE_FAILURE;
 		break;
 	}
+	g_printf("Set state return: %d (%d)\n", ret, ret == GST_STATE_CHANGE_FAILURE);
 
 	if (ret == GST_STATE_CHANGE_FAILURE)
 	{
@@ -755,7 +757,7 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, prev, pos);
 
 	// Restore state
-	if (lomo_player_set_state(self, state, NULL) == LOMO_STATE_CHANGE_FAILURE)
+	if (lomo_player_set_state(self, state, NULL) == LOMO_STATE_CHANGE_FAILURE) 
 	{
 		lomo_player_set_error(error, LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
 			"Error while changing state");
@@ -835,6 +837,7 @@ static gboolean _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpoin
 
 	switch (GST_MESSAGE_TYPE(message)) {
 		case GST_MESSAGE_ERROR:
+			g_printf("Got GST_MESSAGE_ERROR\n");
 			gst_message_parse_error(message, &err, &debug);
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[ERROR], 0, err, debug);
 			g_error_free(err);

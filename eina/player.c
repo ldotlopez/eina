@@ -111,13 +111,16 @@ static GtkActionEntry ui_actions[] = {
 
 	// Menu item actions 
 	{ "Quit", GTK_STOCK_QUIT, N_("Quit"),
-	"<control>q", "Quit", G_CALLBACK(menu_activate_cb) },
+	"<control>q", NULL, G_CALLBACK(menu_activate_cb) },
 
 	{ "Plugins", NULL, N_("Plugins"),
 	NULL, NULL, G_CALLBACK(menu_activate_cb) },
 
 	{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
-	NULL, NULL, G_CALLBACK(menu_activate_cb) },
+  	"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
+
+	{ "Help", GTK_STOCK_HELP, N_("Help"),
+	NULL, "About", G_CALLBACK(menu_activate_cb) },
 
 	{ "About", GTK_STOCK_ABOUT, N_("About"),
 	NULL, "About", G_CALLBACK(menu_activate_cb) }

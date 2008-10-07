@@ -26,7 +26,7 @@ static struct TagFmt tag_fmt_table [] = {
 };
 
 struct _LomoStreamPrivate {
-	gboolean all_tags;
+	gboolean all_tags, failed;
 };
 
 static void
@@ -93,6 +93,19 @@ void lomo_stream_set_all_tags(LomoStream *self, gboolean val)
 {
 	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
 	priv->all_tags = val;
+}
+
+gboolean
+lomo_stream_is_failed(LomoStream *self)
+{
+	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
+	return priv->failed;
+}
+
+void lomo_stream_set_failed(LomoStream *self, gboolean val)
+{
+	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
+	priv->failed = val;
 }
 
 gchar *
