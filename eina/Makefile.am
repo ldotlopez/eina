@@ -34,6 +34,7 @@ INST_H_FILES = \
 	base.h                     \
 	iface.h                    \
 	eina-cover.h               \
+	eina-preferences-dialog.h  \
 	fs.h                       \
 	settings.h
 
@@ -47,6 +48,7 @@ eina_SOURCES = \
 	class-conf-file.c          \
 	eina-cover.c               \
 	eina-file-chooser-dialog.c \
+	eina-preferences-dialog.c  \
 	eina-seek.c                \
 	eina-volume.c              \
 	ether.c                    \
