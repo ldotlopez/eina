@@ -21,6 +21,7 @@ struct _EinaFileChooserDialogPrivate {
 void
 eina_file_chooser_dialog_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
 
+#if !GTK_CHECK_VERSION(2,14,0)
 static GObject*
 eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectConstructParam *properties)
 {
@@ -52,6 +53,7 @@ eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectCon
 
 	return obj;
 }
+#endif
 
 static void
 eina_file_chooser_dialog_dispose (GObject *object)
@@ -73,7 +75,9 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	g_type_class_add_private (klass, sizeof (EinaFileChooserDialogPrivate));
 
+#if !GTK_CHECK_VERSION(2,14,0)
 	object_class->constructor = eina_file_chooser_dialog_constructor;
+#endif
 	object_class->dispose = eina_file_chooser_dialog_dispose;
 	object_class->finalize = eina_file_chooser_dialog_finalize;
 

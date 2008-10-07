@@ -9,16 +9,16 @@ V EinaPlayer must follow markup from stream-info-label using gel_parse_str
 - Finish EinaFSDialog
 ~ Write preferences and plugin dialogs
 V Total/remaining time are not working perfectly
-- Volume icons are not perfect
+V Volume icons are not perfect
 - EinaVogon should switch between play/pause, pluginize
-- Play/pause button hasn't tooltip
+V Play/pause button hasn't tooltip
 V Format used in EinaPlayer and EinaPlaylist must be customizable
 - Recently plugin doesnt work
 - Keybindings like 'del' to delete songs.
 V Seek has some problems when stop or not playing
 - i18n
 - LastFM Info plugin (Update on demand, CSS love)
-- Fix issues with stock icons
+V Fix issues with stock icons
 V Kill eina_stream_format
 - Under some circunstances Eina shows no cover
 - If eina window is maximized, dock must be expanded, if no dock, eina cannot

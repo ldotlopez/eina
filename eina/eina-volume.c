@@ -77,33 +77,7 @@ static void
 eina_volume_class_init (EinaVolumeClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-	gint i;
-/*
-	GdkPixbuf *pb;
-	GError *err = NULL;
-	gchar *tmp;
-	gchar *icons[] = {
-		"audio-volume-mute",
-		"audio-volume-high",
-		"audio-volume-low",
-		"audio-volume-medium",
-		NULL
-	};
-*/
-	gchar *filenames[] = {
-		"audio-volume-mute.png",
-		"audio-volume-high.png",
-		"audio-volume-low.png",
-		"audio-volume-medium.png",
-		NULL
-	};
-	gchar *stock_names[] = {
-		"eina-volume-mute",
-		"eina-volume-high",
-		"eina-volume-low",
-		"eina-volume-medium",
-		NULL
-	};
+
 	g_type_class_add_private (klass, sizeof (EinaVolumePrivate));
 
 	object_class->dispose = eina_volume_dispose;
@@ -113,55 +87,11 @@ eina_volume_class_init (EinaVolumeClass *klass)
 	g_object_class_install_property(object_class, EINA_VOLUME_LOMO_PLAYER_PROPERTY,
 		g_param_spec_object("lomo-player", "Lomo player", "Lomo Player to control/watch",
 		LOMO_TYPE_PLAYER, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-
-	for (i = 0; filenames[i] != NULL; i++)
-	{
-		if (!gel_ui_stock_add(filenames[i], stock_names[i], GTK_ICON_SIZE_SMALL_TOOLBAR, NULL))
-			gel_warn("Cannot add filename '%s' as '%s'", filenames[i], stock_names[i]);
-	}
-	/*
-	for (i = 0; icons[i] != NULL; i++) {
-		if ((tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, (gchar *) filenames[i])) == NULL) {
-			gel_warn("Cannot find %s pixmap", filenames[i]);
-			continue;
-		}
-
-		if ((pb = gdk_pixbuf_new_from_file(tmp, &err)) == NULL) {
-			gel_warn("Cannot load %s into pixbuf: %s", tmp, err->message);
-			g_error_free(err);
-			g_free(tmp);
-			continue;
-		}
-		g_free(tmp);
-
-		gtk_icon_theme_add_builtin_icon(icons[i], GTK_ICON_SIZE_SMALL_TOOLBAR, pb);
-	}
-	*/
 }
 
 static void
 eina_volume_init (EinaVolume *self)
 {
-	static const gchar *icons[] = {
-		"eina-volume-mute",
-		"eina-volume-high",
-		"eina-volume-low",
-		"eina-volume-medium",
-	/*
-		"audio-volume-mute",
-		"audio-volume-high",
-		"audio-volume-low",
-		"audio-volume-medium",
-		*/
-		NULL
-	};
-
-	gel_warn("I have problems with icons");
-	g_object_set(GTK_SCALE_BUTTON(self),
-		"size",  GTK_ICON_SIZE_SMALL_TOOLBAR,
-		"icons", icons,
-		NULL);
-
 	g_signal_connect(self, "value-changed",
 		G_CALLBACK(on_eina_volume_value_changed), self);
 #ifdef EINA_VOLUME_DYNAMIC_UPDATE

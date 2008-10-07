@@ -24,8 +24,8 @@ G_BEGIN_DECLS
 #define EINA_VOLUME_GET_CLASS(obj) \
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_VOLUME, EinaVolumeClass))
 
-#if !GTK_CHECK_VERSION(2,12,10)
-// Al least on 2.12.9 GtkVolumeButton headers don't declare this time making
+#if !GTK_CHECK_VERSION(2,15,0)
+// Al least on 2.14.3 GtkVolumeButton headers don't declare this time making
 // impossible to subclass it
 struct _GtkVolumeButton
 {
