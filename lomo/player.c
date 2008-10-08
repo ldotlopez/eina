@@ -284,6 +284,7 @@ static void lomo_player_init (LomoPlayer *self)
 	LomoPlayerVTable vtable = {
 		default_create,
 		default_destroy,
+		NULL,
 
 		default_set_stream,
 		NULL,
@@ -304,6 +305,7 @@ static void lomo_player_init (LomoPlayer *self)
 	self->priv = GET_PRIVATE(self);
 	self->priv->vtable = vtable;
 	self->priv->options = g_hash_table_new(g_str_hash, g_str_equal);
+
 	self->priv->volume = 50;
 	self->priv->mute   = FALSE;
 	self->priv->pl     = lomo_playlist_new();
@@ -355,51 +357,94 @@ lomo_player_new_with_opts(const gchar *option_name, ...)
 	return self;
 }
 
-gboolean lomo_player2_set_stream(LomoPlayer *self, LomoStream *stream, GError **error);
+gboolean lomo2_player_set_stream(LomoPlayer *self, LomoStream *stream, GError **error);
 
-LomoStateChangeReturn lomo_player2_set_state(LomoPlayer *self, LomoState state, GError **error);
-LomoState             lomo_player2_get_state(LomoPlayer *self, GError **error);
+LomoStateChangeReturn lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error);
+LomoState             lomo2_player_get_state(LomoPlayer *self, GError **error);
 
-gboolean lomo_player2_reset(LomoPlayer *self);
 
 // --
 // Basic operations, direct GStreamer access via LomoPlayerVTable
 // --
-gboolean lomo_player2_set_stream(LomoPlayer *self, LomoStream *stream, GError **error)
+gboolean lomo2_player_create_pipeline (LomoPlayer *self, GError **error);
+gboolean lomo2_player_destroy_pipeline(LomoPlayer *self, GError **error);
+gboolean lomo2_player_reset_pipeline  (LomoPlayer *self, GError **error);
+
+gboolean
+lomo2_player_create_pipeline(LomoPlayer *self, GError **error)
+{
+	// Destroy pipeline if exists
+	if (self->priv->dapaip != NULL)
+	{
+		if (!lomo2_player_destroy_pipeline(self, error))
+			return FALSE;
+	}
+
+	if ((self->priv->dapaip = self->priv->vtable.create(self->priv->options, error)) == NULL)
+		return FALSE;
+	else
+		return TRUE;
+}
+
+gboolean
+lomo2_player_destroy_pipeline(LomoPlayer *self, GError **error)
+{
+	return self->priv->vtable.destroy(self->priv->dapaip, error);
+}
+
+gboolean
+lomo2_player_reset_pipeline(LomoPlayer *self, GError **error)
+{
+	if (self->priv->vtable.reset)
+	{
+		return self->priv->vtable.reset(self->priv->dapaip, self->priv->options, error);
+	}
+	else
+	{
+		if (!lomo2_player_destroy_pipeline(self, error))
+			return FALSE;
+		if (!lomo2_player_create_pipeline(self, error))
+			return FALSE;
+		return TRUE;
+	}
+}
+
+gboolean
+lomo2_player_set_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 {
 	LomoState state;
 
-	state = lomo_player2_get_state(self, error);
-	switch (state)
+	// Change state if it is not STOP
+	if (state == LOMO_STATE_INVALID)
 	{
-	case LOMO_STATE_INVALID:
 		lomo_player_set_error(error, LOMO_PLAYER_ERROR_GET_STATE, _("Cannot get state"));
 		return FALSE;
-
-	case LOMO_STATE_PAUSE:
-	case LOMO_STATE_PLAY:
-		if (!lomo_player2_set_state(self, LOMO_STATE_STOP, error))
-			return FALSE;
-		break;
-	case LOMO_STATE_STOP:
-		break;
 	}
 
-	lomo_player2_reset(self);
+	// If cant set STOP state return with fail.
+	if ((state == LOMO_STATE_PAUSE) || (state == LOMO_STATE_PLAY))
+	{
+		if (!lomo2_player_set_state(self, LOMO_STATE_STOP, error))
+			return FALSE;
+	}
+
+	// Do a reset on the pipeline
+	if (!lomo2_player_reset_pipeline(self, error))
+		return FALSE;
+
+	// Call vfunc to set uri on the pipeline
 	if (self->priv->vtable.set_stream == NULL)
 	{
 		lomo_player_set_error(error, LOMO_PLAYER_ERROR_NO_VFUNC, _("Unavailable vfunc for set_stream"));
 		return FALSE;
 	}
-
 	return self->priv->vtable.set_stream(self->priv->dapaip, lomo_stream_get_tag(stream, LOMO_TAG_URI));
 }
 
-LomoState lomo_player2_get_state
+// get_state hook: No signal emission
+LomoState lomo2_player_get_state
 (LomoPlayer *self, GError **error)
 {
-	GstState state;
-
 	if (self->priv->stream == NULL)
 		return LOMO_STATE_STOP;
 
@@ -409,27 +454,11 @@ LomoState lomo_player2_get_state
 		return LOMO_STATE_INVALID;
 	}
 	
-	state = self->priv->vtable.get_state(self->priv->dapaip);
-	switch (state)
-	{
-	case GST_STATE_VOID_PENDING:
-	case GST_STATE_NULL:
-	case GST_STATE_READY:
-		return LOMO_STATE_STOP;
-
-	case GST_STATE_PAUSED:
-		return LOMO_STATE_PAUSE;
-
-	case GST_STATE_PLAYING:
-		return LOMO_STATE_PLAY;
-	}
-
-	g_error("This shouldn't happend");
-	return 0;
+	return lomo2_state_from_gst(self->priv->vtable.get_state(self->priv->dapaip));
 }
 
 LomoStateChangeReturn
-lomo_player2_set_state(LomoPlayer *self, LomoState state, GError **error)
+lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 {
 	GstState gst_state;
 	GstStateChangeReturn gst_ret;

@@ -37,8 +37,9 @@ typedef enum {
 #define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
 typedef struct {
-	GstPipeline* (*create)  (GHashTable *opts);
-	void         (*destroy) (GstPipeline *pipeline);
+	GstPipeline* (*create)  (GHashTable *opts, GError **error);
+	gboolean     (*destroy) (GstPipeline *pipeline, GError **error);
+	gboolean     (*reset)   (GstPipeline *pipeline, GHashTable *opts, GError **error);
 
 	gboolean     (*set_stream)  (GstPipeline *pipeline, const gchar *uri);
 	gchar*       (*get_stream)  (GstPipeline *pipeline);

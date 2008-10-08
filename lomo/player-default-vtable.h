@@ -1,8 +1,8 @@
 #include <gst/gst.h>
 #include <lomo/player.h>
 
-GstPipeline* default_create(GHashTable *opts);
-void         default_destroy(GstPipeline *pipeline);
+GstPipeline* default_create(GHashTable *opts, GError **error);
+gboolean     default_destroy(GstPipeline *pipeline, GError **error);
 
 gboolean default_set_stream(GstPipeline *pipeline, const gchar *uri);
 

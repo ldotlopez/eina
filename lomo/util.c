@@ -1,3 +1,4 @@
+#include <glib/gi18n.h>
 #include <gst/gst.h>
 #include "util.h"
 
@@ -72,7 +73,7 @@ lomo_state_from_gst(GstState state, LomoState *lomo_state)
 
 	return TRUE;
 }
-
+/*
 const gchar *
 gst_state_to_str(GstState state)
 {
@@ -90,5 +91,64 @@ gst_state_to_str(GstState state)
 		return "the element is PLAYING";
 	}
 	return NULL;
+}
+*/
+// --
+// Conversions between LomoStateChangeReturn and GstStateChangeReturn
+// --
+LomoStateChangeReturn
+lomo2_state_change_return_from_gst(GstStateChangeReturn in)
+{
+	// LomoStateChangeReturn and GstStateChangeReturn are mapped 1:1
+	return in;
+}
+
+GstStateChangeReturn
+lomo2_state_change_return_to_gst(LomoStateChangeReturn in)
+{
+	// LomoStateChangeReturn and GstStateChangeReturn are mapped 1:1
+	return in;
+}
+
+// --
+// Conversions between LomoState and GstState
+// --
+LomoState
+lomo2_state_from_gst(GstState in)
+{
+	switch (in)
+	{
+	case GST_STATE_VOID_PENDING:
+	case GST_STATE_NULL:
+		return LOMO_STATE_INVALID;
+	case GST_STATE_READY:
+		return LOMO_STATE_STOP;
+	case GST_STATE_PAUSED:
+		return LOMO_STATE_PAUSE;
+	case GST_STATE_PLAYING:
+		return LOMO_STATE_PLAY;
+	}
+
+	g_error(_("This point shouldn't be reached"));
+	return LOMO_STATE_INVALID;
+}
+
+GstState
+lomo2_state_to_gst(LomoState in)
+{
+	switch (in)
+	{
+	case LOMO_STATE_INVALID:
+		return GST_STATE_NULL;
+	case LOMO_STATE_STOP:
+		return GST_STATE_READY;
+	case LOMO_STATE_PAUSE:
+		return GST_STATE_PAUSED;
+	case LOMO_STATE_PLAY:
+		return GST_STATE_PLAYING;
+	}
+
+	g_error(_("This point shouldn't be reached"));
+	return GST_STATE_NULL;
 }
 

@@ -1,29 +1,44 @@
 #include "player-default-vtable.h"
+#define ERROR_DOMAIN "Lomo2PlayerCore"
+
+enum {
+	UNKNOW
+};
 
 GstPipeline*
-default_create(GHashTable *opts)
+default_create(GHashTable *opts, GError **error)
 {
 	GstElement *ret, *audio_sink;
 	const gchar *audio_sink_str;
 	
 	ret = gst_element_factory_make("playbin2", "playbin2");
 	if (ret == NULL)
+	{
+		if (error != NULL)
+			*error = g_error_new(g_quark_from_static_string(ERROR_DOMAIN), UNKNOW, "Cannot create pipeline");
 		return NULL;
+	}
 
 	audio_sink_str = (gchar *) g_hash_table_lookup(opts, (gpointer) "audio-output");
 	if (audio_sink_str == NULL)
 		audio_sink_str = "autoaudiosink";
 	
-	audio_sink = gst_element_factory_make(audio_sink_str, "audio-sink"); 
+	audio_sink = gst_element_factory_make(audio_sink_str, "audio-sink");
+	if (audio_sink == NULL)
+	{
+		g_object_unref(ret);
+		*error = g_error_new(g_quark_from_static_string(ERROR_DOMAIN), UNKNOW, "Cannot create audio-sink %s", audio_sink_str);
+	}
 	g_object_set(G_OBJECT(ret), "audio-sink", audio_sink, NULL);
 
 	return GST_PIPELINE(ret);
 }
 
-void
-default_destroy(GstPipeline *pipeline)
+gboolean
+default_destroy(GstPipeline *pipeline, GError **error)
 {
 	g_object_unref(pipeline);
+	return TRUE;
 }
 
 gboolean
