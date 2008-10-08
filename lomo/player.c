@@ -46,7 +46,7 @@ static gboolean _lomo_player_bus_watcher (
 struct _LomoPlayerPrivate {
 	LomoPlayerVTable  vtable;
 	GHashTable       *options;
-	GstPipeline      *dapaip;
+	GstElement       *dapaip;
 
 	const LomoStream *stream;
 
@@ -462,6 +462,7 @@ lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 {
 	GstState gst_state;
 	GstStateChangeReturn gst_ret;
+	LomoStateChangeReturn ret;
 
 	if (self->priv->vtable.set_state == NULL)
 	{
@@ -488,7 +489,33 @@ lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 		break;
 	}
 
-	gst_ret = self->priv->vtable.set_state(self->priv->dapaip, gst_state);
+	gst_ret = self->priv->vtable.set_state(self->priv->dapaip, gst_state, err);
+	ret = lomo2_state_change_return_from_gst(gst_ret);
+
+	// Handle async changes and failures
+	switch (ret)
+	{
+	case LOMO_STATE_CHANGE_FAILURE:
+		if (err == NULL)
+			lomo_player_set_error(err, LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE, "Cannot change state");
+		return ret;
+
+	case LOMO_STATE_CHANGE_ASYNC:
+		return ret;
+
+	default:
+		break;
+	}
+
+	case LOMO_STATE_CHANGE_SUCCESS:
+		switch(state)
+		{
+		case LOMO_STATE_STOP:
+			g_signal_emit
+		}
+		return ret;
+
+	}
 	return LOMO_STATE_CHANGE_FAILURE;
 }
 

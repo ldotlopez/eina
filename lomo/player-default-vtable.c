@@ -5,7 +5,7 @@ enum {
 	UNKNOW
 };
 
-GstPipeline*
+GstElement*
 default_create(GHashTable *opts, GError **error)
 {
 	GstElement *ret, *audio_sink;
@@ -31,58 +31,58 @@ default_create(GHashTable *opts, GError **error)
 	}
 	g_object_set(G_OBJECT(ret), "audio-sink", audio_sink, NULL);
 
-	return GST_PIPELINE(ret);
+	return ret;
 }
 
 gboolean
-default_destroy(GstPipeline *pipeline, GError **error)
+default_destroy(GstElement *pipeline, GError **error)
 {
-	g_object_unref(pipeline);
+	g_object_unref(G_OBJECT(pipeline));
 	return TRUE;
 }
 
 gboolean
-default_set_stream(GstPipeline *pipeline, const gchar *uri)
+default_set_stream(GstElement *pipeline, const gchar *uri)
 {
 	g_object_set(G_OBJECT(pipeline), "uri", uri, NULL);
 	return TRUE;
 }
 
 GstStateChangeReturn
-default_set_state(GstPipeline *pipeline, GstState state)
+default_set_state(GstElement *pipeline, GstState state)
 {
-	return gst_element_set_state(GST_ELEMENT(pipeline), state);
+	return gst_element_set_state(pipeline, state);
 }
 
 GstState
-default_get_state(GstPipeline *pipeline)
+default_get_state(GstElement *pipeline)
 {
 	GstState state, pending;
-	gst_element_get_state(GST_ELEMENT(pipeline), &state, &pending, GST_CLOCK_TIME_NONE);
+	gst_element_get_state(pipeline, &state, &pending, GST_CLOCK_TIME_NONE);
 	return state;
 }
 
 gboolean
-default_query_position(GstPipeline *pipeline, GstFormat *format, gint64 *position)
+default_query_position(GstElement *pipeline, GstFormat *format, gint64 *position)
 {
-	return gst_element_query_position(GST_ELEMENT(pipeline), format, position);
+	return gst_element_query_position(pipeline, format, position);
 }
 
 gboolean
-default_query_duration(GstPipeline *pipeline, GstFormat *format, gint64 *duration)
+default_query_duration(GstElement *pipeline, GstFormat *format, gint64 *duration)
 {
-	return gst_element_query_duration(GST_ELEMENT(pipeline), format, duration);
+	return gst_element_query_duration(pipeline, format, duration);
 }
 
 gboolean
-default_set_volume(GstPipeline *pipeline, gint volume)
+default_set_volume(GstElement *pipeline, gint volume)
 {
 	g_object_set(G_OBJECT(pipeline), "volume", volume, NULL);
 	return TRUE;
 }
 
 gint
-default_get_volume(GstPipeline *pipeline)
+default_get_volume(GstElement *pipeline)
 {
 	gint volume;
 	g_object_get(G_OBJECT(pipeline), "volume", &volume, NULL);
@@ -90,14 +90,14 @@ default_get_volume(GstPipeline *pipeline)
 }
 
 gboolean
-default_set_mute(GstPipeline *pipeline, gboolean mute)
+default_set_mute(GstElement *pipeline, gboolean mute)
 {
 	g_object_set(G_OBJECT(pipeline), "mute", mute, NULL);
 	return TRUE;
 }
 
 gboolean
-default_get_mute(GstPipeline *pipeline)
+default_get_mute(GstElement *pipeline)
 {
 	gboolean mute;
 	g_object_get(G_OBJECT(pipeline), "mute", &mute, NULL);

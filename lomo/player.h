@@ -37,26 +37,25 @@ typedef enum {
 #define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
 typedef struct {
-	GstPipeline* (*create)  (GHashTable *opts, GError **error);
-	gboolean     (*destroy) (GstPipeline *pipeline, GError **error);
-	gboolean     (*reset)   (GstPipeline *pipeline, GHashTable *opts, GError **error);
+	GstElement* (*create)  (GHashTable *opts, GError **error);
+	gboolean     (*destroy) (GstElement *pipeline, GError **error);
+	gboolean     (*reset)   (GstElement *pipeline, GHashTable *opts, GError **error);
 
-	gboolean     (*set_stream)  (GstPipeline *pipeline, const gchar *uri);
-	gchar*       (*get_stream)  (GstPipeline *pipeline);
+	gboolean     (*set_stream)  (GstElement *pipeline, const gchar *uri);
+	gchar*       (*get_stream)  (GstElement *pipeline);
 
-	GstStateChangeReturn (*set_state) (GstPipeline *pipeline, GstState state);
-	GstState             (*get_state) (GstPipeline *pipeline);
+	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state);
+	GstState             (*get_state) (GstElement *pipeline);
 
-	gboolean             (*query_position) (GstPipeline *pipeline, GstFormat *format, gint64 *position);
-	gboolean             (*query_duration) (GstPipeline *pipeline, GstFormat *format, gint64 *duration);
+	gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
+	gboolean             (*query_duration) (GstElement *pipeline, GstFormat *format, gint64 *duration);
 
-	gboolean (*set_volume) (GstPipeline *pipeline, gint volume);
-	gint     (*get_volume) (GstPipeline *pipeline);
+	gboolean (*set_volume) (GstElement *pipeline, gint volume);
+	gint     (*get_volume) (GstElement *pipeline);
 
-	gboolean (*set_mute) (GstPipeline *pipeline, gboolean mute);
-	gboolean (*get_mute) (GstPipeline *pipeline);
+	gboolean (*set_mute) (GstElement *pipeline, gboolean mute);
+	gboolean (*get_mute) (GstElement *pipeline);
 } LomoPlayerVTable;
-
 
 typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
 
