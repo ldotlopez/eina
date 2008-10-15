@@ -38,13 +38,13 @@ typedef enum {
 
 typedef struct {
 	GstElement* (*create)  (GHashTable *opts, GError **error);
-	gboolean     (*destroy) (GstElement *pipeline, GError **error);
-	gboolean     (*reset)   (GstElement *pipeline, GHashTable *opts, GError **error);
+	gboolean    (*destroy) (GstElement *pipeline, GError **error);
+	gboolean    (*reset)   (GstElement *pipeline, GHashTable *opts, GError **error);
 
 	gboolean     (*set_stream)  (GstElement *pipeline, const gchar *uri);
 	gchar*       (*get_stream)  (GstElement *pipeline);
 
-	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state);
+	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state, GError **error);
 	GstState             (*get_state) (GstElement *pipeline);
 
 	gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);

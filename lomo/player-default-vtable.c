@@ -49,7 +49,7 @@ default_set_stream(GstElement *pipeline, const gchar *uri)
 }
 
 GstStateChangeReturn
-default_set_state(GstElement *pipeline, GstState state)
+default_set_state(GstElement *pipeline, GstState state, GError **error)
 {
 	return gst_element_set_state(pipeline, state);
 }

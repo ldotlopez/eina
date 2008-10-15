@@ -6,7 +6,7 @@ gboolean     default_destroy(GstElement *pipeline, GError **error);
 
 gboolean default_set_stream(GstElement *pipeline, const gchar *uri);
 
-GstStateChangeReturn default_set_state(GstElement *pipeline, GstState state);
+GstStateChangeReturn default_set_state(GstElement *pipeline, GstState state, GError **error);
 GstState             default_get_state(GstElement *pipeline);
 
 gboolean default_query_position(GstElement *pipeline, GstFormat *format, gint64 *position);

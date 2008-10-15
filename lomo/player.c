@@ -441,6 +441,11 @@ lomo2_player_set_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 	return self->priv->vtable.set_stream(self->priv->dapaip, lomo_stream_get_tag(stream, LOMO_TAG_URI));
 }
 
+gint lomo2_player_query_position(LomoPlayer *self)
+{
+}
+// gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
+
 // get_state hook: No signal emission
 LomoState lomo2_player_get_state
 (LomoPlayer *self, GError **error)
@@ -489,35 +494,33 @@ lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 		break;
 	}
 
-	gst_ret = self->priv->vtable.set_state(self->priv->dapaip, gst_state, err);
+	gst_ret = self->priv->vtable.set_state(self->priv->dapaip, gst_state, error);
 	ret = lomo2_state_change_return_from_gst(gst_ret);
 
 	// Handle async changes and failures
 	switch (ret)
 	{
 	case LOMO_STATE_CHANGE_FAILURE:
-		if (err == NULL)
-			lomo_player_set_error(err, LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE, "Cannot change state");
+		if (error == NULL)
+			lomo_player_play_uri
+		g_printf("State change is FAILURE\n");
 		return ret;
 
 	case LOMO_STATE_CHANGE_ASYNC:
+		g_printf("State change is ASYNC\n");
 		return ret;
 
-	default:
+	case LOMO_STATE_CHANGE_NO_PREROLL:
+	case LOMO_STATE_CHANGE_SUCCESS:
 		break;
 	}
 
-	case LOMO_STATE_CHANGE_SUCCESS:
-		switch(state)
-		{
-		case LOMO_STATE_STOP:
-			g_signal_emit
-		}
-		return ret;
-
-	}
-	return LOMO_STATE_CHANGE_FAILURE;
+	// handle state (at this point change was succesful)
+	g_printf("State change is SUCCESFUL or NO_PREROLL\n");
+	return LOMO_STATE_CHANGE_SUCCESS;
 }
+
+
 
 /*
  * Quick play functions, simple shortcuts.
