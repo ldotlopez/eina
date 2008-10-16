@@ -608,7 +608,6 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 { BACKTRACE
     GstState gst_state;
     GstStateChangeReturn ret;
-	guint signal_to_emit = 0;
 
 	// Unknow state
     if (!lomo_state_to_gst(state, &gst_state))
@@ -630,29 +629,20 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 	{
 	case LOMO_STATE_PAUSE:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PAUSED);
-		signal_to_emit = PAUSE;
 		break;
 
 	case LOMO_STATE_PLAY:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PLAYING);
-		signal_to_emit = PLAY;
 		break;
 
 	case LOMO_STATE_STOP:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_NULL);
 		lomo_player_reset(self, NULL);
-		signal_to_emit = STOP;
 		break;
 
 	default:
 		return LOMO_STATE_CHANGE_FAILURE;
 		break;
-	}
-	// g_printf("Set state return: %d (%d)\n", ret, ret == GST_STATE_CHANGE_FAILURE);
-
-	if (ret == GST_STATE_CHANGE_SUCCESS)
-	{
-		g_printf("*******************\n\nHEY!\n\nThere is a synced changed state (%s), study it!\n\n*******************\n", gst_state_to_str(gst_state));
 	}
 
 	if (ret == GST_STATE_CHANGE_FAILURE)
@@ -662,11 +652,7 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
 
-	// State changes must be handled in the bus, this signal emission is
-	// missplaced
-	g_signal_emit(G_OBJECT(self), lomo_player_signals[signal_to_emit], 0);
-
-	return LOMO_STATE_CHANGE_SUCCESS;
+	return LOMO_STATE_CHANGE_SUCCESS; // Or async, or preroll...
 }
 
 LomoState lomo_player_get_state(LomoPlayer *self)
@@ -1089,6 +1075,9 @@ BACKTRACE
 
 		case GST_MESSAGE_STATE_CHANGED:
 		{
+			static guint last_signal;
+			guint signal;
+
 			GstState oldstate, newstate, pending;
 			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
 			/*
@@ -1102,18 +1091,26 @@ BACKTRACE
 
 			switch (newstate)
 			{
+			case GST_STATE_NULL:
 			case GST_STATE_READY:
-				g_signal_emit(G_OBJECT(self), lomo_player_signals[STOP], 0);
+				signal = lomo_player_signals[STOP];
 				break;
 			case GST_STATE_PAUSED:
-				g_signal_emit(G_OBJECT(self), lomo_player_signals[PAUSE], 0);
+				signal = lomo_player_signals[PAUSE];
 				break;
 			case GST_STATE_PLAYING:
-				g_signal_emit(G_OBJECT(self), lomo_player_signals[PLAY], 0);
+				signal = lomo_player_signals[PLAY];
 				break;
 			default:
-				g_printf("ERROR: Unknow state transition\n");
-				break;
+				g_printf("ERROR: Unknow state transition: %s\n", gst_state_to_str(newstate));
+				return TRUE;
+			}
+
+			if (signal != last_signal)
+			{
+				g_printf("Emit signal %s\n", gst_state_to_str(newstate));
+				g_signal_emit(G_OBJECT(self), signal, 0);
+				last_signal = signal;
 			}
 			break;
 		}

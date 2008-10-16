@@ -3,7 +3,8 @@ INCLUDES = \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	@PACKAGE_CFLAGS@ @CURL_CXXFLAGS@
+	-DEINA_COMPILATION \
+	@PACKAGE_CFLAGS@
 
 bin_PROGRAMS = eina
 
@@ -14,7 +15,7 @@ eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 #-static $(top_builddir)/gel/libgel.la \
 #-static $(top_builddir)/lomo/liblomo-1.0.la
 
-eina_LDADD = @PACKAGE_LIBS@ @CURL_LIBS@ -lgel -llomo-1.0
+eina_LDADD = @PACKAGE_LIBS@ -lgel -llomo-1.0
 
 NOINST_H_FILES = \
 	class-conf-file.h          \

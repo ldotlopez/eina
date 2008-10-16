@@ -75,18 +75,18 @@ PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
 dnl curl (eina-cover)
-AC_PATH_PROG(CURL_CONFIG, curl-config)
-if test -z "$CURL_CONFIG"; then
-	HAVE_CURL="no"
-	echo "Error: libcurl headers not found"
-	exit 1
-else
-	CURL_CXXFLAGS="`$CURL_CONFIG --cflags`"
-	CURL_LIBS="`$CURL_CONFIG --libs`"
-	HAVE_CURL="yes"
-fi
-AC_SUBST(CURL_CXXFLAGS)
-AC_SUBST(CURL_LIBS)
+#AC_PATH_PROG(CURL_CONFIG, curl-config)
+#if test -z "$CURL_CONFIG"; then
+#	HAVE_CURL="no"
+#	echo "Error: libcurl headers not found"
+#	exit 1
+#else
+#	CURL_CXXFLAGS="`$CURL_CONFIG --cflags`"
+#	CURL_LIBS="`$CURL_CONFIG --libs`"
+#	HAVE_CURL="yes"
+#fi
+#AC_SUBST(CURL_CXXFLAGS)
+#AC_SUBST(CURL_LIBS)
 
 dnl
 dnl Plugins

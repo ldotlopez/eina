@@ -22,12 +22,14 @@ enum {
 	PLUGINS_N_COLUMNS
 };
 
-
 static void
 plugins_treeview_fill(EinaPlugins *self);
 
 static void
 plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self);
+
+static void
+plugins_cell_renderer_toggle_toggled_cb(GtkCellRendererToggle *w, gchar *path, EinaPlugins *self);
 
 //--
 // Signal definitions
@@ -92,8 +94,6 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 		NULL);
 	plugins_treeview_fill(self);
 
-	gtk_widget_realize(self->window);
-
 	// Setup signals
 	self->window = W(self, "main-window");
 
@@ -105,6 +105,9 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 
 	g_signal_connect(self->treeview, "cursor-changed",
 	G_CALLBACK(plugins_treeview_cursor_changed_cb), self);
+
+	g_signal_connect(enabled_render, "toggled",
+	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
 	return TRUE;
 }
@@ -251,6 +254,44 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 	plugins_update_plugin_properties(self);
 }
 
+static void
+plugins_cell_renderer_toggle_toggled_cb
+(GtkCellRendererToggle *w, gchar *path, EinaPlugins *self)
+{
+	EinaIFace *iface;
+	GtkTreePath *_path;
+	gint *indices;
+	EinaPlugin *plugin;
+	gboolean ret;
+
+	if ((_path = gtk_tree_path_new_from_string(path)) == NULL)
+	{
+		gel_error("Cannot create GtkTreePath on plugin state toggle");
+		return;
+	}
+
+	indices = gtk_tree_path_get_indices(_path);
+	if ((plugin = g_list_nth_data(self->plugins, indices[0])) == NULL)
+	{
+		gel_error("Cannot get corresponding plugin to row %d", indices[0]);
+		gtk_tree_path_free(_path);
+		return;
+	}
+	gtk_tree_path_free(_path);
+
+	if ((iface = gel_hub_shared_get(HUB(self), "iface")) == NULL)
+	{
+		gel_error("Cannot initialize plugin, cant access to EinaIFace");
+		return;
+	}
+
+	gel_warn("New state: %d", gtk_cell_renderer_toggle_get_active(w));
+	if (eina_plugin_is_enabled(plugin))
+		ret = eina_iface_fini_plugin(iface, plugin);
+	else
+		ret = eina_iface_init_plugin(iface, plugin);
+	gel_warn("Status: %d");
+}
 
 G_MODULE_EXPORT GelHubSlave plugins_connector = {
 	"plugins",
