@@ -631,27 +631,29 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 	case LOMO_STATE_PAUSE:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PAUSED);
 		signal_to_emit = PAUSE;
-		// g_signal_emit(G_OBJECT(self), lomo_player_signals[PAUSE], 0);
 		break;
 
 	case LOMO_STATE_PLAY:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PLAYING);
 		signal_to_emit = PLAY;
-		// g_signal_emit(G_OBJECT(self), lomo_player_signals[PLAY], 0);
 		break;
 
 	case LOMO_STATE_STOP:
 		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_NULL);
 		lomo_player_reset(self, NULL);
 		signal_to_emit = STOP;
-		// g_signal_emit(G_OBJECT(self), lomo_player_signals[STOP], 0);
 		break;
 
 	default:
 		return LOMO_STATE_CHANGE_FAILURE;
 		break;
 	}
-	g_printf("Set state return: %d (%d)\n", ret, ret == GST_STATE_CHANGE_FAILURE);
+	// g_printf("Set state return: %d (%d)\n", ret, ret == GST_STATE_CHANGE_FAILURE);
+
+	if (ret == GST_STATE_CHANGE_SUCCESS)
+	{
+		g_printf("*******************\n\nHEY!\n\nThere is a synced changed state (%s), study it!\n\n*******************\n", gst_state_to_str(gst_state));
+	}
 
 	if (ret == GST_STATE_CHANGE_FAILURE)
 	{
@@ -659,7 +661,11 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 			"Error while setting state on pipeline");
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
+
+	// State changes must be handled in the bus, this signal emission is
+	// missplaced
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[signal_to_emit], 0);
+
 	return LOMO_STATE_CHANGE_SUCCESS;
 }
 
@@ -671,7 +677,7 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 	if (self->priv->stream == NULL)
 		return LOMO_STATE_STOP;
 
-	if (gst_element_get_state(self->priv->pipeline, &gst_state, NULL, GST_CLOCK_TIME_NONE) ==
+	if (gst_element_get_state(self->priv->pipeline, &gst_state, NULL, 0) ==
 		GST_STATE_CHANGE_FAILURE)
 		return LOMO_STATE_INVALID;
 
@@ -1061,7 +1067,9 @@ lomo_player_print_random_pl(LomoPlayer *self)
  * 
  */
 
-static gboolean _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpointer data) {
+static gboolean
+_lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpointer data) {
+BACKTRACE
 	LomoPlayer *self = LOMO_PLAYER(data);
 	GError *err = NULL;
 	gchar *debug = NULL;
@@ -1081,14 +1089,41 @@ static gboolean _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpoin
 
 		case GST_MESSAGE_STATE_CHANGED:
 		{
-			GstStateChangeReturn state_ret;
-			GstState state, pending;
-			GstClockTime timeout;
-			state_ret = gst_element_get_state(GST_ELEMENT(self->priv->pipeline), &state, &pending, timeout);
-			g_printf("Got state change from %p: (%d) %d -> %d\n", self, state_ret, pending, state);
+			GstState oldstate, newstate, pending;
+			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
+			/*
+			g_printf("Got state change from bus: old=%s, new=%s, pending=%s\n",
+				gst_state_to_str(oldstate),
+				gst_state_to_str(newstate),
+				gst_state_to_str(pending));
+			*/
+			if (pending != GST_STATE_VOID_PENDING)
+				break;
+
+			switch (newstate)
+			{
+			case GST_STATE_READY:
+				g_signal_emit(G_OBJECT(self), lomo_player_signals[STOP], 0);
+				break;
+			case GST_STATE_PAUSED:
+				g_signal_emit(G_OBJECT(self), lomo_player_signals[PAUSE], 0);
+				break;
+			case GST_STATE_PLAYING:
+				g_signal_emit(G_OBJECT(self), lomo_player_signals[PLAY], 0);
+				break;
+			default:
+				g_printf("ERROR: Unknow state transition\n");
+				break;
+			}
 			break;
 		}
+
+		// Messages that can be ignored
 		case GST_MESSAGE_TAG: /* Handled */
+		case GST_MESSAGE_NEW_CLOCK:
+			break;
+
+		// Debug this to get more info about this kind of messages
 		case GST_MESSAGE_CLOCK_PROVIDE:
 		case GST_MESSAGE_CLOCK_LOST:
 		case GST_MESSAGE_UNKNOWN:
@@ -1097,7 +1132,6 @@ static gboolean _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpoin
 		case GST_MESSAGE_BUFFERING:
 		case GST_MESSAGE_STATE_DIRTY:
 		case GST_MESSAGE_STEP_DONE:
-		case GST_MESSAGE_NEW_CLOCK:
 		case GST_MESSAGE_STRUCTURE_CHANGE:
 		case GST_MESSAGE_STREAM_STATUS:
 		case GST_MESSAGE_APPLICATION:
@@ -1105,7 +1139,7 @@ static gboolean _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpoin
 		case GST_MESSAGE_SEGMENT_START:
 		case GST_MESSAGE_SEGMENT_DONE:
 		case GST_MESSAGE_DURATION:
-			// g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
+			g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
 			break;
 			
 		default:

@@ -73,26 +73,43 @@ lomo_state_from_gst(GstState state, LomoState *lomo_state)
 
 	return TRUE;
 }
-/*
+
 const gchar *
 gst_state_to_str(GstState state)
 {
 	switch (state)
 	{
 	case GST_STATE_VOID_PENDING:
-		return "no pending state";
+		return "GST_STATE_VOID_PENDING";
 	case GST_STATE_NULL:
-		return "NULL state or initial state of an element";
+		return "GST_STATE_NULL";
 	case GST_STATE_READY:
-		return "the element is ready to go to PAUSED";
+		return "GST_STATE_READY";
 	case GST_STATE_PAUSED:
-		return "the element is PAUSED";
+		return "GST_STATE_PAUSED";
 	case GST_STATE_PLAYING:
-		return "the element is PLAYING";
+		return "GST_STATE_PLAYING";
 	}
 	return NULL;
 }
-*/
+
+const gchar*
+gst_state_change_return_to_str(GstStateChangeReturn s)
+{
+	switch(s)
+	{
+	case GST_STATE_CHANGE_SUCCESS:
+		return "GST_STATE_CHANGE_SUCCESS";
+	case GST_STATE_CHANGE_NO_PREROLL:
+		return "GST_STATE_CHANGE_NO_PREROLL";
+	case GST_STATE_CHANGE_ASYNC:
+		return "GST_STATE_CHANGE_ASYNC";
+	case GST_STATE_CHANGE_FAILURE:
+		return "GST_STATE_CHANGE_FAILURE";
+	}
+	return NULL;
+}
+
 // --
 // Conversions between LomoStateChangeReturn and GstStateChangeReturn
 // --
