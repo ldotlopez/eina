@@ -441,11 +441,6 @@ lomo2_player_set_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 	return self->priv->vtable.set_stream(self->priv->dapaip, lomo_stream_get_tag(stream, LOMO_TAG_URI));
 }
 
-gint lomo2_player_query_position(LomoPlayer *self)
-{
-}
-// gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
-
 // get_state hook: No signal emission
 LomoState lomo2_player_get_state
 (LomoPlayer *self, GError **error)
@@ -501,8 +496,6 @@ lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 	switch (ret)
 	{
 	case LOMO_STATE_CHANGE_FAILURE:
-		if (error == NULL)
-			lomo_player_play_uri
 		g_printf("State change is FAILURE\n");
 		return ret;
 
