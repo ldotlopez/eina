@@ -1,3 +1,10 @@
+eina (0.7.2) hardy; urgency=low
+
+  * Alpha 2
+  * Adopt a correct version number
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Fri, 17 Oct 2008 10:47:00 +0200
+
 eina (0.7.0+alpha1) hardy; urgency=low
 
   * Upstream updated

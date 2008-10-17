@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Eina 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-03 13:28+0200\n"
+"POT-Creation-Date: 2008-10-17 10:46+0200\n"
 "PO-Revision-Date: 2008-10-03 13:25+0200\n"
 "Last-Translator: xuzo . <xuzo@cuarentaydos.com>\n"
 "Language-Team: ES <eina-users@lists.sourceforge.net>\n"
@@ -25,11 +25,11 @@ msgstr ""
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:136
+#: ../eina/eina-file-chooser-dialog.c:140
 msgid "_Enqueue"
 msgstr "_Encolar"
 
-#: ../eina/eina-file-chooser-dialog.c:144
+#: ../eina/eina-file-chooser-dialog.c:148
 msgid "Enqueue files"
 msgstr "_Encolar ficheros"
 
@@ -77,14 +77,11 @@ msgid "\t"
 msgstr "\t"
 
 #: ../ui/player.ui.h:2
-msgid "<small><tt>00:00</tt></small>"
+#, fuzzy
+msgid "<small><tt></tt></small>"
 msgstr "<small><tt>00:00</tt></small>"
 
-#: ../ui/player.ui.h:3
-msgid "<small><tt>07:59</tt></small>"
-msgstr "<small><tt>07:59</tt></small>"
-
-#: ../ui/player.ui.h:5
+#: ../ui/player.ui.h:4
 #, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
@@ -93,19 +90,19 @@ msgstr ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
 
-#: ../ui/player.ui.h:7
+#: ../ui/player.ui.h:6
 msgid "Browse"
 msgstr "Examinar"
 
-#: ../ui/player.ui.h:8
+#: ../ui/player.ui.h:7
 msgid "Dock"
 msgstr "Dock"
 
-#: ../ui/player.ui.h:9
+#: ../ui/player.ui.h:8
 msgid "Next song"
 msgstr "Pasar al siguiente tema"
 
-#: ../ui/player.ui.h:10
+#: ../ui/player.ui.h:9
 msgid "Previous song"
 msgstr "Volver al tema anterior"
 
@@ -142,37 +139,50 @@ msgid "<b>Website:</b>"
 msgstr "<b>Página web:</b>"
 
 #: ../ui/plugins.ui.h:3
-msgid "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+#, fuzzy
+msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
 msgstr "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
 
 #: ../ui/plugins.ui.h:4
+msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:5
 msgid "<u>http://eina.sf.net</u>"
 msgstr "<u>http://eina.sf.net</u>"
 
-#: ../ui/plugins.ui.h:5
-msgid "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
-msgstr "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
-
 #: ../ui/plugins.ui.h:6
-msgid ""
-"Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
-"incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
-"nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
-"consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
-"dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
-"proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+msgid "Long description"
 msgstr ""
-"Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
-"incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
-"nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
-"consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
-"dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
-"proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 #: ../ui/plugins.ui.h:7
-msgid "More for your covers"
-msgstr "Más para tus cartulas"
+msgid "Short description"
+msgstr ""
 
 #: ../ui/plugins.ui.h:8
 msgid "gtk-close"
 msgstr "gtk-close"
+
+#~ msgid "<small><tt>07:59</tt></small>"
+#~ msgstr "<small><tt>07:59</tt></small>"
+
+#~ msgid "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
+#~ msgstr "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
+
+#~ msgid ""
+#~ "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
+#~ "incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+#~ "nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
+#~ "consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
+#~ "dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
+#~ "proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+#~ msgstr ""
+#~ "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
+#~ "incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+#~ "nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
+#~ "consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
+#~ "dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
+#~ "proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
+#~ msgid "More for your covers"
+#~ msgstr "Más para tus cartulas"

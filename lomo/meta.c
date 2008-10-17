@@ -103,26 +103,6 @@ lomo_meta_parse(LomoMeta *self, LomoStream *stream, LomoMetaPrio prio)
 	}
 }
 
-#if 0
-void lomo_meta_parse
-(LomoMeta *self, LomoStream *stream, LomoMetaPrio prio)
-{
-	/* XXX: 101% posibilities of race condition */
-
-	/*
-	 * 1. Ref the object
-	 * 2. Add to queue
-	 * 3. Schudele parser
-	 */
-	g_object_ref(G_OBJECT(stream));
-	self->queue = g_list_append(self->queue, stream);
-	if (self->idle_id == 0) {
-		// g_printf("[Meta] Schudele a run from %s\n", __FUNCTION__);
-		self->idle_id = g_idle_add((GSourceFunc) _lomo_meta_run, self);
-	}
-}
-#endif
-
 void
 lomo_meta_clear(LomoMeta *self)
 {

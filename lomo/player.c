@@ -496,11 +496,9 @@ lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 	switch (ret)
 	{
 	case LOMO_STATE_CHANGE_FAILURE:
-		g_printf("State change is FAILURE\n");
 		return ret;
 
 	case LOMO_STATE_CHANGE_ASYNC:
-		g_printf("State change is ASYNC\n");
 		return ret;
 
 	case LOMO_STATE_CHANGE_NO_PREROLL:
@@ -509,7 +507,6 @@ lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 	}
 
 	// handle state (at this point change was succesful)
-	g_printf("State change is SUCCESFUL or NO_PREROLL\n");
 	return LOMO_STATE_CHANGE_SUCCESS;
 }
 
@@ -557,6 +554,7 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 	if (self->priv->stream == NULL)
 		return TRUE;
 
+	// g_printf("Set strema %p, uri: %s\n", self->priv->stream, (gchar*) lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI));
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
 	// inmediate queue on LomoMeta object to get them ASAP
 	if (!lomo_stream_has_all_tags(LOMO_STREAM(self->priv->stream)))
@@ -590,9 +588,15 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 		NULL);
 	lomo_player_set_volume(self, self->priv->volume);
 	lomo_player_set_mute  (self, self->priv->mute);
-	if (gst_element_set_state (self->priv->pipeline, GST_STATE_READY) == GST_STATE_CHANGE_FAILURE)
+	
+	GstStateChangeReturn r;
+	r = gst_element_set_state (self->priv->pipeline, GST_STATE_READY);
+	if (r == GST_STATE_CHANGE_FAILURE)
+	{
+		/// XXX: Emit some signal
 		g_printf("ERROR: change state\n");
-
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -1108,7 +1112,7 @@ BACKTRACE
 
 			if (signal != last_signal)
 			{
-				g_printf("Emit signal %s\n", gst_state_to_str(newstate));
+				// g_printf("Emit signal %s\n", gst_state_to_str(newstate));
 				g_signal_emit(G_OBJECT(self), signal, 0);
 				last_signal = signal;
 			}

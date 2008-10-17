@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-03 13:28+0200\n"
+"POT-Creation-Date: 2008-10-17 10:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,11 +25,11 @@ msgstr ""
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:136
+#: ../eina/eina-file-chooser-dialog.c:140
 msgid "_Enqueue"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:144
+#: ../eina/eina-file-chooser-dialog.c:148
 msgid "Enqueue files"
 msgstr ""
 
@@ -77,33 +77,29 @@ msgid "\t"
 msgstr ""
 
 #: ../ui/player.ui.h:2
-msgid "<small><tt>00:00</tt></small>"
+msgid "<small><tt></tt></small>"
 msgstr ""
 
-#: ../ui/player.ui.h:3
-msgid "<small><tt>07:59</tt></small>"
-msgstr ""
-
-#: ../ui/player.ui.h:5
+#: ../ui/player.ui.h:4
 #, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
 msgstr ""
 
-#: ../ui/player.ui.h:7
+#: ../ui/player.ui.h:6
 msgid "Browse"
 msgstr ""
 
-#: ../ui/player.ui.h:8
+#: ../ui/player.ui.h:7
 msgid "Dock"
 msgstr ""
 
-#: ../ui/player.ui.h:9
+#: ../ui/player.ui.h:8
 msgid "Next song"
 msgstr ""
 
-#: ../ui/player.ui.h:10
+#: ../ui/player.ui.h:9
 msgid "Previous song"
 msgstr ""
 
@@ -140,29 +136,23 @@ msgid "<b>Website:</b>"
 msgstr ""
 
 #: ../ui/plugins.ui.h:3
-msgid "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
 msgstr ""
 
 #: ../ui/plugins.ui.h:4
-msgid "<u>http://eina.sf.net</u>"
+msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
 msgstr ""
 
 #: ../ui/plugins.ui.h:5
-msgid "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
+msgid "<u>http://eina.sf.net</u>"
 msgstr ""
 
 #: ../ui/plugins.ui.h:6
-msgid ""
-"Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
-"incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
-"nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
-"consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
-"dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
-"proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+msgid "Long description"
 msgstr ""
 
 #: ../ui/plugins.ui.h:7
-msgid "More for your covers"
+msgid "Short description"
 msgstr ""
 
 #: ../ui/plugins.ui.h:8
