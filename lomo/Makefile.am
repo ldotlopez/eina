@@ -14,7 +14,7 @@ NO_INST_H_FILES =   \
 	meta.h          \
 	pl.h            \
 	player-priv.h   \
-	player-defaul-vtable.h
+	player-default-vtable.h
 
 INST_H_FILES = \
 	player.h   \

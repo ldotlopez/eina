@@ -431,7 +431,7 @@ eina_player_switch_state(EinaPlayer *self, EinaPlayerMode mode)
 	}
 	gtk_widget_set_tooltip_text(W(self, "play-pause-button"), tooltip);
 	gtk_image_set_from_stock(GTK_IMAGE(self->play_pause_image),
-		"gtk-media-play", GTK_ICON_SIZE_BUTTON);
+		stock, GTK_ICON_SIZE_BUTTON);
 }
 
 // stream_info_parser_cb: Helps to format stream info for display
