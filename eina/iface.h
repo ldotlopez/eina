@@ -7,6 +7,7 @@
 #include <lomo/player.h>
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
+#include <eina/player.h>
 #include <eina/fs.h>
 #include <eina/eina-cover.h>
 
@@ -88,6 +89,11 @@ gboolean
 eina_iface_init_plugin(EinaIFace *self, EinaPlugin *plugin);
 gboolean
 eina_iface_fini_plugin(EinaIFace *self, EinaPlugin *plugin);
+
+EinaPlayer *
+eina_iface_get_player(EinaIFace *self);
+GtkWindow *
+eina_iface_get_main_window(EinaIFace *self);
 
 // --
 // Dock handling (dock is managed by EinaIFace currently, but there are plans

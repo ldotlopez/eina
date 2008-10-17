@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <glib/gstdio.h>
+#include <gdk/gdkkeysyms.h>
 #include <lomo/util.h>
 #include <gel/gel-ui.h>
 #include "config.h"
@@ -52,9 +53,9 @@ GtkWidget *
 eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
 
 void
-eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
+eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
 #define eina_playlist_update_current_item(self,...) \
-	eina_playlist_update_item2(self, NULL,lomo_player_get_current(LOMO(self)),__VA_ARGS__)
+	eina_playlist_update_item(self, NULL,lomo_player_get_current(LOMO(self)),__VA_ARGS__)
 
 gboolean
 __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self);
@@ -79,23 +80,26 @@ void
 on_pl_repeat_button_toggled(GtkWidget *w, EinaPlaylist *self);
 
 // Lomo callbacks
-void on_pl_lomo_add
+static void lomo_state_change_cb
+(LomoPlayer *lomo, EinaPlaylist *self);
+static void lomo_add_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self);
-void on_pl_lomo_del
+static void lomo_del_cb
 (LomoPlayer *lomo, gint pos, EinaPlaylist *self);
-void on_pl_lomo_change
+static void lomo_change_cb
 (LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self);
-void on_pl_lomo_state_change
+static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
-void on_pl_lomo_random
+static void lomo_random_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
-void on_pl_lomo_clear
+static void lomo_eos_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
-void on_pl_lomo_eos
-(LomoPlayer *lomo, EinaPlaylist *self);
-void on_pl_lomo_all_tags
+static void lomo_error_cb
+(LomoPlayer *lomo, GError *error, EinaPlaylist *self);
+static void lomo_all_tags_cb
 (LomoPlayer *lomo, LomoStream *stream, EinaPlaylist *self);
 
+// UI callbacks
 void on_pl_row_activated
 (GtkWidget *w,
  	GtkTreePath *path,
@@ -239,16 +243,17 @@ G_MODULE_EXPORT gboolean playlist_init
 		NULL);
 
 	/* Connect lomo signals */
-	g_signal_connect(LOMO(self), "add",      G_CALLBACK(on_pl_lomo_add),      self);
-	g_signal_connect(LOMO(self), "del",      G_CALLBACK(on_pl_lomo_del),      self);
-	g_signal_connect(LOMO(self), "change",   G_CALLBACK(on_pl_lomo_change),   self);
-	g_signal_connect(LOMO(self), "clear",    G_CALLBACK(on_pl_lomo_clear),    self);
-	g_signal_connect(LOMO(self), "play",     G_CALLBACK(on_pl_lomo_state_change), self);
-	g_signal_connect(LOMO(self), "stop",     G_CALLBACK(on_pl_lomo_state_change), self);
-	g_signal_connect(LOMO(self), "pause",    G_CALLBACK(on_pl_lomo_state_change), self);
-	g_signal_connect(LOMO(self), "random",   G_CALLBACK(on_pl_lomo_random),   self);
-	g_signal_connect(LOMO(self), "eos",      G_CALLBACK(on_pl_lomo_eos),      self);
-	g_signal_connect(LOMO(self), "all-tags", G_CALLBACK(on_pl_lomo_all_tags), self);
+	g_signal_connect(LOMO(self), "add",      G_CALLBACK(lomo_add_cb),      self);
+	g_signal_connect(LOMO(self), "del",      G_CALLBACK(lomo_del_cb),      self);
+	g_signal_connect(LOMO(self), "change",   G_CALLBACK(lomo_change_cb),   self);
+	g_signal_connect(LOMO(self), "clear",    G_CALLBACK(lomo_clear_cb),    self);
+	g_signal_connect(LOMO(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(LOMO(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(LOMO(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(LOMO(self), "random",   G_CALLBACK(lomo_random_cb),   self);
+	g_signal_connect(LOMO(self), "eos",      G_CALLBACK(lomo_eos_cb),      self);
+	g_signal_connect(LOMO(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
+	g_signal_connect(LOMO(self), "error",    G_CALLBACK(lomo_error_cb),    self);
 
 	/* Load playlist and go to last session's current */
 	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
@@ -268,6 +273,18 @@ G_MODULE_EXPORT gboolean playlist_init
 	if ((iface = gel_hub_shared_get(hub, "iface")) == NULL) {
 		gel_error("Cannot get EinaIFace");
 		return FALSE;
+	}
+
+	GtkWindow     *main_window;
+	GtkAccelGroup *accel_group;
+
+	if (((main_window) = GTK_WINDOW(eina_iface_get_main_window(iface))) != NULL)
+	{
+		accel_group = gtk_accel_group_new();
+		gtk_window_add_accel_group(main_window, accel_group);
+		gtk_widget_add_accelerator(W(self->dock, "playlist-remove-button"), "clicked",
+			accel_group, GDK_Delete, 0, GTK_ACCEL_VISIBLE);
+
 	}
 
 	gtk_widget_show(self->dock);
@@ -457,7 +474,7 @@ __eina_playlist_update_item_title(EinaPlaylist *self, GtkTreeIter *iter, gint it
 }
 
 void
-eina_playlist_update_item2(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
+eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 {
 	GtkTreePath *treepath;
 	GtkTreeIter  _iter;
@@ -739,11 +756,17 @@ on_pl_repeat_button_toggled(GtkWidget *w, EinaPlaylist *self)
 		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
 }
 
-/*
- * Lomo Callbacks
- */
-void
-on_pl_lomo_add (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
+// --
+// Lomo callbacks
+// --
+static void lomo_state_change_cb
+(LomoPlayer *lomo, EinaPlaylist *self)
+{
+	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
+}
+
+static void lomo_add_cb
+(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
 	GtkTreeIter iter;
 	gchar *title = NULL, *tmp;
@@ -755,13 +778,6 @@ on_pl_lomo_add (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *se
 		title = g_path_get_basename(tmp);
 		g_free(tmp);
 	}
-
-/*
-	lomo_stream_format(stream,
-		"%t", 0,
-		LOMO_STREAM_URL_DECODE | LOMO_STREAM_BASENAME | LOMO_STREAM_UTF8,
-		&title);
-*/
 
 	tmp = title;
 	title = g_markup_escape_text(title, -1);
@@ -778,8 +794,8 @@ on_pl_lomo_add (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *se
 	g_free(title);
 }
 
-void
-on_pl_lomo_del(LomoPlayer *lomo, gint pos, EinaPlaylist *self)
+static void lomo_del_cb
+(LomoPlayer *lomo, gint pos, EinaPlaylist *self)
 {
 	GtkTreeModel *model;
 	GtkTreeIter   iter;
@@ -808,21 +824,52 @@ on_pl_lomo_del(LomoPlayer *lomo, gint pos, EinaPlaylist *self)
 	g_free(path_str);
 }
 
-void
-on_pl_lomo_state_change(LomoPlayer *lomo, EinaPlaylist *self)
+static void lomo_change_cb
+(LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self)
 {
-	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
+	GtkTreePath *treepath;
+
+	/* If old and new are invalid return */
+	if ((old < 0) && (new < 0)) {
+		gel_warn("old AND new positions are invalid (%d -> %d)", old, new);
+		return;
+	}
+
+	eina_iface_debug("Handling change signal %d -> %d", old, new);
+	/* Restore normal state on old stream */
+	if (old >= 0) {
+		eina_iface_debug("updating all columns from OLD %d", old);
+		eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
+	}
+
+	/* Create markup for the new stream */
+	if (new >= 0) {
+		eina_iface_debug("updating all columns from NEW %d", new);
+		eina_playlist_update_item(self, NULL, new, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
+
+		// Scroll to new stream
+		treepath = gtk_tree_path_new_from_indices(new, -1);
+		gtk_tree_view_scroll_to_cell(self->tv, treepath, NULL,
+			TRUE, 0.5, 0.0);
+		gtk_tree_path_free(treepath);
+	}
 }
 
-void
-on_pl_lomo_random(LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
+static void lomo_clear_cb
+(LomoPlayer *lomo, EinaPlaylist *self)
+{
+	gtk_list_store_clear(self->model);
+}
+
+static void lomo_random_cb
+(LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
 {
 	if (val)
 		lomo_player_randomize(lomo);
 }
 
-void
-on_pl_lomo_eos(LomoPlayer *lomo, EinaPlaylist *self)
+static void lomo_eos_cb
+(LomoPlayer *lomo, EinaPlaylist *self)
 {
 	if (lomo_player_get_next(lomo) != -1) {
 		lomo_player_go_next(lomo, NULL);
@@ -830,11 +877,14 @@ on_pl_lomo_eos(LomoPlayer *lomo, EinaPlaylist *self)
 	}
 }
 
-void
-on_pl_lomo_all_tags (
-	LomoPlayer *lomo,
-	LomoStream *stream,
-	EinaPlaylist *self)
+static void lomo_error_cb
+(LomoPlayer *lomo, GError *error, EinaPlaylist *self)
+{
+	gel_error("Got error on stream %d (%s)\n", lomo_player_get_current(lomo), error->message);
+}
+
+static void lomo_all_tags_cb
+(LomoPlayer *lomo, LomoStream *stream, EinaPlaylist *self)
 {
 
 	GtkTreeModel *model;
@@ -898,41 +948,6 @@ on_pl_lomo_all_tags (
 	}
 }
 
-void
-on_pl_lomo_change(LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self) {
-	GtkTreePath *treepath;
-
-	/* If old and new are invalid return */
-	if ((old < 0) && (new < 0)) {
-		gel_warn("old AND new positions are invalid (%d -> %d)", old, new);
-		return;
-	}
-
-	eina_iface_debug("Handling change signal %d -> %d", old, new);
-	/* Restore normal state on old stream */
-	if (old >= 0) {
-		eina_iface_debug("updating all columns from OLD %d", old);
-		eina_playlist_update_item2(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
-	}
-
-	/* Create markup for the new stream */
-	if (new >= 0) {
-		eina_iface_debug("updating all columns from NEW %d", new);
-		eina_playlist_update_item2(self, NULL, new, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
-
-		// Scroll to new stream
-		treepath = gtk_tree_path_new_from_indices(new, -1);
-		gtk_tree_view_scroll_to_cell(self->tv, treepath, NULL,
-			TRUE, 0.5, 0.0);
-		gtk_tree_path_free(treepath);
-	}
-}
-
-void
-on_pl_lomo_clear(LomoPlayer *lomo, EinaPlaylist *self)
-{
-	gtk_list_store_clear(self->model);
-}
 
 void on_pl_drag_data_received(GtkWidget *widget,
 	GdkDragContext   *drag_context,

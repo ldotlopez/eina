@@ -28,6 +28,8 @@ V Kill eina_stream_format
 ===========
 - Unify GelHub/GelSlave and EinaPlugin
 - Reduce memory usage to target netbooks and MID devices
+- Multimedia keys
+- SQL playlist plugin
 
 Misc
 ====

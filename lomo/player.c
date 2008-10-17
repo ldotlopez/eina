@@ -113,168 +113,168 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	// core signals
 	lomo_player_signals[PLAY] =
 		g_signal_new ("play",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, play),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__VOID,
-			      G_TYPE_NONE,
-			      0);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, play),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[PAUSE] =
 		g_signal_new ("pause",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, pause),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__VOID,
-			      G_TYPE_NONE,
-			      0);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, pause),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[STOP] =
 		g_signal_new ("stop",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, stop),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__VOID,
-			      G_TYPE_NONE,
-			      0);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, stop),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[SEEK] =
 		g_signal_new ("seek",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, seek),
-			      NULL, NULL,
-			      lomo_marshal_VOID__INT64_INT64,
-			      G_TYPE_NONE,
-			      2,
-				  G_TYPE_INT64,
-				  G_TYPE_INT64);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, seek),
+			    NULL, NULL,
+			    lomo_marshal_VOID__INT64_INT64,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_INT64,
+				G_TYPE_INT64);
 	lomo_player_signals[VOLUME] =
 		g_signal_new ("volume",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, volume),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__INT,
-			      G_TYPE_NONE,
-			      1,
-				  G_TYPE_INT);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, volume),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__INT,
+			    G_TYPE_NONE,
+			    1,
+				G_TYPE_INT);
 	lomo_player_signals[MUTE] =
 		g_signal_new ("mute",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, mute),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__BOOLEAN,
-			      G_TYPE_NONE,
-			      1,
-				  G_TYPE_BOOLEAN);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, mute),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__BOOLEAN,
+			    G_TYPE_NONE,
+			    1,
+				G_TYPE_BOOLEAN);
 
 	// playlist signals
 	lomo_player_signals[ADD] =
 		g_signal_new ("add",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, add),
-			      NULL, NULL,
-			      lomo_marshal_VOID__POINTER_INT,
-			      G_TYPE_NONE,
-			      2,
-				  G_TYPE_POINTER,
-				  G_TYPE_INT);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, add),
+			    NULL, NULL,
+			    lomo_marshal_VOID__POINTER_INT,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_POINTER,
+				G_TYPE_INT);
 	lomo_player_signals[DEL] =
 		g_signal_new ("del",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, del),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__INT,
-			      G_TYPE_NONE,
-			      1,
-				  G_TYPE_INT);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, del),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__INT,
+			    G_TYPE_NONE,
+			    1,
+				G_TYPE_INT);
 	lomo_player_signals[CHANGE] =
 		g_signal_new ("change",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, change),
-			      NULL, NULL,
-			      lomo_marshal_VOID__INT_INT,
-			      G_TYPE_NONE,
-			      2,
-				  G_TYPE_INT,
-				  G_TYPE_INT);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, change),
+			    NULL, NULL,
+			    lomo_marshal_VOID__INT_INT,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_INT,
+				G_TYPE_INT);
 	lomo_player_signals[CLEAR] =
 		g_signal_new ("clear",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, clear),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__VOID,
-			      G_TYPE_NONE,
-			      0);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, clear),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[REPEAT] =
 		g_signal_new ("repeat",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, repeat),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__BOOLEAN,
-			      G_TYPE_NONE,
-			      1,
-				  G_TYPE_BOOLEAN);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, repeat),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__BOOLEAN,
+			    G_TYPE_NONE,
+			    1,
+				G_TYPE_BOOLEAN);
 	lomo_player_signals[RANDOM] =
 		g_signal_new ("random",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, random),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__BOOLEAN,
-			      G_TYPE_NONE,
-			      1,
-				  G_TYPE_BOOLEAN);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, random),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__BOOLEAN,
+			    G_TYPE_NONE,
+			    1,
+				G_TYPE_BOOLEAN);
 	
 	// bus signals
 	lomo_player_signals[EOS] =
 		g_signal_new ("eos",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, eos),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__VOID,
-			      G_TYPE_NONE,
-			      0);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, eos),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[ERROR] =
 		g_signal_new ("error",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, error),
-			      NULL, NULL,
-			      lomo_marshal_VOID__POINTER_STRING,
-			      G_TYPE_NONE,
-			      2,
-			      G_TYPE_POINTER,
-				  G_TYPE_STRING);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, error),
+			    NULL, NULL,
+			    lomo_marshal_VOID__POINTER_STRING,
+			    G_TYPE_NONE,
+			    2,
+			    G_TYPE_POINTER,
+				G_TYPE_STRING);
 	lomo_player_signals[TAG] =
 		g_signal_new ("tag",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, tag),
-			      NULL, NULL,
-			      lomo_marshal_VOID__POINTER_INT,
-			      G_TYPE_NONE,
-			      2,
-				  G_TYPE_POINTER,
-				  G_TYPE_INT);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, tag),
+			    NULL, NULL,
+			    lomo_marshal_VOID__POINTER_INT,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_POINTER,
+				G_TYPE_INT);
 	lomo_player_signals[ALL_TAGS] =
 		g_signal_new ("all-tags",
-			      G_OBJECT_CLASS_TYPE (object_class),
-			      G_SIGNAL_RUN_LAST,
-			      G_STRUCT_OFFSET (LomoPlayerClass, all_tags),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__POINTER,
-			      G_TYPE_NONE,
-			      1,
-				  G_TYPE_POINTER);
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, all_tags),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__POINTER,
+			    G_TYPE_NONE,
+			    1,
+				G_TYPE_POINTER);
 
 	g_type_class_add_private (klass, sizeof (LomoPlayerPrivate));
 }
@@ -1068,6 +1068,7 @@ BACKTRACE
 		case GST_MESSAGE_ERROR:
 			g_printf("Got GST_MESSAGE_ERROR\n");
 			gst_message_parse_error(message, &err, &debug);
+			lomo_stream_set_failed((LomoStream *) lomo_player_get_stream(self), TRUE);
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[ERROR], 0, err, debug);
 			g_error_free(err);
 			g_free(debug);

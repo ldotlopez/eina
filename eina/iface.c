@@ -371,6 +371,32 @@ eina_iface_unload_plugin(EinaIFace *self, EinaPlugin *plugin)
 }
 
 // --
+// Player management
+// --
+EinaPlayer *
+eina_iface_get_player(EinaIFace *self)
+{
+	GelHub     *hub;
+	EinaPlayer *ret;
+
+	if ((hub = eina_iface_get_hub(self)) == NULL)
+		return NULL;
+	if ((ret = gel_hub_shared_get(hub, "player")) == NULL)
+		return NULL;
+	return ret;
+}
+
+GtkWindow *
+eina_iface_get_main_window(EinaIFace *self)
+{
+	EinaPlayer *player;
+
+	if ((player = eina_iface_get_player(self)) == NULL)
+		return NULL;
+	return GTK_WINDOW(W(player, "main-window"));
+}
+
+// --
 // Dock management
 // --
 static void
