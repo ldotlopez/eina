@@ -219,7 +219,7 @@ G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
 	N_("Lastfm integration"),
 	"0.0.1",
 	N_("Lastfm integration"),
-	N_("Lastfm integration:"
+	N_("Lastfm integration:\n"
 	"· Submit played streams to last.fm"),
 	"lastfm.png",
 	"xuzo <xuzo@cuarentaydos.com>",

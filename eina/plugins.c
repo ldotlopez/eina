@@ -217,6 +217,13 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	tmp = g_markup_escape_text(plugin->url, -1);
 	gtk_label_set_markup(GTK_LABEL(W(self, "website-label")), tmp);
 	g_free(tmp);
+
+	tmp = eina_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
+	if (!g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
+		gtk_image_set_from_stock(GTK_IMAGE(W(self, "icon-image")), "gtk-info", GTK_ICON_SIZE_MENU);
+	else
+		gtk_image_set_from_file(GTK_IMAGE(W(self, "icon-image")), tmp);
+	g_free(tmp);
 }
 
 // --
