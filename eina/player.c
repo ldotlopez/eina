@@ -416,12 +416,12 @@ eina_player_switch_state(EinaPlayer *self, EinaPlayerMode mode)
 	switch (mode)
 	{
 	case EINA_PLAYER_MODE_PLAY:
-		tooltip = _("Pause current stream");
+		tooltip = _("Pause current song");
 		stock = "gtk-media-pause";
 		break;
 
 	case EINA_PLAYER_MODE_PAUSE:
-		tooltip = _("Play current stream");
+		tooltip = _("Play current song");
 		stock = "gtk-media-play";
 		break;
 

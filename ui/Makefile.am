@@ -7,9 +7,6 @@ player.ui: player.glade
 playlist.ui: playlist.glade
 	$(GTK_BUILDER_CONVERT) $< $@
 
-plugins.ui: plugins.glade
-	$(GTK_BUILDER_CONVERT) $< $@
-
 about.ui: about.glade
 	$(GTK_BUILDER_CONVERT) $< $@
 

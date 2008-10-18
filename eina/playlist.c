@@ -275,6 +275,7 @@ G_MODULE_EXPORT gboolean playlist_init
 		return FALSE;
 	}
 
+	/*
 	GtkWindow     *main_window;
 	GtkAccelGroup *accel_group;
 
@@ -286,6 +287,7 @@ G_MODULE_EXPORT gboolean playlist_init
 			accel_group, GDK_Delete, 0, GTK_ACCEL_VISIBLE);
 
 	}
+	*/
 
 	gtk_widget_show(self->dock);
 	return eina_iface_dock_add_item(iface, "playlist",
@@ -415,6 +417,16 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 {
 	LomoState state = LOMO_STATE_INVALID;
 	gchar *new_state = NULL;
+	const LomoStream *stream;
+
+	stream = lomo_player_get_nth(LOMO(self), item);
+	if (lomo_stream_is_failed((LomoStream *) stream))
+	{
+		gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
+			PLAYLIST_COLUMN_STATE, "gtk-stock-dialog-error",
+			-1);
+		return;
+	}
 
 	// If item is not the active one, new_state is NULL
 	if (item == current_item)

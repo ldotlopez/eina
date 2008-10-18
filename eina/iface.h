@@ -116,6 +116,14 @@ eina_iface_dock_switch_item(EinaIFace *iface, gchar *id);
 	eina_iface_dock_switch_item(EINA_PLUGIN_IFACE(plugin), id)
 
 // --
+// Configuration handling
+// --
+gboolean eina_plugin_add_configuration_widget
+(EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget);
+gboolean eina_plugin_remove_configuration_widget
+(EinaPlugin *plugin,  GtkWidget *widget);
+
+// --
 // Cover handling
 // --
 //

@@ -33,7 +33,11 @@ typedef struct {
 
 GType eina_preferences_dialog_get_type (void);
 
-EinaPreferencesDialog* eina_preferences_dialog_new (void);
+void
+eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, GtkImage *icon, GtkLabel *label, GtkWidget *tab);
+
+void
+eina_preferences_dialog_remove_tab(EinaPreferencesDialog *self, GtkWidget *widget);
 
 G_END_DECLS
 

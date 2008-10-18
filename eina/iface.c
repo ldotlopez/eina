@@ -6,6 +6,7 @@
 #include "base.h"
 #include "iface.h"
 #include "player.h"
+#include "eina-preferences-dialog.h"
 #include "settings.h"
 
 struct _EinaIFace {
@@ -74,6 +75,8 @@ G_MODULE_EXPORT gboolean eina_iface_init
 		if ((plugin = eina_iface_load_plugin_by_name(self, "recently")) != NULL)
 			eina_iface_init_plugin(self, plugin);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "lastfmcover")) != NULL)
+			eina_iface_init_plugin(self, plugin);
+		if ((plugin = eina_iface_load_plugin_by_name(self, "lastfm")) != NULL)
 			eina_iface_init_plugin(self, plugin);
 	}
 	eina_iface_list_available_plugins(self);
@@ -574,6 +577,45 @@ eina_iface_dock_page_signal_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaI
 	}
 	g_string_free(output, TRUE);
 }
+
+// --
+// Settings management
+// --
+static EinaPreferencesDialog *
+eina_plugin_get_preferences(EinaPlugin *plugin)
+{
+	EinaIFace *iface;
+	GelHub    *hub;
+
+	if ((iface = eina_plugin_get_iface(plugin)) == NULL)
+		return NULL;
+	if ((hub = eina_iface_get_hub(iface)) == NULL)
+		return NULL;
+	return (EinaPreferencesDialog *) gel_hub_shared_get(hub, "preferences");
+}
+
+gboolean eina_plugin_add_configuration_widget
+(EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget)
+{
+	EinaPreferencesDialog *prefs;
+	prefs = eina_plugin_get_preferences(plugin);
+	if (prefs == NULL)
+		return FALSE;
+	eina_preferences_dialog_add_tab(prefs, icon, label, widget);
+	return TRUE;
+}
+
+gboolean eina_plugin_remove_configuration_widget
+(EinaPlugin *plugin,  GtkWidget *widget)
+{
+	EinaPreferencesDialog *prefs;
+	prefs = eina_plugin_get_preferences(plugin);
+	if (prefs == NULL)
+		return FALSE;
+	eina_preferences_dialog_remove_tab(prefs, widget);
+	return TRUE;
+}
+
 
 // --
 // Cover management
