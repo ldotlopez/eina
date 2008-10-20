@@ -8,6 +8,9 @@ G_BEGIN_DECLS
 
 typedef struct _EinaPlayer EinaPlayer;
 
+#define GEL_HUB_GET_PLAYER(hub) gel_hub_shared_get(hub,"player")
+#define EINA_BASE_GET_PLAYER(base) GEL_HUB_GET_PLAYER(HUB(base))
+
 EinaCover    *eina_player_get_cover(EinaPlayer *self);
 GtkUIManager *eina_player_get_ui_manager(EinaPlayer *self);
 GtkWindow    *eina_player_get_main_window(EinaPlayer *self);

@@ -5,7 +5,6 @@
 	</menu>
 
     <menu name="Edit" action="EditMenu" >
-	  <menuitem name="Plugins" action="Plugins" />
 	  <menuitem name="Preferences" action="Preferences" />
 	</menu>
 

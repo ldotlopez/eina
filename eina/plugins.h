@@ -5,10 +5,7 @@
 
 typedef struct _EinaPlugins EinaPlugins;
 
-gboolean eina_plugins_init(GelHub *hub, gint *argc, gchar ***argv);
-gboolean eina_plugins_exit(gpointer data);
-
-void eina_plugins_show(EinaPlugins *self);
-void eina_plugins_hide(EinaPlugins *self);
+#define GEL_HUB_GET_PLUGINS(hub)    gel_hub_shared_get(hub, "plugins")
+#define EINA_BASE_GET_PLUGINS(base) GEL_HUB_GET_PLUGINS(HUB(base))
 
 #endif

@@ -24,6 +24,12 @@ enum {
 };
 
 static void
+plugins_show(EinaPlugins *self);
+
+static void
+plugins_hide(EinaPlugins *self);
+
+static void
 plugins_treeview_fill(EinaPlugins *self);
 
 static void
@@ -102,10 +108,10 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	self->window = W(self, "main-window");
 
 	g_signal_connect_swapped(self->window, "delete-event",
-	G_CALLBACK(eina_plugins_hide), self);
+	G_CALLBACK(plugins_hide), self);
 
 	g_signal_connect_swapped(self->window, "response",
-	G_CALLBACK(eina_plugins_hide), self);
+	G_CALLBACK(plugins_hide), self);
 
 	g_signal_connect(self->treeview, "cursor-changed",
 	G_CALLBACK(plugins_treeview_cursor_changed_cb), self);
@@ -114,7 +120,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
 	// Menu entry
-	EinaPlayer *player = gel_hub_shared_get(HUB(self), "player");
+	EinaPlayer *player = EINA_BASE_GET_PLAYER(self);
 	if (player == NULL)
 	{
 		gel_warn("Cannot access player");
@@ -146,8 +152,10 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	
 	GtkActionGroup *ag = gtk_action_group_new("plugins");
 	gtk_action_group_add_actions(ag, action_entries, G_N_ELEMENTS(action_entries), self);
+	gtk_ui_manager_insert_action_group(ui_manager, ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
 	gel_warn("UI Merged");
+
 	return TRUE;
 }
 
@@ -162,15 +170,18 @@ G_MODULE_EXPORT gboolean eina_plugins_exit
 	return TRUE;
 }
 
-void
-eina_plugins_show(EinaPlugins *self)
+//--
+// Private functions
+//--
+static void
+plugins_show(EinaPlugins *self)
 {
 	plugins_treeview_fill(self);
 	gtk_widget_show(self->window);
 }
 
-void
-eina_plugins_hide(EinaPlugins *self)
+static void
+plugins_hide(EinaPlugins *self)
 {
 	EinaIFace *iface;
 	GList *l;
@@ -191,9 +202,6 @@ eina_plugins_hide(EinaPlugins *self)
 	self->plugins = NULL;
 }
 
-//--
-// Private functions
-//--
 static void
 plugins_treeview_fill(EinaPlugins *self)
 {
@@ -286,7 +294,7 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 	if ((path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->model), &iter)) == NULL)
 	{
 		gel_warn("Cannot get treepath from selection");
-		eina_plugins_hide(self);
+		plugins_hide(self);
 		return;
 	}
 
@@ -342,7 +350,16 @@ plugins_cell_renderer_toggle_toggled_cb
 static void
 plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self)
 {
-	gel_error("Action %s not defined", gtk_action_get_name(action));
+	const gchar *name = gtk_action_get_name(action);
+
+	if (g_str_equal(name, "Plugins"))
+	{
+		plugins_show(self);
+	}
+	else
+	{
+		gel_error("Action %s not defined", name);
+	}
 }
 
 G_MODULE_EXPORT GelHubSlave plugins_connector = {

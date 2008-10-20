@@ -113,9 +113,6 @@ static GtkActionEntry ui_actions[] = {
 	{ "Quit", GTK_STOCK_QUIT, N_("Quit"),
 	"<control>q", NULL, G_CALLBACK(menu_activate_cb) },
 
-	{ "Plugins", NULL, N_("Plugins"),
-	NULL, NULL, G_CALLBACK(menu_activate_cb) },
-
 	{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
   	"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
 
@@ -695,12 +692,14 @@ void
 menu_activate_cb(GtkAction *action, EinaPlayer *self)
 {
 	const gchar *name = gtk_action_get_name(action);
-
+/*
 	if (g_str_equal(name, "Plugins") && self->plugins_mng)
 	{
 		eina_plugins_show(self->plugins_mng);
 	}
-	else if (g_str_equal(name, "About") && self->about)
+	else */
+	
+	if (g_str_equal(name, "About") && self->about)
 	{
 		gtk_widget_show(GTK_WIDGET(self->about));
 	}
