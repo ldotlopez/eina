@@ -404,6 +404,18 @@ eina_player_get_cover(EinaPlayer *self)
 	return self->cover;
 }
 
+GtkUIManager *
+eina_player_get_ui_manager(EinaPlayer *self)
+{
+	return self->ui_manager;
+}
+
+GtkWindow *
+eina_player_get_main_window(EinaPlayer *self)
+{
+	return GTK_WINDOW(W(self, "main-window"));
+}
+
 // --
 // Internal API
 // --

@@ -7,12 +7,13 @@
 #include "eina/iface.h"
 
 struct _EinaPlugins {
-	EinaBase      parent;
-	GtkWidget    *window;
-	GtkTreeView  *treeview;
-	GtkListStore *model;
-	GList        *plugins;
-	EinaPlugin   *active_plugin;
+	EinaBase        parent;
+	GtkWidget      *window;
+	GtkTreeView    *treeview;
+	GtkListStore   *model;
+	GList          *plugins;
+	EinaPlugin     *active_plugin;
+	GtkActionEntry *ui_actions;
 };
 
 enum {
@@ -30,6 +31,9 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self);
 
 static void
 plugins_cell_renderer_toggle_toggled_cb(GtkCellRendererToggle *w, gchar *path, EinaPlugins *self);
+
+static void
+plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self);
 
 //--
 // Signal definitions
@@ -109,6 +113,41 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	g_signal_connect(enabled_render, "toggled",
 	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
+	// Menu entry
+	EinaPlayer *player = gel_hub_shared_get(HUB(self), "player");
+	if (player == NULL)
+	{
+		gel_warn("Cannot access player");
+		return TRUE;
+	}
+
+	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GError *error = NULL;
+	guint merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
+		"<ui>"
+		"<menubar name=\"MainMenuBar\">"
+		"<menu name=\"Edit\" action=\"EditMenu\" >"
+		"<menuitem name=\"Plugins\" action=\"Plugins\" />"
+		"</menu>"
+		"</menubar>"
+		"</ui>",
+		-1, &error);
+	if (merge_id == 0)
+	{
+		gel_warn("Cannot merge UI: '%s'", error->message);
+		g_error_free(error);
+		return TRUE;
+	}
+
+	GtkActionEntry action_entries[] = {
+		{ "Plugins", NULL, N_("Plugins"),
+	    NULL, NULL, G_CALLBACK(plugins_menu_activate_cb) }
+	};
+	
+	GtkActionGroup *ag = gtk_action_group_new("plugins");
+	gtk_action_group_add_actions(ag, action_entries, G_N_ELEMENTS(action_entries), self);
+	gtk_ui_manager_ensure_update(ui_manager);
+	gel_warn("UI Merged");
 	return TRUE;
 }
 
@@ -298,6 +337,12 @@ plugins_cell_renderer_toggle_toggled_cb
 	else
 		ret = eina_iface_init_plugin(iface, plugin);
 	gel_warn("Status: %d");
+}
+
+static void
+plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self)
+{
+	gel_error("Action %s not defined", gtk_action_get_name(action));
 }
 
 G_MODULE_EXPORT GelHubSlave plugins_connector = {

@@ -12,6 +12,8 @@ typedef struct _LastFmDataSubmit {
 	gint64 secs_played;
 	gint64 check_point;
 	GtkWidget *configuration_widget;
+	gchar *daemon_path;
+	gchar *client_path;
 } LastFmDataSubmit;
 
 typedef struct LastFmData {

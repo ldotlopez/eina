@@ -420,7 +420,7 @@ G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
 	"0.7.0",
 	N_("Enhace your covers"),
 	N_("bla ble bli"),
-	NULL
+	NULL,
 	"xuzo <xuzo@cuarentaydos.com>",
 	"http://eina.sourceforge.net/",
 

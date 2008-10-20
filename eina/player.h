@@ -8,10 +8,9 @@ G_BEGIN_DECLS
 
 typedef struct _EinaPlayer EinaPlayer;
 
-gboolean   eina_player_init(GelHub *hub, gint *argc, gchar ***argv);
-gboolean   eina_player_exit(gpointer data);
-
-EinaCover *eina_player_get_cover(EinaPlayer *self);
+EinaCover    *eina_player_get_cover(EinaPlayer *self);
+GtkUIManager *eina_player_get_ui_manager(EinaPlayer *self);
+GtkWindow    *eina_player_get_main_window(EinaPlayer *self);
 
 G_END_DECLS
 
