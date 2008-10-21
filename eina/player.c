@@ -102,12 +102,12 @@ static void settings_change_cb
 // --
 static GtkActionEntry ui_actions[] = {
 	// Menu
-	{ "FileMenu", NULL, N_("File"),
-	NULL, NULL, NULL},
-	{ "EditMenu", NULL, N_("Edit"),
-	NULL, NULL, NULL},
-	{ "HelpMenu", NULL, N_("Help"),
-	NULL, NULL, NULL},
+	{ "FileMenu", NULL, N_("_File"),
+	"<alt>f", NULL, NULL},
+	{ "EditMenu", NULL, N_("_Edit"),
+	"<alt>e", NULL, NULL},
+	{ "HelpMenu", NULL, N_("_Help"),
+	"<alt>h", NULL, NULL},
 
 	// Menu item actions 
 	{ "Quit", GTK_STOCK_QUIT, N_("Quit"),
@@ -233,6 +233,8 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 			gtk_widget_show_all(gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"));
 		}
 		g_free(ui_manager_file);
+		gtk_window_add_accel_group(GTK_WINDOW(W(self, "main-window")),
+			gtk_ui_manager_get_accel_group(self->ui_manager));
 	}
 	else
 	{
@@ -368,6 +370,12 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	lomo_player_set_volume(LOMO(self), eina_conf_get_int(self->conf, "/core/volume", 50));
 
 	gtk_widget_show(W(self, "main-window"));
+
+	// Accelerators
+	GtkAccelGroup *accel_group = NULL;
+	accel_group = gtk_accel_group_new();
+	gtk_window_add_accel_group(GTK_WINDOW(W(self, "main-window")), accel_group);
+
 	return TRUE;
 }
 
