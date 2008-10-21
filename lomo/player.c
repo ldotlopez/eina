@@ -844,9 +844,25 @@ gint lomo_player_add_uri_strv_at_pos(LomoPlayer *self, gchar **uris, gint pos)
 { BACKTRACE
 	GList *l = NULL;
 	gint ret, i;
+	gchar *tmp;
 
+	if (uris == NULL)
+		return 0; 
+	
 	for (i = 0; uris[i] != NULL; i++)
-		l = g_list_prepend(l, uris[i]);
+	{
+		if ((tmp = g_uri_parse_scheme(uris[i])) == NULL)
+		{
+			if ((tmp = g_filename_to_uri(uris[i], NULL, NULL)) != NULL)
+				l = g_list_prepend(l, tmp);
+		}
+		else
+		{
+			g_free(tmp);
+			l = g_list_prepend(l, uris[i]);
+		}
+	}
+
 	l = g_list_reverse(l);
 	ret = lomo_player_add_uri_multi_at_pos(self, l, pos);
 	g_list_free(l);

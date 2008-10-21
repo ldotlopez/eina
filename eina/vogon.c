@@ -20,23 +20,23 @@ struct _EinaVogon
 	gint player_x, player_y;
 };
 
-/*
- * Lomo callbacks
- */
-void
-on_eina_vogon_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaVogon *self);
+// --
+// Lomo callbacks
+// --
+// static void
+// lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaVogon *self);
 
-/*
- * UI callbacks
- */
-gboolean
-on_eina_vogon_activate(GtkWidget *w , EinaVogon *self);
-void
-on_eina_vogon_menu_activate(GtkAction *action, EinaVogon *self);
-void
-on_eina_vogon_menu_popup_menu(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
-gboolean
-on_eina_vogon_destroy(GtkWidget *w, EinaVogon *self);
+// --
+// UI callbacks
+// --
+static gboolean
+status_icon_activate_cb(GtkWidget *w , EinaVogon *self);
+static void
+action_activate_cb(GtkAction *action, EinaVogon *self);
+static void
+popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
+static gboolean
+status_icon_destroy_cb(GtkWidget *w, EinaVogon *self);
 void
 on_eina_vogon_drag_data_received
     (GtkWidget       *widget,
@@ -48,11 +48,11 @@ on_eina_vogon_drag_data_received
     guint             time,
 	EinaVogon *self);
 
-/*
- * Other callbacks
- */
+// --
+// Other callbacks
+// --
 void
-on_eina_vogon_settings_change(EinaConf *conf, const gchar *key, EinaVogon *self);
+settings_change_cb(EinaConf *conf, const gchar *key, EinaVogon *self);
 
 /*
  * Init/Exit functions 
@@ -92,25 +92,25 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 	const GtkActionEntry ui_actions[] = {
 		/* Menu actions */
 		{ "Play", GTK_STOCK_MEDIA_PLAY, N_("Play"),
-			"<alt>x", "Play", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>x", "Play", G_CALLBACK(action_activate_cb) },
 		{ "Pause", GTK_STOCK_MEDIA_PAUSE, N_("Pause"),
-			"<alt>c", "Pause", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>c", "Pause", G_CALLBACK(action_activate_cb) },
 		{ "Stop", GTK_STOCK_MEDIA_STOP, N_("Stop"),
-			"<alt>v", "Stop", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>v", "Stop", G_CALLBACK(action_activate_cb) },
 		{ "Next", GTK_STOCK_MEDIA_NEXT, N_("Next"),
-			"<alt>b", "Next stream", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>b", "Next stream", G_CALLBACK(action_activate_cb) },
 		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"),
-			"<alt>z", "Previous stream", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>z", "Previous stream", G_CALLBACK(action_activate_cb) },
 		{ "Clear", GTK_STOCK_CLEAR, N_("C_lear"),
-			"<alt>l", "Clear playlist", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>l", "Clear playlist", G_CALLBACK(action_activate_cb) },
 		{ "Quit", GTK_STOCK_QUIT, N_("_Quit"),
-			"<alt>q", "Quit Eina", G_CALLBACK(on_eina_vogon_menu_activate) }
+		"<alt>q", "Quit Eina", G_CALLBACK(action_activate_cb) }
 	};
 	const GtkToggleActionEntry ui_toggle_actions[] = {
 		{ "Shuffle", NULL, N_("Shuffle"),
-			"<alt>s", "Shuffle playlist", G_CALLBACK(on_eina_vogon_menu_activate) },
+		"<alt>s", "Shuffle playlist", G_CALLBACK(action_activate_cb) },
 		{ "Repeat", NULL , N_("Repeat"),
-			"<alt>r", "Repeat playlist", G_CALLBACK(on_eina_vogon_menu_activate) }
+		"<alt>r", "Repeat playlist", G_CALLBACK(action_activate_cb) }
 	};
 
 	self = g_new0(EinaVogon, 1);
@@ -121,7 +121,8 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 	}
 
 	// Crete icon
-	self->icon   = gtk_status_icon_new();
+	self->icon = gtk_status_icon_new();
+
 	pixbuf = gel_ui_load_pixbuf_from_imagedef(img_def, &err);
 	if (pixbuf == NULL) {
 		gel_error("Cannot load image '%s': %s", img_def.image, err->message);
@@ -146,10 +147,10 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 	self->menu = gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu");
 
 	g_signal_connect(self->icon, "popup-menu",
-		G_CALLBACK(on_eina_vogon_menu_popup_menu), self);
+		G_CALLBACK(popup_menu_cb), self);
 	g_signal_connect(
 		G_OBJECT(self->icon), "activate",
-		G_CALLBACK(on_eina_vogon_activate), self);
+		G_CALLBACK(status_icon_activate_cb), self);
 
 	// Load settings 
 	if (!gel_hub_load(hub, "settings")) {
@@ -167,13 +168,15 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
 		eina_conf_get_bool(self->conf, "/core/random", FALSE));
 
-	g_signal_connect(
-		self->conf, "change",
-		G_CALLBACK(on_eina_vogon_settings_change), self);
+	g_signal_connect(self->conf, "change", G_CALLBACK(settings_change_cb), self);
 
 #if defined(__APPLE__) || defined(__APPLE_CC__)
 	gel_warn(GEL_DOMAIN " is buggy on OSX. You have been warned, dont file any bugs about this.");
 #endif
+
+	// Prepare destroy
+	g_signal_connect(self->icon, "notify::destryoy",
+	G_CALLBACK(status_icon_destroy_cb), self);
 
 	return TRUE;
 }
@@ -193,11 +196,11 @@ eina_vogon_exit (gpointer data)
 }
 
 
-/*
- * Implement UI Callbacks 
- */
-void
-on_eina_vogon_menu_popup_menu (GtkWidget *w, guint button, guint activate_time, EinaVogon *self)
+// --
+// Implement UI Callbacks 
+// --
+static void
+popup_menu_cb (GtkWidget *w, guint button, guint activate_time, EinaVogon *self)
 {
     gtk_menu_popup(
         GTK_MENU(self->menu),
@@ -207,8 +210,8 @@ on_eina_vogon_menu_popup_menu (GtkWidget *w, guint button, guint activate_time, 
     );
 }
 
-void
-on_eina_vogon_menu_activate(GtkAction *action, EinaVogon *self)
+static void
+action_activate_cb(GtkAction *action, EinaVogon *self)
 {
 	GError *error = NULL;
 	const gchar *name = gtk_action_get_name(action);
@@ -264,8 +267,8 @@ on_eina_vogon_menu_activate(GtkAction *action, EinaVogon *self)
 	}
 }
 
-gboolean
-on_eina_vogon_destroy(GtkWidget *w, EinaVogon *self)
+static gboolean
+status_icon_destroy_cb(GtkWidget *w, EinaVogon *self)
 {
 	GtkWidget *window = W(self, "main-window");
 
@@ -276,7 +279,8 @@ on_eina_vogon_destroy(GtkWidget *w, EinaVogon *self)
 	return FALSE;
 }
 
-gboolean on_eina_vogon_activate
+static gboolean
+status_icon_activate_cb
 (GtkWidget *w, EinaVogon *self)
 {
 	EinaPlayer *player;
@@ -350,7 +354,7 @@ on_eina_vogon_drag_data_received
  * Other callbacks
  */
 void
-on_eina_vogon_settings_change (EinaConf *conf, const gchar *key, EinaVogon *self)
+settings_change_cb (EinaConf *conf, const gchar *key, EinaVogon *self)
 {
 	if (g_str_equal(key, "/core/repeat"))
 	    gtk_check_menu_item_set_active(

@@ -1,9 +1,10 @@
-#ifndef __EINA_LOMO_H__
-#define __EINA_LOMO_H__
+#ifndef _LOMO_H
+#define _LOMO_H
 
-#include "libghub/ghub.h"
+#include <gel/gel.h>
 
-gboolean eina_lomo_init(GelHub *hub, gint *argc, gchar ***argv);
-gboolean eina_lomo_fini(gpointer data);
+#define GEL_HUB_GET_LOMO(hub)    gel_hub_shared_get(hub,"lomo")
+#define EINA_BASE_GET_LOMO(base) GEL_HUB_GET_LOMO(((EinaBase *)base)->hub)
 
-#endif
+#endif // _LOMO_H
+
