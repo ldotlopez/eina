@@ -826,11 +826,13 @@ gint lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos)
 gint lomo_player_add_uri_multi_at_pos(LomoPlayer *self, GList *uris, gint pos)
 { BACKTRACE
 	GList *l, *streams = NULL;
+	LomoStream *stream = NULL;
 	gint ret;
 
 	l = uris;
 	while (l) {
-		streams = g_list_append(streams, lomo_stream_new((gchar *) l->data));
+		if ((stream = lomo_stream_new((gchar *) l->data)) != NULL)
+			streams = g_list_append(streams, stream);
 		l = l->next;
 	}
 

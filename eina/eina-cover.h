@@ -39,6 +39,7 @@ typedef void (*EinaCoverBackendCancelFunc)(EinaCover *self, gpointer data);
 GType eina_cover_get_type (void);
 
 EinaCover* eina_cover_new (void);
+EinaCover* eina_cover_new_with_opts(gchar *default_cover, gchar *loading_cover);
 
 void        eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo);
 LomoPlayer* eina_cover_get_lomo_player(EinaCover *self);

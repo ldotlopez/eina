@@ -189,7 +189,8 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	gtk_widget_show_all(GTK_WIDGET(self->seek));
 
 	// Insert volume
-	self->volume = g_object_new(EINA_TYPE_VOLUME, "lomo-player", LOMO(self), NULL);
+	self->volume = (EinaVolume *) eina_volume_new();
+	g_object_set(self->volume, "lomo-player", LOMO(self), NULL);
 	gtk_container_foreach(GTK_CONTAINER(W(self, "volume-button-container")),
 		(GtkCallback) gtk_widget_destroy,
 		NULL);
@@ -636,7 +637,7 @@ action_button_clicked_cb(GtkWidget *w, EinaPlayer *self)
 		gint    run = TRUE;
 
 		picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
-		gtk_widget_show_all(GTK_WIDGET(picker));
+		gtk_widget_show(GTK_WIDGET(picker));
 		do
 		{
 			switch (gtk_dialog_run(GTK_DIALOG(picker)))
@@ -658,7 +659,7 @@ action_button_clicked_cb(GtkWidget *w, EinaPlayer *self)
 					if (uris)
 						eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
 					g_slist_free(uris);
-					eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, "test");
+					eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, _("Added N streams"));
 					break;
 
 				default:

@@ -127,6 +127,36 @@ lomo2_state_change_return_to_gst(LomoStateChangeReturn in)
 	return in;
 }
 
+gchar *
+lomo_create_uri(gchar *str)
+{
+	gchar *tmp, *tmp2;
+
+	// Valid URI
+	if ((tmp = g_uri_parse_scheme(str)) != NULL)
+	{
+		g_free(tmp);
+		return g_strdup(str);
+	}
+
+	// Absolute URI
+	if (g_path_is_absolute(str))
+	{
+		// Return URI even if this fails
+		return g_filename_to_uri(str, NULL, NULL);
+	}
+
+	// Relative URI: create an absolute path and convert it to URI
+	tmp = g_get_current_dir();
+	tmp2 = g_build_filename(tmp, str, NULL);
+	g_free(tmp);
+
+	tmp = g_filename_to_uri(tmp2, NULL, NULL);
+	g_free(tmp2);
+
+	return tmp;
+}
+
 // --
 // Conversions between LomoState and GstState
 // --

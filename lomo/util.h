@@ -17,6 +17,8 @@ GstStateChangeReturn lomo_state_change_return_to_gst(GstStateChangeReturn ret);
 const gchar *gst_state_to_str(GstState state);
 const gchar *gst_state_change_return_to_str(GstStateChangeReturn s);
 
+gchar *lomo_create_uri(gchar *str);
+
 // Lomo2
 LomoStateChangeReturn lomo2_state_change_return_from_gst(GstStateChangeReturn in);
 GstStateChangeReturn  lomo2_state_change_return_to_gst(LomoStateChangeReturn in);

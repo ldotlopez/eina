@@ -4,7 +4,10 @@
 #include <gel/gel.h>
 #include "class-conf-file.h"
 
-gboolean settings_init(GelHub *hub, gint *argc, gchar ***argv);
-gboolean settings_exit(gpointer data);
+G_BEGIN_DECLS
 
-#endif
+#define GEL_HUB_GET_SETTINGS(hub)    ((EinaConf *) gel_hub_shared_get(hub,"settings"))
+#define EINA_BASE_GET_SETTINGS(base) GEL_HUB_GET_SETTINGS(((EinaBase *) base)->hub)
+
+#endif // _SETTINGS_H
+

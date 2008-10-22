@@ -64,9 +64,9 @@ gboolean eina_cover_set_cover(EinaCover *self, GType type, gpointer data);
 void     eina_cover_run_backends(EinaCover *self);
 void     eina_cover_reset_backends(EinaCover *self);
 
-static void on_eina_cover_lomo_change(LomoPlayer *lomo, gint form, gint to, EinaCover *self);
-static void on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self);
-static void on_eina_cover_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, EinaCover *self);
+static void lomo_change_cb(LomoPlayer *lomo, gint form, gint to, EinaCover *self);
+static void lomo_clear_cb(LomoPlayer *lomo, EinaCover *self);
+static void lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaCover *self);
 
 static void
 eina_cover_get_property (GObject *object, guint property_id,
@@ -190,6 +190,15 @@ eina_cover_new (void)
 	return g_object_new (EINA_TYPE_COVER, NULL);
 }
 
+EinaCover*
+eina_cover_new_with_opts(gchar *default_cover, gchar *loading_cover)
+{
+	EinaCover *self = eina_cover_new();
+	eina_cover_set_default_cover(self, default_cover);
+	eina_cover_set_loading_cover(self, loading_cover);
+	return self;
+}
+
 void
 eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo)
 {
@@ -201,19 +210,19 @@ eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo)
 	g_object_ref(lomo);
 	if (priv->lomo != NULL)
 	{
-		g_signal_handlers_disconnect_by_func(priv->lomo, on_eina_cover_lomo_change, self);
-		g_signal_handlers_disconnect_by_func(priv->lomo, on_eina_cover_lomo_all_tags, self);
-		g_signal_handlers_disconnect_by_func(priv->lomo, on_eina_cover_lomo_clear, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_change_cb, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_all_tags_cb, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_clear_cb, self);
 		g_object_unref(priv->lomo);
 	}
 
 	priv->lomo = lomo;
 	g_signal_connect(priv->lomo, "change",
-	G_CALLBACK(on_eina_cover_lomo_change), self);
+	G_CALLBACK(lomo_change_cb), self);
 	g_signal_connect(priv->lomo, "all-tags",
-	G_CALLBACK(on_eina_cover_lomo_all_tags), self);
+	G_CALLBACK(lomo_all_tags_cb), self);
 	g_signal_connect(priv->lomo, "clear",
-	G_CALLBACK(on_eina_cover_lomo_clear), self);
+	G_CALLBACK(lomo_clear_cb), self);
 }
 
 LomoPlayer *
@@ -310,7 +319,7 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 }
 
 static void
-on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 	const LomoStream *stream;
@@ -338,7 +347,7 @@ on_eina_cover_lomo_change(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 }
 
 static void
-on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self)
+lomo_clear_cb(LomoPlayer *lomo, EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 
@@ -347,7 +356,7 @@ on_eina_cover_lomo_clear(LomoPlayer *lomo, EinaCover *self)
 }
 
 static void
-on_eina_cover_lomo_all_tags(LomoPlayer *lomo, LomoStream *stream, EinaCover *self)
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaCover *self)
 {
 	struct _EinaCoverPrivate *priv = GET_PRIVATE(self);
 	if (priv->stream != stream)

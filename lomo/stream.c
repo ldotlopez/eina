@@ -56,27 +56,27 @@ lomo_stream_init (LomoStream *self)
 LomoStream*
 lomo_stream_new (gchar *uri)
 {
-	LomoStream *self = g_object_new (LOMO_TYPE_STREAM, NULL);
+	LomoStream *self;
 	gint i;
 
-	/* Check valid URI */
-	i = 0;
-	while (uri[i] != '\0') {
-		if ((uri[i] < 20) || (uri[i] > 126)) {
+	// Check valid URI, more strict methods than this: g_uri_parse_scheme
+	for (i = 0; uri[i] != '\0'; i++)
+	{
+		if ((uri[i] < 20) || (uri[i] > 126))
+		{
 			g_warning("%s is not valid uri", uri);
 			return NULL;
 		}
-		i++;
 	}
 
-	if (strstr(uri, "://") == NULL) {
+	if (strstr(uri, "://") == NULL)
+	{
 		g_warning("%s is not valid uri", uri);
 		return NULL;
 	}
 
-	/*
- 	 * More or less uri _is_ a valid URI now
- 	 */
+	// Create instance once URI
+	self = g_object_new (LOMO_TYPE_STREAM, NULL);
 	g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
 
 	return self;

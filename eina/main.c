@@ -5,6 +5,7 @@
 #include <glib/gstdio.h>
 #include <gel/gel-io.h>
 #include <lomo/player.h>
+#include <lomo/util.h>
 #include <eina/lomo.h>
 #include <eina/player.h>
 #include <eina/iface.h>
@@ -94,10 +95,22 @@ gint main
 	while (modules[i])
 		gel_hub_load(app, modules[i++]);
 	
+	// Add or enqueue files from cmdl
 	LomoPlayer *lomo = GEL_HUB_GET_LOMO(app);
+	GList *uris = NULL;
+
 	if ((!opt_enqueue) && (opt_uris != NULL))
 		lomo_player_clear(lomo);
-	lomo_player_add_uri_strv(lomo, opt_uris);
+
+	for (i = 0; (opt_uris != NULL) && (opt_uris[i] != NULL); i++)
+	{
+		if ((tmp = lomo_create_uri(opt_uris[i])) != NULL)
+		{
+			uris = g_list_prepend(uris, tmp);
+		}
+	}
+	lomo_player_add_uri_multi(lomo, uris);
+	gel_glist_free(uris, (GFunc) g_free, NULL);
 	g_strfreev(opt_uris);
 
 	gtk_main();

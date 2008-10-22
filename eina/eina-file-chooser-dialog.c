@@ -13,13 +13,17 @@ typedef struct _EinaFileChooserDialogPrivate EinaFileChooserDialogPrivate;
 
 struct _EinaFileChooserDialogPrivate {
 	EinaFileChooserDialogAction action;
-	GtkBox   *info_box;
-	GtkImage *info_image;
-	GtkLabel *info_label;
+	GtkBox    *info_box;
+	GtkImage  *info_image;
+	GtkLabel  *info_label;
+	GtkButton *close_button;
 };
 
 void
 eina_file_chooser_dialog_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
+
+static void
+close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
 
 #if !GTK_CHECK_VERSION(2,14,0)
 static GObject*
@@ -29,10 +33,10 @@ eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectCon
 	GObject *obj;
 
 	/* Override file-system-backend */
-	for (i = 0 ; i < n_properties; i++) {
-		if (g_str_equal(properties[i].pspec->name, "file-system-backend")) {
+	for (i = 0 ; i < n_properties; i++)
+	{
+		if (g_str_equal(properties[i].pspec->name, "file-system-backend"))
 			g_value_set_static_string(properties[i].value, "gio");
-		}
 	}
 	
     {
@@ -45,7 +49,8 @@ eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectCon
 	}
 #if 0
 	e_info("%d properties:", n_properties);
-	for (i = 0 ; i < n_properties; i++) {
+	for (i = 0 ; i < n_properties; i++)
+	{
 		e_info("[%s]  %s: %s",
 			G_VALUE_TYPE_NAME(properties[i].value), properties[i].pspec->name, g_strdup_value_contents(properties[i].value));
 	}
@@ -106,12 +111,21 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
 	priv->info_label = (GtkLabel *) gtk_label_new(NULL);
 	priv->info_image = (GtkImage *) gtk_image_new();
+	priv->close_button = (GtkButton *) gtk_button_new();
 
-	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->info_image), FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->info_label), FALSE, FALSE, 0);
+	gtk_button_set_relief(priv->close_button, GTK_RELIEF_NONE);
+	gtk_container_add(GTK_CONTAINER(priv->close_button), gtk_image_new_from_stock("gtk-close", GTK_ICON_SIZE_MENU));
 
-	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->info_image),   FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->info_label),   TRUE,  TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(priv->close_button), FALSE, FALSE, 0);
+	gtk_widget_hide(GTK_WIDGET(priv->info_box));
+
+	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
 	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
+
+	g_signal_connect(priv->close_button, "clicked",
+	G_CALLBACK(close_button_clicked_cb), self);
 
 	return self;
 }
@@ -173,6 +187,13 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 			gtk_widget_hide(GTK_WIDGET(priv->info_box));
 			return;
 	}
+	gtk_label_set_text(GTK_LABEL(priv->info_label), msg);
 	gtk_widget_show_all(GTK_WIDGET(priv->info_box));
 }
 
+static void
+close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	gtk_widget_hide(GTK_WIDGET(priv->info_box));
+}

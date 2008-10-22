@@ -42,14 +42,6 @@ static void
 plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self);
 
 //--
-// Signal definitions
-//--
-GelUISignalDef _plugins_signals[] = {
-	// { "nameType", "something", G_CALLBACK(on_plugins_lomo_something) }, 
-	GEL_UI_SIGNAL_DEF_NONE
-};
-
-//--
 // Init/Exit functions 
 //--
 G_MODULE_EXPORT gboolean eina_plugins_init
@@ -154,7 +146,6 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	gtk_action_group_add_actions(ag, action_entries, G_N_ELEMENTS(action_entries), self);
 	gtk_ui_manager_insert_action_group(ui_manager, ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
-	gel_warn("UI Merged");
 
 	return TRUE;
 }
