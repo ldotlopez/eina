@@ -55,6 +55,8 @@ EinaFileChooserDialog* eina_file_chooser_dialog_new (EinaFileChooserDialogAction
 void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	EinaFileChooserDialogMsgType type, gchar *msg);
 
+GList *eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self, gboolean recurse);
+
 G_END_DECLS
 
 #endif /* _EINA_FILE_CHOOSER_DIALOG */

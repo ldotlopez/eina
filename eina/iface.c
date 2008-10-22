@@ -412,7 +412,7 @@ eina_iface_dock_init(EinaIFace *self)
 	if (!self->player || self->dock)
 		return;
 
-	if ((self->dock = GTK_NOTEBOOK(W(self->player, "dock-notebook"))) == NULL)
+	if ((self->dock = W_TYPED(self->player, GTK_NOTEBOOK, "dock-notebook")) == NULL)
 	{
 		gel_warn("Cannot get dock, disabled");
 		return;

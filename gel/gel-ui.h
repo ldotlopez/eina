@@ -58,6 +58,9 @@ gel_ui_load_image_from_def_multiple(GelUI *ui, GelUIImageDef defs[], guint *coun
 gboolean
 gel_ui_stock_add(gchar *resource, gchar *stock_name, gint size, GError **error);
 
+void
+gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget);
+
 G_END_DECLS
 
 #endif // _GEL_UI_H

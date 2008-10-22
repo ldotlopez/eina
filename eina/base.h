@@ -32,8 +32,10 @@ GtkBuilder* eina_base_get_ui  (EinaBase *self);
 #define LOMO(s)      ((EinaBase *)s)->lomo
 #define HUB(s)       ((EinaBase *)s)->hub
 #define UI(s)        ((EinaBase *)s)->ui
-#define W(s,n)       ((GtkWidget *)gtk_builder_get_object(UI(s),n))
-#define OBJ(s,n)     ((GtkObject *)gtk_builder_get_object(UI(s),n))
+#define W(s,n)         W_TYPED(s,GTK_WIDGET,n)
+#define W_TYPED(s,t,n) t(gtk_builder_get_object(UI(s),n))
+
+#define OBJ(s,n)     G_OBJECT(gtk_builder_get_object(UI(s),n))
 
 G_END_DECLS
 

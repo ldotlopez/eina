@@ -142,4 +142,11 @@ gel_ui_stock_add(gchar *resource, gchar *stock_name, gint size, GError **error)
 	return TRUE;
 }
 
+void
+gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
+{
+	gtk_container_foreach(container, (GtkCallback) gtk_widget_destroy, NULL);
+	gtk_box_pack_start(GTK_BOX(container), widget, TRUE, TRUE, 0); 
+}
+
 G_END_DECLS

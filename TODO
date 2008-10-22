@@ -21,8 +21,11 @@ V Seek has some problems when stop or not playing
 V Fix issues with stock icons
 V Kill eina_stream_format
 - Under some circunstances Eina shows no cover (at first run, with no playlist)
+- Window icon at startup (see prev bug)
+- EinaPlayer must listen EinaConf for changes in info format
 - If eina window is maximized, dock must be expanded, if no dock, eina cannot
   will maximize
+- DnD
 
 0.10 Series
 ===========
@@ -30,6 +33,8 @@ V Kill eina_stream_format
 - Reduce memory usage to target netbooks and MID devices
 - Multimedia keys
 - SQL playlist plugin
+- Dock must be an independant component, EinaPlayer or EinaFoo should be
+  reclaim them
 
 Misc
 ====
