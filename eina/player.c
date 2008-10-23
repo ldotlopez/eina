@@ -21,7 +21,7 @@
 #include "fs.h"
 #endif
 
-#if 0
+#if 1
 struct _EinaPlayer {
 	EinaBase parent;
 
@@ -134,19 +134,6 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 
 	gtk_widget_realize(GTK_WIDGET(self->main_window));
 
-	// Initialize cover
-	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
-	self->cover = eina_cover_new_with_opts(default_cover_path, loading_cover_path);
-	eina_cover_set_lomo_player(self->cover, LOMO(self));
-	g_free(default_cover_path);
-	g_free(loading_cover_path);
-	gtk_widget_show_all(GTK_WIDGET(self->cover));
-	gel_ui_container_replace_children(
-		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
-		GTK_WIDGET(self->cover));
-	gtk_widget_show(GTK_WIDGET(self->cover));
-
 	// Initialize volume
 	self->volume = eina_volume_new();
 	eina_volume_set_lomo_player(self->volume, EINA_BASE_GET_LOMO(self));
@@ -165,6 +152,23 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		W_TYPED(self, GTK_CONTAINER, "seek-hscale-container"),
 		GTK_WIDGET(self->seek));
 	gtk_widget_show(GTK_WIDGET(self->seek));
+
+	// Initialize cover
+	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	self->cover = eina_cover_new();
+	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
+	gtk_widget_show(GTK_WIDGET(self->cover));
+	// gtk_widget_realize(GTK_WIDGET(self->cover));
+	gel_ui_container_replace_children(
+		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
+		GTK_WIDGET(self->cover));
+
+	eina_cover_set_default_cover(self->cover, default_cover_path);
+	eina_cover_set_loading_cover(self->cover, loading_cover_path);
+	eina_cover_set_lomo_player  (self->cover, LOMO(self));
+	g_free(default_cover_path);
+	g_free(loading_cover_path);
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -307,14 +311,16 @@ set_info(EinaPlayer *self, LomoStream *stream)
 			_("Eina music player"));
 		gtk_label_set_markup(
 			GTK_LABEL(W(self, "stream-info-label")),
-			_("<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n\u200B")
+			_("<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n<span size=\"x-large\" weight=\"normal\">\u200B</span>")
 			);
+		gtk_label_set_selectable(GTK_LABEL(W(self, "stream-info-label")), FALSE);
 		return;
 	}
 
 	stream_info = gel_str_parser(self->stream_info_fmt, (GelStrParserFunc) stream_info_parser_cb, stream);
 	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), stream_info);
 	g_free(stream_info);
+	gtk_label_set_selectable(GTK_LABEL(W(self, "stream-info-label")), TRUE);
 
 	if ((title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE))) == NULL)
 	{

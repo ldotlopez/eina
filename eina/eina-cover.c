@@ -8,9 +8,6 @@ G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_IMAGE)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_COVER, EinaCoverPrivate))
 
-#define COVER_H(w) GTK_WIDGET(w)->allocation.height
-#define COVER_W(w) COVER_H(w)
-
 typedef struct _EinaCoverPrivate EinaCoverPrivate;
 
 typedef struct {
@@ -276,21 +273,25 @@ gboolean
 eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 {
 	GdkPixbuf *pb, *orig;
+	GtkRequisition req;
 	// double sx, sy;
 
 	if (type == G_TYPE_STRING)
 	{
+		gtk_widget_size_request(GTK_WIDGET(self), &req);
 		pb = gdk_pixbuf_new_from_file_at_scale((gchar *) data,
-			COVER_W(self), COVER_H(self), FALSE,
+			req.width, req.height, FALSE,
 			NULL);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), pb);
 		g_signal_emit(self, eina_cover_signals[CHANGE], 0);
+
 		return TRUE;
 	}
 
 	else if (type == GDK_TYPE_PIXBUF)
 	{
 		orig = GDK_PIXBUF(data);
+		gtk_widget_size_request(GTK_WIDGET(self), &req);
 		/*
 		sx = COVER_W(self) / gdk_pixbuf_get_width(orig);
 		sy = COVER_H(self) / gdk_pixbuf_get_height(orig);
@@ -305,7 +306,7 @@ eina_cover_set_cover(EinaCover *self, GType type, gpointer data)
 			sx, sy,
 			GDK_INTERP_TILES);
 		*/
-		pb = gdk_pixbuf_scale_simple(orig, COVER_W(self), COVER_H(self), GDK_INTERP_TILES);
+		pb = gdk_pixbuf_scale_simple(orig, req.width, req.height, GDK_INTERP_TILES);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(pb));
 		g_signal_emit(self, eina_cover_signals[CHANGE], 0);
 		return TRUE;

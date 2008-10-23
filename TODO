@@ -10,25 +10,31 @@ V Load from commandline
 ~ Write preferences and plugin dialogs
 V Total/remaining time are not working perfectly
 V Volume icons are not perfect
-- EinaVogon should switch between play/pause, pluginize
+- EinaVogon should switch between play/pause
 V Play/pause button hasn't tooltip
 V Format used in EinaPlayer and EinaPlaylist must be customizable
-- Recently plugin doesnt work
 - Keybindings like 'del' to delete songs.
 V Seek has some problems when stop or not playing
 - i18n
-- LastFM Info plugin (Update on demand, CSS love)
 V Fix issues with stock icons
 V Kill eina_stream_format
-- Under some circunstances Eina shows no cover (at first run, with no playlist)
+V Under some circunstances Eina shows no cover (at first run, with no playlist)
 - Window icon at startup (see prev bug)
 - EinaPlayer must listen EinaConf for changes in info format
 - If eina window is maximized, dock must be expanded, if no dock, eina cannot
   will maximize
 - DnD
 
+0.8 Series - Plugins
+====================
+- LastFM Info plugin (Update on demand, CSS love)
+- Recently plugin doesnt work
+- EinaVogon plugin, Vogon player
+
 0.10 Series
 ===========
+- EinaCover should be based on LomoStream to allow more flexible cover fetching
+- Make Dock an entity
 - Unify GelHub/GelSlave and EinaPlugin
 - Reduce memory usage to target netbooks and MID devices
 - Multimedia keys

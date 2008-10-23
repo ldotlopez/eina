@@ -413,7 +413,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 			priv->total_is_desync = FALSE;
 		}
 		else
-			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], NULL);
+			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], "\u200b");
 	}
 	// If total is -1 even if there is no widget to show it, self must be
 	// insensitive and progress reset

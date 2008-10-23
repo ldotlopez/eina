@@ -46,7 +46,7 @@
                             <property name="xalign">0</property>
                             <property name="yalign">0</property>
                             <property name="label" translatable="yes">&lt;span size="x-large" weight="bold"&gt;%t&lt;/span&gt;
-&lt;span size="x-large" weight="normal"&gt;{%a}{ (%b)}&lt;/span&gt;</property>
+&lt;span size="x-large" weight="normal"&gt;{%a}&lt;/span&gt;</property>
                             <property name="use_markup">True</property>
                             <property name="selectable">True</property>
                             <property name="ellipsize">PANGO_ELLIPSIZE_MIDDLE</property>
