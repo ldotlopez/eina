@@ -51,6 +51,8 @@ gboolean playlist_exit
 (gpointer data);
 GtkWidget *
 eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
+static void
+remove_selected(EinaPlaylist *self);
 
 void
 eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
@@ -334,6 +336,23 @@ G_MODULE_EXPORT gboolean playlist_exit
 	return TRUE;
 }
 
+static gboolean
+key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self) 
+{
+	if (event->type != GDK_KEY_PRESS)
+		return FALSE;
+
+	switch (event->key.keyval)
+	{
+	case GDK_Delete:
+		remove_selected(self);
+		break;
+	default:
+		return FALSE;
+	}
+	return TRUE;
+}
+
 GtkWidget *
 eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model)
 {
@@ -389,7 +408,6 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 		"resizable", FALSE,
 		NULL);
 	g_object_set(G_OBJECT(_tv),
-		// "search-column", -1,
 		"headers-clickable", FALSE,
 		"headers-visible", TRUE,
 		NULL);
@@ -409,7 +427,46 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 	if (model != NULL)
 		*model = _model;
 
+	g_signal_connect(ret, "key-press-event",
+	G_CALLBACK(key_press_event_cb), self);
 	return ret;
+}
+
+static void
+remove_selected(EinaPlaylist *self)
+{
+	GtkTreeSelection *selection;
+	GtkTreeModel     *model = NULL;
+	gchar *path_str;
+	GList *rows, *l, *sorted, *to_sort = NULL;
+
+	// Get selected
+	selection = gtk_tree_view_get_selection(self->tv);
+	l = rows = gtk_tree_selection_get_selected_rows(selection, &model);
+
+	// Create an integer list
+	while (l)
+	{
+		path_str = gtk_tree_path_to_string((GtkTreePath*  )(l->data));
+		gint index = (gint) (atol(path_str) / 1);
+
+		to_sort = g_list_prepend(to_sort, GINT_TO_POINTER(index));
+
+		g_free(path_str);
+		l = l->next;
+	}
+
+	// Free results
+	g_list_foreach(rows, (GFunc) gtk_tree_path_free, NULL);
+	g_list_free(rows);
+
+	// Sort list and delete
+	l = sorted = g_list_sort(to_sort, __eina_playlist_sort_int_desc);
+	while (l) {
+		lomo_player_del(LOMO(self), GPOINTER_TO_INT(l->data));
+		l = l->next;
+	}
+	g_list_free(sorted);
 }
 
 void
@@ -704,38 +761,7 @@ playlist_format_stream_cb(gchar key, LomoStream *stream)
 void
 on_pl_remove_button_clicked(GtkWidget *w, EinaPlaylist *self)
 {
-	GtkTreeSelection *selection;
-	GtkTreeModel     *model = NULL;
-	gchar *path_str;
-	GList *rows, *l, *sorted, *to_sort = NULL;
-
-	// Get selected
-	selection = gtk_tree_view_get_selection(self->tv);
-	l = rows = gtk_tree_selection_get_selected_rows(selection, &model);
-
-	// Create an integer list
-	while (l)
-	{
-		path_str = gtk_tree_path_to_string((GtkTreePath*  )(l->data));
-		gint index = (gint) (atol(path_str) / 1);
-
-		to_sort = g_list_prepend(to_sort, GINT_TO_POINTER(index));
-
-		g_free(path_str);
-		l = l->next;
-	}
-
-	// Free results
-	g_list_foreach(rows, (GFunc) gtk_tree_path_free, NULL);
-	g_list_free(rows);
-
-	// Sort list and delete
-	l = sorted = g_list_sort(to_sort, __eina_playlist_sort_int_desc);
-	while (l) {
-		lomo_player_del(LOMO(self), GPOINTER_TO_INT(l->data));
-		l = l->next;
-	}
-	g_list_free(sorted);
+	remove_selected(self);
 }
 
 void

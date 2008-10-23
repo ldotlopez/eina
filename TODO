@@ -13,7 +13,7 @@ V Volume icons are not perfect
 - EinaVogon should switch between play/pause
 V Play/pause button hasn't tooltip
 V Format used in EinaPlayer and EinaPlaylist must be customizable
-- Keybindings like 'del' to delete songs.
+V Keybindings like 'del' to delete songs.
 V Seek has some problems when stop or not playing
 - i18n
 V Fix issues with stock icons
@@ -37,7 +37,8 @@ V Under some circunstances Eina shows no cover (at first run, with no playlist)
 - Make Dock an entity
 - Unify GelHub/GelSlave and EinaPlugin
 - Reduce memory usage to target netbooks and MID devices
-- Multimedia keys
+- Multimedia keys (DBus:
+  src/Extensions/Banshee.MultimediaKeys/Banshee.MultimediaKeys/MultimediaKeysService.cs)
 - SQL playlist plugin
 - Dock must be an independant component, EinaPlayer or EinaFoo should be
   reclaim them

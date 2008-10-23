@@ -51,6 +51,8 @@ switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
 static void
+set_dock_expanded(EinaPlayer *self, gboolean expanded, gboolean transitional);
+static void
 file_chooser_load_files(EinaPlayer *self);
 static void
 about_show(void);
@@ -58,6 +60,8 @@ about_show(void);
 // UI callbacks
 static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
+static gboolean
+main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, EinaPlayer *self);
 static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
@@ -227,6 +231,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	// Connect signals
 	GelUISignalDef ui_signals[] = {
 		{ "main-window",       "delete-event", G_CALLBACK(main_window_delete_event_cb) },
+		{ "main-window",       "window-state-event", G_CALLBACK(main_window_window_state_event_cb) },
 		{ "prev-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "next-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "play-pause-button", "clicked", G_CALLBACK(button_clicked_cb) },
@@ -331,6 +336,12 @@ set_info(EinaPlayer *self, LomoStream *stream)
 
 	gtk_window_set_title(self->main_window, title);
 	g_free(title);
+}
+
+static void
+set_dock_expanded(EinaPlayer *self, gboolean expanded, gboolean transitional)
+{
+	gtk_expander_set_expanded(W_TYPED(self, GTK_EXPANDER, "dock-expander"), expanded);
 }
 
 static void
@@ -441,6 +452,21 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 
 	g_object_unref(HUB(self));
 
+	return FALSE;
+}
+
+static gboolean
+main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, EinaPlayer *self)
+{
+	GdkWindowState mask = GDK_WINDOW_STATE_FULLSCREEN | GDK_WINDOW_STATE_MAXIMIZED;
+	if (event->new_window_state & mask)
+	{
+		set_dock_expanded(self, TRUE, TRUE);
+	}
+	else
+	{
+		set_dock_expanded(self, FALSE, TRUE);
+	}
 	return FALSE;
 }
 
