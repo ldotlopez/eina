@@ -1027,6 +1027,7 @@ void lomo_player_clear(LomoPlayer *self)
 	lomo_player_stop(self, NULL);
 	lomo_playlist_clear(self->priv->pl);
 	lomo_meta_clear(self->priv->meta);
+	lomo_player_reset(self, NULL);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
 }
 
