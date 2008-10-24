@@ -52,7 +52,15 @@ eina_preferences_dialog_new (void)
 	struct _EinaPreferencesDialogPrivate *priv = GET_PRIVATE(self);
 
 	priv->notebook = (GtkNotebook *) gtk_notebook_new();
-	gtk_notebook_set_show_tabs(priv->notebook, FALSE);
+	gtk_notebook_set_show_tabs(priv->notebook, TRUE);
+	gtk_widget_show_all(GTK_WIDGET(priv->notebook));
+
+	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
+
+	gtk_box_pack_start(
+		GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))),
+	 	GTK_WIDGET(priv->notebook),
+		TRUE, TRUE, 0);
 
 	return self;
 }
@@ -67,6 +75,8 @@ eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, GtkImage *icon, Gtk
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(icon),  FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(label), FALSE, FALSE, 0);
 
+	gtk_widget_show_all(GTK_WIDGET(box));
+	gtk_widget_show(GTK_WIDGET(tab));
 	gtk_notebook_append_page(priv->notebook, GTK_WIDGET(tab), GTK_WIDGET(box));
 
 	if (gtk_notebook_get_n_pages(priv->notebook) > 1)

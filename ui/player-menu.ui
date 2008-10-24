@@ -6,7 +6,7 @@
 	</menu>
 
     <menu name="Edit" action="EditMenu" >
-	  <menuitem name="Preferences" action="Preferences" />
+	 <!-- <menuitem name="Preferences" action="Preferences" /> -->
 	</menu>
 
     <menu name="Help" action="HelpMenu">

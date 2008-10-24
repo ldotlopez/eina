@@ -56,11 +56,12 @@ gboolean lastfm_submit_init(EinaPlugin *self, GError **error)
 	icon_path = eina_plugin_build_resource_path(self, "lastfm.png");
 	if ((icon = gtk_image_new_from_file(icon_path)) == NULL)
 		goto lastfm_submit_init_fail;
-	
+	/*
 	label = gtk_label_new(_("LastFM"));
 
 	eina_plugin_add_configuration_widget(self, GTK_IMAGE(icon), GTK_LABEL(label), widget);
 	data->submit->configuration_widget = widget;
+	*/
 
 	eina_plugin_attach_events(self,
 		"change", lastfm_submit_lomo_change_cb,

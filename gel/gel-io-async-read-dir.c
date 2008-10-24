@@ -27,8 +27,6 @@ static guint gel_io_async_read_dir_signals[LAST_SIGNAL] = { 0 };
 static void
 _gel_io_async_read_dir_enumerate_cb(GObject *source, GAsyncResult *res, gpointer data);
 static void
-_gel_io_async_read_dir_enumerate_cb(GObject *source, GAsyncResult *res, gpointer data);
-static void
 _gel_io_async_read_dir_next_files_cb(GObject *source, GAsyncResult *res, gpointer data);
 static void
 _gel_io_async_read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data);

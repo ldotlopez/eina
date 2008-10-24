@@ -37,6 +37,8 @@ INST_H_FILES = \
 	eina-cover.h               \
 	eina-preferences-dialog.h  \
 	fs.h                       \
+	gruppy.h                   \
+	preferences.h              \
 	settings.h
 
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina
@@ -54,6 +56,7 @@ eina_SOURCES = \
 	eina-volume.c              \
 	ether.c                    \
 	fs.c                       \
+	gruppy.c                   \
 	iface.c                    \
 	log.c                      \
 	lomo.c                     \
@@ -61,6 +64,7 @@ eina_SOURCES = \
 	player.c                   \
 	playlist.c                 \
 	plugins.c                  \
+	preferences.c              \
 	settings.c                 \
 	template.c                 \
 	vogon.c                    \

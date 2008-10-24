@@ -11,6 +11,7 @@
 #include "lomo.h"
 #include "player.h"
 #include "settings.h"
+#include "preferences.h"
 #include "eina-cover.h"
 #include "eina-seek.h"
 #include "eina-volume.h"
@@ -51,6 +52,8 @@ static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
+static GtkWidget*
+build_preferences_widget(EinaPlayer *self);
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
@@ -200,10 +203,10 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		"<control>o", NULL, G_CALLBACK(menu_activate_cb) },
 		{ "Quit", GTK_STOCK_QUIT, N_("Quit"),
 		"<control>q", NULL, G_CALLBACK(menu_activate_cb) },
-		
+		/*
 		{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
 	  	"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
-
+		*/
 		{ "Help", GTK_STOCK_HELP, N_("Help"),
 		NULL, "About", G_CALLBACK(menu_activate_cb) },
 		{ "About", GTK_STOCK_ABOUT, N_("About"),
@@ -260,6 +263,20 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	g_signal_connect_swapped(LOMO(self), "add",    G_CALLBACK(update_sensitiviness), self);
 	g_signal_connect_swapped(LOMO(self), "repeat", G_CALLBACK(update_sensitiviness), self);
 	g_signal_connect_swapped(LOMO(self), "random", G_CALLBACK(update_sensitiviness), self);
+
+	// Preferences is attached to us (like dock) but this is less than optimal
+	if (!gel_hub_load(hub, "preferences"))
+	{
+		gel_warn("Cannot load preferences component");
+	}
+	else
+	{
+		EinaPreferencesDialog *prefs = EINA_PREFERENCES_DIALOG(gel_hub_shared_get(hub, "preferences"));
+		eina_preferences_dialog_add_tab(prefs,
+			GTK_IMAGE(gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_BUTTON)),
+			GTK_LABEL(gtk_label_new(_("Player"))),
+			build_preferences_widget(self));
+	}
 
 	// Show it
 	gtk_widget_show(GTK_WIDGET(self->main_window));
@@ -350,6 +367,12 @@ set_info(EinaPlayer *self, LomoStream *stream)
 
 	gtk_window_set_title(self->main_window, title);
 	g_free(title);
+}
+
+static GtkWidget*
+build_preferences_widget(EinaPlayer *self)
+{
+	return gtk_label_new(":)");
 }
 
 static void
