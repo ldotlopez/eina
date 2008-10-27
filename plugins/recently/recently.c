@@ -115,7 +115,8 @@ currently_playlist_store(EinaPlugin *plugin)
 		return FALSE;
 
 	buffer = gel_glist_join("\n", list);
-	if (buffer == NULL) {
+	if (buffer == NULL)
+	{
 		g_list_free(list);
 		return FALSE;
 	}
