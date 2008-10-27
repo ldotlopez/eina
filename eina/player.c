@@ -15,13 +15,10 @@
 #include "eina-cover.h"
 #include "eina-seek.h"
 #include "eina-volume.h"
-
-#if 1
 #include "eina-file-chooser-dialog.h"
 #include "playlist.h"
 #include "plugins.h"
 #include "fs.h"
-#endif
 
 struct _EinaPlayer {
 	EinaBase parent;
@@ -35,8 +32,9 @@ struct _EinaPlayer {
 
 	GtkUIManager *ui_manager;
 
-	GtkButton *prev, *play_pause, *next, *open;
-	GtkImage  *play_pause_image;
+	GtkButton   *prev, *play_pause, *next, *open;
+	GtkImage    *play_pause_image;
+	GtkExpander *expander;
 
 	gchar *stream_info_fmt;
 	gboolean got_dock, dock_expanded;
@@ -138,7 +136,10 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	self->open = W_TYPED(self, GTK_BUTTON, "open-button");
 	self->play_pause       = W_TYPED(self, GTK_BUTTON, "play-pause-button");
 	self->play_pause_image = W_TYPED(self, GTK_IMAGE,  "play-pause-image");
-	
+	self->expander = W_TYPED(self, GTK_EXPANDER, "dock-expander");
+	self->dock_expanded = eina_conf_get_bool(self->conf, "/ui/player/dock-expanded", FALSE);
+	gtk_window_set_resizable(self->main_window, self->dock_expanded);
+
 	if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
 		switch_state(self, EINA_PLAYER_MODE_PLAY);
 	else
@@ -612,7 +613,12 @@ button_clicked_cb(GtkWidget *w, EinaPlayer *self)
 static void
 expander_activate_cb(GtkWidget *w, EinaPlayer *self)
 {
-	self->dock_expanded = gtk_expander_get_expanded(GTK_EXPANDER(w));
+	// self->dock_expanded = gtk_expander_get_expanded(GTK_EXPANDER(w));
+	// Set window mode
+	if (gtk_expander_get_expanded(self->expander))
+		gtk_window_set_resizable(self->main_window, TRUE);
+	else
+		gtk_window_set_resizable(self->main_window, FALSE);
 }
 
 static void
