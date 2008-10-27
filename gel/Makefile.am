@@ -18,8 +18,7 @@ INST_H_FILES = \
 	gel-string.h            \
 	gel-str-parser.h        \
 	gel-hub.h               \
-	gel-io-async-read-op.h  \
-	gel-io-async-read-dir.h \
+	gel-io-simple-ops.h     \
 	gel-io.h                \
 	gel-ui.h
 
@@ -32,8 +31,7 @@ libgel_la_SOURCES = \
 	gel-str-parser.c        \
 	gel-hub-marshal.c       \
 	gel-hub.c               \
-	gel-io-async-read-op.c  \
-	gel-io-async-read-dir.c \
+	gel-io-simple-ops.c     \
 	gel-ui.c                \
 	$(NOINST_H_FILES)       \
 	$(INST_H_FILES)

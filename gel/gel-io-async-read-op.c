@@ -1,3 +1,5 @@
+#ifndef GEL_IO_DISABLE_DEPRECATED
+
 #define GEL_DOMAIN "Gel:IO::AsyncReadOp"
 #include <gio/gio.h>
 #include <gel/gel.h>
@@ -245,3 +247,4 @@ _gel_io_async_read_op_close_cb(GObject *source, GAsyncResult *res, gpointer data
 	g_object_unref(G_OBJECT(self));
 }
 
+#endif

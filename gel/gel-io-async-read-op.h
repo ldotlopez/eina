@@ -1,3 +1,4 @@
+#ifndef GEL_IO_DISABLE_DEPRECATED
 #ifndef _GEL_IO_ASYNC_READ_OP
 #define _GEL_IO_ASYNC_READ_OP
 
@@ -61,5 +62,7 @@ gboolean
 gel_io_async_read_op_cancel(GelIOAsyncReadOp* self);
 
 G_END_DECLS
+
+#endif
 
 #endif

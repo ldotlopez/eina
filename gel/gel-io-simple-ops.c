@@ -1,5 +1,5 @@
 #include <gel/gel.h>
-#include "gruppy.h"
+#include <gel/gel-io.h>
 
 struct _GelIOSimpleFile {
 	GCancellable *cancellable;

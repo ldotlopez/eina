@@ -37,7 +37,6 @@ INST_H_FILES = \
 	eina-cover.h               \
 	eina-preferences-dialog.h  \
 	fs.h                       \
-	gruppy.h                   \
 	preferences.h              \
 	settings.h
 
@@ -56,7 +55,6 @@ eina_SOURCES = \
 	eina-volume.c              \
 	ether.c                    \
 	fs.c                       \
-	gruppy.c                   \
 	iface.c                    \
 	log.c                      \
 	lomo.c                     \

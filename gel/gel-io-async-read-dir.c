@@ -1,3 +1,5 @@
+#ifndef GEL_IO_DISABLE_DEPRECATED
+
 #define GEL_DOMAIN "Gel::IO:AsyncRead"
 #include <gel/gel.h>
 #include "gel-io-async-read-dir.h"
@@ -220,3 +222,4 @@ _gel_io_async_read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer dat
 	}
 }
 
+#endif

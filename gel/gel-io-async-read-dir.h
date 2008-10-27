@@ -1,3 +1,4 @@
+#ifndef GEL_IO_DISABLE_DEPRECATED
 #ifndef _GEL_IO_ASYNC_READ_DIR
 #define _GEL_IO_ASYNC_READ_DIR
 
@@ -48,3 +49,4 @@ gel_io_async_read_dir_cancel(GelIOAsyncReadDir *self);
 G_END_DECLS
 
 #endif /* _GEL_IO_ASYNC_READ_DIR */
+#endif
