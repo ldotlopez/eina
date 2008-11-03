@@ -10,7 +10,8 @@ long_description  ${description}, a classic player for the modern era
 
 homepage          http://eina.sourceforge.net/
 
-master_sites     http://kent.dl.sourceforge.net/eina
+master_sites     sourceforge
+#master_sites     http://kent.dl.sourceforge.net/eina
 # master_sites    http://localhost/~xuzo/
 checksums         md5 ea9b40fcc56bbb11b312829165b0abed
 distfiles         eina-0.7.2.tar.gz

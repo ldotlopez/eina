@@ -1,12 +1,31 @@
 #define GEL_DOMAIN "Eina::Fs"
 
 #include <gel/gel.h>
+#include <gel/gel-io.h>
 #include "fs.h"
+/*
+static void
+read_dir_success_cb(GelIOSimpleDir *op, GList *l, gpointer data)
+{
+	GList *ll = l;
+	while (ll)
+	{
+		gel_warn("%p %s", ll->data, g_file_info_get_attribute_as_string((GFileInfo *) ll->data, G_FILE_ATTRIBUTE_STANDARD_NAME));
+		ll = ll->next;
+	}
+}
 
+static void
+read_dir_error_cb(GelIOSimpleDir *op, GError *error, gpointer data)
+{
+	gel_error("Got error: %s", error->message);
+}
+*/
 /* Functions to feed liblomo */
 void
 eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris , EinaFsFilterFunc filter, GCallback callback, gpointer user_data)
 {
+
 	// GIO related 
 	GFile *f = NULL;
 	GFileInfo *f_info = NULL;
@@ -43,6 +62,7 @@ eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris , EinaFsFilterFunc fil
 				files = g_list_prepend(files, g_strdup(l->data));
 				break;
 			case G_FILE_TYPE_DIRECTORY:
+				// gel_io_simple_dir_read(f, "standard::*", read_dir_success_cb, read_dir_error_cb, NULL);
 				directories = g_list_prepend(directories, g_strdup(l->data));
 				break;
 			default:

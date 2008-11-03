@@ -52,6 +52,16 @@ void     gel_io_simple_dir_set_data     (GelIOSimpleDir *self, gpointer data);
 void     gel_io_simple_dir_set_data_full(GelIOSimpleDir *self, gpointer data, GFreeFunc free_func);
 gpointer gel_io_simple_dir_get_data     (GelIOSimpleDir *self);
 
+// --
+// Recusirve operation
+// --
+GelIOSimpleDir* gel_io_simple_dir_read_recursive_full(GFile *file, const gchar *attributes,
+	GelIOSimpleDirSuccessFunc   success,
+	GelIOSimpleDirErrorFunc     error,
+	GelIOSimpleDirCancelledFunc cancelled,
+	gpointer  data,
+	GFreeFunc free_func);
+
 G_END_DECLS
 
 #endif /* _GEL_IO_SIMPLE */

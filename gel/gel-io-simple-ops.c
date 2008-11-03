@@ -1,3 +1,4 @@
+#define GEL_DOMAIN "Gel::IO::SimpleOps"
 #include <gel/gel.h>
 #include <gel/gel-io.h>
 
@@ -96,7 +97,8 @@ open_async_cb(GObject *source, GAsyncResult *res, gpointer data)
 
 	if (err != NULL)
 	{
-		self->error(self, err, self->data);
+		if (self->error)
+			self->error(self, err, self->data);
 		g_error_free(err);
 		return;
 	}
@@ -226,7 +228,8 @@ enumerate_cb(GObject *source, GAsyncResult *res, gpointer data)
 	enumerator = g_file_enumerate_children_finish(file, res, &err);
 	if (enumerator == NULL)
 	{
-		self->error(self, err, self->data);
+		if (self->error)
+			self->error(self, err, self->data);
 		g_error_free(err);
 		return;
 	}
@@ -242,16 +245,15 @@ static void
 next_files_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
 	GelIOSimpleDir  *self = (GelIOSimpleDir *) data;
-
 	GError          *err = NULL;
 	GFileEnumerator *enumerator = G_FILE_ENUMERATOR(source);
 	GList           *items = g_file_enumerator_next_files_finish(enumerator, res, &err);
 
 	if (err != NULL)
 	{
-		g_object_unref(enumerator);
 		gel_glist_free(items, (GFunc) g_object_unref, NULL);
-		self->error(self, err, self->data);
+		if (self->error)
+			self->error(self, err, self->data);
 		g_error_free(err);
 		return;
 	}
@@ -285,16 +287,93 @@ close_cb(GObject *source, GAsyncResult *res, gpointer data)
 	GFileEnumerator *enumerator = G_FILE_ENUMERATOR(source);
 	gboolean         result = g_file_enumerator_close_finish(enumerator, res, &err);
 
-	g_object_unref(enumerator);
-
 	if (result == FALSE)
 	{
-		self->error(self, err, self->data);
+		if (self->error)
+			self->error(self, err, self->data);
 		g_error_free(err);
 	}
 	else
 	{
-		self->success(self, self->children, self->data);
+		if (self->success)
+			self->success(self, self->children, self->data);
 	}
+}
+
+typedef struct GelIOMiniPack {
+	const gchar *attributes;
+	GelIOSimpleDirSuccessFunc   success;
+	GelIOSimpleDirErrorFunc     error;
+	GelIOSimpleDirCancelledFunc cancelled;
+	GList *results;
+	gpointer data;
+	GFreeFunc free_func;
+} GelIOMiniPack;
+
+static void
+gel_io_mini_pack_free(GelIOMiniPack *pack)
+{
+	gel_glist_free(pack->results, (GFunc) g_object_unref, NULL);
+	g_free(pack);
+}
+
+static void
+recursive_success(GelIOSimpleDir *op, GList *results, gpointer data);
+static void
+recursive_error(GelIOSimpleDir *op, GError *error, gpointer data);
+static void
+recursive_cancelled(GelIOSimpleDir *op, gpointer data);
+static void
+recursive_free_func(gpointer data);
+
+GelIOSimpleDir* gel_io_simple_dir_read_recursive_full(GFile *file, const gchar *attributes,
+	GelIOSimpleDirSuccessFunc   success,
+	GelIOSimpleDirErrorFunc     error,
+	GelIOSimpleDirCancelledFunc cancelled,
+	gpointer  data,
+	GFreeFunc free_func)
+{
+	GelIOMiniPack *pack = g_new0(GelIOMiniPack, 1);
+	return gel_io_simple_dir_read_full(file, attributes,
+		recursive_success,
+		recursive_error,
+		recursive_cancelled,
+		pack,
+		recursive_free_func);
+}
+
+static void
+recursive_success(GelIOSimpleDir *op, GList *results, gpointer data)
+{
+	GList *children = results;
+	while (children)
+	{
+		gel_warn("Got: %p %s", children->data, G_OBJECT_CLASS_NAME(G_OBJECT(children->data)));
+		children = children->next;
+	}
+}
+
+static void
+recursive_error(GelIOSimpleDir *op, GError *error, gpointer data)
+{
+	GelIOMiniPack *pack = (GelIOMiniPack *) data;
+	gel_glist_free(pack->results, (GFunc) g_object_unref, NULL);
+	pack->error(op, error, pack->data);
+	g_free(pack);
+}
+
+static void
+recursive_cancelled(GelIOSimpleDir *op, gpointer data)
+{
+	GelIOMiniPack *pack = (GelIOMiniPack *) data;
+	gel_glist_free(pack->results, (GFunc) g_object_unref, NULL);
+	pack->cancelled(op, pack->data);
+	g_free(pack);
+}
+
+static void
+recursive_free_func(gpointer data)
+{
+	gel_io_mini_pack_free((GelIOMiniPack *) data);
 }
 

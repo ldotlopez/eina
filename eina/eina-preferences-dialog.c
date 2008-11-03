@@ -58,7 +58,11 @@ eina_preferences_dialog_new (void)
 	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 
 	gtk_box_pack_start(
+#if GTK_CHECK_VERSION(2,14,0)
 		GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))),
+#else
+		GTK_BOX(GTK_DIALOG(self)->vbox),
+#endif
 	 	GTK_WIDGET(priv->notebook),
 		TRUE, TRUE, 0);
 
