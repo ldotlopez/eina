@@ -34,33 +34,36 @@ gpointer gel_io_simple_file_get_data     (GelIOSimpleFile *gruppy);
 // --
 typedef struct _GelIOSimpleDir  GelIOSimpleDir;
 
-typedef void (*GelIOSimpleDirSuccessFunc)   (GelIOSimpleDir *op, GList *results, gpointer data);
-typedef void (*GelIOSimpleDirErrorFunc)     (GelIOSimpleDir *op, GError *error,  gpointer data);
-typedef void (*GelIOSimpleDirCancelledFunc) (GelIOSimpleDir *op, gpointer data);
+typedef void (*GelIOSimpleDirSuccessFunc)   (GelIOSimpleDir *op, GFile *parent, GList *results, gpointer data);
+typedef void (*GelIOSimpleDirErrorFunc)     (GelIOSimpleDir *op, GFile *parent, GError *error,  gpointer data);
+typedef void (*GelIOSimpleDirCancelledFunc) (GelIOSimpleDir *op, GFile *parent, gpointer data);
 
-#define gel_io_simple_dir_read(file,attributes,success,error,cancelled) \
-	gel_io_simple_dir_read_full(file,attributes,success,error,cancelled,NULL,NULL)
-GelIOSimpleDir* gel_io_simple_dir_read_full(GFile *file, const gchar *attributes,
+GelIOSimpleDir* gel_io_simple_dir_read(GFile *file, const gchar *attributes,
 	GelIOSimpleDirSuccessFunc   success,
 	GelIOSimpleDirErrorFunc     error,
 	GelIOSimpleDirCancelledFunc cancelled,
-	gpointer  data,
-	GFreeFunc free_func);
-void     gel_io_simple_dir_cancel(GelIOSimpleDir *self);
+	gpointer  data);
+void     gel_io_simple_dir_close(GelIOSimpleDir *self);
 
-void     gel_io_simple_dir_set_data     (GelIOSimpleDir *self, gpointer data);
-void     gel_io_simple_dir_set_data_full(GelIOSimpleDir *self, gpointer data, GFreeFunc free_func);
-gpointer gel_io_simple_dir_get_data     (GelIOSimpleDir *self);
+void     gel_io_simple_dir_cancel(GelIOSimpleDir *self);
 
 // --
 // Recusirve operation
 // --
-GelIOSimpleDir* gel_io_simple_dir_read_recursive_full(GFile *file, const gchar *attributes,
-	GelIOSimpleDirSuccessFunc   success,
-	GelIOSimpleDirErrorFunc     error,
-	GelIOSimpleDirCancelledFunc cancelled,
-	gpointer  data,
-	GFreeFunc free_func);
+typedef struct _GelIOSimpleDirRecurse GelIOSimpleDirRecurse;
+
+typedef void (*GelIOSimpleDirRecurseSuccessFunc)   (GelIOSimpleDirRecurse *op, GFile *parent, GNode *results, gpointer data);
+typedef void (*GelIOSimpleDirRecurseErrorFunc)     (GelIOSimpleDirRecurse *op, GFile *parent, GError *error,  gpointer data);
+typedef void (*GelIOSimpleDirRecurseCancelledFunc) (GelIOSimpleDirRecurse *op, GFile *parent, gpointer data);
+
+GelIOSimpleDirRecurse* gel_io_simple_dir_recurse_read(GFile *file, const gchar *attributes,
+	GelIOSimpleDirRecurseSuccessFunc   success,
+	GelIOSimpleDirRecurseErrorFunc     error,
+	GelIOSimpleDirRecurseCancelledFunc cancelled,
+	gpointer  data);
+void  gel_io_simple_dir_recurse_close(GelIOSimpleDirRecurse *op);
+
+void gel_io_simple_dir_recurse_cancel(GelIOSimpleDirRecurse *op);
 
 G_END_DECLS
 

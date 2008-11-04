@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <gmodule.h>
 #include <gdk/gdkkeysyms.h>
+#include <gel/gel-io.h>
 #include <gel/gel-ui.h>
 #include <config.h>
 #include "base.h"
@@ -420,7 +421,13 @@ file_chooser_load_files(EinaPlayer *self)
 		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 			uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
 			if (uris)
+			{
+				   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
+				           "standard::*", NULL, NULL, NULL, NULL);
+
+
 				eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
+			}
 			g_slist_free(uris);
 			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, _("Added N streams"));
 			break;

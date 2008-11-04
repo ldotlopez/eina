@@ -36,6 +36,7 @@ libgel_la_SOURCES = \
 	gel-io-async-read-op.c  \
 	gel-io-async-read-dir.c \
 	gel-io-simple-ops.c     \
+	gel-io.c                \
 	gel-ui.c                \
 	$(NOINST_H_FILES)       \
 	$(INST_H_FILES)
