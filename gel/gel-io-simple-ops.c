@@ -299,11 +299,18 @@ close_cb(GObject *source, GAsyncResult *res, gpointer data)
 // --
 // GelIOSimpleDirRecurse
 // --
+#include <glib/gprintf.h>
 struct _GelIOSimpleDirRecurse {
 	GFile *parent;
-	GList *ops;
-	gpointer user_data;
+	const gchar *attributes;
 	GList *parents;
+	GList *ops;
+
+	// User data
+	GelIOSimpleDirRecurseSuccessFunc   success;
+	GelIOSimpleDirRecurseErrorFunc     error;
+	GelIOSimpleDirRecurseCancelledFunc cancelled;
+	gpointer data;
 };
 
 static void
@@ -321,46 +328,68 @@ gel_io_simple_dir_recurse_read(GFile *file, const gchar *attributes,
 	gpointer  data)
 {
 	GelIOSimpleDirRecurse *self = g_new0(GelIOSimpleDirRecurse, 1);
+	g_object_ref(file); // Hold it
 
-	self->parent    = file;
-	self->ops       = NULL;
-	self->user_data = data;
-	self->parents   = g_list_prepend(NULL, g_list_prepend(NULL, file)); // Yes!
-	gel_warn("Root parent: %p == %p", self->parents, file);
-	g_object_ref(self->parent);
-	
-	GelIOSimpleDir *sub_op = gel_io_simple_dir_read(self->parent, attributes,
+	self->parent     = file;
+	self->attributes = attributes;
+	self->parents    = g_list_prepend(NULL, g_list_prepend(NULL, file)); // Yes!
+
+	// Save user data
+	self->success   = success;
+	self->error     = error;
+	self->cancelled = cancelled;
+	self->data      = data;
+
+	// Start recursion
+	self->ops = g_list_prepend(NULL, gel_io_simple_dir_read(self->parent, attributes,
 		recurse_read_success_cb,
 		recurse_read_error_cb,
 		recurse_read_cancelled_cb,
-		self);
-	self->ops = g_list_prepend(self->ops, sub_op);
+		self));
 
 	return self;
 }
 
 void gel_io_simple_dir_recurse_close
-(GelIOSimpleDirRecurse *op)
+(GelIOSimpleDirRecurse *self)
 {
+	// Cancel any pending operation
+	gel_io_simple_dir_recurse_cancel(self);
+
+	// XXX: Delete children
+	// gel_io_simple_dir_recurse_result_free((GelIOSimpleDirRecurseResult *) self->parents);
+
+	g_object_unref(self->parent);
+
+	g_free(self);
 }
 
 void gel_io_simple_dir_recurse_cancel
-(GelIOSimpleDirRecurse *op)
+(GelIOSimpleDirRecurse *self)
 {
+	GList *op_iter = self->ops;
+	while (op_iter)
+	{
+		gel_io_simple_dir_cancel((GelIOSimpleDir *) op_iter->data);
+		gel_io_simple_dir_close((GelIOSimpleDir *) op_iter->data);
+		op_iter = op_iter->next;
+	}
+	g_list_free(self->ops);
+	self->ops = NULL;
 }
 
 void recurse_add_parent(GelIOSimpleDirRecurse *self, GFile *new_parent)
 {
-	self->parents = g_list_prepend(self->parents, g_list_prepend(NULL, new_parent));
+	self->parents = g_list_append(self->parents, g_list_prepend(NULL, new_parent));
+	gel_warn("%p added. Now %d parents", new_parent, g_list_length(self->parents));
 }
 
-GList *recurse_find_parent(GelIOSimpleDirRecurse *self, GFile *parent)
+GList *recurse_find_in_parents(GelIOSimpleDirRecurse *self, GFile *parent)
 {
 	GList *iter = self->parents;
 	while (iter)
 	{
 		if (((GList *) iter->data)->data == parent)
-		// if (g_list_find((GList *) iter->data, parent))
 			break;
 		iter = iter->next;
 	}
@@ -371,58 +400,131 @@ GList *recurse_find_parent(GelIOSimpleDirRecurse *self, GFile *parent)
 
 void recurse_add_children(GelIOSimpleDirRecurse *self, GFile *parent, GList *children)
 {
-	GList *parent_list = recurse_find_parent(self, parent);
-	GList *new_parent_list = g_list_concat(parent_list, g_list_copy(children));
-
-	GList *iter = self->parents;
-	while (iter)
+	GList *parent_list = recurse_find_in_parents(self, parent);
+	if (parent_list == NULL)
 	{
-		if (iter->data == parent_list)
-		{
-			iter->data = new_parent_list;
-			break;
-		}
-		iter = iter->next;
+		//gel_error("Unable to find %p in parents list", parent);
+		return;
 	}
-	if (!iter)
-		gel_warn("Cannot add children");
+
+	parent_list->data = g_list_concat((GList *) parent_list->data, g_list_copy(children));
+	// g_printf("Added %d children for %s\n", g_list_length(children), g_file_get_uri(parent));
 }
 
-static GList *
-recurse_find_in_parents(GelIOSimpleDirRecurse *self, GFile *file)
+void recurse_print(GelIOSimpleDirRecurse *self)
 {
-	GList *iter = self->parents;
-	GList *ret = NULL;
+	GList *iter, *iter2;
+	iter = self->parents;
 	while (iter)
 	{
-		if ((ret = g_list_find((GList *) iter->data, file)) != NULL)
-			break;
+		iter2 = iter->data;
+		while (iter2)
+		{
+			g_printf("%p ", iter2->data);
+			iter2 = iter2->next;
+		}
+		g_printf("\n");
 		iter = iter->next;
 	}
-	return iter;
+}
+
+static void
+recurse_remove_operation(GelIOSimpleDirRecurse *self, GelIOSimpleDir *op)
+{
+	if (g_list_find(self->ops, op) == NULL)
+	{
+		gel_error("Attempt to remove an invalid operation!");
+		return;
+	}
+
+	// Call to success if there are no more pending operations
+	if (((self->ops = g_list_remove(self->ops, op)) == NULL) && self->success)
+		self->success(self, self->parent, (GelIOSimpleDirRecurseResult*) self->parents, self->data);
 }
 
 static void
 recurse_read_success_cb(GelIOSimpleDir *op, GFile *parent, GList *children, gpointer data)
 {
 	GelIOSimpleDirRecurse *self = (GelIOSimpleDirRecurse *) data;
+	GList *iter = children;
+
 	if (!recurse_find_in_parents(self, parent))
 		recurse_add_parent(self, parent);
+	gel_warn("Adding %d children to %p", g_list_length(children), parent);
 	recurse_add_children(self, parent, children);
-/*
-	GList *parent_list = recurse_find_in_parents(self, parent);
-	gel_warn("GFile responsable: %p Parent list: %p (%p)", parent, parent_list, parent_list ? ((GList *) parent_list->data)->data : NULL);
-	GList *root_list = g_list_find(self->parents, parent_list);
-	root_list->data = g_list_concat((GList *) root_list->data, children);
-*/
+
+	while (iter)
+	{
+		GFileInfo *child_info = G_FILE_INFO(iter->data);
+		if (g_file_info_get_attribute_uint32(child_info, G_FILE_ATTRIBUTE_STANDARD_TYPE) == G_FILE_TYPE_DIRECTORY)
+		{
+			GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
+			recurse_add_parent(self, child);
+			GelIOSimpleDir *sub_op = gel_io_simple_dir_read(child, self->attributes,
+				recurse_read_success_cb,
+				recurse_read_error_cb,
+				recurse_read_cancelled_cb,
+				self);
+			self->ops = g_list_prepend(self->ops, sub_op);
+		}
+		iter = iter->next;
+	}
+
+	// Remove operation
+	recurse_remove_operation(self, op);
 }
 
 static void
 recurse_read_error_cb(GelIOSimpleDir *op, GFile *parent, GError *error, gpointer data)
 {
+	GelIOSimpleDirRecurse *self = (GelIOSimpleDirRecurse *) data;
+
+	// Call user data
+	if (self->error)
+		self->error(self, parent, error, self->data);
+
+	// Remove operation
+	recurse_remove_operation(self, op);
 }
 
 static void
 recurse_read_cancelled_cb(GelIOSimpleDir *op, GFile *parent, gpointer data)
 {
+	GelIOSimpleDirRecurse *self = (GelIOSimpleDirRecurse *) data;
+
+	// Remove operation
+	recurse_remove_operation(self, op);
 }
+
+// --
+// Recursive result
+// --
+typedef GList _GelIOSimpleDirRecurseResult;
+
+GFile *
+gel_io_simple_dir_recurse_result_get_root            (GelIOSimpleDirRecurseResult *res)
+{
+	return G_FILE(((GList*) ((GList*)res)->data)->data);
+}
+
+GList *
+gel_io_simple_dir_recurse_result_get_children        (GelIOSimpleDirRecurseResult *res, GFile *node)
+{
+	GList *iter = (GList *) res;
+	GList *ret = NULL;
+
+	while (iter)
+	{
+		if (g_file_equal(G_FILE(((GList *) iter->data)->data), node))
+		{
+			ret = g_list_copy(iter->data);
+			ret = g_list_remove(ret, ret->data);
+			return ret;
+		}
+		iter = iter->next;
+	}
+	return NULL;
+}
+
+GList *gel_io_simple_dir_recurse_result_get_children_as_file(GelIOSimpleDirRecurseResult *res, GFile *node);
+void   gel_io_simple_dir_recurse_result_free                (GelIOSimpleDirRecurseResult *res);

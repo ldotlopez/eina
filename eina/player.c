@@ -394,6 +394,73 @@ update_sensitiviness(EinaPlayer *self)
 		(lomo_player_get_current(LOMO(self)) >= 0));
 }
 
+void
+test_print(GelIOSimpleDirRecurseResult *res, GFile *root, guint level)
+{
+	gchar *uri = g_file_get_uri(root);
+	GList *children = gel_io_simple_dir_recurse_result_get_children(res, root);
+	GList *iter;
+
+	GList *l2 = NULL;
+	
+	gel_warn("(%d) Children for '%s'", g_list_length(children), uri);
+	iter = children;
+	while (iter)
+	{
+		gboolean is_dir = (g_file_info_get_file_type(G_FILE_INFO(iter->data)) == G_FILE_TYPE_DIRECTORY);
+		gel_warn(" [%c] %s",  is_dir ? 'D' : ' ', g_file_info_get_name(G_FILE_INFO(iter->data)));
+		if (is_dir)
+			l2 = g_list_prepend(l2, gel_io_file_get_child_for_file_info(root, G_FILE_INFO(iter->data)));
+		iter = iter->next;
+	}
+	g_list_free(children);
+
+	iter = l2;
+	while (iter)
+	{
+		test_print(res, iter->data, level+1);
+		g_object_unref(G_OBJECT(iter->data));
+		iter = iter->next;
+	}
+	g_list_free(l2);
+}
+
+static void
+recurse_read_success_cb(GelIOSimpleDirRecurse *op, GFile *f, GelIOSimpleDirRecurseResult *res, gpointer data)
+{
+	gchar *uri = g_file_get_uri(f);
+	gel_warn("Recurse read of '%s' finished", uri);
+	g_free(uri);
+	test_print(res, gel_io_simple_dir_recurse_result_get_root(res), 0);
+/*
+	GFile *root = gel_io_simple_dir_recurse_result_get_root(res);
+	gchar *uri = g_file_get_uri(root);
+	GList *children = gel_io_simple_dir_recurse_result_get_children(res, root);
+	GList *iter;
+
+	gel_warn("Recurse read of '%s' finished", uri);
+	g_free(uri);
+
+	iter = children;
+	while (iter)
+	{
+		gel_warn(" + %s", g_file_info_get_name(G_FILE_INFO(iter->data)));
+		iter = iter->next;
+	}
+	g_list_free(children);
+
+	recurse_print(op);
+	*/
+}
+
+static void
+recurse_read_error_cb(GelIOSimpleDirRecurse *op, GFile *f, GError *error, gpointer data)
+{
+	gchar *uri = g_file_get_uri(f);
+	gel_error("Error reading '%s': %s", uri, error->message);
+	g_free(uri);
+}
+
 static void
 file_chooser_load_files(EinaPlayer *self)
 {
@@ -423,8 +490,7 @@ file_chooser_load_files(EinaPlayer *self)
 			if (uris)
 			{
 				   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
-				           "standard::*", NULL, NULL, NULL, NULL);
-
+				           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL);
 
 				eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
 			}

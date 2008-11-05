@@ -6,6 +6,13 @@
 
 G_BEGIN_DECLS
 
+typedef struct GelIOSimpleItem {
+	GFile *file;
+	GFileInfo *info;
+} GelIOSimpleItem;
+#define GEL_IO_SIMPLE_ITEM_G_FILE(i)      G_FILE(i->file)
+#define GEL_IO_SIMPLE_ITEM_G_FILE_INFO(i) G_FILE_INFO(i->info)
+
 // --
 // GelIOSimpleFile
 // --
@@ -44,15 +51,15 @@ GelIOSimpleDir* gel_io_simple_dir_read(GFile *file, const gchar *attributes,
 	GelIOSimpleDirCancelledFunc cancelled,
 	gpointer  data);
 void     gel_io_simple_dir_close(GelIOSimpleDir *self);
-
 void     gel_io_simple_dir_cancel(GelIOSimpleDir *self);
 
 // --
 // Recusirve operation
 // --
 typedef struct _GelIOSimpleDirRecurse GelIOSimpleDirRecurse;
+typedef struct _GelIOSimpleDirRecurseResult GelIOSimpleDirRecurseResult;
 
-typedef void (*GelIOSimpleDirRecurseSuccessFunc)   (GelIOSimpleDirRecurse *op, GFile *parent, GNode *results, gpointer data);
+typedef void (*GelIOSimpleDirRecurseSuccessFunc)   (GelIOSimpleDirRecurse *op, GFile *parent, GelIOSimpleDirRecurseResult *res, gpointer data);
 typedef void (*GelIOSimpleDirRecurseErrorFunc)     (GelIOSimpleDirRecurse *op, GFile *parent, GError *error,  gpointer data);
 typedef void (*GelIOSimpleDirRecurseCancelledFunc) (GelIOSimpleDirRecurse *op, GFile *parent, gpointer data);
 
@@ -64,6 +71,16 @@ GelIOSimpleDirRecurse* gel_io_simple_dir_recurse_read(GFile *file, const gchar *
 void  gel_io_simple_dir_recurse_close(GelIOSimpleDirRecurse *op);
 
 void gel_io_simple_dir_recurse_cancel(GelIOSimpleDirRecurse *op);
+
+// --
+// Recursive result
+// --
+GFile *gel_io_simple_dir_recurse_result_get_root            (GelIOSimpleDirRecurseResult *res);
+GList *gel_io_simple_dir_recurse_result_get_children        (GelIOSimpleDirRecurseResult *res, GFile *node);
+GList *gel_io_simple_dir_recurse_result_get_children_as_file(GelIOSimpleDirRecurseResult *res, GFile *node);
+void   gel_io_simple_dir_recurse_result_free                (GelIOSimpleDirRecurseResult *res);
+
+void recurse_print(GelIOSimpleDirRecurse *op);
 
 G_END_DECLS
 
