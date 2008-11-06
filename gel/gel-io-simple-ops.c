@@ -381,7 +381,6 @@ void gel_io_simple_dir_recurse_cancel
 void recurse_add_parent(GelIOSimpleDirRecurse *self, GFile *new_parent)
 {
 	self->parents = g_list_append(self->parents, g_list_prepend(NULL, new_parent));
-	gel_warn("%p added. Now %d parents", new_parent, g_list_length(self->parents));
 }
 
 GList *recurse_find_in_parents(GelIOSimpleDirRecurse *self, GFile *parent)
@@ -450,13 +449,12 @@ recurse_read_success_cb(GelIOSimpleDir *op, GFile *parent, GList *children, gpoi
 
 	if (!recurse_find_in_parents(self, parent))
 		recurse_add_parent(self, parent);
-	gel_warn("Adding %d children to %p", g_list_length(children), parent);
 	recurse_add_children(self, parent, children);
 
 	while (iter)
 	{
 		GFileInfo *child_info = G_FILE_INFO(iter->data);
-		if (g_file_info_get_attribute_uint32(child_info, G_FILE_ATTRIBUTE_STANDARD_TYPE) == G_FILE_TYPE_DIRECTORY)
+		if (g_file_info_get_file_type(child_info) == G_FILE_TYPE_DIRECTORY)
 		{
 			GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
 			recurse_add_parent(self, child);

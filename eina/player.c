@@ -429,28 +429,8 @@ static void
 recurse_read_success_cb(GelIOSimpleDirRecurse *op, GFile *f, GelIOSimpleDirRecurseResult *res, gpointer data)
 {
 	gchar *uri = g_file_get_uri(f);
-	gel_warn("Recurse read of '%s' finished", uri);
 	g_free(uri);
 	test_print(res, gel_io_simple_dir_recurse_result_get_root(res), 0);
-/*
-	GFile *root = gel_io_simple_dir_recurse_result_get_root(res);
-	gchar *uri = g_file_get_uri(root);
-	GList *children = gel_io_simple_dir_recurse_result_get_children(res, root);
-	GList *iter;
-
-	gel_warn("Recurse read of '%s' finished", uri);
-	g_free(uri);
-
-	iter = children;
-	while (iter)
-	{
-		gel_warn(" + %s", g_file_info_get_name(G_FILE_INFO(iter->data)));
-		iter = iter->next;
-	}
-	g_list_free(children);
-
-	recurse_print(op);
-	*/
 }
 
 static void
@@ -459,6 +439,43 @@ recurse_read_error_cb(GelIOSimpleDirRecurse *op, GFile *f, GError *error, gpoint
 	gchar *uri = g_file_get_uri(f);
 	gel_error("Error reading '%s': %s", uri, error->message);
 	g_free(uri);
+}
+
+static void
+file_chooser_selection_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	// EinaPlayer *self = (EinaPlayer *) data;
+	GFile *file = G_FILE(source);
+	GError *err = NULL;
+
+	GFileInfo *info = g_file_query_info_finish(file, res, &err);
+	if (err != NULL)
+	{
+		gchar *uri = g_file_get_uri(file);
+		g_object_unref(source);
+		gel_warn("Cannot fetch info for '%s': %s", uri, err->message);
+		g_free(uri);
+		g_error_free(err);
+	}
+
+	gel_warn("[%c] %s", (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY) ? 'D' : ' ', g_file_info_get_name(info));
+	g_object_unref(source);
+	g_object_unref(info);
+}
+
+static void
+file_chooser_selection_query_info(EinaPlayer *self, GSList *uris)
+{
+	GSList *iter = uris;
+	while (iter)
+	{
+		GFile *file = g_file_new_for_uri((gchar *) iter->data);
+		g_file_query_info_async(file, "standard::*", G_FILE_QUERY_INFO_NONE,
+			G_PRIORITY_DEFAULT, /* cancellable */ NULL,
+			file_chooser_selection_query_info_cb,
+			self);
+		iter = iter->next;
+	}
 }
 
 static void
@@ -489,9 +506,9 @@ file_chooser_load_files(EinaPlayer *self)
 			uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
 			if (uris)
 			{
-				   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
-				           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL);
-
+			   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
+			           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL);
+				file_chooser_selection_query_info(self, uris);
 				eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
 			}
 			g_slist_free(uris);
