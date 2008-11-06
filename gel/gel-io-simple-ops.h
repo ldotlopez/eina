@@ -6,13 +6,6 @@
 
 G_BEGIN_DECLS
 
-typedef struct GelIOSimpleItem {
-	GFile *file;
-	GFileInfo *info;
-} GelIOSimpleItem;
-#define GEL_IO_SIMPLE_ITEM_G_FILE(i)      G_FILE(i->file)
-#define GEL_IO_SIMPLE_ITEM_G_FILE_INFO(i) G_FILE_INFO(i->info)
-
 // --
 // GelIOSimpleFile
 // --
@@ -80,7 +73,21 @@ GList *gel_io_simple_dir_recurse_result_get_children        (GelIOSimpleDirRecur
 GList *gel_io_simple_dir_recurse_result_get_children_as_file(GelIOSimpleDirRecurseResult *res, GFile *node);
 void   gel_io_simple_dir_recurse_result_free                (GelIOSimpleDirRecurseResult *res);
 
-void recurse_print(GelIOSimpleDirRecurse *op);
+// --
+// Group
+// --
+typedef struct _GelIOSimpleGroup GelIOSimpleGroup;
+typedef void (*GelIOSimpleGroupSuccessFunc)   (GelIOSimpleGroup *op, GList *group, GList *results, gpointer data);
+typedef void (*GelIOSimpleGroupErrorFunc)     (GelIOSimpleGroup *op, GList *group, GFile *source, gpointer data);
+typedef void (*GelIOSimpleGroupCancelledFunc) (GelIOSimpleGroup *op, GList *group, gpointer data);
+
+GelIOSimpleGroup *gel_io_simple_group_read(GList *group, const gchar *attributes, guint flags,
+	GelIOSimpleGroupSuccessFunc   success,
+	GelIOSimpleGroupErrorFunc     error,
+	GelIOSimpleGroupCancelledFunc cancelled,
+	gpointer data);
+void gel_io_simple_group_free  (GelIOSimpleGroup *self);
+void gel_io_simple_group_cancel(GelIOSimpleGroup *self);
 
 G_END_DECLS
 
