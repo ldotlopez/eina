@@ -2,6 +2,506 @@
 #include <gel/gel.h>
 #include <gel/gel-io.h>
 
+// --
+// Unified API
+// --
+struct _GelIOSimpleOp {
+	gpointer                   source;
+	GCancellable              *cancellable;
+	GelIOSimpleOpSuccessFunc   success;
+	GelIOSimpleOpErrorFunc     error;
+	GelIOSimpleOpCancelledFunc cancelled;
+	gpointer                   data;
+
+	union {
+		struct {
+			guint8     *buffer;
+			GByteArray *ba;
+		} file;
+		struct {
+			GList *children;
+		} dir;
+		struct {
+			GList *parents;
+			const gchar *attributes;
+			GList *ops;
+			GelIOSimpleOpSuccessFunc success;
+			GelIOSimpleOpErrorFunc   error;
+			GelIOSimpleOpCancelledFunc cancelled;
+			gpointer data;
+
+			GelIOSimpleRecurseTree *tree;
+;		} recurse;
+	} res ;
+};
+
+struct _GelIOSimpleResult {
+	GelIOSimpleResultType type;
+	gpointer data;
+};
+
+struct _GelIOSimpleRecurseTree
+{
+	GFile *root;
+	GList *parents;
+};
+
+static GelIOSimpleOp*
+gel_io_simple_op_new(gpointer source,
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data)
+{
+	GelIOSimpleOp *self = g_new0(GelIOSimpleOp, 1);
+	self->source    = (gpointer) source;
+	self->success   = success;
+	self->error     = error;
+	self->cancelled = cancelled;
+	self->cancellable = g_cancellable_new();
+	self->data      = data;
+
+	return self;
+}
+
+static void
+gel_io_simple_op_success(GelIOSimpleOp *self, GelIOSimpleResult *result)
+{
+	if (self->success)
+		self->success(self, self->source, result, self->data);
+}
+
+static void
+gel_io_simple_op_error(GelIOSimpleOp *self, GError *error)
+{
+	if (self->error)
+		self->error(self, self->source, error, self->data);
+	if (error)
+		g_error_free(error);
+	// Free result?
+	// Free self?
+}
+
+// --
+// read file operation API
+// --
+static void
+read_file_open_cb(GObject *source, GAsyncResult *res, gpointer data);
+static void
+read_file_read_cb(GObject *source, GAsyncResult *res, gpointer data);
+static void
+read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data);
+
+GelIOSimpleOp *
+gel_io_simple_read_file(GFile *file,
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data)
+{
+	GelIOSimpleOp *op = gel_io_simple_op_new((gpointer) file,
+		success, error, cancelled,
+		data);
+
+	g_object_ref(file);
+	g_file_read_async(file, G_PRIORITY_DEFAULT,
+		op->cancellable, read_file_open_cb,
+		op);
+	return op;
+}
+
+static void
+read_file_open_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOSimpleOp *self = (GelIOSimpleOp*) data;
+
+	GError *err = NULL;
+	GInputStream *stream = G_INPUT_STREAM(g_file_read_finish(G_FILE(source), res, &err));
+	g_object_unref(source);
+
+	if (err != NULL)
+	{
+		gel_io_simple_op_error(self, err);
+		return;
+	}
+
+	self->res.file.buffer  = g_new0(guint8, 32*1024);  // 32kb
+	g_input_stream_read_async(stream, self->res.file.buffer, 32*1024,
+		G_PRIORITY_DEFAULT, self->cancellable,
+	read_file_read_cb, self);
+}
+
+static void
+read_file_read_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOSimpleOp *self = (GelIOSimpleOp *) data;
+
+	GError *err = NULL;
+	gssize        readed;
+	GInputStream *stream = G_INPUT_STREAM(source);
+
+	readed = g_input_stream_read_finish(stream, res, &err);
+	if (err != NULL)
+	{
+		gel_io_simple_op_error(self, err);
+		return;
+	}
+
+	if (readed > 0)
+	{
+		if (self->res.file.ba == NULL)
+			self->res.file.ba = g_byte_array_new();
+		g_byte_array_append(self->res.file.ba, self->res.file.buffer, readed);
+		g_free(self->res.file.buffer);
+		g_input_stream_read_async(stream, self->res.file.buffer, 32*1024,
+			G_PRIORITY_DEFAULT, self->cancellable, read_file_read_cb, self);
+		return;
+	}
+
+	g_free(self->res.file.buffer);
+	g_input_stream_close_async(stream, G_PRIORITY_DEFAULT, self->cancellable,
+		read_file_close_cb, self);
+}
+
+static void
+read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOSimpleOp *self = (GelIOSimpleOp *) data;
+
+	GError       *err = NULL;
+	GInputStream *stream = G_INPUT_STREAM(source);
+
+	if (!g_input_stream_close_finish(stream, res, &err))
+	{
+		gel_io_simple_op_error(self, err);
+		return;
+	}
+
+	GelIOSimpleResult *result = g_new0(GelIOSimpleResult, 1);
+	result->type = GEL_IO_SIMPLE_RESULT_BYTE_ARRAY;
+	result->data = self->res.file.ba;
+
+	gel_io_simple_op_success(self, result);
+}
+
+// --
+// Read dir API
+// --
+static void
+read_dir_enumerate_cb(GObject *source, GAsyncResult *res, gpointer data);
+static void
+read_dir_next_files_cb(GObject *source, GAsyncResult *res, gpointer data);
+static void
+read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data);
+
+GelIOSimpleOp*
+gel_io_simple_read_dir(GFile *dir,
+	const gchar *attributes,
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data)
+{
+	GelIOSimpleOp *self = gel_io_simple_op_new((gpointer) dir,
+		success, error, cancelled,
+		data);
+
+	g_object_ref(dir);
+
+    g_file_enumerate_children_async(dir,
+		attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
+		self->cancellable,
+		read_dir_enumerate_cb,
+		self);
+	return self;
+}
+
+static void
+read_dir_enumerate_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOSimpleOp *self = (GelIOSimpleOp *) data;
+
+	GFile           *dir;
+	GFileEnumerator *enumerator;
+	GError          *err = NULL;
+
+	dir = G_FILE(source);
+	enumerator = g_file_enumerate_children_finish(dir, res, &err);
+	if (enumerator == NULL)
+	{
+		gel_io_simple_op_error(self, err);
+		return;
+	}
+
+	g_file_enumerator_next_files_async(enumerator,
+		4, G_PRIORITY_DEFAULT,
+		self->cancellable,
+		read_dir_next_files_cb,
+		self);
+}
+
+static void
+read_dir_next_files_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOSimpleOp   *self = (GelIOSimpleOp *) data;
+	GError          *err = NULL;
+	GFileEnumerator *enumerator = G_FILE_ENUMERATOR(source);
+	GList           *items = g_file_enumerator_next_files_finish(enumerator, res, &err);
+
+	if (err != NULL)
+	{
+		gel_glist_free(items, (GFunc) g_object_unref, NULL);
+		gel_io_simple_op_error(self, err);
+		return;
+	}
+
+	if (g_list_length(items) > 0)
+	{
+		self->res.dir.children = g_list_concat(self->res.dir.children, items);
+
+		g_file_enumerator_next_files_async(enumerator,
+			4, G_PRIORITY_DEFAULT,
+			self->cancellable,
+			read_dir_next_files_cb,
+			(gpointer) data);
+	}
+	else
+	{
+		g_file_enumerator_close_async(enumerator,
+			G_PRIORITY_DEFAULT,
+			self->cancellable,
+			read_dir_close_cb,
+			(gpointer) data);
+	}
+}
+
+static void
+read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOSimpleOp *self = (GelIOSimpleOp *) data;
+
+	GError          *err = NULL;
+	GFileEnumerator *enumerator = G_FILE_ENUMERATOR(source);
+	gboolean         result = g_file_enumerator_close_finish(enumerator, res, &err);
+
+	if (result == FALSE)
+	{
+		gel_io_simple_op_error(self, err);
+	}
+	else
+	{
+		GelIOSimpleResult *r = g_new0(GelIOSimpleResult, 1);
+		r->type = GEL_IO_SIMPLE_RESULT_LIST;
+		r->data = self->res.dir.children;
+		gel_io_simple_op_success(self, r);
+	}
+
+}
+
+// --
+// Recurse API
+// --
+#if 0
+static void
+recurse_dir_success_cb(GelIOSimpleOp *op, gpointer source, GelIOSimpleResult *res, gpointer data);
+static void
+recurse_dir_error_cb(GelIOSimpleOp *op, gpointer source, GError *error, gpointer data);
+static void
+recurse_dir_cancelled_cb(GelIOSimpleOp *op, gpointer source, gpointer data);
+
+GelIOSimpleOp *
+gel_io_simple_recurse_dir(GFile *dir, const gchar *attributes,
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data)
+{
+	GelIOSimpleOp *self = gel_io_simple_op_new((gpointer) dir,
+		success,
+		error,
+		cancelled,
+		data);
+	g_object_ref(dir); // Hold it
+
+	self->res.recurse.attributes = attributes;
+	self->res.recurse.parents    = g_list_prepend(NULL, g_list_prepend(NULL, dir)); // Yes!
+
+	// Save user data
+	self->res.recurse.success   = success;
+	self->res.recurse.error     = error;
+	self->res.recurse.cancelled = cancelled;
+	self->res.recurse.data      = data;
+
+	// Start recursion
+	self->res.recurse.ops = g_list_prepend(NULL, gel_io_simple_read_dir(dir, attributes,
+		recurse_dir_success_cb,
+		recurse_dir_error_cb,
+		recurse_dir_cancelled_cb,
+		self));
+
+	return self;
+}
+
+static void
+recurse_dir_success_cb(GelIOSimpleOp *op, gpointer source, GelIOSimpleResult *res, gpointer data)
+{
+	GelIOSimpleOp *self = (GelIOSimpleOp *) data;
+	GFile *parent = G_FILE(source);
+	GList *iter, *children = gel_io_simple_result_get_list(res);
+
+	if (!parent || (gel_io_simple_result_get_type(res) != GEL_IO_SIMPLE_RESULT_LIST))
+	{
+		gel_warn("Error in recurse operation");
+		return NULL;
+	}
+
+	if (!recurse_find_in_parents(self, parent))
+		recurse_add_parent(self, parent);
+	recurse_add_children(self, parent, children);
+
+	iter = children;
+	while (iter)
+	{
+		GFileInfo *child_info = G_FILE_INFO(iter->data);
+		if (g_file_info_get_file_type(child_info) == G_FILE_TYPE_DIRECTORY)
+		{
+			GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
+			recurse_add_parent(self, child);
+			GelIOSimpleDir *sub_op = gel_io_simple_dir_read(child, self->attributes,
+				recurse_read_success_cb,
+				recurse_read_error_cb,
+				recurse_read_cancelled_cb,
+				self);
+			self->ops = g_list_prepend(self->ops, sub_op);
+		}
+		iter = iter->next;
+	}
+
+	// Remove operation
+	recurse_remove_operation(self, op);
+}
+
+static void
+recurse_dir_error_cb(GelIOSimpleOp *op, gpointer source, GError *error, gpointer data)
+{
+}
+
+static void
+recurse_dir_cancelled_cb(GelIOSimpleOp *op, gpointer source, gpointer data)
+{
+}
+#endif
+
+// --
+// Result API
+// --
+GelIOSimpleResultType
+gel_io_simple_result_get_type(GelIOSimpleResult *result)
+{
+	return result->type;
+}
+
+GByteArray *
+gel_io_simple_result_get_byte_array(GelIOSimpleResult *result)
+{
+	if (result->type == GEL_IO_SIMPLE_RESULT_BYTE_ARRAY)
+		return result->data;
+	return NULL;
+}
+
+GList *
+gel_io_simple_result_get_list(GelIOSimpleResult *result)
+{
+	if (result->type == GEL_IO_SIMPLE_RESULT_LIST)
+		return result->data;
+	return NULL;
+}
+
+// --
+// Recurse tree API
+// --
+GelIOSimpleRecurseTree*
+gel_io_simple_recurse_tree_new(GFile *root)
+{
+	GelIOSimpleRecurseTree *self = g_new0(GelIOSimpleRecurseTree, 1);
+
+	g_object_ref(root);
+	self->root = root;
+	return self;
+}
+
+void
+gel_io_simple_recurse_tree_free(GelIOSimpleRecurseTree *self)
+{
+	GList *iter, *iter2;
+	iter = self->parents;
+	while (iter)
+	{
+		iter2 = (GList *) iter->data;
+		g_list_foreach(iter2, (GFunc) g_object_unref, NULL);
+		g_list_free(iter2);
+		iter = iter->next;
+	}
+	g_list_free(self->parents);
+	g_object_unref(self->root);
+
+	g_free(self);
+}
+
+GFile* gel_io_simple_recurse_tree_get_root(GelIOSimpleRecurseTree *self)
+{
+	return self->root;
+}
+
+GList* gel_io_simple_recurse_tree_get_children(GelIOSimpleRecurseTree *self, GFile *parent)
+{
+	GList *p = gel_io_simple_recurse_tree_find_in_parents(self, parent);
+	GList *ret = g_list_copy((GList *) p->data);
+	return g_list_remove(ret->data, ret);
+}
+
+GList* gel_io_simple_recurse_tree_get_children_as_file(GelIOSimpleRecurseTree *self, GFile *parent)
+{
+	GList *ret = NULL;
+	GList *iter, *children = gel_io_simple_recurse_tree_get_children(self, parent);
+	iter = children;
+	while (iter)
+	{
+		ret = g_list_prepend(ret, gel_io_file_get_child_for_file_info(parent, G_FILE_INFO(iter->data)));
+		iter = iter->next;
+	}
+	return g_list_reverse(ret);
+}
+
+/* <private> */
+void gel_io_simple_recurse_tree_add_parent(GelIOSimpleRecurseTree *self, GFile *file)
+{
+	self->parents = g_list_append(self->parents, g_list_append(NULL, file));
+}
+
+void   gel_io_simple_recurse_tree_add_children(GelIOSimpleRecurseTree *self, GFile *parent, GList *children)
+{
+	GList *p = gel_io_simple_recurse_tree_find_in_parents(self, parent);
+	if (p == NULL)
+		return;
+	p->data = g_list_concat((GList *) p->data, g_list_copy(children));
+}
+
+GList* gel_io_simple_recurse_tree_find_in_parents(GelIOSimpleRecurseTree *self, GFile *parent)
+{
+	GList *iter = self->parents;
+	while (iter)
+	{
+		if (g_file_equal(G_FILE(((GList *) iter->data)->data), parent))
+			return iter;
+		iter = iter->next;
+	}
+	return NULL;
+}
+
+// --
+// Fuzzy API
+// --
 struct _GelIOSimpleFile {
 	GCancellable *cancellable;
 	GByteArray   *ba;

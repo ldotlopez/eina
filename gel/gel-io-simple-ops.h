@@ -6,6 +6,64 @@
 
 G_BEGIN_DECLS
 
+
+// --
+// GelIOSimple unified API
+// --
+typedef struct _GelIOSimpleOp          GelIOSimpleOp;
+typedef struct _GelIOSimpleResult      GelIOSimpleResult;
+typedef struct _GelIOSimpleRecurseTree GelIOSimpleRecurseTree;
+
+typedef enum {
+	GEL_IO_SIMPLE_RESULT_BYTE_ARRAY,
+	GEL_IO_SIMPLE_RESULT_LIST,
+	GEL_IO_SIMPLE_RESULT_RECURSE_TREE,
+	GEL_IO_SIMPLE_RESULT_GROUP
+} GelIOSimpleResultType;
+
+typedef void (*GelIOSimpleOpSuccessFunc)   (GelIOSimpleOp *op, gpointer source, GelIOSimpleResult *res, gpointer data);
+typedef void (*GelIOSimpleOpErrorFunc)     (GelIOSimpleOp *op, gpointer source, GError *error, gpointer data);
+typedef void (*GelIOSimpleOpCancelledFunc) (GelIOSimpleOp *op, gpointer source, gpointer data);
+
+GelIOSimpleOp *gel_io_simple_read_file(GFile *file, 
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data);
+
+GelIOSimpleOp *gel_io_simple_read_dir(GFile *dir, const gchar *attributes,
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data);
+
+GelIOSimpleOp *gel_io_simple_recurse_dir(GFile *dir, const gchar *attributes,
+	GelIOSimpleOpSuccessFunc   success,
+	GelIOSimpleOpErrorFunc     error,
+	GelIOSimpleOpCancelledFunc cancelled,
+	gpointer data);
+
+gpointer *gel_io_simple_get_source(GelIOSimpleOp *op);
+void gel_io_simple_cancel(GelIOSimpleOp *op);
+
+GelIOSimpleResultType  get_io_simple_result_get_type        (GelIOSimpleResult *res);
+GByteArray*            gel_io_simple_result_get_byte_array  (GelIOSimpleResult *res);
+GList*                 gel_io_simple_result_get_list        (GelIOSimpleResult *res);
+GelIOSimpleRecurseTree gel_io_simple_result_get_recurse_tree(GelIOSimpleResult *res);
+void                   gel_io_simple_result_free            (GelIOSimpleResult *res);
+
+GelIOSimpleRecurseTree* gel_io_simple_recurse_tree_new(GFile *root);
+void                    gel_io_simple_recurse_tree_free(GelIOSimpleRecurseTree *self);
+
+GFile* gel_io_simple_recurse_tree_get_root(GelIOSimpleRecurseTree *self);
+GList* gel_io_simple_recurse_tree_get_children(GelIOSimpleRecurseTree *self, GFile *parent);
+GList* gel_io_simple_recurse_tree_get_children_as_file(GelIOSimpleRecurseTree *self, GFile *parent);
+
+/* <private> */
+void   gel_io_simple_recurse_tree_add_parent(GelIOSimpleRecurseTree *self, GFile *file);
+void   gel_io_simple_recurse_tree_add_children(GelIOSimpleRecurseTree *self, GFile *parent, GList *children);
+GList* gel_io_simple_recurse_tree_find_in_parents(GelIOSimpleRecurseTree *self, GFile *parent);
+
 // --
 // GelIOSimpleFile
 // --

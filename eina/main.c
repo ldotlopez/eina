@@ -29,6 +29,34 @@ void xxx_ugly_hack(void)
 	gel_io_file_get_child_for_file_info(NULL, NULL);
 }
 
+static void
+ls_success(GelIOSimpleOp *op, gpointer source, GelIOSimpleResult *res, gpointer data)
+{
+	GFile *dir = G_FILE(source);
+	if (!dir)
+	{
+		gel_error("Invalid source");
+		return;
+	}
+
+	gchar *uri = g_file_get_uri(dir);
+	gel_warn("=> '%s'", uri);
+	g_free(uri);
+
+	GList *children = gel_io_simple_result_get_list(res);
+	GList *iter = children;
+	while (iter)
+	{
+		GFile *child = gel_io_file_get_child_for_file_info(dir, G_FILE_INFO(iter->data));
+		gchar *child_uri = g_file_get_uri(G_FILE(child));
+		gel_warn("+ '%s'", child_uri);
+		g_free(child_uri);
+		g_object_unref(child);
+
+		iter = iter->next;
+	}
+}
+
 void on_app_dispose(GelHub *app, gpointer data)
 {
 	gchar **modules = (gchar **) data;
@@ -112,6 +140,12 @@ gint main
 	lomo_player_add_uri_multi(lomo, uris);
 	gel_glist_free(uris, (GFunc) g_free, NULL);
 	g_strfreev(opt_uris);
+
+	gel_io_simple_read_dir(g_file_new_for_uri("file:///"), "standard::*",
+		ls_success,
+		NULL,
+		NULL,
+		NULL);
 
 	gtk_main();
 	return 0;
