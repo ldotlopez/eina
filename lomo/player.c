@@ -563,7 +563,7 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 	}
 
 	// Now, create pipeline
-	if ((self->priv->pipeline = gst_element_factory_make("playbin2", "playbin2")) == NULL)
+	if ((self->priv->pipeline = gst_element_factory_make("playbin", "playbin")) == NULL)
 	{
 		g_printf("[liblomo (%s:%d)] Cannot create pipeline\n", __FILE__,__LINE__);
 		lomo_player_set_error(error, LOMO_PLAYER_ERROR_NO_PIPELINE,
