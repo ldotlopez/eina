@@ -78,6 +78,8 @@ G_MODULE_EXPORT gboolean eina_iface_init
 			eina_iface_init_plugin(self, plugin);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "lastfm")) != NULL)
 			eina_iface_init_plugin(self, plugin);
+		if ((plugin = eina_iface_load_plugin_by_name(self, "adb")) != NULL)
+			eina_iface_init_plugin(self, plugin);
 	}
 	eina_iface_list_available_plugins(self);
 

@@ -31,7 +31,7 @@ struct _GelIOSimpleOp {
 			gpointer data;
 
 			GelIOSimpleRecurseTree *tree;
-;		} recurse;
+		} recurse;
 	} res ;
 };
 

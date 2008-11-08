@@ -1,16 +1,19 @@
 #ifndef __ADB_H__
 #define __ADB_H__
 
-#include <gel/gel.h>
+#include <sqlite3.h>
+#include <glib.h>
+#include <lomo/player.h>
 
-typedef struct _EinaAdb EinaAdb;
+G_BEGIN_DECLS
 
-gboolean adb_init(GelHub *hub, gint argc, gchar *argv[]);
-gboolean adb_exit(EinaAdb *self);
+typedef struct Adb {
+	sqlite3 *db;
+} Adb;
 
-/* * * * * * * * * * */
-/* Public functions  */
-/* * * * * * * * * * */
-/* void adb_do_something(EinaAdb *self, ...); */
+Adb *adb_new(LomoPlayer *lomo, GError **error);
+void adb_free(Adb *self);
+
+G_END_DECLS
 
 #endif
