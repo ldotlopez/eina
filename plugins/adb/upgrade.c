@@ -1,14 +1,13 @@
 #define GEL_DOMAIN "Adb"
 #include "upgrade.h"
+#include "common.h"
 #include <sqlite3.h>
 #include <gel/gel.h>
 
 static gboolean
 adb_db_upgrade_0(Adb *self)
 {
-	gint i;
-	char *errmsg = NULL;
-	const gchar *querys[] = {
+	gchar *querys[] = {
 		"DROP TABLE IF EXISTS variables;",
 
 		"CREATE TABLE variables ("
@@ -26,6 +25,19 @@ adb_db_upgrade_0(Adb *self)
 		"INSERT INTO variables VALUES('schema-version', 0);",
 
 		NULL };
+	GError *err = NULL;
+	gint success;
+	if (!adb_exec_querys(self, querys, &success, &err))
+	{
+		gel_warn("Error in query '%s': %s", querys[success], err->message);
+		g_error_free(err);
+		return FALSE;
+	}
+	gel_warn("OK");
+	return TRUE;
+		/*
+	gint i;
+	char *errmsg = NULL;
 	for (i = 0; querys[i]; i++)
 	{
 		// gel_warn("Execute SQL('%s')", querys[i]);
@@ -37,6 +49,7 @@ adb_db_upgrade_0(Adb *self)
 		}
 	}
 	return TRUE;
+	*/
 }
 
 static gboolean

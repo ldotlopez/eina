@@ -2,7 +2,7 @@ plugindir = $(libdir)/$(PACKAGE)/adb
 
 plugin_LTLIBRARIES = libadb.la
 libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
-libadb_la_SOURCES = iface.c adb.c adb.h upgrade.c upgrade.h
+libadb_la_SOURCES = iface.c adb.c adb.h upgrade.c upgrade.h common.c common.h
 
 AM_CFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
