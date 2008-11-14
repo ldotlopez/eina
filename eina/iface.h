@@ -61,6 +61,8 @@ LomoPlayer*
 eina_iface_get_lomo(EinaIFace *iface);
 #define EINA_PLUGIN_LOMO(p) eina_iface_get_lomo(EINA_PLUGIN_IFACE(p))
 
+const gchar *
+eina_plugin_get_pathname(EinaPlugin *plugin);
 gboolean
 eina_plugin_is_enabled(EinaPlugin *plugin);
 

@@ -21,6 +21,7 @@ struct _EinaIFace {
 	GList       *dock_idx;
 };
 
+#ifdef IFACE_MIX
 struct _EinaPluginPrivate {
 	gboolean    enabled;
 	gchar      *plugin_name;
@@ -30,6 +31,7 @@ struct _EinaPluginPrivate {
 	EinaIFace  *iface;
 	LomoPlayer *lomo;
 };
+#endif
 
 static void
 eina_iface_dock_init(EinaIFace *self);
@@ -96,14 +98,27 @@ G_MODULE_EXPORT gboolean eina_iface_exit
 	return TRUE;
 }
 
+#ifdef IFACE_MIX
 // --
 // Functions needed to access internal and deeper elements
 // --
+const gchar *
+eina_plugin_get_pathname(EinaPlugin *plugin)
+{
+	return (const gchar *) plugin->priv->pathname;
+}
+
 gboolean
 eina_plugin_is_enabled(EinaPlugin *plugin)
 {
 	return plugin->priv->enabled;
 }
+
+EinaIFace *eina_plugin_get_iface(EinaPlugin *plugin)
+{
+	return plugin->priv->iface;
+}
+#endif
 
 GelHub *eina_iface_get_hub(EinaIFace *self)
 {
@@ -113,11 +128,6 @@ GelHub *eina_iface_get_hub(EinaIFace *self)
 LomoPlayer *eina_iface_get_lomo(EinaIFace *self)
 {
 	return LOMO(self);
-}
-
-EinaIFace *eina_plugin_get_iface(EinaPlugin *plugin)
-{
-	return plugin->priv->iface;
 }
 
 EinaPlugin*
@@ -220,7 +230,8 @@ eina_iface_list_available_plugins(EinaIFace *self)
 	return g_list_reverse(ret);
 }
 
-GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
+GList *
+eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
 {
 	GList *search_paths, *iter;
 	GList *ret = NULL;
@@ -254,7 +265,9 @@ GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
 	return g_list_reverse(ret);
 }
 
-EinaPlugin *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path)
+#ifdef IFACE_MIX
+EinaPlugin *
+eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, gchar *plugin_path)
 {
 	EinaPlugin *ret = NULL;
 	GModule    *mod;
@@ -267,7 +280,7 @@ EinaPlugin *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, 
 		return NULL;
 	}
 
-	if ((mod = g_module_open(plugin_path, G_MODULE_BIND_LOCAL)) == NULL)
+	if ((mod = g_module_open(plugin_path, G_MODULE_BIND_LAZY)) == NULL)
 	{
 		gel_warn("'%s' is not loadable", plugin_path);
 		return NULL;
@@ -366,6 +379,7 @@ eina_iface_unload_plugin(EinaIFace *self, EinaPlugin *plugin)
 	g_module_close(plugin->priv->module);
 	g_free(plugin->priv);
 }
+#endif
 
 // --
 // Player management

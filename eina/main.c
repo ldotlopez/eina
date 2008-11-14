@@ -119,7 +119,16 @@ gint main
 	iface = GEL_HUB_GET_IFACE(app);
 	for (i = 0; plugins[i] != NULL; i++)
 	{
-		gel_warn("Load plugin %s: %d", plugins[i], eina_iface_load_plugin_by_name(iface, plugins[i]));
+		gel_warn("Load plugin %s: %s", plugins[i],
+			eina_iface_load_plugin_by_name(iface, plugins[i]) ? "TRUE" : "FALSE" );
+	}
+	GList *l = eina_iface_list_available_plugins(iface);
+	while (l)
+	{
+		gel_warn("Plugin: (%c)%s",
+			eina_plugin_is_enabled((EinaPlugin *) l->data) ? 'E':'D',
+			eina_plugin_get_pathname((EinaPlugin *) l->data));
+		l = l->next;
 	}
 
 	gtk_main();

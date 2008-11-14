@@ -27,6 +27,7 @@ NOINST_H_FILES = \
 	lomo.h                     \
 	player.h                   \
 	playlist.h                 \
+	plugin.h                   \
 	plugins.h                  \
 	template.h                 \
 	vogon.h
@@ -61,6 +62,7 @@ eina_SOURCES = \
 	main.c                     \
 	player.c                   \
 	playlist.c                 \
+	plugin.c                   \
 	plugins.c                  \
 	preferences.c              \
 	settings.c                 \
