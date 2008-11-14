@@ -11,6 +11,9 @@
 #include <eina/fs.h>
 #include <eina/eina-cover.h>
 
+#define GEL_HUB_GET_IFACE(hub)    gel_hub_shared_get(hub,"iface")
+#define EINA_BASE_GET_IFACE(base) GEL_HUB_GET_IFACE(((EinaBase *)base)->hub)
+
 #define EINA_PLUGIN_SERIAL 1
 
 typedef struct _EinaIFace EinaIFace;

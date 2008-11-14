@@ -15,16 +15,17 @@ CLEANFILES = $(BUILT_SOURCES)
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
+	lastfm.png \
 	lastfm.glade
 
 install-data-local: 
 	$(mkinstalldirs) $(DESTDIR)/$(plugindir); \
-	for p in `find . -iname '*.png' lastfm.ui`; do \
+	for p in `find . -iname '*.png' -o -iname '*.ui'`; do \
 		$(INSTALL_DATA) $$p $(DESTDIR)/$(plugindir); \
 	done
 
 uninstall-local:    
-	for p in `find . -iname '*.png'` lastfm.ui ; do \
+	for p in `find . -iname '*.png' -o -iname '*.ui'` ; do \
 		rm -- $(DESTDIR)/$(plugindir)/$$p; \
 	done
 

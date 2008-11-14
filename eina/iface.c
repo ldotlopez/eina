@@ -48,7 +48,6 @@ G_MODULE_EXPORT gboolean eina_iface_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaIFace *self;
-	EinaPlugin *plugin;
 
 	// Create mem in hub
 	self = g_new0(EinaIFace, 1);
@@ -70,6 +69,7 @@ G_MODULE_EXPORT gboolean eina_iface_init
 	else
 	{
 		eina_iface_dock_init(self);
+		/*
 		if ((plugin = eina_iface_load_plugin_by_name(self, "coverplus")) != NULL)
 			eina_iface_init_plugin(self, plugin);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "recently")) != NULL)
@@ -80,8 +80,9 @@ G_MODULE_EXPORT gboolean eina_iface_init
 			eina_iface_init_plugin(self, plugin);
 		if ((plugin = eina_iface_load_plugin_by_name(self, "adb")) != NULL)
 			eina_iface_init_plugin(self, plugin);
+		*/
 	}
-	eina_iface_list_available_plugins(self);
+	// eina_iface_list_available_plugins(self);
 
 	return TRUE;
 }
@@ -203,15 +204,9 @@ eina_iface_list_available_plugins(EinaIFace *self)
 			gchar *name = g_path_get_basename(e->data);
 			gchar *mod_name = g_module_build_path(e->data, name);
 			if ((plugin = eina_iface_query_plugin_by_path(self, mod_name)) != NULL)
-			{
-				gel_warn("Enabled %s", e->data);
 				ret = g_list_prepend(ret, plugin);
-			}
 			else if ((plugin = eina_iface_load_plugin_by_path(self, name, mod_name)) != NULL)
-			{
 				ret = g_list_prepend(ret, plugin);
-				gel_warn("Not enabled %s", e->data);
-			}
 			g_free(mod_name);
 			g_free(name);
 			e = e->next;
@@ -230,13 +225,11 @@ GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
 	GList *search_paths, *iter;
 	GList *ret = NULL;
 
-	gel_debug("Searching for plugin '%s'", plugin_name);
 	iter = search_paths = eina_iface_get_plugin_paths();
 	while (iter)
 	{
 		GList *plugins, *iter2;
 
-		gel_debug(" Inspecting '%s'", (gchar *) iter->data);
 		iter2 = plugins = gel_dir_read((gchar *) iter->data, TRUE, NULL);
 		while (iter2)
 		{
@@ -246,7 +239,6 @@ GList *eina_iface_lookup_plugin(EinaIFace *self, gchar *plugin_name)
 			if (g_str_equal(plugin_basename, plugin_name))
 			{
 				gchar *modname = g_module_build_path(plugin_pathname, plugin_name);
-				gel_debug("  Found candidate '%s'", modname);
 				ret = g_list_append(ret, modname);
 			}
 			g_free(plugin_basename);
@@ -277,7 +269,7 @@ EinaPlugin *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, 
 
 	if ((mod = g_module_open(plugin_path, G_MODULE_BIND_LOCAL)) == NULL)
 	{
-		gel_debug("'%s' is not loadable", plugin_path);
+		gel_warn("'%s' is not loadable", plugin_path);
 		return NULL;
 	}
 
@@ -285,7 +277,7 @@ EinaPlugin *eina_iface_load_plugin_by_path(EinaIFace *self, gchar *plugin_name, 
 
 	if (!g_module_symbol(mod, symbol_name, &symbol))
 	{
-		gel_debug("Cannot find symbol '%s' in '%s'", symbol_name, plugin_path);
+		gel_warn("Cannot find symbol '%s' in '%s'", symbol_name, plugin_path);
 		g_free(symbol_name);
 		g_module_close(mod);
 		return NULL;
