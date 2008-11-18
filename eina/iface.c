@@ -49,11 +49,9 @@ on_eina_iface_hub_load(GelHub *hub, const gchar *modname, gpointer data);
 G_MODULE_EXPORT gboolean eina_iface_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
-	EinaIFace *self;
-
-	// Create mem in hub
-	self = g_new0(EinaIFace, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "iface", EINA_BASE_NONE)) {
+	EinaIFace *self = g_new0(EinaIFace, 1);
+	if (!eina_base_init((EinaBase *) self, hub, "iface", EINA_BASE_NONE))
+	{
 		gel_error("Cannot create component");
 		return FALSE;
 	}

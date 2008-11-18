@@ -17,42 +17,13 @@ struct _EinaPluginPrivate {
 };
 
 // --
-// Functions needed to access internal and deeper elements
-// --
-
-const gchar *
-eina_plugin_get_pathname(EinaPlugin *plugin)
-{
-	return (const gchar *) plugin->priv->pathname;
-}
-
-gboolean
-eina_plugin_get_enabled(EinaPlugin *plugin)
-{
-	return plugin->priv->enabled;
-}
-
-EinaIFace *
-eina_plugin_get_iface(EinaPlugin *plugin)
-{
-	return plugin->priv->iface;
-}
-
-LomoPlayer*
-eina_plugin_get_lomo(EinaPlugin *plugin)
-{
-	return plugin->priv->lomo;
-}
-
-// --
 // Constructor and destructor
 // --
 EinaPlugin*
-eina_plugin_new(EinaIFace *iface, gchar *plugin_name, gchar *plugin_path)
+eina_plugin_new(EinaIFace *iface, gchar *plugin_path)
 {
 	EinaPlugin *self= NULL;
 	GModule    *mod;
-	gchar      *symbol_name;
 	gpointer    symbol;
 
 	if (!g_module_supported())
@@ -67,9 +38,7 @@ eina_plugin_new(EinaIFace *iface, gchar *plugin_name, gchar *plugin_path)
 		return NULL;
 	}
 
-	symbol_name = g_strconcat(plugin_name, "_plugin", NULL);
-
-	if (!g_module_symbol(mod, symbol_name, &symbol))
+	if (!g_module_symbol(mod, "eina_plugin", &symbol))
 	{
 		gel_warn("Cannot find symbol '%s' in '%s'", symbol_name, plugin_path);
 		g_free(symbol_name);
@@ -85,7 +54,7 @@ eina_plugin_new(EinaIFace *iface, gchar *plugin_name, gchar *plugin_path)
 		return NULL;
 	}
 
-	self = (EinaPlugin *) symbol;
+	self = EINA_PLUGIN(symbol);
 	self->priv = g_new0(EinaPluginPrivate, 1);
 	self->priv->plugin_name = g_strdup(plugin_name);
 	self->priv->pathname    = g_strdup(plugin_path);
@@ -109,6 +78,9 @@ eina_plugin_free(EinaPlugin *self)
 	return TRUE;
 }
 
+// --
+// Init and fini functions
+// --
 gboolean
 eina_plugin_init(EinaPlugin *self)
 {
@@ -152,5 +124,32 @@ eina_plugin_fini(EinaPlugin *self)
 	self->priv->enabled = FALSE;
 
 	return TRUE;
+}
+
+// --
+// Functions needed to access private elements
+// --
+const gchar *
+eina_plugin_get_pathname(EinaPlugin *plugin)
+{
+	return (const gchar *) plugin->priv->pathname;
+}
+
+gboolean
+eina_plugin_get_enabled(EinaPlugin *plugin)
+{
+	return plugin->priv->enabled;
+}
+
+EinaIFace *
+eina_plugin_get_iface(EinaPlugin *plugin)
+{
+	return plugin->priv->iface;
+}
+
+LomoPlayer*
+eina_plugin_get_lomo(EinaPlugin *plugin)
+{
+	return plugin->priv->lomo;
 }
 
