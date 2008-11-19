@@ -8,7 +8,7 @@
 #include <lomo/util.h>
 #include <eina/lomo.h>
 #include <eina/player.h>
-#include <eina/iface.h>
+#include <eina/loader.h>
 
 static gint     opt_debug_level = GEL_DEBUG_LEVEL_WARN;
 static gboolean opt_enqueue = FALSE;
@@ -45,7 +45,7 @@ gint main
 {
 	GelHub         *app;
 	gint            i = 0;
-	gchar          *modules[] = { "lomo", "log", "player", "dock", "playlist", "plugins", "vogon", NULL};
+	gchar          *modules[] = { "lomo", "log", "player", "loader", "dock", "playlist", "plugins", "vogon", NULL};
 	// gchar          *plugins[] = { "coverplus", "recently", "lastfmcover", "lastfm", "adb", NULL };
 	gchar          *tmp;
 
@@ -95,7 +95,14 @@ gint main
 	i = 0;
 	while (modules[i])
 		gel_hub_load(app, modules[i++]);
-	
+
+	GList *iter = eina_loader_query_paths(GEL_HUB_GET_LOADER(app));
+	while (iter)
+	{
+		gel_warn("=> '%s'", (gchar *) iter->data);
+		iter = iter->next;
+	}	
+
 	// Add or enqueue files from cmdl
 	LomoPlayer *lomo = GEL_HUB_GET_LOMO(app);
 	GList *uris = NULL;

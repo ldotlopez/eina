@@ -1,30 +1,76 @@
 #define GEL_DOMAIN "Eina::Loader"
 
-#include "base.h"
-#include "loader.h"
 #include <gmodule.h>
+#include <eina/loader.h>
+#include <eina/player.h>
+#include <eina/eina-plugin-dialog.h>
 
 struct _EinaLoader {
 	EinaBase  parent;
-	GList    *plugins;
-	GList    *paths;
+
+	GList *plugins;
+	GList *paths;
+
+	EinaPlayer     *player;
+
+	guint           ui_mng_merge_id;
+	GtkActionGroup *ui_mng_ag;
 };
 
 static GList*
 build_paths(void);
+
+static void
+menu_activate_cb(GtkAction *action, EinaLoader *self);
 
 G_MODULE_EXPORT gboolean loader_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaLoader *self;
 
-	// Create mem in hub (if needed)
 	self = g_new0(EinaLoader, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "loader", EINA_BASE_NONE))
+	if (!eina_base_init(EINA_BASE(self), hub, "loader", EINA_BASE_NONE))
 	{
 		gel_error("Cannot create component");
 		return FALSE;
 	}
+
+	// Build menu
+	if (!gel_hub_load(hub, "player") || ((self->player = GEL_HUB_GET_PLAYER(hub)) == NULL))
+	{
+		gel_error("Player is not available so where are useless");
+		eina_base_fini(EINA_BASE(self));
+		return FALSE;
+	}
+
+	GtkUIManager *ui_manager = eina_player_get_ui_manager(self->player);
+	GError *error = NULL;
+	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
+		"<ui>"
+		"<menubar name=\"MainMenuBar\">"
+		"<menu name=\"Edit\" action=\"EditMenu\" >"
+		"<menuitem name=\"Plugins\" action=\"Plugins\" />"
+		"</menu>"
+		"</menubar>"
+		"</ui>",
+		-1, &error);
+	if (self->ui_mng_merge_id == 0)
+	{
+		gel_warn("Cannot merge UI: '%s'", error->message);
+		g_error_free(error);
+		eina_base_fini(EINA_BASE(self));
+		return FALSE;
+	}
+
+	GtkActionEntry action_entries[] = {
+		{ "Plugins", NULL, N_("Plugins"),
+		NULL, NULL, G_CALLBACK(menu_activate_cb) }
+	};
+
+	self->ui_mng_ag = gtk_action_group_new("plugins");
+	gtk_action_group_add_actions(self->ui_mng_ag, action_entries, G_N_ELEMENTS(action_entries), self);
+	gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 1);
+	gtk_ui_manager_ensure_update(ui_manager);
 
 	self->paths = build_paths();
 
@@ -36,6 +82,15 @@ G_MODULE_EXPORT gboolean loader_exit
 {
 	EinaLoader *self = EINA_LOADER(data);
 	GList *iter;
+
+	// Unmerge menu
+	GtkUIManager *ui_mng;
+	if ((ui_mng = eina_player_get_ui_manager(self->player)) != NULL)
+	{
+		gtk_ui_manager_remove_action_group(ui_mng, self->ui_mng_ag);
+		gtk_ui_manager_remove_ui(ui_mng, self->ui_mng_merge_id);
+		g_object_unref(self->ui_mng_ag);
+	}
 
 	// Unload all plugins. All plugins must be disabled while unloading
 	iter = self->plugins;
@@ -94,6 +149,20 @@ build_paths(void)
 	}
 
 	return ret;
+}
+
+static void
+menu_activate_cb(GtkAction *action, EinaLoader *self)
+{
+	EinaPluginDialog *w = eina_plugin_dialog_new();
+	gtk_dialog_run(GTK_DIALOG(w));
+	gtk_widget_destroy(GTK_WIDGET(w));
+}
+
+GList *
+eina_loader_query_paths(EinaLoader *self)
+{
+	return self->paths;
 }
 
 GList *

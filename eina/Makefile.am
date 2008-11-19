@@ -21,6 +21,7 @@ NOINST_H_FILES = \
 	class-conf-file.h          \
 	dock.h                     \
 	eina-file-chooser-dialog.h \
+	eina-plugin-dialog.h       \
 	eina-seek.h                \
 	eina-volume.h              \
 	ether.h                    \
@@ -51,6 +52,7 @@ eina_SOURCES = \
 	class-conf-file.c          \
 	eina-cover.c               \
 	eina-file-chooser-dialog.c \
+	eina-plugin-dialog.c       \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
 	eina-volume.c              \

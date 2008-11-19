@@ -13,6 +13,9 @@ G_BEGIN_DECLS
 
 typedef struct _EinaLoader EinaLoader;
 
+GList *
+eina_loader_query_paths(EinaLoader *self);
+
 /*
  * Returns a list of all available EinaPlugins, whose can be enabled or
  * disabled
