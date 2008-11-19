@@ -11,7 +11,7 @@
 #include <eina/fs.h>
 #include <eina/eina-cover.h>
 
-#define EINA_PLUGIN_SERIAL 1
+#define EINA_PLUGIN_SERIAL 2
 #define EINA_PLUGIN(p)     ((EinaPlugin *) p)
 #define EINA_PLUGIN_HUB(p) eina_iface_get_hub(eina_plugin_get_iface(EINA_PLUGIN(p)))
 
@@ -38,7 +38,7 @@ typedef struct EinaPlugin {
 // New / free
 // --
 EinaPlugin*
-eina_plugin_new(EinaIFace *iface, gchar *plugin_name, gchar *plugin_path);
+eina_plugin_new(GelHub *hub, gchar *plugin_name, gchar *plugin_path);
 gboolean
 eina_plugin_free(EinaPlugin *self);
 
@@ -57,8 +57,8 @@ const gchar*
 eina_plugin_get_pathname(EinaPlugin *self);
 gboolean
 eina_plugin_is_enabled(EinaPlugin *self);
-EinaIFace*
-eina_plugin_get_iface(EinaPlugin *self);
+GelHub*
+eina_plugin_get_hub(EinaPlugin *self);
 LomoPlayer*
 eina_plugin_get_lomo(EinaPlugin *self);
 

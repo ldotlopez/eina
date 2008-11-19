@@ -309,6 +309,19 @@ eina_player_get_ui_manager(EinaPlayer *self)
 	return self->ui_manager;
 }
 
+void
+eina_player_add_widget(EinaPlayer* self, GtkWidget *widget)
+{
+	gtk_box_pack_start(W_TYPED(self, GTK_BOX, "widgets-box"), widget,
+		TRUE, TRUE, 0);
+}
+
+void
+eina_player_remove_widget(EinaPlayer* self, GtkWidget *widget)
+{
+	 gtk_container_remove(W_TYPED(self, GTK_CONTAINER, "widgets-box"), widget);
+}
+
 static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode)
 {

@@ -19,22 +19,22 @@ eina_LDADD = @PACKAGE_LIBS@ -lgel -llomo-1.0
 
 NOINST_H_FILES = \
 	class-conf-file.h          \
+	dock.h                     \
 	eina-file-chooser-dialog.h \
 	eina-seek.h                \
 	eina-volume.h              \
 	ether.h                    \
+	loader.h                   \
 	log.h                      \
 	lomo.h                     \
 	player.h                   \
 	playlist.h                 \
 	plugin.h                   \
-	plugins.h                  \
 	template.h                 \
 	vogon.h
 
 INST_H_FILES = \
 	base.h                     \
-	iface.h                    \
 	eina-cover.h               \
 	eina-preferences-dialog.h  \
 	fs.h                       \
@@ -48,6 +48,7 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	base.c                     \
+	dock.c                     \
 	class-conf-file.c          \
 	eina-cover.c               \
 	eina-file-chooser-dialog.c \
@@ -56,14 +57,13 @@ eina_SOURCES = \
 	eina-volume.c              \
 	ether.c                    \
 	fs.c                       \
-	iface.c                    \
+	loader.c                   \
 	log.c                      \
 	lomo.c                     \
 	main.c                     \
 	player.c                   \
 	playlist.c                 \
 	plugin.c                   \
-	plugins.c                  \
 	preferences.c              \
 	settings.c                 \
 	template.c                 \

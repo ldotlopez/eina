@@ -8,11 +8,10 @@
 
 struct _EinaPluginPrivate {
 	gboolean    enabled;
-	gchar      *plugin_name;
 	gchar      *pathname;
 	GModule    *module;
 
-	EinaIFace  *iface;
+	GelHub     *hub;
 	LomoPlayer *lomo;
 };
 
@@ -20,7 +19,7 @@ struct _EinaPluginPrivate {
 // Constructor and destructor
 // --
 EinaPlugin*
-eina_plugin_new(EinaIFace *iface, gchar *plugin_path)
+eina_plugin_new(GelHub *hub, gchar *plugin_path)
 {
 	EinaPlugin *self= NULL;
 	GModule    *mod;
@@ -40,12 +39,10 @@ eina_plugin_new(EinaIFace *iface, gchar *plugin_path)
 
 	if (!g_module_symbol(mod, "eina_plugin", &symbol))
 	{
-		gel_warn("Cannot find symbol '%s' in '%s'", symbol_name, plugin_path);
-		g_free(symbol_name);
+		gel_warn("Cannot find symbol '%s' in '%s'", "eina_plugin", plugin_path);
 		g_module_close(mod);
 		return NULL;
 	}
-	g_free(symbol_name);
 
 	if (((EinaPlugin *) symbol)->serial != EINA_PLUGIN_SERIAL)
 	{
@@ -56,11 +53,10 @@ eina_plugin_new(EinaIFace *iface, gchar *plugin_path)
 
 	self = EINA_PLUGIN(symbol);
 	self->priv = g_new0(EinaPluginPrivate, 1);
-	self->priv->plugin_name = g_strdup(plugin_name);
 	self->priv->pathname    = g_strdup(plugin_path);
 	self->priv->module      = mod;
-	self->priv->iface       = iface;
-	self->priv->lomo        = gel_hub_shared_get(eina_iface_get_hub(iface), "lomo");
+	self->priv->hub         = hub;
+	self->priv->lomo        = gel_hub_shared_get(hub, "lomo");
 
 	gel_debug("Module '%s' has been loaded", plugin_path);
 	return self;
@@ -71,7 +67,6 @@ eina_plugin_free(EinaPlugin *self)
 {
 	if (self->priv->enabled)
 		return FALSE;
-	g_free(self->priv->plugin_name);
 	g_free(self->priv->pathname);
 	g_module_close(self->priv->module);
 	g_free(self->priv);
@@ -136,15 +131,15 @@ eina_plugin_get_pathname(EinaPlugin *plugin)
 }
 
 gboolean
-eina_plugin_get_enabled(EinaPlugin *plugin)
+eina_plugin_is_enabled(EinaPlugin *plugin)
 {
 	return plugin->priv->enabled;
 }
 
-EinaIFace *
-eina_plugin_get_iface(EinaPlugin *plugin)
+GelHub *
+eina_plugin_get_hub(EinaPlugin *plugin)
 {
-	return plugin->priv->iface;
+	return plugin->priv->hub;
 }
 
 LomoPlayer*

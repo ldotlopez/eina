@@ -44,10 +44,9 @@ gint main
 (gint argc, gchar *argv[])
 {
 	GelHub         *app;
-	EinaIFace      *iface;
 	gint            i = 0;
-	gchar          *modules[] = { "lomo", "log", "player", "iface", "playlist", "plugins", "vogon", NULL};
-	gchar          *plugins[] = { "coverplus", "recently", "lastfmcover", "lastfm", "adb", NULL };
+	gchar          *modules[] = { "lomo", "log", "player", "dock", "playlist", "plugins", "vogon", NULL};
+	// gchar          *plugins[] = { "coverplus", "recently", "lastfmcover", "lastfm", "adb", NULL };
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;
@@ -116,6 +115,7 @@ gint main
 	g_strfreev(opt_uris);
 
 	// Add plugins
+	/*
 	iface = GEL_HUB_GET_IFACE(app);
 	for (i = 0; plugins[i] != NULL; i++)
 	{
@@ -130,7 +130,7 @@ gint main
 			eina_plugin_get_pathname((EinaPlugin *) l->data));
 		l = l->next;
 	}
-
+	*/
 	gtk_main();
 	return 0;
 }

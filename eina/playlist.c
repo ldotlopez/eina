@@ -16,7 +16,7 @@
 #include "settings.h"
 #include "fs.h"
 #include "eina-file-chooser-dialog.h"
-#include <eina/iface.h>
+#include <eina/dock.h>
 
 struct _EinaPlaylist
 {
@@ -173,7 +173,6 @@ G_MODULE_EXPORT gboolean playlist_init
 	gchar *tmp;
 	gchar *buff;
 	gchar **uris;
-	EinaIFace *iface;
 
 	static const gchar *rr_files[] = {
 		"random.png",
@@ -272,11 +271,6 @@ G_MODULE_EXPORT gboolean playlist_init
 		eina_conf_get_int(self->conf, "/playlist/last_current", 0),
 		NULL);
 
-	if ((iface = gel_hub_shared_get(hub, "iface")) == NULL) {
-		gel_error("Cannot get EinaIFace");
-		return FALSE;
-	}
-
 	/*
 	GtkWindow     *main_window;
 	GtkAccelGroup *accel_group;
@@ -292,7 +286,7 @@ G_MODULE_EXPORT gboolean playlist_init
 	*/
 
 	gtk_widget_show(self->dock);
-	return eina_iface_dock_add_item(iface, "playlist",
+	return eina_dock_add_widget(EINA_BASE_GET_DOCK(self), "playlist",
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), self->dock);
 }
 
@@ -331,8 +325,8 @@ G_MODULE_EXPORT gboolean playlist_exit
 
 	gel_hub_unload(HUB(self), "settings");
 
-	eina_iface_dock_remove_item(gel_hub_shared_get(HUB(self), "iface"), "playlist");
-	eina_base_fini((EinaBase *) self);
+	eina_dock_remove_widget(EINA_BASE_GET_DOCK(self), "playlist");
+	eina_base_fini(EINA_BASE(self));
 	return TRUE;
 }
 
@@ -504,7 +498,7 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 				new_state = GTK_STOCK_MEDIA_STOP;
 				break;
 			default:
-				eina_iface_warn("Unknow state: %d", state);
+				gel_warn("Unknow state: %d", state);
 				break;
 		}
 	}
@@ -514,7 +508,7 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 		if (g_str_equal(new_state, current_state))
 			return;
 
-	eina_iface_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_state, new_state);
+	gel_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_state, new_state);
 	gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
 		PLAYLIST_COLUMN_STATE, new_state,
 		-1);
@@ -534,7 +528,7 @@ __eina_playlist_update_item_title(EinaPlaylist *self, GtkTreeIter *iter, gint it
 	// Update only if needed
 	if (!g_str_equal(current_title, markup))
 	{
-		eina_iface_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_title, markup);
+		gel_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_title, markup);
 		gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
 			PLAYLIST_COLUMN_TITLE, markup,
 			-1);
@@ -559,7 +553,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 
 	if ((item == -1) && (iter == NULL))
 	{
-		eina_iface_error("You must supply an iter _or_ an item");
+		gel_error("You must supply an iter _or_ an item");
 		return;
 	}
 
@@ -569,7 +563,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 		treepath = gtk_tree_model_get_path(GTK_TREE_MODEL(self->model), iter);
 		if (treepath == NULL)
 		{
-			eina_iface_warn("Cannot get a GtkTreePath from index %d", item);
+			gel_warn("Cannot get a GtkTreePath from index %d", item);
 			return;
 		}
 		treepath_indices = gtk_tree_path_get_indices(treepath);
@@ -602,7 +596,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 		if (column == -1)
 			break;
 
-		eina_iface_debug("Updating column %d", column);
+		gel_debug("Updating column %d", column);
 		switch (column)
 		{
 			case PLAYLIST_COLUMN_STATE:
@@ -614,7 +608,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 				break;
 
 			default:
-				eina_iface_warn("Unknow column %d", column);
+				gel_warn("Unknow column %d", column);
 				break;
 		}
 	} while(column != -1);
@@ -873,16 +867,16 @@ static void lomo_change_cb
 		return;
 	}
 
-	eina_iface_debug("Handling change signal %d -> %d", old, new);
+	gel_debug("Handling change signal %d -> %d", old, new);
 	/* Restore normal state on old stream */
 	if (old >= 0) {
-		eina_iface_debug("updating all columns from OLD %d", old);
+		gel_debug("updating all columns from OLD %d", old);
 		eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
 	}
 
 	/* Create markup for the new stream */
 	if (new >= 0) {
-		eina_iface_debug("updating all columns from NEW %d", new);
+		gel_debug("updating all columns from NEW %d", new);
 		eina_playlist_update_item(self, NULL, new, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
 
 		// Scroll to new stream

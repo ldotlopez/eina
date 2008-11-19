@@ -7,9 +7,8 @@
       <widget class="GtkVBox" id="main-box">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkVBox" id="vbox3">
+          <widget class="GtkVBox" id="widgets-box">
             <property name="visible">True</property>
-            <property name="extension_events">GDK_EXTENSION_EVENTS_ALL</property>
             <property name="border_width">5</property>
             <property name="spacing">5</property>
             <child>
@@ -242,9 +241,8 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkExpander" id="dock-expander">
+              <widget class="GtkExpander" id="dock-expander-disabled">
                 <property name="width_request">400</property>
-                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <child>
                   <widget class="GtkNotebook" id="dock-notebook">
@@ -280,6 +278,9 @@
               </packing>
             </child>
           </widget>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </widget>
     </child>
