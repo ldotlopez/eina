@@ -96,7 +96,7 @@ gint main
 	while (modules[i])
 		gel_hub_load(app, modules[i++]);
 
-	GList *iter = eina_loader_query_paths(GEL_HUB_GET_LOADER(app));
+	GList *iter = eina_loader_query_plugins(GEL_HUB_GET_LOADER(app));
 	while (iter)
 	{
 		gel_warn("=> '%s'", (gchar *) iter->data);

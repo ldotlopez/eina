@@ -168,7 +168,42 @@ eina_loader_query_paths(EinaLoader *self)
 GList *
 eina_loader_query_plugins(EinaLoader *self)
 {
-	return NULL;
+	GList *iter, *paths;
+	GList *ret = NULL;
+
+	iter = paths = eina_loader_query_paths(self);
+	while (iter)
+	{
+		EinaPlugin *plugin;
+		GList *e, *entries;
+		e = entries = gel_dir_read(iter->data, TRUE, NULL);
+		while (e)
+		{
+			gchar *name = g_path_get_basename(e->data);
+			gchar *mod_name = g_module_build_path(e->data, name);
+			gchar *symbol = g_strconcat(name, "_plugin", NULL); 
+			gel_warn("Try: '%s'", mod_name);
+			if ((plugin = eina_plugin_new(HUB(EINA_BASE(self)), mod_name, symbol)) != NULL)
+			{
+				gel_warn("Ok!");
+				eina_plugin_free(plugin);
+			}
+			/*
+			if ((plugin = eina_iface_query_plugin_by_path(self, mod_name)) != NULL)
+				ret = g_list_prepend(ret, plugin);
+			else if ((plugin = eina_iface_load_plugin_by_path(self, name, mod_name)) != NULL)
+				ret = g_list_prepend(ret, plugin);
+			*/
+			g_free(symbol);
+			g_free(mod_name);
+			g_free(name);
+			e = e->next;
+		}
+		gel_glist_free(entries, (GFunc) g_free, NULL);
+		iter = iter->next;
+	}
+	gel_glist_free(paths, (GFunc) g_free, NULL);
+	return g_list_reverse(ret);
 }
 
 EinaPlugin*
