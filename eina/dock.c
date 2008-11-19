@@ -4,7 +4,6 @@
 #include <gmodule.h>
 #include <gtk/gtk.h>
 #include <gel/gel.h>
-#include "base.h"
 #include "dock.h"
 #include "player.h"
 #include "settings.h"
@@ -28,13 +27,13 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaDock *self;
 
-	self = EINA_DOCK(g_new0(EinaDock, 1));
+	self = g_new0(EinaDock, 1);
 	if (!eina_base_init(EINA_BASE(self), hub, "dock", EINA_BASE_GTK_UI))
 	{
 		gel_error("Cannot create component");
 		return FALSE;
 	}
-	if ((self->conf = gel_hub_shared_get(HUB(self), "settings")) == NULL)
+	if ((self->conf = EINA_BASE_GET_SETTINGS(self)) == NULL)
 	{
 		gel_error("Cannot access settings");
 		eina_base_fini(EINA_BASE(self));
@@ -60,13 +59,12 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 	self->dock_idx = gel_strv_to_glist(split, FALSE);
 	g_free(split); // NOT g_freestrv, look the FALSE in the prev. line
 
-	gtk_widget_realize(GTK_WIDGET(self->dock));
-
 	// Handle tab-reorder
+	gtk_widget_realize(GTK_WIDGET(self->dock));
 	g_signal_connect(self->dock, "page-reordered",
-	G_CALLBACK(page_reorder_cb), self);
+		G_CALLBACK(page_reorder_cb), self);
 
-	// Remove preexistent tabsa
+	// Remove preexistent tabs
 	gint i;
 	for (i = 0; i < gtk_notebook_get_n_pages(self->dock); i++)
 		gtk_notebook_remove_page(self->dock, i);
@@ -96,7 +94,8 @@ G_MODULE_EXPORT gboolean dock_exit
 gboolean
 eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
-	gint pos = g_list_position(self->dock_idx, g_list_find_custom(self->dock_idx, id, (GCompareFunc) strcmp));
+	gint pos = g_list_position(self->dock_idx,
+		g_list_find_custom(self->dock_idx, id, (GCompareFunc) strcmp));
 
 	if (!self->dock || (g_hash_table_lookup(self->dock_items, id) != NULL))
 	{
