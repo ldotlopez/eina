@@ -25,7 +25,6 @@ NOINST_H_FILES = \
 	eina-volume.h              \
 	ether.h                    \
 	loader.h                   \
-	log.h                      \
 	lomo.h                     \
 	player.h                   \
 	playlist.h                 \

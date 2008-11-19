@@ -2,6 +2,7 @@
 #define _EINA_DOCK
 
 #include <gel/gel.h>
+#include <eina/base.h>
 
 #define EINA_DOCK(p)             ((EinaDock *) p)
 #define GEL_HUB_GET_DOCK(hub)    EINA_DOCK(gel_hub_shared_get(hub, "dock"))

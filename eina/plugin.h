@@ -13,7 +13,6 @@
 
 #define EINA_PLUGIN_SERIAL 2
 #define EINA_PLUGIN(p)     ((EinaPlugin *) p)
-#define EINA_PLUGIN_HUB(p) eina_iface_get_hub(eina_plugin_get_iface(EINA_PLUGIN(p)))
 
 typedef struct _EinaPluginPrivate EinaPluginPrivate;
 typedef struct EinaPlugin {

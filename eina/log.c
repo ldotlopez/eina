@@ -3,7 +3,6 @@
 #include <gmodule.h>
 #include <lomo/player.h>
 #include <gel/gel.h>
-#include "log.h"
 
 static void
 on_lomo_error       (LomoPlayer *lomo, GError *err, gchar *message);

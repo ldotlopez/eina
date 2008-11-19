@@ -2,13 +2,12 @@
 #define _EINA_LOADER
 
 #include <glib.h>
-#include <glib/gi18n.h>
-#include <gtk/gtk.h>
+#include <eina/base.h>
 #include <eina/plugin.h>
 
-#define GEL_HUB_GET_LOADER(hub)    gel_hub_shared_get(hub,"loader")
-#define EINA_BASE_GET_LOADER(base) GEL_HUB_GET_LOADER(((EinaBase *)base)->hub)
 #define EINA_LOADER(p)             ((EinaLoader *) p)
+#define GEL_HUB_GET_LOADER(hub)    EINA_LOADER(gel_hub_shared_get(hub,"loader"))
+#define EINA_BASE_GET_LOADER(base) GEL_HUB_GET_LOADER(EINA_BASE(base)->hub)
 
 G_BEGIN_DECLS
 
