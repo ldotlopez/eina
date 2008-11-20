@@ -4,7 +4,8 @@
 #include "plugins.h"
 #include <gmodule.h>
 #include <gel/gel-ui.h>
-#include "eina/iface.h"
+#include <eina/loader.h>
+#include <eina/plugin.h>
 
 struct _EinaPlugins {
 	EinaBase        parent;
@@ -174,11 +175,11 @@ plugins_show(EinaPlugins *self)
 static void
 plugins_hide(EinaPlugins *self)
 {
-	EinaIFace *iface;
+	EinaLoader *loader;
 	GList *l;
 
 	gtk_widget_hide(self->window);
-	if ((iface = gel_hub_shared_get(HUB(self), "iface")) == NULL)
+	if ((loader = EINA_BASE_GET_LOADER(self)) == NULL)
 		return;
 
 	l = self->plugins;
@@ -186,26 +187,25 @@ plugins_hide(EinaPlugins *self)
 	{
 		EinaPlugin *plugin = (EinaPlugin *) l->data;
 		if (!eina_plugin_is_enabled(plugin))
-			eina_iface_unload_plugin(iface, plugin);
+			eina_loader_unload_plugin(loader, plugin, NULL);
 		l = l->next;
 	}
-	g_list_free(self->plugins);
 	self->plugins = NULL;
 }
 
 static void
 plugins_treeview_fill(EinaPlugins *self)
 {
-	EinaIFace *iface;
+	EinaLoader *loader;
 	GList *l;
 	GtkTreeIter iter;
 
-	if ((iface = gel_hub_shared_get(HUB(self), "iface")) == NULL)
+	if ((loader = EINA_BASE_GET_LOADER(self)) == NULL)
 		return;
 
 	gtk_list_store_clear(self->model);
 
-	self->plugins = l = eina_iface_list_available_plugins(iface);
+	self->plugins = l = eina_loader_query_plugins(loader);
 	gel_warn("Got %d available plugins", g_list_length(self->plugins));
 	while (l)
 	{
@@ -303,11 +303,11 @@ static void
 plugins_cell_renderer_toggle_toggled_cb
 (GtkCellRendererToggle *w, gchar *path, EinaPlugins *self)
 {
-	EinaIFace *iface;
+	// EinaIFace *iface;
 	GtkTreePath *_path;
+	GtkTreeIter iter;
 	gint *indices;
 	EinaPlugin *plugin;
-	gboolean ret;
 
 	if ((_path = gtk_tree_path_new_from_string(path)) == NULL)
 	{
@@ -324,18 +324,19 @@ plugins_cell_renderer_toggle_toggled_cb
 	}
 	gtk_tree_path_free(_path);
 
-	if ((iface = gel_hub_shared_get(HUB(self), "iface")) == NULL)
-	{
-		gel_error("Cannot initialize plugin, cant access to EinaIFace");
-		return;
-	}
-
-	gel_warn("New state: %d", gtk_cell_renderer_toggle_get_active(w));
-	if (eina_plugin_is_enabled(plugin))
-		ret = eina_iface_fini_plugin(iface, plugin);
+	gboolean do_toggle = FALSE;
+	if (gtk_cell_renderer_toggle_get_active(w) == FALSE)
+		do_toggle = eina_plugin_init(plugin);
 	else
-		ret = eina_iface_init_plugin(iface, plugin);
-	gel_warn("Status: %d");
+		do_toggle = eina_plugin_fini(plugin);
+
+	if (!do_toggle)
+		return;
+
+	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->model), &iter, path);
+	gtk_list_store_set(self->model, &iter,
+		PLUGINS_COLUMN_ENABLED, !gtk_cell_renderer_toggle_get_active(w),
+		-1);
 }
 
 static void

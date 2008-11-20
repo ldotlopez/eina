@@ -19,6 +19,8 @@ struct _EinaLoader {
 
 static GList*
 build_paths(void);
+static EinaPlugin *
+find_plugin(EinaLoader *self, const gchar *pathname);
 
 static void
 menu_activate_cb(GtkAction *action, EinaLoader *self);
@@ -100,7 +102,10 @@ G_MODULE_EXPORT gboolean loader_exit
 			break;
 		if (!eina_plugin_free(EINA_PLUGIN(iter->data)))
 			break;
+
+		iter = iter->next;
 	}
+
 	if (iter != NULL)
 	{
 		gel_error("Cannot exit: not all plugins are disabled (%s)", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)));
@@ -113,6 +118,53 @@ G_MODULE_EXPORT gboolean loader_exit
 	g_list_free(self->paths);
 
 	eina_base_fini(EINA_BASE(self));
+
+	return TRUE;
+}
+
+EinaPlugin*
+eina_loader_load_plugin(EinaLoader *self, gchar *pathname, GError **error)
+{
+	EinaPlugin *plugin;
+
+	// Already loaded
+	if ((plugin = find_plugin(self, pathname)) != NULL)
+		return plugin;
+	
+	// Create a symbol name for this path
+	gchar *dirname = g_path_get_dirname(pathname);
+	gchar *name = g_path_get_basename(dirname);
+	gchar *symbol = g_strconcat(name, "_plugin", NULL);
+	g_free(dirname);
+	g_free(name);
+
+	// Load plugin
+	if ((plugin = eina_plugin_new(HUB(EINA_BASE(self)), pathname, symbol)) == NULL)
+	{
+		g_free(symbol);
+		return NULL;
+	}
+
+	// Add to our list
+	self->plugins = g_list_prepend(self->plugins, plugin);
+
+	return plugin;
+}
+
+gboolean
+eina_loader_unload_plugin(EinaLoader *self, EinaPlugin *plugin, GError **error)
+{
+	// Check for plugin
+	if (g_list_find(self->plugins, plugin) == NULL)
+		return TRUE;
+
+	// Check if its enabled
+	if (eina_plugin_is_enabled(plugin))
+		return FALSE;
+	
+	// Remove plugin
+	self->plugins = g_list_remove(self->plugins, plugin);
+	eina_plugin_free(plugin);
 
 	return TRUE;
 }
@@ -151,10 +203,27 @@ build_paths(void)
 	return ret;
 }
 
+static EinaPlugin *
+find_plugin(EinaLoader *self, const gchar *pathname)
+{
+	GList *iter = self->plugins;
+	while (iter)
+	{
+		if (g_str_equal(
+			eina_plugin_get_pathname(EINA_PLUGIN(iter->data)),
+			pathname))
+			return EINA_PLUGIN(iter->data);
+		iter = iter->next;
+	}
+	return NULL;
+}
+
+
 static void
 menu_activate_cb(GtkAction *action, EinaLoader *self)
 {
 	EinaPluginDialog *w = eina_plugin_dialog_new();
+	eina_loader_query_plugins(self);
 	gtk_dialog_run(GTK_DIALOG(w));
 	gtk_widget_destroy(GTK_WIDGET(w));
 }
@@ -165,70 +234,57 @@ eina_loader_query_paths(EinaLoader *self)
 	return self->paths;
 }
 
-static gboolean
-is_already_loaded(EinaLoader *self, EinaPlugin *plugin)
-{
-	GList *iter = self->plugins;
-	while (iter)
-	{
-		if (g_str_equal(EINA_PLUGIN(iter->data)->priv->pathname, plugin->priv->pathname))
-			return TRUE;
-		iter = iter->next;
-	}
-	return FALSE;
-}
-
 GList *
 eina_loader_query_plugins(EinaLoader *self)
 {
-	GList *iter, *paths;
+	GList *iter;
 	GList *ret = NULL;
 
-	iter = paths = eina_loader_query_paths(self);
+	iter = eina_loader_query_paths(self);
 	while (iter)
 	{
-		EinaPlugin *plugin;
 		GList *e, *entries;
 		e = entries = gel_dir_read(iter->data, TRUE, NULL);
 		while (e)
-		{
+		{	
+			EinaPlugin *plugin;
 			gchar *name = g_path_get_basename(e->data);
 			gchar *mod_name = g_module_build_path(e->data, name);
-			gchar *symbol = g_strconcat(name, "_plugin", NULL); 
-			gel_warn("Try: '%s'", mod_name);
-			if ((plugin = eina_plugin_new(HUB(EINA_BASE(self)), mod_name, symbol)) != NULL)
+
+			if ((plugin = eina_loader_load_plugin(self, mod_name, NULL)) != NULL)
 			{
-				gel_warn("Ok!");
-				eina_plugin_free(plugin);
+				gel_warn("Loaded '%s'", mod_name);
+				ret = g_list_prepend(ret, plugin);
 			}
-			/*
-			if ((plugin = eina_iface_query_plugin_by_path(self, mod_name)) != NULL)
+			else
+				gel_warn("Cannot load '%s'", mod_name);
+	/*		
+			// Maybe its already loaded
+			if ((plugin = find_plugin(self, mod_name)) != NULL)
 				ret = g_list_prepend(ret, plugin);
-			else if ((plugin = eina_iface_load_plugin_by_path(self, name, mod_name)) != NULL)
-				ret = g_list_prepend(ret, plugin);
-			*/
-			g_free(symbol);
+			else
+			{
+				// Try to load
+				gchar *symbol = g_strconcat(name, "_plugin", NULL); 
+				if ((plugin = eina_plugin_new(HUB(EINA_BASE(self)), mod_name, symbol)) != NULL)
+					ret = g_list_prepend(ret, plugin);
+				g_free(symbol);
+			}
+*/
 			g_free(mod_name);
 			g_free(name);
 			e = e->next;
 		}
 		gel_glist_free(entries, (GFunc) g_free, NULL);
+
 		iter = iter->next;
 	}
-	gel_glist_free(paths, (GFunc) g_free, NULL);
-	return g_list_reverse(ret);
-}
 
-EinaPlugin*
-eina_loader_load_plugin(EinaLoader *self, gchar *pathname, GError **error)
-{
-	return NULL;
-}
+	// Replace current plugin list
+	g_list_free(self->plugins);
+	self->plugins = g_list_reverse(ret);
 
-gboolean
-eina_loader_unload_plugin(EinaLoader *self, EinaPlugin *plugin, GError **error)
-{
-	return FALSE;
+	return self->plugins;
 }
 
 G_MODULE_EXPORT GelHubSlave loader_connector = {

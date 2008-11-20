@@ -13,16 +13,6 @@ G_BEGIN_DECLS
 
 typedef struct _EinaLoader EinaLoader;
 
-GList *
-eina_loader_query_paths(EinaLoader *self);
-
-/*
- * Returns a list of all available EinaPlugins, whose can be enabled or
- * disabled
- */
-GList *
-eina_loader_query_plugins(EinaLoader *self);
-
 /*
  * Loads in a disabled state a plugin from a full path
  */
@@ -34,6 +24,21 @@ eina_loader_load_plugin(EinaLoader *self, gchar *pathname, GError **error);
  */
 gboolean
 eina_loader_unload_plugin(EinaLoader *self, EinaPlugin *plugin, GError **error);
+
+/*
+ * Returns a list of paths where EinaLoader search for plugins.
+ * The returned list must NOT be free'd or altered
+ */
+GList *
+eina_loader_query_paths(EinaLoader *self);
+
+/*
+ * Returns a list of all available EinaPlugins, whose can be enabled or
+ * disabled
+ * The returned list must NOT be free'd or altered
+ */
+GList *
+eina_loader_query_plugins(EinaLoader *self);
 
 G_END_DECLS
 

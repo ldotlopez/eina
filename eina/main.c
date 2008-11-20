@@ -99,7 +99,7 @@ gint main
 	GList *iter = eina_loader_query_plugins(GEL_HUB_GET_LOADER(app));
 	while (iter)
 	{
-		gel_warn("=> '%s'", (gchar *) iter->data);
+		gel_warn("=> '%s'", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)));
 		iter = iter->next;
 	}	
 
