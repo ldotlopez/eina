@@ -165,6 +165,19 @@ eina_loader_query_paths(EinaLoader *self)
 	return self->paths;
 }
 
+static gboolean
+is_already_loaded(EinaLoader *self, EinaPlugin *plugin)
+{
+	GList *iter = self->plugins;
+	while (iter)
+	{
+		if (g_str_equal(EINA_PLUGIN(iter->data)->priv->pathname, plugin->priv->pathname))
+			return TRUE;
+		iter = iter->next;
+	}
+	return FALSE;
+}
+
 GList *
 eina_loader_query_plugins(EinaLoader *self)
 {

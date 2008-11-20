@@ -4,7 +4,7 @@
 
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
-#include <eina/iface.h>
+#include <eina/plugin.h>
 
 typedef struct _CoverPlusInfolder CoverPlusInfolder;
 

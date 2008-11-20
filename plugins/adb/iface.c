@@ -1,7 +1,7 @@
 #define GEL_DOMAIN "Eina::Plugin::ADB"
 #define EINA_PLUGIN_DATA_TYPE Adb
 #include "adb.h"
-#include <eina/iface.h>
+#include <eina/plugin.h>
 
 static gboolean
 adb_plugin_init(EinaPlugin *plugin, GError **error)
@@ -9,7 +9,9 @@ adb_plugin_init(EinaPlugin *plugin, GError **error)
 	
 	Adb *self;
 
-	self = adb_new(EINA_PLUGIN_LOMO(plugin), error);
+	gel_warn("==> %s", eina_plugin_build_userdir_path(plugin, "caca"));
+	gel_warn("==> %s", eina_plugin_build_resource_path(plugin, "caca"));
+	self = adb_new(eina_plugin_get_lomo(plugin), error);
 	if (self == NULL)
 		return FALSE;
 	plugin->data = (gpointer) self;

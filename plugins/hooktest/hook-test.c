@@ -1,22 +1,22 @@
 #define GEL_DOMAIN "Eina::Plugin::HookTest"
-#include <eina/iface.h>
+#include <eina/plugin.h>
 
 void
 on_hooktest_change(LomoPlayer *lomo, gint from, gint to, EinaPlugin *self)
 {
-	eina_iface_info("Change from %d to %d, me: %p (%p)", from, to, self, self->data);
+	eina_plugin_info("Change from %d to %d, me: %p (%p)", from, to, self, self->data);
 }
 
 void
 on_hooktest_play(LomoPlayer *lomo, EinaPlugin *self)
 {
-	eina_iface_info("Play!  ME: %p", self->data);
+	eina_plugin_info("Play!  ME: %p", self->data);
 }
 
 void
 on_hooktest_repeat(LomoPlayer *lomo, gboolean value, EinaPlugin *self)
 {
-	eina_iface_info("Repeat: %d (%p)", value, self->data);
+	eina_plugin_info("Repeat: %d (%p)", value, self->data);
 }
 
 gboolean
@@ -27,7 +27,7 @@ hooktest_init(EinaPlugin *self, GError **error)
 		"play",   on_hooktest_change,
 		"repeat", on_hooktest_repeat,
 		NULL);
-	eina_iface_info("Plugin hooktest initialized");
+	eina_plugin_info("Plugin hooktest initialized");
 	return TRUE;
 }
 
@@ -39,7 +39,7 @@ hooktest_exit(EinaPlugin *self, GError **error)
 		"play",   on_hooktest_change,
 		"repeat", on_hooktest_repeat,
 		NULL);
-	eina_iface_info("Plugin hooktest finalized");
+	eina_plugin_info("Plugin hooktest finalized");
 	return TRUE;
 }
 
