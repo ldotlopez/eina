@@ -7,6 +7,30 @@
 G_BEGIN_DECLS
 
 
+/*
+
+typedef void (*GelIOOpSuccessFunc) (GelIOOp *op, gpointer source, GelIOResult *res, gpointer data);
+typedef void (*GelIOOpErrorFunc)   (GelIOOp *op, gpointer source, GError *error, gpointer data);
+
+
+GelIOOp *gel_io_read_file(GFile *file,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data);
+
+GelIOOp *gel_io_read_dir (GFile *dir, const gchar *attributes,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data);
+
+GelIOOp *gel_io_recurse_dir(GFile *dir, const gchar *attributes,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data);
+
+GelIOOp *gel_io_recuse_group
+
+void gel_io_op_cancel(GelIOOp *op);
+
+ */
+
 // --
 // GelIOSimple unified API
 // --
