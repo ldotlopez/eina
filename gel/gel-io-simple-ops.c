@@ -2,6 +2,34 @@
 #include <gel/gel.h>
 #include <gel/gel-io.h>
 
+#if 1
+
+struct _GelIOOp {
+	GFile              *source;
+	GCancellable       *cancellable;
+	GelIOOpSuccessFunc  success;
+	GelIOOpErrorFunc    error;
+	gpointer            data;
+	GelIOOpResult      *result;
+};
+
+struct _GelIOResult {
+	GelIOOpResultType type;
+	gpointer        result;
+};
+
+typedef GList _GelIORecurseTree;
+
+GelIOOp *gel_io_read_file(GFile *file,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data)
+{
+	GelIOOp *self;
+	return self;
+}
+
+
+#else
 // --
 // Unified API
 // --
@@ -1026,3 +1054,4 @@ gel_io_simple_dir_recurse_result_get_children        (GelIOSimpleDirRecurseResul
 
 GList *gel_io_simple_dir_recurse_result_get_children_as_file(GelIOSimpleDirRecurseResult *res, GFile *node);
 void   gel_io_simple_dir_recurse_result_free                (GelIOSimpleDirRecurseResult *res);
+#endif

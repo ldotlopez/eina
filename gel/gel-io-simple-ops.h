@@ -6,12 +6,18 @@
 
 G_BEGIN_DECLS
 
+#if 1
+typedef struct _GelIOOp          GelIOOp;
+typedef struct _GelIOOpResult    GelIOOpResult;
+typedef struct _GelIORecurseTree GelIORecurseTree;
+typedef enum {
+	GEL_IO_OP_RESULT_BYTE_ARRAY,
+	GEL_IO_OP_RESULT_LIST,
+	GEL_IO_OP_RECURSE_TREE
+} GelIOOpResultType;
 
-/*
-
-typedef void (*GelIOOpSuccessFunc) (GelIOOp *op, gpointer source, GelIOResult *res, gpointer data);
-typedef void (*GelIOOpErrorFunc)   (GelIOOp *op, gpointer source, GError *error, gpointer data);
-
+typedef void (*GelIOOpSuccessFunc) (GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
+typedef void (*GelIOOpErrorFunc)   (GelIOOp *op, GFile *source, GError *error, gpointer data);
 
 GelIOOp *gel_io_read_file(GFile *file,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
@@ -25,11 +31,23 @@ GelIOOp *gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data);
 
-GelIOOp *gel_io_recuse_group
+GFile *
+gel_io_op_get_source(GelIOOp *self);
+void
+gel_io_op_cancel(GelIOOp *self);
 
-void gel_io_op_cancel(GelIOOp *op);
+GelIOOpResultType
+gel_io_io_result_get_type(GelIOOpResult *result);
+GList*
+gel_io_op_result_get_list(GelIOOpResult *result);
+GByteArray*
+gel_io_op_result_get_byte_array(GelIOOpResult *result);
+GelIORecurseTree*
+gel_io_op_result_get_recurse_tree(GelIOOpResult *result);
+void
+gel_io_op_result_free(GelIOOpResult *result);
 
- */
+#else
 
 // --
 // GelIOSimple unified API
@@ -170,7 +188,7 @@ GelIOSimpleGroup *gel_io_simple_group_read(GList *group, const gchar *attributes
 	gpointer data);
 void gel_io_simple_group_free  (GelIOSimpleGroup *self);
 void gel_io_simple_group_cancel(GelIOSimpleGroup *self);
+#endif
 
 G_END_DECLS
-
 #endif /* _GEL_IO_SIMPLE */
