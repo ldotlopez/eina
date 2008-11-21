@@ -98,7 +98,7 @@ G_MODULE_EXPORT gboolean loader_exit
 	iter = self->plugins;
 	while (iter)
 	{
-		if (eina_plugin_is_enabled(EINA_PLUGIN(iter->data)))
+		if (eina_plugin_is_enabled(EINA_PLUGIN(iter->data)) && !eina_plugin_fini(EINA_PLUGIN(iter->data)))
 			break;
 		if (!eina_plugin_free(EINA_PLUGIN(iter->data)))
 			break;
@@ -258,19 +258,7 @@ eina_loader_query_plugins(EinaLoader *self)
 			}
 			else
 				gel_warn("Cannot load '%s'", mod_name);
-	/*		
-			// Maybe its already loaded
-			if ((plugin = find_plugin(self, mod_name)) != NULL)
-				ret = g_list_prepend(ret, plugin);
-			else
-			{
-				// Try to load
-				gchar *symbol = g_strconcat(name, "_plugin", NULL); 
-				if ((plugin = eina_plugin_new(HUB(EINA_BASE(self)), mod_name, symbol)) != NULL)
-					ret = g_list_prepend(ret, plugin);
-				g_free(symbol);
-			}
-*/
+
 			g_free(mod_name);
 			g_free(name);
 			e = e->next;

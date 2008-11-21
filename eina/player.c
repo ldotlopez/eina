@@ -205,10 +205,8 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		"<control>o", NULL, G_CALLBACK(menu_activate_cb) },
 		{ "Quit", GTK_STOCK_QUIT, N_("Quit"),
 		"<control>q", NULL, G_CALLBACK(menu_activate_cb) },
-		/*
-		{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
-	  	"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
-		*/
+
+
 		{ "Help", GTK_STOCK_HELP, N_("Help"),
 		NULL, "About", G_CALLBACK(menu_activate_cb) },
 		{ "About", GTK_STOCK_ABOUT, N_("About"),
