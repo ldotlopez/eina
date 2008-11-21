@@ -3,7 +3,6 @@
 #include <gmodule.h>
 #include <eina/loader.h>
 #include <eina/player.h>
-#include <eina/eina-plugin-dialog.h>
 
 struct _EinaLoader {
 	EinaBase  parent;
@@ -22,8 +21,10 @@ build_paths(void);
 static EinaPlugin *
 find_plugin(EinaLoader *self, const gchar *pathname);
 
+#if 0
 static void
 menu_activate_cb(GtkAction *action, EinaLoader *self);
+#endif
 
 G_MODULE_EXPORT gboolean loader_init
 (GelHub *hub, gint *argc, gchar ***argv)
@@ -44,7 +45,7 @@ G_MODULE_EXPORT gboolean loader_init
 		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
-
+#if 0
 	GtkUIManager *ui_manager = eina_player_get_ui_manager(self->player);
 	GError *error = NULL;
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
@@ -73,6 +74,7 @@ G_MODULE_EXPORT gboolean loader_init
 	gtk_action_group_add_actions(self->ui_mng_ag, action_entries, G_N_ELEMENTS(action_entries), self);
 	gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
+#endif
 
 	self->paths = build_paths();
 
@@ -218,7 +220,7 @@ find_plugin(EinaLoader *self, const gchar *pathname)
 	return NULL;
 }
 
-
+#if 0
 static void
 menu_activate_cb(GtkAction *action, EinaLoader *self)
 {
@@ -227,6 +229,7 @@ menu_activate_cb(GtkAction *action, EinaLoader *self)
 	gtk_dialog_run(GTK_DIALOG(w));
 	gtk_widget_destroy(GTK_WIDGET(w));
 }
+#endif
 
 GList *
 eina_loader_query_paths(EinaLoader *self)

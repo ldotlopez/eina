@@ -405,6 +405,7 @@ update_sensitiviness(EinaPlayer *self)
 		(lomo_player_get_current(LOMO(self)) >= 0));
 }
 
+#if 0
 void
 test_print(GelIOSimpleDirRecurseResult *res, GFile *root, guint level)
 {
@@ -435,17 +436,21 @@ test_print(GelIOSimpleDirRecurseResult *res, GFile *root, guint level)
 	}
 	g_list_free(l2);
 }
+#endif
 
 static void
-recurse_read_success_cb(GelIOSimpleDirRecurse *op, GFile *f, GelIOSimpleDirRecurseResult *res, gpointer data)
+recurse_read_success_cb(GelIOOp *op, GFile *f, GelIOOpResult *res, gpointer data)
 {
+	gel_warn("Recurse read successful");
+/*
 	gchar *uri = g_file_get_uri(f);
 	g_free(uri);
 	test_print(res, gel_io_simple_dir_recurse_result_get_root(res), 0);
+	*/
 }
 
 static void
-recurse_read_error_cb(GelIOSimpleDirRecurse *op, GFile *f, GError *error, gpointer data)
+recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
 {
 	gchar *uri = g_file_get_uri(f);
 	gel_error("Error reading '%s': %s", uri, error->message);
@@ -517,8 +522,13 @@ file_chooser_load_files(EinaPlayer *self)
 			uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
 			if (uris)
 			{
+				gel_io_recurse_dir(g_file_new_for_uri((const gchar *) uris->data),
+					 "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL);
+			/*
 			   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
 			           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL);
+			   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
+			           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL); */
 				file_chooser_selection_query_info(self, uris);
 				eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
 			}

@@ -13,17 +13,21 @@ typedef struct _GelIORecurseTree GelIORecurseTree;
 typedef enum {
 	GEL_IO_OP_RESULT_BYTE_ARRAY,
 	GEL_IO_OP_RESULT_LIST,
-	GEL_IO_OP_RECURSE_TREE
+	GEL_IO_OP_RESULT_RECURSE_TREE
 } GelIOOpResultType;
 
 typedef void (*GelIOOpSuccessFunc) (GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
 typedef void (*GelIOOpErrorFunc)   (GelIOOp *op, GFile *source, GError *error, gpointer data);
 
+#define GEL_IO_OP(p)           ((GelIOOp *) p)
+#define GEL_IO_OP_RESULT(p)    ((GelIOOpResult *) p)
+#define GEL_IO_RECURSE_TREE(p) ((GelIORecurseTree *) p)
+
 GelIOOp *gel_io_read_file(GFile *file,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data);
 
-GelIOOp *gel_io_read_dir (GFile *dir, const gchar *attributes,
+GelIOOp *gel_io_read_dir(GFile *dir, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data);
 
