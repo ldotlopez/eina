@@ -3,25 +3,18 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <gel/gel-io-recurse-tree.h>
+#include <gel/gel-io-op-result.h>
 
 G_BEGIN_DECLS
 
 #if 1
 typedef struct _GelIOOp          GelIOOp;
-typedef struct _GelIOOpResult    GelIOOpResult;
-typedef struct _GelIORecurseTree GelIORecurseTree;
-typedef enum {
-	GEL_IO_OP_RESULT_BYTE_ARRAY,
-	GEL_IO_OP_RESULT_LIST,
-	GEL_IO_OP_RESULT_RECURSE_TREE
-} GelIOOpResultType;
 
 typedef void (*GelIOOpSuccessFunc) (GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
 typedef void (*GelIOOpErrorFunc)   (GelIOOp *op, GFile *source, GError *error, gpointer data);
 
 #define GEL_IO_OP(p)           ((GelIOOp *) p)
-#define GEL_IO_OP_RESULT(p)    ((GelIOOpResult *) p)
-#define GEL_IO_RECURSE_TREE(p) ((GelIORecurseTree *) p)
 
 GelIOOp *gel_io_read_file(GFile *file,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
@@ -39,17 +32,6 @@ GFile *
 gel_io_op_get_source(GelIOOp *self);
 void
 gel_io_op_cancel(GelIOOp *self);
-
-GelIOOpResultType
-gel_io_io_result_get_type(GelIOOpResult *result);
-GList*
-gel_io_op_result_get_list(GelIOOpResult *result);
-GByteArray*
-gel_io_op_result_get_byte_array(GelIOOpResult *result);
-GelIORecurseTree*
-gel_io_op_result_get_recurse_tree(GelIOOpResult *result);
-void
-gel_io_op_result_free(GelIOOpResult *result);
 
 #else
 

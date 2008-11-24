@@ -20,6 +20,8 @@ INST_H_FILES = \
 	gel-hub.h               \
 	gel-io-async-read-dir.h \
 	gel-io-async-read-op.h  \
+	gel-io-recurse-tree.h   \
+	gel-io-op-result.h      \
 	gel-io-simple-ops.h     \
 	gel-io.h                \
 	gel-ui.h
@@ -35,6 +37,8 @@ libgel_la_SOURCES = \
 	gel-hub.c               \
 	gel-io-async-read-op.c  \
 	gel-io-async-read-dir.c \
+	gel-io-recurse-tree.c   \
+	gel-io-op-result.c      \
 	gel-io-simple-ops.c     \
 	gel-io.c                \
 	gel-ui.c                \

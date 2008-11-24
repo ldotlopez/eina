@@ -1,5 +1,8 @@
 #define GEL_DOMAIN "Gel::IO::SimpleOps"
+#include <gio/gio.h>
 #include <gel/gel.h>
+#include <gel/gel-io-simple-ops.h>
+#include <gel/gel-io-op-result.h>
 #include <gel/gel-io.h>
 
 #if 1
@@ -12,11 +15,6 @@ struct _GelIOOp {
 	gpointer            data;
 	gpointer            _d;
 	GelIOOpResult      *result;
-};
-
-struct _GelIOOpResult {
-	GelIOOpResultType type;
-	gpointer        result;
 };
 
 static void
@@ -190,15 +188,20 @@ read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data)
 		return;
 	}
 
+	GelIOOpResult *result = gel_io_op_result_new(GEL_IO_OP_RESULT_BYTE_ARRAY, FILE_READ(self->_d)->ba);
+	/*
 	GelIOOpResult *result = g_new0(GelIOOpResult, 1);
 	result->type   = GEL_IO_OP_RESULT_BYTE_ARRAY;
 	result->result = FILE_READ(self->_d)->ba;
-
+	*/
 	gel_io_op_success(self, result);
 
-	g_free(result);
+	// g_free(result);
+	// Dont needed to free our ba. ba its shared with result, so just free
+	// result
+	gel_io_op_result_unref(result);
 
-	g_byte_array_free(FILE_READ(self->_d)->ba, TRUE);
+	// g_byte_array_free(FILE_READ(self->_d)->ba, TRUE);
 	g_free(self->_d);
 
 	gel_io_op_free(self);
@@ -305,11 +308,15 @@ read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data)
 	}
 	else
 	{
+		/*
 		GelIOOpResult *r = g_new0(GelIOOpResult, 1);
 		r->type   = GEL_IO_OP_RESULT_LIST;
 		r->result = (gpointer) self->_d;
+		*/
+		GelIOOpResult *r = gel_io_op_result_new(GEL_IO_OP_RESULT_OBJECT_LIST, self->_d);
 		gel_io_op_success(self, r);
-		gel_glist_free((GList *) self->_d, (GFunc) g_object_unref, NULL);
+		gel_io_op_result_unref(r);
+		// gel_glist_free((GList *) self->_d, (GFunc) g_object_unref, NULL);
 	}
 	gel_io_op_free(self);
 }
@@ -323,115 +330,14 @@ typedef struct {
 	GelIOOpSuccessFunc  user_success;
 	GelIOOpErrorFunc    user_error;
 	GList              *ops;
+	GelIORecurseTree   *tree;
 } GelIOOpRecuseDir;
 #define RECURSE_DIR(p) ((GelIOOpRecuseDir*)p)
-
-struct _GelIORecurseTree {
-	GList      *parents;
-	GHashTable *children;
-};
-
-GelIORecurseTree *
-gel_io_recurse_tree_new(void)
-{
-	GelIORecurseTree *self = g_new0(GelIORecurseTree, 1);
-
-	self->parents  = NULL;
-	self->children = g_hash_table_new(g_direct_hash, (GEqualFunc) g_file_equal);
-
-	return self;
-}
-
-void
-gel_io_recurse_tree_free(GelIORecurseTree *self)
-{
-	GList *values = g_hash_table_get_values(self->children);
-	GList *iter = values;
-	while (iter)
-	{
-		gel_glist_free((GList *) iter->data, (GFunc) g_object_unref, NULL);
-		iter = iter->next;
-	}
-	g_list_free(values);
-	g_hash_table_unref(self->children);
-
-	gel_glist_free(self->parents, (GFunc) g_object_unref, NULL);
-
-	g_free(self);
-}
-
-void
-gel_io_recurse_tree_add_parent(GelIORecurseTree *self, GFile *parent)
-{
-	self->parents = g_list_prepend(self->parents, parent);
-	g_hash_table_insert(self->children, (gpointer) parent, NULL);
-}
-
-void
-gel_io_recurse_tree_add_children(GelIORecurseTree *self, GFile *parent, GList *children)
-{
-	if (!g_list_find(self->parents, parent))
-		gel_io_recurse_tree_add_parent(self, parent);
-	g_hash_table_replace(self->children, (gpointer) parent, children);
-}
-
-GFile*
-gel_io_recurse_tree_get_root(GelIORecurseTree *self)
-{
-	GList *node = g_list_last(self->parents);
-	if (node)
-		return G_FILE(node->data);
-	else
-		return NULL;
-}
-
-GList*
-gel_io_recurse_tree_get_children(GelIORecurseTree *self, GFile *parent)
-{
-	return (GList *) g_hash_table_lookup(self->children, (gpointer) parent);
-}
 
 static void
 recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpointer data);
 static void
 recurse_dir_error_cb(GelIOOp *op, GFile *parent, GError *error, gpointer data);
-
-GelIORecurseTree*
-gel_io_recurse_tree_add_parent(GelIORecurseTree *self, GFile *new_parent)
-{
-	return g_list_append((GList *) self, g_list_prepend(NULL, new_parent));
-	// self->parents = g_list_append(self->parents, g_list_prepend(NULL, new_parent));
-}
-
-GList *
-gel_io_recurse_tree_find_in_parents(GelIORecurseTree *self, GFile *parent)
-{
-	GList *iter = (GList *) self;
-	// GList *iter = self->parents;
-	while (iter)
-	{
-		if (((GList *) iter->data)->data == parent)
-			break;
-		iter = iter->next;
-	}
-	if (!iter)
-		gel_warn("Parent not found");
-	return iter;
-}
-
-void
-gel_io_recurse_tree_add_children(GelIORecurseTree *self, GFile *parent, GList *children)
-{
-	GList *parent_list = gel_io_recurse_tree_find_in_parent(self, parent);
-	if (parent_list == NULL)
-	{
-		//gel_error("Unable to find %p in parents list", parent);
-		return;
-	}
-
-	parent_list->data = g_list_concat((GList *) parent_list->data, g_list_copy(children));
-	// g_printf("Added %d children for %s\n", g_list_length(children), g_file_get_uri(parent));
-}
 
 GelIOOp*
 gel_io_recurse_dir(GFile *dir, const gchar *attributes,
@@ -440,7 +346,7 @@ gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 {
 	GelIOOp *self = gel_io_op_new(dir, success, error, data);
 	self->_d = g_new0(GelIOOpRecuseDir, 1);
-
+	RECURSE_DIR(self->_d)->tree = gel_io_recurse_tree_new();
 	RECURSE_DIR(self->_d)->ops = g_list_prepend(NULL, gel_io_read_dir(dir, attributes,
 		recurse_dir_success_cb,
 		recurse_dir_error_cb,
@@ -464,12 +370,35 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 	GelIOOp *self = GEL_IO_OP(data);
 
 	gchar *uri = g_file_get_uri(parent);
-	GList *children = gel_io_op_result_get_list(result);
+	GList *children = gel_io_op_result_get_object_list(result);
 	gel_warn("Got %d children for %s", g_list_length(children), uri);
 	g_free(uri);
 
+	// Add to result
+	gel_io_recurse_tree_add_parent(RECURSE_DIR(self->_d)->tree, parent);
+	gel_io_recurse_tree_add_children(RECURSE_DIR(self->_d)->tree, parent, children);
 
-	
+	// Launch suboperations for all directories in children
+	GList *iter = children;
+	while (iter)
+	{
+		GFileInfo *child_info = G_FILE_INFO(iter->data);
+		if (g_file_info_get_file_type(child_info) != G_FILE_TYPE_DIRECTORY)
+		{
+			iter = iter->next;
+			continue;
+		}
+
+		GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
+		RECURSE_DIR(self->_d)->ops = g_list_prepend(RECURSE_DIR(self->_d)->ops,
+			gel_io_read_dir(child, RECURSE_DIR(self->_d)->attributes,
+				recurse_dir_success_cb,
+				recurse_dir_error_cb,
+				self
+				)
+			);
+		iter = iter->next;
+	}
 
 	// Remove operation from queue
 	gel_io_recurse_dir_remove_op(self, op);
@@ -486,34 +415,6 @@ recurse_dir_error_cb(GelIOOp *op, GFile *parent, GError *error, gpointer data)
 	
 	g_free(uri);
 }
-
-// --
-// GelIOOpResult
-// --
-GByteArray *
-gel_io_op_result_get_byte_array(GelIOOpResult *self)
-{
-	if (!self || (self->type != GEL_IO_OP_RESULT_BYTE_ARRAY))
-		return NULL;
-	return (GByteArray*) self->result;
-}
-
-GList*
-gel_io_op_result_get_list(GelIOOpResult *self)
-{
-	if (!self || (self->type != GEL_IO_OP_RESULT_LIST))
-		return NULL;
-	return (GList *) self->result;
-}
-
-GelIORecurseTree*
-gel_io_op_result_get_recurse_tree(GelIOOpResult *self)
-{
-	if (!self || (self->type != GEL_IO_OP_RESULT_RECURSE_TREE))
-		return NULL;
-	return (GelIORecurseTree*) self->result;
-}
-
 
 #else
 // --

@@ -460,7 +460,7 @@ recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
 static void
 file_chooser_selection_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
-	// EinaPlayer *self = (EinaPlayer *) data;
+	EinaPlayer *self = (EinaPlayer *) data;
 	GFile *file = G_FILE(source);
 	GError *err = NULL;
 
@@ -474,24 +474,27 @@ file_chooser_selection_query_info_cb(GObject *source, GAsyncResult *res, gpointe
 		g_error_free(err);
 	}
 
-	gel_warn("[%c] %s", (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY) ? 'D' : ' ', g_file_info_get_name(info));
+	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
+	{
+		gel_io_recurse_dir(g_file_new_for_uri((const gchar *) iter->data),
+			"standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL);
+	}
+	else
+	{
+				// eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
+	}
 	g_object_unref(source);
 	g_object_unref(info);
 }
 
 static void
-file_chooser_selection_query_info(EinaPlayer *self, GSList *uris)
+file_chooser_selection_query_info(EinaPlayer *self, gchar *uri)
 {
-	GSList *iter = uris;
-	while (iter)
-	{
-		GFile *file = g_file_new_for_uri((gchar *) iter->data);
-		g_file_query_info_async(file, "standard::*", G_FILE_QUERY_INFO_NONE,
-			G_PRIORITY_DEFAULT, /* cancellable */ NULL,
-			file_chooser_selection_query_info_cb,
-			self);
-		iter = iter->next;
-	}
+	GFile *file = g_file_new_for_uri(uri);
+	g_file_query_info_async(file, "standard::*", G_FILE_QUERY_INFO_NONE,
+		G_PRIORITY_DEFAULT, /* cancellable */ NULL,
+		file_chooser_selection_query_info_cb,
+		self);
 }
 
 static void
@@ -520,20 +523,17 @@ file_chooser_load_files(EinaPlayer *self)
 					
 		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 			uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
-			if (uris)
+			if (uris == NULL)
+				break;
+
+			GList *iter = iter;
+			while (iter)
 			{
-				gel_io_recurse_dir(g_file_new_for_uri((const gchar *) uris->data),
-					 "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL);
-			/*
-			   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
-			           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL);
-			   gel_io_simple_dir_recurse_read(g_file_new_for_uri((const gchar *) uris->data),
-			           "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL, NULL); */
-				file_chooser_selection_query_info(self, uris);
-				eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
+				file_chooser_selection_query_info(self, (const gchar *) iter->data);
+				iter = iter->next;
 			}
 			g_slist_free(uris);
-			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, _("Added N streams"));
+			// eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, _("Added N streams"));
 			break;
 
 		default:
