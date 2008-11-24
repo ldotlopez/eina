@@ -27,6 +27,7 @@ void xxx_ugly_hack(void)
 	gel_glist_join(" ", NULL);
 	gel_io_read_file(NULL, NULL, NULL, NULL);
 	gel_io_file_get_child_for_file_info(NULL, NULL);
+	gel_io_recurse_tree_new();
 }
 
 void on_app_dispose(GelHub *app, gpointer data)

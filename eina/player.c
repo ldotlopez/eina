@@ -438,6 +438,7 @@ test_print(GelIOSimpleDirRecurseResult *res, GFile *root, guint level)
 }
 #endif
 
+#if 0
 static void
 recurse_read_success_cb(GelIOOp *op, GFile *f, GelIOOpResult *res, gpointer data)
 {
@@ -448,17 +449,65 @@ recurse_read_success_cb(GelIOOp *op, GFile *f, GelIOOpResult *res, gpointer data
 	test_print(res, gel_io_simple_dir_recurse_result_get_root(res), 0);
 	*/
 }
+	// gel_warn("\u2603, \u2744, \u2745, \u2746\n%s (%d children)", uri, g_list_length(children));
+#endif
 
 static void
-recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
+recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaPlayer *self)
 {
+	if (f == NULL)
+		return;
+
+	GList *children = gel_io_recurse_tree_get_children(tree, f);
+	GList *iter = children;
+
 	gchar *uri = g_file_get_uri(f);
-	gel_error("Error reading '%s': %s", uri, error->message);
+	gel_warn("=> %s %p (%d children)", uri, children, g_list_length(children));
 	g_free(uri);
+
+	while (iter)
+	{
+		GFileInfo *info = G_FILE_INFO(iter->data);
+
+		const gchar *uri = g_file_info_get_name(info);
+		gel_warn("=> %p %s", info, uri);
+		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
+		{
+			GFile *child = gel_io_file_get_child_for_file_info(f, info);
+			recurse_tree_parse(tree, child, self);
+			g_object_unref(child);
+		}
+		iter = iter->next;
+	}
+
+	g_list_free(children);
 }
 
 static void
-file_chooser_selection_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
+recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
+{
+	gchar *uri = g_file_get_uri(source);
+	gel_warn("Recurse over %s finished", uri);
+	g_free(uri);
+
+	GelIORecurseTree *tree = gel_io_op_result_get_recurse_tree(result);
+	recurse_tree_parse(tree, gel_io_recurse_tree_get_root(tree), EINA_PLAYER(data));
+	gel_io_recurse_tree_unref(tree);
+	g_object_unref(source);
+}
+
+static void
+recurse_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
+{
+	gchar *uri = g_file_get_uri(source);
+	gel_warn("Error while recurse over %s", uri);
+	g_free(uri);
+
+	g_object_unref(source);
+}
+
+static void
+file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
 	EinaPlayer *self = (EinaPlayer *) data;
 	GFile *file = G_FILE(source);
@@ -473,28 +522,19 @@ file_chooser_selection_query_info_cb(GObject *source, GAsyncResult *res, gpointe
 		g_free(uri);
 		g_error_free(err);
 	}
-
-	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
+	
+    if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 	{
-		gel_io_recurse_dir(g_file_new_for_uri((const gchar *) iter->data),
-			"standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL);
+		gel_io_recurse_dir(file, "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL);
 	}
 	else
 	{
-				// eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
+		gchar *uri = g_file_get_uri(file);
+		lomo_player_add_uri(LOMO(self), uri);
+		g_free(uri);
 	}
-	g_object_unref(source);
+	g_object_unref(file);
 	g_object_unref(info);
-}
-
-static void
-file_chooser_selection_query_info(EinaPlayer *self, gchar *uri)
-{
-	GFile *file = g_file_new_for_uri(uri);
-	g_file_query_info_async(file, "standard::*", G_FILE_QUERY_INFO_NONE,
-		G_PRIORITY_DEFAULT, /* cancellable */ NULL,
-		file_chooser_selection_query_info_cb,
-		self);
 }
 
 static void
@@ -526,13 +566,15 @@ file_chooser_load_files(EinaPlayer *self)
 			if (uris == NULL)
 				break;
 
-			GList *iter = iter;
+			GSList *iter = uris;
 			while (iter)
 			{
-				file_chooser_selection_query_info(self, (const gchar *) iter->data);
+				g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
+					0, G_PRIORITY_DEFAULT, NULL /* cancellable */,  file_chooser_query_info_cb, self);
 				iter = iter->next;
 			}
 			g_slist_free(uris);
+
 			// eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, _("Added N streams"));
 			break;
 

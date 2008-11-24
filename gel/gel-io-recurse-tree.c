@@ -10,7 +10,7 @@ struct _GelIORecurseTree {
 static void
 destroy_list_of_file_infos(gpointer data)
 {
-	gel_glist_free((GList *) data, (GFunc) g_free, NULL);
+	gel_glist_free((GList *) data, (GFunc) g_object_unref, NULL);
 }
 
 GelIORecurseTree *
@@ -20,7 +20,7 @@ gel_io_recurse_tree_new(void)
 
 	self->refs     = 1;
 	self->parents  = NULL;
-	self->children = g_hash_table_new_full(g_direct_hash, (GEqualFunc) g_file_equal,
+	self->children = g_hash_table_new_full(g_direct_hash, NULL,
 		g_object_unref, destroy_list_of_file_infos);
 
 	return self;
@@ -45,19 +45,43 @@ gel_io_recurse_tree_unref(GelIORecurseTree *self)
 	g_free(self);
 }
 
+static GFile*
+find_parent(GelIORecurseTree *self, GFile *f)
+{
+	GList *iter = self->parents;
+	while (iter)
+	{
+		if (g_file_equal(G_FILE(iter->data), f))
+			return G_FILE(iter->data);
+		iter = iter->next;
+	}
+	return NULL;
+}
+
 void
 gel_io_recurse_tree_add_parent(GelIORecurseTree *self, GFile *parent)
 {
+	g_object_ref(parent);
 	self->parents = g_list_prepend(self->parents, parent);
-	g_hash_table_insert(self->children, (gpointer) parent, NULL);
 }
 
 void
 gel_io_recurse_tree_add_children(GelIORecurseTree *self, GFile *parent, GList *children)
 {
-	if (!g_list_find(self->parents, parent))
+	GFile *p = find_parent(self, parent);
+	if (p == NULL)
+	{
 		gel_io_recurse_tree_add_parent(self, parent);
-	g_hash_table_replace(self->children, (gpointer) parent, children);
+		p = parent;
+	}
+
+	GList *c = g_list_copy(children);
+	g_list_foreach(c, (GFunc) g_object_ref, NULL);
+	g_hash_table_replace(self->children, (gpointer) p, c);
+
+	gchar *uri = g_file_get_uri(p);
+	gel_warn("[+] ADD k:%p v:%p (%d:%s)", p, c, g_list_length(c), uri);
+	g_free(uri);
 }
 
 GFile*
@@ -73,6 +97,16 @@ gel_io_recurse_tree_get_root(GelIORecurseTree *self)
 GList*
 gel_io_recurse_tree_get_children(GelIORecurseTree *self, GFile *parent)
 {
-	return (GList *) g_hash_table_lookup(self->children, (gpointer) parent);
+	GFile *p = find_parent(self, parent);
+	if (p == NULL)
+		return NULL;
+
+	GList *c = (GList *) g_hash_table_lookup(self->children, (gpointer) p);
+
+	gchar *uri = g_file_get_uri(p);
+	gel_warn("[-] RET k:%p v:%p (%d:%s)", p, c, g_list_length(c), uri);
+	g_free(uri);
+
+	return g_list_copy(c);
 }
 
