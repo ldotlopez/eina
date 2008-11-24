@@ -30,7 +30,7 @@ GelIOOp *gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 void
 gel_io_op_ref(GelIOOp *self);
 void
-gel_io_op_urnef(GelIOOp *self);
+gel_io_op_unref(GelIOOp *self);
 void
 gel_io_op_destroy(GelIOOp *self);
 

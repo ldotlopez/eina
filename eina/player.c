@@ -486,14 +486,9 @@ recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaPlayer *self)
 static void
 recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
 {
-	gchar *uri = g_file_get_uri(source);
-	gel_warn("Recurse over %s finished", uri);
-	g_free(uri);
-
 	GelIORecurseTree *tree = gel_io_op_result_get_recurse_tree(result);
 	recurse_tree_parse(tree, gel_io_recurse_tree_get_root(tree), EINA_PLAYER(data));
-	gel_io_recurse_tree_unref(tree);
-	g_object_unref(source);
+	gel_io_op_unref(op);
 }
 
 static void
@@ -502,8 +497,6 @@ recurse_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
 	gchar *uri = g_file_get_uri(source);
 	gel_warn("Error while recurse over %s", uri);
 	g_free(uri);
-
-	g_object_unref(source);
 }
 
 static void

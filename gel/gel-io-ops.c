@@ -1,9 +1,9 @@
 #define GEL_DOMAIN "Gel::IO::SimpleOps"
 #include <gio/gio.h>
 #include <gel/gel.h>
-#include <gel/gel-io-simple-ops.h>
+#include <gel/gel-io-misc.h>
+#include <gel/gel-io-ops.h>
 #include <gel/gel-io-op-result.h>
-#include <gel/gel-io.h>
 
 typedef void (*GelIOOpSubOpFreeResources) (GelIOOp *self);
 struct _GelIOOp {
@@ -14,7 +14,7 @@ struct _GelIOOp {
 	GelIOOpErrorFunc    error;
 	gpointer            data;
 	gpointer            _d;
-	GelIOOpSubOpFreeResources *resource_free;
+	GelIOOpSubOpFreeResources resource_free;
 };
 
 static void
@@ -58,12 +58,29 @@ gel_io_op_unref(GelIOOp *self)
 void
 gel_io_op_destroy(GelIOOp *self)
 {
+	// Stop signals
 	g_signal_handlers_disconnect_by_func(self->cancellable, cancelled_cb, self);
+
+	// Cancel operations
 	if (!g_cancellable_is_cancelled(self->cancellable))
 		g_cancellable_cancel(self->cancellable);
+
+	// Call subop freeder
+	if (self->resource_free && (self->_d != NULL))
+		gel_free_and_invalidate(self->_d, NULL, self->resource_free);
+	
+	// Free other resources and ourselves
 	g_object_unref(self->cancellable);
 	g_object_unref(self->source);
 	g_free(self);
+}
+
+void
+gel_io_op_cancel(GelIOOp *self)
+{
+	g_signal_handlers_disconnect_by_func(self->cancellable, cancelled_cb, self);
+	if (!g_cancellable_is_cancelled(self->cancellable))
+		g_cancellable_cancel(self->cancellable);
 }
 
 GFile*
@@ -122,11 +139,21 @@ read_file_read_cb(GObject *source, GAsyncResult *res, gpointer data);
 static void
 read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data);
 
+void
+read_file_destroy(GelIOOp *self)
+{
+	GelIOOpFileRead *d = FILE_READ(self->_d);
+	gel_free_and_invalidate(d->buffer, NULL, g_free);
+	gel_free_and_invalidate_with_args(d->ba, NULL, g_byte_array_free, TRUE);
+	g_free(d);
+}
+
 GelIOOp *gel_io_read_file(GFile *file,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data)
 {
 	GelIOOp *self = gel_io_op_new(file, success, error, data);
+	self->resource_free = read_file_destroy;
 	self->_d = g_new0(GelIOOpFileRead, 1);
 	g_file_read_async(file, G_PRIORITY_DEFAULT,
 		self->cancellable, read_file_open_cb,
@@ -141,7 +168,6 @@ read_file_open_cb(GObject *source, GAsyncResult *res, gpointer data)
 
 	GError *err = NULL;
 	GInputStream *stream = G_INPUT_STREAM(g_file_read_finish(G_FILE(source), res, &err));
-	// g_object_unref(source);
 
 	if (err != NULL)
 	{
@@ -168,7 +194,6 @@ read_file_read_cb(GObject *source, GAsyncResult *res, gpointer data)
 	if (err != NULL)
 	{
 		gel_io_op_error(self, err);
-		// gel_io_op_free(self);
 		return;
 	}
 
@@ -205,24 +230,9 @@ read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data)
 	}
 
 	GelIOOpResult *result = gel_io_op_result_new(GEL_IO_OP_RESULT_BYTE_ARRAY, FILE_READ(self->_d)->ba);
-	/*
-	GelIOOpResult *result = g_new0(GelIOOpResult, 1);
-	result->type   = GEL_IO_OP_RESULT_BYTE_ARRAY;
-	result->result = FILE_READ(self->_d)->ba;
-	*/
 	gel_io_op_success(self, result);
-
-	// g_free(result);
-	// Dont needed to free our ba. ba its shared with result, so just free
-	// result
 	gel_io_op_result_unref(result);
-
-	// g_byte_array_free(FILE_READ(self->_d)->ba, TRUE);
-	g_free(self->_d);
-
-	// gel_io_op_free(self);
 }
-
 
 // --
 // read_dir operation
@@ -235,11 +245,18 @@ read_dir_next_files_cb(GObject *source, GAsyncResult *res, gpointer data);
 static void
 read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data);
 
+void
+read_dir_destroy(GelIOOp *self)
+{
+	gel_glist_free((GList *) self->_d, (GFunc) g_object_unref, NULL);
+}
+
 GelIOOp *gel_io_read_dir(GFile *dir, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data)
 {
 	GelIOOp *self = gel_io_op_new(dir, success, error, data);
+	self->resource_free = read_dir_destroy;
     g_file_enumerate_children_async(dir,
 		attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
 		self->cancellable,
@@ -341,6 +358,22 @@ typedef struct {
 } GelIOOpRecuseDir;
 #define RECURSE_DIR(p) ((GelIOOpRecuseDir*)p)
 
+void recurse_dir_destroy(GelIOOp *self)
+{
+	GelIOOpRecuseDir *d = RECURSE_DIR(self->_d);
+
+	if (d->ops)
+	{
+		gel_glist_free(d->ops, (GFunc) gel_io_op_cancel, NULL);
+		d->ops = NULL;
+	}
+	if (d->tree)
+	{
+		gel_io_recurse_tree_unref(d->tree);
+		d->tree = NULL;
+	}
+}
+
 static void
 recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpointer data);
 static void
@@ -352,6 +385,7 @@ gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 	gpointer data)
 {
 	GelIOOp *self = gel_io_op_new(dir, success, error, data);
+	self->resource_free = recurse_dir_destroy;
 	self->_d = g_new0(GelIOOpRecuseDir, 1);
 	RECURSE_DIR(self->_d)->tree = gel_io_recurse_tree_new();
 	RECURSE_DIR(self->_d)->attributes = attributes;
@@ -370,8 +404,6 @@ gel_io_recurse_dir_remove_op(GelIOOp *op, GelIOOp *subop)
 	r->ops = g_list_remove(r->ops, subop);
 	if (r->ops != NULL)
 		return;
-
-	gel_warn("All operations finished");
 
 	GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_RECURSE_TREE, RECURSE_DIR(op->_d)->tree);
 	gel_io_op_success(op, res);
@@ -401,7 +433,6 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 		}
 
 		GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
-		gel_warn("Subop over: %s", g_file_get_uri(child));
 		RECURSE_DIR(self->_d)->ops = g_list_prepend(RECURSE_DIR(self->_d)->ops,
 			gel_io_read_dir(child, RECURSE_DIR(self->_d)->attributes,
 				recurse_dir_success_cb,
@@ -420,11 +451,14 @@ static void
 recurse_dir_error_cb(GelIOOp *op, GFile *parent, GError *error, gpointer data)
 {
 	GelIOOp *self = GEL_IO_OP(data);
-	gchar *uri = g_file_get_uri(parent);
 
+	if (self->error)
+		self->error(self, parent, error, self->data);
+	/*
+	gchar *uri = g_file_get_uri(parent);
 	gel_warn("Call %p, Got error for '%s': %s'",
 		RECURSE_DIR(self->_d)->user_error, uri, error->message);
-	
 	g_free(uri);
+	*/
 }
 

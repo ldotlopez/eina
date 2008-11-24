@@ -77,6 +77,7 @@ gel_io_recurse_tree_add_children(GelIORecurseTree *self, GFile *parent, GList *c
 
 	GList *c = g_list_copy(children);
 	g_list_foreach(c, (GFunc) g_object_ref, NULL);
+
 	g_hash_table_replace(self->children, (gpointer) p, c);
 }
 

@@ -18,11 +18,10 @@ INST_H_FILES = \
 	gel-string.h            \
 	gel-str-parser.h        \
 	gel-hub.h               \
-	gel-io-async-read-dir.h \
-	gel-io-async-read-op.h  \
-	gel-io-recurse-tree.h   \
+	gel-io-misc.h           \
 	gel-io-op-result.h      \
-	gel-io-simple-ops.h     \
+	gel-io-ops.h            \
+	gel-io-recurse-tree.h   \
 	gel-io.h                \
 	gel-ui.h
 
@@ -35,12 +34,10 @@ libgel_la_SOURCES = \
 	gel-str-parser.c        \
 	gel-hub-marshal.c       \
 	gel-hub.c               \
-	gel-io-async-read-op.c  \
-	gel-io-async-read-dir.c \
-	gel-io-recurse-tree.c   \
+	gel-io-misc.c           \
 	gel-io-op-result.c      \
-	gel-io-simple-ops.c     \
-	gel-io.c                \
+	gel-io-ops.c            \
+	gel-io-recurse-tree.c   \
 	gel-ui.c                \
 	$(NOINST_H_FILES)       \
 	$(INST_H_FILES)
