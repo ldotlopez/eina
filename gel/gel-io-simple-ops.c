@@ -354,6 +354,7 @@ gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 	GelIOOp *self = gel_io_op_new(dir, success, error, data);
 	self->_d = g_new0(GelIOOpRecuseDir, 1);
 	RECURSE_DIR(self->_d)->tree = gel_io_recurse_tree_new();
+	RECURSE_DIR(self->_d)->attributes = attributes;
 	RECURSE_DIR(self->_d)->ops = g_list_prepend(NULL, gel_io_read_dir(dir, attributes,
 		recurse_dir_success_cb,
 		recurse_dir_error_cb,
@@ -382,14 +383,11 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 {
 	GelIOOp *self = GEL_IO_OP(data);
 
-	gchar *uri = g_file_get_uri(parent);
 	GList *children = gel_io_op_result_get_object_list(result);
-	gel_warn("Got %d children for %s", g_list_length(children), uri);
-	g_free(uri);
 
 	// Add to result
 	gel_io_recurse_tree_add_parent(RECURSE_DIR(self->_d)->tree, parent);
-	gel_io_recurse_tree_add_children(RECURSE_DIR(self->_d)->tree, parent, g_list_copy(children));
+	gel_io_recurse_tree_add_children(RECURSE_DIR(self->_d)->tree, parent, children);
 
 	// Launch suboperations for all directories in children
 	GList *iter = children;
@@ -403,6 +401,7 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 		}
 
 		GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
+		gel_warn("Subop over: %s", g_file_get_uri(child));
 		RECURSE_DIR(self->_d)->ops = g_list_prepend(RECURSE_DIR(self->_d)->ops,
 			gel_io_read_dir(child, RECURSE_DIR(self->_d)->attributes,
 				recurse_dir_success_cb,

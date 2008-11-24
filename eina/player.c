@@ -461,22 +461,22 @@ recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaPlayer *self)
 	GList *children = gel_io_recurse_tree_get_children(tree, f);
 	GList *iter = children;
 
-	gchar *uri = g_file_get_uri(f);
-	gel_warn("=> %s %p (%d children)", uri, children, g_list_length(children));
-	g_free(uri);
-
 	while (iter)
 	{
 		GFileInfo *info = G_FILE_INFO(iter->data);
-
-		const gchar *uri = g_file_info_get_name(info);
-		gel_warn("=> %p %s", info, uri);
+		GFile *child = gel_io_file_get_child_for_file_info(f, info);
+	
 		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 		{
-			GFile *child = gel_io_file_get_child_for_file_info(f, info);
 			recurse_tree_parse(tree, child, self);
-			g_object_unref(child);
 		}
+		else
+		{
+			gchar *uri = g_file_get_uri(child);
+			lomo_player_add_uri(LOMO(self), uri);
+			g_free(uri);
+		}
+		g_object_unref(child);
 		iter = iter->next;
 	}
 
@@ -525,7 +525,7 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 	
     if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 	{
-		gel_io_recurse_dir(file, "standard::*", recurse_read_success_cb, recurse_read_error_cb, NULL);
+		gel_io_recurse_dir(file, "standard::*", recurse_read_success_cb, recurse_read_error_cb, self);
 	}
 	else
 	{

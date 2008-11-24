@@ -78,10 +78,6 @@ gel_io_recurse_tree_add_children(GelIORecurseTree *self, GFile *parent, GList *c
 	GList *c = g_list_copy(children);
 	g_list_foreach(c, (GFunc) g_object_ref, NULL);
 	g_hash_table_replace(self->children, (gpointer) p, c);
-
-	gchar *uri = g_file_get_uri(p);
-	gel_warn("[+] ADD k:%p v:%p (%d:%s)", p, c, g_list_length(c), uri);
-	g_free(uri);
 }
 
 GFile*
@@ -101,12 +97,6 @@ gel_io_recurse_tree_get_children(GelIORecurseTree *self, GFile *parent)
 	if (p == NULL)
 		return NULL;
 
-	GList *c = (GList *) g_hash_table_lookup(self->children, (gpointer) p);
-
-	gchar *uri = g_file_get_uri(p);
-	gel_warn("[-] RET k:%p v:%p (%d:%s)", p, c, g_list_length(c), uri);
-	g_free(uri);
-
-	return g_list_copy(c);
+	return g_list_copy((GList *) g_hash_table_lookup(self->children, (gpointer) p));
 }
 
