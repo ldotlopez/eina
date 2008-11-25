@@ -9,6 +9,7 @@
 #include <gel/gel-ui.h>
 #include <eina/player.h>
 #include <eina/fs.h>
+#include <eina/settings.h>
 #include <eina/eina-cover.h>
 
 #define EINA_PLUGIN_SERIAL 2

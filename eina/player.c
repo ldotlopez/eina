@@ -1,13 +1,14 @@
 #define GEL_DOMAIN "Eina::Player"
 
+#include <config.h>
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#include <glib.h>
 #include <gmodule.h>
 #include <gdk/gdkkeysyms.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include <config.h>
 #include "base.h"
 #include "lomo.h"
 #include "player.h"
@@ -88,9 +89,21 @@ static void lomo_clear_cb
 static void lomo_all_tags_cb
 (LomoPlayer *lomo, const LomoStream *stream, EinaPlayer *self);
 
+// Handle async I/O
+/*
+static void
+file_chooser_selection_query_info_cb(GObject *source, GAsyncResult *res, gpointer data);
+*/
+static void
+recurse_read_success_cb(GelIOOp *op, GFile *f, GelIOOpResult *res, gpointer data);
+static void
+recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data);
+
 // Other callbacks
+/*
 static EinaFsFilterAction
 fs_filter_cb(GFileInfo *info);
+*/
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
 
@@ -405,59 +418,13 @@ update_sensitiviness(EinaPlayer *self)
 		(lomo_player_get_current(LOMO(self)) >= 0));
 }
 
-#if 0
-void
-test_print(GelIOSimpleDirRecurseResult *res, GFile *root, guint level)
-{
-	gchar *uri = g_file_get_uri(root);
-	GList *children = gel_io_simple_dir_recurse_result_get_children(res, root);
-	GList *iter;
-
-	GList *l2 = NULL;
-	
-	gel_warn("(%d) Children for '%s'", g_list_length(children), uri);
-	iter = children;
-	while (iter)
-	{
-		gboolean is_dir = (g_file_info_get_file_type(G_FILE_INFO(iter->data)) == G_FILE_TYPE_DIRECTORY);
-		gel_warn(" [%c] %s",  is_dir ? 'D' : ' ', g_file_info_get_name(G_FILE_INFO(iter->data)));
-		if (is_dir)
-			l2 = g_list_prepend(l2, gel_io_file_get_child_for_file_info(root, G_FILE_INFO(iter->data)));
-		iter = iter->next;
-	}
-	g_list_free(children);
-
-	iter = l2;
-	while (iter)
-	{
-		test_print(res, iter->data, level+1);
-		g_object_unref(G_OBJECT(iter->data));
-		iter = iter->next;
-	}
-	g_list_free(l2);
-}
-#endif
-
-#if 0
-static void
-recurse_read_success_cb(GelIOOp *op, GFile *f, GelIOOpResult *res, gpointer data)
-{
-	gel_warn("Recurse read successful");
-/*
-	gchar *uri = g_file_get_uri(f);
-	g_free(uri);
-	test_print(res, gel_io_simple_dir_recurse_result_get_root(res), 0);
-	*/
-}
-	// gel_warn("\u2603, \u2744, \u2745, \u2746\n%s (%d children)", uri, g_list_length(children));
-#endif
-
 static void
 recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaPlayer *self)
 {
 	if (f == NULL)
 		return;
 
+	
 	GList *children = gel_io_recurse_tree_get_children(tree, f);
 	GList *iter = children;
 
@@ -465,11 +432,9 @@ recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaPlayer *self)
 	{
 		GFileInfo *info = G_FILE_INFO(iter->data);
 		GFile *child = gel_io_file_get_child_for_file_info(f, info);
-	
+
 		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
-		{
 			recurse_tree_parse(tree, child, self);
-		}
 		else
 		{
 			gchar *uri = g_file_get_uri(child);
@@ -483,6 +448,7 @@ recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaPlayer *self)
 	g_list_free(children);
 }
 
+// Walk over GelIORecurseTree and add files
 static void
 recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
 {
@@ -491,14 +457,16 @@ recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpoin
 	gel_io_op_unref(op);
 }
 
+// Show errors from GelIOOp and update UI to reflect them
 static void
-recurse_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
+recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
 {
-	gchar *uri = g_file_get_uri(source);
-	gel_warn("Error while recurse over %s", uri);
+	gchar *uri = g_file_get_uri(f);
+	gel_error("Error reading '%s': %s", uri, error->message);
 	g_free(uri);
 }
 
+// Query GFileInfo for URI and add or recurse over dir
 static void
 file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
@@ -515,18 +483,18 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 		g_free(uri);
 		g_error_free(err);
 	}
-	
-    if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
+
+	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 	{
 		gel_io_recurse_dir(file, "standard::*", recurse_read_success_cb, recurse_read_error_cb, self);
 	}
 	else
 	{
 		gchar *uri = g_file_get_uri(file);
-		lomo_player_add_uri(LOMO(self), uri);
+		lomo_player_add_uri(EINA_BASE_GET_LOMO(self), uri);
 		g_free(uri);
 	}
-	g_object_unref(file);
+	g_object_unref(source);
 	g_object_unref(info);
 }
 
@@ -573,7 +541,6 @@ file_chooser_load_files(EinaPlayer *self)
 			}
 			g_slist_free(uris);
 			run = TRUE;
-
 			break;
 
 		default:

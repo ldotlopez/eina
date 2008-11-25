@@ -18,7 +18,6 @@ eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 eina_LDADD = @PACKAGE_LIBS@ -lgel -llomo-1.0
 
 NOINST_H_FILES = \
-	class-conf-file.h          \
 	dock.h                     \
 	eina-file-chooser-dialog.h \
 	eina-seek.h                \
@@ -35,6 +34,7 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	base.h                     \
+	class-conf-file.h          \
 	eina-cover.h               \
 	eina-preferences-dialog.h  \
 	fs.h                       \

@@ -3,7 +3,7 @@
 
 #include <gel/gel.h>
 #include <eina/base.h>
-#include "class-conf-file.h"
+#include <eina/class-conf-file.h>
 
 #define EINA_SETTINGS(p)             ((EinaConf *) p)
 #define GEL_HUB_GET_SETTINGS(hub)    EINA_SETTINGS(gel_hub_shared_get(hub,"settings"))
