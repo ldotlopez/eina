@@ -468,7 +468,7 @@ const GSList *eina_fs_filter_get_mimetypes
 }
 
 #endif
-
+#if 0
 GSList *eina_fs_filter_filter_by_suffixes
 (EinaFsFilter *self, GSList *items, gboolean case_sensitive)
 {
@@ -857,4 +857,5 @@ G_MODULE_EXPORT GelHubSlave fs_connector = {
 	&eina_fs_init,
 	&eina_fs_exit
 };
+#endif
 #endif

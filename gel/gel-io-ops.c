@@ -67,7 +67,10 @@ gel_io_op_destroy(GelIOOp *self)
 
 	// Call subop freeder
 	if (self->resource_free && (self->_d != NULL))
-		gel_free_and_invalidate(self->_d, NULL, self->resource_free);
+	{
+		self->resource_free(self);
+		self->_d = NULL;
+	}
 	
 	// Free other resources and ourselves
 	g_object_unref(self->cancellable);
@@ -231,13 +234,12 @@ read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data)
 
 	GelIOOpResult *result = gel_io_op_result_new(GEL_IO_OP_RESULT_BYTE_ARRAY, FILE_READ(self->_d)->ba);
 	gel_io_op_success(self, result);
-	gel_io_op_result_unref(result);
+	g_free(result);
 }
 
 // --
 // read_dir operation
 // --
-
 static void
 read_dir_enumerate_cb(GObject *source, GAsyncResult *res, gpointer data);
 static void
@@ -341,7 +343,7 @@ read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data)
 	{
 		GelIOOpResult *r = gel_io_op_result_new(GEL_IO_OP_RESULT_OBJECT_LIST, self->_d);
 		gel_io_op_success(self, r);
-		gel_io_op_result_unref(r);
+		g_free(r);
 	}
 }
 
@@ -407,7 +409,7 @@ gel_io_recurse_dir_remove_op(GelIOOp *op, GelIOOp *subop)
 
 	GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_RECURSE_TREE, RECURSE_DIR(op->_d)->tree);
 	gel_io_op_success(op, res);
-	gel_io_op_result_unref(res);
+	g_free(res);
 }
 
 static void

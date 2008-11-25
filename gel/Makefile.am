@@ -3,6 +3,7 @@ INCLUDES = \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+	-DGEL_COMPILATION \
 	@PACKAGE_CFLAGS@
 
 lib_LTLIBRARIES = libgel.la

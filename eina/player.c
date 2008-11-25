@@ -544,13 +544,18 @@ file_chooser_load_files(EinaPlayer *self)
 		{
 		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 			uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
-			if (uris)
+			if (uris == NULL)
+				break;
+			lomo_player_clear(LOMO(self));
+			GSList *iter = uris;
+			while (iter)
 			{
-				lomo_player_clear(LOMO(self));
-				eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, fs_filter_cb, NULL, NULL);
-				lomo_player_play(LOMO(self), NULL);
-				g_slist_free(uris);
+				g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
+					0, G_PRIORITY_DEFAULT, NULL /* cancellable */,  file_chooser_query_info_cb, self);
+				iter = iter->next;
 			}
+			lomo_player_play(LOMO(self), NULL);
+			g_slist_free(uris);
 			run = FALSE;
 			break;
 					
@@ -559,7 +564,7 @@ file_chooser_load_files(EinaPlayer *self)
 			if (uris == NULL)
 				break;
 
-			GSList *iter = uris;
+			iter = uris;
 			while (iter)
 			{
 				g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
@@ -567,8 +572,8 @@ file_chooser_load_files(EinaPlayer *self)
 				iter = iter->next;
 			}
 			g_slist_free(uris);
+			run = TRUE;
 
-			// eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, _("Added N streams"));
 			break;
 
 		default:
@@ -846,6 +851,7 @@ lomo_all_tags_cb (LomoPlayer *lomo, const LomoStream *stream, EinaPlayer *self)
 }
 
 // fs_filter_cb: Filters supported types from EinaFileChooserDialog
+#if 0
 static EinaFsFilterAction
 fs_filter_cb(GFileInfo *info)
 {
@@ -868,6 +874,7 @@ fs_filter_cb(GFileInfo *info)
 	g_free(lc_name);
 	return ret;
 }
+#endif
 
 // stream_info_parser_cb: Helps to format stream info for display
 static gchar *
@@ -900,4 +907,3 @@ G_MODULE_EXPORT GelHubSlave player_connector = {
 	&eina_player_init,
 	&eina_player_exit,
 };
-

@@ -2,7 +2,7 @@
 #include <gel/gel-io-op-result.h>
 
 struct _GelIOOpResult {
-	guint             refs;
+	// guint             refs;
 	GelIOOpResultType type;
 	gpointer          result;
 };
@@ -11,12 +11,26 @@ GelIOOpResult*
 gel_io_op_result_new(GelIOOpResultType type, gpointer result)
 {
 	GelIOOpResult *self = g_new0(GelIOOpResult, 1);
-	self->refs   = 1;
+	// self->refs   = 1;
+	switch (self->type)
+	{
+	case GEL_IO_OP_RESULT_BYTE_ARRAY:
+	case GEL_IO_OP_RESULT_OBJECT_LIST:
+	case GEL_IO_OP_RESULT_RECURSE_TREE:
+		break;
+
+	default:
+		g_free(self);
+		gel_error("Unknow type %d for GelIOOpResult", type);
+		return NULL;
+	}
+
 	self->type   = type;
-	self->result = result;
+	self->result = (gpointer) result;
 	return self;
 }
 
+#if 0
 void
 gel_io_op_result_ref(GelIOOpResult *self)
 {
@@ -38,13 +52,10 @@ gel_io_op_result_destroy(GelIOOpResult *self)
 	switch (self->type)
 	{
 	case GEL_IO_OP_RESULT_BYTE_ARRAY:
-		g_byte_array_free((GByteArray*) self->result, TRUE);
 		break;
 	case GEL_IO_OP_RESULT_OBJECT_LIST:
-		gel_glist_free((GList *) self->result, (GFunc) g_object_unref, NULL);
 		break;
 	case GEL_IO_OP_RESULT_RECURSE_TREE:
-		gel_io_recurse_tree_unref(GEL_IO_RECURSE_TREE(self->result));
 		break;
 	default:
 		gel_error("Unknow type %d for GelIOOpResult", self->type);
@@ -52,6 +63,7 @@ gel_io_op_result_destroy(GelIOOpResult *self)
 	}
 	g_free(self);
 }
+#endif
 
 GelIOOpResultType
 gel_io_op_result_get_type(GelIOOpResult *self)
