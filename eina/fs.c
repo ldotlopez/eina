@@ -2,6 +2,8 @@
 
 #include <gel/gel.h>
 #include "fs.h"
+
+
 /*
 static void
 read_dir_success_cb(GelIOSimpleDir *op, GFile *file, GList *l, gpointer data)
@@ -38,6 +40,7 @@ read_dir_error_cb(GelIOSimpleDir *op, GFile *file, GError *error, gpointer data)
 }
 */
 /* Functions to feed liblomo */
+#if 0
 void
 eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris , EinaFsFilterFunc filter, GCallback callback, gpointer user_data)
 {
@@ -115,7 +118,7 @@ eina_fs_lomo_feed_uri_multi_next_iter:
 	g_list_free(files);
 	g_list_free(directories);
 }
-
+#endif
 #if 0
 GList *
 eina_fs_parse_playlist_buffer(gchar *buffer)
