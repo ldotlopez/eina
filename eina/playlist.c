@@ -62,8 +62,10 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 gboolean
 __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self);
 
+#if 0
 EinaFsFilterAction
 eina_playlist_fs_filter(GFileInfo *info);
+#endif
 
 // UI Callbacks
 void
@@ -706,13 +708,17 @@ void on_pl_add_button_clicked
 		{
 			case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 				uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
-				if (uris && uris->data)
+				if (uris == NULL)
+					break;
+				lomo_player_clear(LOMO(self));
+				GList *iter = uris;
+				while (iter)
 				{
-					lomo_player_clear(LOMO(self));
-					eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, eina_playlist_fs_filter, NULL, NULL);
+					g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
+						0, G_PRIORITY_DEFAULT, NULL /* cancellable */,  file_chooser_query_info_cb, self);
+					iter = iter->next;
 				}
-				g_slist_free(uris);
-				lomo_player_play(LOMO(self), NULL);
+				break;
 				run = FALSE; // Stop
 				break; 
 

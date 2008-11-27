@@ -197,3 +197,4 @@ close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
 }
+
