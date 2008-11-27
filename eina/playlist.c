@@ -711,11 +711,13 @@ void on_pl_add_button_clicked
 				if (uris == NULL)
 					break;
 				lomo_player_clear(LOMO(self));
-				GList *iter = uris;
+				GSList *iter = uris;
 				while (iter)
 				{
+					/*
 					g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
-						0, G_PRIORITY_DEFAULT, NULL /* cancellable */,  file_chooser_query_info_cb, self);
+						0, G_PRIORITY_DEFAULT, NULL ,  file_chooser_query_info_cb, self);
+					*/
 					iter = iter->next;
 				}
 				break;
@@ -724,8 +726,10 @@ void on_pl_add_button_clicked
 
 			case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 				uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
+				/*
 				if (uris && uris->data)
 					eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, eina_playlist_fs_filter, NULL, NULL);
+					*/
 				g_slist_free(uris);
 				break;
 
