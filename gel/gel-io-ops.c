@@ -5,6 +5,98 @@
 #include <gel/gel-io-ops.h>
 #include <gel/gel-io-op-result.h>
 
+#ifdef caca
+typedef gboolean (*GelIOOpHook) (GelIOOp *self);
+
+struct _GelIOOp {
+	guint refs;
+	GFile *source;
+	GCancellable *cancellable;
+	GelIOOpHook success, error, cancel, destroy;
+	gpointer _d, data;
+};
+
+static void
+cancellable_cancelled_cb(GCancellable *cancellable, gpointer data);
+
+GelIOOp *
+gel_io_op_new(GFile *source, GCancellable *cancellable,
+	success, error, cancel, destroy,
+	data)
+{
+	GelIOOp *self = g_new0(GelIOOp, 1);
+
+	self->source = source;
+	if (cancellable)
+		self->cancellable = cancellable;
+	else
+		self->cancellable = g_cancellable_new();
+
+	self->success = success;
+	self->error   = error;
+	self->cancel  = cancel;
+	self->destroy = destroy;
+
+	self->data = data;
+
+	g_signal_connect(self->cancellable, "cancelled",
+	cancellable_cancelled_cb, self);
+
+	return self;
+}
+
+void
+gel_io_op_destroy(GelIOOp *self)
+{
+	if (self->destroy && self->destroy(self))
+		return;
+
+	if (self->cancellable)
+	{
+		g_signal_handlers_disconnect_by_func(self->cancellable, cancellable_cancelled_cb, self);
+		if (!g_cancellable_is_cancelled(self->cancellable))
+			g_cancellable_cancel(self->cancellable);
+		g_object_unref(self->cancellable);
+		self->cancellable = NULL;
+	}
+
+	if (self->source)
+		gel_free_and_invalidate(self->source, NULL, g_object_unref);
+
+	g_free(self);
+}
+
+void
+gel_io_op_ref(GelIOOp *self)
+{
+	self->refs++;
+}
+
+void
+gel_io_op_unref(GelIOOp *self)
+{
+	self->refs--;
+	if (self->refs < 1)
+		gel_io_op_destroy(self);
+}
+
+void
+gel_io_op_success(GelIOOp *self, GelIOOpResult *result)
+{
+	if (self->success)
+		self->success(self, self->source, result, self->data);
+
+}
+
+void
+gel_io_op_error(GelIOOp *self, GError *error)
+{
+	if (self->error)
+		self->error(self, self->source, error, self->data);
+}
+
+#endif
+
 typedef void (*GelIOOpSubOpFreeResources) (GelIOOp *self);
 struct _GelIOOp {
 	guint               refs;
