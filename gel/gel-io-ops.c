@@ -355,24 +355,31 @@ typedef struct {
 	const gchar        *attributes;
 	GelIOOpSuccessFunc  user_success;
 	GelIOOpErrorFunc    user_error;
-	GList              *ops;
+	GList              *queue;
+	GHashTable         *blacklist;
+	GelIOOp            *current;
 	GelIORecurseTree   *tree;
-} GelIOOpRecuseDir;
-#define RECURSE_DIR(p) ((GelIOOpRecuseDir*)p)
+} GelIOOpRecurseDir;
+#define RECURSE_DIR(p) ((GelIOOpRecurseDir*)p)
 
 void recurse_dir_destroy(GelIOOp *self)
 {
-	GelIOOpRecuseDir *d = RECURSE_DIR(self->_d);
+	GelIOOpRecurseDir *d = RECURSE_DIR(self->_d);
 
-	if (d->ops)
+	if (d->current)
 	{
-		gel_glist_free(d->ops, (GFunc) gel_io_op_cancel, NULL);
-		d->ops = NULL;
+		gel_io_op_cancel(d->current);
+		d->current = NULL;
 	}
 	if (d->tree)
 	{
 		gel_io_recurse_tree_unref(d->tree);
 		d->tree = NULL;
+	}
+	if (d->blacklist)
+	{
+		g_hash_table_destroy(d->blacklist);
+		d->blacklist = NULL;
 	}
 }
 
@@ -380,6 +387,8 @@ static void
 recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpointer data);
 static void
 recurse_dir_error_cb(GelIOOp *op, GFile *parent, GError *error, gpointer data);
+static void
+recurse_dir_run_queue(GelIOOp *self);
 
 GelIOOp*
 gel_io_recurse_dir(GFile *dir, const gchar *attributes,
@@ -388,28 +397,42 @@ gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 {
 	GelIOOp *self = gel_io_op_new(dir, success, error, data);
 	self->resource_free = recurse_dir_destroy;
-	self->_d = g_new0(GelIOOpRecuseDir, 1);
+	self->_d = g_new0(GelIOOpRecurseDir, 1);
 	RECURSE_DIR(self->_d)->tree = gel_io_recurse_tree_new();
 	RECURSE_DIR(self->_d)->attributes = attributes;
-	RECURSE_DIR(self->_d)->ops = g_list_prepend(NULL, gel_io_read_dir(dir, attributes,
-		recurse_dir_success_cb,
-		recurse_dir_error_cb,
-		self));
+	RECURSE_DIR(self->_d)->queue = g_list_prepend(NULL, dir);
+	RECURSE_DIR(self->_d)->blacklist = g_hash_table_new(g_str_hash, g_str_equal);
+	recurse_dir_run_queue(self);
 
 	return self;
 }
 
-void
-gel_io_recurse_dir_remove_op(GelIOOp *op, GelIOOp *subop)
+static void
+recurse_dir_run_queue(GelIOOp *self)
 {
-	GelIOOpRecuseDir *r = RECURSE_DIR(op->_d);
-	r->ops = g_list_remove(r->ops, subop);
-	if (r->ops != NULL)
-		return;
+	GelIOOpRecurseDir *d = RECURSE_DIR(self->_d);
+	if (d->queue == NULL)
+	{
+		gel_warn("Queue is empty, done");
+		GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_RECURSE_TREE, d->tree);
+		gel_io_op_success(self, res);
+		g_free(res);
 
-	GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_RECURSE_TREE, RECURSE_DIR(op->_d)->tree);
-	gel_io_op_success(op, res);
-	g_free(res);
+		return;
+	}
+
+	// Extract one from queue
+	GFile *e = G_FILE(d->queue->data);
+	d->queue = g_list_remove(d->queue, e);
+
+	// Start a new query
+	gchar *uri = g_file_get_uri(e);
+	// gel_warn("Reading %s", uri);
+	g_free(uri);
+	d->current = gel_io_read_dir(e, d->attributes,
+		recurse_dir_success_cb,
+		recurse_dir_error_cb,
+		self);
 }
 
 static void
@@ -428,25 +451,31 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 	while (iter)
 	{
 		GFileInfo *child_info = G_FILE_INFO(iter->data);
-		if (g_file_info_get_file_type(child_info) != G_FILE_TYPE_DIRECTORY)
+
+		// Got a symlink
+		if (g_file_info_get_is_symlink(child_info))
 		{
-			iter = iter->next;
-			continue;
+			GFile *link = gel_io_file_get_child_for_file_info(parent, child_info);
+			const gchar *dest = g_file_info_get_symlink_target(child_info);
+			GFile *b = g_file_resolve_relative_path(parent, dest);
+			gel_warn("Got symlink  '%s' '%s' '%s'", g_file_get_uri(link), dest, g_file_get_uri(b));
+/*
+			gel_warn("Symlinks: %s", dest);
+			GFile *b = g_file_resolve_relative_path(parent, dest);
+			gel_warn("  goes to %s", g_file_get_uri(b));
+			*/
+		}
+		else if (g_file_info_get_file_type(child_info) == G_FILE_TYPE_DIRECTORY)
+		{
+			GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
+			RECURSE_DIR(self->_d)->queue = g_list_prepend(RECURSE_DIR(self->_d)->queue, child);
 		}
 
-		GFile *child = gel_io_file_get_child_for_file_info(parent, child_info);
-		RECURSE_DIR(self->_d)->ops = g_list_prepend(RECURSE_DIR(self->_d)->ops,
-			gel_io_read_dir(child, RECURSE_DIR(self->_d)->attributes,
-				recurse_dir_success_cb,
-				recurse_dir_error_cb,
-				self
-				)
-			);
 		iter = iter->next;
 	}
 
 	// Remove operation from queue
-	gel_io_recurse_dir_remove_op(self, op);
+	recurse_dir_run_queue(self);
 }
 
 static void
@@ -456,11 +485,6 @@ recurse_dir_error_cb(GelIOOp *op, GFile *parent, GError *error, gpointer data)
 
 	if (self->error)
 		self->error(self, parent, error, self->data);
-	/*
-	gchar *uri = g_file_get_uri(parent);
-	gel_warn("Call %p, Got error for '%s': %s'",
-		RECURSE_DIR(self->_d)->user_error, uri, error->message);
-	g_free(uri);
-	*/
+	recurse_dir_run_queue(self);
 }
 

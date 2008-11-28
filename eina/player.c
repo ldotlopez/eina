@@ -408,6 +408,7 @@ static void
 file_chooser_load_files(EinaPlayer *self)
 {
 	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
+
 	gboolean run = TRUE;
 	GSList *uris;
 
@@ -429,7 +430,11 @@ file_chooser_load_files(EinaPlayer *self)
 			uris = eina_file_chooser_dialog_get_uris(picker);
 			if (uris == NULL)
 				break;
+			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(uris));
+			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
+			g_free(msg);
 			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
+			run = TRUE;
 			break;
 
 		default:
