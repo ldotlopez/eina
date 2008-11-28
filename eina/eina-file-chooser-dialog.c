@@ -16,21 +16,25 @@ typedef struct _EinaFileChooserDialogPrivate EinaFileChooserDialogPrivate;
 
 struct _EinaFileChooserDialogPrivate {
 	EinaFileChooserDialogAction action;
-	GtkBox    *info_box;
+	GtkBox *info_box;
 	GSList *uris;
-	GSList *ops;
+
+	GSList       *queue;
+	GCancellable *cancellable;
+	GelIOOp      *op;
 };
 
 void
-eina_file_chooser_dialog_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
+set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
 
-
-static void
-remove_op(EinaFileChooserDialog *self, GelIOOp *op);
 static void
 update_sensitiviness(EinaFileChooserDialog *self, gboolean value);
 static void
 clear_box(EinaFileChooserDialog *self);
+static void
+internal_reset(EinaFileChooserDialog *self);
+static void
+run_queue(EinaFileChooserDialog *self);
 
 // Async ops
 static void
@@ -85,13 +89,8 @@ eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectCon
 static void
 eina_file_chooser_dialog_dispose (GObject *object)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(object);
-	if (priv->uris)
-	{
-		g_slist_foreach(priv->uris, (GFunc) g_free, NULL);
-		g_slist_free(priv->uris);
-		priv->uris = NULL;
-	}
+	internal_reset(EINA_FILE_CHOOSER_DIALOG(object));
+
 	if (G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->dispose)
 		G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->dispose (object);
 }
@@ -135,7 +134,7 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 	priv->action = action;
 
 	g_object_set(G_OBJECT(self), "local-only", FALSE, NULL);
-	eina_file_chooser_dialog_set_action(self, action);
+	set_action(self, action);
 
 	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
@@ -144,43 +143,6 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
 
 	return self;
-}
-
-void
-eina_file_chooser_dialog_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
-{
-	GtkFileFilter *filter;
-	GtkButton *queue_button;
-	const gchar *music_folder;
-
-	music_folder = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC);
-	
-	switch (action)
-	{
-		// Load or queue
-		case EINA_FILE_CHOOSER_DIALOG_LOAD_FILES:
-			filter = gtk_file_filter_new();
-			gtk_file_filter_add_mime_type(filter, "audio/*");
-			gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(self), filter);
-			gtk_file_chooser_add_shortcut_folder(GTK_FILE_CHOOSER(self), music_folder, NULL);
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(self), music_folder);
-			gtk_file_chooser_set_action(GTK_FILE_CHOOSER(self), GTK_FILE_CHOOSER_ACTION_OPEN);
-			gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(self), TRUE);
-
-			queue_button = (GtkButton *) gtk_button_new_with_mnemonic(Q_("_Enqueue"));
-			gtk_button_set_image(queue_button, gtk_image_new_from_stock("eina-queue", GTK_ICON_SIZE_BUTTON));
-			gtk_widget_show_all(GTK_WIDGET(queue_button));
-
-			gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_MEDIA_PLAY, EINA_FILE_CHOOSER_RESPONSE_PLAY);
-			gtk_dialog_add_action_widget(GTK_DIALOG(self), GTK_WIDGET(queue_button), EINA_FILE_CHOOSER_RESPONSE_QUEUE);
-			gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
-
-			gtk_window_set_title(GTK_WINDOW(self), _("Enqueue files"));
-			break;
-
-		default:
-			gel_error("EinaFileChooserDialog unknow action %d", action);
-	}
 }
 
 void eina_file_chooser_dialog_set_custom_msg(EinaFileChooserDialog *self,
@@ -243,17 +205,12 @@ eina_file_chooser_dialog_run(EinaFileChooserDialog *self)
 	gint response;
 	GSList *uris;
 
+	internal_reset(self);
+
 	if (priv->action != EINA_FILE_CHOOSER_DIALOG_LOAD_FILES)
 	{
 		gel_warn("EinaFileChooserDialog dont know how to run in mode %d", priv->action);
 		return GTK_RESPONSE_NONE;
-	}
-
-	if (priv->uris)
-	{
-		g_slist_foreach(priv->uris, (GFunc) g_free, NULL);
-		g_slist_free(priv->uris);
-		priv->uris = NULL;
 	}
 
 	switch(response = gtk_dialog_run(GTK_DIALOG(self)))
@@ -286,14 +243,8 @@ eina_file_chooser_dialog_run(EinaFileChooserDialog *self)
 			GTK_WIDGET(cancel));
 
 		// Start processing
-		GSList *iter = g_slist_sort(uris, (GCompareFunc) strcmp);
-		priv->ops = g_slist_prepend(priv->ops, NULL); // Lock
-		while (iter)
-		{
-			g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
-				0, G_PRIORITY_DEFAULT, NULL /* cancellable */,  file_chooser_query_info_cb, self);
-			iter = iter->next;
-		}
+		priv->queue = g_slist_sort(uris, (GCompareFunc) strcmp);
+		run_queue(self);
 
 		gtk_main(); // Re-enter main loop
 
@@ -314,10 +265,40 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 // --
 // Internal
 // --
-static gboolean
-delete_event_cb(GtkWidget *w, GdkEvent  *event, gpointer data)
+void
+set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 {
-	return TRUE;
+	GtkFileFilter *filter;
+	const gchar *music_folder;
+
+	music_folder = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC);
+
+	switch (action)
+	{
+	// Load or queue
+	case EINA_FILE_CHOOSER_DIALOG_LOAD_FILES:
+		filter = gtk_file_filter_new();
+		gtk_file_filter_add_mime_type(filter, "audio/*");
+		gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(self), filter);
+		gtk_file_chooser_add_shortcut_folder(GTK_FILE_CHOOSER(self), music_folder, NULL);
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(self), music_folder);
+		gtk_file_chooser_set_action(GTK_FILE_CHOOSER(self), GTK_FILE_CHOOSER_ACTION_OPEN);
+		gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(self), TRUE);
+
+		GtkButton *queue_button = (GtkButton *) gtk_button_new_with_mnemonic(Q_("_Enqueue"));
+		gtk_button_set_image(queue_button, gtk_image_new_from_stock("eina-queue", GTK_ICON_SIZE_BUTTON));
+		gtk_widget_show_all(GTK_WIDGET(queue_button));
+
+		gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_MEDIA_PLAY, EINA_FILE_CHOOSER_RESPONSE_PLAY);
+		gtk_dialog_add_action_widget(GTK_DIALOG(self), GTK_WIDGET(queue_button), EINA_FILE_CHOOSER_RESPONSE_QUEUE);
+		gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
+
+		gtk_window_set_title(GTK_WINDOW(self), _("Enqueue files"));
+		break;
+
+	default:
+		gel_error("EinaFileChooserDialog unknow action %d", action);
+	}
 }
 
 static void
@@ -339,7 +320,7 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 	if (value == TRUE)
 	{
 		gdk_window_set_cursor(gtk_widget_get_window(GTK_WIDGET(self)), NULL);
-		g_signal_handlers_disconnect_by_func(self, delete_event_cb, self);
+		g_signal_handlers_disconnect_by_func(self, gtk_true, self);
 	}
 	else
 	{
@@ -347,7 +328,7 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 		GdkWindow *win = gtk_widget_get_window(w);
 		GdkDisplay *display = gtk_widget_get_display(w);
 		gdk_window_set_cursor(win, gdk_cursor_new_for_display(display, GDK_WATCH));
-		g_signal_connect(self, "delete-event", G_CALLBACK(delete_event_cb), self);
+		g_signal_connect(self, "delete-event", G_CALLBACK(gtk_true), self);
 	}
 }
 
@@ -365,6 +346,71 @@ clear_box(EinaFileChooserDialog *self)
 	g_list_free(children);
 }
 
+static void
+internal_reset(EinaFileChooserDialog *self)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	if (priv->cancellable)
+	{
+		if (!g_cancellable_is_cancelled(priv->cancellable))
+			g_cancellable_cancel(priv->cancellable);
+		g_object_unref(priv->cancellable);
+		priv->cancellable = NULL;
+	}
+	if (priv->op)
+	{
+		gel_io_op_cancel(priv->op);
+		gel_io_op_unref(priv->op);
+		priv->op = NULL;
+	}
+	if (priv->queue)
+	{
+		g_slist_foreach(priv->queue, (GFunc) g_free, NULL);
+		g_slist_free(priv->queue);
+		priv->queue = NULL;
+	}
+	if (priv->uris)
+	{
+		g_slist_foreach(priv->uris,  (GFunc) g_free, NULL);
+		g_slist_free(priv->uris);
+		priv->uris = NULL;
+	}
+	update_sensitiviness(self,TRUE);
+}
+
+static void
+run_queue(EinaFileChooserDialog *self)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+
+	// Exit nested main loop
+	if ((priv->queue == NULL) && (gtk_main_level() > 1))
+	{
+		gtk_main_quit();
+		return;
+	}
+
+	// Process next element
+	gchar *uri = (gchar *) priv->queue->data;
+	priv->queue = g_slist_remove(priv->queue, uri);
+
+	if (priv->cancellable)
+	{
+		if (!g_cancellable_is_cancelled(priv->cancellable))
+		{
+			gel_warn("run_queue called but GCancellable is not cancelled");
+			g_cancellable_cancel(priv->cancellable);
+		}
+		g_object_unref(priv->cancellable);
+	}
+
+	priv->cancellable = g_cancellable_new();
+	g_file_query_info_async(g_file_new_for_uri(uri), "standard::*",
+		0, G_PRIORITY_DEFAULT, priv->cancellable,
+		file_chooser_query_info_cb, self);
+	g_free(uri);
+}
+
 // --
 // Handle async reads
 // --
@@ -379,7 +425,11 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 	GFile *file = G_FILE(source);
 	GError *err = NULL;
 
+	// Finish operation
 	GFileInfo *info = g_file_query_info_finish(file, res, &err);
+	g_object_unref(priv->cancellable);
+	priv->cancellable = NULL;
+
 	if (err != NULL)
 	{
 		gchar *uri = g_file_get_uri(file);
@@ -390,15 +440,15 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 	}
 
 	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
-		priv->ops = g_slist_prepend(priv->ops,
-			gel_io_recurse_dir(file, "standard::*", recurse_read_success_cb, recurse_read_error_cb, self));
+		priv->op = gel_io_recurse_dir(file, "standard::*",
+			recurse_read_success_cb, recurse_read_error_cb, self);
 	else
 		priv->uris = g_slist_prepend(priv->uris, g_file_get_uri(file)); // Share memory
 
 	g_object_unref(source);
 	g_object_unref(info);
 }
-
+/*
 static void
 remove_op(EinaFileChooserDialog *self, GelIOOp *op)
 {
@@ -414,15 +464,24 @@ remove_op(EinaFileChooserDialog *self, GelIOOp *op)
 		gtk_main_quit();
 	}
 }
+*/
 
 // Walk over GelIORecurseTree and add files
 static void
 recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
 {
+	EinaFileChooserDialog *self = EINA_FILE_CHOOSER_DIALOG(data);
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+
+	// Get and parse result
 	GelIORecurseTree *tree = gel_io_op_result_get_recurse_tree(result);
 	recurse_tree_parse(tree, gel_io_recurse_tree_get_root(tree), EINA_FILE_CHOOSER_DIALOG(data));
-	remove_op(EINA_FILE_CHOOSER_DIALOG(data), op);
+
+	// Close this operation and go to next element in queue
 	gel_io_op_unref(op);
+	priv->op = NULL;
+
+	run_queue(self);
 }
 
 // Show errors from GelIOOp and update UI to reflect them
@@ -432,8 +491,10 @@ recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
 	gchar *uri = g_file_get_uri(f);
 	gel_error("Error reading '%s': %s", uri, error->message);
 	g_free(uri);
+
 	// remove_op(EINA_FILE_CHOOSER_DIALOG(data), op);
 	// gel_io_op_unref(op); <-- not sure
+	// run_queue(self);
 }
 
 // Walk over RecurseTree
@@ -476,5 +537,6 @@ static void
 cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 {
 	gel_warn("Cancel must go on!");
+	internal_reset(self);
 }
 
