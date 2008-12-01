@@ -352,6 +352,7 @@ internal_reset(EinaFileChooserDialog *self)
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 	if (priv->cancellable)
 	{
+		gel_warn("Cancelling via cancellable");
 		if (!g_cancellable_is_cancelled(priv->cancellable))
 			g_cancellable_cancel(priv->cancellable);
 		g_object_unref(priv->cancellable);
@@ -359,6 +360,7 @@ internal_reset(EinaFileChooserDialog *self)
 	}
 	if (priv->op)
 	{
+		gel_warn("Cancelling via GelIOOp");
 		gel_io_op_cancel(priv->op);
 		gel_io_op_unref(priv->op);
 		priv->op = NULL;
