@@ -556,6 +556,9 @@ gboolean
 recurse_dir_cancel(GelIOOp *self)
 {
 	GelIOOpRecurseDir *d = RECURSE_DIR(self->_d);
+	if (!d)
+		return TRUE;
+
 	if (d->current)
 	{
 		gel_io_op_cancel(d->current);
@@ -565,10 +568,15 @@ recurse_dir_cancel(GelIOOp *self)
 	return TRUE; // I do all the work
 }
 
+// Destroy a recurse dir struct
 gboolean
 recurse_dir_destroy(GelIOOp *self)
 {
 	GelIOOpRecurseDir *d = RECURSE_DIR(self->_d);
+
+	if (!d)
+		return FALSE;
+
 	if (d->queue)
 	{
 		gel_glist_free(d->queue, (GFunc) g_free, NULL);
@@ -586,6 +594,8 @@ recurse_dir_destroy(GelIOOp *self)
 		gel_io_op_unref(d->current);
 		d->current = NULL;
 	}
+
+	self->_d = NULL;
 	return FALSE; // continue destroy
 }
 
@@ -641,6 +651,11 @@ static void
 recurse_dir_run_queue(GelIOOp *self)
 {
 	GelIOOpRecurseDir *d = RECURSE_DIR(self->_d);
+	if (d == NULL)
+	{
+		return;
+	}
+
 	if (d->queue == NULL)
 	{
 		gel_warn("Queue is empty, done");
@@ -671,6 +686,10 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 	GelIOOp *self = GEL_IO_OP(data);
 
 	GList *children = gel_io_op_result_get_object_list(result);
+
+	gchar *uri = g_file_get_uri(parent);
+	gel_warn("Got directory listing for %s", uri);
+	g_free(uri);
 
 	// Add to result
 	gel_io_recurse_tree_add_parent(RECURSE_DIR(self->_d)->tree, parent);
