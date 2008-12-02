@@ -19,7 +19,7 @@ struct _EinaFileChooserDialogPrivate {
 	GtkBox *info_box;
 	GSList *uris;
 
-	GSList       *queue;
+	GQueue       *queue;
 	GCancellable *cancellable;
 	GelIOOp      *op;
 };
@@ -31,8 +31,6 @@ static void
 update_sensitiviness(EinaFileChooserDialog *self, gboolean value);
 static void
 clear_box(EinaFileChooserDialog *self);
-static void
-internal_reset(EinaFileChooserDialog *self);
 static void
 run_queue(EinaFileChooserDialog *self);
 
@@ -50,6 +48,52 @@ static void
 close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
 static void
 cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
+
+static void
+reset_resources(EinaFileChooserDialog *self)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	if (!g_queue_is_empty(priv->queue))
+	{
+		g_queue_foreach(priv->queue, (GFunc) g_free, NULL);
+		g_queue_clear(priv->queue);
+	}
+	if (priv->uris)
+	{
+		g_slist_foreach(priv->uris, (GFunc) g_free, NULL);
+		g_slist_free(priv->uris);
+		priv->uris = NULL;
+	}
+
+	if (priv->cancellable)
+	{
+		gel_warn("Cancelling via cancellable");
+		if (!g_cancellable_is_cancelled(priv->cancellable))
+			g_cancellable_cancel(priv->cancellable);
+		g_object_unref(priv->cancellable);
+		priv->cancellable = NULL;
+	}
+
+	if (priv->op)
+	{
+		gel_warn("Cancelling via GelIOOp");
+		gel_io_op_cancel(priv->op);
+		gel_io_op_unref(priv->op);
+		priv->op = NULL;
+	}
+}
+
+static void
+free_resources(EinaFileChooserDialog *self)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	reset_resources(self);
+	if (priv->queue)
+	{
+		g_queue_free(priv->queue);
+		priv->queue = NULL;
+	}
+}
 
 #if !GTK_CHECK_VERSION(2,14,0)
 static GObject*
@@ -89,7 +133,7 @@ eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectCon
 static void
 eina_file_chooser_dialog_dispose (GObject *object)
 {
-	internal_reset(EINA_FILE_CHOOSER_DIALOG(object));
+	free_resources(EINA_FILE_CHOOSER_DIALOG(object));
 
 	if (G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->dispose)
 		G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->dispose (object);
@@ -98,6 +142,8 @@ eina_file_chooser_dialog_dispose (GObject *object)
 static void
 eina_file_chooser_dialog_finalize (GObject *object)
 {
+	free_resources(EINA_FILE_CHOOSER_DIALOG(object));
+
 	if (G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->finalize)
 		G_OBJECT_CLASS (eina_file_chooser_dialog_parent_class)->finalize (object);
 }
@@ -135,6 +181,8 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 
 	g_object_set(G_OBJECT(self), "local-only", FALSE, NULL);
 	set_action(self, action);
+
+	priv->queue = g_queue_new();
 
 	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
@@ -205,7 +253,7 @@ eina_file_chooser_dialog_run(EinaFileChooserDialog *self)
 	gint response;
 	GSList *uris;
 
-	internal_reset(self);
+	reset_resources(self);
 
 	if (priv->action != EINA_FILE_CHOOSER_DIALOG_LOAD_FILES)
 	{
@@ -243,6 +291,7 @@ eina_file_chooser_dialog_run(EinaFileChooserDialog *self)
 			GTK_WIDGET(cancel));
 
 		// Start processing
+		
 		priv->queue = g_slist_sort(uris, (GCompareFunc) strcmp);
 		run_queue(self);
 
@@ -347,54 +396,19 @@ clear_box(EinaFileChooserDialog *self)
 }
 
 static void
-internal_reset(EinaFileChooserDialog *self)
-{
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-	if (priv->cancellable)
-	{
-		gel_warn("Cancelling via cancellable");
-		if (!g_cancellable_is_cancelled(priv->cancellable))
-			g_cancellable_cancel(priv->cancellable);
-		g_object_unref(priv->cancellable);
-		priv->cancellable = NULL;
-	}
-	if (priv->op)
-	{
-		gel_warn("Cancelling via GelIOOp");
-		gel_io_op_cancel(priv->op);
-		gel_io_op_unref(priv->op);
-		priv->op = NULL;
-	}
-	if (priv->queue)
-	{
-		g_slist_foreach(priv->queue, (GFunc) g_free, NULL);
-		g_slist_free(priv->queue);
-		priv->queue = NULL;
-	}
-	if (priv->uris)
-	{
-		g_slist_foreach(priv->uris,  (GFunc) g_free, NULL);
-		g_slist_free(priv->uris);
-		priv->uris = NULL;
-	}
-	update_sensitiviness(self,TRUE);
-}
-
-static void
 run_queue(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 
 	// Exit nested main loop
-	if ((priv->queue == NULL) && (gtk_main_level() > 1))
+	if (g_queue_is_empty(priv->queue) && (gtk_main_level() > 1))
 	{
 		gtk_main_quit();
 		return;
 	}
 
 	// Process next element
-	gchar *uri = (gchar *) priv->queue->data;
-	priv->queue = g_slist_remove(priv->queue, uri);
+	gchar *uri = g_queue_push_head(priv->queue);
 
 	if (priv->cancellable)
 	{
@@ -450,23 +464,6 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 	g_object_unref(source);
 	g_object_unref(info);
 }
-/*
-static void
-remove_op(EinaFileChooserDialog *self, GelIOOp *op)
-{
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-	priv->ops = g_slist_remove(priv->ops, op);
-	if (priv->ops && (priv->ops->data == NULL))
-	{
-		// Unlock UI
-		g_slist_free(priv->ops);
-		priv->ops = NULL;
-		gel_warn("no ops");
-		update_sensitiviness(self, TRUE);
-		gtk_main_quit();
-	}
-}
-*/
 
 // Walk over GelIORecurseTree and add files
 static void
