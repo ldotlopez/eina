@@ -13,11 +13,27 @@ typedef enum {
 	EINA_FS_FILTER_REJECT
 } EinaFsFilterAction;
 
+// --
+// Possible Gel functions
+// --
+typedef gboolean (*GelSListFilterFunc)(const gpointer data, gpointer user_data);
+
+GSList*
+gel_slist_filter(GSList *input, GelSListFilterFunc callback, gpointer user_data);
+
+void
+gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data);
+
+// End Gel functions
+
 
 typedef EinaFsFilterAction (*EinaFsFilterFunc)(GFileInfo *fileinfo);
 
 void
 eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris, EinaFsFilterFunc filter, GCallback callback, gpointer data);
+
+gboolean
+eina_fs_is_supported_extension(gchar *uri);
 
 void
 eina_fs_readdir_async(gchar *uri, gpointer data);

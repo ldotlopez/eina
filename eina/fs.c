@@ -11,40 +11,47 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 
 	gboolean run = TRUE;
-	GSList *uris;
+	GSList *uris, *hold;
 
 	do
 	{
 		run = FALSE;
 		gint response = eina_file_chooser_dialog_run(picker);
-
+		gel_warn("Got response %d", response);
 		switch (response)
 		{
 		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 			uris = eina_file_chooser_dialog_get_uris(picker);
-			if (uris == NULL) 
+			hold = gel_slist_filter(uris, (GelSListFilterFunc) eina_fs_is_supported_extension, NULL);
+			g_slist_free(uris);
+
+			if (hold == NULL) 
 			{
 				run = TRUE; // Keep alive
 				break;
 			}
 			lomo_player_clear(lomo);
-			lomo_player_add_uri_multi(lomo, (GList *) uris);
+			lomo_player_add_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
 			lomo_player_play(lomo, NULL);
 			run = FALSE; // Destroy
 		break;
 
 		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 			uris = eina_file_chooser_dialog_get_uris(picker);
-			if (uris == NULL)
+			hold = gel_slist_filter(uris, (GelSListFilterFunc) eina_fs_is_supported_extension, NULL);
+			g_slist_free(uris);
+
+			if (hold == NULL)
 			{
 				run = TRUE; // Keep alive
 				break;
 			}	
-			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(uris));
+			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(hold));
 			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
 			g_free(msg);
 
-			lomo_player_add_uri_multi(lomo, (GList *) uris);
+			lomo_player_add_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
+
 			run = TRUE; // Keep alive
 			break;
 
@@ -55,6 +62,58 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 	} while (run);
 
 	gtk_widget_destroy(GTK_WIDGET(picker));
+}
+
+GSList*
+gel_slist_filter(GSList *input, GelSListFilterFunc callback, gpointer user_data)
+{
+	GSList *ret = NULL;
+	while (input)
+	{
+		if (callback(input->data, user_data))
+			ret = g_slist_prepend(ret, input->data);
+		input = input->next;
+	}
+	return g_slist_reverse(ret);
+}
+
+void
+gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data)
+{
+	while (list)
+	{
+		if (!compare(list->data, hold->data))
+		{
+			gel_warn("Freeing %s", (gchar *) list->data);
+			callback(list->data, user_data);
+			hold = hold->next;
+		}
+		list = list->next;
+	}
+}
+
+
+gboolean
+eina_fs_is_supported_extension(gchar *uri)
+{
+	static const gchar *suffixes[] = {".mp3", ".ogg", ".wma", ".aac", ".flac", NULL };
+	gchar *lc_name;
+	gint i;
+	gboolean ret = FALSE;
+
+	// lc_name = g_utf8_strdown(uri, -1);
+	lc_name = g_ascii_strdown(uri, -1);
+	for (i = 0; suffixes[i] != NULL; i++)
+	{
+		if (g_str_has_suffix(lc_name, suffixes[i]))
+		{
+			ret = TRUE;
+			break;
+		}
+	}
+
+	g_free(lc_name);
+	return ret;
 }
 
 /*

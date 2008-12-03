@@ -62,18 +62,13 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 gboolean
 __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, GtkTreeIter *iter, EinaPlaylist *self);
 
-#if 0
-EinaFsFilterAction
-eina_playlist_fs_filter(GFileInfo *info);
-#endif
-
 // UI Callbacks
 void
 on_pl_row_activated(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self);
 void on_pl_add_button_clicked
 (GtkWidget *w, EinaPlaylist *self);
-gint // XXX
-__eina_playlist_sort_int_desc(gconstpointer a, gconstpointer b);
+gint 
+sort_int_desc(gconstpointer a, gconstpointer b);
 void
 on_pl_remove_button_clicked(GtkWidget *w, EinaPlaylist *self);
 void // for swapped
@@ -273,20 +268,6 @@ G_MODULE_EXPORT gboolean playlist_init
 		eina_conf_get_int(self->conf, "/playlist/last_current", 0),
 		NULL);
 
-	/*
-	GtkWindow     *main_window;
-	GtkAccelGroup *accel_group;
-
-	if (((main_window) = GTK_WINDOW(eina_iface_get_main_window(iface))) != NULL)
-	{
-		accel_group = gtk_accel_group_new();
-		gtk_window_add_accel_group(main_window, accel_group);
-		gtk_widget_add_accelerator(W(self->dock, "playlist-remove-button"), "clicked",
-			accel_group, GDK_Delete, 0, GTK_ACCEL_VISIBLE);
-
-	}
-	*/
-
 	gtk_widget_show(self->dock);
 	return eina_dock_add_widget(EINA_BASE_GET_DOCK(self), "playlist",
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), self->dock);
@@ -457,7 +438,7 @@ remove_selected(EinaPlaylist *self)
 	g_list_free(rows);
 
 	// Sort list and delete
-	l = sorted = g_list_sort(to_sort, __eina_playlist_sort_int_desc);
+	l = sorted = g_list_sort(to_sort, sort_int_desc);
 	while (l) {
 		lomo_player_del(LOMO(self), GPOINTER_TO_INT(l->data));
 		l = l->next;
@@ -696,52 +677,11 @@ on_pl_row_activated(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, 
 void on_pl_add_button_clicked
 (GtkWidget *w, EinaPlaylist *self)
 {
-	EinaFileChooserDialog *picker;
-	GSList *uris = NULL;
-	gboolean run = TRUE;
-
-	picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
-	gtk_widget_show_all(GTK_WIDGET(picker));
-	while (run)
-	{
-		switch (gtk_dialog_run(GTK_DIALOG(picker)))
-		{
-			case EINA_FILE_CHOOSER_RESPONSE_PLAY:
-				uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
-				if (uris == NULL)
-					break;
-				lomo_player_clear(LOMO(self));
-				GSList *iter = uris;
-				while (iter)
-				{
-					/*
-					g_file_query_info_async(g_file_new_for_uri((const gchar *) iter->data), "standard::*",
-						0, G_PRIORITY_DEFAULT, NULL ,  file_chooser_query_info_cb, self);
-					*/
-					iter = iter->next;
-				}
-				break;
-				run = FALSE; // Stop
-				break; 
-
-			case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
-				uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(picker));
-				/*
-				if (uris && uris->data)
-					eina_fs_lomo_feed_uri_multi(LOMO(self), (GList*) uris, eina_playlist_fs_filter, NULL, NULL);
-					*/
-				g_slist_free(uris);
-				break;
-
-			default:
-				run = FALSE;
-		}
-	}
-	gtk_widget_destroy(GTK_WIDGET(picker));
+	eina_fs_file_chooser_load_files(LOMO(self));
 }
 
 gint
-__eina_playlist_sort_int_desc(gconstpointer a, gconstpointer b)
+sort_int_desc(gconstpointer a, gconstpointer b)
 {
 	gint int_a = GPOINTER_TO_INT(a);
 	gint int_b = GPOINTER_TO_INT(b);

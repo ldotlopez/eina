@@ -6,6 +6,7 @@
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
 #include <eina/eina-file-chooser-dialog.h>
+#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
 
@@ -449,7 +450,7 @@ run_queue(EinaFileChooserDialog *self)
 // --
 
 // Query GFileInfo for URI and add or recurse over dir
-	static void
+static void
 file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 {
 	EinaFileChooserDialog *self = EINA_FILE_CHOOSER_DIALOG(data);
@@ -476,7 +477,9 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 		priv->op = gel_io_recurse_dir(file, "standard::*",
 			recurse_read_success_cb, recurse_read_error_cb, self);
 	else
-		priv->uris = g_slist_prepend(priv->uris, g_file_get_uri(file)); // Share memory
+	{
+		priv->uris = g_slist_append(priv->uris, g_file_get_uri(file)); // Share memory
+	}
 
 	g_object_unref(source);
 	g_object_unref(info);
@@ -532,8 +535,9 @@ recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaFileChooserDialog *self
 		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 			recurse_tree_parse(tree, child, self);
 		else
-			priv->uris = g_slist_prepend(priv->uris, g_file_get_uri(child)); // Shared
-
+		{
+			priv->uris = g_slist_append(priv->uris, g_file_get_uri(child)); // Shared
+		}
 		g_object_unref(child);
 		iter = iter->next;
 	}
