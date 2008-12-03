@@ -614,6 +614,8 @@ close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 static void
 cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 {
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	priv->user_cancel = TRUE;
 	reset_resources(self);
 	clear_message(self);
 	update_sensitiviness(self, TRUE);
