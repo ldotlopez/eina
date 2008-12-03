@@ -85,19 +85,8 @@ gel_io_op_unref(GelIOOp *self)
 void
 gel_io_op_cancel(GelIOOp *self)
 {
-	if (self->cancel)
-	{
-		gel_warn("Using subop cancel");
-		if (self->cancel(self))
-		{
-			gel_warn("Absolute cancel");
+	if (self->cancel && self->cancel(self))
 			return;
-		}
-		else
-		{
-			gel_warn("Partial cancel");
-		}
-	}
 
 	if (self->cancellable)
 	{
@@ -470,7 +459,6 @@ recurse_dir_run_queue(GelIOOp *self)
 
 	if (g_queue_is_empty(d->queue))
 	{
-		gel_warn("Queue is empty, done");
 		GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_RECURSE_TREE, d->tree);
 		gel_io_op_success(self, res);
 		g_free(res);
@@ -482,9 +470,6 @@ recurse_dir_run_queue(GelIOOp *self)
 	GFile *e = g_queue_pop_head(d->queue);
 
 	// Start a new query
-	gchar *uri = g_file_get_uri(e);
-	// gel_warn("Reading %s", uri);
-	g_free(uri);
 	d->current = gel_io_read_dir(e, d->attributes,
 		recurse_dir_success_cb,
 		recurse_dir_error_cb,
@@ -497,10 +482,6 @@ recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpoint
 	GelIOOp *self = GEL_IO_OP(data);
 
 	GList *children = gel_io_op_result_get_object_list(result);
-
-	gchar *uri = g_file_get_uri(parent);
-	gel_warn("Got directory listing for %s", uri);
-	g_free(uri);
 
 	// Add to result
 	gel_io_recurse_tree_add_parent(RECURSE_DIR(self->_d)->tree, parent);

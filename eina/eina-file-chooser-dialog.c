@@ -68,7 +68,6 @@ reset_resources(EinaFileChooserDialog *self)
 
 	if (priv->cancellable)
 	{
-		gel_warn("Cancelling via cancellable");
 		if (!g_cancellable_is_cancelled(priv->cancellable))
 			g_cancellable_cancel(priv->cancellable);
 		g_object_unref(priv->cancellable);
@@ -77,7 +76,6 @@ reset_resources(EinaFileChooserDialog *self)
 
 	if (priv->op)
 	{
-		gel_warn("Cancelling via GelIOOp");
 		gel_io_op_cancel(priv->op);
 		gel_io_op_unref(priv->op);
 		priv->op = NULL;
@@ -265,7 +263,7 @@ eina_file_chooser_dialog_run(EinaFileChooserDialog *self)
 	}
 
 eina_file_chooser_dialog_run_user_cancel:
-
+	priv->user_cancel = FALSE;
 	switch (response = gtk_dialog_run(GTK_DIALOG(self)))
 	{
 	case EINA_FILE_CHOOSER_RESPONSE_PLAY:
@@ -319,63 +317,6 @@ eina_file_chooser_dialog_run_user_cancel:
 		break;
 	}
 
-	gel_warn("Must return response ID %d", response);
-	return response;
-#if 0
-	do
-	{
-		priv->user_cancel = FALSE;
-
-		switch(response = gtk_dialog_run(GTK_DIALOG(self)))
-		{
-		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
-		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
-			uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self));
-			if (uris == NULL)
-				break;
-
-			// Lock UI
-			update_sensitiviness(self, FALSE);
-
-			// Loading image
-			gchar *loading_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "file-chooser-loading.gif");
-			GtkImage *loading = (GtkImage *) gtk_image_new_from_file(loading_path);
-			g_free(loading_path);
-
-			// The 'cancel' button
-			GtkButton *cancel = (GtkButton *) gtk_button_new();
-			gtk_button_set_relief(cancel, GTK_RELIEF_NONE);
-			gtk_container_add(GTK_CONTAINER(cancel), gtk_image_new_from_stock(GTK_STOCK_STOP, GTK_ICON_SIZE_MENU));
-			g_signal_connect(cancel, "clicked",
-			G_CALLBACK(cancel_button_clicked_cb), self);
-		
-			// Show busy UI
-			eina_file_chooser_dialog_set_custom_msg(self,
-				loading,
-				(GtkLabel *) gtk_label_new(_("Loading files...")),
-				GTK_WIDGET(cancel));
-
-			// Start processing
-			GSList *sorted = g_slist_sort(uris, (GCompareFunc) strcmp);
-			GSList *iter = sorted;
-			while (iter)
-			{
-				g_queue_push_tail(priv->queue, iter->data);
-				iter = iter->next;
-			}
-			g_slist_free(sorted);
-
-			run_queue(self);
-
-			gtk_main(); // Re-enter main loop
-
-		default:
-			break;
-		}
-	} while (priv->user_cancel == TRUE);
-#endif
-
-	gel_warn("Returning: %d", response);
 	return response;
 }
 
@@ -478,7 +419,6 @@ run_queue(EinaFileChooserDialog *self)
 	// Exit nested main loop
 	if (g_queue_is_empty(priv->queue) && (gtk_main_level() > 1))
 	{
-		gel_warn("Queue empty. done");
 		gtk_main_quit();
 		return;
 	}
@@ -531,7 +471,6 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 		g_error_free(err);
 	}
 
-	gel_warn("Got info for %s", g_file_get_uri(file));
 
 	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 		priv->op = gel_io_recurse_dir(file, "standard::*",
@@ -558,8 +497,6 @@ recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpoin
 	gel_io_op_unref(op);
 	priv->op = NULL;
 
-	gel_warn("Recurse read ok");
-	
 	run_queue(self);
 }
 

@@ -5,10 +5,14 @@
 #include <gio/gio.h>
 #include <lomo/player.h>
 
+void
+eina_fs_file_chooser_load_files(LomoPlayer *lomo);
+
 typedef enum {
 	EINA_FS_FILTER_ACCEPT,
 	EINA_FS_FILTER_REJECT
 } EinaFsFilterAction;
+
 
 typedef EinaFsFilterAction (*EinaFsFilterFunc)(GFileInfo *fileinfo);
 

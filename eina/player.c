@@ -58,8 +58,10 @@ static void
 update_sensitiviness(EinaPlayer *self);
 static void
 set_dock_expanded(EinaPlayer *self, gboolean expanded, gboolean transitional);
+#if 0
 static void
 file_chooser_load_files(EinaPlayer *self);
+#endif
 static void
 about_show(void);
 
@@ -403,7 +405,7 @@ update_sensitiviness(EinaPlayer *self)
 	gtk_widget_set_sensitive(GTK_WIDGET(self->play_pause),
 		(lomo_player_get_current(LOMO(self)) >= 0));
 }
-
+#if 0
 static void
 file_chooser_load_files(EinaPlayer *self)
 {
@@ -421,13 +423,14 @@ file_chooser_load_files(EinaPlayer *self)
 		{
 		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 			uris = eina_file_chooser_dialog_get_uris(picker);
-			if ((uris == NULL) && FALSE) // Shortcircuit
+			if (uris == NULL) // Shortcircuit
 			{
 				run = TRUE; // Keep alive
 				break;
 			}
 			lomo_player_clear(LOMO(self));
 			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
+			lomo_player_play(LOMO(self), NULL);
 			run = FALSE; // Destroy
 			break;
 
@@ -441,6 +444,7 @@ file_chooser_load_files(EinaPlayer *self)
 			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(uris));
 			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
 			g_free(msg);
+
 			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
 			run = TRUE; // Keep alive
 			break;
@@ -453,6 +457,7 @@ file_chooser_load_files(EinaPlayer *self)
 
 	gtk_widget_destroy(GTK_WIDGET(picker));
 }
+#endif
 
 static void
 about_show(void)
@@ -549,7 +554,8 @@ main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 	switch (ev->key.keyval)
 	{
 	case GDK_Insert:
-		file_chooser_load_files(self);
+		eina_fs_file_chooser_load_files(LOMO(self));
+		// file_chooser_load_files(self);
 		break;
 	case GDK_z:
 	case GDK_Page_Up:
@@ -620,7 +626,7 @@ button_clicked_cb(GtkWidget *w, EinaPlayer *self)
 
 	else if (w == GTK_WIDGET(self->open))
 	{
-		file_chooser_load_files(self);
+		eina_fs_file_chooser_load_files(LOMO(self));
 	}
 
 	if (err != NULL)
@@ -648,7 +654,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 
 	if (g_str_equal(name, "Open"))
 	{
-		file_chooser_load_files(self);
+		eina_fs_file_chooser_load_files(LOMO(self));
 	}
 
 	else if (g_str_equal(name, "Help"))

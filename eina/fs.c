@@ -1,8 +1,61 @@
 #define GEL_DOMAIN "Eina::Fs"
 
+#include <glib/gi18n.h>
 #include <gel/gel.h>
+#include <eina/eina-file-chooser-dialog.h>
 #include "fs.h"
 
+void
+eina_fs_file_chooser_load_files(LomoPlayer *lomo)
+{
+	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
+
+	gboolean run = TRUE;
+	GSList *uris;
+
+	do
+	{
+		run = FALSE;
+		gint response = eina_file_chooser_dialog_run(picker);
+
+		switch (response)
+		{
+		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
+			uris = eina_file_chooser_dialog_get_uris(picker);
+			if (uris == NULL) 
+			{
+				run = TRUE; // Keep alive
+				break;
+			}
+			lomo_player_clear(lomo);
+			lomo_player_add_uri_multi(lomo, (GList *) uris);
+			lomo_player_play(lomo, NULL);
+			run = FALSE; // Destroy
+		break;
+
+		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
+			uris = eina_file_chooser_dialog_get_uris(picker);
+			if (uris == NULL)
+			{
+				run = TRUE; // Keep alive
+				break;
+			}	
+			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(uris));
+			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
+			g_free(msg);
+
+			lomo_player_add_uri_multi(lomo, (GList *) uris);
+			run = TRUE; // Keep alive
+			break;
+
+		default:
+			run = FALSE; // Destroy
+			break;
+		}
+	} while (run);
+
+	gtk_widget_destroy(GTK_WIDGET(picker));
+}
 
 /*
 static void
