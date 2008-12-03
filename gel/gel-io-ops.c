@@ -389,7 +389,6 @@ typedef struct {
 } GelIOOpRecurseDir;
 #define RECURSE_DIR(p) ((GelIOOpRecurseDir*)p)
 
-
 static void
 recurse_dir_success_cb(GelIOOp *op, GFile *parent, GelIOOpResult *result, gpointer data);
 static void
@@ -418,10 +417,7 @@ recurse_dir_cancel(GelIOOp *self)
 	}
 
 	if (d->blacklist)
-	{
-		g_hash_table_destroy(d->blacklist);
-		d->blacklist = NULL;
-	}
+		g_hash_table_remove_all(d->blacklist);
 
 	return TRUE; // I do all the work
 }
@@ -435,13 +431,10 @@ recurse_dir_destroy(GelIOOp *self)
 	if (!d)
 		return FALSE;
 
-	if (d->queue)
-	{
-		g_queue_free(d->queue);
-		d->queue = NULL;
-	}
+	gel_free_and_invalidate(d->queue, NULL, g_queue_free);
+	gel_free_and_invalidate(d->blacklist, NULL, g_hash_table_destroy);
+	g_free(self->_d);
 
-	self->_d = NULL;
 	return FALSE; // continue destroy
 }
 
@@ -475,7 +468,7 @@ recurse_dir_run_queue(GelIOOp *self)
 		return;
 	}
 
-	if (d->queue == NULL)
+	if (g_queue_is_empty(d->queue))
 	{
 		gel_warn("Queue is empty, done");
 		GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_RECURSE_TREE, d->tree);

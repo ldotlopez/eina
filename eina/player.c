@@ -412,32 +412,41 @@ file_chooser_load_files(EinaPlayer *self)
 	gboolean run = TRUE;
 	GSList *uris;
 
-	gtk_widget_show(GTK_WIDGET(picker));
 	do
 	{
 		run = FALSE;
-		switch (eina_file_chooser_dialog_run(picker))
+		gint response = eina_file_chooser_dialog_run(picker);
+
+		switch (response)
 		{
 		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 			uris = eina_file_chooser_dialog_get_uris(picker);
-			if (uris == NULL)
+			if ((uris == NULL) && FALSE) // Shortcircuit
+			{
+				run = TRUE; // Keep alive
 				break;
+			}
 			lomo_player_clear(LOMO(self));
 			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
+			run = FALSE; // Destroy
 			break;
 
 		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 			uris = eina_file_chooser_dialog_get_uris(picker);
 			if (uris == NULL)
+			{
+				run = TRUE; // Keep alive
 				break;
+			}
 			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(uris));
 			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
 			g_free(msg);
 			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
-			run = TRUE;
+			run = TRUE; // Keep alive
 			break;
 
 		default:
+			run = FALSE; // Destroy
 			break;
 		}
 	} while (run);
