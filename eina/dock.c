@@ -17,10 +17,18 @@ struct _EinaDock {
 	GtkNotebook *dock;
 	GHashTable  *dock_items;
 	GList       *dock_idx;
+
+	gint         w, h;
 };
 
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
+
+static void
+expander_activate_cb(GtkExpander *w, EinaDock *self);
+
+static gboolean
+player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
 
 gboolean
 dock_init(GelHub *hub, gint *argc, gchar ***argv)
@@ -78,6 +86,11 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 	gtk_container_remove(GTK_CONTAINER(parent), self->widget);
 	eina_player_add_widget(EINA_BASE_GET_PLAYER(self), self->widget);
 	gtk_widget_destroy(parent);
+
+	g_signal_connect(eina_player_get_main_window(EINA_BASE_GET_PLAYER(self)), "configure-event",
+		(GCallback) player_main_window_configure_event_cb, self);
+
+	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
 
 	return TRUE;
 }
@@ -222,6 +235,38 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 		eina_conf_set_str(self->conf, "/dock/order", output->str);
 	}
 	g_string_free(output, TRUE);
+}
+
+static void
+expander_activate_cb(GtkExpander *w, EinaDock *self)
+{
+	gboolean expanded = gtk_expander_get_expanded(w);
+	GtkWindow *win = eina_player_get_main_window(EINA_BASE_GET_PLAYER(self));
+
+	if (expanded)
+	{
+		g_signal_handlers_disconnect_by_func(win, player_main_window_configure_event_cb, self);
+		gtk_window_set_resizable(win, FALSE);
+		gtk_window_resize(win, 1, 1);
+	}
+	else
+	{
+		g_signal_connect(win, "configure-event", (GCallback) player_main_window_configure_event_cb, self);
+		gtk_window_set_resizable(win, TRUE);
+		gtk_window_resize(win, self->w, self->h);
+	}
+}
+
+static gboolean
+player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self)
+{
+	if (event->type != GDK_CONFIGURE)
+		return FALSE;
+
+	self->h = event->height;
+	self->w = event->width;
+
+	return FALSE; // Propagate event
 }
 
 G_MODULE_EXPORT GelHubSlave dock_connector = {

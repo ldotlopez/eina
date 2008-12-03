@@ -36,10 +36,8 @@ struct _EinaPlayer {
 
 	GtkButton   *prev, *play_pause, *next, *open;
 	GtkImage    *play_pause_image;
-	GtkExpander *expander;
 
 	gchar *stream_info_fmt;
-	gboolean got_dock, dock_expanded;
 };
 
 typedef enum {
@@ -57,12 +55,6 @@ build_preferences_widget(EinaPlayer *self);
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
-set_dock_expanded(EinaPlayer *self, gboolean expanded, gboolean transitional);
-#if 0
-static void
-file_chooser_load_files(EinaPlayer *self);
-#endif
-static void
 about_show(void);
 
 // UI callbacks
@@ -74,8 +66,6 @@ static gboolean
 main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
-static void
-expander_activate_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
 static void
@@ -138,9 +128,6 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	self->open = W_TYPED(self, GTK_BUTTON, "open-button");
 	self->play_pause       = W_TYPED(self, GTK_BUTTON, "play-pause-button");
 	self->play_pause_image = W_TYPED(self, GTK_IMAGE,  "play-pause-image");
-	self->expander = W_TYPED(self, GTK_EXPANDER, "dock-expander");
-	self->dock_expanded = eina_conf_get_bool(self->conf, "/ui/player/dock-expanded", FALSE);
-	gtk_window_set_resizable(self->main_window, self->dock_expanded);
 
 	if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
 		switch_state(self, EINA_PLAYER_MODE_PLAY);
@@ -148,8 +135,6 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		switch_state(self, EINA_PLAYER_MODE_PAUSE);
 
 	set_info(self, (LomoStream *) lomo_player_get_stream(LOMO(self)));
-	self->got_dock = TRUE;
-	self->dock_expanded = gtk_expander_get_expanded(W_TYPED(self, GTK_EXPANDER, "dock-expander"));
 
 	gtk_widget_realize(GTK_WIDGET(self->main_window));
 
@@ -246,7 +231,6 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		{ "main-window",       "delete-event",       G_CALLBACK(main_window_delete_event_cb) },
 		{ "main-window",       "window-state-event", G_CALLBACK(main_window_window_state_event_cb) },
 		{ "main-box",          "key-press-event",    G_CALLBACK(main_box_key_press_event_cb) },
-		{ "dock-expander",     "activate", G_CALLBACK(expander_activate_cb) },
 		{ "prev-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "next-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "play-pause-button", "clicked", G_CALLBACK(button_clicked_cb) },
@@ -306,6 +290,12 @@ GtkUIManager *
 eina_player_get_ui_manager(EinaPlayer *self)
 {
 	return self->ui_manager;
+}
+
+GtkWindow *
+eina_player_get_main_window(EinaPlayer *self)
+{
+	return self->main_window;
 }
 
 void
@@ -387,12 +377,6 @@ static GtkWidget*
 build_preferences_widget(EinaPlayer *self)
 {
 	return gtk_label_new(":)");
-}
-
-static void
-set_dock_expanded(EinaPlayer *self, gboolean expanded, gboolean transitional)
-{
-	gtk_expander_set_expanded(W_TYPED(self, GTK_EXPANDER, "dock-expander"), expanded);
 }
 
 static void
@@ -532,15 +516,7 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 static gboolean
 main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, EinaPlayer *self)
 {
-	GdkWindowState mask = GDK_WINDOW_STATE_FULLSCREEN | GDK_WINDOW_STATE_MAXIMIZED;
-	if (event->new_window_state & mask)
-	{
-		set_dock_expanded(self, TRUE, TRUE);
-	}
-	else
-	{
-		set_dock_expanded(self, FALSE, TRUE);
-	}
+	// GdkWindowState mask = GDK_WINDOW_STATE_FULLSCREEN | GDK_WINDOW_STATE_MAXIMIZED;
 	return FALSE;
 }
 
@@ -634,17 +610,6 @@ button_clicked_cb(GtkWidget *w, EinaPlayer *self)
 		gel_error("Got error: %s\n", err->message);
 		g_error_free(err);
 	}
-}
-
-static void
-expander_activate_cb(GtkWidget *w, EinaPlayer *self)
-{
-	// self->dock_expanded = gtk_expander_get_expanded(GTK_EXPANDER(w));
-	// Set window mode
-	if (gtk_expander_get_expanded(self->expander))
-		gtk_window_set_resizable(self->main_window, TRUE);
-	else
-		gtk_window_set_resizable(self->main_window, FALSE);
 }
 
 static void
