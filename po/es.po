@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Eina 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-17 10:46+0200\n"
+"POT-Creation-Date: 2008-12-04 10:27+0100\n"
 "PO-Revision-Date: 2008-10-03 13:25+0200\n"
 "Last-Translator: xuzo . <xuzo@cuarentaydos.com>\n"
 "Language-Team: ES <eina-users@lists.sourceforge.net>\n"
@@ -25,11 +25,15 @@ msgstr ""
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:140
+#: ../eina/eina-file-chooser-dialog.c:293
+msgid "Loading files..."
+msgstr ""
+
+#: ../eina/eina-file-chooser-dialog.c:354
 msgid "_Enqueue"
 msgstr "_Encolar"
 
-#: ../eina/eina-file-chooser-dialog.c:148
+#: ../eina/eina-file-chooser-dialog.c:362
 msgid "Enqueue files"
 msgstr "_Encolar ficheros"
 
@@ -73,36 +77,28 @@ msgid "None yet :)"
 msgstr "Ninguno aún"
 
 #: ../ui/player.ui.h:1
-msgid "\t"
-msgstr "\t"
-
-#: ../ui/player.ui.h:2
 #, fuzzy
 msgid "<small><tt></tt></small>"
 msgstr "<small><tt>00:00</tt></small>"
 
-#: ../ui/player.ui.h:4
-#, no-c-format
+#: ../ui/player.ui.h:3
+#, fuzzy, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
 
-#: ../ui/player.ui.h:6
+#: ../ui/player.ui.h:5
 msgid "Browse"
 msgstr "Examinar"
 
-#: ../ui/player.ui.h:7
-msgid "Dock"
-msgstr "Dock"
-
-#: ../ui/player.ui.h:8
+#: ../ui/player.ui.h:6
 msgid "Next song"
 msgstr "Pasar al siguiente tema"
 
-#: ../ui/player.ui.h:9
+#: ../ui/player.ui.h:7
 msgid "Previous song"
 msgstr "Volver al tema anterior"
 
@@ -162,6 +158,12 @@ msgstr ""
 #: ../ui/plugins.ui.h:8
 msgid "gtk-close"
 msgstr "gtk-close"
+
+#~ msgid "\t"
+#~ msgstr "\t"
+
+#~ msgid "Dock"
+#~ msgstr "Dock"
 
 #~ msgid "<small><tt>07:59</tt></small>"
 #~ msgstr "<small><tt>07:59</tt></small>"

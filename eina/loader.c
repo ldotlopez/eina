@@ -256,11 +256,11 @@ eina_loader_query_plugins(EinaLoader *self)
 
 			if ((plugin = eina_loader_load_plugin(self, mod_name, NULL)) != NULL)
 			{
-				gel_warn("Loaded '%s'", mod_name);
+				gel_info("Loaded '%s'", mod_name);
 				ret = g_list_prepend(ret, plugin);
 			}
 			else
-				gel_warn("Cannot load '%s'", mod_name);
+				gel_info("Cannot load '%s'", mod_name);
 
 			g_free(mod_name);
 			g_free(name);

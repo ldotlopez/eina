@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-17 10:46+0200\n"
+"POT-Creation-Date: 2008-12-04 10:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,11 +25,15 @@ msgstr ""
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:140
+#: ../eina/eina-file-chooser-dialog.c:293
+msgid "Loading files..."
+msgstr ""
+
+#: ../eina/eina-file-chooser-dialog.c:354
 msgid "_Enqueue"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:148
+#: ../eina/eina-file-chooser-dialog.c:362
 msgid "Enqueue files"
 msgstr ""
 
@@ -73,33 +77,25 @@ msgid "None yet :)"
 msgstr ""
 
 #: ../ui/player.ui.h:1
-msgid "\t"
-msgstr ""
-
-#: ../ui/player.ui.h:2
 msgid "<small><tt></tt></small>"
 msgstr ""
 
-#: ../ui/player.ui.h:4
+#: ../ui/player.ui.h:3
 #, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
 
-#: ../ui/player.ui.h:6
+#: ../ui/player.ui.h:5
 msgid "Browse"
 msgstr ""
 
-#: ../ui/player.ui.h:7
-msgid "Dock"
-msgstr ""
-
-#: ../ui/player.ui.h:8
+#: ../ui/player.ui.h:6
 msgid "Next song"
 msgstr ""
 
-#: ../ui/player.ui.h:9
+#: ../ui/player.ui.h:7
 msgid "Previous song"
 msgstr ""
 

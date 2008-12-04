@@ -35,13 +35,13 @@ eina_plugin_new(GelHub *hub, gchar *plugin_path, gchar *symbol)
 
 	if ((mod = g_module_open(plugin_path, G_MODULE_BIND_LAZY)) == NULL)
 	{
-		gel_warn("'%s' is not loadable", plugin_path);
+		gel_info("'%s' is not loadable", plugin_path);
 		return NULL;
 	}
 
 	if (!g_module_symbol(mod, symbol, &symbol_p))
 	{
-		gel_warn("Cannot find symbol '%s' in '%s'", symbol, plugin_path);
+		gel_info("Cannot find symbol '%s' in '%s'", symbol, plugin_path);
 		g_module_close(mod);
 		return NULL;
 	}

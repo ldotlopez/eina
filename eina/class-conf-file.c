@@ -127,7 +127,6 @@ void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 	EinaConfValue *value = (EinaConfValue *) _value;
 	gchar *buff = NULL;
 
-	gel_warn("Dump %s", key);
 	switch (value->type)
 	{
 		case G_TYPE_BOOLEAN:

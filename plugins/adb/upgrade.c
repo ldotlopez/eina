@@ -5,9 +5,9 @@
 #include <gel/gel.h>
 
 static gboolean
-adb_db_upgrade_0(Adb *self)
+adb_db_upgrade_0(Adb *self, GError **error)
 {
-	gchar *querys[] = {
+	const gchar *querys[] = {
 		"DROP TABLE IF EXISTS variables;",
 
 		"CREATE TABLE variables ("
@@ -25,40 +25,15 @@ adb_db_upgrade_0(Adb *self)
 		"INSERT INTO variables VALUES('schema-version', 0);",
 
 		NULL };
-	GError *err = NULL;
-	gint success;
-	if (!adb_exec_querys(self, querys, &success, &err))
-	{
-		gel_warn("Error in query '%s': %s", querys[success], err->message);
-		g_error_free(err);
-		return FALSE;
-	}
-	gel_warn("OK");
-	return TRUE;
-		/*
-	gint i;
-	char *errmsg = NULL;
-	for (i = 0; querys[i]; i++)
-	{
-		// gel_warn("Execute SQL('%s')", querys[i]);
-		if (sqlite3_exec(self->db, querys[i], NULL, NULL, &errmsg) != SQLITE_OK)
-		{
-			// gel_error("Error: %s", errmsg);
-			sqlite3_free(errmsg);
-			return FALSE;
-		}
-	}
-	return TRUE;
-	*/
+
+	return adb_exec_querys(self, querys, NULL, error);
 }
 
 static gboolean
-adb_db_upgrade_1(Adb *self)
+adb_db_upgrade_1(Adb *self, GError **error)
 {
-	gint i;
-	char *errmsg = NULL;
 	const gchar *querys[] = {
-		"DROP TABLE IF EXISTS tags",
+		"DROP TABLE IF EXISTS tags;",
 
 		"CREATE TABLE tags ("
 		"tid INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -74,17 +49,7 @@ adb_db_upgrade_1(Adb *self)
 		"FOREIGN KEY (sid) REFERENCES streams(sid)"
 		");"
 	};
-	for (i = 0; querys[i]; i++)
-	{
-		gel_warn("Execute SQL('%s')", querys[i]);
-		if (sqlite3_exec(self->db, querys[i], NULL, NULL, &errmsg) != SQLITE_OK)
-		{
-			gel_error("Error: %s", errmsg);
-			sqlite3_free(errmsg);
-			return FALSE;
-		}
-	}
-	return TRUE;
+	return adb_exec_querys(self, querys, NULL, error);
 }
 
 gboolean
@@ -97,13 +62,25 @@ adb_db_upgrade(Adb *self, gint from_version)
 		NULL
 	};
 
+	GError *error = NULL;
 	for (i = from_version + 1; upgrade_funcs[i]; i++)
 	{
-		gboolean (*func)(Adb *self);
+		gboolean (*func)(Adb *self, GError **error);
 		func = upgrade_funcs[i];
-		// gel_warn("Execute %d->%d %p", i-1, i, upgrade_funcs[i]);
-		if (func(self) == FALSE)
+		if (func(self, &error) == FALSE)
+		{
+			gel_error("Failed to upgrade ADB from version %d to %d: %s", i, i+1, error->message);
+			g_error_free(error);
 			return FALSE;
+		}
+
+		if (!adb_set_variable(self, "schema-version", G_TYPE_UINT, (gpointer) i))
+		{
+			gel_error("Cannot upgrade to version %d", i);
+			return FALSE;
+		}
+
+		gel_error("Upgraded to version %d", i);
 	}
 	return TRUE;
 }

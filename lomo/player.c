@@ -412,7 +412,13 @@ lomo2_player_reset_pipeline(LomoPlayer *self, GError **error)
 gboolean
 lomo2_player_set_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 {
-	LomoState state;
+	// Not sure about this get_state and error handling thing, never tested it
+	LomoState state = lomo2_player_get_state(self, error);
+	if (error)
+	{
+		lomo_player_set_error(error, LOMO_PLAYER_ERROR_GET_STATE, _("Cannot get state"));
+		return FALSE;
+	}
 
 	// Change state if it is not STOP
 	if (state == LOMO_STATE_INVALID)
@@ -460,7 +466,7 @@ LomoState lomo2_player_get_state
 LomoStateChangeReturn
 lomo2_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 {
-	GstState gst_state;
+	GstState gst_state = GST_STATE_NULL;
 	GstStateChangeReturn gst_ret;
 	LomoStateChangeReturn ret;
 

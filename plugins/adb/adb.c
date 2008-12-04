@@ -24,7 +24,7 @@ adb_new(LomoPlayer *lomo, GError **error)
 	db_path = g_build_filename(g_get_home_dir(), ".eina", "adb.db", NULL);
 	if (sqlite3_open(db_path, &db) != SQLITE_OK)
 	{
-		gel_error("Cannot open db: %s", sqlite3_errmsg(self->db));
+		gel_error("Cannot open db: %s", sqlite3_errmsg(db));
 		g_free(db_path);
 		return FALSE;
 	}
@@ -68,7 +68,7 @@ adb_db_setup(Adb *self)
 		gel_error("Cannot check db schema version: %s", msg);
 		g_free(msg);
 	}
-	gel_warn("DB version: %d", version);
+	gel_info("DB version: %d", version);
 	adb_db_upgrade(self, version);
 	return TRUE;
 }
