@@ -16,10 +16,10 @@ typedef enum {
 // --
 // Possible Gel functions
 // --
-typedef gboolean (*GelSListFilterFunc)(const gpointer data, gpointer user_data);
+typedef gboolean (*GelFilterFunc)(const gpointer data, gpointer user_data);
 
 GSList*
-gel_slist_filter(GSList *input, GelSListFilterFunc callback, gpointer user_data);
+gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data);
 
 void
 gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data);

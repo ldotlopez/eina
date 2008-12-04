@@ -9,6 +9,7 @@
 
 struct _EinaPlugins {
 	EinaBase        parent;
+	EinaConf       *conf;
 	GtkWidget      *window;
 	GtkTreeView    *treeview;
 	GtkListStore   *model;
@@ -54,6 +55,14 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	if (!eina_base_init((EinaBase *) self, hub, "plugins", EINA_BASE_GTK_UI))
 	{
 		gel_error("Cannot create component");
+		return FALSE;
+	}
+
+	// Load settings
+	if (!gel_hub_load(HUB(self), "settings") || !(self->conf = EINA_BASE_GET_SETTINGS(self)))
+	{
+		gel_error("Cannot load settings module");
+		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
 
@@ -148,6 +157,29 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	gtk_ui_manager_insert_action_group(ui_manager, ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
 
+	// Load plugins
+	const gchar *plugins_str = eina_conf_get_str(self->conf, "/plugins/enabled", NULL);
+	if (plugins_str)
+	{
+		gchar **plugins = g_strsplit(plugins_str, ",", 0);
+		gint i;
+		for (i = 0; plugins[i] != NULL; i++)
+		{
+			EinaPlugin *plugin = eina_loader_load_plugin(EINA_BASE_GET_LOADER(self), plugins[i], NULL);
+			if (!plugin)
+				continue;
+			if (!eina_plugin_init(plugin))
+			{
+				eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, NULL);
+				continue;
+			}
+			
+			self->plugins = g_list_prepend(self->plugins, plugin);
+		}
+		g_strfreev(plugins);
+		self->plugins = g_list_reverse(self->plugins);
+	}
+
 	return TRUE;
 }
 
@@ -158,6 +190,7 @@ G_MODULE_EXPORT gboolean eina_plugins_exit
 
 	gtk_widget_destroy(self->window);
 
+	gel_hub_unload(HUB(self), "settings");
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
@@ -303,7 +336,6 @@ static void
 plugins_cell_renderer_toggle_toggled_cb
 (GtkCellRendererToggle *w, gchar *path, EinaPlugins *self)
 {
-	// EinaIFace *iface;
 	GtkTreePath *_path;
 	GtkTreeIter iter;
 	gint *indices;
@@ -337,6 +369,21 @@ plugins_cell_renderer_toggle_toggled_cb
 	gtk_list_store_set(self->model, &iter,
 		PLUGINS_COLUMN_ENABLED, !gtk_cell_renderer_toggle_get_active(w),
 		-1);
+
+	// Update conf
+	GList *l = self->plugins;
+	GList *tmp = NULL;
+	while (l)
+	{
+		if (eina_plugin_is_enabled(EINA_PLUGIN(l->data)))
+			tmp = g_list_prepend(tmp, (gpointer) eina_plugin_get_pathname(EINA_PLUGIN(l->data)));
+		l = l->next;
+	}
+	tmp = g_list_reverse(tmp);
+	gchar *plugins_str = gel_glist_join(",", tmp);
+	g_list_free(tmp);
+	eina_conf_set_str(self->conf, "/plugins/enabled", plugins_str);
+	g_free(plugins_str);
 }
 
 static void

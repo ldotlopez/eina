@@ -21,7 +21,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 		{
 		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 			uris = eina_file_chooser_dialog_get_uris(picker);
-			hold = gel_slist_filter(uris, (GelSListFilterFunc) eina_fs_is_supported_extension, NULL);
+			hold = gel_slist_filter(uris, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
 			hold = g_slist_sort(hold, (GCompareFunc) strcmp);
 			g_slist_free(uris);
 
@@ -38,7 +38,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 
 		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 			uris = eina_file_chooser_dialog_get_uris(picker);
-			hold = gel_slist_filter(uris, (GelSListFilterFunc) eina_fs_is_supported_extension, NULL);
+			hold = gel_slist_filter(uris, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
 			hold = g_slist_sort(hold, (GCompareFunc) strcmp);
 			g_slist_free(uris);
 
@@ -66,7 +66,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 }
 
 GSList*
-gel_slist_filter(GSList *input, GelSListFilterFunc callback, gpointer user_data)
+gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data)
 {
 	GSList *ret = NULL;
 	while (input)
