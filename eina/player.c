@@ -266,6 +266,11 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	// Show it
 	gtk_widget_show(GTK_WIDGET(self->main_window));
 
+	// Due some bug on OSX main window needs to be resizable on creation, but
+	// without dock or other attached widgets to main window it must not be
+	// resizable.
+	gtk_window_set_resizable(self->main_window, FALSE);
+
 	return TRUE;
 }
 

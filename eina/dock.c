@@ -57,6 +57,10 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 	self->widget = W(self, "dock-expander");
 	self->dock   = W_TYPED(self, GTK_NOTEBOOK, "dock-notebook");
 
+	// Delete old keys
+	eina_conf_delete_key(self->conf, "/ui/size_w");
+	eina_conf_delete_key(self->conf, "/ui/size_h");
+
 	// Configure the dock route table
 	const gchar *order;
 	gchar **split;
@@ -99,6 +103,9 @@ G_MODULE_EXPORT gboolean dock_exit
 (gpointer data)
 {
 	EinaDock *self = EINA_DOCK(data);
+
+	eina_conf_set_int(self->conf, "/ui/main-window/width",  self->w);
+	eina_conf_set_int(self->conf, "/ui/main-window/height", self->h);
 
 	eina_base_fini(EINA_BASE(self));
 	return TRUE;

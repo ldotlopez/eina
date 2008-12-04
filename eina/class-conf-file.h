@@ -50,6 +50,9 @@ gint         eina_conf_get_int  (EinaConf *self, gchar *key, gint def);
 gfloat       eina_conf_get_float(EinaConf *self, gchar *key, gfloat def);
 const gchar *eina_conf_get_str  (EinaConf *self, gchar *key, const gchar *def);
 
+gboolean
+eina_conf_delete_key(EinaConf *self, gchar *key);
+
 G_END_DECLS
 
 #endif

@@ -120,7 +120,6 @@ const gchar *eina_conf_get_filename(EinaConf *self) {
 	return priv->filename;
 }
 
-
 void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 	EinaConf *self       = (EinaConf *) data;
 	EinaConfPrivate *priv = GET_PRIVATE(self);
@@ -128,6 +127,7 @@ void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 	EinaConfValue *value = (EinaConfValue *) _value;
 	gchar *buff = NULL;
 
+	gel_warn("Dump %s", key);
 	switch (value->type)
 	{
 		case G_TYPE_BOOLEAN:
@@ -311,3 +311,8 @@ const gchar *eina_conf_get_str(EinaConf *self, gchar *key, const gchar *def) {
 	return val->value._str;
 }
 
+gboolean
+eina_conf_delete_key(EinaConf *self, gchar *key)
+{
+	return  g_hash_table_remove(GET_PRIVATE(self)->values, key);
+}
