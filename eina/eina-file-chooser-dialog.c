@@ -515,6 +515,12 @@ recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
 	// run_queue(self);
 }
 
+static gint
+g_file_cmp(GFileInfo *a, GFileInfo *b)
+{
+	return strcmp(g_file_info_get_name(a), g_file_info_get_name(b));
+}
+
 // Walk over RecurseTree
 static void
 recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaFileChooserDialog *self)
@@ -525,7 +531,7 @@ recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaFileChooserDialog *self
 		return;
 
 	GList *children = gel_io_recurse_tree_get_children(tree, f);
-	GList *iter = children;
+	GList *iter = g_list_sort(children, (GCompareFunc) g_file_cmp);
 
 	while (iter)
 	{

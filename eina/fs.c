@@ -17,12 +17,12 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 	{
 		run = FALSE;
 		gint response = eina_file_chooser_dialog_run(picker);
-		gel_warn("Got response %d", response);
 		switch (response)
 		{
 		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
 			uris = eina_file_chooser_dialog_get_uris(picker);
 			hold = gel_slist_filter(uris, (GelSListFilterFunc) eina_fs_is_supported_extension, NULL);
+			hold = g_slist_sort(hold, (GCompareFunc) strcmp);
 			g_slist_free(uris);
 
 			if (hold == NULL) 
@@ -39,6 +39,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
 			uris = eina_file_chooser_dialog_get_uris(picker);
 			hold = gel_slist_filter(uris, (GelSListFilterFunc) eina_fs_is_supported_extension, NULL);
+			hold = g_slist_sort(hold, (GCompareFunc) strcmp);
 			g_slist_free(uris);
 
 			if (hold == NULL)
