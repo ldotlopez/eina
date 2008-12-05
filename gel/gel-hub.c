@@ -1,8 +1,7 @@
 #define GEL_DOMAIN "GelHub"
 #include <gmodule.h>
 #include <gel/gel.h>
-#include "gel-hub.h"
-#include "gel-hub-marshal.h"
+#include <gel/gel-hub-marshal.h>
 
 G_DEFINE_TYPE (GelHub, gel_hub, G_TYPE_OBJECT)
 
@@ -248,7 +247,7 @@ gboolean gel_hub_load  (GelHub *self, gchar *name) {
 			host->refs++;
 
 			//g_signal_emit(G_OBJECT(self), gel_hub_signals[MODULE_REF], 0, name, host->refs);
-			gel_glist_free(plugin_list, (GFunc) g_free, NULL);
+			gel_list_deep_free(plugin_list, g_free);
 			return TRUE;
 		} else {
 			/* Init func failed: remove the mem and close module */
@@ -258,7 +257,7 @@ gboolean gel_hub_load  (GelHub *self, gchar *name) {
 		}
 	}
 
-	gel_glist_free(plugin_list, (GFunc) g_free, NULL);
+	gel_list_deep_free(plugin_list, g_free);
 	g_free(host);
 	gel_warn("Cannot load %s", name);
 	return FALSE;

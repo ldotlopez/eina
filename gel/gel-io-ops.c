@@ -264,7 +264,7 @@ read_dir_close_cb(GObject *source, GAsyncResult *res, gpointer data);
 gboolean
 read_dir_destroy(GelIOOp *self)
 {
-	gel_glist_free((GList *) self->_d, (GFunc) g_object_unref, NULL);
+	gel_list_deep_free((GList *) self->_d, g_object_unref);
 	self->_d = NULL;
 	return FALSE; // Continue destroying
 }
@@ -319,7 +319,7 @@ read_dir_next_files_cb(GObject *source, GAsyncResult *res, gpointer data)
 
 	if (err != NULL)
 	{
-		gel_glist_free(items, (GFunc) g_object_unref, NULL);
+		gel_list_deep_free(items, g_object_unref);
 		gel_io_op_error(self, err);
 		return;
 	}

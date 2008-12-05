@@ -1,34 +1,17 @@
 #include <stdlib.h>
 #include <glib/gprintf.h>
-#include <gio/gio.h>
-#include "gel.h"
+#include <gel/gel.h>
 
+// --
+// Internal variables
+// --
 static gchar *_gel_package_name = NULL;
 static gchar *_gel_package_data_dir = NULL;
 static gint   _gel_debug_level = GEL_DEBUG_LEVEL_INFO;
 
-void _gel_atexit(void);
-
-void
-gel_init(gchar *name, gchar *data_dir)
-{
-	_gel_package_name     = g_strdup(name);
-	_gel_package_data_dir = g_strdup(data_dir);
-	atexit(_gel_atexit);
-}
-
-GelDebugLevel
-gel_get_debug_level(void)
-{
-	return _gel_debug_level;
-}
-
-void
-gel_set_debug_level(GelDebugLevel level)
-{
-	_gel_debug_level = level;
-}
-
+// --
+// Initialization and finilization functions
+// --
 void
 _gel_atexit(void)
 {
@@ -39,36 +22,19 @@ _gel_atexit(void)
 }
 
 void
-gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...)
+gel_init(gchar *name, gchar *data_dir)
 {
-    static const gchar *level_strs[] = {
-		"\033[1;41mSEVERE\033[m",
-		"\033[1;31mERROR\033[m",
-		"\033[1;33mWARN\033[m",
-		"\033[1mINFO\033[m",
-		"\033[1mDEBUG\033[m",
-		"\033[1mVERBOSE\033[m",
-		NULL
-	};
-
-	va_list args;
-	char buffer[1025];
-
-	if (level > _gel_debug_level)
-		return;
-
-	va_start (args, format);
-	g_vsnprintf (buffer, 1024, format, args);
-	va_end (args);
-
-	g_printf("[%s] [%s (%s:%d)] %s\n", level_strs[level], domain , file, line, buffer);
+	_gel_package_name     = g_strdup(name);
+	_gel_package_data_dir = g_strdup(data_dir);
+	atexit(_gel_atexit);
 }
 
-/*
- * List <-> strv functions
- */
+// --
+// Utilities for GList/GSList
+// --
+//
 gchar **
-gel_glist_to_strv(GList *list, gboolean copy)
+gel_list_to_strv(GList *list, gboolean copy)
 {
 	GList *iter;
 	guint len;
@@ -79,7 +45,7 @@ gel_glist_to_strv(GList *list, gboolean copy)
 		return NULL;
 
 	len = g_list_length(list);
-	if (len <= 0)
+	if (g_list_length(list) <= 0)
 		return NULL;
 
 	ret = g_new0(gchar*, len + 1);
@@ -95,7 +61,7 @@ gel_glist_to_strv(GList *list, gboolean copy)
 }
 
 GList *
-gel_strv_to_glist(gchar **strv, gboolean copy)
+gel_strv_to_list(gchar **strv, gboolean copy)
 {
 	GList *ret = NULL;
 	gint i = 0;
@@ -112,14 +78,11 @@ gel_strv_to_glist(gchar **strv, gboolean copy)
 	return g_list_reverse(ret);
 }
 
-/*
- * String utility functions
- */
 gchar *
-gel_glist_join(const gchar *separator, GList *list)
+gel_list_join(const gchar *separator, GList *list)
 {
 	gchar *ret;
-	gchar **tmp = gel_glist_to_strv(list, FALSE);
+	gchar **tmp = gel_list_to_strv(list, FALSE);
 
 	if (tmp == NULL)
 		return NULL;
@@ -129,49 +92,36 @@ gel_glist_join(const gchar *separator, GList *list)
 	return ret;
 }
 
-gchar **
-gel_file_strings(gchar *pathname)
+GSList*
+gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data)
 {
-	gchar **ret = g_new0(gchar*, GEL_N_PATH_STRINGS);
-	ret[GEL_PATHNAME] = g_strdup(pathname);
-	ret[GEL_BASENAME] = g_path_get_basename(ret[GEL_PATHNAME]);
-	ret[GEL_DIRNAME]  = g_path_get_dirname(ret[GEL_PATHNAME]);
-
-	return ret;
-}
-
-#ifndef GEL_DISABLE_DEPRECATED
-void
-gel_file_strings_free(gchar **file_strings)
-{
-	g_strfreev(file_strings);
-}
-#endif
-
-GList *
-gel_dir_read(gchar *path, gboolean absolute, GError **error)
-{
-	GList *ret = NULL;
-	GDir *d;
-	const gchar *entry;
-
-	d = g_dir_open(path, 0, error);
-	if (d == NULL)
-		return NULL;
-	
-	while ((entry = g_dir_read_name(d)) != NULL)
+	GSList *ret = NULL;
+	while (input)
 	{
-		if (absolute)
-			ret = g_list_prepend(ret, g_build_filename(path, entry, NULL));
-		else
-			ret = g_list_prepend(ret, g_strdup(entry));
+		if (callback(input->data, user_data))
+			ret = g_slist_prepend(ret, input->data);
+		input = input->next;
 	}
-	return g_list_reverse(ret);
+	return g_slist_reverse(ret);
 }
 
-/*
- * App resource functions
- */
+void
+gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data)
+{
+	while (list)
+	{
+		if (!compare(list->data, hold->data))
+		{
+			callback(list->data, user_data);
+			hold = hold->next;
+		}
+		list = list->next;
+	}
+}
+
+// --
+// App resources functions
+// --
 GList *
 gel_app_resource_get_list(GelAppResourceType type, gchar *resource)
 {
@@ -268,3 +218,80 @@ gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_pa
 
 	return ret;
 }
+
+// --
+// File system utilities
+// --
+GList *
+gel_dir_read(gchar *path, gboolean absolute, GError **error)
+{
+	GList *ret = NULL;
+	GDir *d;
+	const gchar *entry;
+
+	d = g_dir_open(path, 0, error);
+	if (d == NULL)
+		return NULL;
+	
+	while ((entry = g_dir_read_name(d)) != NULL)
+	{
+		if (absolute)
+			ret = g_list_prepend(ret, g_build_filename(path, entry, NULL));
+		else
+			ret = g_list_prepend(ret, g_strdup(entry));
+	}
+	return g_list_reverse(ret);
+}
+
+gchar **
+gel_file_strings(gchar *pathname)
+{
+	gchar **ret = g_new0(gchar*, GEL_N_PATH_STRINGS);
+	ret[GEL_PATHNAME] = g_strdup(pathname);
+	ret[GEL_BASENAME] = g_path_get_basename(ret[GEL_PATHNAME]);
+	ret[GEL_DIRNAME]  = g_path_get_dirname(ret[GEL_PATHNAME]);
+
+	return ret;
+}
+
+// --
+// Debug functions
+// --
+GelDebugLevel
+gel_get_debug_level(void)
+{
+	return _gel_debug_level;
+}
+
+void
+gel_set_debug_level(GelDebugLevel level)
+{
+	_gel_debug_level = level;
+}
+
+void
+gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...)
+{
+    static const gchar *level_strs[] = {
+		"\033[1;41mSEVERE\033[m",
+		"\033[1;31mERROR\033[m",
+		"\033[1;33mWARN\033[m",
+		"\033[1mINFO\033[m",
+		"\033[1mDEBUG\033[m",
+		"\033[1mVERBOSE\033[m",
+		NULL
+	};
+
+	va_list args;
+	char buffer[1025];
+
+	if (level > _gel_debug_level)
+		return;
+
+	va_start (args, format);
+	g_vsnprintf (buffer, 1024, format, args);
+	va_end (args);
+
+	g_printf("[%s] [%s (%s:%d)] %s\n", level_strs[level], domain , file, line, buffer);
+}
+

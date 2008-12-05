@@ -16,6 +16,7 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	gel.h                   \
+	gel-misc.h              \
 	gel-string.h            \
 	gel-str-parser.h        \
 	gel-hub.h               \
@@ -30,7 +31,7 @@ headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/gel
 header_DATA = $(INST_H_FILES)
 
 libgel_la_SOURCES = \
-	gel.c                   \
+	gel-misc.c              \
 	gel-string.c            \
 	gel-str-parser.c        \
 	gel-hub-marshal.c       \

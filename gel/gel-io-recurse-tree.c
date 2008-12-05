@@ -10,7 +10,7 @@ struct _GelIORecurseTree {
 static void
 destroy_list_of_file_infos(gpointer data)
 {
-	gel_glist_free((GList *) data, (GFunc) g_object_unref, NULL);
+	gel_list_deep_free((GList *) data, g_object_unref);
 }
 
 GelIORecurseTree *
@@ -39,7 +39,7 @@ gel_io_recurse_tree_unref(GelIORecurseTree *self)
 	if (self->refs > 0)
 		return;
 
-	gel_glist_free(self->parents, (GFunc) g_object_unref, NULL);
+	gel_list_deep_free(self->parents, g_object_unref);
 	g_hash_table_unref(self->children);
 
 	g_free(self);
