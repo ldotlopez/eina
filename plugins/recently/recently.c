@@ -114,7 +114,7 @@ currently_playlist_store(EinaPlugin *plugin)
 	if (list == NULL)
 		return FALSE;
 
-	buffer = gel_glist_join("\n", list);
+	buffer = gel_list_join("\n", list);
 	if (buffer == NULL)
 	{
 		g_list_free(list);
@@ -143,7 +143,7 @@ currently_playlist_store(EinaPlugin *plugin)
 	score_records = recently_score_record_list_from_hash(agrupated_pl);
 	recently_score_record_file_write(score_records, meta_file);
 	eina_iface_info(" metadata wrote to '%s'", meta_file);
-	gel_glist_free(score_records, (GFunc) recently_score_record_free, NULL);
+	gel_list_deep_free(score_records, (GFunc) recently_score_record_free, NULL);
 
 	return TRUE;
 }
@@ -385,7 +385,7 @@ recently_dock_update(EinaPlugin *plugin)
 		g_free(when_str);
 
 		tmp = recently_dock_format_playlist_data(playlist_data);
-		gel_glist_free(playlist_data, (GFunc) recently_score_record_free, NULL);
+		gel_list_deep_free(playlist_data, (GFunc) recently_score_record_free, NULL);
 
 		diff_str = recently_calculate_time_diff(now, when);
 		tmp2 = g_strdup_printf("<b>%s</b>\n\t%s", diff_str, tmp); 
@@ -401,7 +401,7 @@ recently_dock_update(EinaPlugin *plugin)
 
 		l = l->next;
 	}
-	gel_glist_free(recent_playlists, (GFunc) g_free, NULL);
+	gel_list_deep_free(recent_playlists, (GFunc) g_free, NULL);
 }
 
 void
@@ -455,7 +455,7 @@ on_recently_dock_row_activated(GtkWidget *w,
 	eina_plugin_dock_switch_item(plugin, "playlist");
 
 	// Free data
-	// gel_glist_free(uris, (GFunc) g_free, NULL);
+	// gel_list_deep_free(uris, (GFunc) g_free, NULL);
 	g_strfreev(uris);
 }
 

@@ -98,8 +98,8 @@ recently_score_record_file_write(GList *records, gchar *filename)
 	scores_serialized = g_list_reverse(scores_serialized);
 
 	// Join them all into one buffer
-	buffer = gel_glist_join("\n", scores_serialized);
-	gel_glist_free(scores_serialized, (GFunc) g_free, NULL);
+	buffer = gel_list_join("\n", scores_serialized);
+	gel_list_deep_free(scores_serialized, (GFunc) g_free, NULL);
 
 	if (!g_file_set_contents(filename, buffer, -1, NULL)) {
 		g_free(buffer);

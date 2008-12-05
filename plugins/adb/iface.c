@@ -9,8 +9,6 @@ adb_plugin_init(EinaPlugin *plugin, GError **error)
 	
 	Adb *self;
 
-	gel_warn("==> %s", eina_plugin_build_userdir_path(plugin, "caca"));
-	gel_warn("==> %s", eina_plugin_build_resource_path(plugin, "caca"));
 	self = adb_new(eina_plugin_get_lomo(plugin), error);
 	if (self == NULL)
 		return FALSE;

@@ -65,35 +65,6 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 	gtk_widget_destroy(GTK_WIDGET(picker));
 }
 
-GSList*
-gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data)
-{
-	GSList *ret = NULL;
-	while (input)
-	{
-		if (callback(input->data, user_data))
-			ret = g_slist_prepend(ret, input->data);
-		input = input->next;
-	}
-	return g_slist_reverse(ret);
-}
-
-void
-gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data)
-{
-	while (list)
-	{
-		if (!compare(list->data, hold->data))
-		{
-			gel_warn("Freeing %s", (gchar *) list->data);
-			callback(list->data, user_data);
-			hold = hold->next;
-		}
-		list = list->next;
-	}
-}
-
-
 gboolean
 eina_fs_is_supported_extension(gchar *uri)
 {

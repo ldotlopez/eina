@@ -45,6 +45,17 @@ void eina_base_fini(EinaBase *self)
 	g_free(self);
 }
 
+gpointer
+eina_base_require(EinaBase *self, gchar *component)
+{
+	gpointer ret = NULL;
+	if (!gel_hub_load(self->hub,component))
+		return NULL;
+	if ((ret = gel_hub_shared_get(self->hub, component)) == NULL)
+		gel_hub_unload(self->hub,component);
+	return ret;
+}
+
 GelHub *eina_base_get_hub(EinaBase *self)
 {
 	return self->hub;

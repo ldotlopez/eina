@@ -24,6 +24,8 @@ typedef enum {
 gboolean eina_base_init(EinaBase *self, GelHub *hub, gchar *name, EinaBaseFlag flags);
 void     eina_base_fini(EinaBase *self);
 
+gpointer eina_base_require(EinaBase *self, gchar *component);
+
 GelHub*     eina_base_get_hub (EinaBase *self);
 LomoPlayer* eina_base_get_lomo(EinaBase *self);
 GtkBuilder* eina_base_get_ui  (EinaBase *self);

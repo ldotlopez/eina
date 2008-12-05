@@ -1,12 +1,12 @@
 #define GEL_DOMAIN "Eina::Dock"
 
-#include <string.h> // strcmp
+#include <string.h>
 #include <gmodule.h>
 #include <gtk/gtk.h>
 #include <gel/gel.h>
-#include "dock.h"
-#include "player.h"
-#include "settings.h"
+#include <eina/dock.h>
+#include <eina/player.h>
+#include <eina/settings.h>
 
 struct _EinaDock {
 	EinaBase     parent;
@@ -41,15 +41,20 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 		gel_error("Cannot create component");
 		return FALSE;
 	}
-	if ((self->conf = EINA_BASE_GET_SETTINGS(self)) == NULL)
+
+	// if ((self->conf = EINA_BASE_GET_SETTINGS(self)) == NULL)
+	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
 	{
 		gel_error("Cannot access settings");
 		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
-	if (EINA_BASE_GET_PLAYER(self) == NULL)
+
+	// if (EINA_BASE_GET_PLAYER(self) == NULL)
+	if (!eina_base_require(EINA_BASE(self), "player"))
 	{
 		gel_error("Player is not loaded, dock cannot be initialized");
+		gel_hub_unload(HUB(self), "settings");
 		eina_base_fini(EINA_BASE(self));
 		return FALSE;
 	}
@@ -66,9 +71,9 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 	gchar **split;
 
 	order = eina_conf_get_str(self->conf, "/dock/order", "playlist");
-	gel_glist_free(self->dock_idx, (GFunc) g_free, NULL);
+	gel_list_deep_free(self->dock_idx, g_free);
 	split = g_strsplit(order, ",", 0);
-	self->dock_idx = gel_strv_to_glist(split, FALSE);
+	self->dock_idx = gel_strv_to_list(split, FALSE);
 	g_free(split); // NOT g_freestrv, look the FALSE in the prev. line
 
 	// Handle tab-reorder
@@ -103,6 +108,9 @@ G_MODULE_EXPORT gboolean dock_exit
 (gpointer data)
 {
 	EinaDock *self = EINA_DOCK(data);
+
+	gel_hub_unload(HUB(self), "player");
+	gel_hub_unload(HUB(self), "settings");
 
 	eina_conf_set_int(self->conf, "/ui/main-window/width",  self->w);
 	eina_conf_set_int(self->conf, "/ui/main-window/height", self->h);

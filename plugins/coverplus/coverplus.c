@@ -23,11 +23,11 @@ static gchar *coverplus_infolder_regex_str[] = {
 };
 
 struct _CoverPlusInfolder {
-	EinaCover *cover;
-	GRegex    *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
-	GelIOOp   *async_op;
+	EinaCover    *cover;
+	GRegex       *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
+	GelIOOp      *async_op;
 	GCancellable *cancellable;
-	gint       score;
+	gint          score;
 };
 
 CoverPlusInfolder *
@@ -48,6 +48,7 @@ CoverPlusInfolder *
 coverplus_infolder_new(EinaCover *cover)
 {
 	CoverPlusInfolder *self = g_new0(CoverPlusInfolder, 1);
+
 	self->cover = cover;
 	self->score = G_MAXINT;
 
@@ -92,7 +93,7 @@ coverplus_infolder_reset(CoverPlusInfolder *self)
 {
 	// Consistence check
 	if (self->async_op && self->cancellable)
-		gel_warn("Async operation and cancellable active");
+		gel_error("Async operation and cancellable active");
 
 	// Cancel GelIOOp
 	if (self->async_op)
@@ -223,6 +224,7 @@ coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data)
 		coverplus_infolder_reset((CoverPlusInfolder *) data);
 		return;
 	}
+	g_object_unref(source);
 
 	gchar *tmpfile = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "tmpcover", NULL);
 	if (!g_file_set_contents(tmpfile, contents, size, &err))
@@ -232,11 +234,10 @@ coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data)
 		coverplus_infolder_cancel((CoverPlusInfolder *) data);
 	}
 	else
-	{
 		eina_cover_backend_success(((CoverPlusInfolder *) data)->cover, G_TYPE_STRING, tmpfile);
-		g_unlink(tmpfile);
-		g_free(tmpfile);
-	}
+
+	g_unlink(tmpfile);
+	g_free(tmpfile);
 }
 
 #if 0
@@ -322,21 +323,6 @@ coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer da
 // --
 // Main
 // --
-
-gboolean
-coverplus_exit(EinaPlugin *plugin, GError **error)
-{
-	EinaCover *cover = eina_plugin_get_player_cover(plugin);
-
-	eina_cover_remove_backend(cover, "coverplus-banshee");
-	eina_cover_remove_backend(cover, "coverplus-infolder");
-
-	coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
-	g_free(EINA_PLUGIN_DATA(plugin));
-
-	return TRUE;
-}
-
 gboolean
 coverplus_init(EinaPlugin *plugin, GError **error)
 {
@@ -344,15 +330,27 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 	EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	plugin->data = self;
-	
 	self->infolder = coverplus_infolder_new(cover);
 
-	eina_cover_add_backend(cover, "coverplus-banshee", coverplus_banshee_search, NULL, NULL);
+	// eina_cover_add_backend(cover, "coverplus-banshee", coverplus_banshee_search, NULL, NULL);
 
 	eina_cover_add_backend(cover, "coverplus-infolder",
 		coverplus_infolder_search_wrapper,
 		coverplus_infolder_cancel_wrapper,
 		plugin);
+	return TRUE;
+}
+
+gboolean
+coverplus_exit(EinaPlugin *plugin, GError **error)
+{
+	EinaCover *cover = eina_plugin_get_player_cover(plugin);
+
+	// eina_cover_remove_backend(cover, "coverplus-banshee");
+	eina_cover_remove_backend(cover, "coverplus-infolder");
+
+	coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
+	g_free(EINA_PLUGIN_DATA(plugin));
 
 	return TRUE;
 }

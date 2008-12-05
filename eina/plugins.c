@@ -16,6 +16,8 @@ struct _EinaPlugins {
 	GList          *plugins;
 	EinaPlugin     *active_plugin;
 	GtkActionEntry *ui_actions;
+	GtkActionGroup *ui_mng_ag;
+	guint           ui_mng_merge_id;
 };
 
 enum {
@@ -131,7 +133,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 
 	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
 	GError *error = NULL;
-	guint merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
+	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
 		"<ui>"
 		"<menubar name=\"MainMenuBar\">"
 		"<menu name=\"Edit\" action=\"EditMenu\" >"
@@ -140,7 +142,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 		"</menubar>"
 		"</ui>",
 		-1, &error);
-	if (merge_id == 0)
+	if (self->ui_mng_merge_id == 0)
 	{
 		gel_warn("Cannot merge UI: '%s'", error->message);
 		g_error_free(error);
@@ -152,9 +154,9 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	    NULL, NULL, G_CALLBACK(plugins_menu_activate_cb) }
 	};
 	
-	GtkActionGroup *ag = gtk_action_group_new("plugins");
-	gtk_action_group_add_actions(ag, action_entries, G_N_ELEMENTS(action_entries), self);
-	gtk_ui_manager_insert_action_group(ui_manager, ag, 1);
+	self->ui_mng_ag = gtk_action_group_new("plugins");
+	gtk_action_group_add_actions(self->ui_mng_ag, action_entries, G_N_ELEMENTS(action_entries), self);
+	gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
 
 	// Load plugins
@@ -187,6 +189,17 @@ G_MODULE_EXPORT gboolean eina_plugins_exit
 (gpointer data)
 {
 	EinaPlugins *self = (EinaPlugins *) data;
+
+	// Unmerge menu
+	GtkUIManager *ui_mng;
+	if ((ui_mng = eina_player_get_ui_manager(EINA_BASE_GET_PLAYER(self))) != NULL)
+	{
+		gtk_ui_manager_remove_action_group(ui_mng,
+			self->ui_mng_ag);
+		gtk_ui_manager_remove_ui(ui_mng,
+			self->ui_mng_merge_id);
+		g_object_unref(self->ui_mng_ag);
+	}
 
 	gtk_widget_destroy(self->window);
 
@@ -374,7 +387,7 @@ plugins_cell_renderer_toggle_toggled_cb
 		l = l->next;
 	}
 	tmp = g_list_reverse(tmp);
-	gchar *plugins_str = gel_glist_join(",", tmp);
+	gchar *plugins_str = gel_list_join(",", tmp);
 	g_list_free(tmp);
 	eina_conf_set_str(self->conf, "/plugins/enabled", plugins_str);
 	g_free(plugins_str);

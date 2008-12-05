@@ -24,7 +24,7 @@ static const GOptionEntry opt_entries[] =
 
 void xxx_ugly_hack(void)
 {
-	gel_glist_join(" ", NULL);
+	gel_list_join(" ", NULL);
 	gel_io_file_get_child_for_file_info(NULL, NULL);
 	gel_io_recurse_tree_new();
 }
@@ -46,7 +46,6 @@ gint main
 	GelHub         *app;
 	gint            i = 0;
 	gchar          *modules[] = { "lomo", "log", "player", "loader", "dock", "playlist", "plugins", "vogon", NULL};
-	// gchar          *plugins[] = { "coverplus", "recently", "lastfmcover", "lastfm", "adb", NULL };
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;
@@ -96,13 +95,6 @@ gint main
 	while (modules[i])
 		gel_hub_load(app, modules[i++]);
 
-	GList *iter = eina_loader_query_plugins(GEL_HUB_GET_LOADER(app));
-	while (iter)
-	{
-		gel_warn("=> '%s'", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)));
-		iter = iter->next;
-	}	
-
 	// Add or enqueue files from cmdl
 	LomoPlayer *lomo = GEL_HUB_GET_LOMO(app);
 	GList *uris = NULL;
@@ -118,26 +110,9 @@ gint main
 		}
 	}
 	lomo_player_add_uri_multi(lomo, uris);
-	gel_glist_free(uris, (GFunc) g_free, NULL);
+	gel_list_deep_free(uris, g_free);
 	g_strfreev(opt_uris);
 
-	// Add plugins
-	/*
-	iface = GEL_HUB_GET_IFACE(app);
-	for (i = 0; plugins[i] != NULL; i++)
-	{
-		gel_warn("Load plugin %s: %s", plugins[i],
-			eina_iface_load_plugin_by_name(iface, plugins[i]) ? "TRUE" : "FALSE" );
-	}
-	GList *l = eina_iface_list_available_plugins(iface);
-	while (l)
-	{
-		gel_warn("Plugin: (%c)%s",
-			eina_plugin_is_enabled((EinaPlugin *) l->data) ? 'E':'D',
-			eina_plugin_get_pathname((EinaPlugin *) l->data));
-		l = l->next;
-	}
-	*/
 	gtk_main();
 	return 0;
 }

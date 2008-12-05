@@ -23,7 +23,7 @@ struct _EinaPluginPrivate {
 EinaPlugin*
 eina_plugin_new(GelHub *hub, gchar *plugin_path, gchar *symbol)
 {
-	EinaPlugin *self= NULL;
+	EinaPlugin *self = NULL;
 	GModule    *mod;
 	gpointer    symbol_p;
 
@@ -61,6 +61,7 @@ eina_plugin_new(GelHub *hub, gchar *plugin_path, gchar *symbol)
 	self->priv->lomo        = gel_hub_shared_get(hub, "lomo");
 
 	gel_debug("Module '%s' has been loaded", plugin_path);
+	gel_warn("Created (%p)%s", self, eina_plugin_get_pathname(self));
 	return self;
 }
 
@@ -68,14 +69,20 @@ gboolean
 eina_plugin_free(EinaPlugin *self)
 {
 	EinaPluginPrivate *priv = self->priv;
-	if (self->priv->enabled)
-		return FALSE;
 
+	if (self->priv->enabled)
+	{
+		gel_error("Trying to close a plugin before fini it");
+		return FALSE;
+	}
+
+	g_free(self->priv->pathname);
 	if (!g_module_close(self->priv->module))
 		return FALSE;
 
-	g_free(priv->pathname);
 	g_free(priv);
+	// Dont free self, self is inside shared object!
+
 	return TRUE;
 }
 
@@ -214,94 +221,17 @@ eina_plugin_get_main_window(EinaPlugin *self)
 gboolean eina_plugin_add_dock_widget(EinaPlugin *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
 	return eina_dock_add_widget(GEL_HUB_GET_DOCK(self->priv->hub), id, label, dock_widget);
-#if 0
-	gint pos = g_list_position(self->dock_idx, g_list_find_custom(self->dock_idx, id, (GCompareFunc) strcmp));
-
-	if (!self->dock || (g_hash_table_lookup(self->dock_items, id) != NULL))
-	{
-		return FALSE;
-	}
-
-	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
-	if (gtk_notebook_append_page(self->dock, dock_widget, label) == -1)
-	{
-		g_hash_table_remove(self->dock_items, id);
-		gel_error("Cannot add widget to dock");
-		return FALSE;
-	}
-
-	gel_info("Added dock '%s'", id);
-	gtk_notebook_set_tab_reorderable(self->dock, dock_widget, TRUE);
-	if (pos > -1)
-	{
-		gtk_notebook_reorder_child(self->dock, dock_widget, pos);
-		if (pos <= gtk_notebook_get_current_page(self->dock))
-			gtk_notebook_set_current_page(self->dock, pos);
-	}
-
-	if (gtk_notebook_get_n_pages(self->dock) > 1)
-		gtk_notebook_set_show_tabs(self->dock, TRUE);
-
-	if (!GTK_WIDGET_VISIBLE(W(self->player, "dock-expander")))
-		gtk_widget_show(W(self->player, "dock-expander"));
-
-	return TRUE;
-#endif
 }
 
 gboolean eina_plugin_dock_remove_item(EinaPlugin *self, gchar *id)
 {
 	return eina_dock_remove_widget(GEL_HUB_GET_DOCK(self->priv->hub), id);
-#if 0
-	GtkWidget *dock_item;
-
-	if (!self->dock || ((dock_item = g_hash_table_lookup(self->dock_items, id)) == NULL))
-	{
-		return FALSE;
-	}
-
-	gtk_notebook_remove_page(GTK_NOTEBOOK(self->dock), gtk_notebook_page_num(GTK_NOTEBOOK(self->dock), dock_item));
-
-	switch (gtk_notebook_get_n_pages(self->dock) <= 1)
-	{
-	case 0:
-		gtk_widget_hide(W(self->player, "dock-expander"));
-		break;
-	case 1:
-		gtk_notebook_set_show_tabs(self->dock, FALSE);
-		break;
-	default:
-		break;
-	}
-
-	return g_hash_table_remove(self->dock_items, id);
-#endif
 }
 
 gboolean
 eina_plugin_dock_switch(EinaPlugin *self, gchar *id)
 {
 	return eina_dock_switch_widget(GEL_HUB_GET_DOCK(self->priv->hub), id);
-#if 0
-	gint page_num;
-	GtkWidget *dock_item;
-
-	dock_item = g_hash_table_lookup(self->dock_items, (gpointer) id);
-	if (dock_item == NULL)
-	{
-		gel_error("Cannot find dock widget '%s'", id);
-		return FALSE;
-	}
-
-	page_num = gtk_notebook_page_num(GTK_NOTEBOOK(self->dock), dock_item);
-	if (page_num == -1)
-	{
-		gel_error("Dock item %s is not in dock", id);
-		return FALSE;
-	}
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), page_num);
-	return TRUE;
-#endif
 }
 
 // --
