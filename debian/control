@@ -26,10 +26,3 @@ Provides: liblomo-dev
 Description: Music player based on liblomo and gtk+-2.0 - development files
  This package contains the headers and other development files not included in
  the main eina package. Install this if you wish to compile your own plugins.
-
-Package: eina-plugin-lastfm
-Section: sound
-Architecture: any
-Depends: eina, lastfmsubmitd
-Description: Lastm submit plugin for Eina
- Lastm submit plugin for Eina

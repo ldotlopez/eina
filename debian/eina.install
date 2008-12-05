@@ -1,6 +1,4 @@
 usr/bin
 usr/lib/*.so.*
 usr/share
-usr/lib/eina/hooktest/*.so
-usr/lib/eina/recently/*.so
-usr/lib/eina/coverplus/*.so
+usr/lib/eina/{hooktest,coverplus,adb}/*.so

@@ -1,3 +1,9 @@
+eina (0.7.2.91) hardy; urgency=low
+
+  * New upstream version (0.7.2 beta 1)
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Fri, 05 Dec 2008 15:54:17 +0100
+
 eina (0.7.2) hardy; urgency=low
 
   * Alpha 2
