@@ -33,6 +33,7 @@ V Window icon at startup (see prev bug)
 
 0.10 Series
 ===========
+- Remove dead and depreacted code
 - EinaCover should be based on LomoStream to allow more flexible cover fetching
 - Make Dock an entity
 - Unify GelHub/GelSlave and EinaPlugin
