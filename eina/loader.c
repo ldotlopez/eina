@@ -46,6 +46,12 @@ G_MODULE_EXPORT gboolean loader_exit
 	iter = self->plugins;
 	while (iter)
 	{
+		gel_warn("Unload: %s", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)));
+		iter = iter->next;
+	}
+	iter = self->plugins;
+	while (iter)
+	{
 		if (eina_plugin_is_enabled(EINA_PLUGIN(iter->data)) && !eina_plugin_fini(EINA_PLUGIN(iter->data)))
 			break;
 		if (!eina_plugin_free(EINA_PLUGIN(iter->data)))

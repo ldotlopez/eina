@@ -61,7 +61,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	}
 
 	// Load settings
-	if (!gel_hub_load(HUB(self), "settings") || !(self->conf = EINA_BASE_GET_SETTINGS(self)))
+	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
 	{
 		gel_error("Cannot load settings module");
 		eina_base_fini(EINA_BASE(self));
@@ -205,6 +205,7 @@ G_MODULE_EXPORT gboolean eina_plugins_exit
 
 	gel_hub_unload(HUB(self), "settings");
 	eina_base_fini((EinaBase *) self);
+
 	return TRUE;
 }
 

@@ -191,16 +191,14 @@ G_MODULE_EXPORT gboolean playlist_init
 		return FALSE;
 	}
 
-	/* Load and/or ref settings module */
-	if (gel_hub_load(HUB(self), "settings")) {
-		self->conf = gel_hub_shared_get(HUB(self), "settings");
-		g_signal_connect(self->conf, "change",
-			G_CALLBACK(on_pl_settings_change), self);
-	} else {
+	// Load settings module
+	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
+	{
 		gel_error("Cannot load component settings");
 		eina_base_fini((EinaBase *) self);
 		return FALSE;
 	}
+	g_signal_connect(self->conf, "change", G_CALLBACK(on_pl_settings_change), self);
 
 	// Setup internal values from settings
 	repeat = eina_conf_get_bool(self->conf, "/core/repeat", FALSE);
@@ -305,11 +303,11 @@ G_MODULE_EXPORT gboolean playlist_exit
 
 	i = lomo_player_get_current(LOMO(self));
 	eina_conf_set_int(self->conf, "/playlist/last_current", i);
+	eina_dock_remove_widget(EINA_BASE_GET_DOCK(self), "playlist");
 
 	gel_hub_unload(HUB(self), "settings");
-
-	eina_dock_remove_widget(EINA_BASE_GET_DOCK(self), "playlist");
 	eina_base_fini(EINA_BASE(self));
+
 	return TRUE;
 }
 

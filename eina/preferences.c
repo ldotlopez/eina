@@ -33,7 +33,7 @@ G_MODULE_EXPORT gboolean preferences_init
 	EinaPreferencesDialog *dialog = NULL;
 
 	// Pre-requisites
-	if ((player = GEL_HUB_GET_PLAYER(hub)) == NULL)
+	if (!(player = GEL_HUB_GET_PLAYER(hub)))
 	{
 		gel_error("Cannot get pre-requisite component 'player'");
 		return FALSE;

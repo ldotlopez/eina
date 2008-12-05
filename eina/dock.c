@@ -149,10 +149,7 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
 		gtk_notebook_set_show_tabs(self->dock, TRUE);
-/*
-	if (!GTK_WIDGET_VISIBLE(W(self->player, "dock-expander")))
-		gtk_widget_show(W(self->player, "dock-expander"));
-*/
+
 	return TRUE;
 }
 

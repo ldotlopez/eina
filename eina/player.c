@@ -89,19 +89,6 @@ G_MODULE_EXPORT gboolean
 eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 {
 	EinaPlayer *self = NULL;
-	EinaConf   *conf = NULL;
-
-	// Load some pre-requisites
-	if (!gel_hub_load(hub, "settings"))
-	{
-		gel_error("Cannot load settings");
-		return FALSE;
-	}
-	if ((conf = gel_hub_shared_get(hub, "settings")) == NULL)
-	{
-		gel_error("Cannot access settings");
-		return FALSE;
-	}
 
 	// Initialize base class
 	self = g_new0(EinaPlayer, 1);
@@ -111,7 +98,14 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		g_free(self);
 		return FALSE;
 	}
-	self->conf = conf;
+
+	// Load conf
+	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
+	{
+		gel_error("Cannot access settings");
+		eina_base_fini(EINA_BASE(self));
+		return FALSE;
+	}
 
 	// Set stream-info-label: get from conf, get from UI, set from hardcode
 	self->stream_info_fmt = g_strdup(eina_conf_get_str(self->conf, "/ui/player/stream-info-fmt", NULL));
@@ -281,6 +275,7 @@ eina_player_exit (gpointer data)
 
 	g_free(self->stream_info_fmt);
 	gel_hub_unload(HUB(self), "settings");
+
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
