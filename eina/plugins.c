@@ -239,15 +239,10 @@ plugins_treeview_fill(EinaPlugins *self)
 	gtk_list_store_clear(self->model);
 
 	self->plugins = l = eina_loader_query_plugins(loader);
-	gel_warn("Got %d available plugins", g_list_length(self->plugins));
 	while (l)
 	{
 		EinaPlugin *plugin = (EinaPlugin *) l->data;
 		gchar *markup;
-
-		gel_warn("[%s] Path: %s",
-			eina_plugin_is_enabled(plugin) ? "ENAB" : "DISA",
-			plugin->name);
 
 		gtk_list_store_append(self->model, &iter);
 		markup = g_strdup_printf("<b>%s</b>\n%s", plugin->name, plugin->short_desc);
@@ -328,7 +323,6 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 		return;
 
 	self->active_plugin = plugin;
-	gel_warn("Active plugin: %p", plugin);
 	plugins_update_plugin_properties(self);
 }
 
