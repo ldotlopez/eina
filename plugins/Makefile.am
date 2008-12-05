@@ -4,7 +4,7 @@
 #if USE_ADB
 #SUBDIRS += adb
 #endif
-SUBDIRS = adb hooktest
+SUBDIRS = adb coverplus hooktest
 
 #if USE_LASTFMINFO
 #SUBDIRS += lastfminfo

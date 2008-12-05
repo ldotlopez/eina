@@ -47,7 +47,9 @@ adb_db_upgrade_1(Adb *self, GError **error)
 		"PRIMARY KEY (tid,sid),"
 		"FOREIGN KEY (tid) REFERENCES tags(tid),"
 		"FOREIGN KEY (sid) REFERENCES streams(sid)"
-		");"
+		");",
+
+		NULL
 	};
 	return adb_exec_querys(self, querys, NULL, error);
 }
