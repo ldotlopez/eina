@@ -149,13 +149,15 @@ pixmaps/Makefile
 plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
-plugins/lastfm/Makefile
-plugins/lastfminfo/Makefile
-plugins/lastfmcover/Makefile
 plugins/Makefile
-plugins/notify/Makefile
-plugins/recently/Makefile
 po/Makefile.in
 ui/Makefile
 ])
+
+dnl Disabled plugins
+#plugins/lastfm/Makefile
+#plugins/lastfminfo/Makefile
+#plugins/lastfmcover/Makefile
+#plugins/notify/Makefile
+#plugins/recently/Makefile
 

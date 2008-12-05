@@ -2,6 +2,8 @@
 #define EINA_PLUGIN_NAME "coverplus"
 #define EINA_PLUGIN_DATA_TYPE CoverPlus
 
+#include <config.h>
+#include <glib/gstdio.h>
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <eina/plugin.h>
@@ -9,10 +11,8 @@
 typedef struct _CoverPlusInfolder CoverPlusInfolder;
 
 typedef struct CoverPlus {
-	// CoverPlusInfolder *infolder;
-	gpointer dummy;
+	CoverPlusInfolder *infolder;
 } CoverPlus;
-#if 0
 
 static gchar *coverplus_infolder_regex_str[] = {
 	".*front.*\\.(jpe?g|png|gif)$",
@@ -21,21 +21,223 @@ static gchar *coverplus_infolder_regex_str[] = {
 	".*\\.(jpe?g|png|gif)$",
 	NULL
 };
-struct _CoverPlusInfolder {
-	EinaCover *cover;   // Ref to Cover
-	GRegex    *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
-	GFile     *parent;
-	GdkPixbuf *pixbuf;
-	gchar     *name;
-	gint       score;
-	gboolean   running;
 
-	GelIOOp *readdir_op, *readuri_op;
-	/*
-	GelIOAsyncReadDir *dir_reader;
-	GelIOAsyncReadOp  *uri_reader;
-	*/
+struct _CoverPlusInfolder {
+	EinaCover *cover;
+	GRegex    *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
+	GelIOOp   *async_op;
+	GCancellable *cancellable;
+	gint       score;
 };
+
+CoverPlusInfolder *
+coverplus_infolder_new(EinaCover *cover);
+void
+coverplus_infolder_destroy(CoverPlusInfolder *self);
+void
+coverplus_infolder_reset(CoverPlusInfolder *self);
+
+void
+coverplus_infolder_readdir_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data);
+void
+coverplus_infolder_readdir_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
+void
+coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data);
+
+CoverPlusInfolder *
+coverplus_infolder_new(EinaCover *cover)
+{
+	CoverPlusInfolder *self = g_new0(CoverPlusInfolder, 1);
+	self->cover = cover;
+	self->score = G_MAXINT;
+
+	// Compile regexes
+	gint i;
+	for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
+	{
+		GError *err = NULL;
+		self->regexes[i] = g_regex_new(coverplus_infolder_regex_str[i],
+			G_REGEX_CASELESS|G_REGEX_DOTALL|G_REGEX_DOLLAR_ENDONLY|G_REGEX_OPTIMIZE|G_REGEX_NO_AUTO_CAPTURE,
+			0, &err);
+		if (!self->regexes[i])
+		{
+			gel_error("Cannot compile regex '%s': '%s'", coverplus_infolder_regex_str[i], err->message);
+			g_error_free(err);
+			coverplus_infolder_destroy(self);
+			return NULL;
+		}
+	}
+
+	return self;
+}
+
+void
+coverplus_infolder_destroy(CoverPlusInfolder *self)
+{
+	// Stop any pending operation
+	coverplus_infolder_reset(self);
+
+	// Free regexes
+	gint i;
+	for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
+		if (self->regexes[i])
+			g_regex_unref(self->regexes[i]);
+
+	// Bye
+	g_free(self);
+}
+
+void
+coverplus_infolder_reset(CoverPlusInfolder *self)
+{
+	// Consistence check
+	if (self->async_op && self->cancellable)
+		gel_warn("Async operation and cancellable active");
+
+	// Cancel GelIOOp
+	if (self->async_op)
+	{
+		gel_io_op_cancel(self->async_op);
+		gel_io_op_unref(self->async_op);
+		self->async_op = NULL;
+		eina_cover_backend_fail(self->cover);
+	}
+
+	// Cancell GIO op
+	if (self->cancellable)
+	{
+		g_cancellable_cancel(self->cancellable);
+		g_object_unref(self->cancellable);
+		self->cancellable = NULL;
+		eina_cover_backend_fail(self->cover);
+	}
+
+	// Reset score
+	self->score = G_MAXINT;
+}
+
+void
+coverplus_infolder_search(CoverPlusInfolder *self, const LomoStream *stream)
+{
+	// Ensure a good state
+	coverplus_infolder_reset(self);
+
+	// Launch readdir op
+	gchar *dirname = g_path_get_dirname(lomo_stream_get_tag(stream , LOMO_TAG_URI));
+	self->async_op = gel_io_read_dir(g_file_new_for_uri(dirname), "standard::*",
+		coverplus_infolder_readdir_success_cb, coverplus_infolder_readdir_error_cb,
+		self);
+	g_free(dirname);
+}
+
+void
+coverplus_infolder_cancel(CoverPlusInfolder *self)
+{
+	coverplus_infolder_reset(self);
+}
+
+// --
+// Wrappers
+// --
+void
+coverplus_infolder_search_wrapper(EinaCover *plugin, const LomoStream *stream, gpointer data)
+{
+	coverplus_infolder_search(EINA_PLUGIN_DATA(data)->infolder, stream);
+}
+
+void
+coverplus_infolder_cancel_wrapper(EinaCover *cover, gpointer data)
+{
+	coverplus_infolder_cancel(EINA_PLUGIN_DATA(data)->infolder);
+}
+
+// --
+// Callbacks
+// --
+void
+coverplus_infolder_readdir_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
+{
+	CoverPlusInfolder *self = (CoverPlusInfolder*) data;
+	GList *iter, *children;
+
+	gchar *match = NULL;
+	iter = children = gel_io_op_result_get_object_list(result);
+	while (iter)
+	{
+		GFileInfo *info = G_FILE_INFO(iter->data);
+		const gchar *name = g_file_info_get_name(info);
+		
+		gint i;
+		for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
+		{
+			if (g_regex_match(self->regexes[i], name, 0, NULL) && (i < self->score))
+			{
+				gel_free_and_invalidate(match, NULL, g_free);
+				match = g_strdup(name);
+				self->score = i;
+				break;
+			}
+		}	
+		iter = iter->next;
+	}
+	g_list_free(children);
+
+	if (!match)
+	{
+		coverplus_infolder_reset(self);
+		return;
+	}
+
+	gel_io_op_unref(self->async_op);
+	self->async_op = NULL;
+
+	// Async read of file
+	self->cancellable = g_cancellable_new();
+	g_file_load_contents_async(g_file_get_child(source, match),
+		self->cancellable,
+		coverplus_load_contents_cb, 
+		self);
+}
+
+void
+coverplus_infolder_readdir_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
+{
+	gchar *uri = g_file_get_uri(source);
+	gel_error("Cannot readdir %s: %s", source, error->message);
+	g_free(uri);
+
+	coverplus_infolder_reset((CoverPlusInfolder *) data);
+}
+
+void
+coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	char *contents = NULL;
+	gsize size;
+	GError *err = NULL;
+
+	if (!g_file_load_contents_finish(G_FILE(source), res, &contents, &size, NULL, &err))
+	{
+		gel_error("Cannot load file: %s", err->message);
+		g_error_free(err);
+		coverplus_infolder_reset((CoverPlusInfolder *) data);
+		return;
+	}
+
+	gchar *tmpfile = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "tmpcover", NULL);
+	if (!g_file_set_contents(tmpfile, contents, size, &err))
+	{
+		gel_error("Cannot create pixbuf: %s", err->message);
+		g_error_free(err);
+		coverplus_infolder_cancel((CoverPlusInfolder *) data);
+	}
+	else
+	{
+		eina_cover_backend_success(((CoverPlusInfolder *) data)->cover, G_TYPE_STRING, tmpfile);
+		g_unlink(tmpfile);
+		g_free(tmpfile);
+	}
+}
 
 #if 0
 /*
@@ -76,338 +278,6 @@ coverplus_timeout_test_result(gpointer data)
 }
 #endif
 
-/*
- * Coverplus in-folder: Search for '/.*(front|cover).*\.(jpe?g,png,gif)$/i'
- */
-
-CoverPlusInfolder*
-coverplus_infolder_new(EinaCover *cover);
-void
-coverplus_infolder_reset(CoverPlusInfolder* self);
-void
-coverplus_infolder_free(CoverPlusInfolder* self);
-
-/*
-void
-coverplus_infolder_readdir_error_cb(GelIOAsyncReadDir *obj, GError *error, gpointer data);
-void
-coverplus_infolder_readdir_finish_cb(GelIOAsyncReadDir *obj, GList *children, gpointer data);
-void
-coverplus_infolder_readuri_error_cb(GelIOAsyncReadOp *op, GError *error, gpointer data);
-void
-coverplus_infolder_readuri_finish_cb(GelIOAsyncReadOp *op, GByteArray *op_data, gpointer data);
-*/
-void
-cover_plus_infolder_readdir_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data);
-void
-cover_plus_infolder_readdir_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
-void
-cover_plus_infolder_readfile_succes_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data);
-void
-cover_plus_infolder_readfile_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
-
-void
-coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer data);
-void
-coverplus_infolder_finish(EinaCover *cover, gpointer data);
-
-CoverPlusInfolder*
-coverplus_infolder_new(EinaCover *cover)
-{
-	GError *err = NULL;
-	gint i;
-
-	CoverPlusInfolder *self = g_new0(CoverPlusInfolder, 1);
-
-	// Create regexes
-	for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
-	{
-		self->regexes[i] = g_regex_new(coverplus_infolder_regex_str[i],
-			G_REGEX_CASELESS|G_REGEX_DOTALL|G_REGEX_DOLLAR_ENDONLY|G_REGEX_OPTIMIZE|G_REGEX_NO_AUTO_CAPTURE,
-			0,
-			&err);
-		if (err != NULL)
-		{
-			gel_error("Cannot create regex: '%s'", err->message);
-			g_error_free(err);
-		}
-	}
-
-	// Attach EinaCover
-	self->cover = cover;
-	g_object_ref(self->cover);
-
-	// Those fields are by default set correctly
-	self->running = FALSE;
-	self->parent  = NULL;
-	self->name    = NULL;
-	self->pixbuf  = NULL;
-	self->score   = G_MAXINT;
-
-	return self;
-}
-
-void
-coverplus_infolder_reset(CoverPlusInfolder* self)
-{
-	// Cancel operations
-	if (self->readdir_op)
-	{
-		gel_io_op_cancel(self->readdir_op);
-		gel_free_and_invalidate(self->readdir_op, NULL, gel_io_op_unref);
-	}
-	if (self->readuri_op)
-	{
-		gel_io_op_cancel(self->readuri_op);
-		gel_free_and_invalidate(self->readuri_op, NULL, gel_io_op_unref);
-	}
-	self->running = FALSE;
-
-	// Free parent and name
-	gel_free_and_invalidate(self->parent, NULL, g_object_unref);
-	gel_free_and_invalidate(self->name,   NULL, g_free);
-	gel_free_and_invalidate(self->pixbuf, NULL, g_object_unref);
-
-	// Reset score
-	self->score = G_MAXINT;
-}
-
-void
-coverplus_infolder_free(CoverPlusInfolder* self)
-{
-	gint i;
-
-	// Free regexes
-	for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
-		if (self->regexes[i])
-			g_object_unref(self->regexes[i]);
-
-	if (self->readdir_op)
-	{
-		gel_io_op_cancel(self->readdir_op);
-		gel_free_and_invalidate(self->readdir_op, NULL, gel_io_op_unref);
-	}
-	if (self->readuri_op)
-	{
-		gel_io_op_cancel(self->readuri_op);
-		gel_free_and_invalidate(self->readuri_op, NULL, gel_io_op_unref);
-	}
-
-	// Free parent and name
-	gel_free_and_invalidate(self->parent, NULL, g_object_unref);
-	gel_free_and_invalidate(self->name,   NULL, g_free);
-	gel_free_and_invalidate(self->pixbuf, NULL, g_object_unref);
-
-	// Unref cover
-	g_object_unref(self->cover);
-
-	g_free(self);
-}
-
-void
-coverplus_infolder_search(EinaCover *cover, const LomoStream *stream, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-
-	if (stream == NULL)
-	{
-		eina_cover_backend_fail(cover);
-		return;
-	}
-
-	GFile *stream_file = g_file_new_for_uri(lomo_stream_get_tag(stream, LOMO_TAG_URI));
-	GFile *f = g_file_get_parent(stream_file);
-
-	if (f == NULL)
-	{
-		gel_warn("Cannot get stream's parent");
-		g_object_unref(stream_file);
-		coverplus_infolder_finish(cover, self);
-		return;
-	}
-	g_object_unref(stream_file);
-
-	if ((self->parent != NULL) && g_file_equal(self->parent, f))
-	{
-		g_object_unref(f);
-		coverplus_infolder_finish(self->cover, self);
-		return;
-	}
-
-	coverplus_infolder_reset(self);
-
-	self->parent = f;
-	self->readdir_op = gel_io_read_dir(f, "standard::*",
-		cover_plus_infolder_readdir_success_cb, cover_plus_infolder_readdir_error_cb,
-		self);
-}
-
-void
-coverplus_infolder_finish(EinaCover *cover, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	GFile *f;
-	gchar *uri;
-
-	// Stop pending operations
-	// gel_io_async_read_dir_cancel(self->dir_reader);
-	gel_io_op_cancel(self->
-
-	// Dont free regexes, they are shared between multiple searches
-
-	// Send results now, if uri != NULL we got positive results, build a
-	// correct uri and send to cover, else, send a fail message
-
-	if ((self->pixbuf != NULL) && GDK_IS_PIXBUF(self->pixbuf))
-	{
-		eina_cover_backend_success(cover, GDK_TYPE_PIXBUF, self->pixbuf);
-	}
-
-	else if (self->name != NULL)
-	{
-		f   = g_file_get_child(self->parent, self->name);
-		uri = g_file_get_uri(f);
-
-		gel_io_async_read_op_fetch(self->uri_reader, f);
-
-		g_free(uri);
-	}
-
-	else
-	{
-		eina_cover_backend_fail(self->cover);
-	}
-}
-
-static void
-coverplus_infolder_search_plugin_wrapper(EinaCover *cover, const LomoStream *stream, gpointer data)
-{
-	coverplus_infolder_search(cover, stream, EINA_PLUGIN_DATA(data)->infolder);
-}
-
-static void
-coverplus_infolder_finish_plugin_wrapper(EinaCover *cover, gpointer data)
-{
-	coverplus_infolder_finish(cover, EINA_PLUGIN_DATA(data)->infolder);
-}
-
-void
-cover_plus_infolder_readdir_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	GList *children = gel_io_op_result_get_object_list(result);
-	GList       *iter;
-	gint         i;
-	GFileInfo   *info;
-	const gchar *name;
-
-	iter = children;
-	while (iter)
-	{
-		info = G_FILE_INFO(iter->data);
-		name = g_file_info_get_name(info);
-
-		for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
-		{
-			if (g_regex_match(self->regexes[i], name, 0, NULL) && (i < self->score))
-			{
-				gel_free_and_invalidate(self->name, NULL, g_free);
-				self->name = g_strdup(name);
-				self->score = i;
-				break;
-			}
-		}	
-		iter = iter->next;
-	}
-	gel_io_op_unref(op);
-	coverplus_infolder_finish(self->cover, self);
-}
-
-void
-coverplus_infolder_readuri_error_cb(GelIOAsyncReadOp *op, GError *error, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	gel_error("Error fetching URI: %s", error->message);
-	gel_io_op_unref(op);
-	coverplus_infolder_finish(self->cover, self);
-}
-
-void
-cover_plus_infolder_readdir_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	gel_warn("Got error while fetching children: %s", error->message);
-	coverplus_infolder_finish(self->cover, self);
-}
-
-void
-cover_plus_infolder_readfile_succes_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data);
-void
-cover_plus_infolder_readfile_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
-#if 0
-void
-coverplus_infolder_readdir_error_cb(GelIOAsyncReadDir *obj, GError *error, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	gel_warn("Got error while fetching children: %s", error->message);
-	coverplus_infolder_finish(self->cover, self);
-}
-
-void
-coverplus_infolder_readdir_finish_cb(GelIOAsyncReadDir *obj, GList *children, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	GList       *iter;
-	gint         i;
-	GFileInfo   *info;
-	const gchar *name;
-
-	iter = children;
-	while (iter)
-	{
-		info = G_FILE_INFO(iter->data);
-		name = g_file_info_get_name(info);
-
-		for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
-		{
-			if (g_regex_match(self->regexes[i], name, 0, NULL) && (i < self->score))
-			{
-				gel_free_and_invalidate(self->name, NULL, g_free);
-				self->name = g_strdup(name);
-				self->score = i;
-				break;
-			}
-		}	
-		iter = iter->next;
-	}
-	coverplus_infolder_finish(self->cover, self);
-}
-
-void
-coverplus_infolder_readuri_error_cb(GelIOAsyncReadOp *op, GError *error, gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	gel_error("Error fetching URI: %s", error->message);
-	coverplus_infolder_finish(self->cover, self);
-}
-
-void
-coverplus_infolder_readuri_finish_cb(GelIOAsyncReadOp *op, GByteArray *op_data,  gpointer data)
-{
-	CoverPlusInfolder *self = (CoverPlusInfolder *) data;
-	GError *err = NULL;
-
-	g_file_set_contents("/tmp/eina.cover", (gchar*) op_data->data, op_data->len, NULL);
-	self->pixbuf = gdk_pixbuf_new_from_file("/tmp/eina.cover", &err);
-	if (err != NULL)
-	{
-		gel_error("Cannot load file: %s", err->message);
-		g_error_free(err);
-	}
-	coverplus_infolder_finish(self->cover, self);
-}
-#endif
-#endif
 /*
  * Banshee covers
  */
@@ -459,9 +329,9 @@ coverplus_exit(EinaPlugin *plugin, GError **error)
 	EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	eina_cover_remove_backend(cover, "coverplus-banshee");
-	// eina_cover_remove_backend(cover, "coverplus-infolder");
+	eina_cover_remove_backend(cover, "coverplus-infolder");
 
-	// coverplus_infolder_free(EINA_PLUGIN_DATA(plugin)->infolder);
+	coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
 	g_free(EINA_PLUGIN_DATA(plugin));
 
 	return TRUE;
@@ -474,18 +344,16 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 	EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	plugin->data = self;
-	/*
-	self->infolder = coverplus_infolder_new(eina_plugin_get_player_cover(plugin));
-	self->infolder->cover = cover;
-	*/
-	eina_cover_add_backend(cover, "coverplus-banshee",
-		coverplus_banshee_search, NULL, NULL);
-	/*
+	
+	self->infolder = coverplus_infolder_new(cover);
+
+	eina_cover_add_backend(cover, "coverplus-banshee", coverplus_banshee_search, NULL, NULL);
+
 	eina_cover_add_backend(cover, "coverplus-infolder",
-		coverplus_infolder_search_plugin_wrapper,
-		coverplus_infolder_finish_plugin_wrapper,
+		coverplus_infolder_search_wrapper,
+		coverplus_infolder_cancel_wrapper,
 		plugin);
-	*/
+
 	return TRUE;
 }
 

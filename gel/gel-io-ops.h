@@ -15,9 +15,13 @@ typedef void (*GelIOOpErrorFunc)   (GelIOOp *op, GFile *source, GError *error, g
 
 #define GEL_IO_OP(p)           ((GelIOOp *) p)
 
+#ifdef GEL_IO_DISABLE_DEPRECATED
+#define gel_io_read_file_SUPERSEED_BY_g_file_load_contents_async
+#else
 GelIOOp *gel_io_read_file(GFile *file,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data);
+#endif
 
 GelIOOp *gel_io_read_dir(GFile *dir, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
