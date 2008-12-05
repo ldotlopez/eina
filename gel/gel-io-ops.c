@@ -133,8 +133,9 @@ cancellable_cancelled_cb(GCancellable *cancellable, gpointer data)
 }
 
 // --
-// file_read operation
+// file_read operation (DEPRECATED, glib-io has equivalent function)
 // --
+#ifndef GEL_IO_DISABLE_DEPRECATED
 #define FILE_READ(p) ((GelIOOpFileRead*)p)
 typedef struct {
 	guint8 *buffer;
@@ -248,6 +249,7 @@ read_file_close_cb(GObject *source, GAsyncResult *res, gpointer data)
 	gel_io_op_success(self, result);
 	g_free(result);
 }
+#endif
 
 // --
 // read_dir operation
