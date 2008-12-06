@@ -122,7 +122,11 @@ lomo_meta_clear(LomoMeta *self)
 
 	// Clear pipeline
 	if (priv->pipeline)
+	{
+		gst_element_set_state(priv->pipeline, GST_STATE_NULL);
 		g_object_unref(priv->pipeline);
+		priv->pipeline = NULL;
+	}
 
 	// Clear queue
 	g_list_foreach(priv->queue, (GFunc) g_object_unref, NULL);
