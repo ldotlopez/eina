@@ -24,6 +24,8 @@ eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris, EinaFsFilterFunc filt
 
 gboolean
 eina_fs_is_supported_extension(gchar *uri);
+gboolean
+eina_fs_is_supported_file(GFile *uri);
 
 void
 eina_fs_readdir_async(gchar *uri, gpointer data);

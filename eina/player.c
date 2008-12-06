@@ -737,21 +737,70 @@ static GtkTargetEntry target_list[] = {
 
 static guint n_targets = G_N_ELEMENTS (target_list);
 
+void
+list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
+{
+	EinaPlayer *self = EINA_PLAYER(data);
+	GList  *uris;
+	GSList *filter;
+
+	if (!(uris = gel_io_op_result_get_object_list(res)))
+	{
+		gel_io_op_unref(op);
+		return;
+	}
+	filter = gel_list_filter(uris, (GelFilterFunc) eina_fs_is_supported_file, NULL);
+	if (!filter)
+	{
+		gel_io_op_unref(op);
+		return;
+	}
+
+	GList  *lomofeed = NULL;
+	GSList *iter = filter;
+	while (iter)
+	{
+		lomofeed = g_list_prepend(lomofeed, g_file_get_uri(G_FILE(iter->data)));
+		iter = iter->next;
+	}
+	lomofeed = g_list_reverse(lomofeed);
+
+	g_slist_free(filter);
+	gel_io_op_unref(op);
+
+	lomo_player_clear(LOMO(self));
+	lomo_player_add_uri_multi(LOMO(self), lomofeed);
+	gel_list_deep_free(lomofeed, g_free);
+}
+
+void
+list_read_error_cb(GelIOOp *op, GFile *source, GError *err, gpointer data)
+{
+	gel_warn("ERror");
+}
+
 static void
 drag_data_received_handl
 (GtkWidget *widget, GdkDragContext *context, gint x, gint y,
 	GtkSelectionData *selection_data, guint target_type, guint time,
 	gpointer data)
 {
+	EinaPlayer *self = EINA_PLAYER(data);
 	gchar *string = NULL;
 
 	// Check for data
 	if ((selection_data == NULL) || (selection_data->length < 0))
+	{
+		gel_warn("Got invalid selection from DnD");
 		return gtk_drag_finish (context, FALSE, FALSE, time);
+	}
 
 	if (context->action != GDK_ACTION_COPY)
+	{
+		gel_warn("Got invalid action from DnD");
 		return gtk_drag_finish (context, FALSE, FALSE, time);
-	
+	}
+
 	/*
 	if (context-> action == GDK_ACTION_ASK)
 	{
@@ -772,11 +821,27 @@ drag_data_received_handl
 		gel_warn("Unknow target type in DnD");
 	}
 
-	if (data == NULL)
+	if (string == NULL)
 		return gtk_drag_finish (context, FALSE, FALSE, time);
 
 	gel_warn("Got DND: %s", string);
 	gtk_drag_finish (context, TRUE, FALSE, time);
+
+	// Parse
+	gint i;
+	gchar **uris = g_uri_list_extract_uris(string);
+	GSList *files = NULL;
+	for (i = 0; uris[i] && uris[i][0]; i++)
+	{
+		gel_warn("GFile created for '%s'", uris[i]);
+		files = g_slist_prepend(files, g_file_new_for_uri(uris[i]));
+	}
+	g_strfreev(uris);
+	files = g_slist_reverse(files);
+
+	gel_io_list_read(files, "standard::*",
+		list_read_success_cb, list_read_error_cb,
+		self);
 }
 
 void setup_dnd(EinaPlayer *self)
@@ -788,7 +853,7 @@ void setup_dnd(EinaPlayer *self)
 		n_targets,              /* size of list */
 		GDK_ACTION_COPY);
 	g_signal_connect (well_dest, "drag-data-received",
-		G_CALLBACK(drag_data_received_handl), NULL);
+		G_CALLBACK(drag_data_received_handl), self);
 /*
 	g_signal_connect (well_dest, "drag-leave",
 		G_CALLBACK (drag_leave_handl), NULL);

@@ -110,6 +110,16 @@ eina_fs_is_supported_extension(gchar *uri)
 	return ret;
 }
 
+gboolean
+eina_fs_is_supported_file(GFile *uri)
+{
+	gboolean ret;
+	gchar *u = g_file_get_uri(uri);
+	ret = eina_fs_is_supported_extension(u);
+	g_free(u);
+	return ret;
+}
+
 /*
 static void
 read_dir_success_cb(GelIOSimpleDir *op, GFile *file, GList *l, gpointer data)
