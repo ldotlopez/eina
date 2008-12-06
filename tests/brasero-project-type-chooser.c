@@ -56,7 +56,7 @@ brasero_project_type_chooser_init (BraseroProjectTypeChooser *obj)
 {
 	GError *error = NULL;
 	obj->priv = g_new0 (BraseroProjectTypeChooserPrivate, 1);
-	obj->priv->background = gdk_pixbuf_new_from_file ("/home/xuzo/svn/eina/trunk/pixmaps/logo.png", &error);
+	obj->priv->background = gdk_pixbuf_new_from_file ("logo.png", &error);
 	if (error) {
 		g_warning ("ERROR loading background pix : %s\n", error->message);
 		g_error_free (error);
