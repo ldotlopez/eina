@@ -64,7 +64,29 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 
 	gtk_widget_destroy(GTK_WIDGET(picker));
 }
+/*
+void
+eina_fs_dnd_load_files(LomoPlayer *lomo, gchar *buffer)
+{
+	gchar **uris_strv = g_uri_list_extract_uris(buffer);
+	gint i;
 
+	// Create a queue
+	GQueue *q = g_queue_new();
+	for (i = 0; uris_strv[i] && !g_str_equal(uris_strv[i], ""); i++)
+		g_queue_push_tail(q, uris_strv[i]);
+
+	while (!g_queue_empty(q))
+	{
+		g_file_query_info_async(g_file_new_for_uri(g_queue_pop_head(q)),
+			"standard::*", 0,
+			g_cancellable_new(), dnd_query_info_cb,
+			lomo);
+		gtk_main();
+	}
+	g_strfreev(uris_strv);
+}
+*/
 gboolean
 eina_fs_is_supported_extension(gchar *uri)
 {

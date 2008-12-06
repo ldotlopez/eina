@@ -5,7 +5,7 @@
 #include <glib.h>
 #include <lomo/player.h>
 #include <lomo/util.h>
-#include <eina/iface.h>
+#include <eina/plugin.h>
 
 typedef struct _LastFmDataSubmit {
 	gint64 secs_required;
@@ -106,7 +106,7 @@ lastfm_submit_reset_count(EinaPlugin *self)
 {
 	LastFmData *data = EINA_PLUGIN_DATA(self);
 
-	eina_iface_warn("Reset counters");
+	gel_warn("Reset counters");
 	data->submit->secs_required = G_MAXINT64;
 	data->submit->secs_played   = 0;
 	data->submit->check_point = 0;
@@ -117,11 +117,11 @@ lastfm_submit_set_checkpoint(EinaPlugin *self, gint64 checkpoint, gboolean add_t
 {
 	LastFmData *data = EINA_PLUGIN_DATA(self);
 
-	eina_iface_warn("Set checkpoint at %lld, add: %s", checkpoint, add_to_played ? "Yes" : "No");
+	gel_warn("Set checkpoint at %lld, add: %s", checkpoint, add_to_played ? "Yes" : "No");
 	if (add_to_played)
 		data->submit->secs_played += (checkpoint - data->submit->check_point);
 	data->submit->check_point = checkpoint;
-	eina_iface_warn("played: %lld", data->submit->secs_played);
+	gel_warn("played: %lld", data->submit->secs_played);
 }
 
 static void
@@ -168,7 +168,7 @@ lastfm_submit_lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
 
 	if (data->submit->secs_played < data->submit->secs_required)
 	{
-		eina_iface_warn("Not sending stream %p, insufficient seconds played (%lld / %lld)", stream,
+		gel_warn("Not sending stream %p, insufficient seconds played (%lld / %lld)", stream,
 			data->submit->secs_played, data->submit->secs_required);
 		return;
 	}
@@ -178,7 +178,7 @@ lastfm_submit_lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
 	title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
 	if (!artist || !title)
 	{
-		eina_iface_error("Cannot submit stream %p, unavailable tags", stream);
+		gel_error("Cannot submit stream %p, unavailable tags", stream);
 		return;
 	}
 
@@ -189,7 +189,7 @@ lastfm_submit_lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
 		g_free(cmdl);
 		cmdl = tmp;
 	}
-	eina_iface_warn("EXEC %lld/%lld: '%s'", data->submit->secs_played, data->submit->secs_required, cmdl);
+	gel_warn("EXEC %lld/%lld: '%s'", data->submit->secs_played, data->submit->secs_required, cmdl);
 	g_spawn_command_line_async(cmdl, NULL);
 }
 
@@ -231,5 +231,4 @@ G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
 	lastfm_init, lastfm_exit,
 
 	NULL, NULL
-
 };

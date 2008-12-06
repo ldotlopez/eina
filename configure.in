@@ -1,5 +1,5 @@
-AC_INIT([eina], 0.7.3, xuzo@cuarentaydos.com)
-AM_INIT_AUTOMAKE([eina], [0.7.3])
+AC_INIT([eina], 0.7.2.91, xuzo@cuarentaydos.com)
+AM_INIT_AUTOMAKE([eina], [0.7.2.91])
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -11,6 +11,7 @@ AC_PROG_CC
 AC_HEADER_STDC
 AC_PROG_INTLTOOL
 AM_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIR([m4])
 
 EINA_API_VERSION="0.7"
 EINA_VERSION="$EINA_API_VERSION.0"
@@ -75,20 +76,6 @@ AC_SUBST(GSTREAMER_VERSION)
 PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
-dnl curl (eina-cover)
-#AC_PATH_PROG(CURL_CONFIG, curl-config)
-#if test -z "$CURL_CONFIG"; then
-#	HAVE_CURL="no"
-#	echo "Error: libcurl headers not found"
-#	exit 1
-#else
-#	CURL_CXXFLAGS="`$CURL_CONFIG --cflags`"
-#	CURL_LIBS="`$CURL_CONFIG --libs`"
-#	HAVE_CURL="yes"
-#fi
-#AC_SUBST(CURL_CXXFLAGS)
-#AC_SUBST(CURL_LIBS)
-
 dnl
 dnl Plugins
 dnl
@@ -107,34 +94,34 @@ PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 	)
 AM_CONDITIONAL(USE_ADB, test x"$HAVE_SQLITE3" = "xyes")
 
-dnl libnotify (notify)
-libnotify_modules="libnotify >= 0.4.0"
-PKG_CHECK_MODULES(LIBNOTIFY, $libnotify_modules,
-     [
-        AC_SUBST(LIBNOTIFY_CFLAGS)
-        AC_SUBST(LIBNOTIFY_LIBS)
-        AC_DEFINE(USE_NOTIFY, [1], Build notify plugin)
-        HAVE_NOTIFY=yes
-    ],
-    [
-        HAVE_NOTIFY=no
-    ]
-    )
-AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
+dnl libnotify (notify) plugin delayed until 0.8.0
+dnl libnotify_modules="libnotify >= 0.4.0"
+dnl PKG_CHECK_MODULES(LIBNOTIFY, $libnotify_modules,
+dnl      [
+dnl         AC_SUBST(LIBNOTIFY_CFLAGS)
+dnl         AC_SUBST(LIBNOTIFY_LIBS)
+dnl         AC_DEFINE(USE_NOTIFY, [1], Build notify plugin)
+dnl         HAVE_NOTIFY=yes
+dnl     ],
+dnl     [
+dnl         HAVE_NOTIFY=no
+dnl     ]
+dnl     )
+dnl AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
 
-dnl webkit (LastfmInfo)
-webkitgtk_modules="WebKitGtk = 1d"
-PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
-     [
-        AC_SUBST(WEBKITGTK_CFLAGS)
-        AC_SUBST(WEBKITGTK_LIBS)
-        HAVE_WEBKITGTK=yes
-    ],
-    [
-        HAVE_WEBKITGTK=no
-    ]
-    )
-AM_CONDITIONAL(USE_LASTFMINFO, test x"$HAVE_WEBKITGTK" = "xyes")
+dnl webkit (LastfmInfo) delayed until 0.8.0
+dnl webkitgtk_modules="WebKitGtk = 1d"
+dnl PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
+dnl    [
+dnl        AC_SUBST(WEBKITGTK_CFLAGS)
+dnl        AC_SUBST(WEBKITGTK_LIBS)
+dnl        HAVE_WEBKITGTK=yes
+dnl    ],
+dnl    [
+dnl        HAVE_WEBKITGTK=no
+dnl    ]
+dnl    )
+dnl AM_CONDITIONAL(USE_LASTFMINFO, test x"$HAVE_WEBKITGTK" = "xyes")
 
 dnl Keep in alphabetical order
 AC_OUTPUT([
@@ -149,13 +136,13 @@ pixmaps/Makefile
 plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
+plugins/lastfm/Makefile
 plugins/Makefile
 po/Makefile.in
 ui/Makefile
 ])
 
-dnl Disabled plugins
-#plugins/lastfm/Makefile
+dnl Buggy plugins
 #plugins/lastfminfo/Makefile
 #plugins/lastfmcover/Makefile
 #plugins/notify/Makefile

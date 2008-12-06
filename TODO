@@ -29,7 +29,7 @@ V Window icon at startup (see prev bug)
 ====================
 - LastFM Info plugin (Update on demand, CSS love)
 - Recently plugin doesnt work
-- EinaVogon plugin, Vogon player
+- Vogon must be a versatile miniplayer
 
 0.10 Series
 ===========
@@ -44,6 +44,8 @@ V Window icon at startup (see prev bug)
 - Dock must be an independant component, EinaPlayer or EinaFoo should be
   reclaim them
 - Rethink the EinaCover interface to plugins
+- LibUnique
+- warn_unused_result gcc 3.4 attribute
 
 Misc
 ====

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-if [ "$(basename "$PWD")" != "eina" ]; then
+if [ "$(basename "$PWD")" != "trunk" ]; then
 	echo "No root"
 	exit
 fi
 
 ./autogen.sh
 make -i distclean
-rm -rf -- $(svn status | grep  '^?' | awk '{print $2}') lib{ghub,util}/*{lo,la,a,o}
+rm -rf -- $(svn status | grep  '^?' | awk '{print $2}') lib{gel,lomo}/*{lo,la,a,o}
 ./autogen.sh
 make dist
 TGZ=$PWD/$(find . -name 'eina-*tar.gz' | head -1)

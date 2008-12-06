@@ -7,7 +7,10 @@
 
 void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo);
-
+/*
+void
+eina_fs_dnd_load_files(LomoPlayer *lomo);
+*/
 typedef enum {
 	EINA_FS_FILTER_ACCEPT,
 	EINA_FS_FILTER_REJECT

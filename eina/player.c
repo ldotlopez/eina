@@ -56,6 +56,8 @@ static void
 update_sensitiviness(EinaPlayer *self);
 static void
 about_show(void);
+static void
+setup_dnd(EinaPlayer *self);
 
 // UI callbacks
 static gboolean
@@ -244,18 +246,20 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	g_signal_connect_swapped(LOMO(self), "random", G_CALLBACK(update_sensitiviness), self);
 
 	// Preferences is attached to us (like dock) but this is less than optimal
-	if (!gel_hub_load(hub, "preferences"))
+	EinaPreferencesDialog *prefs;
+	if (!gel_hub_load(hub, "preferences") || !(prefs = EINA_PREFERENCES_DIALOG(GEL_HUB_GET_PREFERENCES(hub))))
 	{
 		gel_warn("Cannot load preferences component");
 	}
 	else
 	{
-		EinaPreferencesDialog *prefs = EINA_PREFERENCES_DIALOG(gel_hub_shared_get(hub, "preferences"));
 		eina_preferences_dialog_add_tab(prefs,
 			GTK_IMAGE(gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_BUTTON)),
 			GTK_LABEL(gtk_label_new(_("Player"))),
 			build_preferences_widget(self));
 	}
+
+	setup_dnd(self);
 
 	// Show it
 	gtk_widget_show(GTK_WIDGET(self->main_window));
@@ -274,8 +278,8 @@ eina_player_exit (gpointer data)
 	EinaPlayer *self = (EinaPlayer *) data;
 
 	g_free(self->stream_info_fmt);
-	gel_hub_unload(HUB(self), "settings");
 
+	gel_hub_unload(HUB(self), "settings");
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
@@ -690,32 +694,6 @@ lomo_all_tags_cb (LomoPlayer *lomo, const LomoStream *stream, EinaPlayer *self)
 		set_info(self, (LomoStream *) stream);
 }
 
-// fs_filter_cb: Filters supported types from EinaFileChooserDialog
-#if 0
-static EinaFsFilterAction
-fs_filter_cb(GFileInfo *info)
-{
-	static const gchar *suffixes[] = {".mp3", ".ogg", ".wma", ".aac", ".flac", NULL };
-	gchar *lc_name;
-	gint i;
-	EinaFsFilterAction ret = EINA_FS_FILTER_REJECT;
-
-	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
-		return  EINA_FS_FILTER_ACCEPT;
-
-	lc_name = g_utf8_strdown(g_file_info_get_name(info), -1);
-	for (i = 0; suffixes[i] != NULL; i++) {
-		if (g_str_has_suffix(lc_name, suffixes[i])) {
-			ret = EINA_FS_FILTER_ACCEPT;
-			break;
-		}
-	}
-
-	g_free(lc_name);
-	return ret;
-}
-#endif
-
 // stream_info_parser_cb: Helps to format stream info for display
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream)
@@ -737,6 +715,88 @@ stream_info_parser_cb(gchar key, LomoStream *stream)
 		g_free(tmp2);
 	}
 	return ret;
+}
+
+// --
+// DnD implementation
+// --
+enum {
+	TARGET_INT32,
+	TARGET_STRING,
+	TARGET_ROOTWIN
+};
+
+/* datatype (string), restrictions on DnD
+ * (GtkTargetFlags), datatype (int) */
+static GtkTargetEntry target_list[] = {
+	// { "INTEGER",    0, TARGET_INT32 },
+	{ "STRING",     0, TARGET_STRING },
+	{ "text/plain", 0, TARGET_STRING },
+	// { "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
+};
+
+static guint n_targets = G_N_ELEMENTS (target_list);
+
+static void
+drag_data_received_handl
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+	GtkSelectionData *selection_data, guint target_type, guint time,
+	gpointer data)
+{
+	gchar *string = NULL;
+
+	// Check for data
+	if ((selection_data == NULL) || (selection_data->length < 0))
+		return gtk_drag_finish (context, FALSE, FALSE, time);
+
+	if (context->action != GDK_ACTION_COPY)
+		return gtk_drag_finish (context, FALSE, FALSE, time);
+	
+	/*
+	if (context-> action == GDK_ACTION_ASK)
+	{
+		// Ask the user to move or copy, then set the context action.
+	}
+
+	if (context-> action == GDK_ACTION_MOVE)
+		delete_selection_data = TRUE;
+	*/
+
+	/* Check that we got the format we can use */
+	switch (target_type)
+	{
+	case TARGET_STRING:
+		string = (gchar*) selection_data-> data;
+		break;
+	default:
+		gel_warn("Unknow target type in DnD");
+	}
+
+	if (data == NULL)
+		return gtk_drag_finish (context, FALSE, FALSE, time);
+
+	gel_warn("Got DND: %s", string);
+	gtk_drag_finish (context, TRUE, FALSE, time);
+}
+
+void setup_dnd(EinaPlayer *self)
+{
+	GtkWidget *well_dest = W(self, "main-box");
+	gtk_drag_dest_set(well_dest,
+		GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION, // motion or highlight can do c00l things
+		target_list,            /* lists of target to support */
+		n_targets,              /* size of list */
+		GDK_ACTION_COPY);
+	g_signal_connect (well_dest, "drag-data-received",
+		G_CALLBACK(drag_data_received_handl), NULL);
+/*
+	g_signal_connect (well_dest, "drag-leave",
+		G_CALLBACK (drag_leave_handl), NULL);
+	g_signal_connect (well_dest, "drag-motion",
+		G_CALLBACK (drag_motion_handl), NULL);
+	g_signal_connect (well_dest, "drag-drop",
+		G_CALLBACK (drag_drop_handl), NULL);
+*/
 }
 
 // --

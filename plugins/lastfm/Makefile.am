@@ -1,10 +1,10 @@
 plugindir = $(libdir)/$(PACKAGE)/lastfm
 
 plugin_LTLIBRARIES = liblastfm.la
-liblastfm_la_LDFLAGS = @PACKAGE_LIBS@ @LIBNOTIFY_LIBS@ -module -avoid-version
+liblastfm_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 liblastfm_la_SOURCES = lastfm.c
 
-AM_CFLAGS = @PACKAGE_CFLAGS@ @LIBNOTIFY_CFLAGS@
+AM_CFLAGS = @PACKAGE_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
 
 lastfm.ui: lastfm.glade
