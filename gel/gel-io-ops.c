@@ -1,4 +1,5 @@
 #define GEL_DOMAIN "Gel::IO::SimpleOps"
+#include <string.h>
 #include <gio/gio.h>
 #include <gel/gel.h>
 #include <gel/gel-io-misc.h>
@@ -530,3 +531,231 @@ recurse_dir_error_cb(GelIOOp *op, GFile *parent, GError *error, gpointer data)
 	recurse_dir_run_queue(self);
 }
 
+// --
+// List read
+// --
+typedef struct {
+	GQueue       *queue;
+	GCancellable *cancellable;
+	GelIOOp      *subop;
+	GList        *results;
+	const gchar  *attributes;
+} GelIOListRead;
+#define LIST_READ(d) ((GelIOListRead*)d)
+
+GelIOOp *
+gel_io_op_list_read(GSList *uris, const gchar *attributes,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data);
+gboolean
+list_read_destroy(GelIOOp *op);
+gboolean
+list_read_cancel(GelIOOp *op);
+void
+list_read_run_queue(GelIOOp *op);
+
+gint
+list_read_compare_files(GFile *a, GFile *b);
+void
+list_read_query_info_cb(GObject *source, GAsyncResult *res, gpointer data);
+void
+list_read_recurse_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
+void
+list_read_recurse_error_cb(GelIOOp *op, GFile *source, GError *err, gpointer data);
+void
+list_read_parse_tree(GelIOOp *op, GelIORecurseTree *tree, GFile *root);
+
+GelIOOp *
+gel_io_list_read(GSList *uris, const gchar *attributes,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data)
+{
+	GelIOOp *self = gel_io_op_new(g_file_new_for_uri(NULL), NULL,
+		success, error,
+		list_read_cancel, list_read_destroy,
+		data);
+	self->_d = g_new0(GelIOListRead, 1);
+	LIST_READ(self->_d)->queue  = g_queue_new();
+	LIST_READ(self->_d)->attributes = attributes;
+	while (uris)
+	{
+		g_queue_push_tail(LIST_READ(self->_d)->queue, uris->data);
+		uris = uris->next;
+	}
+
+	list_read_run_queue(self);
+	return self;
+}
+
+gboolean
+list_read_destroy(GelIOOp *op)
+{
+	if (!op->_d)
+		return FALSE;
+
+	list_read_cancel(op);
+
+	if (LIST_READ(op->_d)->queue)
+	{
+		g_queue_free(LIST_READ(op->_d)->queue);
+		LIST_READ(op->_d)->queue = NULL;
+	}
+	g_free(op->_d);
+	return FALSE;
+}
+
+gboolean
+list_read_cancel(GelIOOp *op)
+{
+	if (!op->_d)
+		return FALSE;
+
+	GelIOListRead *d = LIST_READ(op->_d);
+
+	if (d->cancellable)
+	{
+		g_cancellable_cancel(d->cancellable);
+		gel_free_and_invalidate(d->cancellable, NULL, g_object_unref);
+	}
+	if (d->subop)
+	{
+		gel_io_op_cancel(d->subop);
+		gel_free_and_invalidate(d->subop, NULL, gel_io_op_unref);
+	}
+	if (d->results)
+	{
+		g_list_foreach(d->results, (GFunc) g_object_unref, NULL);
+		g_list_free(d->results);
+	}
+	if (!g_queue_is_empty(d->queue))
+	{
+		g_queue_foreach(d->queue, (GFunc) g_object_unref, NULL);
+		g_queue_clear(d->queue);
+	}
+	return FALSE; // Do normal cancel
+}
+
+void
+list_read_run_queue(GelIOOp *op)
+{
+	GelIOListRead *d = LIST_READ(op->_d);
+	
+	// Work is done?
+	if (g_queue_is_empty(d->queue))
+	{
+		GelIOOpResult *res = gel_io_op_result_new(GEL_IO_OP_RESULT_OBJECT_LIST, d->results);
+		gel_io_op_success(op, res);
+		g_free(res);
+		return;
+	}
+
+	GFile *file = g_queue_pop_head(d->queue);
+	d->cancellable = g_cancellable_new();
+	g_file_query_info_async(file, d->attributes, G_FILE_QUERY_INFO_NONE,
+		G_PRIORITY_DEFAULT, d->cancellable, list_read_query_info_cb,
+		op);
+}
+
+gint
+list_read_compare_files(GFile *a, GFile *b)
+{
+	gchar *a2 = g_file_get_uri(a);
+	gchar *b2 = g_file_get_uri(b);
+
+	gint ret = strcmp(a2, b2);
+
+	g_free(a2);
+	g_free(b2);
+
+	return ret;
+}
+
+void
+list_read_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
+{
+	GelIOOp *self = GEL_IO_OP(data);
+	GelIOListRead *d = LIST_READ(self->_d);
+
+	GError *err = NULL;
+
+	GFileInfo *info = g_file_query_info_finish(G_FILE(source), res, &err);
+	if (!info)
+	{
+		self->source = G_FILE(source);
+		gel_io_op_error(self, err);
+		g_error_free(err);
+	}
+	g_object_unref(d->cancellable);
+
+	switch (g_file_info_get_file_type(info))
+	{
+	case G_FILE_TYPE_DIRECTORY:
+		d->subop = gel_io_recurse_dir(G_FILE(source), d->attributes, 
+			list_read_recurse_success_cb, list_read_recurse_error_cb,
+			(gpointer) self);
+		break;
+
+	case G_FILE_TYPE_REGULAR:
+		d->results = g_list_prepend(d->results, source);
+		list_read_run_queue(self);
+		break;
+
+	default:
+		list_read_run_queue(self);
+		break;
+	}
+}
+
+void
+list_read_recurse_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
+{
+	GelIOOp *self = GEL_IO_OP(data);
+
+	GelIORecurseTree *tree = gel_io_op_result_get_recurse_tree(res);
+	list_read_parse_tree(self, tree, gel_io_recurse_tree_get_root(tree));
+
+	gel_io_op_unref(op);
+	list_read_run_queue(self);
+}
+
+void
+list_read_recurse_error_cb(GelIOOp *op, GFile *source, GError *err, gpointer data)
+{
+	GelIOOp *self = GEL_IO_OP(data);
+
+	self->source = source;
+	gel_io_op_error(self, err);
+	g_error_free(err);
+}
+
+void
+list_read_parse_tree(GelIOOp *op, GelIORecurseTree *tree, GFile *root)
+{
+	GelIOListRead *d = LIST_READ(op->_d);
+	GList *children = gel_io_recurse_tree_get_children(tree, root);
+	GList *iter = children;
+	GList *add = NULL;
+
+	while (iter)
+	{
+		GFileInfo *info = G_FILE_INFO(iter->data);
+		GFile *child = g_file_get_child(root, g_file_info_get_name(info));
+
+		switch (g_file_info_get_file_type(G_FILE_INFO(iter->data)))
+		{
+		case G_FILE_TYPE_DIRECTORY:
+			list_read_parse_tree(op, tree, child);
+			g_object_unref(child);
+			break;
+		case G_FILE_TYPE_REGULAR:
+			add = g_list_prepend(add, child);
+			break;
+		default:
+			break;
+		}
+		iter = iter->next;
+	}
+	g_list_free(children);
+
+	d->results = g_list_concat(d->results, g_list_sort(add, (GCompareFunc) list_read_compare_files));
+}

@@ -22,6 +22,7 @@ INST_H_FILES = \
 	gel-hub.h               \
 	gel-io-misc.h           \
 	gel-io-op-result.h      \
+	gel-io-op-queue.h       \
 	gel-io-ops.h            \
 	gel-io-recurse-tree.h   \
 	gel-io.h                \
@@ -38,6 +39,7 @@ libgel_la_SOURCES = \
 	gel-hub.c               \
 	gel-io-misc.c           \
 	gel-io-op-result.c      \
+	gel-io-op-queue.c       \
 	gel-io-ops.c            \
 	gel-io-recurse-tree.c   \
 	gel-ui.c                \

@@ -60,6 +60,10 @@ gel_strv_to_list(gchar **strv, gboolean copy);
 gchar *
 gel_list_join(const gchar *separator, GList *list);
 
+// GSList are compatibles
+#define gel_slist_deep_free(list,callback) gel_list_deep_free((GList*)list,callback)
+#define gel_slist_deep_free_with_data(list,callback,user_data) gel_list_deep_free_with_data((GList*)list,callback,user_data)
+
 #define gel_list_deep_free(list,callback) gel_list_deep_free_with_data(list,(GFunc)callback,NULL)
 #define gel_list_deep_free_with_data(list,callback,user_data) \
 	do { \
@@ -69,6 +73,8 @@ gel_list_join(const gchar *separator, GList *list);
 		} \
 	} while (0)
 
+
+#define gel_list_filter(input,callback,user_data) gel_slist_filter((GSList*)input,callback,user_data); // Compatible
 GSList*
 gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data);
 

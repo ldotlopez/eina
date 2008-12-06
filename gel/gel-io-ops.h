@@ -31,6 +31,11 @@ GelIOOp *gel_io_recurse_dir(GFile *dir, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data);
 
+// uris is a list of GFile objects
+GelIOOp *gel_io_list_read(GSList *uris, const gchar *attributes,
+	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
+	gpointer data);
+
 void
 gel_io_op_ref(GelIOOp *self);
 void
