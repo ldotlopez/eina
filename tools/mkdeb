@@ -17,6 +17,6 @@ D=$(mktemp -d /tmp/eina-XXXXXX)
 	tar zxvf $TGZ
 	cd eina*
 	EMAIL="xuzo@cuarentaydos.com" NAME="xuzo" dch -i "New upstream version"
-	debuild
+	debuild --no-tgz-check
 )
 echo "Deb is at: $D"

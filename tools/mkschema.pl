@@ -3,9 +3,9 @@
 use strict;
 
 my $chunk = '  <schema>
-    <key>/schemas/apps/eina-gnome/%s</key>
-    <applyto>/apps/eina-gnome/%s</applyto>
-    <owner>eina-gnome</owner>
+    <key>/schemas/apps/eina/%s</key>
+    <applyto>/apps/eina/%s</applyto>
+    <owner>eina</owner>
     <type>%s</type>
     <default>%s</default>
     <locale name="C">
