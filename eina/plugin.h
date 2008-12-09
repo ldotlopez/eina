@@ -11,6 +11,7 @@
 #include <eina/fs.h>
 #include <eina/settings.h>
 #include <eina/eina-cover.h>
+#include <eina/artwork.h>
 
 #define EINA_PLUGIN_SERIAL 2
 #define EINA_PLUGIN(p)     ((EinaPlugin *) p)
@@ -116,6 +117,18 @@ eina_plugin_cover_add_backend(EinaPlugin *plugin, gchar *id,
 	EinaCoverBackendFunc search, EinaCoverBackendCancelFunc cancel);
 void
 eina_plugin_cover_remove_backend(EinaPlugin *plugin, gchar *id);
+
+// --
+// Artwork handling (cover replacement)
+// --
+EinaArtwork*
+eina_plugin_get_artwork(EinaPlugin *plugin);
+
+void
+eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
+	EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel);
+void
+eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id);
 
 // --
 // Lomo events

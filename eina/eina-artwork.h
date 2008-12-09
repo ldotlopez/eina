@@ -49,6 +49,8 @@ eina_artwork_add_provider(EinaArtwork *self,
 	const gchar *name,
 	EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel,
 	gpointer provider_data);
+gboolean
+eina_artwork_remove_provider(EinaArtwork *self, const gchar *name);
 
 void
 eina_artwork_provider_success(EinaArtwork *self, GType type, gpointer data);
@@ -64,9 +66,17 @@ void
 eina_artwork_provider_free(EinaArtworkProvider *self);
 
 void
-eina_artwork_provider_search(EinaArtworkProvider *self, EinaArtwork *artwork, LomoStream *stream);
+eina_artwork_provider_search(EinaArtworkProvider *self, EinaArtwork *artwork);
 void
 eina_artwork_provider_cancel(EinaArtworkProvider *self, EinaArtwork *artwork);
+
+GList *
+eina_artwork_find_provider(EinaArtwork *self, const gchar *name);
+
+#define eina_artwork_have_provider(self,name) (!eina_artwork_find_provider(self,name))
+
+#define eina_artwork_find_provider_data(self,name) \
+	(eina_artwork_have_provider(self,name) ? ((EinaArtworkProvider *) eina_artwork_find_provider(self,name)->data) : NULL)
 
 #endif
 

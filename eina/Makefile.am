@@ -33,6 +33,7 @@ NOINST_H_FILES = \
 	vogon.h
 
 INST_H_FILES = \
+	artwork.h                  \
 	base.h                     \
 	class-conf-file.h          \
 	eina-artwork.h             \
@@ -48,6 +49,7 @@ header_DATA = $(INST_H_FILES)
 # ether.{c,h} are template files to create GObjects
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
+	artwork.c                  \
 	base.c                     \
 	dock.c                     \
 	class-conf-file.c          \

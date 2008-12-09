@@ -40,12 +40,6 @@ typedef struct {
 GType gel_hub_get_type (void);
 GelHub* gel_hub_new (gint *argc, gchar **argv[]);
 
-/*
-typedef struct _GelHubPrivate GelHubPrivate;
-typedef struct {
-	GObject parent;
-} GelHub;
-*/
 typedef void (*GelHubCallback) (GelHub *hub, gpointer user_data);
 
 void gel_hub_set_dispose_callback(GelHub *self, GelHubCallback callback, gpointer user_data);

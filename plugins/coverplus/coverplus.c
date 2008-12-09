@@ -23,7 +23,7 @@ static gchar *coverplus_infolder_regex_str[] = {
 };
 
 struct _CoverPlusInfolder {
-	EinaCover    *cover;
+	EinaArtwork  *cover;
 	GRegex       *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
 	GelIOOp      *async_op;
 	GCancellable *cancellable;
@@ -31,7 +31,7 @@ struct _CoverPlusInfolder {
 };
 
 CoverPlusInfolder *
-coverplus_infolder_new(EinaCover *cover);
+coverplus_infolder_new(EinaArtwork *cover);
 void
 coverplus_infolder_destroy(CoverPlusInfolder *self);
 void
@@ -45,7 +45,7 @@ void
 coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data);
 
 CoverPlusInfolder *
-coverplus_infolder_new(EinaCover *cover)
+coverplus_infolder_new(EinaArtwork *cover)
 {
 	CoverPlusInfolder *self = g_new0(CoverPlusInfolder, 1);
 
@@ -101,7 +101,8 @@ coverplus_infolder_reset(CoverPlusInfolder *self)
 		gel_io_op_cancel(self->async_op);
 		gel_io_op_unref(self->async_op);
 		self->async_op = NULL;
-		eina_cover_backend_fail(self->cover);
+		// eina_cover_backend_fail(self->cover);
+		eina_artwork_provider_fail(self->cover);
 	}
 
 	// Cancell GIO op
@@ -110,7 +111,8 @@ coverplus_infolder_reset(CoverPlusInfolder *self)
 		g_cancellable_cancel(self->cancellable);
 		g_object_unref(self->cancellable);
 		self->cancellable = NULL;
-		eina_cover_backend_fail(self->cover);
+		// eina_cover_backend_fail(self->cover);
+		eina_artwork_provider_fail(self->cover);
 	}
 
 	// Reset score
@@ -141,13 +143,15 @@ coverplus_infolder_cancel(CoverPlusInfolder *self)
 // Wrappers
 // --
 void
-coverplus_infolder_search_wrapper(EinaCover *plugin, const LomoStream *stream, gpointer data)
+// coverplus_infolder_search_wrapper(EinaCover *plugin, const LomoStream *stream, gpointer data)
+coverplus_infolder_search_wrapper(EinaArtwork *artwork, LomoStream *stream, gpointer data)
 {
 	coverplus_infolder_search(EINA_PLUGIN_DATA(data)->infolder, stream);
 }
 
 void
-coverplus_infolder_cancel_wrapper(EinaCover *cover, gpointer data)
+// coverplus_infolder_cancel_wrapper(EinaCover *cover, gpointer data)
+coverplus_infolder_cancel_wrapper(EinaArtwork *artwork, gpointer data)
 {
 	coverplus_infolder_cancel(EINA_PLUGIN_DATA(data)->infolder);
 }
@@ -234,7 +238,8 @@ coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data)
 		coverplus_infolder_cancel((CoverPlusInfolder *) data);
 	}
 	else
-		eina_cover_backend_success(((CoverPlusInfolder *) data)->cover, G_TYPE_STRING, tmpfile);
+		// eina_cover_backend_success(((CoverPlusInfolder *) data)->cover, G_TYPE_STRING, tmpfile);
+		eina_artwork_provider_success(((CoverPlusInfolder *) data)->cover, G_TYPE_STRING, tmpfile);
 
 	g_unlink(tmpfile);
 	g_free(tmpfile);
@@ -320,6 +325,19 @@ coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer da
 	g_free(path);
 }
 
+void
+coverplus_artwork_search(EinaArtwork *artwork, LomoStream *stream, gpointer data)
+{
+	gel_warn("Search for %s", lomo_stream_get_tag(stream, LOMO_TAG_URI));
+	eina_artwork_provider_fail(artwork);
+}
+
+void
+coverplus_artwork_cancel(EinaArtwork *artwork, gpointer data)
+{
+	gel_warn("Canceled");
+}
+
 // --
 // Main
 // --
@@ -327,10 +345,19 @@ gboolean
 coverplus_init(EinaPlugin *plugin, GError **error)
 {
 	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
+
+	plugin->data = self;
+
+	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
+	self->infolder       = coverplus_infolder_new(artwork);
+
+	eina_artwork_add_provider(artwork, "coverplus-infolder",
+		coverplus_infolder_search_wrapper, coverplus_infolder_cancel_wrapper,
+		plugin);
+	/*
 	EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	plugin->data = self;
-	self->infolder = coverplus_infolder_new(cover);
 
 	// eina_cover_add_backend(cover, "coverplus-banshee", coverplus_banshee_search, NULL, NULL);
 
@@ -338,18 +365,21 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 		coverplus_infolder_search_wrapper,
 		coverplus_infolder_cancel_wrapper,
 		plugin);
+	*/
+
 	return TRUE;
 }
 
 gboolean
 coverplus_exit(EinaPlugin *plugin, GError **error)
 {
-	EinaCover *cover = eina_plugin_get_player_cover(plugin);
+	//EinaCover *cover = eina_plugin_get_player_cover(plugin);
 
 	// eina_cover_remove_backend(cover, "coverplus-banshee");
-	eina_cover_remove_backend(cover, "coverplus-infolder");
+	// eina_cover_remove_backend(cover, "coverplus-infolder");
 
-	coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
+	// coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
+	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
 	g_free(EINA_PLUGIN_DATA(plugin));
 
 	return TRUE;

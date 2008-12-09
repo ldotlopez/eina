@@ -22,10 +22,6 @@
 #include "plugins.h"
 #include "fs.h"
 
-#include <eina/eina-artwork.h>
-
-static EinaArtwork *artwork = NULL;
-
 struct _EinaPlayer {
 	EinaBase parent;
 
@@ -167,9 +163,6 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
 		GTK_WIDGET(self->cover));
 	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb),     self);
-
-	artwork = eina_artwork_new();
-	eina_artwork_set_stream(artwork, (LomoStream *) lomo_player_get_current(LOMO(self)));
 
 	eina_cover_set_default_cover(self->cover, default_cover_path);
 	eina_cover_set_loading_cover(self->cover, loading_cover_path);
@@ -685,7 +678,6 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlayer *self)
 {
 	update_sensitiviness(self);
 	set_info(self, (LomoStream *) lomo_player_get_nth(LOMO(self), to));
-	eina_artwork_set_stream(artwork, (LomoStream *) lomo_player_get_nth(LOMO(self), to));
 }
 
 static void

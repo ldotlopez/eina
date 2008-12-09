@@ -25,8 +25,6 @@ enum {
 	EINA_ARTWORK_PROPERTY_STREAM = 1
 };
 
-static gboolean
-search_provider(EinaArtwork *self, const gchar *name);
 static void
 run_queue(EinaArtwork *self);
 
@@ -92,13 +90,10 @@ eina_artwork_new (void)
 	return g_object_new (EINA_TYPE_ARTWORK, NULL);
 }
 
-
 void
 eina_artwork_set_stream(EinaArtwork *self, LomoStream *stream)
 {
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
-
-	gel_warn("_set_stream called");
 
 	// Stop any running providers
 	if (priv->running)
@@ -131,7 +126,7 @@ eina_artwork_add_provider(EinaArtwork *self,
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
 
 	// Search plugin
-	if (search_provider(self, name))
+	if (!eina_artwork_have_provider(self, name))
 		return FALSE;
 
 	// Add provider al end of queue
@@ -139,15 +134,47 @@ eina_artwork_add_provider(EinaArtwork *self,
 
 	return TRUE;
 }
+
+gboolean
+eina_artwork_remove_provider(EinaArtwork *self, const gchar *name)
+{
+	EinaArtworkPrivate *priv = GET_PRIVATE(self);
+	gboolean call_run_queue = FALSE;
+
+	if (priv->running && g_str_equal(((EinaArtworkProvider*) priv->running->data)->name, name))
+	{
+		gel_warn("Removing currently running provider, go to next provider");
+		eina_artwork_provider_cancel((EinaArtworkProvider*) priv->running->data, self);
+		priv->running = priv->running->next;
+		call_run_queue = TRUE;
+	}
+
+	GList *iter = eina_artwork_find_provider(self, name);
+	if (iter)
+	{
+		priv->providers = g_list_remove(priv->providers, iter);
+		eina_artwork_provider_free(iter->data);
+	}
+
+	if (call_run_queue)
+		run_queue(self);
+
+	return TRUE;
+}
+
 void
 eina_artwork_provider_success(EinaArtwork *self, GType type, gpointer data)
 {
 	if (type == G_TYPE_STRING)
+	{
+		gel_warn("Got string: %s", (gchar *) data);
 		gtk_image_set_from_file(GTK_IMAGE(self), (gchar *) data);
-
+	}
 	else if (type == GDK_TYPE_PIXBUF)
+	{
+		gel_warn("Got pixbuf: %p", data);
 		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(data));
-
+	}
 	else
 	{
 		gel_warn("Unknow result type");
@@ -170,17 +197,17 @@ eina_artwork_provider_fail(EinaArtwork *self)
 	run_queue(self);
 }
 
-static gboolean
-search_provider(EinaArtwork *self, const gchar *name)
+GList *
+eina_artwork_find_provider(EinaArtwork *self, const gchar *name)
 {
 	GList *iter = GET_PRIVATE(self)->providers;
 	while (iter)
 	{
 		if (g_str_equal(((EinaArtworkProvider *) iter->data)->name, name))
-			return TRUE;
+			return iter;
 		iter = iter->next;
 	}
-	return FALSE;
+	return NULL;
 }
 
 static void
@@ -199,8 +226,12 @@ run_queue(EinaArtwork *self)
 		return;
 	}
 
-	eina_artwork_provider_search((EinaArtworkProvider*) priv->running->data, self, priv->stream);
+	eina_artwork_provider_search((EinaArtworkProvider*) priv->running->data, self);
 }
+
+// --
+// EinaArtworkProvider implementation
+// --
 
 EinaArtworkProvider *
 eina_artwork_provider_new(const gchar *name, EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer provider_data)
@@ -220,10 +251,12 @@ eina_artwork_provider_free(EinaArtworkProvider *self)
 }
 
 void
-eina_artwork_provider_search(EinaArtworkProvider *self, EinaArtwork *artwork, LomoStream *stream)
+eina_artwork_provider_search(EinaArtworkProvider *self, EinaArtwork *artwork)
 {
-	if (self->search)
-		self->search(artwork, stream, self->data);
+	if (!self->search)
+		return;
+
+	self->search(artwork, GET_PRIVATE(artwork)->stream, self->data);
 }
 
 void

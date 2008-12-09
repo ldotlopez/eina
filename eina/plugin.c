@@ -307,7 +307,29 @@ eina_plugin_cover_remove_backend(EinaPlugin *plugin, gchar *id)
 	}
 	eina_cover_remove_backend(cover, id);
 }
+// --
+// Artwork handling (cover replacement)
+// --
+EinaArtwork*
+eina_plugin_get_artwork(EinaPlugin *plugin)
+{
+	return GEL_HUB_GET_ARTWORK(eina_plugin_get_hub(plugin));
+}
 
+void
+eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
+    EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel)
+{
+	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
+	eina_artwork_add_provider(artwork, id, search, cancel, plugin);
+}
+
+void
+eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id)
+{
+	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
+	eina_artwork_remove_provider(artwork, id);
+}
 
 // --
 // LomoEvents handling
