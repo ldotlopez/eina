@@ -2,18 +2,43 @@
 #include "gel-ui-background-box.h"
 
 GtkWindow *win;
-GtkLabel *label;
+GtkImage  *img;
 GelUIBackgroundBox *ev;
 
 gboolean do_it(gpointer d)
 {
-	GtkWindow *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_resize(w, 200, 200);
-	GdkPixmap *snap = gtk_widget_get_snapshot(win, NULL);
-	GelUIBackgroundBox *e = gel_ui_background_box_new();
-	gtk_container_add(w, e);
+	GdkPixmap *snap = gtk_widget_get_snapshot(GTK_WIDGET(win), NULL);
+
+	GtkWindow *w          = (GtkWindow*)          gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	GelUIBackgroundBox *e = (GelUIBackgroundBox*) gel_ui_background_box_new();
+
 	gel_ui_background_set_drawable(e, GDK_DRAWABLE(snap));
-	gtk_widget_show_all(w);
+
+	gtk_container_add(GTK_CONTAINER(w), GTK_WIDGET(e));
+	gtk_window_resize(w, 200, 200);
+	gtk_widget_show_all(GTK_WIDGET(w));
+
+	gint depth = gdk_drawable_get_depth(GDK_DRAWABLE(GTK_WIDGET(e)->window));
+
+	GtkWindow *w2 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_widget_realize(w2);
+
+	GdkColor bg, fg;
+	gdk_color_parse("#000000", &bg);
+	gdk_color_parse("#000000", &fg);
+
+	GdkPixmap *pm = // gdk_pixmap_new(NULL, 200, 200, depth);
+		gdk_pixmap_new(GTK_WIDGET(w2)->window, 200, 200, -1);
+
+	GdkGC * gc = gdk_gc_new(GDK_DRAWABLE(pm));
+	gdk_gc_set_foreground(gc, &fg);
+	gdk_draw_rectangle(GDK_DRAWABLE(pm),  gc,
+		TRUE, 
+		0, 0,
+		100, 100);
+		
+	gtk_container_add(w2, gtk_image_new_from_pixmap(pm, NULL));
+	gtk_widget_show_all(GTK_WIDGET(w2));
 
 	return FALSE;
 }
@@ -22,14 +47,10 @@ gint main()
 {
 	gtk_init(NULL, NULL);
 
-	label = (GtkLabel *) gtk_label_new("Test");
 	win = (GtkWindow *) gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	ev = gel_ui_background_box_new();
+	img = (GtkImage  *) gtk_image_new_from_file("logo.png");
 
-	gtk_window_resize(win, 200, 200);
-	gtk_container_add(GTK_CONTAINER(ev), GTK_WIDGET(label));
-	gtk_container_add(GTK_CONTAINER(win), GTK_WIDGET(ev));
-	gel_ui_background_set_pixbuf(ev, gdk_pixbuf_new_from_file ("logo.png", NULL));
+	gtk_container_add(GTK_CONTAINER(win), GTK_WIDGET(img));
 	gtk_widget_show_all(GTK_WIDGET(win));
 
 	g_signal_connect(win, "delete-event", gtk_main_quit, NULL);
