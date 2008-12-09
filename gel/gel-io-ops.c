@@ -570,7 +570,7 @@ gel_io_list_read(GSList *uris, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data)
 {
-	GelIOOp *self = gel_io_op_new(g_file_new_for_uri(NULL), NULL,
+	GelIOOp *self = gel_io_op_new(NULL, NULL,
 		success, error,
 		list_read_cancel, list_read_destroy,
 		data);
