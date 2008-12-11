@@ -58,12 +58,18 @@ void
 eina_artwork_provider_fail(EinaArtwork *self);
 
 #ifdef EINA_COMPILATION
+
+#define EINA_ARTWORK_PROVIDER(p) ((EinaArtworkProvider *) p)
+
 typedef struct _EinaArtworkProvider EinaArtworkProvider;
 
 EinaArtworkProvider *
 eina_artwork_provider_new(const gchar *name, EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer provider_data);
 void
 eina_artwork_provider_free(EinaArtworkProvider *self);
+
+const gchar*
+eina_artwork_provider_get_name(EinaArtworkProvider *self);
 
 void
 eina_artwork_provider_search(EinaArtworkProvider *self, EinaArtwork *artwork);

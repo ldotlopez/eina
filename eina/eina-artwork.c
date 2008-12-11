@@ -7,22 +7,16 @@ G_DEFINE_TYPE (EinaArtwork, eina_artwork, GTK_TYPE_IMAGE)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ARTWORK, EinaArtworkPrivate))
 
-typedef struct _EinaArtworkPrivate EinaArtworkPrivate;
-
+typedef struct _EinaArtworkPrivate  EinaArtworkPrivate;
 struct _EinaArtworkPrivate {
 	LomoStream *stream;
 	GList      *providers, *running;
 };
 
-struct _EinaArtworkProvider {
-	const gchar *name;
-	EinaArtworkProviderSearchFunc search;
-	EinaArtworkProviderCancelFunc cancel;
-	gpointer data;
-};
-
 enum {
-	EINA_ARTWORK_PROPERTY_STREAM = 1
+	EINA_ARTWORK_PROPERTY_DEFAULT_PATH = 1,
+	EINA_ARTWORK_PROPERTY_LOADING_PATH,
+	EINA_ARTWORK_PROPERTY_STREAM
 };
 
 static void
@@ -141,7 +135,7 @@ eina_artwork_remove_provider(EinaArtwork *self, const gchar *name)
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
 	gboolean call_run_queue = FALSE;
 
-	if (priv->running && g_str_equal(((EinaArtworkProvider*) priv->running->data)->name, name))
+	if (priv->running && g_str_equal(eina_artwork_provider_get_name(EINA_ARTWORK_PROVIDER(priv->running->data)), name))
 	{
 		gel_warn("Removing currently running provider, go to next provider");
 		eina_artwork_provider_cancel((EinaArtworkProvider*) priv->running->data, self);
@@ -203,7 +197,7 @@ eina_artwork_find_provider(EinaArtwork *self, const gchar *name)
 	GList *iter = GET_PRIVATE(self)->providers;
 	while (iter)
 	{
-		if (g_str_equal(((EinaArtworkProvider *) iter->data)->name, name))
+		if (g_str_equal(eina_artwork_provider_get_name(EINA_ARTWORK_PROVIDER(iter->data)), name))
 			return iter;
 		iter = iter->next;
 	}
@@ -232,6 +226,12 @@ run_queue(EinaArtwork *self)
 // --
 // EinaArtworkProvider implementation
 // --
+struct _EinaArtworkProvider {
+	const gchar *name;
+	EinaArtworkProviderSearchFunc search;
+	EinaArtworkProviderCancelFunc cancel;
+	gpointer data;
+};
 
 EinaArtworkProvider *
 eina_artwork_provider_new(const gchar *name, EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer provider_data)
@@ -250,13 +250,17 @@ eina_artwork_provider_free(EinaArtworkProvider *self)
 	g_free(self);
 }
 
+const gchar *
+eina_artwork_provider_get_name(EinaArtworkProvider *self)
+{
+	return self->name;
+}
+
 void
 eina_artwork_provider_search(EinaArtworkProvider *self, EinaArtwork *artwork)
 {
-	if (!self->search)
-		return;
-
-	self->search(artwork, GET_PRIVATE(artwork)->stream, self->data);
+	if (self->search)
+		self->search(artwork, GET_PRIVATE(artwork)->stream, self->data);
 }
 
 void
@@ -265,5 +269,4 @@ eina_artwork_provider_cancel(EinaArtworkProvider *self, EinaArtwork *artwork)
 	if (self->cancel)
 		self->cancel(artwork, self->data);
 }
-
 
