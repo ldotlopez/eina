@@ -1,18 +1,10 @@
-#define GEL_DOMAIN "Eina::Plugin::CoverPlus"
-#define EINA_PLUGIN_NAME "coverplus"
-#define EINA_PLUGIN_DATA_TYPE CoverPlus
+#define GEL_DOMAIN "Eina::Plugin::CoverPlus::Infolder"
 
 #include <config.h>
 #include <glib/gstdio.h>
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <eina/plugin.h>
-
-typedef struct _CoverPlusInfolder CoverPlusInfolder;
-
-typedef struct CoverPlus {
-	CoverPlusInfolder *infolder;
-} CoverPlus;
 
 static gchar *coverplus_infolder_regex_str[] = {
 	".*front.*\\.(jpe?g|png|gif)$",
@@ -30,19 +22,19 @@ struct _CoverPlusInfolder {
 	gint          score;
 };
 
-CoverPlusInfolder *
-coverplus_infolder_new(EinaArtwork *cover);
 void
-coverplus_infolder_destroy(CoverPlusInfolder *self);
-void
-coverplus_infolder_reset(CoverPlusInfolder *self);
+coverplus_infolder_reset(CoverPlusInfolder *self)
+{
+}
 
+#ifdef ASYNC_OP
 void
 coverplus_infolder_readdir_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data);
 void
 coverplus_infolder_readdir_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
 void
 coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data);
+#endif
 
 CoverPlusInfolder *
 coverplus_infolder_new(EinaArtwork *cover)
@@ -91,6 +83,17 @@ coverplus_infolder_destroy(CoverPlusInfolder *self)
 void
 coverplus_infolder_reset(CoverPlusInfolder *self)
 {
+	// Send result to EinaArtwork object if no operations in progress and
+	// a score < G_MAXINT
+	if (!self->async_op && !self->cancellable && (self->score < G_MAXINT))
+	{
+		eina_artwork_provider_success(self->cover, G_TYPE_STRING, self->result);
+	}
+	else
+	{
+		eina_artwork_provider_fail(self->cover);
+	}
+
 	// Consistence check
 	if (self->async_op && self->cancellable)
 		gel_error("Async operation and cancellable active");
@@ -101,7 +104,6 @@ coverplus_infolder_reset(CoverPlusInfolder *self)
 		gel_io_op_cancel(self->async_op);
 		gel_io_op_unref(self->async_op);
 		self->async_op = NULL;
-		// eina_cover_backend_fail(self->cover);
 		eina_artwork_provider_fail(self->cover);
 	}
 
@@ -111,7 +113,6 @@ coverplus_infolder_reset(CoverPlusInfolder *self)
 		g_cancellable_cancel(self->cancellable);
 		g_object_unref(self->cancellable);
 		self->cancellable = NULL;
-		// eina_cover_backend_fail(self->cover);
 		eina_artwork_provider_fail(self->cover);
 	}
 
@@ -244,120 +245,4 @@ coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data)
 	g_unlink(tmpfile);
 	g_free(tmpfile);
 }
-
-// --
-// Banshee covers
-// --
-void
-coverplus_banshee_search(EinaCover *cover, const LomoStream *stream, gpointer data)
-{
-	GString *str;
-	gchar *path = NULL;
-	gint i, j;
-	gchar *input[3] = {
-		g_utf8_strdown(lomo_stream_get_tag(stream, LOMO_TAG_ARTIST), -1),
-		g_utf8_strdown(lomo_stream_get_tag(stream, LOMO_TAG_ALBUM), -1),
-		NULL
-	};
-
-	str = g_string_new(NULL);
-
-	for (i = 0; input[i] != NULL; i++)
-	{
-		for (j = 0; input[i][j] != '\0'; j++)
-		{
-			if (g_ascii_isalnum(input[i][j]))
-				str = g_string_append_c(str, input[i][j]);
-		}
-		if (i == 0)
-			str = g_string_append_c(str, '-');
-		g_free(input[i]);
-	}
-	str = g_string_append(str, ".jpg");
-
-	path = g_build_filename(g_get_home_dir(), ".config", "banshee", "covers", str->str, NULL);
-	g_string_free(str, TRUE);
-
-	if (g_file_test(path, G_FILE_TEST_IS_REGULAR|G_FILE_TEST_EXISTS))
-		eina_cover_backend_success(cover, G_TYPE_STRING, path);
-	else
-		eina_cover_backend_fail(cover);
-
-	g_free(path);
-}
-
-void
-coverplus_artwork_search(EinaArtwork *artwork, LomoStream *stream, gpointer data)
-{
-	gel_warn("Search for %s", lomo_stream_get_tag(stream, LOMO_TAG_URI));
-	eina_artwork_provider_fail(artwork);
-}
-
-void
-coverplus_artwork_cancel(EinaArtwork *artwork, gpointer data)
-{
-	gel_warn("Canceled");
-}
-
-// --
-// Main
-// --
-gboolean
-coverplus_init(EinaPlugin *plugin, GError **error)
-{
-	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
-
-	plugin->data = self;
-
-	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
-	self->infolder       = coverplus_infolder_new(artwork);
-
-	eina_artwork_add_provider(artwork, "coverplus-infolder",
-		coverplus_infolder_search_wrapper, coverplus_infolder_cancel_wrapper,
-		plugin);
-	/*
-	EinaCover *cover = eina_plugin_get_player_cover(plugin);
-
-	plugin->data = self;
-
-	// eina_cover_add_backend(cover, "coverplus-banshee", coverplus_banshee_search, NULL, NULL);
-
-	eina_cover_add_backend(cover, "coverplus-infolder",
-		coverplus_infolder_search_wrapper,
-		coverplus_infolder_cancel_wrapper,
-		plugin);
-	*/
-
-	return TRUE;
-}
-
-gboolean
-coverplus_exit(EinaPlugin *plugin, GError **error)
-{
-	//EinaCover *cover = eina_plugin_get_player_cover(plugin);
-
-	// eina_cover_remove_backend(cover, "coverplus-banshee");
-	// eina_cover_remove_backend(cover, "coverplus-infolder");
-
-	// coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
-	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
-	g_free(EINA_PLUGIN_DATA(plugin));
-
-	return TRUE;
-}
-
-G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
-	EINA_PLUGIN_SERIAL,
-	N_("Cover plus"),
-	"0.7.0",
-	N_("Enhace your covers"),
-	N_("bla ble bli"),
-	NULL,
-	"xuzo <xuzo@cuarentaydos.com>",
-	"http://eina.sourceforge.net/",
-
-	coverplus_init, coverplus_exit,
-
-	NULL, NULL
-};
 

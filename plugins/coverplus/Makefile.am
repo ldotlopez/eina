@@ -3,7 +3,8 @@ plugindir = $(libdir)/$(PACKAGE)/coverplus
 plugin_LTLIBRARIES = libcoverplus.la
 libcoverplus_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 libcoverplus_la_SOURCES = \
-	coverplus.c
+	iface.c \
+	infolder-sync.c infolder.h
 
 AM_CFLAGS = @PACKAGE_CFLAGS@ 
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
