@@ -22,6 +22,11 @@ G_MODULE_EXPORT gboolean artwork_init
 	eina_artwork_set_stream(obj, (LomoStream*) lomo_player_get_current_stream(GEL_HUB_GET_LOMO(hub)));
 	g_signal_connect(GEL_HUB_GET_LOMO(hub), "change",
 		(GCallback) lomo_change_cb, obj);
+
+	GtkWindow *w = (GtkWindow*) gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_container_add(GTK_CONTAINER(w), GTK_WIDGET(obj));
+	gtk_widget_show_all(GTK_WIDGET(w));
+
 	return TRUE;
 }
 

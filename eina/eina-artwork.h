@@ -39,10 +39,23 @@ GType eina_artwork_get_type (void);
 
 EinaArtwork* eina_artwork_new (void);
 
+// --
+// Properties
+// --
 void
 eina_artwork_set_stream(EinaArtwork *self, LomoStream *stream);
 LomoStream *
 eina_artwork_get_stream(EinaArtwork *self);
+
+void
+eina_artwork_set_default_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf);
+GdkPixbuf *
+eina_artwork_get_default_pixbuf(EinaArtwork *self);
+void
+eina_artwork_set_loading_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf);
+GdkPixbuf *
+eina_artwork_get_loading_pixbuf(EinaArtwork *self);
+
 
 gboolean
 eina_artwork_add_provider(EinaArtwork *self,

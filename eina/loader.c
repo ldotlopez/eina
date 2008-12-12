@@ -10,8 +10,6 @@ struct _EinaLoader {
 
 	GList *plugins;
 	GList *paths;
-
-// 	EinaPlayer     *player;
 };
 
 static GList*
@@ -81,8 +79,13 @@ eina_loader_load_plugin(EinaLoader *self, gchar *pathname, GError **error)
 	EinaPlugin *plugin;
 
 	// Already loaded
+	gel_warn("Start search: %s", pathname);
 	if ((plugin = find_plugin(self, pathname)) != NULL)
+	{
+		gel_warn("found");
 		return plugin;
+	}
+	gel_warn("End search");
 	
 	// Create a symbol name for this path
 	gchar *dirname = g_path_get_dirname(pathname);
@@ -165,7 +168,9 @@ find_plugin(EinaLoader *self, const gchar *pathname)
 		if (g_str_equal(
 			eina_plugin_get_pathname(EINA_PLUGIN(iter->data)),
 			pathname))
+		{
 			return EINA_PLUGIN(iter->data);
+		}
 		iter = iter->next;
 	}
 	return NULL;
@@ -194,6 +199,7 @@ eina_loader_query_plugins(EinaLoader *self)
 			gchar *name = g_path_get_basename(e->data);
 			gchar *mod_name = g_module_build_path(e->data, name);
 
+			gel_warn("Query: %s", mod_name);
 			if ((plugin = eina_loader_load_plugin(self, mod_name, NULL)) != NULL)
 			{
 				gel_info("Loaded '%s'", mod_name);
@@ -204,6 +210,7 @@ eina_loader_query_plugins(EinaLoader *self)
 
 			g_free(mod_name);
 			g_free(name);
+
 			e = e->next;
 		}
 		gel_list_deep_free(entries, g_free);

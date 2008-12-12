@@ -11,12 +11,14 @@ typedef struct _EinaArtworkPrivate  EinaArtworkPrivate;
 struct _EinaArtworkPrivate {
 	LomoStream *stream;
 	GList      *providers, *running;
+
+	GdkPixbuf *default_pb, *loading_pb;
 };
 
 enum {
-	EINA_ARTWORK_PROPERTY_DEFAULT_PATH = 1,
-	EINA_ARTWORK_PROPERTY_LOADING_PATH,
-	EINA_ARTWORK_PROPERTY_STREAM
+	EINA_ARTWORK_PROPERTY_STREAM = 1,
+	EINA_ARTWORK_PROPERTY_DEFAULT_PIXBUF,
+	EINA_ARTWORK_PROPERTY_LOADING_PIXBUF
 };
 
 static void
@@ -43,6 +45,12 @@ eina_artwork_set_property (GObject *object, guint property_id,
 	case EINA_ARTWORK_PROPERTY_STREAM:
 		eina_artwork_set_stream((EinaArtwork *) object,  g_value_get_object(value));
 		break;
+	case EINA_ARTWORK_PROPERTY_DEFAULT_PIXBUF:
+		eina_artwork_set_default_pixbuf((EinaArtwork *) object, g_value_get_object(value));
+		break;
+	case EINA_ARTWORK_PROPERTY_LOADING_PIXBUF:
+		eina_artwork_set_loading_pixbuf((EinaArtwork *) object, g_value_get_object(value));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -51,6 +59,14 @@ eina_artwork_set_property (GObject *object, guint property_id,
 static void
 eina_artwork_dispose (GObject *object)
 {
+	EinaArtworkPrivate *priv = GET_PRIVATE(object);
+	if (priv->providers)
+	{
+		gel_list_deep_free(priv->providers, eina_artwork_provider_free);
+		priv->providers = priv->running = NULL;
+	}
+	gel_free_and_invalidate(GET_PRIVATE(object)->default_pb, NULL, g_object_unref);
+	gel_free_and_invalidate(GET_PRIVATE(object)->loading_pb, NULL, g_object_unref);
 	G_OBJECT_CLASS (eina_artwork_parent_class)->dispose (object);
 }
 
@@ -84,6 +100,9 @@ eina_artwork_new (void)
 	return g_object_new (EINA_TYPE_ARTWORK, NULL);
 }
 
+// --
+// Properties
+// --
 void
 eina_artwork_set_stream(EinaArtwork *self, LomoStream *stream)
 {
@@ -110,6 +129,38 @@ eina_artwork_get_stream(EinaArtwork *self)
 {
 	return GET_PRIVATE(self)->stream;
 }
+
+void
+eina_artwork_set_default_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
+{
+	EinaArtworkPrivate *priv = GET_PRIVATE(self);
+	gel_free_and_invalidate(priv->default_pb, NULL, g_object_unref);
+	priv->default_pb = pixbuf;
+}
+
+GdkPixbuf *
+eina_artwork_get_default_pixbuf(EinaArtwork *self)
+{
+	return GET_PRIVATE(self)->default_pb;
+}
+
+void
+eina_artwork_set_loading_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
+{
+	EinaArtworkPrivate *priv = GET_PRIVATE(self);
+	gel_free_and_invalidate(priv->loading_pb, NULL, g_object_unref);
+	priv->loading_pb = pixbuf;
+}
+
+GdkPixbuf *
+eina_artwork_get_loading_pixbuf(EinaArtwork *self)
+{
+	return GET_PRIVATE(self)->default_pb;
+}
+
+// --
+// API
+// --
 
 gboolean
 eina_artwork_add_provider(EinaArtwork *self,

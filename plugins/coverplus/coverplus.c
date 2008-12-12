@@ -105,7 +105,7 @@ coverplus_infolder_reset(CoverPlusInfolder *self)
 		eina_artwork_provider_fail(self->cover);
 	}
 
-	// Cancell GIO op
+	// Cancel GIO op
 	if (self->cancellable)
 	{
 		g_cancellable_cancel(self->cancellable);

@@ -64,7 +64,9 @@ coverplus_infolder_destroy(CoverPlusInfolder *self)
 void
 coverplus_infolder_search_cb(EinaArtwork *artwork, LomoStream *stream, CoverPlusInfolder *self)
 {
-	gchar *uri = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+	const gchar *uri = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+
+	// Check is stream is local
 	gchar *scheme =  g_uri_parse_scheme(uri);
 	if (!g_str_equal(scheme, "file"))
 	{
@@ -75,10 +77,14 @@ coverplus_infolder_search_cb(EinaArtwork *artwork, LomoStream *stream, CoverPlus
 	}
 	g_free(scheme);
 
+	gchar *baseuri = g_path_get_dirname(uri);
+
+	// Try to get a list of folder contents
 	GError *error = NULL;
-	gchar *dirname = g_path_get_dirname(uri);
-	gchar *d =g_filename_from_uri(dirname, NULL, NULL);
-	GList *children = gel_dir_read(d, FALSE, &error);
+	gchar *dirname = g_filename_from_uri(baseuri, NULL, NULL);
+	g_free(baseuri);
+
+	GList *children = gel_dir_read(dirname, FALSE, &error);
 	if (error)
 	{
 		gel_warn("Error reading %s: %s", dirname, error->message);
@@ -107,13 +113,18 @@ coverplus_infolder_search_cb(EinaArtwork *artwork, LomoStream *stream, CoverPlus
 
 	if (score < G_MAXINT)
 	{	
+		gchar *cover_pathname = g_build_filename(dirname, winner, NULL);
 		gel_warn("Got winner: %s", winner);
+		eina_artwork_provider_success(artwork, G_TYPE_STRING, cover_pathname);
 	}
+	else
+	{
+		eina_artwork_provider_fail(artwork);
+	}
+
+	// Free used data
 	gel_list_deep_free(children, g_free);
-
 	g_free(dirname);
-
-	eina_artwork_provider_fail(artwork);
 }
 
 void
