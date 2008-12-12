@@ -1,6 +1,12 @@
 0.8 Series
 ==========
 
+Big Ugly Bug Plan:
+==================
+1. Disable plugins.
+2. Make CoverPlus static
+3. Debug
+
 - EinaConf dont dump values at exit
 V EinaPlayer must follow markup from stream-info-label using gel_parse_str
 ? Dock must be hidden if no dock items are enabled
@@ -23,7 +29,7 @@ V Window icon at startup (see prev bug)
 - EinaPlayer must listen EinaConf for changes in info format
 - If eina window is maximized, dock must be expanded, if no dock, eina cannot
   will maximize
-- DnD
+~ DnD (Add support to playlist to enqueue)
 
 0.8 Series - Plugins
 ====================
@@ -35,6 +41,11 @@ V Window icon at startup (see prev bug)
 ===========
 - Remove dead and depreacted code
 - EinaCover should be based on LomoStream to allow more flexible cover fetching
+  Some requisites:
+  Must be an 'artwork provider'. Diferent widgets may query EinaCover.
+  Must supply a GdkPixbuf from a LomoStream.
+  Providers must be shared, they should be stored in EinaCoverClass to be
+  shared between instances
 - Make Dock an entity
 - Unify GelHub/GelSlave and EinaPlugin
 - Reduce memory usage to target netbooks and MID devices

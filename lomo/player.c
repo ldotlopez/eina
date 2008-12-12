@@ -1166,7 +1166,7 @@ BACKTRACE
 		case GST_MESSAGE_SEGMENT_START:
 		case GST_MESSAGE_SEGMENT_DONE:
 		case GST_MESSAGE_DURATION:
-			g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
+			// g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
 			break;
 			
 		default:

@@ -23,6 +23,8 @@ enum {
 
 static void
 run_queue(EinaArtwork *self);
+static void
+set_pixbuf(EinaArtwork *self, GdkPixbuf *pb);
 
 static void
 eina_artwork_get_property (GObject *object, guint property_id,
@@ -87,6 +89,17 @@ eina_artwork_class_init (EinaArtworkClass *klass)
 	object_class->set_property = eina_artwork_set_property;
 	object_class->dispose = eina_artwork_dispose;
 	object_class->finalize = eina_artwork_finalize;
+
+	// Add properties
+    g_object_class_install_property(object_class, EINA_ARTWORK_PROPERTY_STREAM,
+		g_param_spec_object("lomo-stream", "Lomo stream", "Lomo stream",
+		LOMO_TYPE_STREAM,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+    g_object_class_install_property(object_class, EINA_ARTWORK_PROPERTY_DEFAULT_PIXBUF,
+		g_param_spec_object("default-pixbuf", "Default pixbuf", "Default pixbuf",
+		GDK_TYPE_PIXBUF,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+    g_object_class_install_property(object_class, EINA_ARTWORK_PROPERTY_LOADING_PIXBUF,
+		g_param_spec_object("loading-pixbuf", "Loading pixbuf", "Loading pixbuf",
+		GDK_TYPE_PIXBUF,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
 static void
@@ -119,7 +132,7 @@ eina_artwork_set_stream(EinaArtwork *self, LomoStream *stream)
 	priv->stream = stream;
 
 	// Start providers
-	gel_warn("Start new queue of providers");
+	gel_warn("Restart providers queue");
 	priv->running = priv->providers;
 	run_queue(self);
 }
@@ -136,6 +149,10 @@ eina_artwork_set_default_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
 	gel_free_and_invalidate(priv->default_pb, NULL, g_object_unref);
 	priv->default_pb = pixbuf;
+
+	// If there is no running provider use this pixbuf
+	if (!priv->running && priv->default_pb)
+		set_pixbuf(self, priv->default_pb);
 }
 
 GdkPixbuf *
@@ -150,6 +167,10 @@ eina_artwork_set_loading_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
 	gel_free_and_invalidate(priv->loading_pb, NULL, g_object_unref);
 	priv->loading_pb = pixbuf;
+
+	// If there is a running provider use this pixbuf
+	if (priv->running && priv->loading_pb)
+		set_pixbuf(self, priv->loading_pb);
 }
 
 GdkPixbuf *
@@ -212,17 +233,17 @@ eina_artwork_provider_success(EinaArtwork *self, GType type, gpointer data)
 {
 	if (type == G_TYPE_STRING)
 	{
-		gel_warn("Got string: %s", (gchar *) data);
-		gtk_image_set_from_file(GTK_IMAGE(self), (gchar *) data);
+		GdkPixbuf *pb = gdk_pixbuf_new_from_file((gchar *) data, NULL);
+		set_pixbuf(self, pb);
+		g_object_unref(pb);
 	}
 	else if (type == GDK_TYPE_PIXBUF)
 	{
-		gel_warn("Got pixbuf: %p", data);
-		gtk_image_set_from_pixbuf(GTK_IMAGE(self), GDK_PIXBUF(data));
+		set_pixbuf(self, GDK_PIXBUF(data));
 	}
 	else
 	{
-		gel_warn("Unknow result type");
+		gel_warn("Unknow result type: %s", g_type_name(type));
 		return;
 	}
 
@@ -259,19 +280,34 @@ static void
 run_queue(EinaArtwork *self)
 {
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
+
+	// Do some chechks
 	if (priv->stream == NULL)
 	{
-		gel_warn("No stream. Stop");
+		gel_error("run_queue was called with no stream information. This is a bug in eina's code.\n"
+		  "Please report this at the address showed at Help -> Report bug.");
 		priv->running = NULL;
 		return;
 	}
+
+	// Got end of queue.
 	if (priv->running == NULL)
 	{
-		gel_warn("No provider. Stop");
+		if (priv->default_pb)
+			set_pixbuf(self, priv->default_pb);
+		gel_warn("End of providers queue.");
 		return;
 	}
 
+	gel_warn("Running provider %d of %d",  g_list_position(priv->providers, priv->running) + 1, g_list_length(priv->providers));
 	eina_artwork_provider_search((EinaArtworkProvider*) priv->running->data, self);
+}
+
+static void
+set_pixbuf(EinaArtwork *self, GdkPixbuf *pb)
+{
+	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pb, GTK_WIDGET(self)->allocation.width, GTK_WIDGET(self)->allocation.height, GDK_INTERP_BILINEAR);
+	gtk_image_set_from_pixbuf(GTK_IMAGE(self), scaled);
 }
 
 // --

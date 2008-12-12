@@ -3,9 +3,7 @@
 #include <eina/base.h>
 #include <eina/lomo.h>
 #include <eina/artwork.h>
-
-static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, gpointer data);
+#include <eina/plugin.h>
 
 G_MODULE_EXPORT gboolean artwork_init
 (GelHub *hub, gint *argc, gchar ***argv)
@@ -19,13 +17,8 @@ G_MODULE_EXPORT gboolean artwork_init
 		return FALSE;
 	}
 
-	eina_artwork_set_stream(obj, (LomoStream*) lomo_player_get_current_stream(GEL_HUB_GET_LOMO(hub)));
-	g_signal_connect(GEL_HUB_GET_LOMO(hub), "change",
-		(GCallback) lomo_change_cb, obj);
-
-	GtkWindow *w = (GtkWindow*) gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_container_add(GTK_CONTAINER(w), GTK_WIDGET(obj));
-	gtk_widget_show_all(GTK_WIDGET(w));
+	EinaPlugin *plugin = eina_plugin_new(hub, "./tools/plugins/coverplus/libcoverplus.so", "coverplus_plugin");
+	gel_warn("Hack loading plugin %p init routine: %s", plugin, eina_plugin_init(plugin) ? "successful" : "failed");
 
 	return TRUE;
 }
@@ -33,15 +26,11 @@ G_MODULE_EXPORT gboolean artwork_init
 G_MODULE_EXPORT gboolean artwork_exit
 (gpointer data)
 {
+	/*
 	EinaArtwork *obj = EINA_ARTWORK(data);
 	g_object_unref(obj);
+	*/
 	return TRUE;
-}
-
-static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, gpointer data)
-{
-	eina_artwork_set_stream(EINA_ARTWORK(data), (LomoStream *) lomo_player_get_nth(lomo, to));
 }
 
 G_MODULE_EXPORT GelHubSlave artwork_connector = {

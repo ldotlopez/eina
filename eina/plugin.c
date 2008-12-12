@@ -280,7 +280,8 @@ eina_plugin_get_player_cover(EinaPlugin *self)
 	if (player == NULL)
 		return NULL;
 
-	return eina_player_get_cover(player);
+	// return eina_player_get_cover(player);
+	return NULL;
 }
 
 void

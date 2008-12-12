@@ -54,8 +54,9 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	EinaPlugins *self;
 
 	self = g_new0(EinaPlugins, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "plugins", EINA_BASE_GTK_UI))
+	if (!eina_base_init((EinaBase *) self, hub, "plugins-are-disabled", EINA_BASE_GTK_UI))
 	{
+		g_free(self);
 		gel_error("Cannot create component");
 		return FALSE;
 	}
