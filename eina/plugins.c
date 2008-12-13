@@ -54,7 +54,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	EinaPlugins *self;
 
 	self = g_new0(EinaPlugins, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "plugins-are-disabled", EINA_BASE_GTK_UI))
+	if (!eina_base_init((EinaBase *) self, hub, "plugins", EINA_BASE_GTK_UI))
 	{
 		g_free(self);
 		gel_error("Cannot create component");
@@ -168,19 +168,26 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 		gint i;
 		for (i = 0; plugins[i] != NULL; i++)
 		{
-			EinaPlugin *plugin = eina_loader_load_plugin(EINA_BASE_GET_LOADER(self), plugins[i], NULL);
+			GError *error = NULL;
+
+			EinaPlugin *plugin = eina_loader_query_plugin(EINA_BASE_GET_LOADER(self), plugins[i]);
 			if (!plugin)
-				continue;
-			if (!eina_plugin_init(plugin))
 			{
-				eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, NULL);
+				plugin = eina_loader_load_plugin(EINA_BASE_GET_LOADER(self), plugins[i], &error);
+				gel_error("Cannot load plugin %s: %s", plugins[i], error->message);
+				g_error_free(error);
 				continue;
 			}
-			
-			self->plugins = g_list_prepend(self->plugins, plugin);
+
+			if (!eina_plugin_init(plugin))
+			{
+				eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, &error);
+				gel_error("Cannot unload plugin %s: %s", plugins[i], error->message);
+				g_error_free(error);
+				continue;
+			}
 		}
 		g_strfreev(plugins);
-		self->plugins = g_list_reverse(self->plugins);
 	}
 
 	return TRUE;
@@ -223,6 +230,7 @@ plugins_show(EinaPlugins *self)
 static void
 plugins_hide(EinaPlugins *self)
 {
+#if 0
 	EinaLoader *loader;
 	GList *l;
 
@@ -239,6 +247,9 @@ plugins_hide(EinaPlugins *self)
 		l = l->next;
 	}
 	self->plugins = NULL;
+#else
+	gtk_widget_hide(self->window);
+#endif
 }
 
 static void
@@ -258,9 +269,10 @@ plugins_treeview_fill(EinaPlugins *self)
 	{
 		EinaPlugin *plugin = (EinaPlugin *) l->data;
 		gchar *markup;
-
+		
 		gtk_list_store_append(self->model, &iter);
-		markup = g_strdup_printf("<b>%s</b>\n%s", plugin->name, plugin->short_desc);
+		markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
+			plugin->name, plugin->short_desc, eina_plugin_get_pathname(plugin));
 		gtk_list_store_set(self->model, &iter,
 			PLUGINS_COLUMN_ENABLED, eina_plugin_is_enabled(plugin),
 			PLUGINS_COLUMN_NAME, markup,
@@ -269,6 +281,7 @@ plugins_treeview_fill(EinaPlugins *self)
 
 		l = l->next;
 	}
+	gel_warn("%d plugins found", g_list_length(self->plugins));
 }
 
 static void

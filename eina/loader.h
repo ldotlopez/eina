@@ -26,8 +26,19 @@ gboolean
 eina_loader_unload_plugin(EinaLoader *self, EinaPlugin *plugin, GError **error);
 
 /*
+ * Get a plugin via pathname
+ */
+EinaPlugin*
+eina_loader_query_plugin(EinaLoader *self, gchar *pathname);
+
+/*
+ * Checks if plugin is loaded
+ */
+#define eina_loader_plugin_is_loaded(self,pathname) (eina_loader_query_plugin(self,pathname) != NULL)
+
+/*
  * Returns a list of paths where EinaLoader search for plugins.
- * The returned list must NOT be free'd or altered
+ * The returned list must be freed
  */
 GList *
 eina_loader_query_paths(EinaLoader *self);

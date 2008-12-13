@@ -60,8 +60,8 @@ eina_plugin_new(GelHub *hub, gchar *plugin_path, gchar *symbol)
 	self->priv->hub         = hub;
 	self->priv->lomo        = gel_hub_shared_get(hub, "lomo");
 
-	gel_debug("Module '%s' has been loaded", plugin_path);
-	gel_warn("Created (%p)%s", self, eina_plugin_get_pathname(self));
+	// gel_debug("Module '%s' has been loaded", plugin_path);
+	// gel_warn("Created (%p)%s", self, eina_plugin_get_pathname(self));
 	return self;
 }
 

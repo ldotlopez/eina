@@ -177,13 +177,13 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	// Artwork
 	// EinaArtwork *artwork = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
 	EinaArtwork *artwork = self->cover = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
+	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
+	gtk_widget_show(GTK_WIDGET(self->cover));
 	g_object_set(artwork,
 		"lomo-stream",    lomo_player_get_current_stream(LOMO(self)),
 		"default-pixbuf", gdk_pixbuf_new_from_file(default_cover_path, NULL),
 		"loading-pixbuf", gdk_pixbuf_new_from_file(loading_cover_path, NULL),
 		NULL);
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
-	gtk_widget_show(GTK_WIDGET(self->cover));
 	gel_ui_container_replace_children(
 		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
 		GTK_WIDGET(self->cover));

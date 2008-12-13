@@ -17,9 +17,6 @@ G_MODULE_EXPORT gboolean artwork_init
 		return FALSE;
 	}
 
-	EinaPlugin *plugin = eina_plugin_new(hub, "./tools/plugins/coverplus/libcoverplus.so", "coverplus_plugin");
-	gel_warn("Hack loading plugin %p init routine: %s", plugin, eina_plugin_init(plugin) ? "successful" : "failed");
-
 	return TRUE;
 }
 
