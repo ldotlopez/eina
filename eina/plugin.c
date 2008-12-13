@@ -267,49 +267,8 @@ gboolean eina_plugin_remove_configuration_widget
 	return TRUE;
 }
 
-
 // --
-// Cover management
-// --
-EinaCover*
-eina_plugin_get_player_cover(EinaPlugin *self)
-{
-	EinaPlayer *player;
-	
-	player = GEL_HUB_GET_PLAYER(self->priv->hub);
-	if (player == NULL)
-		return NULL;
-
-	// return eina_player_get_cover(player);
-	return NULL;
-}
-
-void
-eina_plugin_cover_add_backend(EinaPlugin *plugin, gchar *id,
-    EinaCoverBackendFunc search, EinaCoverBackendCancelFunc cancel)
-{
-	EinaCover *cover = eina_plugin_get_player_cover(plugin);
-	if (cover == NULL)
-	{
-		gel_warn("Unable to access cover");
-		return;
-	}
-	eina_cover_add_backend(cover, id, search, cancel, plugin);
-}
-
-void
-eina_plugin_cover_remove_backend(EinaPlugin *plugin, gchar *id)
-{
-	EinaCover *cover = eina_plugin_get_player_cover(plugin);
-	if (cover == NULL)
-	{
-		gel_warn("Unable to access cover");
-		return;
-	}
-	eina_cover_remove_backend(cover, id);
-}
-// --
-// Artwork handling (cover replacement)
+// Artwork handling
 // --
 EinaArtwork*
 eina_plugin_get_artwork(EinaPlugin *plugin)

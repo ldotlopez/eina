@@ -71,7 +71,7 @@ button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
 static void
-cover_change_cb(EinaCover *cover, EinaPlayer *self);
+cover_change_cb(EinaArtwork *cover, EinaPlayer *self);
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -153,40 +153,25 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		GTK_WIDGET(self->seek));
 	gtk_widget_show(GTK_WIDGET(self->seek));
 
-	// Initialize cover
-	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
-	/*
-	self->cover = eina_cover_new();
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
-	gtk_widget_show(GTK_WIDGET(self->cover));
-	gel_ui_container_replace_children(
-		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
-		GTK_WIDGET(self->cover));
-
-	eina_cover_set_default_cover(self->cover, default_cover_path);
-	eina_cover_set_loading_cover(self->cover, loading_cover_path);
-	eina_cover_set_lomo_player  (self->cover, LOMO(self));
-	*/
-
 	// Artwork
-	// EinaArtwork *artwork = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
 	EinaArtwork *artwork = self->cover = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
 	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb), self);
 	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
 	gtk_widget_show(GTK_WIDGET(self->cover));
+
+	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
 	g_object_set(artwork,
 		"lomo-stream",    lomo_player_get_current_stream(LOMO(self)),
 		"default-pixbuf", gdk_pixbuf_new_from_file(default_cover_path, NULL),
 		"loading-pixbuf", gdk_pixbuf_new_from_file(loading_cover_path, NULL),
 		NULL);
+	g_free(default_cover_path);
+	g_free(loading_cover_path);
+
 	gel_ui_container_replace_children(
 		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
 		GTK_WIDGET(self->cover));
-	// g_signal_connect(LOMO(self), "change",  G_CALLBACK(cover_change_cb),     self);
-
-	g_free(default_cover_path);
-	g_free(loading_cover_path);
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -301,13 +286,7 @@ eina_player_exit (gpointer data)
 	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
-/*
-EinaCover *
-eina_player_get_cover(EinaPlayer *self)
-{
-	return self->cover;
-}
-*/
+
 GtkUIManager *
 eina_player_get_ui_manager(EinaPlayer *self)
 {
@@ -663,7 +642,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 }
 
 static void
-cover_change_cb(EinaCover *cover, EinaPlayer *self)
+cover_change_cb(EinaArtwork *cover, EinaPlayer *self)
 {
 	if (gtk_image_get_storage_type(GTK_IMAGE(cover)) != GTK_IMAGE_PIXBUF)
 	{

@@ -10,7 +10,6 @@
 #include <eina/player.h>
 #include <eina/fs.h>
 #include <eina/settings.h>
-#include <eina/eina-cover.h>
 #include <eina/artwork.h>
 
 #define EINA_PLUGIN_SERIAL 2
@@ -104,19 +103,6 @@ gboolean eina_plugin_add_configuration_widget
 (EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget);
 gboolean eina_plugin_remove_configuration_widget
 (EinaPlugin *plugin,  GtkWidget *widget);
-
-// --
-// Cover handling
-// --
-//
-EinaCover*
-eina_plugin_get_player_cover(EinaPlugin *plugin);
-
-void
-eina_plugin_cover_add_backend(EinaPlugin *plugin, gchar *id,
-	EinaCoverBackendFunc search, EinaCoverBackendCancelFunc cancel);
-void
-eina_plugin_cover_remove_backend(EinaPlugin *plugin, gchar *id);
 
 // --
 // Artwork handling (cover replacement)

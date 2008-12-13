@@ -37,7 +37,6 @@ INST_H_FILES = \
 	base.h                     \
 	class-conf-file.h          \
 	eina-artwork.h             \
-	eina-cover.h               \
 	eina-preferences-dialog.h  \
 	fs.h                       \
 	preferences.h              \
@@ -54,7 +53,6 @@ eina_SOURCES = \
 	dock.c                     \
 	class-conf-file.c          \
 	eina-artwork.c             \
-	eina-cover.c               \
 	eina-file-chooser-dialog.c \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
