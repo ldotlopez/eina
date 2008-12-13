@@ -7,22 +7,33 @@ G_DEFINE_TYPE (EinaArtwork, eina_artwork, GTK_TYPE_IMAGE)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ARTWORK, EinaArtworkPrivate))
 
-typedef struct _EinaArtworkPrivate  EinaArtworkPrivate;
-struct _EinaArtworkPrivate {
-	LomoStream *stream;
-	GList      *providers, *running;
-
-	GdkPixbuf *default_pb, *loading_pb;
-};
-
 enum {
 	EINA_ARTWORK_PROPERTY_STREAM = 1,
 	EINA_ARTWORK_PROPERTY_DEFAULT_PIXBUF,
 	EINA_ARTWORK_PROPERTY_LOADING_PIXBUF
 };
 
+enum {
+	DEFAULT,
+	LOADING,
+	N_PIXBUFS
+};
+
+typedef struct _EinaArtworkPrivate  EinaArtworkPrivate;
+struct _EinaArtworkPrivate {
+	LomoStream *stream;
+	GList      *providers, *running;
+	gboolean    artwork_found;
+	GdkPixbuf  *pixbufs[N_PIXBUFS];
+};
+
+
 static void
 run_queue(EinaArtwork *self);
+static void
+set_internal_pixbuf(EinaArtwork *self, gint n, GdkPixbuf *pixbuf);
+static GdkPixbuf *
+get_internal_pixbuf(EinaArtwork *self, gint n);
 static void
 set_pixbuf(EinaArtwork *self, GdkPixbuf *pb);
 
@@ -67,8 +78,9 @@ eina_artwork_dispose (GObject *object)
 		gel_list_deep_free(priv->providers, eina_artwork_provider_free);
 		priv->providers = priv->running = NULL;
 	}
-	gel_free_and_invalidate(GET_PRIVATE(object)->default_pb, NULL, g_object_unref);
-	gel_free_and_invalidate(GET_PRIVATE(object)->loading_pb, NULL, g_object_unref);
+	gint i;
+	for (i = 0 ; i < N_PIXBUFS; i++)
+		gel_free_and_invalidate(GET_PRIVATE(object)->pixbufs[i], NULL, g_object_unref);
 	G_OBJECT_CLASS (eina_artwork_parent_class)->dispose (object);
 }
 
@@ -124,17 +136,26 @@ eina_artwork_set_stream(EinaArtwork *self, LomoStream *stream)
 	// Stop any running providers
 	if (priv->running)
 	{
-		gel_warn("Provider running. Cancel it");
+		// gel_warn("Provider running. Cancel it");
 		eina_artwork_provider_cancel((EinaArtworkProvider *) priv->running->data, self);
 		priv->running = NULL;
 	}
 
-	priv->stream = stream;
+	// Stop if stream == NULL
+	if ((priv->stream = stream) == NULL)
+		return;
 
-	// Start providers
-	gel_warn("Restart providers queue");
-	priv->running = priv->providers;
-	run_queue(self);
+	// Run queue if there is any provider
+	priv->artwork_found = FALSE;
+	if ((priv->running = priv->providers) != NULL)
+	{
+		// gel_warn("Restart providers queue");
+		run_queue(self);
+	}
+	else if (priv->pixbufs[DEFAULT])
+	{
+		set_pixbuf(self, priv->pixbufs[DEFAULT]);
+	}
 }
 
 LomoStream *
@@ -146,37 +167,36 @@ eina_artwork_get_stream(EinaArtwork *self)
 void
 eina_artwork_set_default_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
 {
-	EinaArtworkPrivate *priv = GET_PRIVATE(self);
-	gel_free_and_invalidate(priv->default_pb, NULL, g_object_unref);
-	priv->default_pb = pixbuf;
+	set_internal_pixbuf(self, DEFAULT, pixbuf);
 
 	// If there is no running provider use this pixbuf
-	if (!priv->running && priv->default_pb)
-		set_pixbuf(self, priv->default_pb);
+	if (!GET_PRIVATE(self)->running && pixbuf)
+	{
+		gel_warn("Set default pb to %p", pixbuf);
+		set_pixbuf(self, pixbuf);
+	}
 }
 
 GdkPixbuf *
 eina_artwork_get_default_pixbuf(EinaArtwork *self)
 {
-	return GET_PRIVATE(self)->default_pb;
+	return get_internal_pixbuf(self, DEFAULT);
 }
 
 void
 eina_artwork_set_loading_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
 {
-	EinaArtworkPrivate *priv = GET_PRIVATE(self);
-	gel_free_and_invalidate(priv->loading_pb, NULL, g_object_unref);
-	priv->loading_pb = pixbuf;
+	set_internal_pixbuf(self, LOADING, pixbuf);
 
 	// If there is a running provider use this pixbuf
-	if (priv->running && priv->loading_pb)
-		set_pixbuf(self, priv->loading_pb);
+	if (GET_PRIVATE(self)->running && pixbuf)
+		set_pixbuf(self, pixbuf);
 }
 
 GdkPixbuf *
 eina_artwork_get_loading_pixbuf(EinaArtwork *self)
 {
-	return GET_PRIVATE(self)->default_pb;
+	return get_internal_pixbuf(self, LOADING);
 }
 
 // --
@@ -198,6 +218,12 @@ eina_artwork_add_provider(EinaArtwork *self,
 	// Add provider al end of queue
 	priv->providers = g_list_append(priv->providers, eina_artwork_provider_new(name, search, cancel, provider_data));
 
+	// Run queue under some circumstances
+	if (priv->stream && !priv->artwork_found && (priv->providers->next == NULL))
+	{
+		priv->running = priv->providers;
+		run_queue(self);
+	}
 	return TRUE;
 }
 
@@ -209,7 +235,7 @@ eina_artwork_remove_provider(EinaArtwork *self, const gchar *name)
 
 	if (priv->running && g_str_equal(eina_artwork_provider_get_name(EINA_ARTWORK_PROVIDER(priv->running->data)), name))
 	{
-		gel_warn("Removing currently running provider, go to next provider");
+		// gel_warn("Removing currently running provider, go to next provider");
 		eina_artwork_provider_cancel((EinaArtworkProvider*) priv->running->data, self);
 		priv->running = priv->running->next;
 		call_run_queue = TRUE;
@@ -231,6 +257,7 @@ eina_artwork_remove_provider(EinaArtwork *self, const gchar *name)
 void
 eina_artwork_provider_success(EinaArtwork *self, GType type, gpointer data)
 {
+	EinaArtworkPrivate *priv = GET_PRIVATE(self);
 	if (type == G_TYPE_STRING)
 	{
 		GdkPixbuf *pb = gdk_pixbuf_new_from_file((gchar *) data, NULL);
@@ -248,7 +275,8 @@ eina_artwork_provider_success(EinaArtwork *self, GType type, gpointer data)
 	}
 
 	// Set queue to idle
-	GET_PRIVATE(self)->running = NULL;
+	priv->running = NULL;
+	priv->artwork_found = TRUE;
 }
 
 void
@@ -293,14 +321,33 @@ run_queue(EinaArtwork *self)
 	// Got end of queue.
 	if (priv->running == NULL)
 	{
-		if (priv->default_pb)
-			set_pixbuf(self, priv->default_pb);
-		gel_warn("End of providers queue.");
+		if (priv->pixbufs[DEFAULT])
+			set_pixbuf(self, priv->pixbufs[DEFAULT]);
+		// gel_warn("End of providers queue.");
 		return;
 	}
 
-	gel_warn("Running provider %d of %d",  g_list_position(priv->providers, priv->running) + 1, g_list_length(priv->providers));
+	// gel_warn("Running provider %d of %d",  g_list_position(priv->providers, priv->running) + 1, g_list_length(priv->providers));
 	eina_artwork_provider_search((EinaArtworkProvider*) priv->running->data, self);
+}
+
+static void
+set_internal_pixbuf(EinaArtwork *self, gint n, GdkPixbuf *pixbuf)
+{
+	EinaArtworkPrivate *priv = GET_PRIVATE(self);
+	if (!priv || (n >= N_PIXBUFS))
+		return;
+	gel_free_and_invalidate(priv->pixbufs[n], NULL, g_object_unref);
+	priv->pixbufs[n] = pixbuf;
+}
+
+static GdkPixbuf *
+get_internal_pixbuf(EinaArtwork *self, gint n)
+{
+	EinaArtworkPrivate *priv = GET_PRIVATE(self);
+	if (!priv || (n >= N_PIXBUFS))
+		return NULL;
+	return priv->pixbufs[n];
 }
 
 static void
