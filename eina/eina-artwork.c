@@ -19,6 +19,12 @@ enum {
 	N_PIXBUFS
 };
 
+enum {
+	CHANGE,
+	LAST_SIGNAL
+};
+static guint eina_artwork_signals[LAST_SIGNAL] = { 0 };
+
 typedef struct _EinaArtworkPrivate  EinaArtworkPrivate;
 struct _EinaArtworkPrivate {
 	LomoStream *stream;
@@ -112,6 +118,16 @@ eina_artwork_class_init (EinaArtworkClass *klass)
     g_object_class_install_property(object_class, EINA_ARTWORK_PROPERTY_LOADING_PIXBUF,
 		g_param_spec_object("loading-pixbuf", "Loading pixbuf", "Loading pixbuf",
 		GDK_TYPE_PIXBUF,  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+
+	// Signals
+	eina_artwork_signals[CHANGE] = g_signal_new ("change",
+		G_OBJECT_CLASS_TYPE (object_class),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET (EinaArtworkClass, change),
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE,
+		0);
 }
 
 static void
@@ -355,6 +371,7 @@ set_pixbuf(EinaArtwork *self, GdkPixbuf *pb)
 {
 	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pb, GTK_WIDGET(self)->allocation.width, GTK_WIDGET(self)->allocation.height, GDK_INTERP_BILINEAR);
 	gtk_image_set_from_pixbuf(GTK_IMAGE(self), scaled);
+	g_signal_emit(self, eina_artwork_signals[CHANGE], 0);
 }
 
 // --

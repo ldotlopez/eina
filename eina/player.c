@@ -14,7 +14,6 @@
 #include "player.h"
 #include "settings.h"
 #include "preferences.h"
-#include "eina-cover.h"
 #include <eina/artwork.h>
 #include "eina-seek.h"
 #include "eina-volume.h"
@@ -29,7 +28,6 @@ struct _EinaPlayer {
 	EinaConf  *conf;
 
 	GtkWindow  *main_window;
-	// EinaCover  *cover;
 	EinaArtwork *cover;
 	EinaSeek   *seek;
 	EinaVolume *volume;
@@ -72,10 +70,8 @@ static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
-/*
 static void
 cover_change_cb(EinaCover *cover, EinaPlayer *self);
-*/
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -167,7 +163,6 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	gel_ui_container_replace_children(
 		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
 		GTK_WIDGET(self->cover));
-	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb),     self);
 
 	eina_cover_set_default_cover(self->cover, default_cover_path);
 	eina_cover_set_loading_cover(self->cover, loading_cover_path);
@@ -177,6 +172,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	// Artwork
 	// EinaArtwork *artwork = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
 	EinaArtwork *artwork = self->cover = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
+	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb), self);
 	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
 	gtk_widget_show(GTK_WIDGET(self->cover));
 	g_object_set(artwork,
@@ -665,7 +661,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 		gel_warn("Unhandled action %s", name);
 	}
 }
-/*
+
 static void
 cover_change_cb(EinaCover *cover, EinaPlayer *self)
 {
@@ -676,7 +672,7 @@ cover_change_cb(EinaCover *cover, EinaPlayer *self)
 	}
 	gtk_window_set_icon(self->main_window, gtk_image_get_pixbuf(GTK_IMAGE(cover)));
 }
-*/
+
 static void
 lomo_state_change_cb (LomoPlayer *lomo, EinaPlayer *self)
 {
