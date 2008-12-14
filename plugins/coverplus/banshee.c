@@ -4,7 +4,7 @@
 // Banshee covers
 // --
 void
-banshee_search(EinaArtwork *cover, LomoStream *stream, gpointer data)
+coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer data)
 {
 	GString *str;
 	gchar *path = NULL;
@@ -34,9 +34,9 @@ banshee_search(EinaArtwork *cover, LomoStream *stream, gpointer data)
 	g_string_free(str, TRUE);
 
 	if (g_file_test(path, G_FILE_TEST_IS_REGULAR|G_FILE_TEST_EXISTS))
-		eina_artwork_backend_success(cover, G_TYPE_STRING, path);
+		eina_artwork_provider_success(cover, G_TYPE_STRING, path);
 	else
-		eina_artwork_backend_fail(cover);
+		eina_artwork_provider_fail(cover);
 
 	g_free(path);
 }

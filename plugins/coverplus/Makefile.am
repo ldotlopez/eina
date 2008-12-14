@@ -4,7 +4,8 @@ plugin_LTLIBRARIES = libcoverplus.la
 libcoverplus_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 libcoverplus_la_SOURCES = \
 	iface.c \
-	infolder-sync.c infolder.h
+	infolder-sync.c infolder.h \
+	banshee.h banshee.c
 
 AM_CFLAGS = @PACKAGE_CFLAGS@ 
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)

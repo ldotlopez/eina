@@ -8,6 +8,7 @@
 #include <gel/gel-io.h>
 #include <eina/plugin.h>
 #include "infolder.h"
+#include "banshee.h"
 
 // Hold sub-plugins data
 typedef struct CoverPlus {
@@ -61,8 +62,9 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 			g_error_free(err);
 	}
 
-	// eina_cover_add_backend(cover, "coverplus-banshee",
-	// coverplus_banshee_search_iface, NULL, NULL);
+	eina_artwork_add_provider(artwork, "coverplus-banshee",
+		coverplus_banshee_search_cb, NULL,
+		NULL); 
 
 	plugin->data = self;
 
@@ -72,13 +74,8 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 gboolean
 coverplus_exit(EinaPlugin *plugin, GError **error)
 {
-	//EinaCover *cover = eina_plugin_get_player_cover(plugin);
-
-	// eina_cover_remove_backend(cover, "coverplus-banshee");
-	// eina_cover_remove_backend(cover, "coverplus-infolder");
-
-	// coverplus_infolder_destroy(EINA_PLUGIN_DATA(plugin)->infolder);
 	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
+	// eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");
 	g_free(EINA_PLUGIN_DATA(plugin));
 
 	return TRUE;

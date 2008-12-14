@@ -8,7 +8,7 @@
 G_BEGIN_DECLS
 
 void
-banshee_search(EinaArtwork *cover, LomoStream *stream, gpointer data);
+coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer data);
 
 G_END_DECLS
 

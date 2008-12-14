@@ -735,7 +735,7 @@ static GtkTargetEntry target_list[] = {
 
 static guint n_targets = G_N_ELEMENTS (target_list);
 
-void
+static void
 list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
 {
 	EinaPlayer *self = EINA_PLAYER(data);
@@ -771,14 +771,14 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	gel_list_deep_free(lomofeed, g_free);
 }
 
-void
+static void
 list_read_error_cb(GelIOOp *op, GFile *source, GError *err, gpointer data)
 {
 	gel_warn("ERror");
 }
 
 static void
-drag_data_received_handl
+drag_data_received_cb
 (GtkWidget *widget, GdkDragContext *context, gint x, gint y,
 	GtkSelectionData *selection_data, guint target_type, guint time,
 	gpointer data)
@@ -848,7 +848,7 @@ void setup_dnd(EinaPlayer *self)
 		n_targets,              /* size of list */
 		GDK_ACTION_COPY);
 	g_signal_connect (well_dest, "drag-data-received",
-		G_CALLBACK(drag_data_received_handl), self);
+		G_CALLBACK(drag_data_received_cb), self);
 /*
 	g_signal_connect (well_dest, "drag-leave",
 		G_CALLBACK (drag_leave_handl), NULL);

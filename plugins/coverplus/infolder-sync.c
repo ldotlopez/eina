@@ -114,7 +114,6 @@ coverplus_infolder_search_cb(EinaArtwork *artwork, LomoStream *stream, CoverPlus
 	if (score < G_MAXINT)
 	{	
 		gchar *cover_pathname = g_build_filename(dirname, winner, NULL);
-		gel_warn("Got winner: %s", winner);
 		eina_artwork_provider_success(artwork, G_TYPE_STRING, cover_pathname);
 	}
 	else

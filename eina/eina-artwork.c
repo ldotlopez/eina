@@ -260,8 +260,9 @@ eina_artwork_remove_provider(EinaArtwork *self, const gchar *name)
 	GList *iter = eina_artwork_find_provider(self, name);
 	if (iter)
 	{
-		priv->providers = g_list_remove(priv->providers, iter);
+		priv->providers = g_list_remove_link(priv->providers, iter);
 		eina_artwork_provider_free(iter->data);
+		g_list_free(iter);
 	}
 
 	if (call_run_queue)

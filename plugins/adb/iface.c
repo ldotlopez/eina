@@ -6,7 +6,6 @@
 static gboolean
 adb_plugin_init(EinaPlugin *plugin, GError **error)
 {
-	
 	Adb *self;
 
 	self = adb_new(eina_plugin_get_lomo(plugin), error);
