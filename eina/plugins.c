@@ -174,8 +174,8 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 			if (!plugin)
 			{
 				plugin = eina_loader_load_plugin(EINA_BASE_GET_LOADER(self), plugins[i], &error);
-				gel_error("Cannot load plugin %s: %s", plugins[i], error->message);
-				g_error_free(error);
+				gel_error("Cannot load plugin %s: %s", plugins[i], error ? error->message : N_("(no reason)"));
+				gel_free_and_invalidate(error, NULL, g_error_free);
 				continue;
 			}
 
@@ -183,7 +183,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 			{
 				eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, &error);
 				gel_error("Cannot unload plugin %s: %s", plugins[i], error->message);
-				g_error_free(error);
+				gel_free_and_invalidate(error, NULL, g_error_free);
 				continue;
 			}
 		}
