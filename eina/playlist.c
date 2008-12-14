@@ -1,16 +1,23 @@
 #define GEL_DOMAIN "Eina::Playlist"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gdk/gdkkeysyms.h>
-#include <lomo/util.h>
+
+#include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include "config.h"
+
+#include <lomo/util.h>
+
 #include "base.h"
 #include "playlist.h"
 #include "settings.h"
@@ -1054,6 +1061,150 @@ void on_pl_settings_change(EinaConf *conf, const gchar *key, gpointer data) {
 			eina_conf_get_bool(conf, "/core/random", TRUE));
 	}
 }
+
+// --
+// DnD code
+// --
+enum {
+	TARGET_INT32,
+	TARGET_STRING,
+	TARGET_ROOTWIN
+};
+
+/* datatype (string), restrictions on DnD
+ * (GtkTargetFlags), datatype (int) */
+static GtkTargetEntry target_list[] = {
+	// { "INTEGER",    0, TARGET_INT32 },
+	{ "STRING",     0, TARGET_STRING },
+	{ "text/plain", 0, TARGET_STRING },
+	// { "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
+};
+
+static guint n_targets = G_N_ELEMENTS (target_list);
+
+void
+list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
+{
+	EinaPlaylist *self = EINA_PLAYLIST(data);
+	GList  *uris;
+	GSList *filter;
+
+	if (!(uris = gel_io_op_result_get_object_list(res)))
+	{
+		gel_io_op_unref(op);
+		return;
+	}
+	filter = gel_list_filter(uris, (GelFilterFunc) eina_fs_is_supported_file, NULL);
+	if (!filter)
+	{
+		gel_io_op_unref(op);
+		return;
+	}
+
+	GList  *lomofeed = NULL;
+	GSList *iter = filter;
+	while (iter)
+	{
+		lomofeed = g_list_prepend(lomofeed, g_file_get_uri(G_FILE(iter->data)));
+		iter = iter->next;
+	}
+	lomofeed = g_list_reverse(lomofeed);
+
+	g_slist_free(filter);
+	gel_io_op_unref(op);
+
+	lomo_player_add_uri_multi(LOMO(self), lomofeed);
+	gel_list_deep_free(lomofeed, g_free);
+}
+
+void
+list_read_error_cb(GelIOOp *op, GFile *source, GError *err, gpointer data)
+{
+	gel_warn("Error");
+}
+
+static void
+drag_data_received_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+	GtkSelectionData *selection_data, guint target_type, guint time,
+	gpointer data)
+{
+	EinaPlaylist *self = EINA_PLAYLIST(data);
+	gchar *string = NULL;
+
+	// Check for data
+	if ((selection_data == NULL) || (selection_data->length < 0))
+	{
+		gel_warn("Got invalid selection from DnD");
+		return gtk_drag_finish (context, FALSE, FALSE, time);
+	}
+
+	if (context->action != GDK_ACTION_COPY)
+	{
+		gel_warn("Got invalid action from DnD");
+		return gtk_drag_finish (context, FALSE, FALSE, time);
+	}
+
+	/*
+	if (context-> action == GDK_ACTION_ASK)
+	{
+		// Ask the user to move or copy, then set the context action.
+	}
+
+	if (context-> action == GDK_ACTION_MOVE)
+		delete_selection_data = TRUE;
+	*/
+
+	/* Check that we got the format we can use */
+	switch (target_type)
+	{
+	case TARGET_STRING:
+		string = (gchar*) selection_data-> data;
+		break;
+	default:
+		gel_warn("Unknow target type in DnD");
+	}
+
+	if (string == NULL)
+		return gtk_drag_finish (context, FALSE, FALSE, time);
+
+
+	// Parse
+	gint i;
+	gchar **uris = g_uri_list_extract_uris(string);
+	gtk_drag_finish (context, TRUE, FALSE, time);
+	GSList *files = NULL;
+	for (i = 0; uris[i] && uris[i][0]; i++)
+		files = g_slist_prepend(files, g_file_new_for_uri(uris[i]));
+
+	g_strfreev(uris);
+	files = g_slist_reverse(files);
+
+	gel_io_list_read(files, "standard::*",
+		list_read_success_cb, list_read_error_cb,
+		self);
+}
+
+void setup_dnd(EinaPlaylist *self)
+{
+	GtkWidget *well_dest = W(self, "playlist-treeview");
+	gtk_drag_dest_set(well_dest,
+		GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION, // motion or highlight can do c00l things
+		target_list,            /* lists of target to support */
+		n_targets,              /* size of list */
+		GDK_ACTION_COPY);
+	g_signal_connect (well_dest, "drag-data-received",
+		G_CALLBACK(drag_data_received_cb), self);
+/*
+	g_signal_connect (well_dest, "drag-leave",
+		G_CALLBACK (drag_leave_handl), NULL);
+	g_signal_connect (well_dest, "drag-motion",
+		G_CALLBACK (drag_motion_handl), NULL);
+	g_signal_connect (well_dest, "drag-drop",
+		G_CALLBACK (drag_drop_handl), NULL);
+*/
+}
+
 
 
 /*
