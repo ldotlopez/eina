@@ -303,9 +303,11 @@ static void lomo_meta_foreach_tag_cb
 
 		case G_TYPE_UINT:
 			if (gst_tag_list_get_uint(list, tag, &uint_tag)) {
-				g_object_set_data(
+				pointer = g_new0(guint, 1);
+				* ((guint*) pointer) = uint_tag;
+				g_object_set_data_full(
 						G_OBJECT(priv->stream),
-						tag, (gpointer) uint_tag);
+						tag, pointer, g_free);
 				g_signal_emit(
 						G_OBJECT(priv->player), lomo_player_signals[TAG],
 						0, priv->stream, tag);
@@ -327,9 +329,11 @@ static void lomo_meta_foreach_tag_cb
 
 		case G_TYPE_INT:
 			if (gst_tag_list_get_int(list, tag, &int_tag)) {
-				g_object_set_data(
+				pointer = g_new0(gint, 1);
+				* ((guint*) pointer) = int_tag;
+				g_object_set_data_full(
 						G_OBJECT(priv->stream),
-						tag, (gpointer *) int_tag);
+						tag, pointer, g_free);
 				g_signal_emit(
 						G_OBJECT(priv->player), lomo_player_signals[TAG],
 						0, priv->stream, tag);
