@@ -1,18 +1,5 @@
-eina (0.7.2.91+0.7.3-beta1) intrepid; urgency=low
+eina (0.7.2.92~ppa4) intrepid; urgency=low
 
-  * New upstream version (0.7.3 beta 1)
+  * New upstream version (0.7.3 beta 2)
 
- -- Luis Lopez <xuzo@cuarentaydos.com>  Sat, 06 Dec 2008 13:25:22 +0100
-
-eina (0.7.2) hardy; urgency=low
-
-  * Alpha 2
-  * Adopt a correct version number
-
- -- Luis Lopez <xuzo@cuarentaydos.com>  Fri, 17 Oct 2008 10:47:00 +0200
-
-eina (0.7.0+alpha1) hardy; urgency=low
-
-  * Upstream updated
-
- -- Luis Lopez <xuzo@cuarentaydos.com>  Fri, 26 Sep 2008 09:36:03 +0200
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Mon, 15 Dec 2008 22:51:35 +0100
