@@ -87,6 +87,13 @@ static void lomo_all_tags_cb
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
 
+static gboolean
+update_cover_cb(gpointer data)
+{
+	eina_artwork_set_stream(EINA_PLAYER(data)->cover, (LomoStream*) lomo_player_get_current_stream(LOMO(EINA_BASE(data))));
+	return FALSE;
+}
+
 G_MODULE_EXPORT gboolean
 eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 {
@@ -157,21 +164,23 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	EinaArtwork *artwork = self->cover = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
 	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb), self);
 	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
-	gtk_widget_show(GTK_WIDGET(self->cover));
 
 	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
 	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	g_idle_add(update_cover_cb, self);
+	eina_artwork_set_default_pixbuf(artwork, gdk_pixbuf_new_from_file(default_cover_path, NULL));
+	eina_artwork_set_loading_pixbuf(artwork, gdk_pixbuf_new_from_file(loading_cover_path, NULL));
 	g_object_set(artwork,
-		"lomo-stream",    lomo_player_get_current_stream(LOMO(self)),
 		"default-pixbuf", gdk_pixbuf_new_from_file(default_cover_path, NULL),
-		"loading-pixbuf", gdk_pixbuf_new_from_file(loading_cover_path, NULL),
-		NULL);
+		"loading-pixbuf", gdk_pixbuf_new_from_file(loading_cover_path, NULL), 
+		NULL); 
 	g_free(default_cover_path);
 	g_free(loading_cover_path);
 
 	gel_ui_container_replace_children(
 		W_TYPED(self, GTK_CONTAINER, "cover-image-container"),
 		GTK_WIDGET(self->cover));
+	gtk_widget_show_all(GTK_WIDGET(self->cover));
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -390,59 +399,6 @@ update_sensitiviness(EinaPlayer *self)
 	gtk_widget_set_sensitive(GTK_WIDGET(self->play_pause),
 		(lomo_player_get_current(LOMO(self)) >= 0));
 }
-#if 0
-static void
-file_chooser_load_files(EinaPlayer *self)
-{
-	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
-
-	gboolean run = TRUE;
-	GSList *uris;
-
-	do
-	{
-		run = FALSE;
-		gint response = eina_file_chooser_dialog_run(picker);
-
-		switch (response)
-		{
-		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
-			uris = eina_file_chooser_dialog_get_uris(picker);
-			if (uris == NULL) // Shortcircuit
-			{
-				run = TRUE; // Keep alive
-				break;
-			}
-			lomo_player_clear(LOMO(self));
-			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
-			lomo_player_play(LOMO(self), NULL);
-			run = FALSE; // Destroy
-			break;
-
-		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
-			uris = eina_file_chooser_dialog_get_uris(picker);
-			if (uris == NULL)
-			{
-				run = TRUE; // Keep alive
-				break;
-			}
-			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(uris));
-			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
-			g_free(msg);
-
-			lomo_player_add_uri_multi(LOMO(self), (GList *) uris);
-			run = TRUE; // Keep alive
-			break;
-
-		default:
-			run = FALSE; // Destroy
-			break;
-		}
-	} while (run);
-
-	gtk_widget_destroy(GTK_WIDGET(picker));
-}
-#endif
 
 static void
 about_show(void)
@@ -517,7 +473,6 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 static gboolean
 main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, EinaPlayer *self)
 {
-	// GdkWindowState mask = GDK_WINDOW_STATE_FULLSCREEN | GDK_WINDOW_STATE_MAXIMIZED;
 	return FALSE;
 }
 
@@ -683,6 +638,7 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 {
 	set_info(self, NULL);
 	update_sensitiviness(self);
+	eina_artwork_set_stream(self->cover, NULL);
 }
 
 static void

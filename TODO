@@ -23,7 +23,7 @@ V Window icon at startup (see prev bug)
 - EinaPlayer must listen EinaConf for changes in info format
 - If eina window is maximized, dock must be expanded, if no dock, eina cannot
   will maximize
-~ DnD (Add support to playlist to enqueue)
+V DnD (Add support to playlist to enqueue)
 
 0.8 Series - Plugins
 ====================

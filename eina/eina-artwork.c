@@ -159,7 +159,11 @@ eina_artwork_set_stream(EinaArtwork *self, LomoStream *stream)
 
 	// Stop if stream == NULL
 	if ((priv->stream = stream) == NULL)
+	{	
+		if (priv->pixbufs[DEFAULT])
+			set_pixbuf(self, priv->pixbufs[DEFAULT]);
 		return;
+	}
 
 	// Run queue if there is any provider
 	priv->artwork_found = FALSE;
@@ -186,9 +190,8 @@ eina_artwork_set_default_pixbuf(EinaArtwork *self, GdkPixbuf *pixbuf)
 	set_internal_pixbuf(self, DEFAULT, pixbuf);
 
 	// If there is no running provider use this pixbuf
-	if (!GET_PRIVATE(self)->running && pixbuf)
+	if ((GET_PRIVATE(self)->running == NULL) && pixbuf)
 	{
-		gel_warn("Set default pb to %p", pixbuf);
 		set_pixbuf(self, pixbuf);
 	}
 }
