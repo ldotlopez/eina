@@ -60,6 +60,8 @@ GtkWidget *
 eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
 static void
 remove_selected(EinaPlaylist *self);
+static void
+setup_dnd(EinaPlaylist *self);
 
 void
 eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
@@ -272,6 +274,8 @@ G_MODULE_EXPORT gboolean playlist_init
 		LOMO(self), 
 		eina_conf_get_int(self->conf, "/playlist/last_current", 0),
 		NULL);
+
+	setup_dnd(self);
 
 	gtk_widget_show(self->dock);
 	return eina_dock_add_widget(EINA_BASE_GET_DOCK(self), "playlist",
@@ -1082,7 +1086,7 @@ static GtkTargetEntry target_list[] = {
 
 static guint n_targets = G_N_ELEMENTS (target_list);
 
-void
+static void
 list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
 {
 	EinaPlaylist *self = EINA_PLAYLIST(data);
@@ -1117,7 +1121,7 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	gel_list_deep_free(lomofeed, g_free);
 }
 
-void
+static void
 list_read_error_cb(GelIOOp *op, GFile *source, GError *err, gpointer data)
 {
 	gel_warn("Error");
