@@ -2,7 +2,7 @@ plugindir = $(libdir)/$(PACKAGE)/lastfm
 
 plugin_LTLIBRARIES = liblastfm.la
 liblastfm_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
-liblastfm_la_SOURCES = lastfm.c
+liblastfm_la_SOURCES = lastfm.c lastfm.h submit.c submit.h
 
 AM_CFLAGS = @PACKAGE_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)

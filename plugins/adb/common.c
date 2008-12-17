@@ -38,6 +38,7 @@ gboolean
 adb_set_variable(Adb *self, const gchar *variable, GType type, gpointer value)
 {
 	gchar *fmt = NULL;
+	gboolean deference = TRUE;
 	switch (type)
 	{
 	case G_TYPE_BOOLEAN:
@@ -46,6 +47,7 @@ adb_set_variable(Adb *self, const gchar *variable, GType type, gpointer value)
 		fmt = "%d";
 		break;
 	case G_TYPE_STRING:
+		deference = FALSE;
 		fmt = "%s";
 		break;
 	case G_TYPE_CHAR:
@@ -58,7 +60,11 @@ adb_set_variable(Adb *self, const gchar *variable, GType type, gpointer value)
 		return FALSE;
 	}
 	gchar *query = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%%s'", fmt);
-	gchar *q = g_strdup_printf(query, value, variable);
+	gchar *q;
+	if (deference)
+		q = g_strdup_printf(query, value, *variable);
+	else
+		q = g_strdup_printf(query, value, variable);
 	g_free(query);
 
 	char *error = NULL;
