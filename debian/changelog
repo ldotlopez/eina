@@ -1,3 +1,10 @@
+eina (0.7.2.92~ppa6) intrepid; urgency=low
+
+  * Change libsqlite3 for libsqlite3-0 in debian control file
+  * Enable --enable-release-build in debian/rules file
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Thu, 18 Dec 2008 18:16:02 +0100
+
 eina (0.7.2.92~ppa4) intrepid; urgency=low
 
   * New upstream version (0.7.3 beta 2)
