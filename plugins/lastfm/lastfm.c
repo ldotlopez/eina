@@ -32,6 +32,9 @@ lastfm_init(EinaPlugin *plugin, GError **error)
 		goto lastfm_init_fail;
 	if ((widget = gtk_bin_get_child(GTK_BIN(widget))) == NULL)
 		goto lastfm_init_fail;
+	g_object_ref(widget);
+	gtk_widget_destroy(widget->parent);
+	gtk_widget_show_all(widget);
 
 	icon_path = eina_plugin_build_resource_path(plugin, "lastfm.png");
 	if ((icon = gtk_image_new_from_file(icon_path)) == NULL)
