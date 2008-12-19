@@ -13,6 +13,8 @@
 #include <eina/artwork.h>
 
 #define EINA_PLUGIN_SERIAL 2
+#define EINA_PLUGIN_GENERIC_AUTHOR "xuzo <xuzo@cuarentaydos.com>"
+#define EINA_PLUGIN_GENERIC_URL    "http://eina.sourceforge.net/"
 #define EINA_PLUGIN(p)     ((EinaPlugin *) p)
 
 typedef struct _EinaPluginPrivate EinaPluginPrivate;

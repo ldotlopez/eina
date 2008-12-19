@@ -151,7 +151,8 @@ void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 
 	if (buff != NULL)
 	{
-		write(priv->io_fd, buff, strlen(buff));
+		if (write(priv->io_fd, buff, strlen(buff)) == -1)
+			; // Avoid warning
 		g_free(buff);
 	}
 }

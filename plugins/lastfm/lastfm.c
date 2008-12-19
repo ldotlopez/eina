@@ -11,16 +11,15 @@ lastfm_init(EinaPlugin *plugin, GError **error)
 {
 	plugin->data = g_new0(LastFM, 1);
 
-	// Submit handling
-	if (!lastfm_submit_init(plugin, error))
-		goto lastfm_init_fail;
-
-	// Add preferences panel
 	gchar *ui_path   = NULL;
 	gchar *icon_path = NULL;
 
 	GtkBuilder *builder = NULL;
 	GtkWidget  *icon = NULL, *widget = NULL;
+
+	// Submit handling
+	if (!lastfm_submit_init(plugin, error))
+		goto lastfm_init_fail;
 
 	ui_path = eina_plugin_build_resource_path(plugin, "lastfm.ui");
 	builder = gtk_builder_new();
@@ -40,7 +39,13 @@ lastfm_init(EinaPlugin *plugin, GError **error)
 	if ((icon = gtk_image_new_from_file(icon_path)) == NULL)
 		goto lastfm_init_fail;
 
+	GtkWidget *parent = gtk_widget_get_parent(widget);
+	g_object_ref(widget);
+	gtk_container_remove(GTK_CONTAINER(parent), widget);
+	gtk_widget_destroy(parent);
 	eina_plugin_add_configuration_widget(plugin, GTK_IMAGE(icon), (GtkLabel*) gtk_label_new(N_("LastFM")), widget);
+	g_object_unref(widget);
+
 	EINA_PLUGIN_DATA(plugin)->configuration_widget = widget;
 
 	return TRUE;
@@ -52,7 +57,7 @@ lastfm_init_fail:
 	gel_free_and_invalidate(icon_path, NULL, g_free);
 	gel_free_and_invalidate(icon,      NULL, g_object_unref);
 
-	gel_free_and_invalidate(widget,      NULL, g_object_unref);
+	gel_free_and_invalidate(widget,    NULL, g_object_unref);
 
 	if (EINA_PLUGIN_DATA(plugin)->submit != NULL)
 	{

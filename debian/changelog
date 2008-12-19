@@ -1,3 +1,9 @@
+eina (0.7.2.92~ppa7) intrepid; urgency=low
+
+  * Fix some gcc warnings
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Fri, 19 Dec 2008 17:03:00 +0100
+
 eina (0.7.2.92~ppa6) intrepid; urgency=low
 
   * Change libsqlite3 for libsqlite3-0 in debian control file

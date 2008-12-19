@@ -308,7 +308,8 @@ G_MODULE_EXPORT gboolean playlist_exit
 
 	file = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
 	fd = g_open(file, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR | S_IWUSR);
-	write(fd, buff, strlen(buff));
+	if (write(fd, buff, strlen(buff)) == -1)
+		; // XXX Just avoid warnings
 	close(fd);
 	g_free(file);
 
