@@ -35,8 +35,9 @@ adb_exec_querys(Adb *self, const gchar **querys, gint *success, GError **error)
 }
 
 gboolean
-adb_set_variable(Adb *self, const gchar *variable, GType type, gpointer value)
+adb_set_variable(Adb *self, gchar *variable, gchar *value)
 {
+#if 0
 	gchar *fmt = NULL;
 	gboolean deference = TRUE;
 	switch (type)
@@ -60,12 +61,10 @@ adb_set_variable(Adb *self, const gchar *variable, GType type, gpointer value)
 		return FALSE;
 	}
 	gchar *query = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%%s'", fmt);
-	gchar *q;
-	if (deference)
-		q = g_strdup_printf(query, value, *variable);
-	else
-		q = g_strdup_printf(query, value, variable);
+	gchar q = g_strdup_printf(query, value, (deference ? *variable : variable));
 	g_free(query);
+#endif
+	gchar *q = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%s'", variable, value);
 
 	char *error = NULL;
 	gboolean ret = (sqlite3_exec(self->db, q, NULL, NULL, &error) == SQLITE_OK);

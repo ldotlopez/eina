@@ -113,7 +113,7 @@ lastfm_submit_lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
 
 	if (data->submit->secs_played < data->submit->secs_required)
 	{
-		gel_warn("Not sending stream %p, insufficient seconds played (%lld / %lld)", stream,
+		gel_warn("Not sending stream %p, insufficient seconds played (%"G_GINT64_FORMAT"/ %"G_GINT64_FORMAT")", stream,
 			data->submit->secs_played, data->submit->secs_required);
 		return;
 	}
@@ -127,7 +127,10 @@ lastfm_submit_lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
 		return;
 	}
 
-	cmdl = g_strdup_printf("/usr/lib/lastfmsubmitd/lastfmsubmit --artist \"%s\" --title \"%s\" --length %lld", artist, title, data->submit->secs_required * 2);
+	cmdl = g_strdup_printf("/usr/lib/lastfmsubmitd/lastfmsubmit --artist \"%s\" --title \"%s\" --length %"G_GINT64_FORMAT,
+		artist,
+		title,
+		data->submit->secs_required * 2);
 	if (album)
 	{
 		tmp = g_strdup_printf("%s --album \"%s\"", cmdl, album);

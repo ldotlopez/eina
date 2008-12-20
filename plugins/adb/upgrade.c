@@ -76,11 +76,14 @@ adb_db_upgrade(Adb *self, gint from_version)
 			return FALSE;
 		}
 
-		if (!adb_set_variable(self, "schema-version", G_TYPE_UINT, (gpointer) i))
+		gchar *val = g_strdup_printf("%d", i);
+		if (!adb_set_variable(self, "schema-version", val))
 		{
-			gel_error("Cannot upgrade to version %d", i);
+			gel_error("Cannot upgrade to version %s", val);
+			g_free(val);
 			return FALSE;
 		}
+		g_free(val);
 
 		gel_error("Upgraded to version %d", i);
 	}
