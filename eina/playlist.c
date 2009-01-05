@@ -638,30 +638,6 @@ __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, 
 	return ret;
 }
 
-EinaFsFilterAction
-eina_playlist_fs_filter(GFileInfo *info)
-{
-	static const gchar *suffixes[] = {".mp3", ".ogg", ".wma", ".aac", ".flac", NULL };
-	gchar *lc_name;
-	gint i;
-	EinaFsFilterAction ret = EINA_FS_FILTER_REJECT;
-
-	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY) {
-		return  EINA_FS_FILTER_ACCEPT;
-	}
-
-	lc_name = g_utf8_strdown(g_file_info_get_name(info), -1);
-	for (i = 0; suffixes[i] != NULL; i++) {
-		if (g_str_has_suffix(lc_name, suffixes[i])) {
-			ret = EINA_FS_FILTER_ACCEPT;
-			break;
-		}
-	}
-
-	g_free(lc_name);
-	return ret;
-}
-
 /*
  * UI Callbacks
  */

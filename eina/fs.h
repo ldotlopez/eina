@@ -5,36 +5,18 @@
 #include <gio/gio.h>
 #include <lomo/player.h>
 
+// Runs a file chooser dialog with all the stuff (cancel, loading, ...)
+// and adds results to lomo handling play or enqueue
 void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo);
-/*
-void
-eina_fs_dnd_load_files(LomoPlayer *lomo);
-*/
-typedef enum {
-	EINA_FS_FILTER_ACCEPT,
-	EINA_FS_FILTER_REJECT
-} EinaFsFilterAction;
 
-
-typedef EinaFsFilterAction (*EinaFsFilterFunc)(GFileInfo *fileinfo);
-
-void
-eina_fs_lomo_feed_uri_multi(LomoPlayer *lomo, GList *uris, EinaFsFilterFunc filter, GCallback callback, gpointer data);
-
+// Checking input by uri or GFile
 gboolean
 eina_fs_is_supported_extension(gchar *uri);
 gboolean
 eina_fs_is_supported_file(GFile *uri);
 
-void
-eina_fs_readdir_async(gchar *uri, gpointer data);
-
-#if 0
-GList *
-eina_fs_parse_playlist_buffer(gchar *buffer);
-#endif
-
+// Sync get children for a (gchar*) uri using GVfs
 GList*
 eina_fs_uri_get_children(gchar *uri);
 

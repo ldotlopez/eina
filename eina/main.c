@@ -159,6 +159,7 @@ gint main
 	gel_list_deep_free(uris, g_free);
 	g_strfreev(opt_uris);
 */
+
 	// --
 	// Set some signals
 	// --
