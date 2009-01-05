@@ -539,6 +539,7 @@ typedef struct {
 	GCancellable *cancellable;
 	GelIOOp      *subop;
 	GList        *results;
+	GSList       *sources;
 	const gchar  *attributes;
 } GelIOListRead;
 #define LIST_READ(d) ((GelIOListRead*)d)
@@ -566,7 +567,7 @@ void
 list_read_parse_tree(GelIOOp *op, GelIORecurseTree *tree, GFile *root);
 
 GelIOOp *
-gel_io_list_read(GSList *uris, const gchar *attributes,
+gel_io_list_read(GSList *gfiles, const gchar *attributes,
 	GelIOOpSuccessFunc success, GelIOOpErrorFunc error,
 	gpointer data)
 {
@@ -576,15 +577,22 @@ gel_io_list_read(GSList *uris, const gchar *attributes,
 		data);
 	self->_d = g_new0(GelIOListRead, 1);
 	LIST_READ(self->_d)->queue  = g_queue_new();
+	LIST_READ(self->_d)->sources = gfiles;
 	LIST_READ(self->_d)->attributes = attributes;
-	while (uris)
+	while (gfiles)
 	{
-		g_queue_push_tail(LIST_READ(self->_d)->queue, uris->data);
-		uris = uris->next;
+		g_queue_push_tail(LIST_READ(self->_d)->queue, gfiles->data);
+		gfiles = gfiles->next;
 	}
 
 	list_read_run_queue(self);
 	return self;
+}
+
+GSList *
+gel_io_list_read_get_sources(GelIOOp *self)
+{
+	return LIST_READ(self->_d)->sources;
 }
 
 gboolean
@@ -639,7 +647,8 @@ void
 list_read_run_queue(GelIOOp *op)
 {
 	GelIOListRead *d = LIST_READ(op->_d);
-	
+
+list_read_run_queue_retry:
 	// Work is done?
 	if (g_queue_is_empty(d->queue))
 	{
@@ -650,6 +659,11 @@ list_read_run_queue(GelIOOp *op)
 	}
 
 	GFile *file = g_queue_pop_head(d->queue);
+	if (!G_IS_FILE(file))
+	{
+		gel_warn("gel_io_list_read needs GSList::GFile object");
+		goto list_read_run_queue_retry;
+	}
 	d->cancellable = g_cancellable_new();
 	g_file_query_info_async(file, d->attributes, G_FILE_QUERY_INFO_NONE,
 		G_PRIORITY_DEFAULT, d->cancellable, list_read_query_info_cb,

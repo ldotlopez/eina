@@ -50,8 +50,8 @@ header_DATA = $(INST_H_FILES)
 eina_SOURCES = \
 	artwork.c                  \
 	base.c                     \
-	dock.c                     \
 	class-conf-file.c          \
+	dock.c                     \
 	eina-artwork.c             \
 	eina-file-chooser-dialog.c \
 	eina-preferences-dialog.c  \

@@ -55,12 +55,15 @@ fi
 GLIB_VERSION="2.16"
 GTK_VERSION="2.12"
 GSTREAMER_VERSION="0.10"
+UNIQUE_VERSION="1.0"
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
 	gmodule-2.0 >= $GLIB_VERSION,   \
 	gio-2.0 >= $GLIB_VERSION,       \
-	gtk+-2.0 >= $GTK_VERSION,
-	gstreamer-0.10 >= $GSTREAMER_VERSION"
+	gtk+-2.0 >= $GTK_VERSION,       \
+	gstreamer-0.10 >= $GSTREAMER_VERSION, \
+	unique-1.0 >= $UNIQUE_VERSION
+	"
 PKG_CHECK_MODULES(PACKAGE, $pkg_modules)
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)

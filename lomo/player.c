@@ -838,9 +838,10 @@ gint lomo_player_add_uri_multi_at_pos(LomoPlayer *self, GList *uris, gint pos)
 	l = uris;
 	while (l) {
 		if ((stream = lomo_stream_new((gchar *) l->data)) != NULL)
-			streams = g_list_append(streams, stream);
+			streams = g_list_prepend(streams, stream);
 		l = l->next;
 	}
+	streams = g_list_reverse(streams);
 
 	ret = lomo_player_add_multi_at_pos(self, streams, pos);
 	g_list_free(streams);

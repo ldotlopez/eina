@@ -1,3 +1,9 @@
+eina (0.7.2.92~ppa8) intrepid; urgency=low
+
+  * Install correct .desktop file
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Mon, 05 Jan 2009 13:04:44 +0100
+
 eina (0.7.2.92~ppa7) intrepid; urgency=low
 
   * Fix some gcc warnings
