@@ -44,6 +44,10 @@ unique_message_received_cb (UniqueApp *unique,
 // Callbacks
 // --
 static void
+list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
+static void
+list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
+static void
 on_app_dispose(GelHub *app, gpointer data);
 
 // --
@@ -140,26 +144,6 @@ gint main
 	for (i = 0; modules[i]; i++)
 		gel_hub_load(app, modules[i]);
 
-/*
-	// Add or enqueue files from cmdl
-	LomoPlayer *lomo = GEL_HUB_GET_LOMO(app);
-	GList *uris = NULL;
-
-	if ((!opt_enqueue) && (opt_uris != NULL))
-		lomo_player_clear(lomo);
-
-	for (i = 0; (opt_uris != NULL) && (opt_uris[i] != NULL); i++)
-	{
-		if ((tmp = lomo_create_uri(opt_uris[i])) != NULL)
-		{
-			uris = g_list_prepend(uris, tmp);
-		}
-	}
-	lomo_player_add_uri_multi(lomo, uris);
-	gel_list_deep_free(uris, g_free);
-	g_strfreev(opt_uris);
-*/
-
 	// --
 	// Set some signals
 	// --
@@ -167,42 +151,56 @@ gint main
 	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 	g_signal_connect (unique, "message-received", G_CALLBACK (unique_message_received_cb), app);
 
+	// Add files from cmdl
+	if (opt_uris)
+	{
+		gint i;
+		gchar *uri;
+		GSList *uris = NULL;
+
+		for (i = 0; (opt_uris != NULL) && (opt_uris[i] != NULL); i++)
+			if ((uri = lomo_create_uri(opt_uris[i])) != NULL)
+			{
+				uris = g_slist_prepend(uris, g_file_new_for_uri(uri));
+				g_free(uri);
+			}
+		uris = g_slist_reverse(uris);
+		g_strfreev(opt_uris);
+
+		gel_io_list_read(uris, "standard::*",
+			list_read_success_cb, list_read_error_cb,
+			(gpointer) app);
+	}
+
+	// Load pl
+	else
+	{
+		gchar *buff = NULL;
+		gchar *tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
+		if (g_file_get_contents(tmp, &buff, NULL, NULL))
+		{
+			gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
+			lomo_player_add_uri_strv(GEL_HUB_GET_LOMO(app), uris);
+			g_strfreev(uris);
+		}
+		g_free(tmp);
+		g_free(buff);
+		lomo_player_go_nth(
+			GEL_HUB_GET_LOMO(app),
+			eina_conf_get_int(GEL_HUB_GET_SETTINGS(app), "/playlist/last_current", 0),
+			NULL);
+	}
+
 	gtk_main();
 
 	g_object_unref(unique);
+
 	return 0;
 }
 
 // --
 // UniqueApp stuff 
 // --
-static void
-unique_async_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
-{
-	GelHub *app = GEL_HUB(data);
-	GList *results = gel_io_op_result_get_object_list(res);
-	GSList *filter = gel_list_filter(results, (GelFilterFunc) eina_fs_is_supported_file, NULL);
-	GList *uris = NULL;
-	while (filter)
-	{
-		uris = g_list_prepend(uris, g_file_get_uri(G_FILE(filter->data)));
-		filter = filter->next;
-	}
-	gel_list_deep_free(results, g_object_unref);
-
-	lomo_player_add_uri_multi(GEL_HUB_GET_LOMO(app), uris);
-	gel_list_deep_free(uris, g_free);
-
-	if (gtk_main_level() > 1)
-		gtk_main_quit();
-}
-
-static void
-unique_async_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
-{
-	gel_error("Error while getting info for '%s': %s", error->message);
-}
-
 static UniqueResponse
 unique_message_received_cb (UniqueApp *unique,
 	UniqueCommand      command,
@@ -237,10 +235,9 @@ unique_message_received_cb (UniqueApp *unique,
 		if (command == COMMAND_PLAY)
 			lomo_player_clear(GEL_HUB_GET_LOMO(app));
 		gel_io_list_read(gfiles, "standard::*",
-			unique_async_success_cb, unique_async_error_cb,
+			list_read_success_cb, list_read_error_cb,
 			app);
 		gtk_main();
-		gel_slist_deep_free(gfiles, g_object_unref);
 
 		res = UNIQUE_RESPONSE_OK;
 	}
@@ -251,6 +248,34 @@ unique_message_received_cb (UniqueApp *unique,
 // --
 // Callbacks
 // --
+static void
+list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
+{
+	GelHub *app = GEL_HUB(data);
+	GList *results = gel_io_op_result_get_object_list(res);
+	GSList *filter = gel_list_filter(results, (GelFilterFunc) eina_fs_is_supported_file, NULL);
+	GList *uris = NULL;
+	while (filter)
+	{
+		uris = g_list_prepend(uris, g_file_get_uri(G_FILE(filter->data)));
+		filter = filter->next;
+	}
+	gel_list_deep_free(results, g_object_unref);
+
+	lomo_player_add_uri_multi(GEL_HUB_GET_LOMO(app), uris);
+	gel_slist_deep_free(gel_io_list_read_get_sources(op), g_object_unref);
+	gel_list_deep_free(uris, g_free);
+
+	if (gtk_main_level() > 1)
+		gtk_main_quit();
+}
+
+static void
+list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
+{
+	gel_error("Error while getting info for '%s': %s", error->message);
+}
+
 void on_app_dispose(GelHub *app, gpointer data)
 {
 	gchar **modules = (gchar **) data;

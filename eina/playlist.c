@@ -177,8 +177,8 @@ G_MODULE_EXPORT gboolean playlist_init
 	EinaPlaylist *self;
 	gint i;
 	gchar *tmp;
-	gchar *buff;
-	gchar **uris;
+	// gchar *buff;
+	// gchar **uris;
 
 	static const gchar *rr_files[] = {
 		"random.png",
@@ -261,6 +261,7 @@ G_MODULE_EXPORT gboolean playlist_init
 	g_signal_connect(LOMO(self), "error",    G_CALLBACK(lomo_error_cb),    self);
 
 	/* Load playlist and go to last session's current */
+	/*
 	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
 	if (g_file_get_contents(tmp, &buff, NULL, NULL))
 	{
@@ -274,7 +275,7 @@ G_MODULE_EXPORT gboolean playlist_init
 		LOMO(self), 
 		eina_conf_get_int(self->conf, "/playlist/last_current", 0),
 		NULL);
-
+	*/
 	setup_dnd(self);
 
 	gtk_widget_show(self->dock);

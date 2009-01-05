@@ -20,6 +20,9 @@ eina_fs_is_supported_file(GFile *uri);
 GList*
 eina_fs_uri_get_children(gchar *uri);
 
+GSList*
+eina_fs_files_from_uri_strv(gchar **uris);
+
 /*
  * Utility functions to handle on-disk files, paths, dirs, etc...
  */

@@ -3,6 +3,7 @@
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <eina/eina-file-chooser-dialog.h>
+#include <lomo/util.h>
 #include "fs.h"
 
 void
@@ -143,6 +144,25 @@ eina_fs_uri_get_children(gchar *uri)
 	g_object_unref(f);
 
 	return g_list_reverse(ret);
+}
+
+GSList*
+eina_fs_files_from_uri_strv(gchar **uris)
+{
+	gint i;
+	GSList *ret = NULL;
+	gchar *uri;
+
+	if (!uris)
+		return NULL;
+	
+	for (i = 0; (uris[i] != NULL) && uris[i][0]; i++)
+		if ((uri = lomo_create_uri(uris[i])) != NULL)
+		{
+			ret = g_slist_prepend(ret, g_file_new_for_uri(uri));
+			g_free(uri);
+		}
+	return g_slist_reverse(ret);
 }
 
 GList *eina_fs_readdir(gchar *path, gboolean abspath) {
