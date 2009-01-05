@@ -1,39 +1,1195 @@
-2008-09-04   xuzo <xuzo@cuarentaydos.com> 
+2009-01-05 18:15  xuzito
 
+	* eina/fs.c, eina/fs.h, eina/main.c, eina/playlist.c,
+	  misc/eina.desktop.in: Parse command line arguments in a usefull
+	  way
 
-	* eina/eina-player-seek.c: Killed g_source_remove warning
-	* run-local.sh, eina/player.c, eina/log.c, eina/main.c: Warnings killed
-	* eina/playlist.c: Enable search on playlist
-	* configure.in, Makefile.am, tests/: Add test streams
-	* eina/player.c: Fix some bugs in lomo's change hook
+2009-01-05 17:35  xuzito
 
-2008-09-03   xuzo <xuzo@cuarentaydos.com> 
+	* eina/fs.c, eina/fs.h, eina/main.c, eina/playlist.c: Remove unused
+	  API from fs.c
 
+2009-01-05 17:00  xuzito
 
-	* macports/audio/eina/Portfile: Updated to 0.6.0
-	* src/vogon{c,h}: Minor changes in code and code style
-	* gel/gel.{c,h}: Added gel_get_debug_level and gel_set_debug_level to
-	control which messages to emit
-	* src/main.c: Gel debug level set to 'warn'
-	* eina/iface.c: Adjust log level
-	* eina/class-base.{c,h}, eina/Makefile.am: Deleted class-base
-	* eina/base.{c,h}: Translation support for EinaBase and derivated
-	mini-classes, cleanups
-	* eina/playlist.c, ui/playlist.glade, plugins/recently/recently.c: Set some
-	ellipsize settings on playlist and recently plugin
-	* gel/gel.h, gel/gel.c, eina/log.c, eina/main.c: Preliminary support for
-	runtime configurable debug leve
+	* configure.in, debian/changelog, debian/control,
+	  debian/eina.postinst, debian/rules, eina/Makefile.am,
+	  eina/main.c, gel/gel-io-ops.c, gel/gel-io-ops.h, gel/gel-misc.h,
+	  lomo/player.c, misc/eina.desktop.in: Add libunique features
 
-2008-09-02   xuzo <xuzo@cuarentaydos.com> 
+2009-01-05 16:57  xuzito
 
+	* pixmaps/vogon-icon.png: Refresh vogon icon
 
-	* .: Changelog cleared. Let's do it right.
-	* ui/vogon.glade: Disable use of playlist module
-	* eina/player.c, eina/playlist.{c,h}: Delete functions for embed playlist
-	* eina/main.c: Re-enable vogon, log components
-	* eina/vogon.c: Disable handling of random/remove trying to get out some
-	warnings about GtkAction, GtkToggleAction and GtkWidget
-	* eina-0.6.pc.in: Added variable pluginsdir
-	* ui/vogon.glade, ui/vogon.gladep: Deleted
-	* ui/Makefile.in: Remove references to vogon interface
-	* src/vogon.{c,h}: Update to use GtkUIManager API
+2009-01-05 16:57  xuzito
+
+	* pixmaps/vogon-icon-pre0.8.png, pixmaps/vogon-icon.png: Refresh
+	  vogon icon
+
+2008-12-20 14:31  xuzito
+
+	* plugins/adb/common.c, plugins/adb/common.h,
+	  plugins/adb/upgrade.c, plugins/lastfm/submit.c: Change API of ADB
+	  to prevent warnings on amd64
+
+2008-12-19 16:13  xuzito
+
+	* configure.in, debian/changelog, eina/class-conf-file.c,
+	  eina/playlist.c, eina/plugin.h, pixmaps/cover-default-pre0.8.png,
+	  pixmaps/cover-default.png, pixmaps/icon-512.png,
+	  pixmaps/icon-pre0.8.png, pixmaps/icon.png,
+	  plugins/lastfm/lastfm.c: Fix build warnings. Minor work on plugin
+	  system
+
+2008-12-19 13:34  xuzito
+
+	* pixmaps/eina-logo.svg, plugins/lastfm/lastfm.c:
+
+2008-12-18 19:40  xuzito
+
+	* debian/changelog, debian/control, debian/rules: Adjust debian
+	  files
+
+2008-12-17 16:41  xuzito
+
+	* eina/playlist.c: Call setup_dnd on playlist creation
+
+2008-12-17 12:55  xuzito
+
+	* plugins/Makefile.am, plugins/adb/common.c,
+	  plugins/lastfm/Makefile.am, plugins/lastfm/lastfm.c,
+	  plugins/lastfm/lastfm.glade, plugins/lastfm/lastfm.h,
+	  plugins/lastfm/submit.c, plugins/lastfm/submit.h: Split, organize
+	  and cleanup LastFM plugin to enhance it
+
+2008-12-15 22:38  xuzito
+
+	* debian/changelog, debian/control: Fix debian files
+
+2008-12-15 22:38  xuzito
+
+	* lomo/meta.c: Try to fix a amd64 build problem
+
+2008-12-15 16:16  xuzito
+
+	* TODO, eina/eina-artwork.c, eina/player.c: Fix bug in EinaArtwork.
+	  Starting a new player shows the default cover
+
+2008-12-14 20:51  xuzito
+
+	* TODO, configure.in, debian/eina.install, eina/eina-artwork.c,
+	  eina/player.c, plugins/adb/iface.c,
+	  plugins/coverplus/Makefile.am, plugins/coverplus/banshee.c,
+	  plugins/coverplus/banshee.h, plugins/coverplus/iface.c,
+	  plugins/coverplus/infolder-sync.c: Update TODO
+
+2008-12-14 20:51  xuzito
+
+	* eina/plugins.c: Fix segfault when error is NULL
+
+2008-12-14 20:50  xuzito
+
+	* eina/playlist.c: Add DnD support to EinaPlaylist
+
+2008-12-13 20:12  xuzito
+
+	* eina/Makefile.am, eina/player.c, eina/player.h, eina/plugin.c,
+	  eina/plugin.h: Remove use of EinaCover over the code
+
+2008-12-13 20:06  xuzito
+
+	* eina/eina-artwork.c, eina/player.c: Player window uses image from
+	  EinaArtwork object
+
+2008-12-13 20:00  xuzito
+
+	* eina/artwork.c, eina/loader.c, eina/loader.h, eina/main.c,
+	  eina/player.c, eina/plugin.c, eina/plugins.c,
+	  plugins/Makefile.am: Make use of EinaArtwork widget
+
+2008-12-13 19:41  xuzito
+
+	* eina/eina-artwork.c: Run first added provider if there is no
+	  artwork and stream is available
+
+2008-12-13 19:39  xuzito
+
+	* ui/plugins.glade: Add some spacing between widgets
+
+2008-12-12 14:12  xuzito
+
+	* TODO, eina/artwork.c, eina/eina-artwork.c, eina/main.c,
+	  eina/player.c, eina/plugin.c, eina/plugins.c, lomo/player.c:
+	  Disable EinaLoader, load plugins via hardcode. Trying to catch
+	  the Big Exit Bug
+
+2008-12-12 08:14  xuzito
+
+	* eina/artwork.c, eina/eina-artwork.c, eina/eina-artwork.h,
+	  eina/loader.c, plugins/coverplus/coverplus.c,
+	  plugins/coverplus/infolder-sync.c: More work on artwork. Add a
+	  testing artwork window
+
+2008-12-12 08:09  xuzito
+
+	* tests/a.c, tests/brasero-project-type-chooser.c,
+	  tests/brasero-project-type-chooser.h: Remove old test
+
+2008-12-11 20:16  xuzito
+
+	* plugins/coverplus/infolder-sync.c: Add missing infolder-sync.c
+
+2008-12-11 20:12  xuzito
+
+	* eina/artwork.c, eina/artwork.h, eina/eina-artwork.c,
+	  eina/eina-artwork.h: add artwork singleton
+
+2008-12-11 14:11  xuzito
+
+	* plugins/coverplus/Makefile.am, plugins/coverplus/banshee.c,
+	  plugins/coverplus/banshee.h, plugins/coverplus/coverplus.c,
+	  plugins/coverplus/iface.c, plugins/coverplus/infolder-async.c,
+	  plugins/coverplus/infolder.h: Some work on coverplus-infolder:
+	  make a sync version
+
+2008-12-09 13:59  xuzito
+
+	* eina/Makefile.am, eina/eina-artwork.c, eina/eina-artwork.h,
+	  eina/main.c, eina/player.c, eina/plugin.c, eina/plugin.h,
+	  gel/gel-hub.h, m4, plugins/coverplus/coverplus.c: Integrate
+	  EinaArtwork
+
+2008-12-09 13:53  xuzito
+
+	* gel/gel-hub2.c, gel/gel-hub2.h: GelHub 2 prototype
+
+2008-12-09 08:10  xuzito
+
+	* eina/Makefile.am: Add dependences on eina-artwork
+
+2008-12-09 08:10  xuzito
+
+	* eina/player.c: DnD fixes
+
+2008-12-09 08:09  xuzito
+
+	* gel/gel-io-ops.c: Fix minor big while creating a new read_list
+	  GelIOOp
+
+2008-12-09 08:08  xuzito
+
+	* tests/gel-background-box/test.c, tests/logo.png:
+	  gel-background-box added
+
+2008-12-09 08:02  xuzito
+
+	* eina/eina-artwork.c, eina/eina-artwork.h: Rewrite of EinaCover
+
+2008-12-06 19:26  xuzito
+
+	* tests/gel-background-box, tests/gel-background-box/Makefile,
+	  tests/gel-background-box/gel-ui-background-box.c,
+	  tests/gel-background-box/gel-ui-background-box.h,
+	  tests/gel-background-box/logo.png,
+	  tests/gel-background-box/test.c: gel-background-box test
+
+2008-12-06 18:02  xuzito
+
+	* tests/brasero-project-type-chooser.c, tests/logo.png: Fix
+	  gdkwindow background test just to silence eru
+
+2008-12-06 17:47  xuzito
+
+	* gel/gel-io.h, po/ca.po, po/es.po, tools/mkdeb, tools/mkschema.pl:
+	  Delete gel-io-op-queue.h
+
+2008-12-06 17:34  xuzito
+
+	* lomo/meta.c: Fix minor bug in meta.c while clearing queue
+
+2008-12-06 17:33  xuzito
+
+	* eina/fs.c, eina/fs.h, eina/player.c: DnD work
+
+2008-12-06 17:33  xuzito
+
+	* gel/Makefile.am: Delete gel io op queue reference from
+	  makefile.am
+
+2008-12-06 17:32  xuzito
+
+	* gel/Makefile.am, gel/gel-io-ops.c, gel/gel-io-ops.h,
+	  gel/gel-io.h, gel/gel-misc.h: GelIO list read operation
+
+2008-12-06 12:46  xuzito
+
+	* gel/gel.h: Add missing gel.h
+
+2008-12-06 12:43  xuzito
+
+	* TODO, configure.in, debian/changelog, eina/fs.c, eina/fs.h,
+	  eina/main.c, eina/player.c, plugins/Makefile.am,
+	  plugins/lastfm/Makefile.am, plugins/lastfm/lastfm.c, po/ca.po,
+	  po/es.po, tools/mkdeb: DnD firsts works, less verbosity, po
+	  update, fs cleanups
+
+2008-12-06 11:48  xuzito
+
+	* tests/a.c, tests/brasero-project-type-chooser.c,
+	  tests/brasero-project-type-chooser.h: Set a GdkPixbuf as widget
+	  background
+
+2008-12-05 18:44  xuzito
+
+	* eina/dock.c, eina/loader.c, eina/player.c, eina/playlist.c,
+	  eina/plugins.c, eina/preferences.c: Review and fix references
+
+2008-12-05 18:22  xuzito
+
+	* eina/base.c, eina/base.h, eina/dock.c, eina/fs.c, eina/fs.h,
+	  eina/loader.c, eina/main.c, eina/plugin.c, eina/plugins.c,
+	  plugins/adb/iface.c, plugins/coverplus/coverplus.c,
+	  plugins/recently/recently.c, plugins/recently/scores.c: Update
+	  API from libgel
+
+2008-12-05 18:22  xuzito
+
+	* debian/changelog, debian/control, debian/eina.install: Prepare
+	  release
+
+2008-12-05 18:21  xuzito
+
+	* gel/Makefile.am, gel/gel-hub.c, gel/gel-io-ops.c,
+	  gel/gel-io-recurse-tree.c, gel/gel-misc.c, gel/gel-misc.h,
+	  gel/gel.c, gel/gel.h: Cleanup and reorganization. Some API added
+
+2008-12-05 12:56  xuzito
+
+	* TODO, configure.in: Update TODO and compilation flags
+
+2008-12-05 12:55  xuzito
+
+	* eina/main.c: Remove deprecated function gel_io_read_file
+
+2008-12-05 12:55  xuzito
+
+	* eina/plugins.c: Less verbose
+
+2008-12-05 12:55  xuzito
+
+	* gel/gel-io-ops.c: Deprecate som GelIO code (fileread operation)
+
+2008-12-05 12:08  xuzito
+
+	* configure.in, gel/gel-io-ops.h, plugins/Makefile.am,
+	  plugins/coverplus/coverplus.c: Fix coverplus plugin
+
+2008-12-05 08:34  xuzito
+
+	* plugins/Makefile.am, plugins/adb/upgrade.c,
+	  plugins/coverplus/coverplus.c:
+
+2008-12-04 14:20  xuzito
+
+	* eina/fs.c, eina/fs.h, eina/plugins.c, gel/gel-io-misc.c: Make
+	  loaded plugins persistent
+
+2008-12-04 13:32  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/fs.c: Add/queue in
+	  alphanumeric order
+
+2008-12-04 12:23  xuzito
+
+	* eina/class-conf-file.c, eina/loader.c, eina/plugin.c,
+	  lomo/player.c, plugins/adb/adb.c, plugins/adb/common.c,
+	  plugins/adb/common.h, plugins/adb/upgrade.c, po/ca.po, po/es.po:
+	  Fix ADB
+
+2008-12-04 09:17  xuzito
+
+	* TODO, eina/class-conf-file.c, eina/class-conf-file.h,
+	  eina/dock.c, eina/player.c, ui/player.glade: Fixes on dock/window
+	  resize
+
+2008-12-03 20:13  xuzito
+
+	* eina/dock.c, eina/player.c, ui/player.glade: Fix maximize bug.
+	  Finally a dock expander with window-size memory works
+
+2008-12-03 19:50  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/fs.c, eina/fs.h,
+	  eina/playlist.c: More fixes in fs.c and
+	  eina-file-chooser-dialog.c
+
+2008-12-03 12:57  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/fs.c, eina/fs.h,
+	  eina/player.c, gel/gel-io-ops.c: EinaFileChooser almost finished
+
+2008-12-03 12:27  xuzito
+
+	* eina/eina-file-chooser-dialog.c:
+
+2008-12-03 12:26  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/player.c, gel/gel-io-ops.c:
+
+2008-12-02 22:25  xuzito
+
+	* eina/eina-file-chooser-dialog.c, gel/gel-io-ops.c:
+
+2008-12-02 19:07  xuzito
+
+	* gel/gel-io-ops.c:
+
+2008-12-01 09:36  xuzito
+
+	* eina/eina-file-chooser-dialog.c, gel/gel-io-ops.c:
+
+2008-11-28 14:33  xuzito
+
+	* gel/gel-io-ops.c: Prototype improvements in GelIOOp
+
+2008-11-28 12:38  xuzito
+
+	* eina/eina-file-chooser-dialog.c: GelIOOp changes
+
+2008-11-28 08:22  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/player.c, gel/gel-io-ops.c,
+	  pixmaps/file-chooser-loading.gif:
+
+2008-11-27 14:18  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/eina-file-chooser-dialog.h,
+	  eina/player.c, eina/playlist.c:
+
+2008-11-27 08:25  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/playlist.c:
+
+2008-11-26 14:13  xuzito
+
+	* eina/fs.c, eina/player.c, gel/gel-io.c:
+
+2008-11-25 17:36  xuzito
+
+	* eina/Makefile.am, eina/player.c, eina/plugin.h, eina/settings.h:
+	  Merge some changes
+
+2008-11-25 17:11  xuzito
+
+	* eina/fs.c, eina/player.c, gel/Makefile.am,
+	  gel/gel-io-op-result.c, gel/gel-io-op-result.h, gel/gel-io-ops.c:
+
+2008-11-24 17:53  xuzito
+
+	* eina/player.c, gel/Makefile.am, gel/gel-io-async-read-dir.c,
+	  gel/gel-io-async-read-dir.h, gel/gel-io-async-read-op.c,
+	  gel/gel-io-async-read-op.h, gel/gel-io-misc.c, gel/gel-io-misc.h,
+	  gel/gel-io-ops.c, gel/gel-io-ops.h, gel/gel-io-recurse-tree.c,
+	  gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h, gel/gel-io.h:
+
+2008-11-24 16:30  xuzito
+
+	* eina/player.c, gel/gel-io-recurse-tree.c,
+	  gel/gel-io-simple-ops.c: A working (not perfect) version of
+	  GelIOOperations
+
+2008-11-24 13:32  xuzito
+
+	* eina/main.c, eina/player.c, gel/gel-io-recurse-tree.c,
+	  gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h: Work on recurse
+	  tree
+
+2008-11-24 07:57  xuzito
+
+	* eina/player.c, gel/Makefile.am, gel/gel-io-op-result.c,
+	  gel/gel-io-op-result.h, gel/gel-io-recurse-tree.c,
+	  gel/gel-io-recurse-tree.h, gel/gel-io-simple-ops.c,
+	  gel/gel-io-simple-ops.h, gel/gel-io.h:
+
+2008-11-21 14:02  xuzito
+
+	* eina/Makefile.am, eina/loader.c, eina/main.c, eina/player.c,
+	  gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h:
+
+2008-11-21 08:14  xuzito
+
+	* eina/eina-plugin-dialog.c, eina/eina-plugin-dialog.h,
+	  eina/loader.c, eina/player.c:
+
+2008-11-21 08:11  xuzito
+
+	* gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h: Work on GelIO
+	  operations
+
+2008-11-20 14:18  xuzito
+
+	* gel/gel-io-simple-ops.h: Re-prototype GelIO simple ops
+
+2008-11-20 12:07  xuzito
+
+	* eina/Makefile.am, eina/loader.c, eina/loader.h, eina/main.c,
+	  eina/plugins.c, eina/plugins.h: The great split is almost
+	  finished
+
+2008-11-20 06:51  xuzito
+
+	* eina/loader.c, plugins/Makefile.am, plugins/adb/iface.c,
+	  plugins/coverplus/coverplus.c, plugins/hooktest/hook-test.c:
+
+2008-11-19 20:43  xuzito
+
+	* eina/iface.c, eina/iface.h, eina/loader.c, eina/main.c,
+	  eina/plugin.c, eina/plugin.h, eina/preferences.h: More work on
+	  split IFace stuff
+
+2008-11-19 17:50  xuzito
+
+	* eina/Makefile.am, eina/eina-plugin-dialog.c,
+	  eina/eina-plugin-dialog.h, eina/loader.c, eina/loader.h,
+	  eina/main.c: Work on Loader/Plugin/Dock split (III)
+
+2008-11-19 15:14  xuzito
+
+	* eina/dock.c, eina/settings.h: Misc changes
+
+2008-11-19 14:12  xuzito
+
+	* eina/Makefile.am, eina/dock.h, eina/loader.h, eina/log.c,
+	  eina/log.h, eina/player.h, eina/playlist.h, eina/plugin.h: Split
+	  dock/iface/plugins (II)
+
+2008-11-19 14:02  xuzito
+
+	* eina/Makefile.am, eina/dock.c, eina/dock.h, eina/loader.c,
+	  eina/loader.h, eina/main.c, eina/player.c, eina/player.h,
+	  eina/playlist.c, eina/plugin.c, eina/plugin.h, ui/Makefile.am,
+	  ui/dock.glade, ui/player.glade: Split dock/iface/plugins (I)
+
+2008-11-18 20:27  xuzito
+
+	* eina/iface.c, eina/plugin.c:
+
+2008-11-14 13:59  xuzito
+
+	* configure.in, eina/Makefile.am, eina/iface.c, eina/iface.h,
+	  eina/main.c, eina/plugin.c, eina/plugin.h:
+
+2008-11-14 11:16  xuzito
+
+	* debian/control, eina/iface.c, eina/iface.h, eina/main.c,
+	  plugins/lastfm/Makefile.am:
+
+2008-11-10 18:18  xuzito
+
+	* plugins/adb/Makefile.am, plugins/adb/common.c,
+	  plugins/adb/common.h, plugins/adb/upgrade.c: Some util functions
+
+2008-11-08 19:03  xuzito
+
+	* eina/iface.c, gel/gel-io-simple-ops.c, plugins/adb/Makefile.am,
+	  plugins/adb/adb.c, plugins/adb/adb.h, plugins/adb/iface.c,
+	  plugins/adb/upgrade.c, plugins/adb/upgrade.h: ADB Work
+
+2008-11-07 14:03  xuzito
+
+	* eina/main.c, gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h:
+	  GelIOSimpleOp unification
+
+2008-11-07 11:31  xuzito
+
+	* lomo/player.c: fix liblomo
+
+2008-11-06 14:13  xuzito
+
+	* gel/gel-io-simple-ops.h: prototype GelIOSimpleGroup
+
+2008-11-06 07:57  xuzito
+
+	* eina/player.c, gel/gel-io-simple-ops.c, gel/gel-io.c: GelIO work
+
+2008-11-05 15:38  xuzito
+
+	* eina/main.c, eina/player.c, gel/gel-io-simple-ops.c,
+	  gel/gel-io-simple-ops.h:
+
+2008-11-04 22:25  xuzito
+
+	* eina/fs.c, eina/player.c, gel/Makefile.am,
+	  gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h, gel/gel-io.c,
+	  gel/gel-io.h: Work on async-recurse file listing
+
+2008-11-03 22:49  xuzito
+
+	* eina/eina-preferences-dialog.c, eina/fs.c,
+	  gel/gel-io-simple-ops.c, gel/gel-io-simple-ops.h,
+	  macports/audio/eina/Portfile:
+
+2008-10-27 17:11  xuzito
+
+	* gel/Makefile.am, plugins/recently/recently.c:
+
+2008-10-27 12:27  xuzito
+
+	* eina/Makefile.am, eina/gruppy.c, eina/gruppy.h, eina/main.c,
+	  gel/Makefile.am, gel/gel-io-async-read-dir.c,
+	  gel/gel-io-async-read-dir.h, gel/gel-io-async-read-op.c,
+	  gel/gel-io-async-read-op.h, gel/gel-io-simple-ops.c,
+	  gel/gel-io-simple-ops.h, gel/gel-io.h: Deprecate GelIOAsync
+	  classes from GelIO
+
+2008-10-27 12:02  xuzito
+
+	* eina/gruppy.c, eina/gruppy.h, eina/player.c: Move Gruppy
+	  namespace into GelIO
+
+2008-10-24 13:04  xuzito
+
+	* TODO, eina/Makefile.am, eina/eina-preferences-dialog.c,
+	  eina/eina-preferences-dialog.h, eina/fs.h, eina/gruppy.c,
+	  eina/gruppy.h, eina/player.c, eina/preferences.c,
+	  eina/preferences.h, gel/gel-io-async-read-dir.c,
+	  plugins/lastfm/lastfm.c, ui/player-menu.ui: Prototype a new GIO
+	  wrapper
+
+2008-10-24 07:22  xuzito
+
+	* eina/player.c, lomo/player.c:
+
+2008-10-23 15:13  xuzito
+
+	* TODO, eina/player.c, eina/playlist.c: Bugs
+
+2008-10-23 08:42  xuzito
+
+	* TODO, eina/eina-cover.c, eina/eina-seek.c, eina/main.c,
+	  eina/player.c, ui/player.glade: Fixed several bugs
+
+2008-10-22 21:35  xuzito
+
+	* TODO, eina/base.h, eina/eina-file-chooser-dialog.h, eina/iface.c,
+	  eina/player.c, gel/gel-ui.c, gel/gel-ui.h, ui/player-menu.ui:
+	  Revision of EinaPlayer
+
+2008-10-22 12:57  xuzito
+
+	* TODO, configure.in, eina/eina-cover.c, eina/eina-cover.h,
+	  eina/eina-file-chooser-dialog.c, eina/lomo.h, eina/main.c,
+	  eina/player.c, eina/plugins.c, eina/settings.h, lomo/player.c,
+	  lomo/stream.c, lomo/util.c, lomo/util.h: Misc fixes
+
+2008-10-21 21:32  xuzito
+
+	* eina/lomo.h, eina/main.c, eina/player.h, eina/vogon.c,
+	  lomo/player.c: Several fixes in vogon. Load files from command
+	  line
+
+2008-10-21 11:57  xuzito
+
+	* eina/player.c:
+
+2008-10-20 16:38  xuzito
+
+	* eina/player.c, eina/player.h, eina/plugins.c, eina/plugins.h,
+	  ui/player-menu.ui:
+
+2008-10-20 15:37  xuzito
+
+	* eina/player.c, eina/player.h, eina/plugins.c,
+	  plugins/coverplus/coverplus.c, plugins/lastfm/lastfm.c:
+
+2008-10-18 18:54  xuzito
+
+	* eina/plugins.c, plugins/coverplus/coverplus.c,
+	  plugins/lastfm/lastfm.c, ui/Makefile.am: Fix icons in plugins
+	  selector
+
+2008-10-18 18:36  xuzito
+
+	* configure.in, eina/eina-preferences-dialog.h, eina/iface.c,
+	  eina/iface.h, eina/player.c, eina/playlist.c, plugins/lastfm,
+	  plugins/lastfm/Makefile.am, plugins/lastfm/lastfm.c,
+	  plugins/lastfm/lastfm.glade, plugins/lastfm/lastfm.png,
+	  run-local.sh, ui/Makefile.am: LastFM plugin work
+
+2008-10-18 18:35  xuzito
+
+	* plugins/Makefile.am:
+
+2008-10-17 12:56  xuzito
+
+	* TODO, eina/iface.c, eina/iface.h, eina/playlist.c, lomo/player.c:
+
+2008-10-17 10:19  xuzito
+
+	* macports/audio/eina/Portfile: Branch 0.7.2
+
+2008-10-17 08:55  xuzito
+
+	* configure.in, debian/changelog, eina/player.c, lomo/Makefile.am,
+	  lomo/meta.c, lomo/player.c, macports/audio/eina/Portfile,
+	  po/ca.po, po/es.po: Release 0.7.2
+
+2008-10-16 19:28  xuzito
+
+	* configure.in, eina/Makefile.am, eina/plugins.c, lomo/player.c:
+	  Optimize signal emision from GstBus
+
+2008-10-16 18:06  xuzito
+
+	* lomo/player.c, lomo/util.c, lomo/util.h: migration to async state
+	  changes
+
+2008-10-16 10:10  xuzito
+
+	* lomo/player.c: Fix compilation
+
+2008-10-15 20:36  xuzito
+
+	* lomo/player-default-vtable.c, lomo/player-default-vtable.h,
+	  lomo/player.c, lomo/player.h:
+
+2008-10-08 12:49  xuzito
+
+	* lomo/player-default-vtable.c, lomo/player-default-vtable.h,
+	  lomo/player.c, lomo/player.h:
+
+2008-10-08 10:39  xuzito
+
+	* lomo/player-default-vtable.c, lomo/player-default-vtable.h,
+	  lomo/player.c, lomo/player.h, lomo/util.c, lomo/util.h: New core
+	  (II)
+
+2008-10-07 21:52  xuzito
+
+	* eina/lomo.c, lomo/Makefile.am, lomo/player-default-vtable.c,
+	  lomo/player-default-vtable.h, lomo/player-vtable.h,
+	  lomo/player.c, lomo/player.h: Start new core
+
+2008-10-07 13:17  xuzito
+
+	* eina/player.c, lomo/player.c, lomo/stream.c, lomo/stream.h,
+	  ui/player-menu.ui: Misc changes
+
+2008-10-07 12:12  xuzito
+
+	* TODO, eina/eina-file-chooser-dialog.c, eina/eina-volume.c,
+	  eina/eina-volume.h, eina/player.c: Fix bug about GtkVolumeButton
+
+2008-10-07 07:26  xuzito
+
+	* TODO, eina/Makefile.am, eina/eina-preferences-dialog.c,
+	  eina/eina-preferences-dialog.h, eina/eina-volume.c,
+	  pixmaps/audio-volume-high.png, pixmaps/audio-volume-low.png,
+	  pixmaps/audio-volume-medium.png, pixmaps/audio-volume-mute.png:
+
+2008-10-06 10:55  xuzito
+
+	* eina/player.c, eina/playlist.c: Fix a bug setting the main window
+	  title
+
+2008-10-03 12:32  xuzito
+
+	* eina/player.c, lomo/stream.c:
+
+2008-10-03 11:34  xuzito
+
+	* TODO, eina/eina-cover.c, eina/eina-seek.c, eina/eina-seek.h,
+	  po/POTFILES.in, po/ca.po, po/es.po, ui/about.glade,
+	  ui/player.glade, ui/plugins.glade:
+
+2008-10-02 17:14  xuzito
+
+	* TODO, eina/eina-seek.c: Seek widget fixed
+
+2008-10-02 11:11  xuzito
+
+	* eina/eina-seek.c, eina/playlist.c, lomo/stream.h: Fix regression
+	  while using gel_str_parse instead of eina_stream_format
+
+2008-10-02 07:53  xuzito
+
+	* eina/eina-seek.c:
+
+2008-10-01 21:35  xuzito
+
+	* TODO, eina/eina-seek.c:
+
+2008-10-01 13:06  xuzito
+
+	* TODO, eina/playlist.c, lomo/stream.c, lomo/stream.h:
+	  eina_stream_format was killed
+
+2008-10-01 12:39  xuzito
+
+	* TODO, eina/eina-seek.c, eina/eina-seek.h, eina/iface.c,
+	  eina/iface.h, eina/player.c, eina/playlist.c,
+	  gel/gel-str-parser.c, lomo/stream.c, lomo/stream.h,
+	  ui/player.glade: Fix two release bugs
+
+2008-09-30 15:24  xuzito
+
+	* eina/plugins.c, ui/plugins.glade:
+
+2008-09-30 14:32  xuzito
+
+	* eina/plugins.c, eina/plugins.h:
+
+2008-09-30 13:11  xuzito
+
+	* TODO, eina/Makefile.am, eina/iface.c, eina/iface.h,
+	  eina/player.c, gel/gel-ui.c, ui/Makefile.am, ui/plugins.glade:
+
+2008-09-30 10:26  xuzito
+
+	* tests/eina-tagger.c, tests/eina-tagger.h: Added EinaTagger
+
+2008-09-30 08:48  xuzito
+
+	* plugins/lastfmcover, plugins/lastfmcover/Makefile.am,
+	  plugins/lastfmcover/lastfmcover.c: lastfm cover add
+
+2008-09-30 08:44  xuzito
+
+	* configure.in, eina/iface.c, plugins/Makefile.am:
+
+2008-09-29 16:15  xuzito
+
+	* TODO:
+
+2008-09-29 11:02  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/eina-volume.c,
+	  eina/playlist.c, gel/gel-ui.c, gel/gel-ui.h,
+	  macports/audio/eina/Portfile, ui/Makefile.am:
+
+2008-09-26 12:52  xuzito
+
+	* eina/eina-seek.c, ui/player.glade:
+
+2008-09-26 09:31  xuzito
+
+	* debian/changelog, debian/control:
+
+2008-09-26 08:25  xuzito
+
+	* configure.in, debian/changelog, debian/changelog.in,
+	  debian/control, debian/control.in, debian/eina-dev.install,
+	  debian/eina-dev.install.in, debian/eina.install,
+	  debian/eina.postinst, misc/eina-0.7.pc.in:
+
+2008-09-26 07:40  xuzito
+
+	* plugins/hooktest/hook-test.c, plugins/recently/recently.c:
+
+2008-09-26 07:01  xuzito
+
+	* configure.in, eina/iface.c, eina/iface.h, eina/player.c,
+	  plugins/coverplus/coverplus.c, po/POTFILES.in, po/ca.po,
+	  po/es.po, ui/about.glade:
+
+2008-09-25 13:05  xuzito
+
+	* eina/iface.c, gel/gel.h, plugins/recently/recently.c: Dock
+	  auto-reorganization finished
+
+2008-09-25 10:39  xuzito
+
+	* configure.in, eina/iface.c, eina/iface.h,
+	  plugins/coverplus/coverplus.c, run-local.sh: Coverplus infolder
+	  fixed
+
+2008-09-24 21:58  xuzito
+
+	* eina/iface.c, eina/main.c, plugins/coverplus/coverplus.c:
+
+2008-09-24 19:44  xuzito
+
+	* eina/eina-cover.h, eina/iface.c, eina/iface.h, eina/main.c,
+	  eina/player.c, plugins/coverplus/coverplus.c,
+	  plugins/hooktest/hook-test.c, plugins/recently/recently.c,
+	  run-local.sh, ui/about.glade: All plugins work correctly with new
+	  plugin API
+
+2008-09-24 15:28  xuzito
+
+	* eina/iface.h, plugins/recently/recently.c: recently plugin
+	  compiles again
+
+2008-09-24 13:15  xuzito
+
+	* plugins/recently/recently.c:
+
+2008-09-24 13:04  xuzito
+
+	* eina/iface.c, eina/iface.h, eina/playlist.c,
+	  plugins/recently/recently.c: EinaPluginV2 work
+
+2008-09-24 11:05  xuzito
+
+	* eina/eina-cover.c, eina/eina-cover.h, eina/player.c,
+	  lomo/player.c: Added signal 'change' to EinaCoverClass
+
+2008-09-24 10:13  xuzito
+
+	* eina/iface.c, eina/iface.h, eina/main.c, plugins/Makefile.am,
+	  plugins/coverplus/coverplus.c, plugins/hooktest/hook-test.c,
+	  plugins/recently/recently.c: New plugin system (V2)
+
+2008-09-23 22:08  xuzito
+
+	* TODO, eina/iface.c, eina/iface.h, gel/gel.c, gel/gel.h,
+	  plugins/Makefile.am, plugins/coverplus/coverplus.c:
+
+2008-09-22 22:39  xuzito
+
+	* pixmaps/covers.svg, pixmaps/default-cover.svg:
+
+2008-09-22 22:37  xuzito
+
+	* pixmaps/default-cover.svg:
+
+2008-09-22 22:35  xuzito
+
+	* eina/player.c, lomo/player.c, lomo/stream.c, lomo/stream.h,
+	  pixmaps/cover-default.png, pixmaps/cover-loading.png,
+	  run-local.sh, tests/plugin-selector-mockup.png:
+
+2008-09-22 16:27  xuzito
+
+	* eina/player.c, po/es.po, run-local.sh, ui/Makefile.am,
+	  ui/about.glade, ui/player-menu.ui, ui/player.glade,
+	  ui/playlist.glade: Work on menu and about
+
+2008-09-22 15:05  xuzito
+
+	* configure.in, gel/gel-ui.c, po/POTFILES.in, po/ca.po, po/es.po,
+	  ui/Makefile.am: Gettext seems to work finally
+
+2008-09-22 14:45  xuzito
+
+	* configure.in, po/ca.po, po/es.po:
+
+2008-09-22 14:21  xuzito
+
+	* po/ca.gmo, po/ca.po, po/eina.pot, po/es.gmo, po/es.po,
+	  po/stamp-it:
+
+2008-09-22 13:13  xuzito
+
+	* Makefile.am, configure.in, debian/control.in, eina-0.7.pc.in,
+	  misc/Makefile.am, misc/eina-0.7.pc.in, pixmaps/Makefile.am,
+	  tests/Makefile.am, ui/Makefile.am: Build system work
+
+2008-09-22 12:24  xuzito
+
+	* .: subversion repository reorganization
+
+2008-09-22 12:11  xuzito
+
+	* 
+
+2008-09-22 12:07  xuzito
+
+	* liblomo merged into eina
+
+2008-09-22 10:26  xuzito
+
+	* 
+
+2008-09-22 08:36  xuzito
+
+	* Added a ref counted string
+
+2008-09-22 08:26  xuzito
+
+	* Rename some widgets to simpler names
+
+2008-09-22 08:21  xuzito
+
+	* Rename to EinaSeek
+
+2008-09-22 08:08  xuzito
+
+	* Renamed to EinaPlayer
+
+2008-09-22 08:07  xuzito
+
+	* Renamed to EinaPlayer
+
+2008-09-20 18:17  xuzito
+
+	* 
+
+2008-09-20 17:53  xuzito
+
+	* 
+
+2008-09-20 17:04  xuzito
+
+	* 
+
+2008-09-20 16:08  xuzito
+
+	* 
+
+2008-09-19 17:34  xuzito
+
+	* 
+
+2008-09-16 15:36  xuzito
+
+	* Cleanup pixmaps
+
+2008-09-16 13:58  xuzito
+
+	* Add cover-loading.png
+
+2008-09-16 13:08  xuzito
+
+	* 
+
+2008-09-16 12:56  xuzito
+
+	* D trunk/eina/cover.c
+	  D trunk/eina/cover.h
+
+2008-09-16 12:54  xuzito
+
+	* 
+
+2008-09-16 12:09  xuzito
+
+	* 
+
+2008-09-16 08:16  xuzito
+
+	* coverplus I
+
+2008-09-15 19:54  xuzito
+
+	* 
+
+2008-09-15 16:01  xuzito
+
+	* 
+
+2008-09-15 15:09  xuzito
+
+	* 
+
+2008-09-15 14:51  xuzito
+
+	* First functional cover
+
+2008-09-15 14:40  xuzito
+
+	* Add default cover test
+
+2008-09-13 17:55  xuzito
+
+	* 
+
+2008-09-13 15:54  xuzito
+
+	* 
+
+2008-09-13 12:00  xuzito
+
+	* Initial cover-providers patch
+
+2008-09-12 12:26  xuzito
+
+	* More cover work
+
+2008-09-12 11:33  xuzito
+
+	* 
+
+2008-09-12 10:30  xuzito
+
+	* Cover work
+
+2008-09-11 16:41  xuzito
+
+	* Parser completed
+
+2008-09-11 16:18  xuzito
+
+	* Semi-functional parser
+
+2008-09-11 15:47  xuzito
+
+	* Changes on volume control
+
+2008-09-11 12:59  xuzito
+
+	* 
+
+2008-09-11 12:56  xuzito
+
+	* 
+
+2008-09-10 22:03  xuzito
+
+	* 
+
+2008-09-09 12:59  xuzito
+
+	* Sync with liblomo 0.95.x series
+
+2008-09-08 22:29  xuzito
+
+	* 
+
+2008-09-08 11:17  xuzito
+
+	* 
+
+2008-09-08 10:33  xuzito
+
+	* 
+
+2008-09-08 10:21  xuzito
+
+	* 
+
+2008-09-05 12:21  xuzito
+
+	* 
+
+2008-09-05 11:34  xuzito
+
+	* Clean up comments
+
+2008-09-05 11:26  xuzito
+
+	* Fix multiple bugs, reduce playlist.c
+
+2008-09-05 10:18  xuzito
+
+	* Update item rewrite
+
+2008-09-04 22:03  xuzito
+
+	* 
+
+2008-09-04 15:20  xuzito
+
+	* Test streams
+
+2008-09-04 15:17  xuzito
+
+	* Add test streams
+
+2008-09-04 12:57  xuzito
+
+	* Cleanup playlist.c (I)
+
+2008-09-04 11:58  xuzito
+
+	* Warnings killed
+
+2008-09-03 21:56  xuzito
+
+	* Preliminary support for runtime configurable debug level
+
+2008-09-03 14:33  xuzito
+
+	* Set some ellipsize settings on playlist and recently plugin
+
+2008-09-03 11:16  xuzito
+
+	* 
+
+2008-09-03 11:02  xuzito
+
+	* Adjust debug
+
+2008-09-03 11:02  xuzito
+
+	* Delete class base
+
+2008-09-03 08:46  xuzito
+
+	* Minor changes in code and style
+
+2008-09-03 08:45  xuzito
+
+	* Gel debug level support
+
+2008-09-03 08:41  xuzito
+
+	* Macport updated
+
+2008-09-02 21:42  xuzito
+
+	* Update vogon to GtkUIManager API
+
+2008-09-02 21:40  xuzito
+
+	* Added pluginsdir variable
+
+2008-09-02 12:49  xuzito
+
+	* Submit changelog
+
+2008-09-02 12:49  xuzito
+
+	* Reenable vogon and log components
+
+2008-09-02 12:48  xuzito
+
+	* Disable random/repeat handling.\nDeleted embeded playlist
+
+2008-09-02 12:47  xuzito
+
+	* Delete playlist embed options
+
+2008-09-02 12:05  xuzito
+
+	* Changelog fix (restarted)
+
+2008-09-01 22:01  xuzo
+
+	* 
+
+2008-09-01 22:01  xuzo
+
+	* 
+
+2008-09-01 22:01  xuzo
+
+	* 
+
+2008-09-01 15:11  xuzo
+
+	* 
+
+2008-09-01 15:09  xuzo
+
+	* src -> eina migration 1/2
+
+2008-09-01 14:18  xuzo
+
+	* Fix a GelHub issue un notify plugin
+
+2008-09-01 08:32  xuzo
+
+	* Fix some typos in the GelHub migration
+
+2008-09-01 08:28  xuzo
+
+	* Migration to GelHub: migrate all code to new class
+
+2008-09-01 08:11  xuzo
+
+	* Migration of GHub to GelHub: First implementation
+
+2008-09-01 07:55  xuzo
+
+	* Move to trunk
+
