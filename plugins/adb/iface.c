@@ -12,6 +12,7 @@ adb_plugin_init(EinaPlugin *plugin, GError **error)
 	if (self == NULL)
 		return FALSE;
 	plugin->data = (gpointer) self;
+
 	return TRUE;
 }
 
@@ -25,13 +26,14 @@ adb_plugin_exit(EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin adb_plugin = {
 	EINA_PLUGIN_SERIAL,
-	N_("ADB"),
+	"Adb",
 	"0.0.1",
 	N_("Audio database"),
 	N_("Audio database"),
 	NULL,
-	"Luis Lopez Lopez <xuzo@cuarentaydos.com>",
-	"http://eina.sourceforge.net/",
+	EINA_PLUGIN_GENERIC_AUTHOR,
+	EINA_PLUGIN_GENERIC_URL,
+	NULL,
 	adb_plugin_init, adb_plugin_exit,
 
 	NULL, NULL
