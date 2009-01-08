@@ -23,6 +23,7 @@ static const GOptionEntry opt_entries[] =
 	{ NULL }
 };
 
+#if !USE_GEL_APP
 // --
 // UniqueApp stuff 
 // --
@@ -49,6 +50,7 @@ static void
 list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
 static void
 on_app_dispose(GelHub *app, gpointer data);
+#endif
 
 // --
 // XXX ugly hack
@@ -58,10 +60,16 @@ void xxx_ugly_hack(void);
 gint main
 (gint argc, gchar *argv[])
 {
+#if !USE_GEL_APP
 	GelHub         *app;
 	UniqueApp      *unique = NULL;
 	gint            i = 0;
 	gchar          *modules[] = { "lomo", "artwork", "player", "loader", "dock", "playlist", "plugins", "vogon", NULL};
+#else
+	GelApp         *app;
+	gint            i = 0;
+	gchar          *modules[] = { "lomo", NULL};
+#endif
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;
@@ -102,7 +110,7 @@ gint main
 	// --
 	// Unique App stuff
 	// --
-
+#if !USE_GEL_APP
 	unique = unique_app_new_with_commands ("net.sourceforge.Eina", NULL,
 		"play",    COMMAND_PLAY,
 		"enqueue", COMMAND_ENQUEUE,
@@ -125,6 +133,7 @@ gint main
 		g_object_unref(unique);
 		return 0;
 	}
+#endif
 
 	// --
 	// Setup
@@ -139,14 +148,29 @@ gint main
 
 	// --
 	// Create App and load modules
+#if !USE_GEL_APP
 	app = gel_hub_new(&argc, &argv);
-
 	for (i = 0; modules[i]; i++)
 		gel_hub_load(app, modules[i]);
+#else
+	app = gel_app_new();
+	for (i = 0; modules[i]; i++)
+	{
+		GError *error = NULL;
+		gchar *symbol = g_strconcat(modules[i], "_plugin", NULL);
+		if (!gel_app_load_buildin(app, symbol, &error))
+		{
+			gel_error("Cannot load buildin %s: %s", modules[i], error->message);
+			g_error_free(error);
+		}
+		g_free(symbol);
+	}
+#endif
 
 	// --
 	// Set some signals
 	// --
+#if !USE_GEL_APP
 	unique_app_watch_window(unique, eina_player_get_main_window(GEL_HUB_GET_PLAYER(app)));
 	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 	g_signal_connect (unique, "message-received", G_CALLBACK (unique_message_received_cb), app);
@@ -190,14 +214,17 @@ gint main
 			eina_conf_get_int(GEL_HUB_GET_SETTINGS(app), "/playlist/last_current", 0),
 			NULL);
 	}
+#endif
 
 	gtk_main();
 
+#if !USE_GEL_APP
 	g_object_unref(unique);
-
+#endif
 	return 0;
 }
 
+#if !USE_GEL_APP
 // --
 // UniqueApp stuff 
 // --
@@ -286,6 +313,7 @@ void on_app_dispose(GelHub *app, gpointer data)
 
 	exit(0);
 }
+#endif
 
 // --
 // XXX ugly hack

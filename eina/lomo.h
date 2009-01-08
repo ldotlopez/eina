@@ -4,7 +4,6 @@
 #include <lomo/player.h>
 #include <gel/gel.h>
 
-
 G_BEGIN_DECLS
 
 #define GEL_HUB_GET_LOMO(hub)    ((LomoPlayer *) gel_hub_shared_get(hub,"lomo"))

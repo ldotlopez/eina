@@ -19,6 +19,8 @@ INST_H_FILES = \
 	gel-misc.h              \
 	gel-string.h            \
 	gel-str-parser.h        \
+	gel-app.h               \
+	gel-plugin.h            \
 	gel-hub.h               \
 	gel-io-misc.h           \
 	gel-io-op-result.h      \
@@ -35,7 +37,10 @@ libgel_la_SOURCES = \
 	gel-string.c            \
 	gel-str-parser.c        \
 	gel-hub-marshal.c       \
+	gel-app-marshal.c       \
 	gel-hub.c               \
+	gel-app.c               \
+	gel-plugin.c            \
 	gel-io-misc.c           \
 	gel-io-op-result.c      \
 	gel-io-ops.c            \
@@ -46,7 +51,9 @@ libgel_la_SOURCES = \
 
 BUILT_SOURCES = \
 	gel-hub-marshal.h \
-	gel-hub-marshal.c
+	gel-hub-marshal.c \
+	gel-app-marshal.h \
+	gel-app-marshal.c
 
 CLEANFILES = $(BUILT_SOURCES)
 
@@ -56,5 +63,11 @@ gel-hub-marshal.h: gel-hub-marshal.list
 gel-hub-marshal.c: gel-hub-marshal.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_hub_marshal --header --body > $@
 
-EXTRA_DIST = gel-hub-marshal.list
+gel-app-marshal.h: gel-app-marshal.list
+	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header > $@
+
+gel-app-marshal.c: gel-app-marshal.list
+	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header --body > $@
+
+EXTRA_DIST = gel-app-marshal.list
 

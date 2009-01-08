@@ -90,10 +90,8 @@ eina_plugin_free(EinaPlugin *self)
 // Init and fini functions
 // --
 gboolean
-eina_plugin_init(EinaPlugin *self)
+eina_plugin_init(EinaPlugin *self, GError **error)
 {
-	GError *err = NULL;
-
 	if (self->init == NULL)
 	{
 		gel_error("Plugin %s cannot be initialized: %s",
@@ -102,13 +100,15 @@ eina_plugin_init(EinaPlugin *self)
 		return FALSE;
 	}
 
-	if (!self->init(self, &err))
+	if (!self->init(self, error))
 	{
 		gel_error("Plugin %s cannot be initialized: %s",
 			self->priv->pathname,
-			(err != NULL) ? err->message : "No error");
+			(error != NULL) ? (*error)->message : "No error");
+		/*
 		if (err != NULL)
 			g_error_free(err);
+		*/
 		return FALSE;
 	}
 	
@@ -117,11 +117,11 @@ eina_plugin_init(EinaPlugin *self)
 }
 
 gboolean
-eina_plugin_fini(EinaPlugin *self)
+eina_plugin_fini(EinaPlugin *self, GError **error)
 {
 	GError *err = NULL;
 
-	if (!self->fini(self, &err))
+	if (!self->fini(self, error))
 	{
 		gel_error("Plugin %s cannot be finalized: %s",
 			self->priv->pathname,

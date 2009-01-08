@@ -179,11 +179,16 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 				continue;
 			}
 
-			if (!eina_plugin_init(plugin))
+			if (!eina_loader_plugin_init(EINA_BASE_GET_LOADER(self), plugin, &error))
 			{
-				eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, &error);
-				gel_error("Cannot unload plugin %s: %s", plugins[i], error->message);
+				gel_error("Cannot init plugin '%s': %s", eina_plugin_get_pathname(plugin), error->message);
 				gel_free_and_invalidate(error, NULL, g_error_free);
+
+				if (!eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, &error))
+				{
+					gel_error("Cannot unload plugin '%s': %s", eina_plugin_get_pathname(plugin), error->message);
+					gel_free_and_invalidate(error, NULL, g_error_free);
+				}
 				continue;
 			}
 		}
@@ -362,6 +367,7 @@ plugins_cell_renderer_toggle_toggled_cb
 	GtkTreeIter iter;
 	gint *indices;
 	EinaPlugin *plugin;
+	GError *error = NULL;
 
 	if ((_path = gtk_tree_path_new_from_string(path)) == NULL)
 	{
@@ -380,12 +386,18 @@ plugins_cell_renderer_toggle_toggled_cb
 
 	gboolean do_toggle = FALSE;
 	if (gtk_cell_renderer_toggle_get_active(w) == FALSE)
-		do_toggle = eina_plugin_init(plugin);
+		// do_toggle = eina_plugin_init(plugin);
+		do_toggle = eina_loader_plugin_init(EINA_BASE_GET_LOADER(self), plugin, &error);
 	else
-		do_toggle = eina_plugin_fini(plugin);
+		// do_toggle = eina_plugin_fini(plugin);
+		do_toggle = eina_loader_plugin_fini(EINA_BASE_GET_LOADER(self), plugin, &error);
 
 	if (!do_toggle)
+	{
+		gel_error("Got error: %s", error->message);
+		g_error_free(error);
 		return;
+	}
 
 	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->model), &iter, path);
 	gtk_list_store_set(self->model, &iter,

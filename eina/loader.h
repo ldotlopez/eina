@@ -25,11 +25,24 @@ eina_loader_load_plugin(EinaLoader *self, gchar *pathname, GError **error);
 gboolean
 eina_loader_unload_plugin(EinaLoader *self, EinaPlugin *plugin, GError **error);
 
+gboolean
+eina_loader_plugin_init(EinaLoader *self, EinaPlugin *plugin, GError **error);
+
+gboolean
+eina_loader_plugin_fini(EinaLoader *self, EinaPlugin *plugin, GError **error);
+
 /*
  * Get a plugin via pathname
  */
 EinaPlugin*
 eina_loader_query_plugin(EinaLoader *self, gchar *pathname);
+
+/*
+ * Idem but using name. Dont use libfoo.so schema, use foo instead. Good for you, good
+ * for portability
+ */
+EinaPlugin *
+eina_loader_query_plugin_by_name(EinaLoader *self, gchar *name);
 
 /*
  * Checks if plugin is loaded

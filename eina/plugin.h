@@ -12,29 +12,32 @@
 #include <eina/settings.h>
 #include <eina/artwork.h>
 
-#define EINA_PLUGIN_SERIAL 2
+#define EINA_PLUGIN_SERIAL 3
 #define EINA_PLUGIN_GENERIC_AUTHOR "xuzo <xuzo@cuarentaydos.com>"
 #define EINA_PLUGIN_GENERIC_URL    "http://eina.sourceforge.net/"
 #define EINA_PLUGIN(p)     ((EinaPlugin *) p)
 
 typedef struct _EinaPluginPrivate EinaPluginPrivate;
-typedef struct EinaPlugin {
+typedef struct _EinaPlugin EinaPlugin; 
+
+struct _EinaPlugin {
 	guint serial;            // EINA_PLUGIN_SERIAL
 	const gchar *name;       // "My cool plugin"
 	const gchar *version;    // "1.0.0"
-	const gchar *short_desc; // "This plugins makes Eina cooler
+	const gchar *short_desc; // "This plugins makes Eina cooler"
 	const gchar *long_desc;  // "Blah blah blah..."
 	const gchar *icon;       // "icon.png", relative path
-	const gchar *author;     // "xuzo <xuzo@cuarentaydos.com>"
-	const gchar *url;        // "http://eina.sourceforge.net"
+	const gchar *author;     // "xuzo <xuzo@cuarentaydos.com>" or EINA_PLUGIN_GENERIC_AUTHOR
+	const gchar *url;        // "http://eina.sourceforge.net" or EINA_PLUGIN_GENERIC_URL
+	const gchar *depends;    // "foo,bar,baz" or NULL
 
-	gboolean  (*init)(struct EinaPlugin *self, GError **error); // Init function
-	gboolean  (*fini)(struct EinaPlugin *self, GError **error); // Exit function
+	gboolean  (*init)(struct _EinaPlugin *self, GError **error); // Init function
+	gboolean  (*fini)(struct _EinaPlugin *self, GError **error); // Exit function
 
 	gpointer data; // Plugin's own data
 
 	EinaPluginPrivate *priv;
-} EinaPlugin;
+};
 
 // --
 // New / free
@@ -48,9 +51,9 @@ eina_plugin_free(EinaPlugin *self);
 // Init / fini
 // --
 gboolean
-eina_plugin_init(EinaPlugin *self);
+eina_plugin_init(EinaPlugin *self, GError **error);
 gboolean
-eina_plugin_fini(EinaPlugin *self);
+eina_plugin_fini(EinaPlugin *self, GError **error);
 
 // --
 // Access to internal values
@@ -126,4 +129,4 @@ eina_plugin_attach_events(EinaPlugin *plugin, ...);
 void
 eina_plugin_deattach_events(EinaPlugin *plugin, ...);
 
-#endif /* _EINA_IFACE */
+#endif /* _EINA_PLUGIN */

@@ -297,12 +297,13 @@ gboolean gel_hub_loaded(GelHub *self, gchar *name) {
 	else
 		return FALSE;
 }
-
+/*
 gpointer gel_hub_shared_register(GelHub *self, gchar *name, guint size) {
 	GelHubHost *host;
 
 	host = g_hash_table_lookup(GET_PRIVATE(self)->slave_table, name);
-	if ( host != NULL ) {
+	if (host != NULL)
+	{
 		gel_warn("Attempt to re-register '%s' in shared memory", name);
 		return NULL;
 	}
@@ -311,7 +312,7 @@ gpointer gel_hub_shared_register(GelHub *self, gchar *name, guint size) {
 		return host->data;
 	}
 }
-
+*/
 void gel_hub_shared_unregister(GelHub *self, gchar *name) {
 	GelHubHost *host;
 

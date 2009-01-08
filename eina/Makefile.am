@@ -23,7 +23,6 @@ NOINST_H_FILES = \
 	eina-seek.h                \
 	eina-volume.h              \
 	ether.h                    \
-	loader.h                   \
 	lomo.h                     \
 	player.h                   \
 	playlist.h                 \
@@ -39,6 +38,7 @@ INST_H_FILES = \
 	eina-artwork.h             \
 	eina-preferences-dialog.h  \
 	fs.h                       \
+	loader.h                   \
 	preferences.h              \
 	settings.h
 

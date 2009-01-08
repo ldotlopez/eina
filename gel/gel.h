@@ -1,6 +1,7 @@
 #ifndef _GEL_H
 #define _GEL_H
 
+#include <gel/gel-app.h>
 #include <gel/gel-hub.h>
 #include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>

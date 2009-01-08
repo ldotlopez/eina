@@ -20,13 +20,16 @@ enum {
 	CANNOT_OPEN_SHARED_OBJECT,
 	SYMBOL_NOT_FOUND,
 	PLUGIN_NOT_LOADED,
-	PLUGIN_IS_ENABLED
+	PLUGIN_IS_ENABLED,
+	UNRESOLVED_DEPENDENCES
 };
 
 static GQuark
 loader_quark(void);
 static GList*
 build_paths(void);
+static gboolean
+resolve_depends(EinaLoader *self, EinaPlugin *plugin);
 
 G_MODULE_EXPORT gboolean loader_init
 (GelHub *hub, gint *argc, gchar ***argv)
@@ -50,12 +53,13 @@ G_MODULE_EXPORT gboolean loader_exit
 {
 	EinaLoader *self = EINA_LOADER(data);
 	GList *iter;
+	GError *error = NULL;
 
 	// Unload all plugins. All plugins must be disabled while unloading
 	iter = self->plugins;
 	while (iter)
 	{
-		if (eina_plugin_is_enabled(EINA_PLUGIN(iter->data)) && !eina_plugin_fini(EINA_PLUGIN(iter->data)))
+		if (eina_plugin_is_enabled(EINA_PLUGIN(iter->data)) && !eina_plugin_fini(EINA_PLUGIN(iter->data), &error))
 			break;
 		if (!eina_plugin_free(EINA_PLUGIN(iter->data)))
 			break;
@@ -65,7 +69,8 @@ G_MODULE_EXPORT gboolean loader_exit
 
 	if (iter != NULL)
 	{
-		gel_error("Cannot exit: not all plugins are disabled (%s)", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)));
+		gel_error("Cannot exit: not all plugins are disabled (%s): %s", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)), error->message);
+		g_error_free(error);
 		return FALSE;
 	}
 	g_list_free(self->plugins);
@@ -146,6 +151,25 @@ eina_loader_unload_plugin(EinaLoader *self, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+gboolean
+eina_loader_plugin_init(EinaLoader *self, EinaPlugin *plugin, GError **error)
+{
+	if (!resolve_depends(self, plugin))
+	{
+		g_set_error(error, loader_quark(), UNRESOLVED_DEPENDENCES,
+			N_("One or more depends cannot be resolved for %s: %s"), eina_plugin_get_pathname(plugin), plugin->depends);
+		return FALSE;
+	}
+
+	return eina_plugin_init(plugin, error);
+}
+
+gboolean
+eina_loader_plugin_fini(EinaLoader *self, EinaPlugin *plugin, GError **error)
+{
+	return eina_plugin_fini(plugin, error);
+}
+
 EinaPlugin *
 eina_loader_query_plugin(EinaLoader *self, gchar *pathname)
 {
@@ -219,6 +243,51 @@ build_paths(void)
 	return ret;
 }
 
+static gboolean
+resolve_depends(EinaLoader *self, EinaPlugin *plugin)
+{
+	if (plugin->depends == NULL)
+		return TRUE;
+
+	gchar **deps = g_strsplit(plugin->depends, ",", 0);
+	gint failure = 0;
+	gint i;
+
+	GList *plugins = eina_loader_query_plugins(self);
+	for (i = 0; deps[i]; i++)
+	{
+		GList *iter = plugins;
+		while (iter)
+		{
+			GError *error = NULL;
+			if (!g_str_equal(deps[i], EINA_PLUGIN(iter->data)->name))
+			{
+				iter = iter->next;
+				continue;
+			}
+
+			if (eina_loader_plugin_init(self, EINA_PLUGIN(iter->data), &error))
+			{
+				break;
+			}
+			else
+			{
+				gel_error("Cannot init %s: %s", eina_plugin_get_pathname(EINA_PLUGIN(iter->data)), error->message);
+				gel_free_and_invalidate(error, NULL, g_error_free);
+			}
+			iter = iter->next;
+		}
+		if (iter == NULL)
+		{
+			failure = TRUE;
+			break;
+		}
+	}
+	g_strfreev(deps);
+
+	return !failure;
+}
+
 // Revised
 GList *
 eina_loader_query_paths(EinaLoader *self)
@@ -256,18 +325,7 @@ eina_loader_query_plugins(EinaLoader *self)
 
 		iter = iter->next;
 	}
-	/*
-	gel_warn("Total available plugins %d", g_list_length(self->plugins));
-	iter = self->plugins;
-	while (iter)
-	{
-		gel_warn(" ## [%c] %s",
-			eina_plugin_is_enabled(EINA_PLUGIN(iter->data)) ? 'E' : 'D',
-			eina_plugin_get_pathname(EINA_PLUGIN(iter->data)));
-		iter = iter->next;
-	}
-	gel_warn("End query");
-	*/
+
 	return self->plugins;
 }
 
