@@ -83,15 +83,16 @@ coverplus_exit(EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
 	EINA_PLUGIN_SERIAL,
-	N_("Cover plus"),
+	"Coverplus",
 	"0.7.0",
 	N_("Enhace your covers"),
 	N_("Brings Eina several simple but fundamental cover providers like:\n"
 	   "· In-folder cover discover\n"
 	   "· Banshee (on Linux) covers"),
 	NULL,
-	"xuzo <xuzo@cuarentaydos.com>",
-	"http://eina.sourceforge.net/",
+	EINA_PLUGIN_GENERIC_AUTHOR,
+	EINA_PLUGIN_GENERIC_URL,
+	NULL,
 
 	coverplus_init, coverplus_exit,
 
