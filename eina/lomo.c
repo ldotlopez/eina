@@ -1,12 +1,14 @@
 #define GEL_DOMAIN "Eina::Lomo"
-#include <glib/gi18n.h>
-#include <gmodule.h>
-#include <lomo/player.h>
-#include <gel/gel.h>
 
-/*
- * Init and fini functions
- */
+#include <config.h>
+#include <gmodule.h>
+#include <glib/gi18n.h>
+#include <gel/gel.h>
+#include <lomo/player.h>
+
+// --
+// GelHub interface
+// --
 G_MODULE_EXPORT gboolean eina_lomo_init
 (GelHub *hub, gint *argc, gchar ***argv)
 {
@@ -39,6 +41,17 @@ G_MODULE_EXPORT gboolean eina_lomo_fini
 	return TRUE;
 }
 
+G_MODULE_EXPORT GelHubSlave lomo_connector =
+{
+	"lomo",
+	&eina_lomo_init,
+	&eina_lomo_fini
+};
+
+
+// --
+// GelApp interface
+// --
 static GQuark
 lomo_quark(void)
 {
@@ -90,28 +103,14 @@ lomo_plugin_fini(GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-/*
- * GelHub Slave
- */
-G_MODULE_EXPORT GelHubSlave lomo_connector =
-{
-	"lomo",
-	&eina_lomo_init,
-	&eina_lomo_fini
-};
-
 G_MODULE_EXPORT GelPlugin lomo_plugin = 
 {
 	GEL_PLUGIN_SERIAL,
-	"lomo",
-	"0.0.0",
-	N_("Lomo build-in plugin"),
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	"lomo", PACKAGE_VERSION,
+	N_("Build-in lomo plugin"), NULL,
+	NULL, NULL, NULL,
 	lomo_plugin_init,
 	lomo_plugin_fini,
 	NULL, NULL
 };
+

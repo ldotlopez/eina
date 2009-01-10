@@ -1,8 +1,17 @@
 #define GEL_DOMAIN "Eina::Log"
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "x.x.x"
+#endif
+#endif
+
 #include <gmodule.h>
-#include <lomo/player.h>
+#include <glib/gi18n.h>
 #include <gel/gel.h>
+#include <lomo/player.h>
 
 static void
 on_lomo_error       (LomoPlayer *lomo, GError *err, gchar *message);
@@ -106,5 +115,55 @@ log_connector =
 	"log",
 	&eina_log_init,
 	NULL
+};
+
+// --
+// GelApp interface
+// --
+#define PSTR(p) gel_plugin_stringify(p)
+
+void
+plugin_load_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Load plugin '%s'", PSTR(plugin));
+}
+
+void
+plugin_unload_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Unload plugin '%s'", PSTR(plugin));
+}
+
+void
+plugin_init_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Init plugin '%s'", PSTR(plugin));
+}
+
+void
+plugin_fini_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Fini plugin '%s'", PSTR(plugin));
+}
+
+
+gboolean
+log_init(GelPlugin *plugin, GError **error)
+{
+	GelApp *app = gel_plugin_get_app(plugin);
+	g_signal_connect(app, "plugin-load",   (GCallback) plugin_load_cb, NULL);
+	g_signal_connect(app, "plugin-unload", (GCallback) plugin_unload_cb, NULL);
+	g_signal_connect(app, "plugin-init",   (GCallback) plugin_init_cb, NULL);
+	g_signal_connect(app, "plugin-fini",   (GCallback) plugin_fini_cb, NULL);
+	return TRUE;
+}
+
+G_MODULE_EXPORT GelPlugin log_plugin = {
+	GEL_PLUGIN_SERIAL,
+	"log", PACKAGE_VERSION,
+	N_("Build-in log"), NULL,
+	NULL, NULL, NULL,
+	log_init, NULL,
+	NULL, NULL
 };
 
