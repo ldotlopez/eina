@@ -41,8 +41,8 @@ TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 	-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
 	-DGDK_MULTIHEAD_SAFE -DGTK_MULTIHEAD_SAFE"
 
-AC_ARG_ENABLE(release-build, [  --enable-release-build         build in release mode], release_build=yes, release_build=no)
-AC_ARG_ENABLE(gel-app, [  --enable-gel-app         Use GelApp instead of GelHub], gel_app=yes, gel_app=no)
+AC_ARG_ENABLE(release-build, [  --enable-release-build      Build in release mode], release_build=yes, release_build=no)
+AC_ARG_ENABLE(gel-app,       [  --enable-gel-app            Use GelApp instead of GelHub], gel_app=yes, gel_app=no)
 if test x$release_build = 'xyes'; then
 	CXXFLAGS="-O2"
 	CFLAGS="-O2"

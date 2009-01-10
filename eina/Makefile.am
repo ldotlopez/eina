@@ -42,7 +42,8 @@ INST_H_FILES = \
 	fs.h                       \
 	loader.h                   \
 	preferences.h              \
-	settings.h
+	settings.h                 \
+	settings2.h
 
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina
 header_DATA = $(INST_H_FILES)
@@ -73,6 +74,7 @@ eina_SOURCES = \
 	plugins.c                  \
 	preferences.c              \
 	settings.c                 \
+	settings2.c                \
 	template.c                 \
 	vogon.c                    \
 	$(NOINST_H_FILES)          \
