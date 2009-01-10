@@ -5,11 +5,11 @@
 
 G_BEGIN_DECLS
 
-typedef struct _GelPlugin        GelPlugin;
+typedef struct _GelPlugin GelPlugin;
 #include <gel/gel-app.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
-#define GEL_PLUGIN_SERIAL 0
+#define GEL_PLUGIN_SERIAL 200901101
 
 typedef struct _GelPluginPrivate GelPluginPrivate;
 struct _GelPlugin {
@@ -21,7 +21,7 @@ struct _GelPlugin {
 	const gchar *icon;       // "icon.png", relative path
 	const gchar *author;     // "me <me@company.com>"
 	const gchar *url;        // "http://www.company.com"
-	const gchar *depends;    // "foo,bar,baz" or NULL
+	// const gchar *depends; // "foo,bar,baz" or NULL
 
 	gboolean (*init) (struct _GelPlugin *plugin, GError **error); // Init function
 	gboolean (*fini) (struct _GelPlugin *plugin, GError **error); // Exit function
@@ -31,27 +31,41 @@ struct _GelPlugin {
 	GelPluginPrivate *priv;
 };
 
+gboolean     gel_plugin_matches     (GelPlugin *plugin, gchar *pathname, gchar *symbol);
+GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
+const gchar* gel_plugin_stringify   (GelPlugin *plugin);
+gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
+
 enum {
 	GEL_PLUGIN_NO_ERROR = 0,
 	GEL_PLUGIN_DYNAMIC_LOADING_NOT_SUPPORTED,
 	GEL_PLUGIN_SYMBOL_NOT_FOUND,
-	GEL_PLUGIN_INVALID_SERIAL
+	GEL_PLUGIN_INVALID_SERIAL,
+	GEL_PLUGIN_STILL_ENABLED,
+	GEL_PLUGIN_STILL_REFERENCED,
+	GEL_PLUGIN_HAS_NO_INIT_HOOK,
+	GEL_PLUGIN_NO_ERROR_AVAILABLE
 };
 
-GelPlugin* gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error);
-#ifdef GEL_COMPILATION
+#ifdef GEL_COMPILATION // Only libgel can access these functions
+
+// Create or destroy plugins
+GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
+gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
+
+// Ref/unref is used to handle how many times plugin was requested
 void gel_plugin_ref  (GelPlugin *plugin);
 void gel_plugin_unref(GelPlugin *plugin);
 
+// Initialize or finalize plugins
 gboolean gel_plugin_init(GelPlugin *plugin, GError **error);
 gboolean gel_plugin_fini(GelPlugin *plugin, GError **error);
-#endif
 
-gboolean     gel_plugin_matches     (GelPlugin *plugin, gchar *pathname, gchar *symbol);
-GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
-// const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
-const gchar* gel_plugin_stringify   (GelPlugin *plugin);
-gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
+// How many times plugin was loaded or inited
+guint gel_plugin_get_inits(GelPlugin *plugin);
+guint gel_plugin_get_loads(GelPlugin *plugin);
+
+#endif
 
 G_END_DECLS
 

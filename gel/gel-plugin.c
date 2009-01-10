@@ -9,8 +9,8 @@ struct _GelPluginPrivate {
 	gchar   *symbol;
 	gchar   *stringified;
 	GModule *module;
-	gboolean enabled;
-	guint refs;
+	guint loads;
+	guint inits;
 };
 
 static GQuark
@@ -20,8 +20,8 @@ GelPlugin*
 gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 {
 	GelPlugin *self = NULL;
-	GModule    *mod;
-	gpointer    symbol_p;
+	GModule   *mod;
+	gpointer   symbol_p;
 
 	if (!g_module_supported())
 	{
@@ -55,66 +55,129 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 
 	self = GEL_PLUGIN(symbol_p);
 	self->priv = g_new0(GelPluginPrivate, 1);
-	self->priv->refs     = 1;
+	self->priv->loads    = 1;
+	self->priv->inits    = 0;
 	self->priv->pathname = g_strdup(pathname);
 	self->priv->symbol   = g_strdup(symbol);
 	self->priv->module   = mod;
 	self->priv->app      = app;
-	// self->priv->lomo        = gel_hub_shared_get(hub, "lomo");
 	return self;
-
 }
 
-gboolean gel_plugin_init(GelPlugin *self, GError **error)
+gboolean
+gel_plugin_free(GelPlugin *self, GError **error)
 {
-	if (self->priv->enabled)
-		return TRUE;
-
-	if (self->init == NULL)
-		return FALSE;
-
-	return (self->priv->enabled = self->init(self, error));
-}
-
-gboolean gel_plugin_fini(GelPlugin *self, GError **error)
-{
-	if (!self->priv->enabled)
-		return TRUE;
-
-	if (self->fini == NULL)
+	if (gel_plugin_is_enabled(self))
 	{
-		self->priv->enabled = FALSE;
-		return TRUE;
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_ENABLED,
+			N_("Cannot free GelPlugin '%s' it is still enabled"), gel_plugin_stringify(self));
+		return FALSE;
 	}
 
-	return !(self->priv->enabled = !self->fini(self, error));
+	if (self->priv->loads > 0)
+	{
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_REFERENCED,
+			N_("Cannot free GelPlugin '%s' it is still referenced"), gel_plugin_stringify(self));
+		return FALSE;
+	}	
+	gel_free_and_invalidate(self->priv->pathname, NULL, g_free);
+	gel_free_and_invalidate(self->priv->symbol, NULL, g_free);
+	gel_free_and_invalidate(self->priv->stringified, NULL, g_free);
+	
+	GelPluginPrivate *priv = self->priv;
+	g_module_close(self->priv->module);
+	gel_free_and_invalidate(priv, NULL, g_free);
+
+	return TRUE;
 }
 
 void
 gel_plugin_ref(GelPlugin *self)
 {
-	self->priv->refs++;
+	self->priv->loads++;
 }
 
 void
 gel_plugin_unref(GelPlugin *self)
 {
-	self->priv->refs--;
-	if (self->priv->refs > 0)
-		return;
+	if (self->priv->loads > 0)
+		self->priv->loads--;
+}
 
-	if (self->priv->enabled)
+gboolean
+gel_plugin_init(GelPlugin *self, GError **error)
+{
+	// Already initialized
+	if (self->priv->inits)
 	{
-		g_warning(N_("Plugin is still enabled, cannot be destroyed"));
-		return;
+		self->priv->inits++;
+		return TRUE;
 	}
 
-	GelPluginPrivate *priv = self->priv;
-	g_free(self->priv->pathname);
-	g_free(self->priv->symbol);
-	gel_free_and_invalidate(self->priv->stringified, NULL, g_free);
-	g_module_close(priv->module);
-	g_free(priv);
+	// No init function, cannot init!
+	if (self->init == NULL)
+	{
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_HAS_NO_INIT_HOOK,
+			N_("Cannot init GelPlugin %s, no init hook"), gel_plugin_stringify(self));
+		return FALSE;
+	}
+
+	gboolean initialized = self->init(self, error);
+	if (initialized)
+		self->priv->inits = 1;
+	else if (*error == NULL)
+	{
+		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
+		 	N_("Init function for %s failed with no reason"), gel_plugin_stringify(self));
+	}
+	return initialized;
+}
+
+gboolean
+gel_plugin_fini(GelPlugin *self, GError **error)
+{
+	if (self->priv->inits == 0)
+	{
+		g_warning(N_("Trying to fini GelPlugin %s which has inits == 0"), gel_plugin_stringify(self));
+		return TRUE;
+	}
+
+	// Fake successful if there are more han 1 caller
+	if (self->priv->inits > 1)
+	{
+		self->priv->inits--;
+		return TRUE;
+	}
+
+	gboolean finalized = FALSE;
+
+	// Call fini hook
+	if (self->fini == NULL)
+		finalized = TRUE;
+	else
+		finalized = self->fini(self, error);
+	
+	if (finalized)
+		self->priv->inits--;
+	else if (*error == NULL)
+	{
+		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
+		 	N_("Fini function for %s failed with no reason"), gel_plugin_stringify(self));
+	}
+
+	return finalized;
+}
+
+guint
+gel_plugin_get_loads(GelPlugin *self)
+{
+	return self->priv->loads;
+}
+
+guint
+gel_plugin_get_inits(GelPlugin *self)
+{
+	return self->priv->inits;
 }
 
 gboolean
@@ -142,15 +205,17 @@ gel_plugin_get_pathname(GelPlugin *self)
 const gchar *
 gel_plugin_stringify(GelPlugin *self)
 {
-	if (self->priv->stringified)
-		self->priv->stringified = g_strdup_printf("%s:%s", self->priv->pathname ?  self->priv->pathname : "<BUILD-IN>" , self->priv->symbol);
+	if (self->priv->stringified == NULL)
+		self->priv->stringified = g_strdup_printf("%s:%s",
+			(self->priv->pathname ?  self->priv->pathname : "<BUILD-IN>" ),
+			self->priv->symbol);
 	return self->priv->stringified;
 }
 
 gboolean
 gel_plugin_is_enabled(GelPlugin *self)
 {
-	return self->priv->enabled;
+	return (self->priv->inits > 0);
 }
 
 static GQuark
@@ -160,4 +225,5 @@ gel_plugin_quark(void)
 	if (ret == 0)
 		ret = g_quark_from_static_string("gel-plugin");
 	return ret;
+
 }
