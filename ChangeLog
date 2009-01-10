@@ -1,3 +1,46 @@
+2009-01-08 00:52  xuzito
+
+	* eina/Makefile.am, eina/loader.c, eina/loader.h, eina/lomo.c,
+	  eina/lomo.h, eina/main.c, eina/plugin.c, eina/plugin.h,
+	  eina/plugins.c, gel/Makefile.am, gel/gel-hub.c, gel/gel.h: Misc
+	  work from GelApp
+
+2009-01-08 00:49  xuzito
+
+	* misc/eina.desktop.in: Fix .desktop file
+
+2009-01-08 00:49  xuzito
+
+	* plugins/Makefile.am, plugins/recently2,
+	  plugins/recently2/Makefile.am, plugins/recently2/recently.c: Add
+	  a prototype of recently2
+
+2009-01-08 00:48  xuzito
+
+	* plugins/adb/iface.c, plugins/lastfm/lastfm.c: Cosmetic changes.
+	  Use global defines to define author and homepage
+
+2009-01-08 00:47  xuzito
+
+	* plugins/coverplus/coverplus.c, plugins/coverplus/iface.c: Clean
+	  some files
+
+2009-01-08 00:46  xuzito
+
+	* configure.in: Make use of GelApp conditional using the configure
+	  switch --enable-gel-app
+
+2009-01-08 00:45  xuzito
+
+	* gel/gel-app-marshal.list, gel/gel-app.c, gel/gel-app.h,
+	  gel/gel-plugin.c, gel/gel-plugin.h: First attempt to create
+	  Gel{App,Plugin} joining GelHub and EinaPlugin concepts.
+
+2009-01-05 18:21  xuzito
+
+	* ChangeLog: Delegate generation of Changelog to svn2cl from
+	  subversion-tools
+
 2009-01-05 18:15  xuzito
 
 	* eina/fs.c, eina/fs.h, eina/main.c, eina/playlist.c,

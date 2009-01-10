@@ -1,6 +1,7 @@
 #define GEL_DOMAIN "Eina::Base"
+
 #include <gel/gel-ui.h>
-#include "base.h"
+#include <eina/base.h>
 
 gboolean eina_base_init
 (EinaBase *self, GelHub *hub, gchar *name, EinaBaseFlag flags)
@@ -70,4 +71,3 @@ GtkBuilder *eina_base_get_ui(EinaBase *self)
 {
 	return self->ui;
 }
-

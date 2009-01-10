@@ -3,7 +3,7 @@
 
 #include <glib-object.h>
 #include <gst/gst.h>
-#include "stream.h"
+#include <lomo/stream.h>
 
 G_BEGIN_DECLS
 

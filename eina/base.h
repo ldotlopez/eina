@@ -1,6 +1,35 @@
 #ifndef _BASE_H
 #define _BASE_H
 
+// #if USE_GEL_APP
+#if 0
+// Compatibility layer
+G_BEGIN_DECLS
+
+#include <eina/eina-obj.h>
+
+typedef EinaObj EinaBase;
+typedef EinaObjFlag EinaBaseFlag;
+#define EINA_BASE_NONE   EINA_OBJ_NONE
+#define EINA_BASE_GTK_UI EINA_OBJ_GTK_UI
+
+#define eina_base_init(self,hub,name,flags) eina_obj_init(self,hub,name,flags,NULL)
+#define eina_base_fini(self)                eina_obj_fini(self,NULL)
+#define eina_base_require(self,comp)        eina_obj_require(self,comp,NULL)
+#define eina_base_get_hub(self)             eina_obj_get_app(self)
+#define eina_base_get_lomo(self)            eina_obj_get_lomo(self)
+#define eina_base_get_ui(self)              eina_obj_get_ui(self)
+#define EINA_BASE(self)                     EINA_OBJ(self)
+#define LOMO(self)                          eina_obj_get_lomo(self)
+#define HUB(self)                           eina_obj_get_app(self)
+#define UI(self)                            eina_obj_get_ui(self)
+#define W(self,name)                        eina_obj_get_widget(self,name)
+#define W_TYPED(self,type,name)             eina_obj_get_typed(self,type,name)
+
+G_END_DECLS
+
+#else
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
@@ -40,6 +69,7 @@ GtkBuilder* eina_base_get_ui  (EinaBase *self);
 #define OBJ(s,n)     G_OBJECT(gtk_builder_get_object(UI(s),n))
 
 G_END_DECLS
+#endif
 
 #endif // _BASE_H
 

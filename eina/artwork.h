@@ -1,6 +1,7 @@
 #ifndef _ARTWORK_H
 #define _ARTWORK_H
 
+#include <eina/base.h>
 #include <eina/eina-artwork.h>
 
 #define GEL_HUB_GET_ARTWORK(hub)    EINA_ARTWORK(gel_hub_shared_get(hub, "artwork"))
