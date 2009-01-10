@@ -25,6 +25,7 @@ NOINST_H_FILES = \
 	ether.h                    \
 	lomo.h                     \
 	player.h                   \
+	player2.h                  \
 	playlist.h                 \
 	plugin.h                   \
 	plugins.h                  \
@@ -69,6 +70,7 @@ eina_SOURCES = \
 	lomo.c                     \
 	main.c                     \
 	player.c                   \
+	player2.c                  \
 	playlist.c                 \
 	plugin.c                   \
 	plugins.c                  \

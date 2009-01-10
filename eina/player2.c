@@ -1,31 +1,32 @@
 #define GEL_DOMAIN "Eina::Player"
-#if USE_GEL_APP
-#else
 
+// Stds
 #include <config.h>
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-#include <glib.h>
 #include <gmodule.h>
 #include <gdk/gdkkeysyms.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include "base.h"
-#include "lomo.h"
-#include "player.h"
-#include "settings.h"
-#include "preferences.h"
-#include <eina/artwork.h>
-#include "eina-seek.h"
-#include "eina-volume.h"
-#include "eina-file-chooser-dialog.h"
-#include "playlist.h"
-#include "plugins.h"
-#include "fs.h"
+
+// Modules
+#include <eina/player2.h>
+#include <eina/lomo.h>
+#include <eina/artwork2.h>
+#include <eina/settings2.h>
+#include <eina/preferences.h>
+
+// Widgets
+#include <eina/eina-seek.h>
+#include <eina/eina-volume.h>
+#include <eina/eina-file-chooser-dialog.h>
+
+// Utils
+#include <eina/fs.h>
 
 struct _EinaPlayer {
-	EinaBase parent;
+	EinaObj parent;
 
 	EinaConf  *conf;
 
@@ -52,8 +53,10 @@ static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
+/*
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self);
+*/
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
@@ -92,29 +95,28 @@ stream_info_parser_cb(gchar key, LomoStream *stream);
 static gboolean
 update_cover_cb(gpointer data)
 {
-	eina_artwork_set_stream(EINA_PLAYER(data)->cover, (LomoStream*) lomo_player_get_current_stream(LOMO(EINA_BASE(data))));
+	eina_artwork_set_stream(EINA_PLAYER(data)->cover, (LomoStream*) lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(EINA_OBJ(data))));
 	return FALSE;
 }
 
-G_MODULE_EXPORT gboolean
-eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
+static gboolean
+player_init (GelPlugin *plugin, GError **error)
 {
+	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlayer *self = NULL;
 
 	// Initialize base class
 	self = g_new0(EinaPlayer, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "player", EINA_BASE_GTK_UI))
+	if (!eina_obj_init((EinaObj *) self, app, "player", EINA_OBJ_GTK_UI, error))
 	{
-		gel_error("Cannot create EinaPlayer");
 		g_free(self);
 		return FALSE;
 	}
 
 	// Load conf
-	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
+	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
 	{
-		gel_error("Cannot access settings");
-		eina_base_fini(EINA_BASE(self));
+		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
 
@@ -134,18 +136,18 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	self->play_pause       = W_TYPED(self, GTK_BUTTON, "play-pause-button");
 	self->play_pause_image = W_TYPED(self, GTK_IMAGE,  "play-pause-image");
 
-	if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
+	if (lomo_player_get_state(EINA_OBJ_GET_LOMO(self)) == LOMO_STATE_PLAY)
 		switch_state(self, EINA_PLAYER_MODE_PLAY);
 	else
 		switch_state(self, EINA_PLAYER_MODE_PAUSE);
 
-	set_info(self, (LomoStream *) lomo_player_get_stream(LOMO(self)));
+	set_info(self, (LomoStream *) lomo_player_get_stream(EINA_OBJ_GET_LOMO(self)));
 
 	gtk_widget_realize(GTK_WIDGET(self->main_window));
 
 	// Initialize volume
 	self->volume = eina_volume_new();
-	eina_volume_set_lomo_player(self->volume, EINA_BASE_GET_LOMO(self));
+	eina_volume_set_lomo_player(self->volume, EINA_OBJ_GET_LOMO(self));
 	gel_ui_container_replace_children(
 		W_TYPED(self, GTK_CONTAINER, "volume-button-container"),
 		GTK_WIDGET(self->volume));
@@ -153,7 +155,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 
 	// Initialize seek
 	self->seek = eina_seek_new();
-	eina_seek_set_lomo_player(self->seek, EINA_BASE_GET_LOMO(self));
+	eina_seek_set_lomo_player(self->seek, EINA_OBJ_GET_LOMO(self));
 	eina_seek_set_current_label  (self->seek, W_TYPED(self, GTK_LABEL, "time-current-label"));
 	eina_seek_set_remaining_label(self->seek, W_TYPED(self, GTK_LABEL, "time-remaining-label"));
 	eina_seek_set_total_label    (self->seek, W_TYPED(self, GTK_LABEL, "time-total-label"));
@@ -163,7 +165,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	gtk_widget_show(GTK_WIDGET(self->seek));
 
 	// Artwork
-	EinaArtwork *artwork = self->cover = EINA_BASE_GET_ARTWORK(EINA_BASE(self));
+	EinaArtwork *artwork = self->cover = EINA_OBJ_GET_ARTWORK(EINA_OBJ(self));
 	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb), self);
 	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
 
@@ -248,20 +250,21 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 		GEL_UI_SIGNAL_DEF_NONE
 	};
 	gel_ui_signal_connect_from_def_multiple(UI(self), ui_signals, self, NULL);
-	g_signal_connect(LOMO(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(LOMO(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(LOMO(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(LOMO(self), "change",   G_CALLBACK(lomo_change_cb), self);
-	g_signal_connect(LOMO(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
-	g_signal_connect(LOMO(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-	g_signal_connect_swapped(LOMO(self), "del",    G_CALLBACK(update_sensitiviness), self);
-	g_signal_connect_swapped(LOMO(self), "add",    G_CALLBACK(update_sensitiviness), self);
-	g_signal_connect_swapped(LOMO(self), "repeat", G_CALLBACK(update_sensitiviness), self);
-	g_signal_connect_swapped(LOMO(self), "random", G_CALLBACK(update_sensitiviness), self);
+	g_signal_connect(EINA_OBJ_GET_LOMO(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(EINA_OBJ_GET_LOMO(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(EINA_OBJ_GET_LOMO(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(EINA_OBJ_GET_LOMO(self), "change",   G_CALLBACK(lomo_change_cb), self);
+	g_signal_connect(EINA_OBJ_GET_LOMO(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
+	g_signal_connect(EINA_OBJ_GET_LOMO(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
+	g_signal_connect_swapped(EINA_OBJ_GET_LOMO(self), "del",    G_CALLBACK(update_sensitiviness), self);
+	g_signal_connect_swapped(EINA_OBJ_GET_LOMO(self), "add",    G_CALLBACK(update_sensitiviness), self);
+	g_signal_connect_swapped(EINA_OBJ_GET_LOMO(self), "repeat", G_CALLBACK(update_sensitiviness), self);
+	g_signal_connect_swapped(EINA_OBJ_GET_LOMO(self), "random", G_CALLBACK(update_sensitiviness), self);
 
 	// Preferences is attached to us (like dock) but this is less than optimal
-	EinaPreferencesDialog *prefs;
-	if (!gel_hub_load(hub, "preferences") || !(prefs = EINA_PREFERENCES_DIALOG(GEL_HUB_GET_PREFERENCES(hub))))
+	gel_warn("EinaPreferencesDialog is disabled due port to GelApp");
+	/*
+	if (!gel_hub_load(app, "preferences",NULL) || !(prefs = EINA_PREFERENCES_DIALOG(GEL_HUB_GET_PREFERENCES(hub))))
 	{
 		gel_warn("Cannot load preferences component");
 	}
@@ -272,7 +275,7 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 			GTK_LABEL(gtk_label_new(_("Player"))),
 			build_preferences_widget(self));
 	}
-
+	*/
 	setup_dnd(self);
 
 	// Show it
@@ -286,15 +289,21 @@ eina_player_init (GelHub *hub, gint *argc, gchar ***argv)
 	return TRUE;
 }
 
-G_MODULE_EXPORT gboolean
-eina_player_exit (gpointer data)
+static gboolean
+player_fini(GelPlugin *plugin, GError **error)
 {
-	EinaPlayer *self = (EinaPlayer *) data;
+	GelApp *app = gel_plugin_get_app(plugin);
+	EinaPlayer *self = gel_app_shared_get(app, "player");
+
+	if (!self)
+		return FALSE;
 
 	g_free(self->stream_info_fmt);
 
-	gel_hub_unload(HUB(self), "settings");
-	eina_base_fini((EinaBase *) self);
+	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
+	eina_obj_fini(EINA_OBJ(self));
+	gel_app_shared_unregister(app, "settings");
+
 	return TRUE;
 }
 
@@ -385,21 +394,23 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	g_free(title);
 }
 
+/*
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self)
 {
 	return gtk_label_new(":)");
 }
+*/
 
 static void
 update_sensitiviness(EinaPlayer *self)
 {
 	gtk_widget_set_sensitive(GTK_WIDGET(self->prev),
-		(lomo_player_get_prev(LOMO(self)) >= 0));
+		(lomo_player_get_prev(EINA_OBJ_GET_LOMO(self)) >= 0));
 	gtk_widget_set_sensitive(GTK_WIDGET(self->next),
-		(lomo_player_get_next(LOMO(self)) >= 0));
+		(lomo_player_get_next(EINA_OBJ_GET_LOMO(self)) >= 0));
 	gtk_widget_set_sensitive(GTK_WIDGET(self->play_pause),
-		(lomo_player_get_current(LOMO(self)) >= 0));
+		(lomo_player_get_current(EINA_OBJ_GET_LOMO(self)) >= 0));
 }
 
 static void
@@ -488,33 +499,33 @@ main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 	switch (ev->key.keyval)
 	{
 	case GDK_Insert:
-		eina_fs_file_chooser_load_files(LOMO(self));
+		eina_fs_file_chooser_load_files(EINA_OBJ_GET_LOMO(self));
 		// file_chooser_load_files(self);
 		break;
 	case GDK_z:
 	case GDK_Page_Up:
-		lomo_player_go_prev(LOMO(self), &err);
+		lomo_player_go_prev(EINA_OBJ_GET_LOMO(self), &err);
 		break;
 	case GDK_x:
-		if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
-			lomo_player_pause(LOMO(self), &err);
+		if (lomo_player_get_state(EINA_OBJ_GET_LOMO(self)) == LOMO_STATE_PLAY)
+			lomo_player_pause(EINA_OBJ_GET_LOMO(self), &err);
 		else
-			lomo_player_play(LOMO(self), &err);
+			lomo_player_play(EINA_OBJ_GET_LOMO(self), &err);
 		break;
 	case GDK_c:
-		lomo_player_stop(LOMO(self), &err);
+		lomo_player_stop(EINA_OBJ_GET_LOMO(self), &err);
 		break;
 	case GDK_v:
 	case GDK_Page_Down:
-		lomo_player_go_next(LOMO(self), &err);
+		lomo_player_go_next(EINA_OBJ_GET_LOMO(self), &err);
 		break;
 	case GDK_KP_Left:
-		lomo_player_seek_time(LOMO(self),
-			lomo_player_tell_time(LOMO(self) - 10));
+		lomo_player_seek_time(EINA_OBJ_GET_LOMO(self),
+			lomo_player_tell_time(EINA_OBJ_GET_LOMO(self) - 10));
 		break;
 	case GDK_KP_Right:
-		lomo_player_seek_time(LOMO(self),
-			lomo_player_tell_time(LOMO(self) + 10));
+		lomo_player_seek_time(EINA_OBJ_GET_LOMO(self),
+			lomo_player_tell_time(EINA_OBJ_GET_LOMO(self) + 10));
 		break;
 	default:
 		return FALSE;
@@ -536,31 +547,31 @@ button_clicked_cb(GtkWidget *w, EinaPlayer *self)
 	// Keep 'next' on the top of this if-else-if list since is the most common case
 	if (w == GTK_WIDGET(self->next))
 	{
-		state = lomo_player_get_state(LOMO(self));
-		lomo_player_go_next(LOMO(self), NULL);
+		state = lomo_player_get_state(EINA_OBJ_GET_LOMO(self));
+		lomo_player_go_next(EINA_OBJ_GET_LOMO(self), NULL);
 		if (state == LOMO_STATE_PLAY) 
-			lomo_player_play(LOMO(self), NULL);
+			lomo_player_play(EINA_OBJ_GET_LOMO(self), NULL);
 	}
 	
 	else if (w == GTK_WIDGET(self->prev))
 	{
-		state = lomo_player_get_state(LOMO(self));
-		lomo_player_go_prev(LOMO(self), NULL);
+		state = lomo_player_get_state(EINA_OBJ_GET_LOMO(self));
+		lomo_player_go_prev(EINA_OBJ_GET_LOMO(self), NULL);
 		if (state == LOMO_STATE_PLAY)
-			lomo_player_play(LOMO(self), NULL);
+			lomo_player_play(EINA_OBJ_GET_LOMO(self), NULL);
 	}
 	
 	else if (w == GTK_WIDGET(self->play_pause))
 	{
-		if (lomo_player_get_state(LOMO(self)) == LOMO_STATE_PLAY)
-			lomo_player_pause(LOMO(self), &err);
+		if (lomo_player_get_state(EINA_OBJ_GET_LOMO(self)) == LOMO_STATE_PLAY)
+			lomo_player_pause(EINA_OBJ_GET_LOMO(self), &err);
 		else
-			lomo_player_play(LOMO(self), &err);
+			lomo_player_play(EINA_OBJ_GET_LOMO(self), &err);
 	}
 
 	else if (w == GTK_WIDGET(self->open))
 	{
-		eina_fs_file_chooser_load_files(LOMO(self));
+		eina_fs_file_chooser_load_files(EINA_OBJ_GET_LOMO(self));
 	}
 
 	if (err != NULL)
@@ -577,7 +588,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 
 	if (g_str_equal(name, "Open"))
 	{
-		eina_fs_file_chooser_load_files(LOMO(self));
+		eina_fs_file_chooser_load_files(EINA_OBJ_GET_LOMO(self));
 	}
 
 	else if (g_str_equal(name, "Help"))
@@ -631,8 +642,8 @@ static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlayer *self)
 {
 	update_sensitiviness(self);
-	set_info(self, (LomoStream *) lomo_player_get_nth(LOMO(self), to));
-	eina_artwork_set_stream(self->cover, (LomoStream *) lomo_player_get_nth(LOMO(self), to));
+	set_info(self, (LomoStream *) lomo_player_get_nth(EINA_OBJ_GET_LOMO(self), to));
+	eina_artwork_set_stream(self->cover, (LomoStream *) lomo_player_get_nth(EINA_OBJ_GET_LOMO(self), to));
 }
 
 static void
@@ -724,8 +735,8 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	g_slist_free(filter);
 	gel_io_op_unref(op);
 
-	lomo_player_clear(LOMO(self));
-	lomo_player_add_uri_multi(LOMO(self), lomofeed);
+	lomo_player_clear(EINA_OBJ_GET_LOMO(self));
+	lomo_player_add_uri_multi(EINA_OBJ_GET_LOMO(self), lomofeed);
 	gel_list_deep_free(lomofeed, g_free);
 }
 
@@ -820,9 +831,11 @@ void setup_dnd(EinaPlayer *self)
 // --
 // Connector 
 // --
-G_MODULE_EXPORT GelHubSlave player_connector = {
-	"player",
-	&eina_player_init,
-	&eina_player_exit,
+G_MODULE_EXPORT GelPlugin player_plugin = {
+	GEL_PLUGIN_SERIAL,
+	"player", PACKAGE_VERSION,
+	N_("Build-in player plugin"), NULL,
+	NULL, NULL, NULL,
+	player_init, player_fini,
+	NULL, NULL
 };
-#endif

@@ -27,7 +27,8 @@ gboolean eina_obj_init(EinaObj *self, GelApp *hub, gchar *name, EinaObjFlag flag
 void     eina_obj_fini(EinaObj *self);
 
 // Automatic loading of plugins if needed
-gpointer eina_obj_require(EinaObj *self, gchar *plugin, GError **error);
+gpointer eina_obj_require  (EinaObj *self, gchar *plugin_name, GError **error);
+gboolean eina_obj_unrequire(EinaObj *self, gchar *plugin_name, GError **error);
 
 // Prefered way of access internals
 #define EINA_OBJ(s)    ((EinaObj *)s)

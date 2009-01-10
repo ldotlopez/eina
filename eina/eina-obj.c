@@ -60,28 +60,50 @@ gpointer
 eina_obj_require(EinaObj *self, gchar *plugin_name, GError **error)
 {
 	GelApp *app = eina_obj_get_app(self);
-	GelPlugin *plugin;
-	gpointer ret = NULL;
 
-	if ((plugin = gel_app_load_plugin_by_name(app, plugin_name)) == NULL)
+	GelPlugin *plugin = gel_app_load_plugin_by_name(app, plugin_name);
+	if (plugin == NULL)
 	{
 		g_set_error(error, eina_obj_quark(),
 			EINA_OBJ_PLUGIN_NOT_FOUND, N_("Plugin %s cannot be found"), plugin_name);
 		return NULL;
 	}
-	if (!gel_plugin_is_enabled(plugin) && !gel_app_init_plugin(app, plugin, error))
+
+	if (!gel_app_init_plugin(app, plugin, error))
 	{
 		 gel_app_unload_plugin(app, plugin, NULL);
 		 return NULL;
 	}
 
-	if ((ret = gel_app_shared_get(eina_obj_get_app(self), plugin_name)) == NULL)
+	gpointer ret = gel_app_shared_get(app, plugin_name);
+	if (ret == NULL)
 	{
 		g_set_error(error, eina_obj_quark(),
 			EINA_OBJ_SHARED_NOT_FOUND, N_("Shared mem for %s not found"), plugin_name);
-		gel_app_unload_plugin(eina_obj_get_app(self), plugin, NULL);
+		if (gel_app_fini_plugin(app, plugin, NULL) && gel_app_unload_plugin(app, plugin, NULL))
+			;
+		return NULL;
 	}
 
 	return ret;
+}
+
+gboolean
+eina_obj_unrequire(EinaObj *self, gchar *plugin_name, GError **error)
+{
+	 GelApp *app = eina_obj_get_app(self);
+	 GelPlugin *plugin = gel_app_query_plugin_by_name(app, plugin_name);
+
+	 if (plugin == NULL)
+	 {
+	 	g_set_error(error, eina_obj_quark(), EINA_OBJ_PLUGIN_NOT_FOUND,
+			N_("Plugin %s cannot be found"), plugin_name);
+	 	return FALSE;
+	}
+
+	if (!gel_app_fini_plugin(app, plugin, error) || !gel_app_unload_plugin(app, plugin, error))
+		return FALSE;
+
+	return TRUE;
 }
 #endif
