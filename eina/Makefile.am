@@ -33,6 +33,7 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	artwork.h                  \
+	artwork2.h                 \
 	base.h                     \
 	eina-obj.h                 \
 	class-conf-file.h          \
@@ -50,6 +51,7 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	artwork.c                  \
+	artwork2.c                 \
 	base.c                     \
 	eina-obj.c                 \
 	class-conf-file.c          \
