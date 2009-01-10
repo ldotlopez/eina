@@ -51,9 +51,10 @@ void eina_obj_fini(EinaObj *self)
 		return;
 	}
 		
-	gel_free_and_invalidate(self->ui,   NULL, g_object_unref);
-	gel_free_and_invalidate(self->name, NULL, g_free);
-	gel_free_and_invalidate(self,       NULL, g_free);
+	gel_app_shared_unregister(self->app, self->name);
+	gel_free_and_invalidate(self->ui,    NULL, g_object_unref);
+	gel_free_and_invalidate(self->name,  NULL, g_free);
+	gel_free_and_invalidate(self,        NULL, g_free);
 }
 
 gpointer

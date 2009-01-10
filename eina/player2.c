@@ -302,7 +302,6 @@ player_fini(GelPlugin *plugin, GError **error)
 
 	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 	eina_obj_fini(EINA_OBJ(self));
-	gel_app_shared_unregister(app, "settings");
 
 	return TRUE;
 }
