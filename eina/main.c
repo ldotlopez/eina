@@ -68,7 +68,7 @@ gint main
 #else
 	GelApp         *app;
 	gint            i = 0;
-	gchar          *modules[] = { "lomo", NULL};
+	gchar          *modules[] = { "log", "lomo", "artwork", "player", NULL};
 #endif
 	gchar          *tmp;
 
@@ -156,14 +156,21 @@ gint main
 	app = gel_app_new();
 	for (i = 0; modules[i]; i++)
 	{
+		GelPlugin *plugin = gel_app_load_plugin_by_name(app, modules[i]);
 		GError *error = NULL;
-		gchar *symbol = g_strconcat(modules[i], "_plugin", NULL);
-		if (!gel_app_load_buildin(app, symbol, &error))
+
+		if (plugin == NULL)
 		{
-			gel_error("Cannot load buildin %s: %s", modules[i], error->message);
-			g_error_free(error);
+			gel_error("Cannot load  %s", modules[i]);
+			continue;
 		}
-		g_free(symbol);
+		if (!gel_app_init_plugin(app, plugin, &error))
+		{
+			gel_error("Cannot init plugin %s: %s", modules[i], error->message);
+			g_error_free(error);
+			continue;
+		}
+		gel_warn("%s loaded!", modules[i]);
 	}
 #endif
 
