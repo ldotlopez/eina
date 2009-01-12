@@ -363,6 +363,40 @@ gel_app_fini_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 }
 
 GList *
+gel_app_query_plugins(GelApp *self)
+{
+    GList *paths = gel_app_query_paths(self);
+	GList *iter  = paths;
+
+	while (iter)
+	{
+		GList *child, *children;
+		child = children = gel_dir_read(iter->data, TRUE, NULL);
+		while (child)
+		{
+			gchar *plugin_name = g_path_get_basename(child->data);
+			gchar *module_path = g_module_build_path(child->data, plugin_name);
+			g_free(plugin_name);
+
+			// Check if its loaded already and it can be loaded
+			if (!gel_app_query_plugin_by_pathname(self, module_path))
+				if (gel_app_load_plugin(self, module_path, NULL))
+					; // gel_warn("Loaded plugin %s", module_path);
+
+			g_free(module_path);
+
+			child = child->next;
+		}
+		gel_list_deep_free(children, g_free);
+
+		iter = iter->next;
+	}
+	g_list_free(paths);
+
+    return self->priv->plugins;
+}
+
+GList *
 gel_app_query_paths(GelApp *self)
 {
 	gel_list_deep_free(self->priv->paths, g_free);
