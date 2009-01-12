@@ -87,6 +87,7 @@ eina_SOURCES = \
 	settings2.c                \
 	template.c                 \
 	vogon.c                    \
+	vogon2.c                   \
 	$(NOINST_H_FILES)          \
 	$(INST_H_FILES)
 

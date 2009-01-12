@@ -80,7 +80,7 @@ gint main
 #else
 	GelApp         *app;
 	gint            i = 0;
-	gchar          *modules[] = { "log", "lomo", "artwork", "player", "dock", "playlist", "plugins", NULL};
+	gchar          *modules[] = { "log", "lomo", "artwork", "player", "dock", "playlist", "plugins", "vogon", NULL};
 #endif
 	gchar          *tmp;
 
