@@ -384,6 +384,22 @@ gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *symbol)
 }
 
 GelPlugin *
+gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname)
+{
+	// Build symbolname
+	gchar *dirname = g_path_get_dirname(pathname);
+	gchar *plugin_name = g_path_get_basename(pathname);
+	g_free(dirname);
+	gchar *symbol_name = g_strconcat(plugin_name, "_plugin", NULL);
+	g_free(plugin_name);
+
+	GelPlugin *ret = gel_app_query_plugin(self, pathname, symbol_name);
+	g_free(symbol_name);
+
+	return ret;
+}
+
+GelPlugin *
 gel_app_query_plugin_by_name(GelApp *self, gchar *name)
 {
 	GList *iter = self->priv->plugins;

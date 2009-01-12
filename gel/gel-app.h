@@ -72,6 +72,7 @@ GList *gel_app_query_plugins(GelApp *self);
 GList *gel_app_query_paths(GelApp *self);
 
 GelPlugin *gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *symbol);
+GelPlugin *gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname);
 GelPlugin *gel_app_query_plugin_by_name    (GelApp *self, gchar *name);
 
 #define gel_app_plugin_is_loaded_by_name(self,pathname) \
