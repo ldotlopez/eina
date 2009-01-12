@@ -24,6 +24,7 @@ artwork_init (GelPlugin *plugin, GError **error)
 {
 	GelApp *app = gel_plugin_get_app(plugin);
 	EinaArtwork *obj = eina_artwork_new();
+	g_object_ref(obj);
 
 	if (!gel_app_shared_set(app, "artwork", obj))
 	{

@@ -472,7 +472,7 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 	eina_conf_set_int(self->conf, "/ui/size_w", width);
 	eina_conf_set_int(self->conf, "/ui/size_h", height);
 
-	g_object_unref(HUB(self));
+	g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
 
 	return FALSE;
 }
@@ -595,7 +595,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 	}
 	else if (g_str_equal(name, "Quit"))
 	{
-		g_object_unref(HUB(self));
+		g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
 	}
 	else
 	{

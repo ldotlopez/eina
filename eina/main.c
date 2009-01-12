@@ -3,13 +3,16 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
-#include <unique/unique.h>
 #include <gel/gel-io.h>
 #include <lomo/player.h>
 #include <lomo/util.h>
 #include <eina/lomo.h>
 #include <eina/player.h>
 #include <eina/loader.h>
+
+#if HAVE_UNIQUE
+#include <unique/unique.h>
+#endif
 
 static gint     opt_debug_level = GEL_DEBUG_LEVEL_WARN;
 static gboolean opt_enqueue = FALSE;
@@ -24,6 +27,7 @@ static const GOptionEntry opt_entries[] =
 };
 
 #if !USE_GEL_APP
+#if HAVE_UNIQUE
 // --
 // UniqueApp stuff 
 // --
@@ -40,6 +44,7 @@ unique_message_received_cb (UniqueApp *unique,
 	UniqueMessageData *message,
 	guint              time_,
 	gpointer           data);
+#endif
 
 // --
 // Callbacks
@@ -52,6 +57,11 @@ static void
 on_app_dispose(GelHub *app, gpointer data);
 #endif
 
+#if USE_GEL_APP
+static void
+app_dispose_cb(GelApp *app, gpointer data);
+#endif
+
 // --
 // XXX ugly hack
 // --
@@ -62,7 +72,9 @@ gint main
 {
 #if !USE_GEL_APP
 	GelHub         *app;
+#if HAVE_UNIQUE
 	UniqueApp      *unique = NULL;
+#endif
 	gint            i = 0;
 	gchar          *modules[] = { "lomo", "artwork", "player", "loader", "dock", "playlist", "plugins", "vogon", NULL};
 #else
@@ -111,6 +123,7 @@ gint main
 	// Unique App stuff
 	// --
 #if !USE_GEL_APP
+#if HAVE_UNIQUE
 	unique = unique_app_new_with_commands ("net.sourceforge.Eina", NULL,
 		"play",    COMMAND_PLAY,
 		"enqueue", COMMAND_ENQUEUE,
@@ -133,6 +146,7 @@ gint main
 		g_object_unref(unique);
 		return 0;
 	}
+#endif
 #endif
 
 	// --
@@ -177,10 +191,16 @@ gint main
 	// --
 	// Set some signals
 	// --
+#if USE_GEL_APP
+	gel_app_set_dispose_callback(app, app_dispose_cb, NULL);
+#endif
+
 #if !USE_GEL_APP
+#if HAVE_UNIQUE
 	unique_app_watch_window(unique, eina_player_get_main_window(GEL_HUB_GET_PLAYER(app)));
-	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 	g_signal_connect (unique, "message-received", G_CALLBACK (unique_message_received_cb), app);
+#endif
+	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 
 	// Add files from cmdl
 	if (opt_uris)
@@ -225,13 +245,14 @@ gint main
 
 	gtk_main();
 
-#if !USE_GEL_APP
+#if !USE_GEL_APP && HAVE_UNIQUE
 	g_object_unref(unique);
 #endif
 	return 0;
 }
 
 #if !USE_GEL_APP
+#if HAVE_UNIQUE
 // --
 // UniqueApp stuff 
 // --
@@ -278,6 +299,7 @@ unique_message_received_cb (UniqueApp *unique,
 
 	return res;
 }
+#endif
 
 // --
 // Callbacks
@@ -319,6 +341,14 @@ void on_app_dispose(GelHub *app, gpointer data)
 	while(i) gel_hub_unload(app, modules[--i]);
 
 	exit(0);
+}
+#endif
+
+#if USE_GEL_APP
+static void
+app_dispose_cb(GelApp *app, gpointer data)
+{
+	gtk_main_quit();
 }
 #endif
 

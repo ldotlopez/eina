@@ -106,9 +106,9 @@ dock_exit(GelPlugin *plugin, GError **error)
 	if (self == NULL)
 		return FALSE;
 
-	if (!eina_obj_unrequire(EINA_OBJ(self), "player", NULL) || !eina_obj_unrequire(EINA_OBJ(self), "settings", NULL))
-		gel_warn("Cannot unref some objects from GelApp");
-
+	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
+	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
+		
 	eina_conf_set_int(self->conf, "/ui/main-window/width",  self->w);
 	eina_conf_set_int(self->conf, "/ui/main-window/height", self->h);
 

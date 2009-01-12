@@ -52,15 +52,15 @@ gel_app_dispose (GObject *object)
 	{
 		// Call dispose before destroy us
 		if (self->priv->dispose_func)
-		{
+		{	
 			self->priv->dispose_func(self, self->priv->dispose_data);
 			self->priv->dispose_func = NULL;
 		}
 
-		// Unload all plugins
+		// Unload all plugins in reverse order
 		if (self->priv->plugins)
 		{
-			GList *iter = self->priv->plugins;
+			GList *iter = self->priv->plugins = g_list_reverse(self->priv->plugins);
 			GError *error = NULL;
 
 			while (iter)
@@ -214,11 +214,7 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, GError **error)
 	g_free(dirname);
 	g_free(name);
 
-	// Check if it is already loaded and ref it
-	if ((plugin = gel_app_query_plugin(self, pathname, symbol)) != NULL)
-		gel_plugin_ref(plugin);
-	else
-		plugin = gel_app_load_plugin_full(self, pathname, symbol, error);
+	plugin = gel_app_load_plugin_full(self, pathname, symbol, error);
 
 	g_free(symbol);
 	return plugin;
@@ -227,14 +223,7 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, GError **error)
 GelPlugin *
 gel_app_load_buildin(GelApp *self, gchar *symbol, GError **error)
 {
-	GelPlugin *plugin = NULL;
-
-	if ((plugin = gel_app_query_plugin(self, NULL, symbol)) != NULL)
-		gel_plugin_ref(plugin);
-	else
-		plugin = gel_app_load_plugin_full(self, NULL, symbol, error);
-
-	return plugin;
+	return gel_app_load_plugin_full(self, NULL, symbol, error);
 }
 
 GelPlugin *
@@ -242,15 +231,21 @@ gel_app_load_plugin_full(GelApp *self, gchar *pathname, gchar *symbol, GError **
 {
 	GelPlugin *plugin;
 
-	// Create the plugin
-	if ((plugin = gel_plugin_new(self, pathname, symbol, error)) == NULL)
-		return NULL;
+	if ((plugin =  gel_app_query_plugin(self, pathname, symbol)) != NULL)
+	{
+		gel_plugin_ref(plugin);
+	}
+	else
+	{
+		// Create the plugin
+		if ((plugin = gel_plugin_new(self, pathname, symbol, error)) == NULL)
+			return NULL;
 
-	g_signal_emit(self, gel_app_signals[PLUGIN_LOAD], 0, plugin);
+		g_signal_emit(self, gel_app_signals[PLUGIN_LOAD], 0, plugin);
 
-	// Save symbol as loaded and return it
-	self->priv->plugins = g_list_append(self->priv->plugins, plugin);
-
+		// Save symbol as loaded and return it
+		self->priv->plugins = g_list_append(self->priv->plugins, plugin);
+	}
 	return plugin;
 }
 
@@ -268,9 +263,12 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	// Dont fini it explictly
 	if (gel_plugin_is_enabled(plugin))
 	{
+		gel_plugin_unref(plugin);
+		/*
 		g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_STILL_ENABLED,
 			N_("Plugin %s is still enabled, cannot unload it"), gel_plugin_stringify(plugin));
-		return FALSE;
+		*/
+		return TRUE;
 	}
 
 	// unref it, if there are no references around free it

@@ -138,7 +138,7 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 {
 	if (self->priv->inits == 0)
 	{
-		g_warning(N_("Trying to fini GelPlugin %s which has inits == 0"), gel_plugin_stringify(self));
+		// g_warning(N_("Trying to fini GelPlugin %s which has inits == 0"), gel_plugin_stringify(self));
 		return TRUE;
 	}
 
