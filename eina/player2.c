@@ -15,7 +15,7 @@
 #include <eina/lomo.h>
 #include <eina/artwork2.h>
 #include <eina/settings2.h>
-#include <eina/preferences.h>
+#include <eina/preferences2.h>
 
 // Widgets
 #include <eina/eina-seek.h>
@@ -121,7 +121,7 @@ player_init (GelPlugin *plugin, GError **error)
 	// Set stream-info-label: get from conf, get from UI, set from hardcode
 	self->stream_info_fmt = g_strdup(eina_conf_get_str(self->conf, "/ui/player/stream-info-fmt", NULL));
 	if (self->stream_info_fmt == NULL)
-		self->stream_info_fmt = g_strdup(gtk_label_get_label(GTK_LABEL(W(self, "stream-info-label"))));
+		self->stream_info_fmt = g_strdup(gtk_label_get_label(eina_obj_get_typed(self, GTK_LABEL, "stream-info-label")));
 	if (self->stream_info_fmt == NULL)
 		self->stream_info_fmt = g_strdup(
 			"<span size=\"x-large\" weight=\"bold\">%t</span>"
@@ -165,7 +165,9 @@ player_init (GelPlugin *plugin, GError **error)
 	// Artwork
 	EinaArtwork *artwork = self->cover = EINA_OBJ_GET_ARTWORK(EINA_OBJ(self));
 	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb), self);
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover), W(self,"cover-image-container")->allocation.height, W(self,"cover-image-container")->allocation.height);
+	gtk_widget_set_size_request(GTK_WIDGET(self->cover),
+		eina_obj_get_widget(self, "cover-image-container")->allocation.height,
+		eina_obj_get_widget(self, "cover-image-container")->allocation.height);
 
 	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
 	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
@@ -224,10 +226,13 @@ player_init (GelPlugin *plugin, GError **error)
 			gtk_ui_manager_insert_action_group(self->ui_manager, ag, 0);
 			gtk_ui_manager_ensure_update(self->ui_manager);
 			gtk_box_pack_start(
-				GTK_BOX(W(self,"main-box")), 
+				eina_obj_get_typed(self, GTK_BOX, "main-box"),
 				gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"),
 				FALSE,FALSE, 0);
-			gtk_box_reorder_child(GTK_BOX(W(self,"main-box")), gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"), 0);
+			gtk_box_reorder_child(
+				eina_obj_get_typed(self, GTK_BOX, "main-box"),
+				gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"),
+				0);
 			gtk_widget_show_all(gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"));
 		}
 		g_free(ui_manager_file);
@@ -247,7 +252,7 @@ player_init (GelPlugin *plugin, GError **error)
 		{ "open-button",       "clicked", G_CALLBACK(button_clicked_cb) } ,
 		GEL_UI_SIGNAL_DEF_NONE
 	};
-	gel_ui_signal_connect_from_def_multiple(UI(self), ui_signals, self, NULL);
+	gel_ui_signal_connect_from_def_multiple(eina_obj_get_ui(self), ui_signals, self, NULL);
 	g_signal_connect(eina_obj_get_lomo(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
@@ -364,20 +369,20 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	if (stream == NULL)
 	{
 		gtk_window_set_title(
-			GTK_WINDOW(W(self, "main-window")),
-			_("Eina music player"));
+			eina_obj_get_typed(self, GTK_WINDOW, "main-window"),
+			N_("Eina music player"));
 		gtk_label_set_markup(
-			GTK_LABEL(W(self, "stream-info-label")),
-			_("<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n<span size=\"x-large\" weight=\"normal\">\u200B</span>")
+			eina_obj_get_typed(self, GTK_LABEL, "stream-info-label"),
+			N_("<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n<span size=\"x-large\" weight=\"normal\">\u200B</span>")
 			);
-		gtk_label_set_selectable(GTK_LABEL(W(self, "stream-info-label")), FALSE);
+		gtk_label_set_selectable(GTK_LABEL(eina_obj_get_widget(self, "stream-info-label")), FALSE);
 		return;
 	}
 
 	stream_info = gel_str_parser(self->stream_info_fmt, (GelStrParserFunc) stream_info_parser_cb, stream);
-	gtk_label_set_markup(GTK_LABEL(W(self, "stream-info-label")), stream_info);
+	gtk_label_set_markup(GTK_LABEL(eina_obj_get_widget(self, "stream-info-label")), stream_info);
 	g_free(stream_info);
-	gtk_label_set_selectable(GTK_LABEL(W(self, "stream-info-label")), TRUE);
+	gtk_label_set_selectable(GTK_LABEL(eina_obj_get_widget(self, "stream-info-label")), TRUE);
 
 	if ((title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE))) == NULL)
 	{
@@ -804,7 +809,7 @@ drag_data_received_cb
 
 void setup_dnd(EinaPlayer *self)
 {
-	GtkWidget *well_dest = W(self, "main-box");
+	GtkWidget *well_dest = eina_obj_get_widget(self, "main-box");
 	gtk_drag_dest_set(well_dest,
 		GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION, // motion or highlight can do c00l things
 		target_list,            /* lists of target to support */

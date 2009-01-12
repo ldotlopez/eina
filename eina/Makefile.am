@@ -45,6 +45,7 @@ INST_H_FILES = \
 	fs.h                       \
 	loader.h                   \
 	preferences.h              \
+	preferences2.h             \
 	settings.h                 \
 	settings2.h
 
@@ -79,6 +80,7 @@ eina_SOURCES = \
 	plugin.c                   \
 	plugins.c                  \
 	preferences.c              \
+	preferences2.c             \
 	settings.c                 \
 	settings2.c                \
 	template.c                 \
