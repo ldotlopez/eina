@@ -13,19 +13,19 @@
 // --
 /*
 inline const gchar *
-eina_plagin_get_pathname(EinaPlagin *plugin)
+eina_plugin_get_pathname(EinaPlugin *plugin)
 {
 	return (const gchar *) plugin->priv->pathname;
 }
 
 gboolean
-eina_plagin_is_enabled(EinaPlagin *plugin)
+eina_plugin_is_enabled(EinaPlugin *plugin)
 {
 	return plugin->priv->enabled;
 }
 
 LomoPlayer*
-eina_plagin_get_lomo(EinaPlagin *plugin)
+eina_plugin_get_lomo(EinaPlugin *plugin)
 {
 	return GEL_APP_GET_LOMO(gel_plugin_get_app(plugin));
 }
@@ -35,7 +35,7 @@ eina_plagin_get_lomo(EinaPlagin *plugin)
 // Utilities for plugins
 // --
 gchar *
-eina_plagin_build_resource_path(EinaPlagin *plugin, gchar *resource)
+eina_plugin_build_resource_path(EinaPlugin *plugin, gchar *resource)
 {
 	gchar *dirname, *ret;
 	dirname = g_path_get_dirname(gel_plugin_get_pathname(plugin));
@@ -47,7 +47,7 @@ eina_plagin_build_resource_path(EinaPlagin *plugin, gchar *resource)
 }
 
 gchar *
-eina_plagin_build_userdir_path (EinaPlagin *self, gchar *path)
+eina_plugin_build_userdir_path (EinaPlugin *self, gchar *path)
 {
 	gchar *dirname = g_path_get_dirname(gel_plugin_get_pathname(self));
 	gchar *bname   = g_path_get_basename(dirname);
@@ -63,7 +63,7 @@ eina_plagin_build_userdir_path (EinaPlagin *self, gchar *path)
 // Player management
 // --
 EinaPlayer *
-eina_plagin_get_player(EinaPlagin *self)
+eina_plugin_get_player(EinaPlugin *self)
 {
 	GelApp     *app;
 
@@ -73,11 +73,11 @@ eina_plagin_get_player(EinaPlagin *self)
 }
 
 GtkWindow *
-eina_plagin_get_main_window(EinaPlagin *self)
+eina_plugin_get_main_window(EinaPlugin *self)
 {
 	EinaPlayer *player;
 
-	if ((player = eina_plagin_get_player(self)) == NULL)
+	if ((player = eina_plugin_get_player(self)) == NULL)
 		return NULL;
 	return eina_obj_get_typed(player, GTK_WINDOW, "main-window");
 }
@@ -86,7 +86,7 @@ eina_plagin_get_main_window(EinaPlagin *self)
 // Dock management
 // --
 static EinaDock*
-eina_plagin_get_dock(EinaPlagin *self)
+eina_plugin_get_dock(EinaPlugin *self)
 {
 	GelApp *app;
 	if ((app = gel_plugin_get_app(self)) == NULL)
@@ -94,32 +94,32 @@ eina_plagin_get_dock(EinaPlagin *self)
 	return GEL_APP_GET_DOCK(app);
 }
 
-gboolean eina_plagin_add_dock_widget(EinaPlagin *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
+gboolean eina_plugin_add_dock_widget(EinaPlugin *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
 	EinaDock *dock;
 
-	if ((dock = eina_plagin_get_dock(self)) == NULL)
+	if ((dock = eina_plugin_get_dock(self)) == NULL)
 		return FALSE;
 
 	return eina_dock_add_widget(dock, id, label, dock_widget);
 }
 
-gboolean eina_plagin_dock_remove_item(EinaPlagin *self, gchar *id)
+gboolean eina_plugin_dock_remove_item(EinaPlugin *self, gchar *id)
 {
 	EinaDock *dock;
 
-	if ((dock = eina_plagin_get_dock(self)) == NULL)
+	if ((dock = eina_plugin_get_dock(self)) == NULL)
 		return FALSE;
 
 	return eina_dock_remove_widget(dock, id);
 }
 
 gboolean
-eina_plagin_dock_switch(EinaPlagin *self, gchar *id)
+eina_plugin_dock_switch(EinaPlugin *self, gchar *id)
 {
 	EinaDock *dock;
 
-	if ((dock = eina_plagin_get_dock(self)) == NULL)
+	if ((dock = eina_plugin_get_dock(self)) == NULL)
 		return FALSE;
 
 	return eina_dock_switch_widget(dock, id);
@@ -129,7 +129,7 @@ eina_plagin_dock_switch(EinaPlagin *self, gchar *id)
 // Settings management
 // --
 static EinaPreferencesDialog *
-eina_plagin_get_preferences(EinaPlagin *self)
+eina_plugin_get_preferences(EinaPlugin *self)
 {
 	GelApp *app;
 
@@ -139,24 +139,24 @@ eina_plagin_get_preferences(EinaPlagin *self)
 	return GEL_APP_GET_PREFERENCES(app);
 }
 
-gboolean eina_plagin_add_configuration_widget
-(EinaPlagin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget)
+gboolean eina_plugin_add_configuration_widget
+(EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget)
 {
 	EinaPreferencesDialog *prefs;
 
-	if ((prefs = eina_plagin_get_preferences(plugin)) == NULL)
+	if ((prefs = eina_plugin_get_preferences(plugin)) == NULL)
 		return FALSE;
 
 	eina_preferences_dialog_add_tab(prefs, icon, label, widget);
 	return TRUE;
 }
 
-gboolean eina_plagin_remove_configuration_widget
-(EinaPlagin *plugin,  GtkWidget *widget)
+gboolean eina_plugin_remove_configuration_widget
+(EinaPlugin *plugin,  GtkWidget *widget)
 {
 	EinaPreferencesDialog *prefs;
 
-	if ((prefs = eina_plagin_get_preferences(plugin)) == NULL)
+	if ((prefs = eina_plugin_get_preferences(plugin)) == NULL)
 		return FALSE;
 
 	eina_preferences_dialog_remove_tab(prefs, widget);
@@ -167,7 +167,7 @@ gboolean eina_plagin_remove_configuration_widget
 // Artwork handling
 // --
 EinaArtwork*
-eina_plagin_get_artwork(EinaPlagin *plugin)
+eina_plugin_get_artwork(EinaPlugin *plugin)
 {
 	GelApp *app;
 
@@ -178,22 +178,22 @@ eina_plagin_get_artwork(EinaPlagin *plugin)
 }
 
 void
-eina_plagin_add_artwork_provider(EinaPlagin *plugin, gchar *id,
+eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
     EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel)
 {
 	EinaArtwork *artwork;
 	
-	if ((artwork = eina_plagin_get_artwork(plugin)) == NULL)
+	if ((artwork = eina_plugin_get_artwork(plugin)) == NULL)
 		return;
 	eina_artwork_add_provider(artwork, id, search, cancel, plugin);
 }
 
 void
-eina_plagin_remove_artwork_provider(EinaPlagin *plugin, gchar *id)
+eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id)
 {
 	EinaArtwork *artwork;
 
-	if ((artwork = eina_plagin_get_artwork(plugin)) == NULL)
+	if ((artwork = eina_plugin_get_artwork(plugin)) == NULL)
 		return;
 
 	eina_artwork_remove_provider(artwork, id);
@@ -203,7 +203,7 @@ eina_plagin_remove_artwork_provider(EinaPlagin *plugin, gchar *id)
 // LomoEvents handling
 // --
 static LomoPlayer*
-eina_plagin_get_lomo(EinaPlagin *self)
+eina_plugin_get_lomo(EinaPlugin *self)
 {
 	GelApp *app;
 
@@ -213,14 +213,14 @@ eina_plagin_get_lomo(EinaPlagin *self)
 }
 
 void
-eina_plagin_attach_events(EinaPlagin *self, ...)
+eina_plugin_attach_events(EinaPlugin *self, ...)
 {
 	va_list p;
 	gchar *signal;
 	gpointer callback;
 	LomoPlayer *lomo;
 
-	if ((lomo = eina_plagin_get_lomo(self)) == NULL)
+	if ((lomo = eina_plugin_get_lomo(self)) == NULL)
 		return;
 
 	va_start(p, self);
@@ -237,14 +237,14 @@ eina_plagin_attach_events(EinaPlagin *self, ...)
 }
 
 void
-eina_plagin_deattach_events(EinaPlagin *self, ...)
+eina_plugin_deattach_events(EinaPlugin *self, ...)
 {
 	va_list p;
 	gchar *signal;
 	gpointer callback;
 	LomoPlayer *lomo;
 
-	if ((lomo = eina_plagin_get_lomo(self)) == NULL)
+	if ((lomo = eina_plugin_get_lomo(self)) == NULL)
 		return;
 
 	va_start(p, self);

@@ -24,7 +24,7 @@ struct _CoverPlusInfolder {
 };
 
 CoverPlusInfolder *
-coverplus_infolder_new(EinaPlagin *plugin, GError **error)
+coverplus_infolder_new(EinaPlugin *plugin, GError **error)
 {
 	CoverPlusInfolder *self = g_new0(CoverPlusInfolder, 1);
 

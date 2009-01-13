@@ -11,7 +11,7 @@ G_BEGIN_DECLS
 typedef struct _CoverPlusInfolder CoverPlusInfolder;
 
 CoverPlusInfolder*
-coverplus_infolder_new(EinaPlagin *plugin, GError **error);
+coverplus_infolder_new(EinaPlugin *plugin, GError **error);
 void
 coverplus_infolder_destroy(CoverPlusInfolder *self);
 

@@ -1,7 +1,6 @@
 #ifndef _EINA_OBJ
 #define _EINA_OBJ
 
-#if USE_GEL_APP
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
@@ -52,5 +51,4 @@ gboolean eina_obj_unrequire(EinaObj *self, gchar *plugin_name, GError **error);
 
 G_END_DECLS
 
-#endif
 #endif

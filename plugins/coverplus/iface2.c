@@ -1,6 +1,6 @@
 #define GEL_DOMAIN "Eina::Plugin::CoverPlus"
-#define EINA_PLAGIN_NAME "coverplus"
-#define EINA_PLAGIN_DATA_TYPE CoverPlus
+#define EINA_PLUGIN_NAME "coverplus"
+#define EINA_PLUGIN_DATA_TYPE CoverPlus
 
 #include <config.h>
 #include <glib/gstdio.h>
@@ -32,16 +32,16 @@ enum {
 // Main
 // --
 gboolean
-coverplus_init(EinaPlagin *plugin, GError **error)
+coverplus_init(EinaPlugin *plugin, GError **error)
 {
-	EinaArtwork *artwork = eina_plagin_get_artwork(plugin);
+	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
 	if (!artwork)
 	{
 		g_set_error_literal(error, coverplus_quark(), NO_ARTWORK, "No artwork object available");
 		return FALSE;
 	}
 
-	CoverPlus *self = g_new0(EINA_PLAGIN_DATA_TYPE, 1);
+	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
 
 	// Initialize sub-plugins
 	GError *err = NULL;
@@ -72,24 +72,24 @@ coverplus_init(EinaPlagin *plugin, GError **error)
 }
 
 gboolean
-coverplus_exit(EinaPlagin *plugin, GError **error)
+coverplus_exit(EinaPlugin *plugin, GError **error)
 {
-	eina_plagin_remove_artwork_provider(plugin, "coverplus-infolder");
-	// eina_plagin_remove_artwork_provider(plugin, "coverplus-banshee");
-	g_free(EINA_PLAGIN_DATA(plugin));
+	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
+	// eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");
+	g_free(EINA_PLUGIN_DATA(plugin));
 
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPlagin coverplus_plugin = {
-	EINA_PLAGIN_SERIAL,
+G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
+	EINA_PLUGIN_SERIAL,
 	"Coverplus", PACKAGE_VERSION,
 	N_("Enhace your covers"),
 	N_("Brings Eina several simple but fundamental cover providers like:\n"
 	   "· In-folder cover discover\n"
 	   "· Banshee (on Linux) covers"),
 	NULL,
-	EINA_PLAGIN_GENERIC_AUTHOR, EINA_PLAGIN_GENERIC_URL, 
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL, 
 
 	coverplus_init, coverplus_exit,
 
