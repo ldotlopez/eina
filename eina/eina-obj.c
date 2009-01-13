@@ -1,5 +1,5 @@
 #define GEL_DOMAIN "Eina::Obj"
-#if USE_GEL_APP
+
 #include <glib/gi18n.h>
 #include <gel/gel-ui.h>
 #include <eina/eina-obj.h>
@@ -107,4 +107,4 @@ eina_obj_unrequire(EinaObj *self, gchar *plugin_name, GError **error)
 
 	return TRUE;
 }
-#endif
+

@@ -3,7 +3,7 @@ plugindir = $(libdir)/$(PACKAGE)/coverplus
 plugin_LTLIBRARIES = libcoverplus.la
 libcoverplus_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 libcoverplus_la_SOURCES = \
-	iface.c \
+	iface2.c \
 	infolder-sync.c infolder.h \
 	banshee.h banshee.c
 

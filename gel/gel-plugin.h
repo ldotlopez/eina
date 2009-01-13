@@ -35,6 +35,7 @@ gboolean     gel_plugin_matches     (GelPlugin *plugin, gchar *pathname, gchar *
 GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
 const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
+const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
 
 enum {
 	GEL_PLUGIN_NO_ERROR = 0,
@@ -49,7 +50,7 @@ enum {
 
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE
-#define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data
+#define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data)
 #endif
 
 #ifdef GEL_COMPILATION 

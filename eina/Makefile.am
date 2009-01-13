@@ -30,6 +30,7 @@ NOINST_H_FILES = \
 	playlist.h                 \
 	playlist2.h                \
 	plugin.h                   \
+	eina-plugin.h              \
 	plugins.h                  \
 	plugins2.h                 \
 	template.h                 \
@@ -79,6 +80,7 @@ eina_SOURCES = \
 	playlist.c                 \
 	playlist2.c                \
 	plugin.c                   \
+	eina-plugin.c              \
 	plugins.c                  \
 	plugins2.c                 \
 	preferences.c              \

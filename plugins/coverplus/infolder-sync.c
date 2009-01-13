@@ -4,7 +4,7 @@
 #include <glib/gstdio.h>
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
-#include <eina/plugin.h>
+#include <eina/eina-plugin.h>
 #include "infolder.h"
 
 static gchar *coverplus_infolder_regex_str[] = {
@@ -24,7 +24,7 @@ struct _CoverPlusInfolder {
 };
 
 CoverPlusInfolder *
-coverplus_infolder_new(EinaPlugin *plugin, GError **error)
+coverplus_infolder_new(EinaPlagin *plugin, GError **error)
 {
 	CoverPlusInfolder *self = g_new0(CoverPlusInfolder, 1);
 
@@ -32,14 +32,11 @@ coverplus_infolder_new(EinaPlugin *plugin, GError **error)
 	gint i;
 	for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
 	{
-		GError *err = NULL;
 		self->regexes[i] = g_regex_new(coverplus_infolder_regex_str[i],
 			G_REGEX_CASELESS|G_REGEX_DOTALL|G_REGEX_DOLLAR_ENDONLY|G_REGEX_OPTIMIZE|G_REGEX_NO_AUTO_CAPTURE,
-			0, &err);
+			0, error);
 		if (!self->regexes[i])
 		{
-			gel_error("Cannot compile regex '%s': '%s'", coverplus_infolder_regex_str[i], err->message);
-			g_error_free(err);
 			coverplus_infolder_destroy(self);
 			return NULL;
 		}
