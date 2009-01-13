@@ -5,7 +5,7 @@
 #include <gmodule.h>
 #include <gel/gel-ui.h>
 #include <eina/eina-obj.h>
-#include <eina/player2.h>
+#include <eina/player.h>
 #include <eina/settings.h>
 
 typedef struct 

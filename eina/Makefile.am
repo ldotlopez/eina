@@ -25,7 +25,6 @@ NOINST_H_FILES = \
 	ether.h                    \
 	lomo.h                     \
 	player.h                   \
-	player2.h                  \
 	playlist.h                 \
 	playlist2.h                \
 	eina-plugin.h              \
@@ -42,7 +41,6 @@ INST_H_FILES = \
 	eina-preferences-dialog.h  \
 	fs.h                       \
 	preferences.h              \
-	preferences2.h             \
 	settings.h                 \
 	settings2.h
 
@@ -68,13 +66,11 @@ eina_SOURCES = \
 	lomo.c                     \
 	main.c                     \
 	player.c                   \
-	player2.c                  \
 	playlist.c                 \
 	playlist2.c                \
 	eina-plugin.c              \
 	plugins2.c                 \
 	preferences.c              \
-	preferences2.c             \
 	settings.c                 \
 	settings2.c                \
 	template.c                 \

@@ -1,12 +1,8 @@
 #define GEL_DOMAIN "Eina::Preferences"
 
-#include <glib.h>
-#include <gel/gel.h>
-#include <eina/eina-preferences-dialog.h>
-#include "base.h"
-#include "player.h"
-#include "preferences.h"
-
+#include <config.h>
+#include <eina/player.h>
+#include <eina/preferences.h>
 
 static void
 menu_activate_cb(GtkAction *action, EinaPreferencesDialog *dialog)
@@ -24,23 +20,41 @@ static GtkActionEntry action_entries[] = {
 	"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
 };
 
-G_MODULE_EXPORT gboolean preferences_init
-(GelHub *hub, gint *argc, gchar ***argv)
+enum {
+	EINA_PREFERENCES_NO_ERROR = 0,
+	EINA_PREFERENCES_CANNOT_ACCESS_PLAYER,
+	EINA_PREFERENCES_CANNOT_ACCESS_UI_MANAGER,
+	EINA_PREFERENCES_CANNOT_REGISTER_SHARED
+};
+
+static GQuark
+preferences_quark(void)
 {
+	static GQuark ret = 0;
+	if (ret == 0)
+		ret = g_quark_from_static_string("preferences");
+	return ret;
+}
+
+static gboolean
+preferences_init (GelPlugin *plugin, GError **error)
+{
+	GelApp                *app = gel_plugin_get_app(plugin);
 	EinaPlayer            *player;
 	GtkUIManager          *ui_manager;
-	GError                *error = NULL;
 	EinaPreferencesDialog *dialog = NULL;
 
 	// Pre-requisites
-	if (!(player = GEL_HUB_GET_PLAYER(hub)))
+	if (!(player = GEL_APP_GET_PLAYER(app)))
 	{
-		gel_error("Cannot get pre-requisite component 'player'");
+		g_set_error(error, preferences_quark(), EINA_PREFERENCES_CANNOT_ACCESS_PLAYER,
+			N_("Cannot get pre-requisite component 'player'"));
 		return FALSE;
 	}
 	if ((ui_manager = eina_player_get_ui_manager(player)) == NULL)
 	{
-		gel_error("Cannot access UI Manager");
+		g_set_error(error, preferences_quark(), EINA_PREFERENCES_CANNOT_ACCESS_UI_MANAGER,
+			N_("Cannot get UI Manager"));
 		return FALSE;
 	}
 
@@ -56,22 +70,19 @@ G_MODULE_EXPORT gboolean preferences_init
 		"</menu>"
 		"</menubar>"
 		"</ui>",
-		-1, &error);
+		-1, error);
 	if (ui_merge_id == 0)
-	{
-		gel_warn("Cannot merge UI: '%s'", error->message);
-		g_error_free(error);
 		goto preferences_init_fail;
-	}
 
 	ag = gtk_action_group_new("preferences");
 	gtk_action_group_add_actions(ag, action_entries, G_N_ELEMENTS(action_entries), dialog);
 	gtk_ui_manager_insert_action_group(ui_manager, ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
 
-	if (!gel_hub_shared_set(hub, "preferences", dialog))
+	if (!gel_app_shared_set(app, "preferences", dialog))
 	{
-		gel_error("Cannot set shared mem");
+		g_set_error(error, preferences_quark(), EINA_PREFERENCES_CANNOT_REGISTER_SHARED,
+			N_("Cannot get register preferences"));
 		goto preferences_init_fail;
 	}
 
@@ -89,16 +100,19 @@ preferences_init_fail:
 	return FALSE;
 }
 
-G_MODULE_EXPORT gboolean preferences_exit
-(gpointer data)
+static gboolean preferences_fini
+(GelPlugin *plugin, GError **error)
 {
-	gtk_widget_destroy(GTK_WIDGET(data));
+	gtk_widget_destroy(GTK_WIDGET(GEL_APP_GET_PREFERENCES(gel_plugin_get_app(plugin))));
 	return TRUE;
 }
 
-G_MODULE_EXPORT GelHubSlave preferences_connector = {
-	"settings",
-	&preferences_init,
-	&preferences_exit
+G_MODULE_EXPORT GelPlugin preferences_plugin = {
+	GEL_PLUGIN_SERIAL,
+	"preferences", PACKAGE_VERSION,
+	N_("Build-in preferences plugin"), NULL,
+	NULL, NULL, NULL,
+	preferences_init, preferences_fini,
+	NULL, NULL
 };
 

@@ -4,7 +4,7 @@
 #include <config.h>
 #include <gel/gel-ui.h>
 #include <eina/settings2.h>
-#include <eina/player2.h>
+#include <eina/player.h>
 #include <eina/plugins2.h>
 
 struct _EinaPlugins {

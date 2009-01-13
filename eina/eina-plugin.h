@@ -14,7 +14,7 @@
 #include <gel/gel-ui.h>
 
 // Modules
-#include <eina/player2.h>
+#include <eina/player.h>
 #include <eina/fs.h>
 #include <eina/settings2.h>
 #include <eina/artwork.h>

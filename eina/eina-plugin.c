@@ -6,7 +6,7 @@
 #include <gel/gel.h>
 #include <eina/eina-plugin.h>
 #include <eina/dock.h>
-#include <eina/preferences2.h>
+#include <eina/preferences.h>
 
 // --
 // Functions needed to access private elements

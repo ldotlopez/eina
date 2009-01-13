@@ -5,7 +5,7 @@
 #include <gmodule.h>
 #include <gel/gel.h>
 #include <eina/dock.h>
-#include <eina/player2.h>
+#include <eina/player.h>
 #include <eina/settings2.h>
 
 struct _EinaDock {
