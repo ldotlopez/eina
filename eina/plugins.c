@@ -1,20 +1,20 @@
 #define GEL_DOMAIN "Eina::Plugins"
 
-#include "base.h"
-#include "plugins.h"
 #include <gmodule.h>
+#include <config.h>
 #include <gel/gel-ui.h>
-#include <eina/loader.h>
-#include <eina/plugin.h>
+#include <eina/settings2.h>
+#include <eina/player.h>
+#include <eina/plugins.h>
 
 struct _EinaPlugins {
-	EinaBase        parent;
+	EinaObj         parent;
 	EinaConf       *conf;
 	GtkWidget      *window;
 	GtkTreeView    *treeview;
 	GtkListStore   *model;
 	GList          *plugins;
-	EinaPlugin     *active_plugin;
+	GelPlugin      *active_plugin;
 	GtkActionEntry *ui_actions;
 	GtkActionGroup *ui_mng_ag;
 	guint           ui_mng_merge_id;
@@ -48,24 +48,23 @@ plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self);
 //--
 // Init/Exit functions 
 //--
-G_MODULE_EXPORT gboolean eina_plugins_init
-(GelHub *hub, gint *argc, gchar ***argv)
+static gboolean
+plugins_init (GelPlugin *plugin, GError **error)
 {
+	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlugins *self;
 
 	self = g_new0(EinaPlugins, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "plugins", EINA_BASE_GTK_UI))
+	if (!eina_obj_init(EINA_OBJ(self), app, "plugins", EINA_OBJ_GTK_UI, error))
 	{
 		g_free(self);
-		gel_error("Cannot create component");
 		return FALSE;
 	}
 
 	// Load settings
-	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
+	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
 	{
-		gel_error("Cannot load settings module");
-		eina_base_fini(EINA_BASE(self));
+		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
 
@@ -73,7 +72,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	GtkTreeViewColumn *tv_col_enabled, *tv_col_name;
 	GtkCellRenderer *enabled_render, *name_render;
 
-	self->treeview = GTK_TREE_VIEW(W(self, "treeview"));
+	self->treeview = eina_obj_get_typed(self, GTK_TREE_VIEW, "treeview");
 	self->model = gtk_list_store_new(PLUGINS_N_COLUMNS,
 		G_TYPE_BOOLEAN,
 		G_TYPE_STRING);
@@ -110,7 +109,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	plugins_treeview_fill(self);
 
 	// Setup signals
-	self->window = W(self, "main-window");
+	self->window = eina_obj_get_widget(self, "main-window");
 
 	g_signal_connect_swapped(self->window, "delete-event",
 	G_CALLBACK(plugins_hide), self);
@@ -125,7 +124,7 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
 	// Menu entry
-	EinaPlayer *player = EINA_BASE_GET_PLAYER(self);
+	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
 	if (player == NULL)
 	{
 		gel_warn("Cannot access player");
@@ -133,7 +132,6 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	}
 
 	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
-	GError *error = NULL;
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
 		"<ui>"
 		"<menubar name=\"MainMenuBar\">"
@@ -142,11 +140,11 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 		"</menu>"
 		"</menubar>"
 		"</ui>",
-		-1, &error);
+		-1, error);
 	if (self->ui_mng_merge_id == 0)
 	{
-		gel_warn("Cannot merge UI: '%s'", error->message);
-		g_error_free(error);
+		eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
+		eina_obj_fini(EINA_OBJ(self));
 		return TRUE;
 	}
 
@@ -168,26 +166,26 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 		gint i;
 		for (i = 0; plugins[i] != NULL; i++)
 		{
-			GError *error = NULL;
+			GError *err = NULL;
 
-			EinaPlugin *plugin = eina_loader_query_plugin(EINA_BASE_GET_LOADER(self), plugins[i]);
+			GelPlugin *plugin = gel_app_query_plugin_by_pathname(app, plugins[i]);
 			if (!plugin)
 			{
-				plugin = eina_loader_load_plugin(EINA_BASE_GET_LOADER(self), plugins[i], &error);
-				gel_error("Cannot load plugin %s: %s", plugins[i], error ? error->message : N_("(no reason)"));
-				gel_free_and_invalidate(error, NULL, g_error_free);
+				plugin = gel_app_load_plugin(app, plugins[i], &err);
+				gel_error("Cannot load plugin %s: %s", plugins[i], err->message);
+				gel_free_and_invalidate(err, NULL, g_error_free);
 				continue;
 			}
 
-			if (!eina_loader_plugin_init(EINA_BASE_GET_LOADER(self), plugin, &error))
+			if (!gel_app_init_plugin(app, plugin, &err))
 			{
-				gel_error("Cannot init plugin '%s': %s", eina_plugin_get_pathname(plugin), error->message);
-				gel_free_and_invalidate(error, NULL, g_error_free);
+				gel_error("Cannot init plugin '%s': %s", gel_plugin_stringify(plugin), err->message);
+				gel_free_and_invalidate(err, NULL, g_error_free);
 
-				if (!eina_loader_unload_plugin(EINA_BASE_GET_LOADER(self), plugin, &error))
+				if (!gel_app_unload_plugin(app, plugin, &err))
 				{
-					gel_error("Cannot unload plugin '%s': %s", eina_plugin_get_pathname(plugin), error->message);
-					gel_free_and_invalidate(error, NULL, g_error_free);
+					gel_error("Cannot unload plugin '%s': %s", gel_plugin_stringify(plugin), err->message);
+					gel_free_and_invalidate(err, NULL, g_error_free);
 				}
 				continue;
 			}
@@ -198,14 +196,15 @@ G_MODULE_EXPORT gboolean eina_plugins_init
 	return TRUE;
 }
 
-G_MODULE_EXPORT gboolean eina_plugins_exit
-(gpointer data)
+static gboolean
+plugins_fini(GelPlugin *plugin, GError **error)
 {
-	EinaPlugins *self = (EinaPlugins *) data;
+	GelApp *app = gel_plugin_get_app(plugin);
+	EinaPlugins *self = GEL_APP_GET_PLUGINS(app);
 
 	// Unmerge menu
 	GtkUIManager *ui_mng;
-	if ((ui_mng = eina_player_get_ui_manager(EINA_BASE_GET_PLAYER(self))) != NULL)
+	if ((ui_mng = eina_player_get_ui_manager(EINA_OBJ_GET_PLAYER(self))) != NULL)
 	{
 		gtk_ui_manager_remove_action_group(ui_mng,
 			self->ui_mng_ag);
@@ -213,11 +212,10 @@ G_MODULE_EXPORT gboolean eina_plugins_exit
 			self->ui_mng_merge_id);
 		g_object_unref(self->ui_mng_ag);
 	}
-
 	gtk_widget_destroy(self->window);
 
-	gel_hub_unload(HUB(self), "settings");
-	eina_base_fini((EinaBase *) self);
+	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
+	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
 }
@@ -260,29 +258,27 @@ plugins_hide(EinaPlugins *self)
 static void
 plugins_treeview_fill(EinaPlugins *self)
 {
-	EinaLoader *loader;
+	GelApp *app = eina_obj_get_app(EINA_OBJ(self));
 	GList *l;
 	GtkTreeIter iter;
 
-	if ((loader = EINA_BASE_GET_LOADER(self)) == NULL)
-		return;
-
 	gtk_list_store_clear(self->model);
 
-	self->plugins = l = eina_loader_query_plugins(loader);
+	self->plugins = l = gel_app_query_plugins(app);
 	while (l)
 	{
-		EinaPlugin *plugin = (EinaPlugin *) l->data;
+		GelPlugin *plugin = GEL_PLUGIN(l->data);
 		gchar *markup;
-		
+		gchar *escape = g_markup_escape_text(gel_plugin_stringify(plugin), -1);
 		gtk_list_store_append(self->model, &iter);
 		markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
-			plugin->name, plugin->short_desc, eina_plugin_get_pathname(plugin));
+			plugin->name, plugin->short_desc, escape);
 		gtk_list_store_set(self->model, &iter,
-			PLUGINS_COLUMN_ENABLED, eina_plugin_is_enabled(plugin),
+			PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin),
 			PLUGINS_COLUMN_NAME, markup,
 			-1);
 		g_free(markup);
+		g_free(escape);
 
 		l = l->next;
 	}
@@ -292,7 +288,7 @@ plugins_treeview_fill(EinaPlugins *self)
 static void
 plugins_update_plugin_properties(EinaPlugins *self)
 {
-	EinaPlugin *plugin;
+	GelPlugin *plugin;
 	gchar *tmp;
 
 	if (self->active_plugin == NULL)
@@ -303,26 +299,30 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	plugin = self->active_plugin;
 	
 	tmp = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", plugin->name);
-	gtk_label_set_markup(GTK_LABEL(W(self, "name-label")), tmp);
+	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "name-label"), tmp);
 	g_free(tmp);
 
-	gtk_label_set_markup(GTK_LABEL(W(self, "short-desc-label")), plugin->short_desc);
-	gtk_label_set_markup(GTK_LABEL(W(self, "long-desc-label")), plugin->long_desc);
+	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "short-desc-label"), plugin->short_desc);
+	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "long-desc-label"), plugin->long_desc);
 
 	tmp = g_markup_escape_text(plugin->author, -1);
-	gtk_label_set_markup(GTK_LABEL(W(self, "author-label")), tmp);
+	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "author-label"), tmp);
 	g_free(tmp);
 
 	tmp = g_markup_escape_text(plugin->url, -1);
-	gtk_label_set_markup(GTK_LABEL(W(self, "website-label")), tmp);
+	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
 	g_free(tmp);
 
-	tmp = eina_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
+	gel_warn("Icon feature disabled");
+	/*
+	tmp = gel_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
 	if (!g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
-		gtk_image_set_from_stock(GTK_IMAGE(W(self, "icon-image")), "gtk-info", GTK_ICON_SIZE_MENU);
+		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 	else
-		gtk_image_set_from_file(GTK_IMAGE(W(self, "icon-image")), tmp);
+		gtk_image_set_from_file(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), tmp);
 	g_free(tmp);
+	*/
+	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 }
 
 // --
@@ -333,7 +333,7 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 {
 	GtkTreeIter iter;
 	GtkTreePath *path;
-	EinaPlugin *plugin;
+	GelPlugin *plugin;
 	gint *indices;
 
 	GtkTreeSelection *sel = gtk_tree_view_get_selection(self->treeview);
@@ -351,7 +351,7 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 	}
 
 	indices = gtk_tree_path_get_indices(path);
-	plugin = (EinaPlugin *) g_list_nth_data(self->plugins, indices[0]);
+	plugin = (GelPlugin *) g_list_nth_data(self->plugins, indices[0]);
 	if (self->active_plugin == plugin)
 		return;
 
@@ -366,7 +366,7 @@ plugins_cell_renderer_toggle_toggled_cb
 	GtkTreePath *_path;
 	GtkTreeIter iter;
 	gint *indices;
-	EinaPlugin *plugin;
+	GelPlugin *plugin;
 	GError *error = NULL;
 
 	if ((_path = gtk_tree_path_new_from_string(path)) == NULL)
@@ -387,10 +387,10 @@ plugins_cell_renderer_toggle_toggled_cb
 	gboolean do_toggle = FALSE;
 	if (gtk_cell_renderer_toggle_get_active(w) == FALSE)
 		// do_toggle = eina_plugin_init(plugin);
-		do_toggle = eina_loader_plugin_init(EINA_BASE_GET_LOADER(self), plugin, &error);
+		do_toggle = gel_app_init_plugin(eina_obj_get_app(self), plugin, &error);
 	else
 		// do_toggle = eina_plugin_fini(plugin);
-		do_toggle = eina_loader_plugin_fini(EINA_BASE_GET_LOADER(self), plugin, &error);
+		do_toggle = gel_app_fini_plugin(eina_obj_get_app(self), plugin, &error);
 
 	if (!do_toggle)
 	{
@@ -409,8 +409,8 @@ plugins_cell_renderer_toggle_toggled_cb
 	GList *tmp = NULL;
 	while (l)
 	{
-		if (eina_plugin_is_enabled(EINA_PLUGIN(l->data)))
-			tmp = g_list_prepend(tmp, (gpointer) eina_plugin_get_pathname(EINA_PLUGIN(l->data)));
+		if (gel_plugin_is_enabled(GEL_PLUGIN(l->data)))
+			tmp = g_list_prepend(tmp, (gpointer) gel_plugin_stringify(GEL_PLUGIN(l->data)));
 		l = l->next;
 	}
 	tmp = g_list_reverse(tmp);
@@ -435,9 +435,12 @@ plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self)
 	}
 }
 
-G_MODULE_EXPORT GelHubSlave plugins_connector = {
-	"plugins",
-	&eina_plugins_init,
-	&eina_plugins_exit
+G_MODULE_EXPORT GelPlugin plugins_plugin = {
+	GEL_PLUGIN_SERIAL,
+	"plugins", PACKAGE_VERSION,
+	N_("Build-in plugin manager plugin"), NULL,
+	NULL, NULL, NULL,
+	plugins_init, plugins_fini,
+	NULL, NULL
 };
 

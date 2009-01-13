@@ -27,7 +27,6 @@ NOINST_H_FILES = \
 	player.h                   \
 	playlist.h                 \
 	eina-plugin.h              \
-	plugins2.h                 \
 	template.h                 \
 	vogon.h
 
@@ -67,7 +66,6 @@ eina_SOURCES = \
 	player.c                   \
 	playlist.c                 \
 	eina-plugin.c              \
-	plugins2.c                 \
 	preferences.c              \
 	settings.c                 \
 	settings2.c                \
