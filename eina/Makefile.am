@@ -29,23 +29,19 @@ NOINST_H_FILES = \
 	player2.h                  \
 	playlist.h                 \
 	playlist2.h                \
-	plugin.h                   \
 	eina-plugin.h              \
-	plugins.h                  \
 	plugins2.h                 \
 	template.h                 \
 	vogon.h
 
 INST_H_FILES = \
 	artwork.h                  \
-	artwork2.h                 \
 	base.h                     \
 	eina-obj.h                 \
 	class-conf-file.h          \
 	eina-artwork.h             \
 	eina-preferences-dialog.h  \
 	fs.h                       \
-	loader.h                   \
 	preferences.h              \
 	preferences2.h             \
 	settings.h                 \
@@ -58,7 +54,6 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	artwork.c                  \
-	artwork2.c                 \
 	base.c                     \
 	eina-obj.c                 \
 	class-conf-file.c          \
@@ -71,7 +66,6 @@ eina_SOURCES = \
 	eina-volume.c              \
 	ether.c                    \
 	fs.c                       \
-	loader.c                   \
 	log.c                      \
 	lomo.c                     \
 	main.c                     \
@@ -79,9 +73,7 @@ eina_SOURCES = \
 	player2.c                  \
 	playlist.c                 \
 	playlist2.c                \
-	plugin.c                   \
 	eina-plugin.c              \
-	plugins.c                  \
 	plugins2.c                 \
 	preferences.c              \
 	preferences2.c             \

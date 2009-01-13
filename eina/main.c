@@ -7,8 +7,7 @@
 #include <lomo/player.h>
 #include <lomo/util.h>
 #include <eina/lomo.h>
-#include <eina/player.h>
-#include <eina/loader.h>
+#include <eina/player2.h>
 
 #if HAVE_UNIQUE
 #include <unique/unique.h>

@@ -13,7 +13,7 @@
 // Modules
 #include <eina/player2.h>
 #include <eina/lomo.h>
-#include <eina/artwork2.h>
+#include <eina/artwork.h>
 #include <eina/settings2.h>
 #include <eina/preferences2.h>
 

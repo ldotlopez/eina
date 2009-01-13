@@ -1,4 +1,4 @@
-#include <eina/plugin.h>
+#include <eina/eina-plugin.h>
 
 // --
 // Banshee covers
