@@ -109,8 +109,8 @@ static gboolean preferences_fini
 
 G_MODULE_EXPORT GelPlugin preferences_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"settings", PACKAGE_VERSION,
-	N_("Build-in settings plugin"), NULL,
+	"preferences", PACKAGE_VERSION,
+	N_("Build-in preferences plugin"), NULL,
 	NULL, NULL, NULL,
 	preferences_init, preferences_fini,
 	NULL, NULL

@@ -47,7 +47,15 @@ enum {
 	GEL_PLUGIN_NO_ERROR_AVAILABLE
 };
 
-#ifdef GEL_COMPILATION // Only libgel can access these functions
+// Access to plugin's data if defined
+#ifdef GEL_PLUGIN_DATA_TYPE
+#define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data
+#endif
+
+#ifdef GEL_COMPILATION 
+// --
+// libgel private functions
+// --
 
 // Create or destroy plugins
 GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
@@ -64,7 +72,6 @@ gboolean gel_plugin_fini(GelPlugin *plugin, GError **error);
 // How many times plugin was loaded or inited
 guint gel_plugin_get_inits(GelPlugin *plugin);
 guint gel_plugin_get_loads(GelPlugin *plugin);
-
 #endif
 
 G_END_DECLS

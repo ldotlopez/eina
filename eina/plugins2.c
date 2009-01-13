@@ -269,15 +269,16 @@ plugins_treeview_fill(EinaPlugins *self)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(l->data);
 		gchar *markup;
-		
+		gchar *escape = g_markup_escape_text(gel_plugin_stringify(plugin), -1);
 		gtk_list_store_append(self->model, &iter);
 		markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
-			plugin->name, plugin->short_desc, gel_plugin_stringify(plugin));
+			plugin->name, plugin->short_desc, escape);
 		gtk_list_store_set(self->model, &iter,
 			PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin),
 			PLUGINS_COLUMN_NAME, markup,
 			-1);
 		g_free(markup);
+		g_free(escape);
 
 		l = l->next;
 	}
