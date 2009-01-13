@@ -38,7 +38,6 @@ void eina_conf_set_filename(EinaConf *self, gchar *filename);
 const gchar *eina_conf_get_filename(EinaConf *self);
 
 void eina_conf_load(EinaConf *self);
-gboolean eina_conf_dump(EinaConf *self);
 
 void eina_conf_set_bool (EinaConf *self, gchar *key, gboolean val);
 void eina_conf_set_int  (EinaConf *self, gchar *key, gint val);

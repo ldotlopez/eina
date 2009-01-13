@@ -14,6 +14,7 @@ struct _EinaPlugins {
 	GtkTreeView    *treeview;
 	GtkListStore   *model;
 	GList          *plugins;
+	GList          *all_plugins;
 	GelPlugin      *active_plugin;
 	GtkActionEntry *ui_actions;
 	GtkActionGroup *ui_mng_ag;
@@ -28,20 +29,17 @@ enum {
 };
 
 static void
+plugins_free_plugins(EinaPlugins *self);
+static void
 plugins_show(EinaPlugins *self);
-
 static void
 plugins_hide(EinaPlugins *self);
-
 static void
 plugins_treeview_fill(EinaPlugins *self);
-
 static void
 plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self);
-
 static void
 plugins_cell_renderer_toggle_toggled_cb(GtkCellRendererToggle *w, gchar *path, EinaPlugins *self);
-
 static void
 plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self);
 
@@ -128,7 +126,7 @@ plugins_init (GelPlugin *plugin, GError **error)
 	if (player == NULL)
 	{
 		gel_warn("Cannot access player");
-		return TRUE;
+		return FALSE;
 	}
 
 	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
@@ -145,7 +143,7 @@ plugins_init (GelPlugin *plugin, GError **error)
 	{
 		eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 		eina_obj_fini(EINA_OBJ(self));
-		return TRUE;
+		return FALSE;
 	}
 
 	GtkActionEntry action_entries[] = {
@@ -167,11 +165,11 @@ plugins_init (GelPlugin *plugin, GError **error)
 		for (i = 0; plugins[i] != NULL; i++)
 		{
 			GError *err = NULL;
+			gel_warn("Try to load %s", plugins[i]);
 
 			GelPlugin *plugin = gel_app_query_plugin_by_pathname(app, plugins[i]);
-			if (!plugin)
+			if (!plugin && ((plugin = gel_app_load_plugin(app, plugins[i], &err)) == NULL))
 			{
-				plugin = gel_app_load_plugin(app, plugins[i], &err);
 				gel_error("Cannot load plugin %s: %s", plugins[i], err->message);
 				gel_free_and_invalidate(err, NULL, g_error_free);
 				continue;
@@ -202,6 +200,8 @@ plugins_fini(GelPlugin *plugin, GError **error)
 	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlugins *self = GEL_APP_GET_PLUGINS(app);
 
+	plugins_free_plugins(self);
+	
 	// Unmerge menu
 	GtkUIManager *ui_mng;
 	if ((ui_mng = eina_player_get_ui_manager(EINA_OBJ_GET_PLAYER(self))) != NULL)
@@ -224,6 +224,31 @@ plugins_fini(GelPlugin *plugin, GError **error)
 // Private functions
 //--
 static void
+plugins_free_plugins(EinaPlugins *self)
+{
+	if (self->all_plugins == NULL)
+		return;
+
+	GelApp *app = eina_obj_get_app(self);
+	GList *iter = self->all_plugins;
+	while (iter)
+	{
+		GelPlugin *plugin = GEL_PLUGIN(iter->data);
+		GError *error = NULL;
+
+		if (!gel_plugin_is_enabled(plugin) && !gel_app_unload_plugin(app, plugin, &error))
+		{
+			gel_warn("Cannot unload plugin '%s': %s", gel_plugin_stringify(plugin), error->message);
+			g_error_free(error);
+		}
+
+		iter = iter->next;
+	}
+	gel_free_and_invalidate(self->plugins, NULL, g_list_free);
+	gel_free_and_invalidate(self->all_plugins, NULL, g_list_free);
+}
+
+static void
 plugins_show(EinaPlugins *self)
 {
 	plugins_treeview_fill(self);
@@ -233,26 +258,8 @@ plugins_show(EinaPlugins *self)
 static void
 plugins_hide(EinaPlugins *self)
 {
-#if 0
-	EinaLoader *loader;
-	GList *l;
-
+	plugins_free_plugins(self);
 	gtk_widget_hide(self->window);
-	if ((loader = EINA_BASE_GET_LOADER(self)) == NULL)
-		return;
-
-	l = self->plugins;
-	while (l)
-	{
-		EinaPlugin *plugin = (EinaPlugin *) l->data;
-		if (!eina_plugin_is_enabled(plugin))
-			eina_loader_unload_plugin(loader, plugin, NULL);
-		l = l->next;
-	}
-	self->plugins = NULL;
-#else
-	gtk_widget_hide(self->window);
-#endif
 }
 
 static void
@@ -264,25 +271,36 @@ plugins_treeview_fill(EinaPlugins *self)
 
 	gtk_list_store_clear(self->model);
 
-	self->plugins = l = gel_app_query_plugins(app);
+	self->all_plugins = l = gel_app_query_plugins(app);
 	while (l)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(l->data);
-		gchar *markup;
-		gchar *escape = g_markup_escape_text(gel_plugin_stringify(plugin), -1);
+
+		// Skip internal plugins
+		if (gel_plugin_get_pathname(plugin) == NULL)
+		{
+			l = l->next;
+			continue;
+		}
+		self->plugins = g_list_prepend(self->plugins, plugin);
+
 		gtk_list_store_append(self->model, &iter);
-		markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
+
+		gchar *escape = g_markup_escape_text(gel_plugin_stringify(plugin), -1);
+		gchar *markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
 			plugin->name, plugin->short_desc, escape);
+
 		gtk_list_store_set(self->model, &iter,
 			PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin),
 			PLUGINS_COLUMN_NAME, markup,
 			-1);
+
 		g_free(markup);
 		g_free(escape);
 
 		l = l->next;
 	}
-	gel_warn("%d plugins found", g_list_length(self->plugins));
+	self->plugins = g_list_reverse(self->plugins);
 }
 
 static void
@@ -398,6 +416,10 @@ plugins_cell_renderer_toggle_toggled_cb
 		g_error_free(error);
 		return;
 	}
+	else
+	{
+		gel_warn("Toggle state ok, now plugin is: %d", gel_plugin_is_enabled(plugin));
+	}
 
 	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->model), &iter, path);
 	gtk_list_store_set(self->model, &iter,
@@ -410,7 +432,7 @@ plugins_cell_renderer_toggle_toggled_cb
 	while (l)
 	{
 		if (gel_plugin_is_enabled(GEL_PLUGIN(l->data)))
-			tmp = g_list_prepend(tmp, (gpointer) gel_plugin_stringify(GEL_PLUGIN(l->data)));
+			tmp = g_list_prepend(tmp, (gpointer) gel_plugin_get_pathname(GEL_PLUGIN(l->data)));
 		l = l->next;
 	}
 	tmp = g_list_reverse(tmp);

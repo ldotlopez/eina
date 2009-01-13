@@ -12,6 +12,7 @@ settings_init(GelPlugin *plugin, GError **error)
 	gchar *out = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "settings", NULL);
 	eina_conf_set_filename(conf, out);
 	g_free(out);
+	eina_conf_load(conf);
 
 	if (!gel_app_shared_set(gel_plugin_get_app(plugin), "settings", conf))
 	{

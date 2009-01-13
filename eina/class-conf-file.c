@@ -15,6 +15,9 @@
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_CONF, EinaConfPrivate))
 
+static gboolean
+eina_conf_dump(EinaConf *self);
+
 /*
  * Value handling
  */

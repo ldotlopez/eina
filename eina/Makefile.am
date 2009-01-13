@@ -22,7 +22,6 @@ NOINST_H_FILES = \
 	eina-file-chooser-dialog.h \
 	eina-seek.h                \
 	eina-volume.h              \
-	ether.h                    \
 	lomo.h                     \
 	player.h                   \
 	playlist.h                 \
@@ -42,7 +41,6 @@ INST_H_FILES = \
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina
 header_DATA = $(INST_H_FILES)
 
-# ether.{c,h} are template files to create GObjects
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	artwork.c                  \
@@ -54,7 +52,6 @@ eina_SOURCES = \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
 	eina-volume.c              \
-	ether.c                    \
 	fs.c                       \
 	log.c                      \
 	lomo.c                     \
