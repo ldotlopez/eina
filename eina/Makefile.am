@@ -26,7 +26,6 @@ NOINST_H_FILES = \
 	lomo.h                     \
 	player.h                   \
 	playlist.h                 \
-	playlist2.h                \
 	eina-plugin.h              \
 	plugins2.h                 \
 	template.h                 \
@@ -67,7 +66,6 @@ eina_SOURCES = \
 	main.c                     \
 	player.c                   \
 	playlist.c                 \
-	playlist2.c                \
 	eina-plugin.c              \
 	plugins2.c                 \
 	preferences.c              \

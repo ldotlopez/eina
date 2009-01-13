@@ -1,13 +1,13 @@
 #ifndef _PLAYLIST_H
 #define _PLAYLIST_H
 
-#include <eina/base.h>
-
-#define EINA_PLAYLIST(p)             ((EinaPlaylist *) p)
-#define GEL_HUB_GET_PLAYLIST(hub)    EINA_PLAYLIST(gel_hub_shared_get(hub,"playlist"))
-#define EINA_BASE_GET_PLAYLIST(base) GEL_HUB_GET_PLAYLIST(EINA_BASE(base)->hub)
+#include <eina/eina-obj.h>
 
 G_BEGIN_DECLS
+
+#define EINA_PLAYLIST(p)           ((EinaPlaylist *) p)
+#define GEL_APP_GET_PLAYLIST(app)  EINA_PLAYLIST(gel_app_shared_get(app,"playlist"))
+#define EINA_OBJ_GET_PLAYLIST(obj) GEL_HUB_GET_PLAYLIST(eina_obj_get_app(obj))
 
 typedef struct _EinaPlaylist EinaPlaylist;
 
