@@ -1,5 +1,5 @@
-#ifndef _SETTINGS2_H
-#define _SETTINGS2_H
+#ifndef _SETTINGS_H
+#define _SETTINGS_H
 
 #include <gel/gel.h>
 #include <eina/eina-obj.h>

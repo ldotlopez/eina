@@ -1,16 +1,16 @@
 #define GEL_DOMAIN "Eina::Vogon"
 
+#include <config.h>
 #include <string.h>
-#include "base.h"
-#include "vogon.h"
-#include "player.h"
-#include "settings.h"
 #include <gmodule.h>
 #include <gel/gel-ui.h>
+#include <eina/eina-obj.h>
+#include <eina/player.h>
+#include <eina/settings.h>
 
-struct _EinaVogon
+typedef struct 
 {
-	EinaBase   parent;
+	EinaObj        parent;
 
 	EinaConf      *conf;
 	GtkStatusIcon *icon;
@@ -18,7 +18,7 @@ struct _EinaVogon
 	GtkWidget     *menu;
 
 	gint player_x, player_y;
-};
+} EinaVogon ;
 
 // --
 // Lomo callbacks
@@ -37,7 +37,8 @@ static void
 popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
 static gboolean
 status_icon_destroy_cb(GtkWidget *w, EinaVogon *self);
-void
+#if 0
+static void
 on_eina_vogon_drag_data_received
     (GtkWidget       *widget,
     GdkDragContext   *drag_context,
@@ -47,11 +48,12 @@ on_eina_vogon_drag_data_received
     guint             info,
     guint             time,
 	EinaVogon *self);
+#endif
 
 // --
 // Other callbacks
 // --
-void
+static void
 settings_change_cb(EinaConf *conf, const gchar *key, EinaVogon *self);
 
 /*
@@ -76,12 +78,12 @@ static const gchar ui_def[] =
 "	</popup>"
 "</ui>";
 
-G_MODULE_EXPORT gboolean
-eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
+static gboolean
+vogon_init(GelPlugin *plugin, GError **error)
 {
+	GelApp *app = gel_plugin_get_app(plugin);
 	EinaVogon *self;
 	GdkPixbuf *pixbuf  = NULL;
-	GError *err = NULL;
 	GelUIImageDef img_def = {
 		NULL, "vogon-icon.png",
 		24, 24
@@ -114,21 +116,17 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 	};
 
 	self = g_new0(EinaVogon, 1);
-	if (!eina_base_init((EinaBase *) self, hub, "vogon", EINA_BASE_NONE))
-	{
-		gel_error("Cannot create component");
+	if (!eina_obj_init(EINA_OBJ(self), app, "vogon", EINA_OBJ_NONE, error))
 		return FALSE;
-	}
 
 	// Crete icon
 	self->icon = gtk_status_icon_new();
 
-	pixbuf = gel_ui_load_pixbuf_from_imagedef(img_def, &err);
-	if (pixbuf == NULL) {
-		gel_error("Cannot load image '%s': %s", img_def.image, err->message);
-		g_error_free(err);
+	pixbuf = gel_ui_load_pixbuf_from_imagedef(img_def, error);
+	if (pixbuf == NULL)
+	{
 		g_object_unref(self->icon);
-		eina_base_fini(EINA_BASE(self));
+		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
 	gtk_status_icon_set_from_pixbuf(self->icon, pixbuf);
@@ -153,15 +151,13 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 		G_CALLBACK(status_icon_activate_cb), self);
 
 	// Load settings 
-	if (!gel_hub_load(hub, "settings")) {
-		gel_error("Cannot load settings component");
+	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
+	{
 		g_object_unref(self->ui_mng);
 		g_object_unref(self->icon);
-		eina_base_fini(EINA_BASE(self));
+		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
-
-	self->conf = gel_hub_shared_get(hub, "settings");
 
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat")),
 		eina_conf_get_bool(self->conf, "/core/repeat", FALSE));
@@ -181,17 +177,17 @@ eina_vogon_init(GelHub *hub, gint *argc, gchar ***argv)
 	return TRUE;
 }
 
-G_MODULE_EXPORT gboolean
-eina_vogon_exit (gpointer data)
+static gboolean
+vogon_fini(GelPlugin *plugin, GError **error)
 {
-	EinaVogon *self = (EinaVogon *) data;
+	EinaVogon *self = gel_app_shared_get(gel_plugin_get_app(plugin), "vogon");
 
 	g_object_unref(self->icon);
 	g_object_unref(self->ui_mng);
 
-	gel_hub_unload(HUB(self), "settings");
+	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
+	eina_obj_fini(EINA_OBJ(self));
 
-	eina_base_fini((EinaBase *) self);
 	return TRUE;
 }
 
@@ -217,24 +213,24 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 	const gchar *name = gtk_action_get_name(action);
 
 	if (g_str_equal(name, "Play"))
-		lomo_player_play(LOMO(self), &error);
+		lomo_player_play(eina_obj_get_lomo(self), &error);
 
 	else if (g_str_equal(name, "Pause"))
-		lomo_player_pause(LOMO(self), &error);
+		lomo_player_pause(eina_obj_get_lomo(self), &error);
 	
 	else if (g_str_equal(name, "Stop")) 
-		lomo_player_stop(LOMO(self), &error);
+		lomo_player_stop(eina_obj_get_lomo(self), &error);
 
 	else if (g_str_equal(name, "Previous"))
-		lomo_player_go_prev(LOMO(self), NULL);
+		lomo_player_go_prev(eina_obj_get_lomo(self), NULL);
 
 	else if (g_str_equal(name, "Next"))
-		lomo_player_go_next(LOMO(self), NULL);
+		lomo_player_go_next(eina_obj_get_lomo(self), NULL);
 
 	else if (g_str_equal(name, "Repeat"))
 	{
 		lomo_player_set_repeat(
-			LOMO(self),
+			eina_obj_get_lomo(self),
 			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 		eina_conf_set_bool(
 			self->conf, "/core/repeat",
@@ -244,7 +240,7 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 	else if (g_str_equal(name, "Shuffle"))
 	{
 		lomo_player_set_random(
-			LOMO(self),
+			eina_obj_get_lomo(self),
 			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 		eina_conf_set_bool(
 			self->conf, "/core/random",
@@ -252,10 +248,10 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 	}
 
 	else if (g_str_equal(name, "Clear"))
-		lomo_player_clear(LOMO(self));
+		lomo_player_clear(eina_obj_get_lomo(self));
 	
 	else if (g_str_equal(name, "Quit"))
-		g_object_unref(HUB(self));
+		g_object_unref(eina_obj_get_app(self));
 
 	else
 		gel_warn("Unknow action: %s", name);
@@ -270,12 +266,12 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 static gboolean
 status_icon_destroy_cb(GtkWidget *w, EinaVogon *self)
 {
-	GtkWidget *window = W(self, "main-window");
+	GtkWidget *window = eina_obj_get_widget(self, "main-window");
 
 	if (!GTK_WIDGET_VISIBLE(window))
 		gtk_widget_show(window);
 
-	eina_vogon_exit(self);
+	vogon_fini(gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
 	return FALSE;
 }
 
@@ -285,11 +281,11 @@ status_icon_activate_cb
 {
 	EinaPlayer *player;
 	GtkWidget  *window;
-	if (!gel_hub_loaded(HUB(self), "player"))
+	if (!gel_app_plugin_is_loaded_by_name(eina_obj_get_app(self), "player"))
 		return FALSE;
 
-	player = gel_hub_shared_get(HUB(self), "player");
-	window = W(player, "main-window");
+	player = GEL_APP_GET_PLAYER(eina_obj_get_app(self));
+	window = eina_obj_get_widget(player, "main-window");
 
 	if (GTK_WIDGET_VISIBLE(window))
 	{
@@ -308,7 +304,8 @@ status_icon_activate_cb
 	return FALSE;
 }
 
-void
+#if 0
+static void
 on_eina_vogon_drag_data_received
     (GtkWidget       *widget,
     GdkDragContext  *drag_context,
@@ -319,7 +316,6 @@ on_eina_vogon_drag_data_received
     guint            time,
     EinaVogon     *self)
 {
-#if 0
 	gint i;
 	gchar *filename;
 	gchar **uris;
@@ -342,18 +338,18 @@ on_eina_vogon_drag_data_received
         TRUE, FALSE, FALSE,
         TRUE, FALSE);
 
-    lomo_player_clear(LOMO(self));
-    lomo_player_add_uri_multi(LOMO(self), (GList *) uri_filter);
+    lomo_player_clear(eina_obj_get_lomo(self));
+    lomo_player_add_uri_multi(eina_obj_get_lomo(self), (GList *) uri_filter);
 
     g_slist_free(uri_filter);
     g_ext_slist_free(uri_scan, g_free);
-#endif
 }
+#endif
 
 /*
  * Other callbacks
  */
-void
+static void
 settings_change_cb (EinaConf *conf, const gchar *key, EinaVogon *self)
 {
 	if (g_str_equal(key, "/core/repeat"))
@@ -367,9 +363,12 @@ settings_change_cb (EinaConf *conf, const gchar *key, EinaVogon *self)
 			eina_conf_get_bool(conf, "/core/random", TRUE));
 }
 
-G_MODULE_EXPORT GelHubSlave vogon_connector = {
-	"vogon",
-	&eina_vogon_init,
-	&eina_vogon_exit
+G_MODULE_EXPORT GelPlugin vogon_plugin = {
+	GEL_PLUGIN_SERIAL,
+	"vogon", PACKAGE_VERSION,
+	N_("Build-in vogon plugin"), NULL,
+	NULL, NULL, NULL,
+	vogon_init, vogon_fini,
+	NULL, NULL
 };
 

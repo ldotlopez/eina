@@ -174,7 +174,7 @@ gint main
 
 		if (plugin == NULL)
 		{
-			gel_error("Cannot load  %s", modules[i]);
+			gel_error("Cannot load %s", modules[i]);
 			continue;
 		}
 		if (!gel_app_init_plugin(app, plugin, &error))
