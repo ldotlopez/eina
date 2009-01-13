@@ -19,7 +19,6 @@ eina_LDADD = @PACKAGE_LIBS@ -lgel -llomo-1.0
 
 NOINST_H_FILES = \
 	dock.h                     \
-	dock2.h                    \
 	eina-file-chooser-dialog.h \
 	eina-seek.h                \
 	eina-volume.h              \
@@ -58,7 +57,6 @@ eina_SOURCES = \
 	eina-obj.c                 \
 	class-conf-file.c          \
 	dock.c                     \
-	dock2.c                    \
 	eina-artwork.c             \
 	eina-file-chooser-dialog.c \
 	eina-preferences-dialog.c  \

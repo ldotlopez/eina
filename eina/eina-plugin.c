@@ -5,7 +5,7 @@
 #include <gmodule.h>
 #include <gel/gel.h>
 #include <eina/eina-plugin.h>
-#include <eina/dock2.h>
+#include <eina/dock.h>
 #include <eina/preferences2.h>
 
 // --

@@ -1,14 +1,15 @@
 #ifndef _EINA_DOCK
 #define _EINA_DOCK
 
+#include <gtk/gtk.h>
 #include <gel/gel.h>
-#include <eina/base.h>
-
-#define EINA_DOCK(p)             ((EinaDock *) p)
-#define GEL_HUB_GET_DOCK(hub)    EINA_DOCK(gel_hub_shared_get(hub, "dock"))
-#define EINA_BASE_GET_DOCK(base) GEL_HUB_GET_DOCK(EINA_BASE(base)->hub)
+#include <eina/eina-obj.h>
 
 G_BEGIN_DECLS
+
+#define EINA_DOCK(p)           ((EinaDock *) p)
+#define GEL_APP_GET_DOCK(app)  EINA_DOCK(gel_app_shared_get(app, "dock"))
+#define EINA_OBJ_GET_DOCK(obj) GEL_APP_GET_DOCK(eina_obj_get_app(obj))
 
 typedef struct _EinaDock EinaDock;
 

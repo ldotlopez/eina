@@ -24,7 +24,7 @@
 // Modules
 #include <eina/playlist2.h>
 #include <eina/settings2.h>
-#include <eina/dock2.h>
+#include <eina/dock.h>
 
 // Widgets and utils
 #include <eina/eina-file-chooser-dialog.h>

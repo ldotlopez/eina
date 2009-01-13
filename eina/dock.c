@@ -1,17 +1,15 @@
 #define GEL_DOMAIN "Eina::Dock"
-#if USE_GEL_APP
-#else
 
+#include <config.h>
 #include <string.h>
 #include <gmodule.h>
-#include <gtk/gtk.h>
 #include <gel/gel.h>
 #include <eina/dock.h>
-#include <eina/player.h>
-#include <eina/settings.h>
+#include <eina/player2.h>
+#include <eina/settings2.h>
 
 struct _EinaDock {
-	EinaBase     parent;
+	EinaObj      parent;
 
 	EinaConf    *conf;
 
@@ -32,37 +30,31 @@ expander_activate_cb(GtkExpander *w, EinaDock *self);
 static gboolean
 player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
 
-gboolean
-dock_init(GelHub *hub, gint *argc, gchar ***argv)
+static gboolean
+dock_init(GelPlugin *plugin, GError **error)
 {
+	GelApp *app = gel_plugin_get_app(plugin);
 	EinaDock *self;
 
 	self = g_new0(EinaDock, 1);
-	if (!eina_base_init(EINA_BASE(self), hub, "dock", EINA_BASE_GTK_UI))
+	if (!eina_obj_init(EINA_OBJ(self), app, "dock", EINA_OBJ_GTK_UI, error))
+		return FALSE;
+
+	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
 	{
-		gel_error("Cannot create component");
+		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
 
-	// if ((self->conf = EINA_BASE_GET_SETTINGS(self)) == NULL)
-	if ((self->conf = eina_base_require(EINA_BASE(self), "settings")) == NULL)
+	if (!eina_obj_require(EINA_OBJ(self), "player", error))
 	{
-		gel_error("Cannot access settings");
-		eina_base_fini(EINA_BASE(self));
+		eina_obj_unrequire(EINA_OBJ(self), "settings", error);
+		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
 
-	// if (EINA_BASE_GET_PLAYER(self) == NULL)
-	if (!eina_base_require(EINA_BASE(self), "player"))
-	{
-		gel_error("Player is not loaded, dock cannot be initialized");
-		gel_hub_unload(HUB(self), "settings");
-		eina_base_fini(EINA_BASE(self));
-		return FALSE;
-	}
-
-	self->widget = W(self, "dock-expander");
-	self->dock   = W_TYPED(self, GTK_NOTEBOOK, "dock-notebook");
+	self->widget = eina_obj_get_widget(self, "dock-expander");
+	self->dock   = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
 
 	// Delete old keys
 	eina_conf_delete_key(self->conf, "/ui/size_w");
@@ -95,10 +87,10 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 	g_object_ref(self->widget);
 	gtk_widget_show(self->widget);
 	gtk_container_remove(GTK_CONTAINER(parent), self->widget);
-	eina_player_add_widget(EINA_BASE_GET_PLAYER(self), self->widget);
+	eina_player_add_widget(EINA_OBJ_GET_PLAYER(self), self->widget);
 	gtk_widget_destroy(parent);
 
-	g_signal_connect(eina_player_get_main_window(EINA_BASE_GET_PLAYER(self)), "configure-event",
+	g_signal_connect(eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)), "configure-event",
 		(GCallback) player_main_window_configure_event_cb, self);
 
 	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
@@ -106,18 +98,22 @@ dock_init(GelHub *hub, gint *argc, gchar ***argv)
 	return TRUE;
 }
 
-G_MODULE_EXPORT gboolean dock_exit
-(gpointer data)
+static gboolean
+dock_exit(GelPlugin *plugin, GError **error)
 {
-	EinaDock *self = EINA_DOCK(data);
+	GelApp *app = gel_plugin_get_app(plugin);
+	EinaDock *self = gel_app_shared_get(app, "dock");
+	if (self == NULL)
+		return FALSE;
 
-	gel_hub_unload(HUB(self), "player");
-	gel_hub_unload(HUB(self), "settings");
-
+	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
+	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
+		
 	eina_conf_set_int(self->conf, "/ui/main-window/width",  self->w);
 	eina_conf_set_int(self->conf, "/ui/main-window/height", self->h);
 
-	eina_base_fini(EINA_BASE(self));
+	eina_obj_fini(EINA_OBJ(self));
+
 	return TRUE;
 }
 
@@ -255,7 +251,7 @@ static void
 expander_activate_cb(GtkExpander *w, EinaDock *self)
 {
 	gboolean expanded = gtk_expander_get_expanded(w);
-	GtkWindow *win = eina_player_get_main_window(EINA_BASE_GET_PLAYER(self));
+	GtkWindow *win = eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self));
 
 	if (expanded)
 	{
@@ -283,9 +279,12 @@ player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, Ei
 	return FALSE; // Propagate event
 }
 
-G_MODULE_EXPORT GelHubSlave dock_connector = {
-	"dock",
-	&dock_init,
-	&dock_exit
+G_MODULE_EXPORT GelPlugin dock_plugin = {
+	GEL_PLUGIN_SERIAL,
+	"dock", PACKAGE_VERSION,
+	N_("Build-in dock plugin"), NULL,
+	NULL, NULL, NULL, 
+	dock_init, dock_exit,
+	NULL, NULL
 };
-#endif
+
