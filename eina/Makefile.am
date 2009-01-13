@@ -39,8 +39,7 @@ INST_H_FILES = \
 	eina-preferences-dialog.h  \
 	fs.h                       \
 	preferences.h              \
-	settings.h                 \
-	settings2.h
+	settings.h
 
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina
 header_DATA = $(INST_H_FILES)
@@ -68,7 +67,6 @@ eina_SOURCES = \
 	eina-plugin.c              \
 	preferences.c              \
 	settings.c                 \
-	settings2.c                \
 	template.c                 \
 	vogon.c                    \
 	vogon2.c                   \

@@ -1,13 +1,13 @@
-#ifndef _SETTINGS_H
-#define _SETTINGS_H
+#ifndef _SETTINGS2_H
+#define _SETTINGS2_H
 
 #include <gel/gel.h>
-#include <eina/base.h>
+#include <eina/eina-obj.h>
 #include <eina/class-conf-file.h>
 
-#define EINA_SETTINGS(p)             ((EinaConf *) p)
-#define GEL_HUB_GET_SETTINGS(hub)    EINA_SETTINGS(gel_hub_shared_get(hub,"settings"))
-#define EINA_BASE_GET_SETTINGS(base) GEL_HUB_GET_SETTINGS(EINA_BASE(base)->hub)
+#define EINA_SETTINGS(p)           ((EinaConf *) p)
+#define GEL_APP_GET_SETTINGS(app)  EINA_SETTINGS(gel_app_shared_get(app,"settings"))
+#define EINA_OBJ_GET_SETTINGS(obj) GEL_APP_GET_SETTINGS(eina_obj_get_app(obj))
 
-#endif // _SETTINGS_H
+#endif
 

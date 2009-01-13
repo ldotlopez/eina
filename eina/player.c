@@ -14,7 +14,7 @@
 #include <eina/player.h>
 #include <eina/lomo.h>
 #include <eina/artwork.h>
-#include <eina/settings2.h>
+#include <eina/settings.h>
 #include <eina/preferences.h>
 
 // Widgets

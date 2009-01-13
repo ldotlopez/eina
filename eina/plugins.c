@@ -3,7 +3,7 @@
 #include <gmodule.h>
 #include <config.h>
 #include <gel/gel-ui.h>
-#include <eina/settings2.h>
+#include <eina/settings.h>
 #include <eina/player.h>
 #include <eina/plugins.h>
 

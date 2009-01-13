@@ -23,7 +23,7 @@
 
 // Modules
 #include <eina/playlist.h>
-#include <eina/settings2.h>
+#include <eina/settings.h>
 #include <eina/dock.h>
 
 // Widgets and utils

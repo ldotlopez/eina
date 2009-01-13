@@ -16,7 +16,7 @@
 // Modules
 #include <eina/player.h>
 #include <eina/fs.h>
-#include <eina/settings2.h>
+#include <eina/settings.h>
 #include <eina/artwork.h>
 
 // Redefine some types and enums
