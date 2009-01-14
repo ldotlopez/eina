@@ -260,8 +260,8 @@ eina_artwork_remove_provider(EinaArtwork *self, const gchar *name)
 		call_run_queue = TRUE;
 	}
 
-	GList *iter = eina_artwork_find_provider(self, name);
-	if (iter)
+	GList *iter = NULL;
+	while ((iter = eina_artwork_find_provider(self, name)) != NULL)
 	{
 		priv->providers = g_list_remove_link(priv->providers, iter);
 		eina_artwork_provider_free(iter->data);
@@ -305,7 +305,8 @@ eina_artwork_provider_fail(EinaArtwork *self)
 	EinaArtworkPrivate *priv = GET_PRIVATE(self);
 
 	// Move to next provider
-	priv->running = priv->running->next;
+	if (priv->running)
+		priv->running = priv->running->next;
 
 	// Run queue
 	run_queue(self);
