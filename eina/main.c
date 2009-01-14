@@ -174,7 +174,7 @@ gint main
 	gel_app_set_dispose_callback(app, app_dispose_cb, NULL);
 
 #if HAVE_UNIQUE
-	unique_app_watch_window(unique, eina_player_get_main_window(GEL_HUB_GET_PLAYER(app)));
+	unique_app_watch_window(unique, eina_player_get_main_window(GEL_APP_GET_PLAYER(app)));
 	g_signal_connect (unique, "message-received", G_CALLBACK (unique_message_received_cb), app);
 #endif
 
@@ -238,7 +238,7 @@ unique_message_received_cb (UniqueApp *unique,
 	gpointer           data)
 {
 	UniqueResponse res = UNIQUE_RESPONSE_PASSTHROUGH;
-	GelHub *app = GEL_HUB(data);
+	GelApp *app = GEL_APP(data);
 	gchar **uris;
 
 	// --
@@ -262,7 +262,7 @@ unique_message_received_cb (UniqueApp *unique,
 		gfiles = g_slist_reverse(gfiles);
 
 		if (command == COMMAND_PLAY)
-			lomo_player_clear(GEL_HUB_GET_LOMO(app));
+			lomo_player_clear(GEL_APP_GET_LOMO(app));
 		gel_io_list_read(gfiles, "standard::*",
 			list_read_success_cb, list_read_error_cb,
 			app);
