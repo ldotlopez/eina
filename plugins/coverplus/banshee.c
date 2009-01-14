@@ -1,4 +1,4 @@
-#include <eina/eina-plugin.h>
+#include "banshee.h"
 
 // --
 // Banshee covers
@@ -7,7 +7,6 @@ void
 coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer data)
 {
 	GString *str;
-	gchar *path = NULL;
 	gint i, j;
 	gchar *input[3] = {
 		g_utf8_strdown(lomo_stream_get_tag(stream, LOMO_TAG_ARTIST), -1),
@@ -30,14 +29,28 @@ coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer dat
 	}
 	str = g_string_append(str, ".jpg");
 
-	path = g_build_filename(g_get_home_dir(), ".config", "banshee", "covers", str->str, NULL);
+	gchar *paths[2];
+	paths[0] = g_build_filename(g_get_home_dir(), ".config", "banshee", "covers", str->str, NULL);
+	paths[1] = g_build_filename(g_get_home_dir(), ".cache", "album-art", str->str, NULL);
+	paths[2] = NULL;
 	g_string_free(str, TRUE);
 
-	if (g_file_test(path, G_FILE_TEST_IS_REGULAR|G_FILE_TEST_EXISTS))
-		eina_artwork_provider_success(cover, G_TYPE_STRING, path);
-	else
-		eina_artwork_provider_fail(cover);
+	gboolean found = FALSE;
+	for (i = 0; paths[i] != NULL; i++)
+	{
+		if (g_file_test(paths[i], G_FILE_TEST_IS_REGULAR|G_FILE_TEST_EXISTS))
+		{
+			eina_artwork_provider_success(cover, G_TYPE_STRING, paths[i]);
+			found = TRUE;
+			break;
+		}
+	}
 
-	g_free(path);
+	for (i = 0; paths[i] != NULL; i++)
+		g_free(paths[i]);
+
+	if (!found);
+		eina_artwork_provider_fail(cover);
+		
 }
 

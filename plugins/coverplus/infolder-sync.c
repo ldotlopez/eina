@@ -1,10 +1,6 @@
 #define GEL_DOMAIN "Eina::Plugin::CoverPlus::Infolder-Sync"
 
-#include <config.h>
-#include <glib/gstdio.h>
-#include <gdk/gdk.h>
 #include <gel/gel-io.h>
-#include <eina/eina-plugin.h>
 #include "infolder.h"
 
 static gchar *coverplus_infolder_regex_str[] = {

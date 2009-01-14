@@ -14,6 +14,15 @@ adb_db_setup(Adb *self);
 static void
 lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
 
+GQuark
+adb_quark(void)
+{
+	static GQuark ret = 0;
+	if (ret == 0)
+		ret = g_quark_from_static_string("adb");
+	return ret;
+}
+
 Adb*
 adb_new(LomoPlayer *lomo, GError **error)
 {

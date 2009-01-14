@@ -1,17 +1,32 @@
 #define GEL_DOMAIN "Eina::Plugin::ADB"
 #define EINA_PLUGIN_DATA_TYPE Adb
+
+#include <config.h>
+#include <eina/eina-plugin.h>
 #include "adb.h"
-#include <eina/plugin.h>
 
 static gboolean
 adb_plugin_init(EinaPlugin *plugin, GError **error)
 {
 	Adb *self;
 
-	self = adb_new(eina_plugin_get_lomo(plugin), error);
-	if (self == NULL)
+	// Create Adb interface
+	if ((self = adb_new(eina_plugin_get_lomo(plugin), error)) == NULL)
+	{
+		g_set_error(error, adb_quark(), ADB_CANNOT_GET_LOMO, N_("Cannot access lomo"));
 		return FALSE;
+	}
 	plugin->data = (gpointer) self;
+
+	// Register into App
+	GelApp *app = gel_plugin_get_app(plugin);
+	if (!gel_app_shared_set(app, "adb", self))
+	{
+		g_set_error(error, adb_quark(), ADB_CANNOT_REGISTER_OBJECT,
+			N_("Cannot register ADB object into GelApp"));
+		adb_free(self);
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -19,21 +34,19 @@ adb_plugin_init(EinaPlugin *plugin, GError **error)
 static gboolean
 adb_plugin_exit(EinaPlugin *plugin, GError **error)
 {
-	Adb *self = EINA_PLUGIN_DATA(plugin);
+	Adb *self   = EINA_PLUGIN_DATA(plugin);
+	GelApp *app = gel_plugin_get_app(plugin);
+
 	adb_free(self);
+	gel_app_shared_unregister(app, "adb");
 	return TRUE;
 }
 
 G_MODULE_EXPORT EinaPlugin adb_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"Adb",
-	"0.0.1",
-	N_("Audio database"),
-	N_("Audio database"),
-	NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR,
-	EINA_PLUGIN_GENERIC_URL,
-	NULL,
+	"adb", PACKAGE_VERSION,
+	N_("Audio database"), NULL, NULL,
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 	adb_plugin_init, adb_plugin_exit,
 
 	NULL, NULL

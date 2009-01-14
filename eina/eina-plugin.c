@@ -23,12 +23,6 @@ eina_plugin_is_enabled(EinaPlugin *plugin)
 {
 	return plugin->priv->enabled;
 }
-
-LomoPlayer*
-eina_plugin_get_lomo(EinaPlugin *plugin)
-{
-	return GEL_APP_GET_LOMO(gel_plugin_get_app(plugin));
-}
 */
 
 // --
@@ -202,7 +196,7 @@ eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id)
 // --
 // LomoEvents handling
 // --
-static LomoPlayer*
+LomoPlayer*
 eina_plugin_get_lomo(EinaPlugin *self)
 {
 	GelApp *app;

@@ -37,10 +37,8 @@
 // --
 #define eina_plugin_get_app(p) \
 	gel_plugin_get_app(p)
-/*
 LomoPlayer*
 eina_plugin_get_lomo(EinaPlugin *self);
-*/
 
 // --
 // Utility functions
