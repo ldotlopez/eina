@@ -1,5 +1,5 @@
 #define GEL_DOMAIN "Eina::Main"
-#include "config.h"
+#include <config.h>
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -8,6 +8,8 @@
 #include <lomo/util.h>
 #include <eina/lomo.h>
 #include <eina/player.h>
+#include <eina/settings.h>
+#include <eina/fs.h>
 
 #if HAVE_UNIQUE
 #include <unique/unique.h>
@@ -25,7 +27,6 @@ static const GOptionEntry opt_entries[] =
 	{ NULL }
 };
 
-#if !USE_GEL_APP
 #if HAVE_UNIQUE
 // --
 // UniqueApp stuff 
@@ -53,13 +54,7 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 static void
 list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
 static void
-on_app_dispose(GelHub *app, gpointer data);
-#endif
-
-#if USE_GEL_APP
-static void
 app_dispose_cb(GelApp *app, gpointer data);
-#endif
 
 // --
 // XXX ugly hack
@@ -69,18 +64,12 @@ void xxx_ugly_hack(void);
 gint main
 (gint argc, gchar *argv[])
 {
-#if !USE_GEL_APP
-	GelHub         *app;
+	GelApp         *app;
 #if HAVE_UNIQUE
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "lomo", "artwork", "player", "loader", "dock", "playlist", "plugins", "vogon", NULL};
-#else
-	GelApp         *app;
-	gint            i = 0;
 	gchar          *modules[] = { "log", "lomo", "artwork", "player", "dock", "playlist", "plugins", "vogon", NULL};
-#endif
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;
@@ -121,7 +110,6 @@ gint main
 	// --
 	// Unique App stuff
 	// --
-#if !USE_GEL_APP
 #if HAVE_UNIQUE
 	unique = unique_app_new_with_commands ("net.sourceforge.Eina", NULL,
 		"play",    COMMAND_PLAY,
@@ -146,7 +134,6 @@ gint main
 		return 0;
 	}
 #endif
-#endif
 
 	// --
 	// Setup
@@ -161,11 +148,6 @@ gint main
 
 	// --
 	// Create App and load modules
-#if !USE_GEL_APP
-	app = gel_hub_new(&argc, &argv);
-	for (i = 0; modules[i]; i++)
-		gel_hub_load(app, modules[i]);
-#else
 	app = gel_app_new();
 	for (i = 0; modules[i]; i++)
 	{
@@ -185,21 +167,16 @@ gint main
 		}
 		gel_warn("%s loaded!", modules[i]);
 	}
-#endif
 
 	// --
 	// Set some signals
 	// --
-#if USE_GEL_APP
 	gel_app_set_dispose_callback(app, app_dispose_cb, NULL);
-#endif
 
-#if !USE_GEL_APP
 #if HAVE_UNIQUE
 	unique_app_watch_window(unique, eina_player_get_main_window(GEL_HUB_GET_PLAYER(app)));
 	g_signal_connect (unique, "message-received", G_CALLBACK (unique_message_received_cb), app);
 #endif
-	gel_hub_set_dispose_callback(app, on_app_dispose, modules);
 
 	// Add files from cmdl
 	if (opt_uris)
@@ -230,27 +207,25 @@ gint main
 		if (g_file_get_contents(tmp, &buff, NULL, NULL))
 		{
 			gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
-			lomo_player_add_uri_strv(GEL_HUB_GET_LOMO(app), uris);
+			lomo_player_add_uri_strv(GEL_APP_GET_LOMO(app), uris);
 			g_strfreev(uris);
 		}
 		g_free(tmp);
 		g_free(buff);
 		lomo_player_go_nth(
-			GEL_HUB_GET_LOMO(app),
-			eina_conf_get_int(GEL_HUB_GET_SETTINGS(app), "/playlist/last_current", 0),
+			GEL_APP_GET_LOMO(app),
+			eina_conf_get_int(GEL_APP_GET_SETTINGS(app), "/playlist/last_current", 0),
 			NULL);
 	}
-#endif
 
 	gtk_main();
 
-#if !USE_GEL_APP && HAVE_UNIQUE
+#if HAVE_UNIQUE
 	g_object_unref(unique);
 #endif
 	return 0;
 }
 
-#if !USE_GEL_APP
 #if HAVE_UNIQUE
 // --
 // UniqueApp stuff 
@@ -306,7 +281,7 @@ unique_message_received_cb (UniqueApp *unique,
 static void
 list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
 {
-	GelHub *app = GEL_HUB(data);
+	GelApp *app = GEL_APP(data);
 	GList *results = gel_io_op_result_get_object_list(res);
 	GSList *filter = gel_list_filter(results, (GelFilterFunc) eina_fs_is_supported_file, NULL);
 	GList *uris = NULL;
@@ -317,7 +292,7 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	}
 	gel_list_deep_free(results, g_object_unref);
 
-	lomo_player_add_uri_multi(GEL_HUB_GET_LOMO(app), uris);
+	lomo_player_add_uri_multi(GEL_APP_GET_LOMO(app), uris);
 	gel_slist_deep_free(gel_io_list_read_get_sources(op), g_object_unref);
 	gel_list_deep_free(uris, g_free);
 
@@ -328,28 +303,17 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 static void
 list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
 {
-	gel_error("Error while getting info for '%s': %s", error->message);
+	gchar *uri = g_file_get_uri(source);
+	gel_error("Error while getting info for '%s': %s", uri, error->message);
+	g_free(uri);
 }
 
-void on_app_dispose(GelHub *app, gpointer data)
-{
-	gchar **modules = (gchar **) data;
-	gint i = -1;
-
-	while(modules[++i]);
-	while(i) gel_hub_unload(app, modules[--i]);
-
-	exit(0);
-}
-#endif
-
-#if USE_GEL_APP
 static void
 app_dispose_cb(GelApp *app, gpointer data)
-{
+{	
+	gel_warn("Exit main loop");
 	gtk_main_quit();
 }
-#endif
 
 // --
 // XXX ugly hack

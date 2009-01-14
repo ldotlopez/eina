@@ -43,6 +43,12 @@ enum {
 };
 static guint gel_app_signals[LAST_SIGNAL] = { 0 };
 
+static gchar*
+print_plugin(const gpointer p)
+{
+	return g_strdup(gel_plugin_stringify(GEL_PLUGIN(p)));
+}
+
 static void
 gel_app_dispose (GObject *object)
 {
@@ -58,14 +64,17 @@ gel_app_dispose (GObject *object)
 		}
 
 		// Unload all plugins in reverse order
+		g_printf("Deleting plugins\n");
 		if (self->priv->plugins)
 		{
 			GList *iter = self->priv->plugins = g_list_reverse(self->priv->plugins);
+			gel_list_printf(self->priv->plugins, "%s\n", print_plugin);
 			GError *error = NULL;
 
 			while (iter)
 			{
 				GelPlugin *plugin = GEL_PLUGIN(iter->data);
+				g_printf("Deleting plugin: %s\n", plugin->name);
 				if (gel_plugin_is_enabled(plugin) && !gel_app_fini_plugin(self, plugin, &error))
 				{
 					g_warning("Cannot fini plugin '%s': %s\n", gel_plugin_stringify(plugin), error->message);
@@ -379,10 +388,12 @@ gel_app_query_plugins(GelApp *self)
 			g_free(plugin_name);
 
 			// Check if its loaded already and it can be loaded
+			/*
 			if (!gel_app_query_plugin_by_pathname(self, module_path))
 				if (gel_app_load_plugin(self, module_path, NULL))
 					; // gel_warn("Loaded plugin %s", module_path);
-
+			*/
+			gel_app_load_plugin(self, module_path, NULL);
 			g_free(module_path);
 
 			child = child->next;
@@ -393,7 +404,7 @@ gel_app_query_plugins(GelApp *self)
 	}
 	g_list_free(paths);
 
-    return self->priv->plugins;
+    return g_list_copy(self->priv->plugins);
 }
 
 GList *
