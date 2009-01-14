@@ -6,7 +6,7 @@
 #include <glib/gstdio.h>
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
-#include <eina/plugin.h>
+#include <eina/eina-plugin.h>
 #include "infolder.h"
 #include "banshee.h"
 
@@ -83,16 +83,13 @@ coverplus_exit(EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"Coverplus",
-	"0.7.0",
+	"coverplus", PACKAGE_VERSION,
 	N_("Enhace your covers"),
 	N_("Brings Eina several simple but fundamental cover providers like:\n"
 	   "· In-folder cover discover\n"
 	   "· Banshee (on Linux) covers"),
 	NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR,
-	EINA_PLUGIN_GENERIC_URL,
-	NULL,
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL, 
 
 	coverplus_init, coverplus_exit,
 
