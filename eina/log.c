@@ -1,36 +1,63 @@
 #define GEL_DOMAIN "Eina::Log"
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#else
-#ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "x.x.x"
-#endif
-#endif
-
 #include <gmodule.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <lomo/player.h>
+#include <eina/lomo.h>
+
+#ifdef PSTR
+#undef PSTR
+#endif
+
+#define PSTR(p) gel_plugin_stringify(p)
 
 static void
-on_lomo_error       (LomoPlayer *lomo, GError *err, gchar *message);
-static void
-on_hub_module_load  (GelHub *hub, const gchar *name, gpointer data);
-static void
-on_hub_module_unload(GelHub *hub, const gchar *name, gpointer data);
-static void
-on_hub_module_ref   (GelHub *hub, const gchar *name, guint refs, gpointer data);
-static void
-on_hub_module_unref (GelHub *hub, const gchar *name, guint refs, gpointer data);
-static void
-on_lomo_signal(gchar *signal);
+lomo_connect(LomoPlayer *lomo);
 
-/*
- * Init/Exit functions 
- */
-G_MODULE_EXPORT gboolean
-eina_log_init (GelHub *hub, gint *argc, gchar ***argv)
+static void
+plugin_load_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Load plugin '%s'", PSTR(plugin));
+}
+
+static void
+plugin_unload_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Unload plugin '%s'", PSTR(plugin));
+}
+
+static void
+plugin_init_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	LomoPlayer *lomo;
+	gel_debug("Init plugin '%s'", PSTR(plugin));
+
+	if (g_str_equal(plugin->name, "lomo") && ((lomo = GEL_APP_GET_LOMO(app)) != NULL))
+		lomo_connect(lomo);
+}
+
+static void
+plugin_fini_cb(GelApp *app, GelPlugin *plugin, gpointer data)
+{
+	gel_debug("Fini plugin '%s'", PSTR(plugin));
+}
+
+static void
+lomo_signal_cb(gchar *signal)
+{
+	gel_debug("Lomo signal: %s", signal);
+}
+
+static void
+lomo_error_cb(LomoPlayer *lomo, GError *error, gpointer data)
+{
+	gel_debug("Lomo error: %s", error->message);
+}
+
+static void
+lomo_connect(LomoPlayer *lomo)
 {
 	const gchar *lomo_signals[] =
 	{
@@ -51,110 +78,32 @@ eina_log_init (GelHub *hub, gint *argc, gchar ***argv)
 		// "all_tags"
 	};
 	gint i;
-
-	g_signal_connect(gel_hub_shared_get(hub, "lomo"), "error",
-		G_CALLBACK(on_lomo_error), NULL);
-
-	g_signal_connect(G_OBJECT(hub), "module-load",
-		G_CALLBACK(on_hub_module_load), NULL);
-
-	g_signal_connect(G_OBJECT(hub), "module-unload",
-		G_CALLBACK(on_hub_module_unload), NULL);
-
-	g_signal_connect(G_OBJECT(hub), "module-unref",
-		G_CALLBACK(on_hub_module_ref), NULL);
-
-	g_signal_connect(G_OBJECT(hub), "module-unref",
-		G_CALLBACK(on_hub_module_unref), NULL);
 	
 	for (i = 0; i < G_N_ELEMENTS(lomo_signals); i++)
-		g_signal_connect_swapped(gel_hub_shared_get(hub, "lomo"), lomo_signals[i],
-		G_CALLBACK(on_lomo_signal), (gpointer) lomo_signals[i]);
-	return TRUE;
+		g_signal_connect_swapped(lomo, lomo_signals[i], (GCallback) lomo_signal_cb, (gpointer) lomo_signals[i]);
+
+	g_signal_connect(lomo, "error", (GCallback) lomo_error_cb, NULL);
 }
 
-void on_lomo_error(LomoPlayer *lomo, GError *err, gchar *message)
-{
-	gel_error("Got lomo error (%s): '%s'", message, err->message);
-}
-
-void
-on_hub_module_load(GelHub *hub, const gchar *name, gpointer data)
-{
-	gel_debug("Loaded module '%s'", name);
-}
-
-void
-on_hub_module_unload(GelHub *hub, const gchar *name, gpointer data)
-{
-	gel_debug("Unloaded module '%s'", name);
-}
-
-void
-on_hub_module_ref(GelHub *hub, const gchar *name, guint refs, gpointer data)
-{
-	gel_debug("Referenced module '%s': %d", name, refs);
-}
-
-void
-on_hub_module_unref(GelHub *hub, const gchar *name, guint refs, gpointer data)
-{
-	gel_debug("Unreferenced module '%s': %d", name, refs);
-}
-
-void on_lomo_signal(gchar *signal)
-{
-	gel_debug("Lomo signal: %s", (gchar *) signal);
-}
-/* * * * * * * * * * * * * * * * * * */
-/* Create the connector for the hub  */
-/* * * * * * * * * * * * * * * * * * */
-G_MODULE_EXPORT GelHubSlave
-log_connector =
-{
-	"log",
-	&eina_log_init,
-	NULL
-};
-
-// --
-// GelApp interface
-// --
-#define PSTR(p) gel_plugin_stringify(p)
-
-void
-plugin_load_cb(GelApp *app, GelPlugin *plugin, gpointer data)
-{
-	gel_debug("Load plugin '%s'", PSTR(plugin));
-}
-
-void
-plugin_unload_cb(GelApp *app, GelPlugin *plugin, gpointer data)
-{
-	gel_debug("Unload plugin '%s'", PSTR(plugin));
-}
-
-void
-plugin_init_cb(GelApp *app, GelPlugin *plugin, gpointer data)
-{
-	gel_debug("Init plugin '%s'", PSTR(plugin));
-}
-
-void
-plugin_fini_cb(GelApp *app, GelPlugin *plugin, gpointer data)
-{
-	gel_debug("Fini plugin '%s'", PSTR(plugin));
-}
-
-
-gboolean
+static gboolean
 log_init(GelPlugin *plugin, GError **error)
 {
 	GelApp *app = gel_plugin_get_app(plugin);
+
+	LomoPlayer *lomo;
+	if ((lomo = GEL_APP_GET_LOMO(app)) != NULL)
+		lomo_connect(lomo);
+
 	g_signal_connect(app, "plugin-load",   (GCallback) plugin_load_cb, NULL);
 	g_signal_connect(app, "plugin-unload", (GCallback) plugin_unload_cb, NULL);
 	g_signal_connect(app, "plugin-init",   (GCallback) plugin_init_cb, NULL);
 	g_signal_connect(app, "plugin-fini",   (GCallback) plugin_fini_cb, NULL);
+
+	return TRUE;
+}
+static gboolean
+log_fini(GelPlugin *plugin, GError **error)
+{
 	return TRUE;
 }
 
@@ -163,7 +112,7 @@ G_MODULE_EXPORT GelPlugin log_plugin = {
 	"log", PACKAGE_VERSION,
 	N_("Build-in log"), NULL,
 	NULL, NULL, NULL,
-	log_init, NULL,
+	log_init, log_fini,
 	NULL, NULL
 };
 
