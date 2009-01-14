@@ -31,9 +31,8 @@ static gboolean
 player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
 
 static gboolean
-dock_init(GelPlugin *plugin, GError **error)
+dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaDock *self;
 
 	self = g_new0(EinaDock, 1);
@@ -99,9 +98,8 @@ dock_init(GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-dock_exit(GelPlugin *plugin, GError **error)
+dock_exit(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaDock *self = gel_app_shared_get(app, "dock");
 	if (self == NULL)
 		return FALSE;

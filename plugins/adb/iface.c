@@ -6,7 +6,7 @@
 #include "adb.h"
 
 static gboolean
-adb_plugin_init(EinaPlugin *plugin, GError **error)
+adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	Adb *self;
 
@@ -19,7 +19,6 @@ adb_plugin_init(EinaPlugin *plugin, GError **error)
 	plugin->data = (gpointer) self;
 
 	// Register into App
-	GelApp *app = gel_plugin_get_app(plugin);
 	if (!gel_app_shared_set(app, "adb", self))
 	{
 		g_set_error(error, adb_quark(), ADB_CANNOT_REGISTER_OBJECT,
@@ -32,10 +31,9 @@ adb_plugin_init(EinaPlugin *plugin, GError **error)
 }
 
 static gboolean
-adb_plugin_exit(EinaPlugin *plugin, GError **error)
+adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	Adb *self   = EINA_PLUGIN_DATA(plugin);
-	GelApp *app = gel_plugin_get_app(plugin);
+	Adb *self = EINA_PLUGIN_DATA(plugin);
 
 	adb_free(self);
 	gel_app_shared_unregister(app, "adb");

@@ -122,7 +122,7 @@ gel_plugin_init(GelPlugin *self, GError **error)
 		return FALSE;
 	}
 
-	gboolean initialized = self->init(self, error);
+	gboolean initialized = self->init(self->priv->app, self, error);
 	if (initialized)
 		self->priv->inits = 1;
 	else if (*error == NULL)
@@ -155,7 +155,7 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 	if (self->fini == NULL)
 		finalized = TRUE;
 	else
-		finalized = self->fini(self, error);
+		finalized = self->fini(self->priv->app, self, error);
 	
 	if (finalized)
 		self->priv->inits--;

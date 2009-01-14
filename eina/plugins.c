@@ -47,12 +47,10 @@ plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self);
 // Init/Exit functions 
 //--
 static gboolean
-plugins_init (GelPlugin *plugin, GError **error)
+plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
-	EinaPlugins *self;
+	EinaPlugins *self =  g_new0(EinaPlugins, 1);
 
-	self = g_new0(EinaPlugins, 1);
 	if (!eina_obj_init(EINA_OBJ(self), app, "plugins", EINA_OBJ_GTK_UI, error))
 	{
 		g_free(self);
@@ -196,9 +194,8 @@ plugins_init (GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-plugins_fini(GelPlugin *plugin, GError **error)
+plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlugins *self = GEL_APP_GET_PLUGINS(app);
 
 	plugins_free_plugins(self);

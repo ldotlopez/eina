@@ -1,11 +1,13 @@
 #define GEL_DOMAIN "Eina::Settings"
 
+#define GEL_PLUGIN_DATA_TYPE EinaConf
+
 #include <config.h>
 #include <eina/settings.h>
 #include <eina/class-conf-file.h>
 
 static gboolean
-settings_init(GelPlugin *plugin, GError **error)
+settings_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaConf *conf = eina_conf_new();
 
@@ -20,15 +22,14 @@ settings_init(GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
+	plugin->data = conf;
 	return TRUE;
 }
 
 static gboolean
-settings_fini(GelPlugin *plugin, GError **error)
+settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp   *app  = gel_plugin_get_app(plugin);
-	EinaConf *conf = gel_app_shared_get(app, "settings");
-
+	EinaConf *conf = GEL_PLUGIN_DATA(plugin);
 	if (conf == NULL)
 		return FALSE;
 

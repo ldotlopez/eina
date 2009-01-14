@@ -20,9 +20,8 @@ artwork_quark(void)
 }
 
 static gboolean
-artwork_init (GelPlugin *plugin, GError **error)
+artwork_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaArtwork *obj = eina_artwork_new();
 	g_object_ref(obj);
 
@@ -38,9 +37,8 @@ artwork_init (GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-artwork_fini(GelPlugin *plugin, GError **error)
+artwork_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaArtwork *obj = gel_app_shared_get(app, "artwork");
 	if (!obj)
 	{

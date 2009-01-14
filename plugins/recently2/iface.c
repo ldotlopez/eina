@@ -8,9 +8,8 @@
 #include "plugins/adb/adb.h"
 
 gboolean
-recently_plugin_init(EinaPlugin *plugin, GError **error)
+recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	GelApp *app = eina_plugin_get_app(plugin);
 	Adb *adb = gel_app_shared_get(app, "adb");
 	gel_warn("ADB object retrieved: %p", adb);
 
@@ -18,7 +17,7 @@ recently_plugin_init(EinaPlugin *plugin, GError **error)
 }
 
 gboolean
-recently_plugin_fini(EinaPlugin *plugin, GError **error)
+recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	return TRUE;
 }

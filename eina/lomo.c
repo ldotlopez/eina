@@ -23,7 +23,7 @@ enum {
 };
 
 gboolean
-lomo_plugin_init(GelPlugin *plugin, GError **error)
+lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	LomoPlayer *engine = NULL;
 
@@ -42,9 +42,8 @@ lomo_plugin_init(GelPlugin *plugin, GError **error)
 }
 
 gboolean
-lomo_plugin_fini(GelPlugin *plugin, GError **error)
+lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	LomoPlayer *engine = LOMO_PLAYER(gel_app_shared_get(app, "lomo"));
 
 	if ((engine == NULL) || !gel_app_shared_unregister(app, "lomo"))

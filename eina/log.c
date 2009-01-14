@@ -86,10 +86,8 @@ lomo_connect(LomoPlayer *lomo)
 }
 
 static gboolean
-log_init(GelPlugin *plugin, GError **error)
+log_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
-
 	LomoPlayer *lomo;
 	if ((lomo = GEL_APP_GET_LOMO(app)) != NULL)
 		lomo_connect(lomo);
@@ -102,7 +100,7 @@ log_init(GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 static gboolean
-log_fini(GelPlugin *plugin, GError **error)
+log_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	return TRUE;
 }

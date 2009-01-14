@@ -19,9 +19,8 @@ struct _EinaTemplate {
 // init/fini hooks
 // --
 static gboolean 
-template_init (EinaPlugin *plugin, GError **error)
+template_init (GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaTemplate *self;
 
 	// Initialize ourself and automagically register into app using EinaObj
@@ -31,6 +30,11 @@ template_init (EinaPlugin *plugin, GError **error)
 		g_free(self);
 		return FALSE;
 	}
+
+	// If you dont use EinaObj save yourself into data field of EinaPlugin
+	// remember to define in the top of this file EINA_PLUGIN_DATA_TYPE to
+	// EinaTemplate
+	// plugin->data = self
 
 	// You may want to get info from another plugin (some sort of dependence)
 	/*
@@ -43,12 +47,13 @@ template_init (EinaPlugin *plugin, GError **error)
 }
 
 static gboolean
-template_fini (EinaPlugin *plugin, GError **error)
+template_fini (GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
-
 	// Find yourself, rememer your macros in template.h?
 	EinaTemplate *self = GEL_APP_GET_TEMPLATE(app);
+
+	// Or use data field:
+	// self = EINA_PLUGIN_DATA(plugin)
 
 	// Unref dependences
 	/*

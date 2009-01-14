@@ -167,9 +167,8 @@ GelUISignalDef _playlist_signals[] = {
 };
 
 static gboolean
-playlist_init (GelPlugin *plugin, GError **error)
+playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlaylist *self;
 	gint i;
 	gchar *tmp;
@@ -278,9 +277,8 @@ playlist_init (GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-playlist_exit(GelPlugin *plugin, GError **error)
+playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlaylist *self = GEL_APP_GET_PLAYLIST(app);
 	const GList *pl;
 	GList *l;
@@ -1192,7 +1190,7 @@ G_MODULE_EXPORT GelPlugin playlist_plugin = {
 	"playlist", PACKAGE_VERSION,
 	N_("Build-in playlist plugin"), NULL,
 	NULL, NULL, NULL,
-	playlist_init, playlist_exit,
+	playlist_init, playlist_fini,
 	NULL, NULL
 };
 

@@ -98,9 +98,8 @@ update_cover_cb(gpointer data)
 }
 
 static gboolean
-player_init (GelPlugin *plugin, GError **error)
+player_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlayer *self = NULL;
 
 	// Initialize base class
@@ -292,9 +291,8 @@ player_init (GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-player_fini(GelPlugin *plugin, GError **error)
+player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaPlayer *self = gel_app_shared_get(app, "player");
 
 	if (!self)

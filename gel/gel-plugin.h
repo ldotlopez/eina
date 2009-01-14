@@ -9,7 +9,7 @@ typedef struct _GelPlugin GelPlugin;
 #include <gel/gel-app.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
-#define GEL_PLUGIN_SERIAL 200901101
+#define GEL_PLUGIN_SERIAL 2009011401
 
 typedef struct _GelPluginPrivate GelPluginPrivate;
 struct _GelPlugin {
@@ -23,8 +23,8 @@ struct _GelPlugin {
 	const gchar *url;        // "http://www.company.com"
 	// const gchar *depends; // "foo,bar,baz" or NULL
 
-	gboolean (*init) (struct _GelPlugin *plugin, GError **error); // Init function
-	gboolean (*fini) (struct _GelPlugin *plugin, GError **error); // Exit function
+	gboolean (*init) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Init function
+	gboolean (*fini) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Exit function
 
 	gpointer data; // Plugin's own data
 

@@ -32,7 +32,7 @@ enum {
 // Main
 // --
 gboolean
-coverplus_init(EinaPlugin *plugin, GError **error)
+coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
 	if (!artwork)
@@ -68,7 +68,7 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 }
 
 gboolean
-coverplus_exit(EinaPlugin *plugin, GError **error)
+coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
 	eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");

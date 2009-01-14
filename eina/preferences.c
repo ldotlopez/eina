@@ -37,9 +37,8 @@ preferences_quark(void)
 }
 
 static gboolean
-preferences_init (GelPlugin *plugin, GError **error)
+preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp                *app = gel_plugin_get_app(plugin);
 	EinaPlayer            *player;
 	GtkUIManager          *ui_manager;
 	EinaPreferencesDialog *dialog = NULL;
@@ -101,7 +100,7 @@ preferences_init_fail:
 }
 
 static gboolean preferences_fini
-(GelPlugin *plugin, GError **error)
+(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	gtk_widget_destroy(GTK_WIDGET(GEL_APP_GET_PREFERENCES(gel_plugin_get_app(plugin))));
 	return TRUE;

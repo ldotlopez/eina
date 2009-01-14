@@ -79,9 +79,8 @@ static const gchar ui_def[] =
 "</ui>";
 
 static gboolean
-vogon_init(GelPlugin *plugin, GError **error)
+vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	GelApp *app = gel_plugin_get_app(plugin);
 	EinaVogon *self;
 	GdkPixbuf *pixbuf  = NULL;
 	GelUIImageDef img_def = {
@@ -178,9 +177,9 @@ vogon_init(GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-vogon_fini(GelPlugin *plugin, GError **error)
+vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaVogon *self = gel_app_shared_get(gel_plugin_get_app(plugin), "vogon");
+	EinaVogon *self = gel_app_shared_get(app, "vogon");
 
 	g_object_unref(self->icon);
 	g_object_unref(self->ui_mng);
@@ -271,7 +270,7 @@ status_icon_destroy_cb(GtkWidget *w, EinaVogon *self)
 	if (!GTK_WIDGET_VISIBLE(window))
 		gtk_widget_show(window);
 
-	vogon_fini(gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
+	vogon_fini(eina_obj_get_app(self), gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
 	return FALSE;
 }
 
