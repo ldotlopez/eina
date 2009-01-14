@@ -119,6 +119,22 @@ gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GF
 	}
 }
 
+void
+gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func)
+{
+	g_printf("Contents of %p\n", list);
+	while (list)
+	{
+		gchar *str = stringify_func((const gpointer) list->data);
+		g_printf("[%p] ", list->data);
+		g_printf(format ? format : "%s\n", str ? str : "(NULL)");
+		if (str != NULL)
+			g_free(str);
+		list = list->next;
+	}
+	g_printf("End of list\n");
+}
+
 // --
 // App resources functions
 // --

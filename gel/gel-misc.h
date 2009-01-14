@@ -40,7 +40,8 @@ typedef enum GelFileLoadCode {
 	GEL_FILE_LOAD_CODE_CANNOT_LOAD,
 } GelFileLoadCode;
 
-typedef gboolean (*GelFilterFunc)(const gpointer data, gpointer user_data);
+typedef gchar*   (*GelListPrintfFunc)(const gpointer data);
+typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 
 // --
 // Initialization and finilization functions
@@ -81,6 +82,10 @@ gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data);
 
 void
 gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data);
+
+#define gel_slist_printf(list,format,func) gel_list_printf((GList*) list, format, func)
+void
+gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func);
 
 // --
 // App resources functions
