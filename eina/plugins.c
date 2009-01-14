@@ -104,7 +104,7 @@ plugins_init (GelPlugin *plugin, GError **error)
 		"headers-clickable", FALSE,
 		"headers-visible", TRUE,
 		NULL);
-	plugins_treeview_fill(self);
+	// plugins_treeview_fill(self);
 
 	// Setup signals
 	self->window = eina_obj_get_widget(self, "main-window");
@@ -187,6 +187,7 @@ plugins_init (GelPlugin *plugin, GError **error)
 				}
 				continue;
 			}
+			gel_warn("Loaded plugin %s at %p", gel_plugin_stringify(plugin), plugin);
 		}
 		g_strfreev(plugins);
 	}
@@ -294,6 +295,7 @@ plugins_treeview_fill(EinaPlugins *self)
 			PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin),
 			PLUGINS_COLUMN_NAME, markup,
 			-1);
+		gel_warn("Plugin added to view: (%p)%s", plugin, gel_plugin_stringify(plugin));
 
 		g_free(markup);
 		g_free(escape);
