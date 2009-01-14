@@ -43,10 +43,7 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 
 	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
 
-	// Initialize sub-plugins
-	GError *err = NULL;
-
-	self->infolder = coverplus_infolder_new(plugin, &err);
+	self->infolder = coverplus_infolder_new(plugin, error);
 	if (self->infolder)
 	{
 		// Add providers
@@ -57,9 +54,8 @@ coverplus_init(EinaPlugin *plugin, GError **error)
 	}
 	else
 	{
-		gel_warn("Cannot init Infolder Coverplus add-on: %s", err ? err->message : "no reason");
-		if (err)
-			g_error_free(err);
+		gel_warn("Cannot init Infolder Coverplus add-on: %s", (*error)->message);
+		return FALSE;
 	}
 
 	eina_artwork_add_provider(artwork, "coverplus-banshee",
@@ -75,7 +71,7 @@ gboolean
 coverplus_exit(EinaPlugin *plugin, GError **error)
 {
 	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
-	// eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");
+	eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");
 	g_free(EINA_PLUGIN_DATA(plugin));
 
 	return TRUE;
