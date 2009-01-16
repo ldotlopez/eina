@@ -1,5 +1,5 @@
 /*
- * gel/gel-string.h
+ * {file}
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -16,27 +16,3 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef _GEL_STRING
-#define _GEL_STRING
-
-#include <glib.h>
-
-G_BEGIN_DECLS
-
-typedef struct _GelString GelString;
-typedef struct _GelStringPriv GelStringPriv;
-
-struct _GelString {
-	gchar *str;
-	GelStringPriv *priv;
-};
-
-GelString *gel_string_new(gchar *str);
-
-void gel_string_ref  (GelString *self);
-void gel_string_unref(GelString *self);
-
-G_END_DECLS
-
-#endif // _GEL_STRING

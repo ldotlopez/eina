@@ -1,0 +1,21 @@
+#!/bin/bash
+
+D=$(basename -- "$PWD")
+if [ "$D" != 'trunk' ]; then
+	echo "Run from toplevel"
+	exit 1
+fi
+
+IFS="
+"
+for i in $(find . -name '*.c' -o -name '*.h')
+do
+	(
+		set -e
+		F="$(echo $i | cut -c 3-)"
+		cat misc/gpl-header | sed -e "s,{file},$F,"
+		echo
+		cat $i
+	) > $i.tmp
+	[ $? -eq 0 ] && mv  "$i.tmp" "$i"
+done
