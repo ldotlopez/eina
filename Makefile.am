@@ -13,7 +13,8 @@ DIST_SUBDIRS = \
 EXTRA_DIST = \
 	intltool-extract.in \
 	intltool-merge.in \
-	intltool-update.in
+	intltool-update.in \
+	COPYRIGHT README AUTHORS INSTALL COPYING
 
 #intltool_extra = intltool-extract.in intltool-merge.in intltool-update.in
 #
