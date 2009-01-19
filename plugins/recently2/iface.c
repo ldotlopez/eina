@@ -25,10 +25,21 @@
 
 #include <eina/eina-plugin.h>
 #include "plugins/adb/adb.h"
+#include "recently.h"
 
 gboolean
 recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	// Load adb
+	GError *err = NULL;
+	if (!gel_app_load_plugin_by_name(app, "adb", &err))
+	{
+		g_set_error(error, recently_quark(), RECENTY_ERROR_CANNOT_LOAD_ADB, 
+			N_("Cannot load adb plugin: %s"), err->message);
+		g_error_free(err);
+		return FALSE;
+	}
+
 	Adb *adb = gel_app_shared_get(app, "adb");
 	gel_warn("ADB object retrieved: %p", adb);
 
@@ -38,6 +49,14 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	GError *err = NULL;
+	if (!gel_app_unload_plugin_by_name(app, "adb", &err))
+	{
+		g_set_error(error, recently_quark(), RECENTY_ERROR_CANNOT_UNLOAD_ADB, 
+			N_("Cannot unload adb plugin: %s"), err->message);
+		g_error_free(err);
+		return FALSE;
+	}
 	return TRUE;
 }
 
