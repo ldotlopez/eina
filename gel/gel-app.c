@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define GEL_DOMAIN "Eina::Plugins"
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -284,9 +285,11 @@ gel_app_get_plugin(GelApp *self, gchar *pathname, gchar *name)
 GelPlugin*
 gel_app_get_plugin_by_pathname(GelApp *self, gchar *pathname)
 {
-	gchar *symbol     = symbol_from_pathname(pathname);
-	GelPlugin *plugin = gel_app_get_plugin(self, pathname, symbol);
-	g_free(symbol);
+	gchar *dirname = g_path_get_dirname(pathname);
+	gchar *name = g_path_get_basename(dirname);
+	g_free(dirname);
+	GelPlugin *plugin = gel_app_get_plugin(self, pathname, name);
+	g_free(name);
 
 	return plugin;
 }

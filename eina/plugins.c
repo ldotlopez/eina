@@ -246,7 +246,7 @@ plugins_free_plugins(EinaPlugins *self)
 	while (iter)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(iter->data);
-
+		gel_warn("Free plugin %s? %s", gel_plugin_stringify(plugin), gel_plugin_is_enabled(plugin) ? "no" : "yes");
 		if (gel_plugin_is_enabled(plugin))
 		{
 			iter = iter->next;
