@@ -491,13 +491,13 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 		g_error_free(err);
 	}
 
-
 	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
 		priv->op = gel_io_recurse_dir(file, "standard::*",
 			recurse_read_success_cb, recurse_read_error_cb, self);
 	else
 	{
 		priv->uris = g_slist_append(priv->uris, g_file_get_uri(file)); // Share memory
+		run_queue(self);
 	}
 
 	g_object_unref(source);
