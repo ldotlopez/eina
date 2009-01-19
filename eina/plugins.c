@@ -18,15 +18,15 @@
  */
 
 #define GEL_DOMAIN "Eina::Plugins"
+#define EINA_PLUGIN_DATA_TYPE EinaPlugins
 
 #include <gmodule.h>
 #include <config.h>
-#include <gel/gel-ui.h>
+#include <eina/eina-plugin.h>
 #include <eina/settings.h>
 #include <eina/player.h>
-#include <eina/plugins.h>
 
-struct _EinaPlugins {
+typedef struct {
 	EinaObj         parent;
 	EinaConf       *conf;
 	GtkWidget      *window;
@@ -38,7 +38,7 @@ struct _EinaPlugins {
 	GtkActionEntry *ui_actions;
 	GtkActionGroup *ui_mng_ag;
 	guint           ui_mng_merge_id;
-};
+} EinaPlugins;
 
 enum {
 	PLUGINS_COLUMN_ENABLED,
@@ -197,6 +197,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		}
 		g_strfreev(plugins);
 	}
+	plugin->data = self;
 
 	return TRUE;
 }
@@ -204,7 +205,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 static gboolean
 plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaPlugins *self = GEL_APP_GET_PLUGINS(app);
+	EinaPlugins *self = EINA_PLUGIN_DATA(plugin);
 
 	plugins_free_plugins(self);
 	

@@ -439,7 +439,7 @@ about_show(void)
 	gchar *logo_path;
 	GdkPixbuf  *pb;
 
-	static gchar *release_name = "Black and blue";
+	static gchar *release_name = "It's all over but the crying";
 	gchar *tmp;
 
 	GError *err = NULL;
