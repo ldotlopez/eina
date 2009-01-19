@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GEL_APP
-#define _GEL_APP
+#ifndef _GEL_APP_H
+#define _GEL_APP_H
 
 #include <glib-object.h>
 
@@ -64,10 +64,13 @@ typedef void (*GelAppDisposeFunc) (GelApp *self, gpointer data);
 
 enum {
 	GEL_APP_NO_ERROR = 0,
+	GEL_APP_PLUGIN_NOT_FOUND
+	/*
 	GEL_APP_NO_OWNED_PLUGIN,
 	GEL_APP_PLUGIN_STILL_ENABLED,
-	// GEL_APP_CANNOT_OPEN_SHARED_OBJECT,
-	// GEL_APP_SYMBOL_NOT_FOUND
+	GEL_APP_CANNOT_OPEN_SHARED_OBJECT,
+	GEL_APP_SYMBOL_NOT_FOUND
+	*/
 };
 
 GType gel_app_get_type (void);
@@ -75,6 +78,32 @@ GType gel_app_get_type (void);
 GelApp* gel_app_new (void);
 
 void gel_app_set_dispose_callback(GelApp *self, GelAppDisposeFunc callback, gpointer user_data);
+
+GList *gel_app_query_paths(GelApp *self);
+
+GelPlugin *gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error);
+GelPlugin *gel_app_query_plugin_by_name    (GelApp *self, gchar *name,     GError **error);
+GelPlugin *gel_app_query_plugin            (GelApp *self, gchar *pathname, gchar *name, GError **error);
+
+GelPlugin *gel_app_get_plugin_by_pathname  (GelApp *self, gchar *pathname);
+GelPlugin *gel_app_get_plugin_by_name      (GelApp *self, gchar *name);
+GelPlugin *gel_app_get_plugin              (GelApp *self, gchar *pathname, gchar *name);
+
+GList *gel_app_query_plugins(GelApp *self);
+
+GelPlugin *gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error);
+GelPlugin *gel_app_load_plugin_by_name    (GelApp *self, gchar *name,     GError **error);
+GelPlugin *gel_app_load_plugin            (GelApp *self, gchar *pathname, gchar *name, GError **error);
+
+#define gel_app_unload_plugin_by_pathname(self,pathname,error) \
+	gel_app_unload_plugin(self,gel_app_get_plugin_by_pathname(self,pathname,error), error)
+#define gel_app_unload_plugin_by_name(self,name,error) \
+	gel_app_unload_plugin(self,gel_app_get_plugin_by_name(self,name,error), error)
+gboolean   gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error);
+
+#if 0
+GelPlugin *gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error);
+gboolean gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error);
 
 GelPlugin *gel_app_load_plugin (GelApp *self, gchar *pathname, GError **error);
 GelPlugin *gel_app_load_plugin_by_name(GelApp *self, gchar *plugin_name);
@@ -88,7 +117,6 @@ gboolean gel_app_init_plugin(GelApp *self, GelPlugin *plugin, GError **error);
 gboolean gel_app_fini_plugin(GelApp *self, GelPlugin *plugin, GError **error);
 
 GList *gel_app_query_plugins(GelApp *self);
-GList *gel_app_query_paths(GelApp *self);
 
 GelPlugin *gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *symbol);
 GelPlugin *gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname);
@@ -96,12 +124,21 @@ GelPlugin *gel_app_query_plugin_by_name    (GelApp *self, gchar *name);
 
 #define gel_app_plugin_is_loaded_by_name(self,pathname) \
 	(gel_app_query_plugin_by_name(self,pathname) != NULL)
+#endif
 
 gboolean gel_app_shared_register  (GelApp *self, gchar *name, gsize size);
 gboolean gel_app_shared_unregister(GelApp *self, gchar *name);
 
 gboolean gel_app_shared_set(GelApp *self, gchar *name, gpointer data);
 gpointer gel_app_shared_get(GelApp *self, gchar *name);
+
+#if (defined GEL_COMPILATION) && (defined _GEL_PLUGIN_H)
+void gel_app_emit_load  (GelApp *self, GelPlugin *plugin);
+void gel_app_emit_unload(GelApp *self, GelPlugin *plugin);
+void gel_app_emit_init  (GelApp *self, GelPlugin *plugin);
+void gel_app_emit_fini  (GelApp *self, GelPlugin *plugin);
+void gel_app_delete_plugin(GelApp *self, GelPlugin *plugin);
+#endif
 
 G_END_DECLS
 

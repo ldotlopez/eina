@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GEL_PLUGIN
-#define _GEL_PLUGIN
+#ifndef _GEL_PLUGIN_H
+#define _GEL_PLUGIN_H
 
 #include <glib.h>
 
@@ -29,6 +29,21 @@ typedef struct _GelPlugin GelPlugin;
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
 #define GEL_PLUGIN_SERIAL 2009011401
+
+enum {
+	GEL_PLUGIN_NO_ERROR = 0,
+	GEL_PLUGIN_DYNAMIC_LOADING_NOT_SUPPORTED,
+	GEL_PLUGIN_SYMBOL_NOT_FOUND,
+	GEL_PLUGIN_INVALID_SERIAL,
+	GEL_PLUGIN_STILL_REFERENCED,
+	GEL_PLUGIN_STILL_ENABLED,
+	GEL_PLUGIN_ALREADY_INITIALIZED,
+	GEL_PLUGIN_NOT_REFERENCED,
+	GEL_PLUGIN_HAS_NO_INIT_HOOK,
+	GEL_PLUGIN_NO_ERROR_AVAILABLE,
+	GEL_PLUGIN_NOT_INITIALIZED,
+	GEL_PLUGIN_CANNOT_LOAD
+};
 
 typedef struct _GelPluginPrivate GelPluginPrivate;
 struct _GelPlugin {
@@ -56,43 +71,25 @@ const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
 
-enum {
-	GEL_PLUGIN_NO_ERROR = 0,
-	GEL_PLUGIN_DYNAMIC_LOADING_NOT_SUPPORTED,
-	GEL_PLUGIN_SYMBOL_NOT_FOUND,
-	GEL_PLUGIN_INVALID_SERIAL,
-	GEL_PLUGIN_STILL_ENABLED,
-	GEL_PLUGIN_STILL_REFERENCED,
-	GEL_PLUGIN_HAS_NO_INIT_HOOK,
-	GEL_PLUGIN_NO_ERROR_AVAILABLE
-};
-
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE
 #define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data)
 #endif
 
-#ifdef GEL_COMPILATION 
-// --
-// libgel private functions
-// --
-
 // Create or destroy plugins
+#if (defined GEL_COMPILATION) && (defined _GEL_APP_H)
 GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
 gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
+#endif
 
-// Ref/unref is used to handle how many times plugin was requested
-void gel_plugin_ref  (GelPlugin *plugin);
+// Refcount
+void gel_plugin_ref(GelPlugin *plugin);
 void gel_plugin_unref(GelPlugin *plugin);
+guint gel_plugin_get_usage(GelPlugin *plugin);
 
 // Initialize or finalize plugins
 gboolean gel_plugin_init(GelPlugin *plugin, GError **error);
 gboolean gel_plugin_fini(GelPlugin *plugin, GError **error);
-
-// How many times plugin was loaded or inited
-guint gel_plugin_get_inits(GelPlugin *plugin);
-guint gel_plugin_get_loads(GelPlugin *plugin);
-#endif
 
 G_END_DECLS
 

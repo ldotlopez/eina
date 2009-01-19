@@ -299,7 +299,7 @@ status_icon_activate_cb
 {
 	EinaPlayer *player;
 	GtkWidget  *window;
-	if (!gel_app_plugin_is_loaded_by_name(eina_obj_get_app(self), "player"))
+	if (!gel_app_get_plugin_by_name(eina_obj_get_app(self), "player"))
 		return FALSE;
 
 	player = GEL_APP_GET_PLAYER(eina_obj_get_app(self));

@@ -28,12 +28,19 @@ struct _GelPluginPrivate {
 	gchar   *symbol;
 	gchar   *stringified;
 	GModule *module;
-	guint loads;
-	guint inits;
+	guint    refs;
+	gboolean enabled;
 };
 
 static GQuark
-gel_plugin_quark(void);
+gel_plugin_quark(void)
+{
+	static GQuark ret = 0;
+	if (ret == 0)
+		ret = g_quark_from_static_string("gel-plugin");
+	return ret;
+
+}
 
 GelPlugin*
 gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
@@ -51,15 +58,13 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 
 	if ((mod = g_module_open(pathname, G_MODULE_BIND_LAZY)) == NULL)
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_DYNAMIC_LOADING_NOT_SUPPORTED,
-			N_("'%s' is not loadable"), pathname);
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_CANNOT_LOAD, N_("Not loadable"));
 		return NULL;
 	}
 
 	if (!g_module_symbol(mod, symbol, &symbol_p))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_SYMBOL_NOT_FOUND,
-			N_("Cannot find symbol '%s' in '%s'"), symbol, pathname);
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_SYMBOL_NOT_FOUND, N_("Cannot find symbol"));
 		g_module_close(mod);
 		return NULL;
 	}
@@ -67,19 +72,22 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 	if (GEL_PLUGIN(symbol_p)->serial != GEL_PLUGIN_SERIAL)
 	{
 		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_INVALID_SERIAL,
-			N_("Invalid serial in %s (app:%d, plugin:%d)"), pathname, GEL_PLUGIN_SERIAL, GEL_PLUGIN(symbol_p)->serial);
+			N_("Invalid serial (app:%d, plugin:%d)"), GEL_PLUGIN_SERIAL, GEL_PLUGIN(symbol_p)->serial);
 		g_module_close(mod);
 		return NULL;
 	}
 
 	self = GEL_PLUGIN(symbol_p);
 	self->priv = g_new0(GelPluginPrivate, 1);
-	self->priv->loads    = 1;
-	self->priv->inits    = 0;
+	self->priv->refs     = 1;
+	self->priv->enabled  = FALSE;
 	self->priv->pathname = g_strdup(pathname);
 	self->priv->symbol   = g_strdup(symbol);
 	self->priv->module   = mod;
 	self->priv->app      = app;
+
+	gel_app_emit_load(self->priv->app, self);
+
 	return self;
 }
 
@@ -88,17 +96,19 @@ gel_plugin_free(GelPlugin *self, GError **error)
 {
 	if (gel_plugin_is_enabled(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_ENABLED,
-			N_("Cannot free GelPlugin '%s' it is still enabled"), gel_plugin_stringify(self));
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_ENABLED, N_("Still enabled"));
 		return FALSE;
 	}
 
-	if (self->priv->loads > 0)
+	if (gel_plugin_get_usage(self) > 0)
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_REFERENCED,
-			N_("Cannot free GelPlugin '%s' it is still referenced"), gel_plugin_stringify(self));
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_REFERENCED, N_("Still referenced"));
 		return FALSE;
-	}	
+	}
+
+	gel_app_emit_unload(self->priv->app, self);
+	gel_app_delete_plugin(self->priv->app, self);
+
 	gel_free_and_invalidate(self->priv->pathname, NULL, g_free);
 	gel_free_and_invalidate(self->priv->symbol, NULL, g_free);
 	gel_free_and_invalidate(self->priv->stringified, NULL, g_free);
@@ -113,90 +123,41 @@ gel_plugin_free(GelPlugin *self, GError **error)
 void
 gel_plugin_ref(GelPlugin *self)
 {
-	self->priv->loads++;
+	self->priv->refs++;
 }
 
 void
 gel_plugin_unref(GelPlugin *self)
 {
-	if (self->priv->loads > 0)
-		self->priv->loads--;
-}
-
-gboolean
-gel_plugin_init(GelPlugin *self, GError **error)
-{
-	// Already initialized
-	if (self->priv->inits)
+	// Warn if refcount already 0
+	if (self->priv->refs == 0)
 	{
-		self->priv->inits++;
-		return TRUE;
+		g_warning(N_("GelPlugin %s refcount catch a negative refcount. Ignoring but this is a bug in someone's code"), gel_plugin_stringify(self));
+		return;
 	}
 
-	// No init function, cannot init!
-	if (self->init == NULL)
+	// Warn and abort if ref count will reach 0 and still enabled
+	if ((self->priv->refs == 1) && gel_plugin_is_enabled(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_HAS_NO_INIT_HOOK,
-			N_("Cannot init GelPlugin %s, no init hook"), gel_plugin_stringify(self));
-		return FALSE;
+		g_warning(N_("GelPlugin %s catch an unref that will reach 0 referecences while plugin still enabled. This is a bug"), gel_plugin_stringify(self));
+		return;
 	}
 
-	gboolean initialized = self->init(self->priv->app, self, error);
-	if (initialized)
-		self->priv->inits = 1;
-	else if (*error == NULL)
-	{
-		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
-		 	N_("Init function for %s failed with no reason"), gel_plugin_stringify(self));
-	}
-	return initialized;
-}
-
-gboolean
-gel_plugin_fini(GelPlugin *self, GError **error)
-{
-	if (self->priv->inits == 0)
-	{
-		// g_warning(N_("Trying to fini GelPlugin %s which has inits == 0"), gel_plugin_stringify(self));
-		return TRUE;
-	}
-
-	// Fake successful if there are more han 1 caller
-	if (self->priv->inits > 1)
-	{
-		self->priv->inits--;
-		return TRUE;
-	}
-
-	gboolean finalized = FALSE;
-
-	// Call fini hook
-	if (self->fini == NULL)
-		finalized = TRUE;
-	else
-		finalized = self->fini(self->priv->app, self, error);
-	
-	if (finalized)
-		self->priv->inits--;
-	else if (*error == NULL)
-	{
-		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
-		 	N_("Fini function for %s failed with no reason"), gel_plugin_stringify(self));
-	}
-
-	return finalized;
+	self->priv->refs--;
+	if (self->priv->refs == 0)
+		gel_plugin_free(self, NULL);
 }
 
 guint
-gel_plugin_get_loads(GelPlugin *self)
+gel_plugin_get_usage(GelPlugin *self)
 {
-	return self->priv->loads;
+	return self->priv->refs;
 }
 
-guint
-gel_plugin_get_inits(GelPlugin *self)
+gboolean
+gel_plugin_is_enabled(GelPlugin *self)
 {
-	return self->priv->inits;
+	return self->priv->enabled;
 }
 
 gboolean
@@ -231,18 +192,71 @@ gel_plugin_stringify(GelPlugin *self)
 	return self->priv->stringified;
 }
 
+
 gboolean
-gel_plugin_is_enabled(GelPlugin *self)
+gel_plugin_init(GelPlugin *self, GError **error)
 {
-	return (self->priv->inits > 0);
+	if (gel_plugin_is_enabled(self))
+	{
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ALREADY_INITIALIZED,
+			N_("Already initialized"));
+		return FALSE;
+	}
+
+	if (gel_plugin_get_usage(self) == 0)
+	{
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NOT_REFERENCED,
+			N_("Is not referenced by anyone"));
+		return FALSE;
+	}
+
+	if (self->init == NULL)
+	{
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_HAS_NO_INIT_HOOK,
+			N_("No init hook"));
+		return FALSE;
+	}
+
+	gboolean initialized = self->priv->enabled = self->init(self->priv->app, self, error);
+	if (!initialized && (*error == NULL))
+	{
+		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
+		 	N_("No reason"));
+	}
+
+	if (initialized)
+		gel_app_emit_init(self->priv->app, self);
+
+	return initialized;
 }
 
-static GQuark
-gel_plugin_quark(void)
+gboolean
+gel_plugin_fini(GelPlugin *self, GError **error)
 {
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("gel-plugin");
-	return ret;
+	if (!gel_plugin_is_enabled(self))
+	{
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NOT_INITIALIZED,
+			N_("Not initialized"));
+		return FALSE;
+	}
 
+	// Call fini hook
+	gboolean finalized;
+	if (self->fini == NULL)
+		finalized = TRUE;
+	else
+		finalized = self->fini(self->priv->app, self, error);
+	
+	self->priv->enabled = finalized;
+	if (!finalized && (*error == NULL))
+	{
+		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
+		 	N_("No reason"));
+	}
+
+	if (finalized)
+		gel_app_emit_fini(self->priv->app, self);
+
+	return finalized;
 }
+

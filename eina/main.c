@@ -170,18 +170,10 @@ gint main
 	app = gel_app_new();
 	for (i = 0; modules[i]; i++)
 	{
-		GelPlugin *plugin = gel_app_load_plugin_by_name(app, modules[i]);
 		GError *error = NULL;
-
-		if (plugin == NULL)
+		if (!gel_app_load_plugin_by_name(app, modules[i],& error))
 		{
 			gel_error("Cannot load %s", modules[i]);
-			continue;
-		}
-		if (!gel_app_init_plugin(app, plugin, &error))
-		{
-			gel_error("Cannot init plugin %s: %s", modules[i], error->message);
-			g_error_free(error);
 			continue;
 		}
 		gel_warn("%s loaded!", modules[i]);

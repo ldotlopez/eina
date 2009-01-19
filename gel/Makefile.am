@@ -19,8 +19,8 @@ INST_H_FILES = \
 	gel-misc.h              \
 	gel-string.h            \
 	gel-str-parser.h        \
-	gel-app.h               \
 	gel-plugin.h            \
+	gel-app.h               \
 	gel-io-misc.h           \
 	gel-io-op-result.h      \
 	gel-io-ops.h            \
@@ -36,8 +36,8 @@ libgel_la_SOURCES = \
 	gel-string.c            \
 	gel-str-parser.c        \
 	gel-app-marshal.c       \
-	gel-app.c               \
 	gel-plugin.c            \
+	gel-app.c               \
 	gel-io-misc.c           \
 	gel-io-op-result.c      \
 	gel-io-ops.c            \

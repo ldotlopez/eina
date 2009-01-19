@@ -121,7 +121,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		"headers-clickable", FALSE,
 		"headers-visible", TRUE,
 		NULL);
-	// plugins_treeview_fill(self);
 
 	// Setup signals
 	self->window = eina_obj_get_widget(self, "main-window");
@@ -174,6 +173,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_ui_manager_ensure_update(ui_manager);
 
 	// Load plugins
+	/*
 	const gchar *plugins_str = eina_conf_get_str(self->conf, "/plugins/enabled", NULL);
 	if (plugins_str)
 	{
@@ -184,30 +184,26 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 			GError *err = NULL;
 			gel_warn("Try to load %s", plugins[i]);
 
-			GelPlugin *plugin = gel_app_query_plugin_by_pathname(app, plugins[i]);
-			if (!plugin && ((plugin = gel_app_load_plugin(app, plugins[i], &err)) == NULL))
+			GelPlugin *plugin = gel_app_query_plugin_by_pathname(app, plugins[i], &err);
+			if (!plugin)
 			{
-				gel_error("Cannot load plugin %s: %s", plugins[i], err->message);
+				gel_error("Cannot query plugin from path '%s': %s", plugins[i], err->message);
 				gel_free_and_invalidate(err, NULL, g_error_free);
 				continue;
 			}
 
-			if (!gel_app_init_plugin(app, plugin, &err))
+			if (!gel_plugin_is_enabled(plugin) && !gel_plugin_init(plugin, &err))
 			{
 				gel_error("Cannot init plugin '%s': %s", gel_plugin_stringify(plugin), err->message);
 				gel_free_and_invalidate(err, NULL, g_error_free);
-
-				if (!gel_app_unload_plugin(app, plugin, &err))
-				{
-					gel_error("Cannot unload plugin '%s': %s", gel_plugin_stringify(plugin), err->message);
-					gel_free_and_invalidate(err, NULL, g_error_free);
-				}
 				continue;
 			}
+
 			gel_warn("Loaded plugin %s at %p", gel_plugin_stringify(plugin), plugin);
 		}
 		g_strfreev(plugins);
 	}
+	*/
 
 	return TRUE;
 }
@@ -246,19 +242,18 @@ plugins_free_plugins(EinaPlugins *self)
 	if (self->all_plugins == NULL)
 		return;
 
-	GelApp *app = eina_obj_get_app(self);
 	GList *iter = self->all_plugins;
 	while (iter)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(iter->data);
-		GError *error = NULL;
 
-		if (!gel_plugin_is_enabled(plugin) && !gel_app_unload_plugin(app, plugin, &error))
+		if (gel_plugin_is_enabled(plugin))
 		{
-			gel_warn("Cannot unload plugin '%s': %s", gel_plugin_stringify(plugin), error->message);
-			g_error_free(error);
+			iter = iter->next;
+			continue;
 		}
 
+		gel_plugin_unref(plugin);
 		iter = iter->next;
 	}
 	gel_free_and_invalidate(self->plugins, NULL, g_list_free);
@@ -311,7 +306,6 @@ plugins_treeview_fill(EinaPlugins *self)
 			PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin),
 			PLUGINS_COLUMN_NAME, markup,
 			-1);
-		gel_warn("Plugin added to view: (%p)%s", plugin, gel_plugin_stringify(plugin));
 
 		g_free(markup);
 		g_free(escape);
@@ -422,11 +416,10 @@ plugins_cell_renderer_toggle_toggled_cb
 
 	gboolean do_toggle = FALSE;
 	if (gtk_cell_renderer_toggle_get_active(w) == FALSE)
-		// do_toggle = eina_plugin_init(plugin);
-		do_toggle = gel_app_init_plugin(eina_obj_get_app(self), plugin, &error);
+		// C std99 follows boolean logic? its only one evaluated?
+		do_toggle = (gel_plugin_is_enabled(plugin) || (gel_plugin_init(plugin, &error)));
 	else
-		// do_toggle = eina_plugin_fini(plugin);
-		do_toggle = gel_app_fini_plugin(eina_obj_get_app(self), plugin, &error);
+		do_toggle = ((gel_plugin_get_usage(plugin) == 1) && gel_plugin_fini(plugin, &error));
 
 	if (!do_toggle)
 	{

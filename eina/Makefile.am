@@ -60,10 +60,10 @@ eina_SOURCES = \
 	playlist.c                 \
 	eina-plugin.c              \
 	preferences.c              \
-	plugins.c                  \
 	settings.c                 \
 	template.c                 \
 	vogon.c                    \
+	plugins.c                  \
 	$(NOINST_H_FILES)          \
 	$(INST_H_FILES)
 
