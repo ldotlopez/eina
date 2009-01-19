@@ -185,7 +185,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		for (i = 0; plugins[i] != NULL; i++)
 		{
 			GError *err = NULL;
-			gel_warn("Try to load %s", plugins[i]);
 
 			GelPlugin *plugin = gel_app_load_plugin_by_pathname(app, plugins[i], &err);
 			if (!plugin)
@@ -195,7 +194,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 				continue;
 			}
 
-			gel_warn("Loaded plugin %s at %p", gel_plugin_stringify(plugin), plugin);
 		}
 		g_strfreev(plugins);
 	}
@@ -238,11 +236,14 @@ plugins_free_plugins(EinaPlugins *self)
 		return;
 
 	GList *iter = self->all_plugins;
+	GList *dump = NULL;
+
 	while (iter)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(iter->data);
 		if (gel_plugin_is_enabled(plugin))
 		{
+			dump = g_list_prepend(dump, plugin);
 			iter = iter->next;
 			continue;
 		}
@@ -252,6 +253,20 @@ plugins_free_plugins(EinaPlugins *self)
 	}
 	gel_free_and_invalidate(self->plugins, NULL, g_list_free);
 	gel_free_and_invalidate(self->all_plugins, NULL, g_list_free);
+
+	dump = g_list_reverse(dump);
+	GString *dump_str = g_string_new(NULL);
+	iter = dump;
+	while (iter)
+	{
+		dump_str = g_string_append(dump_str, gel_plugin_get_pathname(GEL_PLUGIN(iter->data)));
+		if (iter->next)
+			dump_str = g_string_append_c(dump_str, ',');
+		iter = iter->next;
+	}
+	g_list_free(dump);
+	eina_conf_set_str(self->conf, "/plugins/enabled", dump_str->str);
+	g_string_free(dump_str, TRUE);
 }
 
 static void
@@ -357,6 +372,25 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 }
 
+static void
+update_enabled(EinaPlugins *self, GelPlugin *plugin)
+{
+	gint index;
+	gel_warn("Updating %s", plugin->name);
+	if ((index = g_list_index(self->plugins, plugin)) == -1)
+	{
+		gel_warn("Unknow plugin initialized, ignoring");
+		return;
+	}
+
+	GtkTreeIter iter;
+	GtkTreePath *path = gtk_tree_path_new_from_indices(index, -1);
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &iter, path);
+	gtk_list_store_set(self->model, &iter,
+		PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin), -1);
+	gtk_tree_path_free(path);
+}
+
 // --
 // Callbacks
 // --
@@ -364,13 +398,13 @@ plugins_update_plugin_properties(EinaPlugins *self)
 static void
 app_init_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self)
 {
-	gel_warn("Got init-plugin %s signal", plugin->name);
+	update_enabled(self, plugin);
 }
 
 static void
 app_fini_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self)
 {
-	gel_warn("Got fini-plugin %s signal", plugin->name);
+	update_enabled(self, plugin);
 }
 
 static void
@@ -397,6 +431,7 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 
 	indices = gtk_tree_path_get_indices(path);
 	plugin = (GelPlugin *) g_list_nth_data(self->plugins, indices[0]);
+	gel_warn("Selected plugin is: %s at state %d, usage %d", plugin->name, gel_plugin_is_enabled(plugin), gel_plugin_get_usage(plugin));
 	if (self->active_plugin == plugin)
 		return;
 
@@ -429,61 +464,29 @@ plugins_cell_renderer_toggle_toggled_cb
 	gtk_tree_path_free(_path);
 
 	gboolean success;
-	if (gel_plugin_is_enabled(plugin) && (gel_plugin_get_usage(plugin) == 2))
+	gel_warn("Selected plugin is: %s at state %d, usage %d", plugin->name, gel_plugin_is_enabled(plugin), gel_plugin_get_usage(plugin));
+
+	if (gel_plugin_is_enabled(plugin))
 	{
-		gel_plugin_unref(plugin);
-		if ((success = gel_plugin_fini(plugin, &error)) == FALSE)
-			gel_plugin_ref(plugin);
+		if (gel_plugin_get_usage(plugin) > 1)
+			gel_plugin_unref(plugin);
+
+		if (gel_plugin_get_usage(plugin) == 1)
+			success = gel_plugin_fini(plugin, &error);
+		else
+			success = TRUE;
 	}
 	else
 	{
-		success = gel_plugin_init(plugin, &error);
+		if ((success = gel_plugin_init(plugin, &error)) == TRUE)
+			gel_plugin_ref(plugin);
 	}
-	
+
 	if (!success)
 	{
 		gel_warn("Got error: %s", error->message);
 		g_error_free(error);
 	}
-	/*
-	gboolean do_toggle = FALSE;
-	if (gtk_cell_renderer_toggle_get_active(w) == FALSE)
-		// C std99 follows boolean logic? its only one evaluated?
-		do_toggle = (gel_plugin_is_enabled(plugin) || (gel_plugin_init(plugin, &error)));
-	else
-		do_toggle = ((gel_plugin_get_usage(plugin) == 1) && gel_plugin_fini(plugin, &error));
-
-	if (!do_toggle)
-	{
-		gel_error("Got error: %s", error->message);
-		g_error_free(error);
-		return;
-	}
-	else
-	{
-		gel_warn("Toggle state ok, now plugin is: %d", gel_plugin_is_enabled(plugin));
-	}
-
-	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->model), &iter, path);
-	gtk_list_store_set(self->model, &iter,
-		PLUGINS_COLUMN_ENABLED, !gtk_cell_renderer_toggle_get_active(w),
-		-1);
-
-	// Update conf
-	GList *l = self->plugins;
-	GList *tmp = NULL;
-	while (l)
-	{
-		if (gel_plugin_is_enabled(GEL_PLUGIN(l->data)))
-			tmp = g_list_prepend(tmp, (gpointer) gel_plugin_get_pathname(GEL_PLUGIN(l->data)));
-		l = l->next;
-	}
-	tmp = g_list_reverse(tmp);
-	gchar *plugins_str = gel_list_join(",", tmp);
-	g_list_free(tmp);
-	eina_conf_set_str(self->conf, "/plugins/enabled", plugins_str);
-	g_free(plugins_str);
-	*/
 }
 
 static void

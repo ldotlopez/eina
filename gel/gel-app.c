@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Plugins"
+#define GEL_DOMAIN "Gel::Plugin"
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -451,7 +451,6 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 		gchar *pathname = g_module_build_path(parent, name);
 		g_free(parent);
 
-		gel_warn("Try '%s' for %s", pathname, name);
 		if ((ret = gel_app_load_plugin(self, pathname, name, NULL)) != NULL)
 		{
 			g_free(pathname);
