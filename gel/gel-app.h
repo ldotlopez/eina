@@ -96,9 +96,9 @@ GelPlugin *gel_app_load_plugin_by_name    (GelApp *self, gchar *name,     GError
 GelPlugin *gel_app_load_plugin            (GelApp *self, gchar *pathname, gchar *name, GError **error);
 
 #define gel_app_unload_plugin_by_pathname(self,pathname,error) \
-	gel_app_unload_plugin(self,gel_app_get_plugin_by_pathname(self,pathname,error), error)
+	gel_app_unload_plugin(self,gel_app_get_plugin_by_pathname(self,pathname), error)
 #define gel_app_unload_plugin_by_name(self,name,error) \
-	gel_app_unload_plugin(self,gel_app_get_plugin_by_name(self,name,error), error)
+	gel_app_unload_plugin(self,gel_app_get_plugin_by_name(self,name), error)
 gboolean   gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error);
 
 #if 0

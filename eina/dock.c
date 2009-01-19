@@ -124,7 +124,7 @@ dock_exit(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 
 	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
-	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
+	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 		
 	eina_conf_set_int(self->conf, "/ui/main-window/width",  self->w);
 	eina_conf_set_int(self->conf, "/ui/main-window/height", self->h);

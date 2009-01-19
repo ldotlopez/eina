@@ -323,29 +323,21 @@ static void
 app_dispose_cb(GelApp *app, gpointer data)
 {
 	gel_warn("Exit main loop, unload modules");
-#if 0
+#if 1
 	gchar **modules = (gchar **) data;
 	gint i = 0;
 	while (modules[i]) i++; i--; // Count how many modules
 
 	for (;i >= 0; i--)
 	{
+		gel_warn("Unload %s", modules[i]);
 		GError *error = NULL;
-		GelPlugin *plugin = gel_app_get_plugin_by_name(app, modules[i]);
-		if (plugin == NULL)
-		{
-			gel_error(N_("Cannot find plugin %s"), modules[i]);
-			continue;
-		}
-		if ((gel_plugin_get_usage(plugin) == 1) && !gel_plugin_fini(plugin, &error))
+		if (!gel_app_unload_plugin_by_name(app, modules[i], &error))
 		{
 			gel_error(N_("Cannot fini plugin %s: %s"), modules[i], error->message);
 			g_error_free(error);
 			continue;
 		}
-		gel_warn("Try to unref plugin %s with usage %d", modules[i], gel_plugin_get_usage(plugin));
-		gel_plugin_unref(plugin);
-		gel_warn("Unload %s", modules[i]);
 	}
 #endif
 	gtk_main_quit();

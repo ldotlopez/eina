@@ -200,8 +200,8 @@ vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaVogon *self = gel_app_shared_get(app, "vogon");
 
-	g_object_unref(self->icon);
-	g_object_unref(self->ui_mng);
+	gel_free_and_invalidate(self->icon, NULL, g_object_unref);
+	gel_free_and_invalidate(self->ui_mng, NULL, g_object_unref);
 
 	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 	eina_obj_fini(EINA_OBJ(self));

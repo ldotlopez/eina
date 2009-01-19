@@ -70,12 +70,6 @@ enum {
 };
 static guint gel_app_signals[LAST_SIGNAL] = { 0 };
 
-static gchar*
-print_plugin(const gpointer p)
-{
-	return g_strdup(gel_plugin_stringify(GEL_PLUGIN(p)));
-}
-
 static void
 gel_app_dispose (GObject *object)
 {
@@ -91,43 +85,11 @@ gel_app_dispose (GObject *object)
 		}
 
 		// Unload all plugins in reverse order
-		g_printf("Deleting plugins\n");
 		if (self->priv->plugins)
 		{
-			GList *iter = self->priv->plugins = g_list_reverse(self->priv->plugins);
-			gel_list_printf(self->priv->plugins, "%s\n", print_plugin);
-			// GError *error = NULL;
-			
-			while (iter)
-			{
-				GelPlugin *plugin = GEL_PLUGIN(iter->data);
-				if (gel_plugin_get_usage(plugin) > 0)
-				{
-					g_warning(N_("Plugin %s is still in use"), gel_plugin_stringify(plugin));
-					iter = iter->next;
-					continue;
-				}
-				gel_plugin_unref(plugin);
-				iter = iter->next;
-			/*
-				GelPlugin *plugin = GEL_PLUGIN(iter->data);
-				g_printf("Deleting plugin: %s\n", plugin->name);
-				if (gel_plugin_is_enabled(plugin) && !gel_app_fini_plugin(self, plugin, &error))
-				{
-					g_warning("Cannot fini plugin '%s': %s\n", gel_plugin_stringify(plugin), error->message);
-					g_error_free(error);
-					iter = iter->next; continue;
-				}
-				if (!gel_app_unload_plugin(self, plugin, &error))
-				{
-					g_warning("Cannot fini plugin '%s': %s\n", gel_plugin_stringify(plugin), error->message);
-					g_error_free(error);
-					iter = iter->next; continue;
-				}
-			*/
-				iter = iter->next;
-			}
-			self->priv->plugins = NULL;
+			g_warning(N_("%d plugins still loadeds, will be leaked. Use a dispose func (gel_app_set_dispose_func) to unload them at exit"),
+				g_list_length(self->priv->plugins));
+			gel_free_and_invalidate(self->priv->plugins, NULL, g_list_free);
 		}
 
 		// Clear paths
@@ -453,10 +415,11 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	if (plugin == NULL)
 		return NULL;
 	
-	// Plugin is already ref'ed since we get if using _query style function
-
-	if (!gel_plugin_init(plugin, error))
+	if (!gel_plugin_is_enabled(plugin) && !gel_plugin_init(plugin, error))
+	{
+		gel_plugin_unref(plugin);
 		return NULL;
+	}
 
 	return plugin;
 }
@@ -506,13 +469,17 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	if (plugin == NULL)
 		return FALSE;
 
-	if (!gel_plugin_fini(plugin, error))
+	if ((gel_plugin_get_usage(plugin) == 1) && gel_plugin_is_enabled(plugin) && (!gel_plugin_fini(plugin, error)))
 		return FALSE;
 
 	gel_plugin_unref(plugin);
+
 	return TRUE;
 }
 
+// --
+// Shared management
+// --
 gboolean gel_app_shared_register(GelApp *self, gchar *name, gsize size)
 {
 	if (gel_app_shared_get(self, name) != NULL)

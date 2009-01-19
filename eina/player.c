@@ -320,6 +320,7 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	g_free(self->stream_info_fmt);
 
 	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
+	eina_obj_unrequire(EINA_OBJ(self), "preferences", NULL);
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;

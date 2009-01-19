@@ -132,20 +132,29 @@ gel_plugin_unref(GelPlugin *self)
 	// Warn if refcount already 0
 	if (self->priv->refs == 0)
 	{
-		g_warning(N_("GelPlugin %s refcount catch a negative refcount. Ignoring but this is a bug in someone's code"), gel_plugin_stringify(self));
+		g_warning(N_("GelPlugin %s refcount catch a negative refcount. Ignoring, but this is a bug in someone's code"), gel_plugin_stringify(self));
 		return;
 	}
 
 	// Warn and abort if ref count will reach 0 and still enabled
 	if ((self->priv->refs == 1) && gel_plugin_is_enabled(self))
 	{
-		g_warning(N_("GelPlugin %s catch an unref that will reach 0 referecences while plugin still enabled. This is a bug"), gel_plugin_stringify(self));
+		g_warning(N_("GelPlugin %s catch drop last reference while plugin enabled. Ignoring, but this is a bug in someone's code"), gel_plugin_stringify(self));
 		return;
 	}
 
 	self->priv->refs--;
 	if (self->priv->refs == 0)
+	{
+		GError *error = NULL;
+		if (gel_plugin_is_enabled(self) && !gel_plugin_fini(self, &error))
+		{
+			g_warning(N_("Cannot finalize plugin %s: %s"), gel_plugin_stringify(self), error->message);
+			self->priv->refs++;
+			return;
+		}
 		gel_plugin_free(self, NULL);
+	}
 }
 
 guint
@@ -247,7 +256,7 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 	else
 		finalized = self->fini(self->priv->app, self, error);
 	
-	self->priv->enabled = finalized;
+	self->priv->enabled = !finalized;
 	if (!finalized && (*error == NULL))
 	{
 		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,

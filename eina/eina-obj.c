@@ -81,6 +81,21 @@ eina_obj_require(EinaObj *self, gchar *plugin_name, GError **error)
 {
 	GelApp *app = eina_obj_get_app(self);
 
+	GelPlugin *plugin = gel_app_load_plugin_by_name(app, plugin_name, error);
+	if (plugin == NULL)
+		return FALSE;
+
+	gpointer ret = gel_app_shared_get(app, plugin_name);
+	if (ret != NULL)
+		return ret;
+
+	g_set_error(error, eina_obj_quark(),
+		EINA_OBJ_SHARED_NOT_FOUND, N_("Shared mem for %s not found"), plugin_name);
+
+	gel_app_unload_plugin(app, plugin, NULL);
+	return FALSE;
+
+#if 0
 	// 1. Try to get a reference to plugin and reference+1 it
 	GelPlugin *plugin = gel_app_get_plugin_by_name(app, plugin_name);
 	if (plugin == NULL)
@@ -114,6 +129,7 @@ eina_obj_require(EinaObj *self, gchar *plugin_name, GError **error)
 	eina_obj_unrequire(self, plugin_name, NULL);
 
 	return FALSE;
+#endif
 }
 
 gboolean
@@ -121,14 +137,10 @@ eina_obj_unrequire(EinaObj *self, gchar *plugin_name, GError **error)
 {
 	 GelApp *app = eina_obj_get_app(self);
 
-	 GelPlugin *plugin = gel_app_get_plugin_by_name(app, plugin_name);
-	 if (plugin == NULL)
-	 	return FALSE;
-
-	if ((gel_plugin_get_usage(plugin) == 1) && gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, error))
+	GelPlugin *plugin = gel_app_get_plugin_by_name(app, plugin_name);
+	if (plugin == NULL)
 		return FALSE;
 
-	gel_plugin_unref(plugin);
 	if (!gel_app_unload_plugin(app, plugin, error))
 		return FALSE;
 
