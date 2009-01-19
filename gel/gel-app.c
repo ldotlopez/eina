@@ -428,10 +428,12 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 GelPlugin *
 gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
 {
-	// Just build symbol and call gel_app_load_plugin
-	gchar *symbol = symbol_from_pathname(pathname);
-	GelPlugin *ret = gel_app_load_plugin(self, pathname, symbol, error);
-	g_free(symbol);
+	// Just build name and call gel_app_load_plugin
+	gchar *dirname = g_path_get_dirname(pathname);
+	gchar *name = g_path_get_basename(dirname);
+	g_free(dirname);
+	GelPlugin *ret = gel_app_load_plugin(self, pathname, name, error);
+	g_free(name);
 	return ret;
 }
 
@@ -445,7 +447,11 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 	GList *iter = paths;
 	while (iter)
 	{
-		gchar *pathname = g_module_build_path((gchar *) iter->data, name);
+		gchar *parent = g_build_filename((gchar *) iter->data, name, NULL);
+		gchar *pathname = g_module_build_path(parent, name);
+		g_free(parent);
+
+		gel_warn("Try '%s' for %s", pathname, name);
 		if ((ret = gel_app_load_plugin(self, pathname, name, NULL)) != NULL)
 		{
 			g_free(pathname);
