@@ -48,6 +48,10 @@ enum {
 };
 
 static void
+app_init_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self);
+static void
+app_fini_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self);
+static void
 plugins_free_plugins(EinaPlugins *self);
 static void
 plugins_show(EinaPlugins *self);
@@ -173,7 +177,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_ui_manager_ensure_update(ui_manager);
 
 	// Load plugins
-	/*
 	const gchar *plugins_str = eina_conf_get_str(self->conf, "/plugins/enabled", NULL);
 	if (plugins_str)
 	{
@@ -184,17 +187,10 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 			GError *err = NULL;
 			gel_warn("Try to load %s", plugins[i]);
 
-			GelPlugin *plugin = gel_app_query_plugin_by_pathname(app, plugins[i], &err);
+			GelPlugin *plugin = gel_app_load_plugin_by_pathname(app, plugins[i], &err);
 			if (!plugin)
 			{
-				gel_error("Cannot query plugin from path '%s': %s", plugins[i], err->message);
-				gel_free_and_invalidate(err, NULL, g_error_free);
-				continue;
-			}
-
-			if (!gel_plugin_is_enabled(plugin) && !gel_plugin_init(plugin, &err))
-			{
-				gel_error("Cannot init plugin '%s': %s", gel_plugin_stringify(plugin), err->message);
+				gel_error("Cannot load plugin from path '%s': %s", plugins[i], err->message);
 				gel_free_and_invalidate(err, NULL, g_error_free);
 				continue;
 			}
@@ -203,7 +199,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		}
 		g_strfreev(plugins);
 	}
-	*/
 
 	return TRUE;
 }
@@ -263,6 +258,10 @@ static void
 plugins_show(EinaPlugins *self)
 {
 	plugins_treeview_fill(self);
+	g_signal_connect(eina_obj_get_app(EINA_OBJ(self)), "plugin-init",
+		(GCallback) app_init_plugin_cb, self);
+	g_signal_connect(eina_obj_get_app(EINA_OBJ(self)), "plugin-fini",
+		(GCallback) app_fini_plugin_cb, self);
 	gtk_widget_show(self->window);
 }
 
@@ -270,6 +269,10 @@ static void
 plugins_hide(EinaPlugins *self)
 {
 	plugins_free_plugins(self);
+	g_signal_handlers_disconnect_by_func(eina_obj_get_app(EINA_OBJ(self)),
+		 app_init_plugin_cb, self);
+	g_signal_handlers_disconnect_by_func(eina_obj_get_app(EINA_OBJ(self)),
+		 app_fini_plugin_cb, self);
 	gtk_widget_hide(self->window);
 }
 
@@ -357,6 +360,19 @@ plugins_update_plugin_properties(EinaPlugins *self)
 // --
 // Callbacks
 // --
+
+static void
+app_init_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self)
+{
+	gel_warn("Got init-plugin %s signal", plugin->name);
+}
+
+static void
+app_fini_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self)
+{
+	gel_warn("Got fini-plugin %s signal", plugin->name);
+}
+
 static void
 plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 {
@@ -393,7 +409,6 @@ plugins_cell_renderer_toggle_toggled_cb
 (GtkCellRendererToggle *w, gchar *path, EinaPlugins *self)
 {
 	GtkTreePath *_path;
-	GtkTreeIter iter;
 	gint *indices;
 	GelPlugin *plugin;
 	GError *error = NULL;
@@ -413,6 +428,24 @@ plugins_cell_renderer_toggle_toggled_cb
 	}
 	gtk_tree_path_free(_path);
 
+	gboolean success;
+	if (gel_plugin_is_enabled(plugin) && (gel_plugin_get_usage(plugin) == 2))
+	{
+		gel_plugin_unref(plugin);
+		if ((success = gel_plugin_fini(plugin, &error)) == FALSE)
+			gel_plugin_ref(plugin);
+	}
+	else
+	{
+		success = gel_plugin_init(plugin, &error);
+	}
+	
+	if (!success)
+	{
+		gel_warn("Got error: %s", error->message);
+		g_error_free(error);
+	}
+	/*
 	gboolean do_toggle = FALSE;
 	if (gtk_cell_renderer_toggle_get_active(w) == FALSE)
 		// C std99 follows boolean logic? its only one evaluated?
@@ -450,6 +483,7 @@ plugins_cell_renderer_toggle_toggled_cb
 	g_list_free(tmp);
 	eina_conf_set_str(self->conf, "/plugins/enabled", plugins_str);
 	g_free(plugins_str);
+	*/
 }
 
 static void
