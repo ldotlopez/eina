@@ -97,9 +97,18 @@ gel_app_dispose (GObject *object)
 			GList *iter = self->priv->plugins = g_list_reverse(self->priv->plugins);
 			gel_list_printf(self->priv->plugins, "%s\n", print_plugin);
 			// GError *error = NULL;
-
+			
 			while (iter)
 			{
+				GelPlugin *plugin = GEL_PLUGIN(iter->data);
+				if (gel_plugin_get_usage(plugin) > 0)
+				{
+					g_warning(N_("Plugin %s is still in use"), gel_plugin_stringify(plugin));
+					iter = iter->next;
+					continue;
+				}
+				gel_plugin_unref(plugin);
+				iter = iter->next;
 			/*
 				GelPlugin *plugin = GEL_PLUGIN(iter->data);
 				g_printf("Deleting plugin: %s\n", plugin->name);
