@@ -377,7 +377,6 @@ static void
 update_enabled(EinaPlugins *self, GelPlugin *plugin)
 {
 	gint index;
-	gel_warn("Updating %s", plugin->name);
 	if ((index = g_list_index(self->plugins, plugin)) == -1)
 	{
 		gel_warn("Unknow plugin initialized, ignoring");

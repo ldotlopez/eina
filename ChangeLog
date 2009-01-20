@@ -1,3 +1,28 @@
+2009-01-20 18:03  xuzito
+
+	* plugins/adb/adb.c, plugins/adb/adb.h, plugins/adb/common.c,
+	  plugins/adb/common.h, plugins/recently2/iface.c,
+	  plugins/recently2/recently.c, plugins/recently2/recently.h:
+	  Revert some evil experiments with adb
+
+2009-01-20 18:02  xuzito
+
+	* eina/main.c: Print error when cannot load plugin
+
+2009-01-20 17:16  xuzito
+
+	* ChangeLog, TODO: Update TODO and ChangeLog
+
+2009-01-20 17:13  xuzito
+
+	* configure.in, eina/Makefile.am, eina/dbus-marshallers.list,
+	  eina/dbus.c: Add DBus support for multimedia keys
+
+2009-01-20 15:33  xuzito
+
+	* eina/main.c: Add option to ignore existing instances and create a
+	  new one
+
 2009-01-20 15:03  xuzito
 
 	* plugins/adb/adb.c, plugins/adb/adb.h, plugins/adb/common.c,

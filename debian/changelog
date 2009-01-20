@@ -1,3 +1,9 @@
+eina (0.7.3~ppa1) intrepid; urgency=low
+
+  * Release of 0.7.3
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Tue, 20 Jan 2009 18:30:30 +0100
+
 eina (0.7.2.93~ppa1) intrepid; urgency=low
 
   * First try for 0.7.93

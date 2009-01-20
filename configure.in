@@ -1,5 +1,5 @@
-AC_INIT([eina], 0.7.3.93, xuzo@cuarentaydos.com)
-AM_INIT_AUTOMAKE([eina], [0.7.2.93])
+AC_INIT([eina], 0.7.3, xuzo@cuarentaydos.com)
+AM_INIT_AUTOMAKE([eina], [0.7.3])
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
