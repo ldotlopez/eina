@@ -67,3 +67,18 @@ eina_SOURCES = \
 	$(NOINST_H_FILES)          \
 	$(INST_H_FILES)
 
+BUILT_SOURCES = dbus-marshallers.c dbus-marshallers.h
+CLEAN_FILES = dbus-marshallers.c dbus-marshallers.h
+EXTRA_DIST = dbus-marshallers.list
+
+dbus-marshallers.h: dbus-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header > $@
+
+dbus-marshallers.c: dbus-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
+
+if USE_DBUS_GLIB
+eina_SOURCES += dbus.c dbus-marshallers.c
+NOINST_H_FILES += dbus-marshallers.h
+endif
+
