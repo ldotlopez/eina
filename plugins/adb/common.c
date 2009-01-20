@@ -56,6 +56,33 @@ adb_exec_querys(Adb *self, const gchar **querys, gint *success, GError **error)
 gboolean
 adb_set_variable(Adb *self, gchar *variable, gchar *value)
 {
+#if 0
+	gchar *fmt = NULL;
+	gboolean deference = TRUE;
+	switch (type)
+	{
+	case G_TYPE_BOOLEAN:
+	case G_TYPE_UINT:
+	case G_TYPE_INT:
+		fmt = "%d";
+		break;
+	case G_TYPE_STRING:
+		deference = FALSE;
+		fmt = "%s";
+		break;
+	case G_TYPE_CHAR:
+		fmt = "%c";
+		break;
+	case G_TYPE_FLOAT:
+		fmt = "%f";
+		break;
+	default:
+		return FALSE;
+	}
+	gchar *query = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%%s'", fmt);
+	gchar q = g_strdup_printf(query, value, (deference ? *variable : variable));
+	g_free(query);
+#endif
 	gchar *q = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%s'", variable, value);
 
 	char *error = NULL;
@@ -101,4 +128,3 @@ adb_table_get_schema_version(Adb *self, gchar *table)
 	}
 	return -3;
 }
-

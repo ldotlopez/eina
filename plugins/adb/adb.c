@@ -101,7 +101,6 @@ adb_db_setup(Adb *self)
 	return TRUE;
 }
 
-
 static void
 lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 {
