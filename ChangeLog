@@ -1,3 +1,355 @@
+2009-01-20 15:03  xuzito
+
+	* plugins/adb/adb.c, plugins/adb/adb.h, plugins/adb/common.c,
+	  plugins/adb/common.h, plugins/recently2/iface.c,
+	  plugins/recently2/recently.c, plugins/recently2/recently.h:
+
+2009-01-19 22:14  xuzito
+
+	* configure.in, eina/player.c, eina/plugins.c, eina/plugins.h:
+	  Remove some dead files
+
+2009-01-19 22:14  xuzito
+
+	* debian/changelog: Add a new entry for the upcoming release
+
+2009-01-19 20:37  xuzito
+
+	* eina/eina-file-chooser-dialog.c: Run queue after a file found by
+	  file_chooser_query_info_cb.
+	  Fixes: Eina is unresponsive after trying to play or enqueue
+	  files (nor directories)
+
+2009-01-19 20:14  xuzito
+
+	* eina/plugins.c, gel/gel-app.c: Fix plugins selector
+
+2009-01-19 18:13  xuzito
+
+	* plugins/recently2/recently.c, plugins/recently2/recently.h: Add
+	  missing files
+
+2009-01-19 17:34  xuzito
+
+	* eina/plugins.c: Work on adapt plugin manager to a signal-based
+	  aproach
+
+2009-01-19 17:33  xuzito
+
+	* plugins/recently2/Makefile.am, plugins/recently2/iface.c: Add
+	  some functionality to test dependency tracking
+
+2009-01-19 16:31  xuzito
+
+	* gel/gel-app.c: Fix a minor bug in _load_by_name function which
+	  causes unloadable extern plugins
+
+2009-01-19 16:01  xuzito
+
+	* eina/dock.c, eina/eina-obj.c, eina/main.c, eina/player.c,
+	  eina/vogon.c, gel/gel-app.c, gel/gel-app.h, gel/gel-plugin.c: Fix
+	  exit routines
+
+2009-01-19 12:41  xuzito
+
+	* eina/main.c, eina/plugins.c, gel/gel-app.c: Work on GelApp
+	  finalize routines
+
+2009-01-19 12:17  xuzito
+
+	* eina/plugins.c, gel/gel-app.c: Fix bug in
+	  gel_app_get_plugin_by_pathname
+
+2009-01-19 07:52  xuzito
+
+	* eina/Makefile.am, eina/eina-obj.c, eina/main.c, eina/plugins.c,
+	  eina/vogon.c, gel/Makefile.am, gel/gel-app.c, gel/gel-app.h,
+	  gel/gel-plugin.c, gel/gel-plugin.h: Update GelApp/GelPlugin API
+
+2009-01-16 16:33  xuzito
+
+	* gel/gel-hub2.c, gel/gel-hub2.h: Purge obsolete files
+
+2009-01-16 16:31  xuzito
+
+	* eina/artwork.c, eina/artwork.h, eina/class-conf-file.c,
+	  eina/class-conf-file.h, eina/dock.c, eina/dock.h,
+	  eina/eina-artwork.c, eina/eina-artwork.h,
+	  eina/eina-file-chooser-dialog.c, eina/eina-file-chooser-dialog.h,
+	  eina/eina-obj.c, eina/eina-obj.h, eina/eina-plugin.c,
+	  eina/eina-plugin.h, eina/eina-preferences-dialog.c,
+	  eina/eina-preferences-dialog.h, eina/eina-seek.c,
+	  eina/eina-seek.h, eina/eina-volume.c, eina/eina-volume.h,
+	  eina/fs.c, eina/fs.h, eina/log.c, eina/lomo.c, eina/lomo.h,
+	  eina/main.c, eina/player.c, eina/player.h, eina/playlist.c,
+	  eina/playlist.h, eina/plugins.c, eina/plugins.h,
+	  eina/preferences.c, eina/preferences.h, eina/settings.c,
+	  eina/settings.h, eina/template.c, eina/template.h, eina/vogon.c,
+	  gel/gel-app.c, gel/gel-app.h, gel/gel-hub2.c, gel/gel-hub2.h,
+	  gel/gel-io-misc.c, gel/gel-io-misc.h, gel/gel-io-op-result.c,
+	  gel/gel-io-op-result.h, gel/gel-io-ops.c, gel/gel-io-ops.h,
+	  gel/gel-io-recurse-tree.c, gel/gel-io-recurse-tree.h,
+	  gel/gel-io.h, gel/gel-misc.c, gel/gel-misc.h, gel/gel-plugin.c,
+	  gel/gel-plugin.h, gel/gel-str-parser.c, gel/gel-str-parser.h,
+	  gel/gel-string.c, gel/gel-string.h, gel/gel-ui.c, gel/gel-ui.h,
+	  gel/gel.h, lomo/meta.c, lomo/meta.h, lomo/pl.c, lomo/pl.h,
+	  lomo/player-default-vtable.c, lomo/player-default-vtable.h,
+	  lomo/player-priv.c, lomo/player-priv.h, lomo/player.c,
+	  lomo/player.h, lomo/stream.c, lomo/stream.h, lomo/util.c,
+	  lomo/util.h, misc/gpl-header, plugins/adb/adb.c,
+	  plugins/adb/adb.h, plugins/adb/common.c, plugins/adb/common.h,
+	  plugins/adb/iface.c, plugins/adb/upgrade.c,
+	  plugins/adb/upgrade.h, plugins/coverplus/banshee.c,
+	  plugins/coverplus/banshee.h, plugins/coverplus/iface.c,
+	  plugins/coverplus/infolder-async.c,
+	  plugins/coverplus/infolder-sync.c, plugins/coverplus/infolder.h,
+	  plugins/hooktest/hook-test.c, plugins/lastfm/lastfm.c,
+	  plugins/lastfm/lastfm.h, plugins/lastfm/submit.c,
+	  plugins/lastfm/submit.h, plugins/lastfmcover/lastfmcover.c,
+	  plugins/lastfminfo/lastfm-info.c, plugins/notify/notify.c,
+	  plugins/notify/notify.h, plugins/recently/recently.c,
+	  plugins/recently/recently.h, plugins/recently/scores.c,
+	  plugins/recently/scores.h, plugins/recently2/iface.c,
+	  tests/eina-tagger.c, tests/eina-tagger.h,
+	  tests/gel-background-box/gel-ui-background-box.c,
+	  tests/gel-background-box/gel-ui-background-box.h,
+	  tests/gel-background-box/test.c, tests/parse.c, tools/add-header:
+	  Add GPL headers
+
+2009-01-16 16:19  xuzito
+
+	* Makefile.am: Add some files like README, AUTHORS, etc...
+
+2009-01-14 16:37  xuzito
+
+	* eina/artwork.c, eina/dock.c, eina/log.c, eina/lomo.c,
+	  eina/player.c, eina/playlist.c, eina/plugins.c,
+	  eina/preferences.c, eina/settings.c, eina/template.c,
+	  eina/vogon.c, gel/gel-plugin.c, gel/gel-plugin.h,
+	  plugins/adb/iface.c, plugins/coverplus/iface.c,
+	  plugins/recently2/iface.c: Change API of GelPlugin, init and fini
+	  functions now get GelApp as first parameter
+
+2009-01-14 16:23  xuzito
+
+	* plugins/Makefile.am, plugins/recently2/Makefile.am,
+	  plugins/recently2/iface.c, plugins/recently2/recently.c: Reenable
+	  a dummy version of recently2
+
+2009-01-14 16:17  xuzito
+
+	* eina/plugins.c: Dont fill treeview at startup
+
+2009-01-14 16:16  xuzito
+
+	* eina/main.c: Remove usage of GelHub if libunique is present
+
+2009-01-14 16:16  xuzito
+
+	* plugins/coverplus/iface.c: Set error and return if cannot init
+	  infolder backend
+
+2009-01-14 16:15  xuzito
+
+	* eina/eina-artwork.c: Fix bug when no more providers available
+
+2009-01-14 15:58  xuzito
+
+	* eina/eina-cover.c, eina/eina-cover.h: Remove unused EinaCover
+
+2009-01-14 11:02  xuzito
+
+	* eina/eina-plugin.c, eina/eina-plugin.h, plugins/Makefile.am,
+	  plugins/adb/adb.c, plugins/adb/adb.h, plugins/adb/iface.c,
+	  plugins/coverplus/banshee.c, plugins/coverplus/banshee.h,
+	  plugins/coverplus/infolder-sync.c, plugins/coverplus/infolder.h:
+	  Restore ADB plugin
+
+2009-01-14 08:54  xuzito
+
+	* configure.in, eina/main.c, gel/gel-app.c: Remove some traces of
+	  GelHub
+
+2009-01-14 08:21  xuzito
+
+	* gel/gel-misc.c, gel/gel-misc.h: Add new API: gel_(s)list_printf
+
+2009-01-14 08:19  xuzito
+
+	* eina/log.c, eina/lomo.c: Remove interfaces for GelHub
+
+2009-01-14 08:18  xuzito
+
+	* gel/Makefile.am, gel/gel-hub.c, gel/gel-hub.h, gel/gel.h: Remove
+	  GelHub
+
+2009-01-14 08:17  xuzito
+
+	* plugins/coverplus/Makefile.am, plugins/coverplus/iface.c,
+	  plugins/coverplus/iface2.c: Replace iface.c by iface.c
+
+2009-01-13 14:18  xuzito
+
+	* eina/Makefile.am, eina/class-conf-file.c, eina/class-conf-file.h,
+	  eina/ether.c, eina/ether.h, eina/plugins.c, eina/settings.c:
+	  Ether deleted, fix plugin selector
+
+2009-01-13 12:43  xuzito
+
+	* eina/Makefile.am, eina/base.c, eina/base.h, eina/eina-obj.h,
+	  eina/eina-plugin.c, eina/eina-plugin.h, eina/template.c,
+	  eina/template.h, plugins/coverplus/iface2.c,
+	  plugins/coverplus/infolder-sync.c, plugins/coverplus/infolder.h:
+	  Commit last bits from transition to GelApp
+
+2009-01-13 12:19  xuzito
+
+	* eina/Makefile.am, eina/main.c, eina/settings.h, eina/vogon.c,
+	  eina/vogon.h, eina/vogon2.c: Move vogon
+
+2009-01-13 12:10  xuzito
+
+	* eina/Makefile.am, eina/dock.c, eina/eina-plugin.h, eina/player.c,
+	  eina/playlist.c, eina/plugins.c, eina/settings.c,
+	  eina/settings.h, eina/settings2.c, eina/settings2.h: Move
+	  settings
+
+2009-01-13 12:09  xuzito
+
+	* eina/vogon2.c: Fix missing pieces from Vogon
+
+2009-01-13 12:01  xuzito
+
+	* eina/Makefile.am, eina/plugins.c, eina/plugins.h,
+	  eina/plugins2.c, eina/plugins2.h: Move plugins
+
+2009-01-13 11:58  xuzito
+
+	* eina/Makefile.am, eina/playlist.c, eina/playlist.h,
+	  eina/playlist2.c, eina/playlist2.h: Rename playlist
+
+2009-01-13 11:55  xuzito
+
+	* eina/Makefile.am, eina/dock.c, eina/eina-plugin.c,
+	  eina/eina-plugin.h, eina/main.c, eina/player.c, eina/player.h,
+	  eina/player2.c, eina/player2.h, eina/plugins2.c,
+	  eina/preferences.c, eina/preferences.h, eina/preferences2.c,
+	  eina/preferences2.h, eina/vogon2.c: Rename player and preferences
+
+2009-01-13 11:50  xuzito
+
+	* eina/Makefile.am, eina/dock.c, eina/dock.h, eina/dock2.c,
+	  eina/dock2.h, eina/eina-plugin.c, eina/playlist2.c: Rename dock
+
+2009-01-13 11:47  xuzito
+
+	* eina/Makefile.am, eina/eina-plugin.h, eina/loader.c,
+	  eina/loader.h, eina/main.c, eina/player2.c, eina/plugin.c,
+	  eina/plugin.h, plugins/Makefile.am, plugins/coverplus/banshee.c:
+	  Remove old cruft from GelHub/EinaLoader/EinaPluginv1
+
+2009-01-13 11:46  xuzito
+
+	* eina/artwork.c, eina/artwork.h, eina/artwork2.c, eina/artwork2.h:
+	  Move artwork plugin
+
+2009-01-13 11:37  xuzito
+
+	* eina/Makefile.am, eina/eina-obj.c, gel/gel-plugin.h,
+	  plugins/coverplus/Makefile.am, plugins/coverplus/iface2.c,
+	  plugins/coverplus/infolder-sync.c, plugins/coverplus/infolder.h:
+	  Port coverplus to EinaPlugin2
+
+2009-01-13 11:36  xuzito
+
+	* eina/eina-plugin.c, eina/eina-plugin.h: Addons functions for
+	  GelPlugin: EinaPlugin
+
+2009-01-13 07:39  xuzito
+
+	* configure.in, eina/plugins2.c, eina/preferences2.c,
+	  gel/gel-plugin.h: Misc fixes on some plugins.
+
+2009-01-12 17:26  xuzito
+
+	* eina/Makefile.am, eina/main.c, eina/vogon2.c: Vogon ported to
+	  GelApp
+
+2009-01-12 17:04  xuzito
+
+	* eina/Makefile.am, eina/main.c, eina/plugins2.c, eina/plugins2.h,
+	  gel/gel-app.c: Plugins ported to GelApp but still need work
+
+2009-01-12 16:22  xuzito
+
+	* gel/gel-app.c, gel/gel-app.h: Add
+	  gel_app_query_plugin_by_pathname to API
+
+2009-01-12 15:53  xuzito
+
+	* eina/Makefile.am, eina/player2.c, eina/preferences2.c,
+	  eina/preferences2.h: Port preferences to GelApp
+
+2009-01-12 15:23  xuzito
+
+	* configure.in, eina/artwork2.c, eina/dock2.c, eina/main.c,
+	  eina/player2.c, gel/gel-app.c, gel/gel-plugin.c: Fix exit
+	  sequence
+
+2009-01-10 22:38  xuzito
+
+	* eina/Makefile.am, eina/main.c, eina/player2.c, eina/playlist.c,
+	  eina/playlist2.c, eina/playlist2.h: Port playlist to GelApp
+
+2009-01-10 21:38  xuzito
+
+	* eina/Makefile.am, eina/dock.c, eina/dock2.c, eina/dock2.h,
+	  eina/eina-obj.c, eina/main.c, eina/player2.c: Port dock to GelApp
+
+2009-01-10 20:56  xuzito
+
+	* eina/Makefile.am, eina/eina-obj.c, eina/eina-obj.h, eina/lomo.h,
+	  eina/player.c, eina/player2.c, eina/player2.h: Port player to
+	  GelApp. Preferences dialog is disabled
+
+2009-01-10 20:24  xuzito
+
+	* eina/artwork.h: Wrong edited file
+
+2009-01-10 20:21  xuzito
+
+	* eina/artwork.h: Fix wrong define which still refernces to
+	  EinaBase
+
+2009-01-10 20:08  xuzito
+
+	* configure.in, eina/Makefile.am, eina/settings2.c,
+	  eina/settings2.h: Port settings to GelApp
+
+2009-01-10 20:01  xuzito
+
+	* eina/Makefile.am, eina/artwork2.c, eina/artwork2.h: Port artwork
+	  to GelApp
+
+2009-01-10 19:42  xuzito
+
+	* ChangeLog, eina/Makefile.am, eina/artwork.h, eina/base.c,
+	  eina/base.h, eina/eina-obj.c, eina/eina-obj.h, lomo/player.h:
+	  Extend usage of GelApp
+
+2009-01-10 19:41  xuzito
+
+	* eina/main.c: Use GelApp on main.c
+
+2009-01-10 19:40  xuzito
+
+	* eina/log.c, eina/lomo.c, eina/lomo.h: Port log and lomo to GelApp
+
+2009-01-10 19:39  xuzito
+
+	* gel/gel-app.c, gel/gel-app.h, gel/gel-plugin.c, gel/gel-plugin.h:
+	  GelApp work
+
 2009-01-08 00:52  xuzito
 
 	* eina/Makefile.am, eina/loader.c, eina/loader.h, eina/lomo.c,

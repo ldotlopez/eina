@@ -41,20 +41,20 @@ V DnD (Add support to playlist to enqueue)
   Providers must be shared, they should be stored in EinaCoverClass to be
   shared between instances
 - Make Dock an entity
-- Unify GelHub/GelSlave and EinaPlugin
+V Unify GelHub/GelSlave and EinaPlugin
 - Reduce memory usage to target netbooks and MID devices
-- Multimedia keys (DBus:
+V Multimedia keys (DBus:
   src/Extensions/Banshee.MultimediaKeys/Banshee.MultimediaKeys/MultimediaKeysService.cs)
 - SQL playlist plugin
 - Dock must be an independant component, EinaPlayer or EinaFoo should be
   reclaim them
 - Rethink the EinaCover interface to plugins
-- LibUnique
+V LibUnique
 - warn_unused_result gcc 3.4 attribute
 
 Misc
 ====
 - http://chishangcheng.googlepages.com/amaroKusabilityreport.pdf
 - Migrate to GObject and GInterface
-- DnD
-- Single instance
+V DnD
+V Single instance
