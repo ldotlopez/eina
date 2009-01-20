@@ -56,33 +56,6 @@ adb_exec_querys(Adb *self, const gchar **querys, gint *success, GError **error)
 gboolean
 adb_set_variable(Adb *self, gchar *variable, gchar *value)
 {
-#if 0
-	gchar *fmt = NULL;
-	gboolean deference = TRUE;
-	switch (type)
-	{
-	case G_TYPE_BOOLEAN:
-	case G_TYPE_UINT:
-	case G_TYPE_INT:
-		fmt = "%d";
-		break;
-	case G_TYPE_STRING:
-		deference = FALSE;
-		fmt = "%s";
-		break;
-	case G_TYPE_CHAR:
-		fmt = "%c";
-		break;
-	case G_TYPE_FLOAT:
-		fmt = "%f";
-		break;
-	default:
-		return FALSE;
-	}
-	gchar *query = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%%s'", fmt);
-	gchar q = g_strdup_printf(query, value, (deference ? *variable : variable));
-	g_free(query);
-#endif
 	gchar *q = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%s'", variable, value);
 
 	char *error = NULL;
@@ -95,3 +68,37 @@ adb_set_variable(Adb *self, gchar *variable, gchar *value)
 	g_free(q);
 	return ret;
 }
+
+gint
+adb_table_get_schema_version(Adb *self, gchar *table)
+{
+	// Check for table
+	char *q = sqlite3_mprintf("SELECT * FROM %s LIMIT 0", table);
+	if (sqlite3_exec(self->db, q, NULL, NULL, NULL) != SQLITE_OK)
+	{
+		sqlite3_free(q);
+		return -1;
+	}
+	sqlite3_free(q);
+
+	// Table exits, query for version
+
+	sqlite3_stmt *stmt = NULL;
+	q = sqlite3_mprintf("SELECT value FROM variables WHERE key='%q-schema-version' LIMIT 1", table);
+	gel_warn("Q: %s", q);
+	if (sqlite3_prepare_v2(self->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		sqlite3_free(q);
+		return -2;
+	}
+	sqlite3_free(q);
+
+	if (stmt && (SQLITE_ROW == sqlite3_step(stmt)))
+	{	
+		gint version = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+		return version;
+	}
+	return -3;
+}
+

@@ -23,12 +23,9 @@
 #include <sqlite3.h>
 #include <glib.h>
 #include <lomo/player.h>
+#include "common.h"
 
 G_BEGIN_DECLS
-
-typedef struct Adb {
-	sqlite3 *db;
-} Adb;
 
 enum {
 	ADB_NO_ERROR = 0,
@@ -36,8 +33,13 @@ enum {
 	ADB_CANNOT_REGISTER_OBJECT
 };
 
-GQuark adb_quark(void);
+typedef struct Adb {
+	sqlite3 *db;
+} Adb;
 
+#define GEL_APP_GET_ADB(app) ((Adb *) gel_app_shared_get(app, "adb"))
+
+GQuark adb_quark(void);
 Adb *adb_new(LomoPlayer *lomo, GError **error);
 void adb_free(Adb *self);
 

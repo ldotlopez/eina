@@ -24,11 +24,19 @@
 
 G_BEGIN_DECLS
 
+typedef gboolean (*AdbUpgradeFunc) (Adb *adb, gpointer data, GError **error);
+
 gboolean
 adb_exec_querys(Adb *self, const gchar **querys, gint *success, GError **error);
 
 gboolean
 adb_set_variable(Adb *self, gchar *variable, gchar *value);
+
+gint
+adb_table_get_schema_version(Adb *self, gchar *table);
+
+gboolean
+adb_upgrade_table(Adb *self, gchar *table, 
 
 G_END_DECLS
 

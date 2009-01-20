@@ -24,13 +24,19 @@
 
 G_BEGIN_DECLS
 
+typedef struct _Recently Recently;
+
 enum {
 	RECENTLY_NO_ERROR = 0,
-	RECENTY_ERROR_CANNOT_LOAD_ADB,
-	RECENTY_ERROR_CANNOT_UNLOAD_ADB
+	RECENTLY_CANNOT_LOAD_ADB,
+	RECENTLY_CANNOT_UNLOAD_ADB,
+	RECENTLY_NO_ADB_OBJECT
 };
 
 GQuark recently_quark(void);
+
+Recently *recently_new(GelApp *app, GError **error);
+void      recently_free(Recently *self);
 
 G_END_DECLS
 
