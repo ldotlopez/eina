@@ -36,11 +36,13 @@
 
 static gint     opt_debug_level = GEL_DEBUG_LEVEL_WARN;
 static gboolean opt_enqueue = FALSE;
+static gboolean opt_new_instance = FALSE;
 static gchar**  opt_uris = NULL;
 static const GOptionEntry opt_entries[] =
 {
-	{ "debug-level", 'd', 0, G_OPTION_ARG_INT,  &opt_debug_level, "Debug level", "<int 0..5>" },
-	{ "enqueue",     'e', 0, G_OPTION_ARG_NONE, &opt_enqueue,     "Enqueue files instead of directly play", NULL},
+	{ "debug-level",  'd', 0, G_OPTION_ARG_INT,  &opt_debug_level,  "Debug level", "<int 0..5>" },
+	{ "enqueue",      'e', 0, G_OPTION_ARG_NONE, &opt_enqueue,      "Enqueue files instead of directly play", NULL},
+	{ "new-instance", 'n', 0, G_OPTION_ARG_NONE, &opt_new_instance, "Ignore running instances and create a new one", NULL},
 
 	{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris, NULL, "[FILE...]"},
 	{ NULL }
@@ -134,7 +136,7 @@ gint main
 		"play",    COMMAND_PLAY,
 		"enqueue", COMMAND_ENQUEUE,
 		NULL);
-	if (unique_app_is_running(unique))
+	if (unique_app_is_running(unique) && !opt_new_instance)
 	{
 		UniqueResponse response; /* the response to our command */
 		UniqueMessageData *message;
