@@ -150,10 +150,16 @@ gel_file_strings(gchar *pathname);
 // --
 // Debug functions
 // --
+typedef void (*GelDebugHandler) (GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
+
 GelDebugLevel
 gel_get_debug_level(void);
 void
 gel_set_debug_level(GelDebugLevel level);
+
+void gel_debug_add_handler   (GelDebugHandler func);
+void gel_debug_remove_handler(GelDebugHandler func);
+
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define _gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __func__, __FILE__, __LINE__, __VA_ARGS__)
@@ -173,7 +179,7 @@ gel_set_debug_level(GelDebugLevel level);
 #define gel_fix(...)        gel_warn("FIX-ME -- " __VA_ARGS__)
 
 void
-gel_debug_real (const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...);
+gel_debug_real  (const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...);
 
 G_END_DECLS
 

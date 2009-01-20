@@ -325,15 +325,12 @@ list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
 static void
 app_dispose_cb(GelApp *app, gpointer data)
 {
-	gel_warn("Exit main loop, unload modules");
-#if 1
 	gchar **modules = (gchar **) data;
 	gint i = 0;
 	while (modules[i]) i++; i--; // Count how many modules
 
 	for (;i >= 0; i--)
 	{
-		gel_warn("Unload %s", modules[i]);
 		GError *error = NULL;
 		if (!gel_app_unload_plugin_by_name(app, modules[i], &error))
 		{
@@ -342,7 +339,7 @@ app_dispose_cb(GelApp *app, gpointer data)
 			continue;
 		}
 	}
-#endif
+
 	gtk_main_quit();
 }
 

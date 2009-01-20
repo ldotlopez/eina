@@ -27,6 +27,10 @@
 static gchar *_gel_package_name = NULL;
 static gchar *_gel_package_data_dir = NULL;
 static gint   _gel_debug_level = GEL_DEBUG_LEVEL_INFO;
+static GList *_gel_debug_handlers = NULL;
+
+void
+gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
 
 // --
 // Initialization and finilization functions
@@ -38,6 +42,9 @@ _gel_atexit(void)
 		g_free(_gel_package_name);
 	if (_gel_package_data_dir!= NULL)
 		g_free(_gel_package_data_dir);
+	gel_free_and_invalidate(_gel_package_name,     NULL, g_free);
+	gel_free_and_invalidate(_gel_package_data_dir, NULL, g_free);
+	gel_free_and_invalidate(_gel_debug_handlers,   NULL, g_list_free);
 }
 
 void
@@ -45,6 +52,7 @@ gel_init(gchar *name, gchar *data_dir)
 {
 	_gel_package_name     = g_strdup(name);
 	_gel_package_data_dir = g_strdup(data_dir);
+	_gel_debug_handlers = g_list_append(NULL, gel_debug_default_handler);
 	atexit(_gel_atexit);
 }
 
@@ -305,9 +313,29 @@ gel_set_debug_level(GelDebugLevel level)
 }
 
 void
-gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...)
+gel_debug_add_handler(GelDebugHandler func)
 {
-    static const gchar *level_strs[] = {
+	if ((_gel_debug_handlers != NULL) && (_gel_debug_handlers->next == NULL))
+	{
+		g_list_free(_gel_debug_handlers);
+		_gel_debug_handlers = NULL;
+	}
+
+	_gel_debug_handlers = g_list_append(_gel_debug_handlers, (gpointer) func);
+}
+
+void
+gel_debug_remove_handler(GelDebugHandler func)
+{
+	_gel_debug_handlers = g_list_remove_all(_gel_debug_handlers, (gpointer) func);
+	if (_gel_debug_handlers == NULL)
+		_gel_debug_handlers = g_list_append(NULL, gel_debug_default_handler);
+}
+
+void
+gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer)
+{
+	static const gchar *level_strs[] = {
 		"\033[1;41mSEVERE\033[m",
 		"\033[1;31mERROR\033[m",
 		"\033[1;33mWARN\033[m",
@@ -317,16 +345,28 @@ gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const
 		NULL
 	};
 
+	g_printf("[%s] [%s (%s:%d)] %s\n", level_strs[level], domain , file, line, buffer);
+}
+
+void
+gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...)
+{
 	va_list args;
-	char buffer[1025];
 
 	if (level > _gel_debug_level)
 		return;
 
-	va_start (args, format);
-	g_vsnprintf (buffer, 1024, format, args);
-	va_end (args);
+	va_start(args, format);
+	gchar *buffer = g_strdup_vprintf(format, args);
+	va_end(args);
 
-	g_printf("[%s] [%s (%s:%d)] %s\n", level_strs[level], domain , file, line, buffer);
+	GList *iter = _gel_debug_handlers;
+	while (iter)
+	{
+		GelDebugHandler callback = (GelDebugHandler) iter->data;
+		callback(level, domain, func, file, line, buffer);
+		iter = iter->next;
+	}
+
+	g_free(buffer);
 }
-
