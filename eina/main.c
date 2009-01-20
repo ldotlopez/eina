@@ -90,7 +90,7 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "log", "lomo", "artwork", "player", "dock", "playlist", "plugins", "vogon", NULL};
+	gchar          *modules[] = { "log", "lomo", "artwork", "player", "dock", "playlist", "plugins", "vogon", "dbus", NULL};
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;
@@ -175,7 +175,8 @@ gint main
 		GError *error = NULL;
 		if (!gel_app_load_plugin_by_name(app, modules[i],& error))
 		{
-			gel_error("Cannot load %s", modules[i]);
+			gel_error("Cannot load %s: %s", modules[i], error->message);
+			g_error_free(error);
 			continue;
 		}
 		gel_warn("%s loaded!", modules[i]);
