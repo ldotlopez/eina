@@ -17,12 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ADB_H__
-#define __ADB_H__
+#ifndef __ADB_H
+#define __ADB_H
 
 #include <sqlite3.h>
-#include <glib.h>
-#include <lomo/player.h>
 #include <gel/gel.h>
 
 G_BEGIN_DECLS
@@ -32,31 +30,50 @@ typedef struct Adb {
 	GelApp  *app;
 } Adb;
 
+typedef gboolean (*AdbUpgradeHandler)(Adb *self, gpointer data, GError **error);
+
 enum {
 	ADB_NO_ERROR = 0,
 	ADB_CANNOT_GET_LOMO,
-	ADB_CANNOT_REGISTER_OBJECT
+	ADB_CANNOT_REGISTER_OBJECT,
+	ADB_QUERY_ERROR,
+	ADB_ERROR_UPGRADING,
+	ADB_UNKNOW_ERROR
 };
 
 GQuark adb_quark(void);
 
-Adb *adb_new(LomoPlayer *lomo, GError **error);
-void adb_free(Adb *self);
+// --
+// Create / Destroy adb object
+// --
+Adb*
+adb_new(GelApp *app, GError **error);
+void
+adb_free(Adb *self);
 
-gboolean
-adb_exec_querys(Adb *self, const gchar **querys, gint *success, GError **error);
-
+// --
+// Variables
+// --
 gchar *
 adb_variable_get(Adb *self, gchar *variable);
-
 gboolean
 adb_set_variable(Adb *self, gchar *variable, gchar *value);
 
+// --
+// Schemas
+// --
 gint
-adb_table_get_schema_version(Adb *self, gchar *table);
-
+adb_schema_get_version(Adb *self, gchar *schema);
+void
+adb_schema_set_version(Adb *self, gchar *schema, gint version);
 gboolean
-adb_run_chained_functions(Adb *self, gpointer *functions);
+adb_schema_upgrade(Adb *self, gchar *schema, gpointer *handlers, gpointer data, GError **error);
+
+// --
+// Querying
+// --
+gboolean
+adb_exec_queryes(Adb *self, gchar **queryes, gint *successes, GError **error);
 
 G_END_DECLS
 

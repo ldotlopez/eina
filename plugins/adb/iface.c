@@ -30,7 +30,7 @@ adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	Adb *self;
 
 	// Create Adb interface
-	if ((self = adb_new(eina_plugin_get_lomo(plugin), error)) == NULL)
+	if ((self = adb_new(app, error)) == NULL)
 	{
 		g_set_error(error, adb_quark(), ADB_CANNOT_GET_LOMO, N_("Cannot access lomo"));
 		return FALSE;
