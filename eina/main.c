@@ -332,7 +332,7 @@ app_dispose_cb(GelApp *app, gpointer data)
 	for (;i >= 0; i--)
 	{
 		GError *error = NULL;
-		if (!gel_app_unload_plugin_by_name(app, modules[i], &error))
+		if (gel_app_get_plugin_by_name(app, modules[i]) && !gel_app_unload_plugin_by_name(app, modules[i], &error))
 		{
 			gel_error(N_("Cannot fini plugin %s: %s"), modules[i], error->message);
 			g_error_free(error);
