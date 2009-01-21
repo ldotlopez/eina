@@ -38,10 +38,6 @@ gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar 
 void
 _gel_atexit(void)
 {
-	if (_gel_package_name != NULL)
-		g_free(_gel_package_name);
-	if (_gel_package_data_dir!= NULL)
-		g_free(_gel_package_data_dir);
 	gel_free_and_invalidate(_gel_package_name,     NULL, g_free);
 	gel_free_and_invalidate(_gel_package_data_dir, NULL, g_free);
 	gel_free_and_invalidate(_gel_debug_handlers,   NULL, g_list_free);
