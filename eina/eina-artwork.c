@@ -147,6 +147,7 @@ eina_artwork_class_init (EinaArtworkClass *klass)
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE,
 		0);
+	g_warning("GObjectClass: %p", object_class);
 }
 
 static void
@@ -158,6 +159,7 @@ EinaArtwork*
 eina_artwork_new (void)
 {
 	return g_object_new (EINA_TYPE_ARTWORK, NULL);
+	// g_warning("EinaArtork %p => %p", self, G_OBJECT_GET_CLASS(self));
 }
 
 // --

@@ -27,12 +27,6 @@ struct _Adb {
 	sqlite3   *db;
 };
 
-static gboolean
-adb_db_setup(Adb *self);
-
-static void
-lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
-
 GQuark
 adb_quark(void)
 {
@@ -60,8 +54,6 @@ adb_new(LomoPlayer *lomo, GError **error)
 
 	self = g_new0(Adb, 1);
 	self->db = db;
-	adb_db_setup(self);
-	g_signal_connect(lomo, "add", G_CALLBACK(lomo_add_cb), self);
 	return self;
 }
 
@@ -72,55 +64,122 @@ adb_free(Adb *self)
 	g_free(self);
 }
 
-static gboolean
-adb_db_setup(Adb *self)
+gchar *
+adb_variable_get(Adb *self, gchar *variable)
 {
-	gchar *msg = NULL;
-	sqlite3_stmt *stmt;
-	const unsigned char *version_str = NULL;
-	gint version = -1;
+	sqlite3_stmt *stmt = NULL;
+	char *q = sqlite3_mprintf("SELECT value FROM variables WHERE key = '%q' LIMIT 1", variable);
+	if (sqlite3_prepare_v2(self->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		sqlite3_free(q);
+		return NULL;
+	}
 
-	if (sqlite3_prepare_v2(self->db, "SELECT value FROM variables WHERE key = 'schema-version'", -1, &stmt, NULL) != SQLITE_OK)
-	{
-		gel_error("Cannot check db schema version: %s", msg);
-		g_free(msg);
-	}
+	const unsigned char *v = NULL;
 	if (stmt && (SQLITE_ROW == sqlite3_step(stmt)))
-	{
-		version_str = sqlite3_column_text(stmt, 0);
-		if (version_str)
-			version = atoi((gchar *) version_str);
-	}
+		v = sqlite3_column_text(stmt, 0);
+	gchar *ret = ( v ? g_strdup((char*) v) : NULL);
+
 	if (sqlite3_finalize(stmt) != SQLITE_OK)
-	{
-		gel_error("Cannot check db schema version: %s", msg);
-		g_free(msg);
-	}
-	gel_info("DB version: %d", version);
-	adb_db_upgrade(self, version);
-	return TRUE;
+		gel_warn("Cannot finalize query %s", q);
+	sqlite3_free(q);
+	
+	return ret;
 }
 
-static void
-lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
+gboolean
+adb_exec_querys(Adb *self, const gchar **querys, gint *success, GError **error)
 {
-	Adb *self = (Adb *) data;
-	char *errmsg = NULL;
-
-	gchar *uri = (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI);
-	gchar *q = sqlite3_mprintf(
-		"INSERT OR REPLACE INTO streams VALUES("
-			"(SELECT sid FROM streams WHERE uri='%q'),"
-			"'%q',"
-			"DATETIME('NOW'));",
-			uri,
-			uri);
-
-	if (sqlite3_exec(self->db, q, NULL, NULL, &errmsg) != SQLITE_OK)
+	gint i;
+	for (i = 0; querys[i] != NULL; i++)
 	{
-		gel_warn("Cannot insert %s into database: %s", lomo_stream_get_tag(stream, LOMO_TAG_URI), errmsg);
-		sqlite3_free(errmsg);
+		char *errmsg = NULL;
+		gint ret = sqlite3_exec(self->db, querys[i], NULL, NULL, &errmsg);
+		if (ret != SQLITE_OK)
+		{
+			gel_error("ADB got error %d: %s. Query: %s", ret, errmsg, querys[i]);
+			g_set_error_literal(error, adb_quark(), ret, errmsg);
+			sqlite3_free(errmsg);
+			break;
+		}
+	}
+	if (success)
+		*success = i;
+	return (querys[i] == NULL);
+}
+
+gboolean
+adb_set_variable(Adb *self, gchar *variable, gchar *value)
+{
+#if 0
+	gchar *fmt = NULL;
+	gboolean deference = TRUE;
+	switch (type)
+	{
+	case G_TYPE_BOOLEAN:
+	case G_TYPE_UINT:
+	case G_TYPE_INT:
+		fmt = "%d";
+		break;
+	case G_TYPE_STRING:
+		deference = FALSE;
+		fmt = "%s";
+		break;
+	case G_TYPE_CHAR:
+		fmt = "%c";
+		break;
+	case G_TYPE_FLOAT:
+		fmt = "%f";
+		break;
+	default:
+		return FALSE;
+	}
+	gchar *query = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%%s'", fmt);
+	gchar q = g_strdup_printf(query, value, (deference ? *variable : variable));
+	g_free(query);
+#endif
+	gchar *q = g_strdup_printf("UPDATE variables set value='%s' WHERE key='%s'", variable, value);
+
+	char *error = NULL;
+	gboolean ret = (sqlite3_exec(self->db, q, NULL, NULL, &error) == SQLITE_OK);
+	if (!ret)
+	{
+		gel_error("Cannot update variable %s: %s. Query: %s", variable, error, q);
+		sqlite3_free(error);
+	}
+	g_free(q);
+	return ret;
+}
+
+gint
+adb_table_get_schema_version(Adb *self, gchar *table)
+{
+	// Check for table
+	char *q = sqlite3_mprintf("SELECT * FROM %s LIMIT 0", table);
+	if (sqlite3_exec(self->db, q, NULL, NULL, NULL) != SQLITE_OK)
+	{
+		sqlite3_free(q);
+		return -1;
 	}
 	sqlite3_free(q);
-}
 
+	// Table exits, query for version
+
+	sqlite3_stmt *stmt = NULL;
+	q = sqlite3_mprintf("SELECT value FROM variables WHERE key='%q-schema-version' LIMIT 1", table);
+	gel_warn("Q: %s", q);
+	if (sqlite3_prepare_v2(self->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		sqlite3_free(q);
+		return -2;
+	}
+	sqlite3_free(q);
+
+	if (stmt && (SQLITE_ROW == sqlite3_step(stmt)))
+	{	
+		gint version = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+		return version;
+	}
+	return -3;
+}

@@ -19,7 +19,6 @@
 
 #define GEL_DOMAIN "Adb"
 #include "upgrade.h"
-#include "common.h"
 #include <sqlite3.h>
 #include <gel/gel.h>
 
@@ -107,4 +106,11 @@ adb_db_upgrade(Adb *self, gint from_version)
 		gel_error("Upgraded to version %d", i);
 	}
 	return TRUE;
+}
+
+
+gboolean
+adb_run_chained_functions(Adb *self, gpointer *functions, gint *successes, GError **error)
+{
+	
 }
