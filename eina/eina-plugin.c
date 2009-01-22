@@ -24,6 +24,9 @@
 #include <gmodule.h>
 #include <gel/gel.h>
 #include <eina/eina-plugin.h>
+
+// Internal access only: player, dock, preferences
+#include <eina/player.h>
 #include <eina/dock.h>
 #include <eina/preferences.h>
 
@@ -192,13 +195,13 @@ eina_plugin_get_artwork(EinaPlugin *plugin)
 
 void
 eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
-    EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel)
+    EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data)
 {
 	EinaArtwork *artwork;
 	
 	if ((artwork = eina_plugin_get_artwork(plugin)) == NULL)
 		return;
-	eina_artwork_add_provider(artwork, id, search, cancel, plugin);
+	eina_artwork_add_provider(artwork, id, search, cancel, data);
 }
 
 void

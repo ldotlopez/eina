@@ -32,11 +32,11 @@
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
 
-// Modules
-#include <eina/player.h>
-#include <eina/fs.h>
+// Modules availables: lomo, settings, fs (utility functions)
+#include <eina/lomo.h>
 #include <eina/settings.h>
 #include <eina/artwork.h>
+#include <eina/fs.h>
 
 // Redefine some types and enums
 #define EinaPlugin GelPlugin
@@ -50,7 +50,6 @@
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) EINA_PLUGIN(p)->data)
 #endif
 
-
 // --
 // Access to internal values
 // --
@@ -62,10 +61,12 @@ eina_plugin_get_lomo(EinaPlugin *self);
 // --
 // Utility functions
 // --
+/*
 gchar*
 eina_plugin_build_resource_path(EinaPlugin *plugin, gchar *resource);
 gchar*
 eina_plugin_build_userdir_path (EinaPlugin *plugin, gchar *path);
+*/
 
 #define eina_plugin_verbose(...) _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
 #define eina_plugin_debug(...)   _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)
@@ -98,12 +99,13 @@ gboolean eina_plugin_remove_configuration_widget
 // --
 // Artwork handling (cover replacement)
 // --
+/*
 EinaArtwork*
 eina_plugin_get_artwork(EinaPlugin *plugin);
-
+*/
 void
 eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
-	EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel);
+	EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data);
 void
 eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id);
 
