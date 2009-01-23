@@ -21,6 +21,7 @@
 #include <config.h>
 #include <glib/gi18n.h>
 #include "adb.h"
+#include "register.h"
 
 // --
 // Upgrade callbacks
@@ -52,27 +53,40 @@ adb_new(GelApp *app, GError **error)
 		return FALSE;
 	}
 	g_free(db_path);
-	
+
+	self = g_new0(Adb, 1);
+	self->db  = db;
+	self->app = app;
+/*
+	if (!gel_app_load_plugin_by_name(app, "settings", error))
+	{
+	    sqlite3_close(self->db);
+	    g_free(self);
+		return FALSE;
+	}
+*/	
 	gpointer callbacks[] = {
 		adb_setup_0,
 		NULL
 		};
 
-	self = g_new0(Adb, 1);
-	self->db  = db;
-	self->app = app;
 	if (!adb_schema_upgrade(self, "core", callbacks, NULL, error))
 	{
 		adb_free(self);
 		return NULL;
 	}
-
+	adb_register_enable(self);
+/*
+	if (eina_conf_get_bool(GEL_APP_GET_SETTINGS(app), "/plugins/adb/register_enabled", TRUE))
+		adb_register_enable(self);
+*/
 	return self;
 }
 
 void
 adb_free(Adb *self)
 {
+//	gel_app_unload_plugin_by_name(self->app, "settings");
 	sqlite3_close(self->db);
 	g_free(self);
 }
@@ -217,7 +231,8 @@ adb_exec_queryes(Adb *self, gchar **queryes, gint *successes, GError **error)
 	{
 		if (sqlite3_exec(self->db, queryes[i], NULL, NULL, &err) != SQLITE_OK)
 		{
-			g_set_error_literal(error, adb_quark(), ADB_QUERY_ERROR, err);
+			g_set_error(error, adb_quark(), ADB_QUERY_ERROR,
+				"%s: %s", queryes[i], err);
 			sqlite3_free(err);
 			break;
 		}
