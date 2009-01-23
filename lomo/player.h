@@ -162,11 +162,13 @@ gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos);
 #define lomo_player_add_multi(p,l)     lomo_player_add_multi_at_pos(p,l,-1)
 gboolean lomo_player_del(LomoPlayer *self, gint pos);
 
+// XXX: Make a copy
 const GList *lomo_player_get_playlist(LomoPlayer *self);
 
 gint lomo_player_get_prev(LomoPlayer *self);
 gint lomo_player_get_next(LomoPlayer *self);
 
+// XXX: Remove const
 const LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos);
 
 gboolean          lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error);
