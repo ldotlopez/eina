@@ -99,10 +99,6 @@ gboolean eina_plugin_remove_configuration_widget
 // --
 // Artwork handling (cover replacement)
 // --
-/*
-EinaArtwork*
-eina_plugin_get_artwork(EinaPlugin *plugin);
-*/
 void
 eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
 	EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data);
