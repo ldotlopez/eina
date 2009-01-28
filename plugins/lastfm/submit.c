@@ -17,9 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <lomo/player.h>
-#include <lomo/util.h>
 #include "lastfm.h"
+#include <lomo/util.h> // lomo_nanosecs_to_secs et al
 
 struct _LastFMSubmit {
 	gint64 secs_required;
@@ -27,7 +26,7 @@ struct _LastFMSubmit {
 	gint64 check_point;
 	gchar *daemon_path;
 	gchar *client_path;
-} ;
+};
 
 static void
 lastfm_submit_lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlugin *self);
@@ -37,7 +36,7 @@ static void
 lastfm_submit_lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self);
 
 gboolean
-lastfm_submit_init(EinaPlugin *plugin, GError **error)
+lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EINA_PLUGIN_DATA(plugin)->submit = g_new0(LastFMSubmit, 1);
 	eina_plugin_attach_events(plugin,
@@ -52,7 +51,7 @@ lastfm_submit_init(EinaPlugin *plugin, GError **error)
 }
 
 gboolean
-lastfm_submit_exit(EinaPlugin *plugin, GError **error)
+lastfm_submit_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	eina_plugin_deattach_events(plugin,
 		"change", lastfm_submit_lomo_change_cb,

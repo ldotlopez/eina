@@ -17,34 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_PLUGIN_LASTFM_H
-#define _EINA_PLUGIN_LASTFM_H
-
-#include <glib.h>
-G_BEGIN_DECLS
+#ifndef _PLUGIN_LASTFM_H
+#define _PLUGIN_LASTFM_H
 
 #define GEL_DOMAIN "Eina::Plugin::LastFM"
 #define EINA_PLUGIN_NAME "LastFM"
 #define EINA_PLUGIN_DATA_TYPE LastFM
 
-#include <eina/plugin.h>
+#include <eina/eina-plugin.h>
 #include "submit.h"
+#include "artwork.h"
 
-typedef struct _LastFM LastFM;
-struct _LastFM {
+G_BEGIN_DECLS
+
+typedef struct {
 	GtkWidget *configuration_widget;
 	gchar *daemon_path;
 	gchar *client_path;
 
 	// Subplugins
-	struct _LastFMSubmit *submit;
-};
-
-gboolean
-lastfm_init(EinaPlugin *self, GError **error);
-
-gboolean
-lastfm_exit(EinaPlugin *self, GError **error);
+	struct _LastFMSubmit  *submit;
+	struct _LastFMArtwork *artwork;
+} LastFM;
 
 G_END_DECLS
 

@@ -17,22 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_PLUGIN_LASTFM_SUBMIT_H
-#define _EINA_PLUGIN_LASTFM_SUBMIT_H
+#ifndef _PLUGIN_LASTFM_SUBMIT_H
+#define _PLUGIN_LASTFM_SUBMIT_H
 
-#include <glib.h>
+#include "lastfm.h"
 
 G_BEGIN_DECLS
-
-#include <eina/plugin.h>
-#include "lastfm.h"
 
 typedef struct _LastFMSubmit LastFMSubmit;
 
 gboolean
-lastfm_submit_init(EinaPlugin *plugin, GError **error);
+lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error);
 gboolean
-lastfm_submit_exit(EinaPlugin *plugin, GError **error);
+lastfm_submit_exit(GelApp *app, EinaPlugin *plugin, GError **error);
 
 G_END_DECLS
 

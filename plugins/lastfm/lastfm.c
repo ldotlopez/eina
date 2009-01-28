@@ -17,17 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib.h>
-#include <lomo/player.h>
-#include <lomo/util.h>
+#include <config.h>
 #include "lastfm.h"
+#include "submit.h"
+#include "artwork.h"
 
 // --
 // Main plugin
 // --
 gboolean
-lastfm_init(EinaPlugin *plugin, GError **error)
+lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	return lastfm_artwork_init(app, plugin, error);
+#if 0
 	plugin->data = g_new0(LastFM, 1);
 
 	gchar *ui_path   = NULL;
@@ -87,31 +89,29 @@ lastfm_init_fail:
 	gel_free_and_invalidate(plugin->data, NULL, g_free);
 	
 	return FALSE;
+#endif
 }
 
 gboolean
-lastfm_exit(EinaPlugin *plugin, GError **error)
+lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+#if 0
 	eina_plugin_remove_configuration_widget(plugin, EINA_PLUGIN_DATA(plugin)->configuration_widget);
 	if (!lastfm_submit_exit(plugin, error))
 		return FALSE;
 
 	g_free(plugin->data);
-	return TRUE;
+#endif
+	return lastfm_artwork_fini(app, plugin, error);
 }
 
 G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
-	EINA_PLUGIN_SERIAL,
-	N_("Lastfm integration"),
-	"0.0.1",
+	EINA_PLUGIN_SERIAL, "lastfm", PACKAGE_VERSION,
 	N_("Lastfm integration"),
 	N_("Lastfm integration:\n"
 	"· Submit played streams to last.fm"),
-	"lastfm.png",
-	EINA_PLUGIN_GENERIC_AUTHOR,
-	EINA_PLUGIN_GENERIC_URL,
-	NULL,
-	lastfm_init, lastfm_exit,
+	"lastfm.png", EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+	lastfm_init, lastfm_fini,
 
 	NULL, NULL
 };
