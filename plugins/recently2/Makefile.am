@@ -2,8 +2,7 @@ plugindir = $(libdir)/$(PACKAGE)/recently2
 
 plugin_LTLIBRARIES = librecently2.la
 librecently2_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
-librecently2_la_SOURCES = iface.c \
-	recently.c recently.h
+librecently2_la_SOURCES = recently.c
 
 AM_CFLAGS = @PACKAGE_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
