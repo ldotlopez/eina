@@ -172,7 +172,8 @@ static void
 lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 {
 	Adb *self = (Adb *) data;
-	// char *errmsg = NULL;
+
+	self->pl = g_list_prepend(self->pl, g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_URI)));
 
 	gchar *uri = (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 	gchar *q[2];
@@ -201,14 +202,15 @@ lomo_del_cb(LomoPlayer *lomo, gint pos, gpointer data)
 {
 	Adb *self = (Adb *) data;
 	const LomoStream *stream = lomo_player_get_nth(lomo, pos);
-	char *q = sqlite3_mprintf("DELETE FROM playlist_history WHERE uri='%q' AND timestamp=0;",
-		lomo_stream_get_tag(stream, LOMO_TAG_URI));
-	char *err = NULL;
-	if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
+	GList *p;
+	if ((p = g_list_find_custom(self->pl, lomo_stream_get_tag(stream, LOMO_TAG_URI), (GCompareFunc) strcmp)) == NULL)
 	{
-		gel_warn("Cannot update playlist_history: %s", err);
-		sqlite3_free(err);
+		gel_warn("Deleted stream not found");
+		return;
 	}
+	self->pl = g_list_remove_link(self->pl, p);
+	g_free(p->data);
+	g_list_free(p);
 }
 
 static void
@@ -216,11 +218,43 @@ lomo_clear_cb(LomoPlayer *lomo, gpointer data)
 {
 	Adb *self = (Adb *) data;
 	char *err = NULL;
-	gchar *q = "update playlist_history set timestamp=DATETIME('NOW') where timestamp=0;";
-	if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
+	GTimeVal now; g_get_current_time(&now);
+	gchar *now_str = g_time_val_to_iso8601(&now);
+
+	if (sqlite3_exec(self->db, "BEGIN TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
 	{
-		gel_warn("Cannot update playlist_history: %s", err);
+		gel_warn("Cannot begin transaction: %s", err);
 		sqlite3_free(err);
+		return;
 	}
 
+	GList *iter = self->pl;
+	while (iter)
+	{
+		char *q = sqlite3_mprintf("INSERT INTO playlist_history VALUES('%s','%q')", now_str, iter->data);
+		if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
+		{
+			gel_warn("Cannot update playlist_history: %s", err);
+			sqlite3_exec(self->db, "ROLLBACK;", NULL, NULL, NULL);
+			sqlite3_free(q);
+			goto lomo_clear_cb_return;
+		}
+		sqlite3_free(q);
+		iter = iter->next;
+	}
+
+	if (sqlite3_exec(self->db, "END TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
+	{
+		gel_warn("Cannot end transaction: %s", err);
+		goto lomo_clear_cb_return;
+	}
+
+lomo_clear_cb_return:
+	gel_free_and_invalidate(err, NULL, sqlite3_free);
+	gel_free_and_invalidate(now_str, NULL, g_free);
+	if (self->pl != NULL)
+	{
+		gel_list_deep_free(self->pl, g_free);
+		self->pl = NULL;
+	}
 }

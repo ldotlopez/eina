@@ -28,6 +28,7 @@ G_BEGIN_DECLS
 typedef struct Adb {
 	sqlite3 *db;
 	GelApp  *app;
+	GList   *pl;
 } Adb;
 
 typedef gboolean (*AdbUpgradeHandler)(Adb *self, gpointer data, GError **error);

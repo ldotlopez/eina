@@ -144,9 +144,8 @@ recently_dock_update(Recently *self)
 		gtk_list_store_append((GtkListStore *) self->model, &titer);
 
 		GList *items = g_hash_table_lookup(grouped, iter->data);
-		gchar *stamp_human = stamp_to_human((gchar *) iter->data);
+		const gchar *stamp_human = stamp_to_human((gchar *) iter->data);
 		gchar *title = g_strdup_printf("%s: %d streams",stamp_human, g_list_length(items));
-		g_free(stamp_human);
 		gtk_list_store_set((GtkListStore *) self->model, &titer,
 			RECENTLY_COLUMN_TIMESTAMP, iter->data,
 			RECENTLY_COLUMN_TITLE, title,
