@@ -168,8 +168,7 @@ const GList *lomo_player_get_playlist(LomoPlayer *self);
 gint lomo_player_get_prev(LomoPlayer *self);
 gint lomo_player_get_next(LomoPlayer *self);
 
-// XXX: Remove const
-const LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos);
+LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos);
 
 gboolean          lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error);
 #define           lomo_player_go_prev(p,e) lomo_player_go_nth(p,lomo_player_get_prev(p),e)

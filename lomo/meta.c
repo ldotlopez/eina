@@ -19,6 +19,7 @@
 
 #include "meta.h"
 #include "player-priv.h"
+#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (LomoMeta, lomo_meta, G_TYPE_OBJECT)
 
@@ -148,9 +149,12 @@ lomo_meta_clear(LomoMeta *self)
 	}
 
 	// Clear queue
-	g_list_foreach(priv->queue, (GFunc) g_object_unref, NULL);
-	g_list_free(priv->queue);
-	priv->queue = NULL;
+	if (priv->queue)
+	{
+		g_list_foreach(priv->queue, (GFunc) g_object_unref, NULL);
+		g_list_free(priv->queue);
+		priv->queue = NULL;
+	}
 
 	// Reset flags and pointers
 	priv->failure = priv->got_state_signal = priv->got_new_clock_signal = FALSE;
@@ -292,6 +296,7 @@ disconnect:
 
 	return FALSE;
 }
+
 static void lomo_meta_foreach_tag_cb
 (const GstTagList *list, const gchar *tag, LomoMeta *self)
 {
@@ -302,65 +307,63 @@ static void lomo_meta_foreach_tag_cb
 	gint     int_tag;
 	guint    uint_tag;
 	guint64  uint64_tag;
+	gboolean bool_tag;
 	gpointer pointer;
 
 	type = lomo_tag_get_type(tag);
 
-	switch (type) {
+	switch (type)
+	{
 		case G_TYPE_STRING:
-			if (gst_tag_list_get_string(list, tag, &string_tag)) {
-				g_object_set_data_full(
-						G_OBJECT(priv->stream),
-						tag, g_strdup(string_tag),
-						g_free);
-				g_signal_emit(
-						G_OBJECT(priv->player), lomo_player_signals[TAG],
-						0, priv->stream, tag);
-				g_free(string_tag);
-			}
+			if (!gst_tag_list_get_string(list, tag, &string_tag))
+				break;
+
+			lomo_stream_set_tag(priv->stream, tag, g_strdup(string_tag));
+			g_signal_emit(G_OBJECT(priv->player), lomo_player_signals[TAG], 0, priv->stream, tag);
 			break;
 
 		case G_TYPE_UINT:
-			if (gst_tag_list_get_uint(list, tag, &uint_tag)) {
-				pointer = g_new0(guint, 1);
-				* ((guint*) pointer) = uint_tag;
-				g_object_set_data_full(
-						G_OBJECT(priv->stream),
-						tag, pointer, g_free);
-				g_signal_emit(
-						G_OBJECT(priv->player), lomo_player_signals[TAG],
-						0, priv->stream, tag);
-			}
+			if (!gst_tag_list_get_uint(list, tag, &uint_tag))
+				break;
+
+			pointer = g_new0(guint, 1);
+			*((guint*) pointer) = uint_tag;
+			lomo_stream_set_tag(priv->stream, tag, pointer);
+			g_signal_emit(G_OBJECT(priv->player), lomo_player_signals[TAG], 0, priv->stream, tag);
 			break;
 
 		case G_TYPE_UINT64:
-			if (gst_tag_list_get_uint64(list, tag, &uint64_tag)) {
-				pointer = g_new0(guint64, 1);
-				* ((guint64*) pointer) = uint64_tag;
-				g_object_set_data_full(
-					G_OBJECT(priv->stream),
-					tag, pointer, g_free);
-				g_signal_emit(
-					G_OBJECT(priv->player), lomo_player_signals[TAG],
-					0, priv->stream, tag);
-			}
+			if (!gst_tag_list_get_uint64(list, tag, &uint64_tag))
+				break;
+			pointer = g_new0(guint64, 1);
+			*((guint64*) pointer) = uint64_tag;
+			lomo_stream_set_tag(priv->stream, tag, pointer);
+			g_signal_emit(G_OBJECT(priv->player), lomo_player_signals[TAG], 0, priv->stream, tag);
 			break;
 
 		case G_TYPE_INT:
-			if (gst_tag_list_get_int(list, tag, &int_tag)) {
-				pointer = g_new0(gint, 1);
-				* ((guint*) pointer) = int_tag;
-				g_object_set_data_full(
-						G_OBJECT(priv->stream),
-						tag, pointer, g_free);
-				g_signal_emit(
-						G_OBJECT(priv->player), lomo_player_signals[TAG],
-						0, priv->stream, tag);
-			}
+			if (!gst_tag_list_get_int(list, tag, &int_tag))
+				break;
+			pointer = g_new0(gint, 1);
+			*((guint*) pointer) = int_tag;
+			lomo_stream_set_tag(priv->stream, tag, pointer);
+			g_signal_emit(G_OBJECT(priv->player), lomo_player_signals[TAG], 0, priv->stream, tag);
+			break;
+
+		case G_TYPE_BOOLEAN:
+			if (!gst_tag_list_get_boolean(list, tag, &bool_tag))
+				break;
+			pointer = g_new0(gboolean, 1);
+			*((gboolean*) pointer) = bool_tag;
+			lomo_stream_set_tag(priv->stream, tag, pointer);
+			g_signal_emit(G_OBJECT(priv->player), lomo_player_signals[TAG], 0, priv->stream, tag);
 			break;
 
 		default:
 			/*
+			meta.c:364 Found date but type GstDate is not handled
+			meta.c:364 Found private-id3v2-frame but type GstBuffer is not handled
+
 			g_printf("%s:%d Found %s but type %s is not handled\n",
 				__FILE__, __LINE__, tag, g_type_name(type));
 			*/

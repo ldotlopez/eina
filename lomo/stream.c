@@ -46,6 +46,7 @@ static struct TagFmt tag_fmt_table [] = {
 
 struct _LomoStreamPrivate {
 	gboolean all_tags, failed;
+	GList *tags;
 };
 
 static void
@@ -99,6 +100,31 @@ lomo_stream_new (gchar *uri)
 	g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
 
 	return self;
+}
+
+void
+lomo_stream_set_tag(LomoStream *stream, LomoTag tag, gpointer value)
+{
+	struct _LomoStreamPrivate *priv = GET_PRIVATE(stream);
+	GList *link = g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp);
+
+	if (tag != NULL)
+	{
+		if (link != NULL)
+		{
+			g_free(link->data);
+			link->data = g_strdup(tag);
+		}
+		else
+			priv->tags = g_list_prepend(priv->tags, value);
+	}
+	else
+	{
+		priv->tags = g_list_remove_link(priv->tags, link);
+		g_free(link->data);
+		g_list_free(link);
+	}
+	g_object_set_data_full(G_OBJECT(stream), tag, value, g_free);
 }
 
 gboolean
