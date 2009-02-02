@@ -93,7 +93,7 @@ adb_register_setup_1(Adb *self, gpointer data, GError **error)
 void
 adb_register_enable(Adb *self)
 {
-/*
+
 	gpointer callbacks[] = {
 		adb_register_setup_0,
 		adb_register_setup_1,
@@ -107,7 +107,7 @@ adb_register_enable(Adb *self)
 		g_error_free(error);
 		return;
 	}
-*/
+
 	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
 	if (lomo == NULL)
 		g_signal_connect(self->app, "plugin-init", (GCallback) app_plugin_init_cb, self);
