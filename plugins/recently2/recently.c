@@ -1,5 +1,5 @@
 /*
- * plugins/recently2/iface.c
+ * plugins/recently2/recently.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -30,6 +30,7 @@
 typedef struct {
 	GelApp       *app;
 	GelPlugin    *plugin;
+	GtkWidget    *dock;
 	GtkTreeView  *tv;
 	GtkListStore *model;
 } Recently;
@@ -46,9 +47,36 @@ enum {
 	RECENTLY_ERROR_CANNOT_UNLOAD_ADB
 };
 
+// --
+// Utils
+// --
+static gchar*
+stamp_to_human(gchar *stamp);
+static gchar *
+summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
+
+// --
+// plugin init/fini connect/disconnect lomo
+// --
+void
+connect_lomo(Recently *self);
+void
+disconnect_lomo(Recently *self);
+void
+app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Recently *self);
+void
+app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Recently *self);
+
+void
+lomo_clear_cb(LomoPlayer *lomo, Recently *self);
+
+// --
+// Dock related
+// --
+static GtkWidget *
+dock_create(Recently *self);
 static void
 dock_update(Recently *self);
-
 void
 dock_row_activated_cb(GtkWidget *w,
 	GtkTreePath *path,
@@ -63,6 +91,7 @@ GQuark recently_quark(void)
 	return ret;
 }
 
+// Convert a string in iso8601 format to a more human form
 static gchar*
 stamp_to_human(gchar *stamp)
 {
@@ -149,46 +178,48 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many)
 	return ret;
 }
 
-static void
-dock_update(Recently *self)
+void
+connect_lomo(Recently *self)
 {
-	gtk_list_store_clear(GTK_LIST_STORE(self->model));
-
-	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
-	if (adb == NULL)
+	LomoPlayer *lomo = LOMO_PLAYER(gel_app_shared_get(self->app, "lomo"));
+	if ((lomo == NULL) || !LOMO_IS_PLAYER(lomo))
 		return;
-
-	char *q = "SELECT DISTINCT(timestamp) FROM playlist_history WHERE timestamp > 0 ORDER BY timestamp DESC;";
-	sqlite3_stmt *stmt = NULL;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
-	{
-		gel_error("Cannot fetch playlist_history data");
-		return;
-	}
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
-	{
-		gchar *ts = (gchar *) sqlite3_column_text(stmt, 0);
-		gchar *summary = summary_playlist(adb, ts, 3);
-		gchar *escaped = g_markup_escape_text(summary, -1);
-		g_free(summary);
-
-		GtkTreeIter iter;
-		gtk_list_store_append((GtkListStore *) self->model, &iter);
-
-		gchar *title = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), escaped);
-		g_free(escaped);
-
-		gtk_list_store_set((GtkListStore *) self->model, &iter,
-			RECENTLY_COLUMN_TIMESTAMP, ts,
-			RECENTLY_COLUMN_TITLE, title,
-			-1);
-		g_free(title);
-	}
-	sqlite3_finalize(stmt);
+	g_signal_connect(lomo, "clear", (GCallback) lomo_clear_cb, self);
 }
 
+void
+disconnect_lomo(Recently *self)
+{
+	LomoPlayer *lomo = LOMO_PLAYER(gel_app_shared_get(self->app, "lomo"));
+	if ((lomo == NULL) || !LOMO_IS_PLAYER(lomo))
+		return;
+	g_signal_handlers_disconnect_by_func(lomo, lomo_clear_cb, self);
+}
+void
+app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Recently *self)
+{
+	if (g_str_equal(plugin->name, "lomo"))
+		connect_lomo(self);
+}
+
+void
+app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Recently *self)
+{
+	if (g_str_equal(plugin->name, "lomo"))
+		disconnect_lomo(self);
+}
+
+void
+lomo_clear_cb(LomoPlayer *lomo, Recently *self)
+{
+	dock_update(self);
+}
+
+// --
+// Dock related
+// --
 static GtkWidget *
-recently_dock_create(Recently *self)
+dock_create(Recently *self)
 {
 	GtkScrolledWindow *sw;
 	GtkTreeViewColumn *col, *col2;
@@ -237,7 +268,44 @@ recently_dock_create(Recently *self)
 	dock_update(self);
 
 	return GTK_WIDGET(sw);
+}
 
+static void
+dock_update(Recently *self)
+{
+	gtk_list_store_clear(GTK_LIST_STORE(self->model));
+
+	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
+	if (adb == NULL)
+		return;
+
+	char *q = "SELECT DISTINCT(timestamp) FROM playlist_history WHERE timestamp > 0 ORDER BY timestamp DESC;";
+	sqlite3_stmt *stmt = NULL;
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_error("Cannot fetch playlist_history data");
+		return;
+	}
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	{
+		gchar *ts = (gchar *) sqlite3_column_text(stmt, 0);
+		gchar *summary = summary_playlist(adb, ts, 3);
+		gchar *escaped = g_markup_escape_text(summary, -1);
+		g_free(summary);
+
+		GtkTreeIter iter;
+		gtk_list_store_append((GtkListStore *) self->model, &iter);
+
+		gchar *title = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), escaped);
+		g_free(escaped);
+
+		gtk_list_store_set((GtkListStore *) self->model, &iter,
+			RECENTLY_COLUMN_TIMESTAMP, ts,
+			RECENTLY_COLUMN_TITLE, title,
+			-1);
+		g_free(title);
+	}
+	sqlite3_finalize(stmt);
 }
 
 void
@@ -293,6 +361,11 @@ dock_row_activated_cb(GtkWidget *w,
 	lomo_player_clear(lomo);
 	lomo_player_add_uri_multi(lomo, pl);
 	gel_list_deep_free(pl, g_free);
+
+	eina_plugin_switch_dock_widget(self->plugin, "playlist");
+	dock_update(self);
+
+	lomo_player_play(lomo, NULL);
 }
 
 gboolean
@@ -316,11 +389,11 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	self->app = app;
 	self->plugin = plugin;
 
-	plugin->data = self;
+	self->dock = dock_create(self);
+	gtk_widget_show(self->dock);
+	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), self->dock);
 
-	GtkWidget *dock = recently_dock_create(self);
-	gtk_widget_show_all(dock);
-	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), dock);
+	plugin->data = self;
 
 	return TRUE;
 }
@@ -338,41 +411,7 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	}
 	return TRUE;
 }
-/*
-static PlaylistEntry*
-playlist_entry_new(gchar *timestamp, gchar *uri)
-{
-	PlaylistEntry *entry = g_new0(PlaylistEntry, 1);
-	if (timestamp)
-		entry->timestamp = g_strdup(timestamp);
-	if (uri)
-		entry->uri= g_strdup(uri);
-	return entry;
-}
 
-static void
-playlist_entry_free(PlaylistEntry *entry)
-{
-	gel_free_and_invalidate(entry->timestamp, NULL, g_free);
-	gel_free_and_invalidate(entry->uri, NULL, g_free);
-	gel_free_and_invalidate(entry, NULL, g_free);
-}
-
-static GHashTable*
-playlist_entries_group_by_timestamp(GList *entries)
-{
-	GHashTable *ret = g_hash_table_new(g_str_hash, g_str_equal);
-	GList *iter = entries;
-	while (iter)
-	{
-		PlaylistEntry *e = (PlaylistEntry *) iter->data;
-		g_hash_table_replace(ret, e->timestamp, 
-			g_list_append(g_hash_table_lookup(ret, e->timestamp), e->uri));
-		iter = iter->next;
-	}
-	return ret;
-}
-*/
 EinaPlugin recently2_plugin = {
 	EINA_PLUGIN_SERIAL,
 	"recently", PACKAGE_VERSION,
