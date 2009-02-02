@@ -126,7 +126,7 @@ PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 		HAVE_SQLITE3=yes
 	],
 	[
-		HAVE_SQLITE3=no
+		AC_CHECK_HEADER(sqlite3.h, [HAVE_SQLITE3=yes], [HAVE_SQLITE3=no])
 	]
 	)
 AM_CONDITIONAL(USE_ADB, test x"$HAVE_SQLITE3" = "xyes")
