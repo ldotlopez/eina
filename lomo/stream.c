@@ -52,6 +52,14 @@ struct _LomoStreamPrivate {
 static void
 lomo_stream_dispose (GObject *object)
 {
+  struct _LomoStreamPrivate *priv = GET_PRIVATE(LOMO_STREAM(object));
+  if (priv->tags)
+  {
+  	g_list_foreach(priv->tags, (GFunc) g_free, NULL);
+	g_list_free(priv->tags);
+	priv->tags = NULL;
+  }
+
   if (G_OBJECT_CLASS (lomo_stream_parent_class)->dispose)
     G_OBJECT_CLASS (lomo_stream_parent_class)->dispose (object);
 }
@@ -116,7 +124,7 @@ lomo_stream_set_tag(LomoStream *stream, LomoTag tag, gpointer value)
 			link->data = g_strdup(tag);
 		}
 		else
-			priv->tags = g_list_prepend(priv->tags, value);
+			priv->tags = g_list_prepend(priv->tags, g_strdup(tag));
 	}
 	else
 	{
@@ -125,6 +133,12 @@ lomo_stream_set_tag(LomoStream *stream, LomoTag tag, gpointer value)
 		g_list_free(link);
 	}
 	g_object_set_data_full(G_OBJECT(stream), tag, value, g_free);
+}
+
+GList*
+lomo_stream_get_tags(LomoStream *self)
+{
+	return g_list_copy(GET_PRIVATE(self)->tags);
 }
 
 gboolean
