@@ -86,7 +86,7 @@ gboolean
 eina_plugin_remove_dock_widget(EinaPlugin *self, gchar *id);
 
 gboolean
-eina_plugin_switch_dock(EinaPlugin *self, gchar *id);
+eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id);
 
 // --
 // Configuration handling

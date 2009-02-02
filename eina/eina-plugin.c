@@ -120,7 +120,7 @@ gboolean eina_plugin_add_dock_widget(EinaPlugin *self, gchar *id, GtkWidget *lab
 	return eina_dock_add_widget(dock, id, label, dock_widget);
 }
 
-gboolean eina_plugin_dock_remove_item(EinaPlugin *self, gchar *id)
+gboolean eina_plugin_remove_dock_widget(EinaPlugin *self, gchar *id)
 {
 	EinaDock *dock;
 
@@ -131,7 +131,7 @@ gboolean eina_plugin_dock_remove_item(EinaPlugin *self, gchar *id)
 }
 
 gboolean
-eina_plugin_dock_switch(EinaPlugin *self, gchar *id)
+eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id)
 {
 	EinaDock *dock;
 
