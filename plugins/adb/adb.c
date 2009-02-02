@@ -53,18 +53,32 @@ adb_new(GelApp *app, GError **error)
 		return FALSE;
 	}
 	g_free(db_path);
+	sqlite3_extended_result_codes(db, 1);
 
 	self = g_new0(Adb, 1);
 	self->db  = db;
 	self->app = app;
-/*
-	if (!gel_app_load_plugin_by_name(app, "settings", error))
+	gel_warn("ADB sqlite3 pointer: %p", self->db);
+
+#if 0
+	// check exec
+	if (sqlite3_exec(self->db, "SELECT 1;", NULL, NULL, NULL) != SQLITE_OK)
+		gel_warn("exec interface fails");
+	else
+		gel_warn("exec interface works ok");
+	sqlite3_stmt *stmt = NULL;
+
+	// check prepare
+	if (sqlite3_prepare_v2(self->db, "SELECT 1;", -1, &stmt, NULL) != SQLITE_OK)
+		gel_warn("prepare_v2 interface fails");
+	else
 	{
-	    sqlite3_close(self->db);
-	    g_free(self);
-		return FALSE;
+		while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+			;
+		sqlite3_finalize(stmt);
+		gel_warn("prepare_v2 interface works ok");
 	}
-*/	
+#endif
 	gpointer callbacks[] = {
 		adb_setup_0,
 		NULL
@@ -75,11 +89,9 @@ adb_new(GelApp *app, GError **error)
 		adb_free(self);
 		return NULL;
 	}
+
 	adb_register_enable(self);
-/*
-	if (eina_conf_get_bool(GEL_APP_GET_SETTINGS(app), "/plugins/adb/register_enabled", TRUE))
-		adb_register_enable(self);
-*/
+
 	return self;
 }
 

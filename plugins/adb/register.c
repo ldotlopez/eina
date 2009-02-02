@@ -1,5 +1,5 @@
 /*
- * plugins/adb/adb.c
+ * plugins/adb/register.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -36,6 +36,8 @@ static void
 lomo_del_cb(LomoPlayer *lomo, gint pos, gpointer data);
 static void
 lomo_clear_cb(LomoPlayer *lomo, gpointer data);
+void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data);
 
 gboolean
 adb_register_setup_0(Adb *self, gpointer data, GError **error)
@@ -61,11 +63,40 @@ adb_register_setup_0(Adb *self, gpointer data, GError **error)
 	return adb_exec_queryes(self, q, NULL, error);
 }
 
+gboolean // Not released, may be change
+adb_register_setup_1(Adb *self, gpointer data, GError **error)
+{
+	gchar *q[] = {
+		"DROP TABLE IF EXISTS metadata;",
+
+		"CREATE TABLE metadata ("
+		"	sid INTEGER,"
+		"	key VARCHAR(64),"
+		"	value VARCHAR(64),"
+		"	PRIMARY KEY (sid,key),"
+		"	FOREIGN KEY(sid) REFERENCES streams(sid));",
+		
+		"CREATE INDEX metadata_key_idx ON metadata(key);",
+
+		"DROP TABLE IF EXISTS playlist_history;",
+		"CREATE TABLE IF NOT EXISTS playlist_history("
+		"	timestamp TIMESTAMP NOT NULL,"
+		"	sid INTEGER,"
+		"	FOREIGN KEY(sid) REFERENCES streams(sid));",
+		"CREATE INDEX playlist_history_timestamp_idx ON playlist_history(timestamp);",
+
+		NULL
+	};
+	return adb_exec_queryes(self, q, NULL, error);
+}
+
 void
 adb_register_enable(Adb *self)
 {
+/*
 	gpointer callbacks[] = {
 		adb_register_setup_0,
+		adb_register_setup_1,
 		NULL
 		};
 
@@ -76,9 +107,7 @@ adb_register_enable(Adb *self)
 		g_error_free(error);
 		return;
 	}
-	char *q = "DELETE FROM playlist_history WHERE timestamp = 0;";
-	sqlite3_exec(self->db, q, NULL, NULL, NULL);
-
+*/
 	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
 	if (lomo == NULL)
 		g_signal_connect(self->app, "plugin-init", (GCallback) app_plugin_init_cb, self);
@@ -110,7 +139,7 @@ adb_register_setup_db(Adb *self)
 		schema_version = atoi((gchar *) schema_version_str);
 		g_free(schema_version_str);
 	}
-	gel_warn("Got schema version: %d", schema_version);
+	// gel_warn("Got schema version: %d", schema_version);
 }
 
 // --
@@ -128,6 +157,7 @@ adb_register_connect_lomo(Adb *self, LomoPlayer *lomo)
 	g_signal_connect(lomo,      "add",         (GCallback) lomo_add_cb,        self);
 	g_signal_connect(lomo,      "del",         (GCallback) lomo_del_cb,        self);
 	g_signal_connect(lomo,      "clear",       (GCallback) lomo_clear_cb,      self);
+	g_signal_connect(lomo,      "all-tags",    (GCallback) lomo_all_tags_cb,   self);
 }
 
 // --
@@ -142,6 +172,7 @@ adb_register_disconnect_lomo(Adb *self, LomoPlayer *lomo)
 	g_signal_handlers_disconnect_by_func(lomo, lomo_add_cb, self);
 	g_signal_handlers_disconnect_by_func(lomo, lomo_del_cb, self);
 	g_signal_handlers_disconnect_by_func(lomo, lomo_clear_cb, self);
+	g_signal_handlers_disconnect_by_func(lomo, lomo_all_tags_cb, self);
 	g_signal_connect(self->app, "plugin-init", (GCallback)  app_plugin_init_cb, self);
 	g_signal_handlers_disconnect_by_func(self->app, app_plugin_fini_cb, self);
 }
@@ -184,24 +215,22 @@ lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 			"DATETIME('NOW'));",
 			uri,
 			uri);
-	q[1] = sqlite3_mprintf( "INSERT INTO playlist_history VALUES(0,'%q')", uri);
-	q[2] = NULL;
+	q[1] = NULL;
 
 	GError *error = NULL;
-	if (!adb_exec_queryes(self, q, NULL, &error))
+	if (!adb_exec_queryes((Adb*) data, q, NULL, &error))
 	{
 		gel_error(error->message);
 		g_error_free(error);
 	}
 	sqlite3_free(q[0]);
-	sqlite3_free(q[1]);
 }
 
 static void
 lomo_del_cb(LomoPlayer *lomo, gint pos, gpointer data)
 {
 	Adb *self = (Adb *) data;
-	const LomoStream *stream = lomo_player_get_nth(lomo, pos);
+	LomoStream *stream = lomo_player_get_nth(lomo, pos);
 	GList *p;
 	if ((p = g_list_find_custom(self->pl, lomo_stream_get_tag(stream, LOMO_TAG_URI), (GCompareFunc) strcmp)) == NULL)
 	{
@@ -216,11 +245,11 @@ lomo_del_cb(LomoPlayer *lomo, gint pos, gpointer data)
 static void
 lomo_clear_cb(LomoPlayer *lomo, gpointer data)
 {
+
 	Adb *self = (Adb *) data;
 	char *err = NULL;
 	GTimeVal now; g_get_current_time(&now);
 	gchar *now_str = g_time_val_to_iso8601(&now);
-
 	if (sqlite3_exec(self->db, "BEGIN TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
 	{
 		gel_warn("Cannot begin transaction: %s", err);
@@ -228,10 +257,11 @@ lomo_clear_cb(LomoPlayer *lomo, gpointer data)
 		return;
 	}
 
+	self->pl = g_list_reverse(self->pl);
 	GList *iter = self->pl;
 	while (iter)
 	{
-		char *q = sqlite3_mprintf("INSERT INTO playlist_history VALUES('%s','%q')", now_str, iter->data);
+		char *q = sqlite3_mprintf("INSERT INTO playlist_history VALUES('%s',(SELECT sid FROM streams WHERE uri='%q'));", now_str, iter->data);
 		if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
 		{
 			gel_warn("Cannot update playlist_history: %s", err);
@@ -248,7 +278,6 @@ lomo_clear_cb(LomoPlayer *lomo, gpointer data)
 		gel_warn("Cannot end transaction: %s", err);
 		goto lomo_clear_cb_return;
 	}
-
 lomo_clear_cb_return:
 	gel_free_and_invalidate(err, NULL, sqlite3_free);
 	gel_free_and_invalidate(now_str, NULL, g_free);
@@ -258,3 +287,51 @@ lomo_clear_cb_return:
 		self->pl = NULL;
 	}
 }
+
+
+void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
+{
+
+	Adb *self = (Adb *) data;
+	char *err = NULL;
+
+	if (sqlite3_exec(self->db, "BEGIN TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
+	{
+		gel_warn("Cannot begin transaction: %s", err);
+		sqlite3_free(err);
+		return;
+	}
+
+	GList *tags = lomo_stream_get_tags(stream);
+	GList *iter = tags;
+	while (iter)
+	{
+		gchar *tag = iter->data;
+		if (lomo_tag_get_type(tag) != G_TYPE_STRING)
+		{
+			iter = iter->next;
+			continue;
+		}
+
+		gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
+		gchar *value = (gchar *) lomo_stream_get_tag(stream, iter->data);
+
+		char *q = sqlite3_mprintf("INSERT OR IGNORE INTO metadata "
+			"VALUES((SELECT sid FROM streams WHERE uri='%q'), '%q', '%q');", uri, tag, value);
+		if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
+		{
+			gel_warn("Cannot store metadata %s for %s: %s", tag, uri, err);
+			sqlite3_free(err);
+			err = NULL;
+		}
+
+		iter = iter->next;
+	}
+	g_list_free(tags);
+
+	if (sqlite3_exec(self->db, "END TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
+		gel_warn("Cannot end transaction: %s", err);
+
+}
+
