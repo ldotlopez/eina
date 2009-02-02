@@ -28,21 +28,11 @@
 #include "plugins/adb/adb.h"
 
 typedef struct {
+	GelApp       *app;
+	GelPlugin    *plugin;
 	GtkTreeView  *tv;
 	GtkListStore *model;
-	Adb *adb;
 } Recently;
-
-typedef struct {
-	gchar *timestamp;
-	gchar *uri;
-} PlaylistEntry;
-static PlaylistEntry*
-playlist_entry_new(gchar *timestamp, gchar *uri);
-static void
-playlist_entry_free(PlaylistEntry *playlist_entry);
-static GHashTable*
-playlist_entries_group_by_timestamp(GList *entries);
 
 enum {
 	RECENTLY_COLUMN_TIMESTAMP,
@@ -56,6 +46,15 @@ enum {
 	RECENTLY_ERROR_CANNOT_UNLOAD_ADB
 };
 
+static void
+dock_update(Recently *self);
+
+void
+dock_row_activated_cb(GtkWidget *w,
+	GtkTreePath *path,
+	GtkTreeViewColumn *column,
+	Recently *self);
+
 GQuark recently_quark(void)
 {
 	static GQuark ret = 0;
@@ -64,13 +63,6 @@ GQuark recently_quark(void)
 	return ret;
 }
 
-/*
-static void pp
-(gpointer key, gpointer val, gpointer data)
-{
-	gel_warn("Key %s: %d", (gchar *) key, g_list_length((GList *) val));
-}
-*/
 static gchar*
 stamp_to_human(gchar *stamp)
 {
@@ -112,52 +104,87 @@ stamp_to_human(gchar *stamp)
 		return N_("More than a year ago");
 }
 
+static gchar *
+summary_playlist(Adb *adb, gchar *timestamp, guint how_many)
+{
+	sqlite3_stmt *stmt = NULL;
+	char *q = sqlite3_mprintf(
+	"SELECT COUNT(*) AS count,value FROM ("
+	"	SELECT sid,uri FROM"
+	"		playlist_history AS pl JOIN streams USING(sid) WHERE pl.timestamp='%q') JOIN"
+	"		metadata USING(sid) WHERE key='artist' GROUP BY value ORDER BY count desc LIMIT %d", timestamp, how_many);
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_warn("Cannot summaryze %s: %s", timestamp, sqlite3_errmsg(adb->db));
+		return NULL;
+	}
+
+	GList *items = NULL;
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	{
+		items = g_list_prepend(items, g_strdup((gchar *) sqlite3_column_text(stmt, 1)));
+	}
+	items = g_list_reverse(items);
+	
+	GString *out = g_string_new(NULL);
+	GList *iter = items;
+	while (iter)
+	{
+		out = g_string_append(out, iter->data);
+		g_free(iter->data);
+
+		if (iter->next)
+		{
+			if (iter->next->next)
+				out = g_string_append(out, N_(", "));
+			else
+				out = g_string_append(out, N_(" and "));
+		}
+		iter = iter->next;
+	}
+	g_list_free(items);
+
+	gchar *ret = out->str;
+	g_string_free(out, FALSE);
+	return ret;
+}
+
 static void
-recently_dock_update(Recently *self)
+dock_update(Recently *self)
 {
 	gtk_list_store_clear(GTK_LIST_STORE(self->model));
 
-	// char *q = "select timestamp,count(*) from playlist_history group by timestamp;";
-	char *q = "select timestamp,uri from playlist_history;";
+	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
+	if (adb == NULL)
+		return;
+
+	char *q = "SELECT DISTINCT(timestamp) FROM playlist_history WHERE timestamp > 0 ORDER BY timestamp DESC;";
 	sqlite3_stmt *stmt = NULL;
-	if (sqlite3_prepare_v2(self->adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
 	{
 		gel_error("Cannot fetch playlist_history data");
 		return;
 	}
-
-	GList *entries = NULL;
 	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
 	{
-		entries = g_list_prepend(entries, playlist_entry_new(
-				(gchar *) sqlite3_column_text(stmt, 0),
-				(gchar *) sqlite3_column_text(stmt, 1)));
-	}
-	sqlite3_finalize(stmt);
+		gchar *ts = (gchar *) sqlite3_column_text(stmt, 0);
+		gchar *summary = summary_playlist(adb, ts, 3);
+		gchar *escaped = g_markup_escape_text(summary, -1);
+		g_free(summary);
 
-	GHashTable *grouped = playlist_entries_group_by_timestamp(entries);
-	GList      *stamps  = g_list_sort(g_hash_table_get_keys(grouped), (GCompareFunc) strcmp);
-	GList *iter = stamps;
-	while (iter)
-	{
-		GtkTreeIter titer;
-		gtk_list_store_append((GtkListStore *) self->model, &titer);
+		GtkTreeIter iter;
+		gtk_list_store_append((GtkListStore *) self->model, &iter);
 
-		GList *items = g_hash_table_lookup(grouped, iter->data);
-		const gchar *stamp_human = stamp_to_human((gchar *) iter->data);
-		gchar *title = g_strdup_printf("%s: %d streams",stamp_human, g_list_length(items));
-		gtk_list_store_set((GtkListStore *) self->model, &titer,
-			RECENTLY_COLUMN_TIMESTAMP, iter->data,
+		gchar *title = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), escaped);
+		g_free(escaped);
+
+		gtk_list_store_set((GtkListStore *) self->model, &iter,
+			RECENTLY_COLUMN_TIMESTAMP, ts,
 			RECENTLY_COLUMN_TITLE, title,
 			-1);
 		g_free(title);
-
-		iter = iter->next;
 	}
-
-	g_list_free(stamps);
-	g_hash_table_destroy(grouped);
-	gel_list_deep_free(entries, playlist_entry_free);
+	sqlite3_finalize(stmt);
 }
 
 static GtkWidget *
@@ -201,16 +228,71 @@ recently_dock_create(Recently *self)
 
     gtk_tree_view_set_model(self->tv, GTK_TREE_MODEL(self->model));
 
-	/* g_signal_connect(self->tv, "row-activated",
-		G_CALLBACK(on_recently_dock_row_activated), plugin); */
+	g_signal_connect(self->tv, "row-activated",
+		G_CALLBACK(dock_row_activated_cb), self);
 	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
 
-	recently_dock_update(self);
+	dock_update(self);
 
 	return GTK_WIDGET(sw);
 
+}
+
+void
+dock_row_activated_cb(GtkWidget *w,
+	GtkTreePath *path,
+	GtkTreeViewColumn *column,
+	Recently *self)
+{
+	GtkTreeIter iter;
+	gchar *ts;
+
+	Adb *adb = (Adb *) gel_app_shared_get(self->app, "adb");
+	if (adb == NULL)
+		return;
+	LomoPlayer *lomo = (LomoPlayer *) gel_app_shared_get(self->app, "lomo");
+	if (lomo == NULL)
+		return;
+	
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &iter, path);
+	gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter,
+		RECENTLY_COLUMN_TIMESTAMP, &ts,
+		-1);
+
+	char *q = sqlite3_mprintf(
+		"SELECT uri FROM streams WHERE sid IN ("
+			"SELECT sid FROM playlist_history WHERE timestamp='%q'"
+		");", ts);
+	sqlite3_stmt *stmt = NULL;
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_warn("Cannot get URIs for %s: %s", ts, sqlite3_errmsg(adb->db));
+		sqlite3_free(q);
+		return;
+	}
+
+	GList *pl = NULL;
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	{
+		pl = g_list_prepend(pl, g_strdup((gchar*) sqlite3_column_text(stmt, 0)));
+	}
+	sqlite3_finalize(stmt);
+	pl = g_list_reverse(pl);
+
+	q = sqlite3_mprintf("DELETE FROM playlist_history WHERE timestamp='%q'", ts);
+	char *err = NULL;
+	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+	{
+		gel_error("Cannot delete playlist %s form history: %s", ts, err);
+		sqlite3_free(err);
+	}
+	g_free(ts);
+
+	lomo_player_clear(lomo);
+	lomo_player_add_uri_multi(lomo, pl);
+	gel_list_deep_free(pl, g_free);
 }
 
 gboolean
@@ -230,9 +312,11 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if ((adb = gel_app_shared_get(app, "adb")) == NULL)
 		return FALSE;
 
-	gel_warn("ADB object retrieved: %p", adb);
 	Recently *self = g_new0(Recently, 1);
-	self->adb = adb;
+	self->app = app;
+	self->plugin = plugin;
+
+	plugin->data = self;
 
 	GtkWidget *dock = recently_dock_create(self);
 	gtk_widget_show_all(dock);
@@ -254,7 +338,7 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	}
 	return TRUE;
 }
-
+/*
 static PlaylistEntry*
 playlist_entry_new(gchar *timestamp, gchar *uri)
 {
@@ -288,7 +372,7 @@ playlist_entries_group_by_timestamp(GList *entries)
 	}
 	return ret;
 }
-
+*/
 EinaPlugin recently2_plugin = {
 	EINA_PLUGIN_SERIAL,
 	"recently", PACKAGE_VERSION,
