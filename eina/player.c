@@ -283,6 +283,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(eina_obj_get_lomo(self), "random", G_CALLBACK(update_sensitiviness), self);
 
 	// Preferences is attached to us (like dock) but this is less than optimal
+	/*
 	EinaPreferencesDialog *prefs = eina_obj_require(EINA_OBJ(self), "preferences", NULL);
 	if (prefs == NULL)
 	{
@@ -295,6 +296,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 			GTK_LABEL(gtk_label_new(_("Player"))),
 			build_preferences_widget(self));
 	}
+	*/
 
 	setup_dnd(self);
 
