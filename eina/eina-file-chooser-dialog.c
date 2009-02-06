@@ -404,19 +404,30 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 
 	if (value == TRUE)
 	{
-		gdk_window_set_cursor(gtk_widget_get_window(GTK_WIDGET(self)), NULL);
+		gdk_window_set_cursor(
+#if GTK_CHECK_VERSION(2,14,0)
+			gtk_widget_get_window(GTK_WIDGET(self)),
+#else
+			GTK_WIDGET(self)->window,
+#endif
+			NULL);
 		g_signal_handlers_disconnect_by_func(self, gtk_true, self);
 	}
 	else
 	{
 		GtkWidget *w = GTK_WIDGET(self);
-		GdkWindow *win = gtk_widget_get_window(w);
+#if GTK_CHECK_VERSION(2,14,0)
+		GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(self)),
+#else
+		GdkWindow *win = GTK_WIDGET(self)->window,
+#endif
 		GdkDisplay *display = gtk_widget_get_display(w);
 		gdk_window_set_cursor(win, gdk_cursor_new_for_display(display, GDK_WATCH));
 		g_signal_connect(self, "delete-event", G_CALLBACK(gtk_true), self);
 	}
 }
 
+w
 static void
 clear_message(EinaFileChooserDialog *self)
 {
