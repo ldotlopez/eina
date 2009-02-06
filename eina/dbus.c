@@ -88,8 +88,10 @@ dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		"org.gnome.SettingsDaemon.MediaKeys",
 		error);
 	if (proxy == NULL)
+	{
+		gel_error("Cannot get proxy");
 		return FALSE;
-
+	}
 	dbus_g_proxy_call(proxy, "GrabMediaPlayerKeys", error,
 		G_TYPE_STRING, PACKAGE_NAME,
 		G_TYPE_UINT, 0,

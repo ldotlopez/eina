@@ -46,20 +46,11 @@ static struct TagFmt tag_fmt_table [] = {
 
 struct _LomoStreamPrivate {
 	gboolean all_tags, failed;
-	GList *tags;
 };
 
 static void
 lomo_stream_dispose (GObject *object)
 {
-  struct _LomoStreamPrivate *priv = GET_PRIVATE(LOMO_STREAM(object));
-  if (priv->tags)
-  {
-  	g_list_foreach(priv->tags, (GFunc) g_free, NULL);
-	g_list_free(priv->tags);
-	priv->tags = NULL;
-  }
-
   if (G_OBJECT_CLASS (lomo_stream_parent_class)->dispose)
     G_OBJECT_CLASS (lomo_stream_parent_class)->dispose (object);
 }
@@ -108,37 +99,6 @@ lomo_stream_new (gchar *uri)
 	g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
 
 	return self;
-}
-
-void
-lomo_stream_set_tag(LomoStream *stream, LomoTag tag, gpointer value)
-{
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(stream);
-	GList *link = g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp);
-
-	if (tag != NULL)
-	{
-		if (link != NULL)
-		{
-			g_free(link->data);
-			link->data = g_strdup(tag);
-		}
-		else
-			priv->tags = g_list_prepend(priv->tags, g_strdup(tag));
-	}
-	else
-	{
-		priv->tags = g_list_remove_link(priv->tags, link);
-		g_free(link->data);
-		g_list_free(link);
-	}
-	g_object_set_data_full(G_OBJECT(stream), tag, value, g_free);
-}
-
-GList*
-lomo_stream_get_tags(LomoStream *self)
-{
-	return g_list_copy(GET_PRIVATE(self)->tags);
 }
 
 gboolean

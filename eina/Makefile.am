@@ -18,7 +18,6 @@ eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 eina_LDADD = @PACKAGE_LIBS@ -lgel -llomo-1.0
 
 NOINST_H_FILES = \
-	art.h \
 	dock.h                     \
 	eina-file-chooser-dialog.h \
 	eina-seek.h                \
@@ -44,7 +43,6 @@ header_DATA = $(INST_H_FILES)
 
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
-	art.c \
 	artwork.c                  \
 	eina-obj.c                 \
 	class-conf-file.c          \

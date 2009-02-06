@@ -53,16 +53,12 @@ enum {
 gboolean
 coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	/*
 	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
 	if (!artwork)
 	{
 		g_set_error_literal(error, coverplus_quark(), NO_ARTWORK, "No artwork object available");
 		return FALSE;
 	}
-	*/
-	if (!gel_app_load_plugin_by_name(app, "artwork", error))
-		return FALSE;
 
 	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
 
@@ -70,7 +66,7 @@ coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (self->infolder)
 	{
 		// Add providers
-		eina_plugin_add_artwork_provider(plugin, "coverplus-infolder",
+		eina_artwork_add_provider(artwork, "coverplus-infolder",
 			(EinaArtworkProviderSearchFunc) coverplus_infolder_search_cb,
 			(EinaArtworkProviderCancelFunc) coverplus_infolder_cancel_cb,
 			self->infolder);
@@ -81,7 +77,7 @@ coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	eina_plugin_add_artwork_provider(plugin, "coverplus-banshee",
+	eina_artwork_add_provider(artwork, "coverplus-banshee",
 		coverplus_banshee_search_cb, NULL,
 		NULL); 
 
@@ -93,9 +89,6 @@ coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	if (!gel_app_unload_plugin_by_name(app, "artwork", error))
-		return FALSE;
-
 	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
 	eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");
 	g_free(EINA_PLUGIN_DATA(plugin));

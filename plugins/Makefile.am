@@ -1,8 +1,8 @@
 # SUBDIRS = coverplus hooktest lastfm
-SUBDIRS = coverplus lastfm
+SUBDIRS = coverplus recently2
 DIST_SUBDIRS = adb coverplus hooktest lastfm recently2
 
 if USE_ADB
-SUBDIRS += adb recently2
+SUBDIRS += adb
 endif
 

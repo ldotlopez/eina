@@ -24,9 +24,6 @@
 #include <gmodule.h>
 #include <gel/gel.h>
 #include <eina/eina-plugin.h>
-
-// Internal access only: player, dock, preferences
-#include <eina/player.h>
 #include <eina/dock.h>
 #include <eina/preferences.h>
 
@@ -120,7 +117,7 @@ gboolean eina_plugin_add_dock_widget(EinaPlugin *self, gchar *id, GtkWidget *lab
 	return eina_dock_add_widget(dock, id, label, dock_widget);
 }
 
-gboolean eina_plugin_remove_dock_widget(EinaPlugin *self, gchar *id)
+gboolean eina_plugin_dock_remove_item(EinaPlugin *self, gchar *id)
 {
 	EinaDock *dock;
 
@@ -131,7 +128,7 @@ gboolean eina_plugin_remove_dock_widget(EinaPlugin *self, gchar *id)
 }
 
 gboolean
-eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id)
+eina_plugin_dock_switch(EinaPlugin *self, gchar *id)
 {
 	EinaDock *dock;
 
@@ -195,13 +192,13 @@ eina_plugin_get_artwork(EinaPlugin *plugin)
 
 void
 eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
-    EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data)
+    EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel)
 {
 	EinaArtwork *artwork;
 	
 	if ((artwork = eina_plugin_get_artwork(plugin)) == NULL)
 		return;
-	eina_artwork_add_provider(artwork, id, search, cancel, data);
+	eina_artwork_add_provider(artwork, id, search, cancel, plugin);
 }
 
 void

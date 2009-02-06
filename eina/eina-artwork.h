@@ -46,11 +46,9 @@ typedef struct {
 	GtkImage parent;
 } EinaArtwork;
 
-typedef struct _EinaArtworkClassPrivate EinaArtworkClassPrivate;
 typedef struct {
 	GtkImageClass parent_class;
 	void (*change) (EinaArtwork *self);
-	EinaArtworkClassPrivate *priv;
 } EinaArtworkClass;
 
 typedef void (*EinaArtworkProviderSearchFunc) (EinaArtwork *self, LomoStream *stream, gpointer data);

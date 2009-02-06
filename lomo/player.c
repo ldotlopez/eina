@@ -985,7 +985,7 @@ const GList *lomo_player_get_playlist(LomoPlayer *self)
 	return lomo_playlist_get_playlist(self->priv->pl);
 }
 
-LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos)
+const LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos)
 { BACKTRACE
 	return lomo_playlist_get_nth(self->priv->pl, pos);
 }

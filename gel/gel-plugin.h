@@ -71,11 +71,6 @@ const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
 
-#define gel_plugin_build_resource_path(plugin,resource_path) \
-	(((plugin == NULL) || (gel_plugin_get_pathname(plugin) == NULL)) ? \
-	NULL : \
-	g_build_filename(gel_plugin_get_pathname(plugin), resource_path, NULL))
-
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE
 #define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data)

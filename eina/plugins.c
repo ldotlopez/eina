@@ -362,13 +362,14 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	g_free(tmp);
 
 	gel_warn("Icon feature disabled");
+	/*
 	tmp = gel_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
-	if ((tmp == NULL) || !g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
+	if (!g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
 		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 	else
 		gtk_image_set_from_file(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), tmp);
-	gel_free_and_invalidate(tmp, NULL, g_free);
-
+	g_free(tmp);
+	*/
 	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 }
 
