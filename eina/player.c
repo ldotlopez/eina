@@ -72,8 +72,10 @@ static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
+/*
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self);
+*/
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
@@ -414,13 +416,13 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	gtk_window_set_title(self->main_window, title);
 	g_free(title);
 }
-
+/*
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self)
 {
 	return gtk_label_new(":)");
 }
-
+*/
 static void
 update_sensitiviness(EinaPlayer *self)
 {

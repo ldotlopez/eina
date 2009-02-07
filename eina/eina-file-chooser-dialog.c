@@ -417,9 +417,9 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 	{
 		GtkWidget *w = GTK_WIDGET(self);
 #if GTK_CHECK_VERSION(2,14,0)
-		GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(self)),
+		GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(self));
 #else
-		GdkWindow *win = GTK_WIDGET(self)->window,
+		GdkWindow *win = GTK_WIDGET(self)->window;
 #endif
 		GdkDisplay *display = gtk_widget_get_display(w);
 		gdk_window_set_cursor(win, gdk_cursor_new_for_display(display, GDK_WATCH));
@@ -427,7 +427,6 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 	}
 }
 
-w
 static void
 clear_message(EinaFileChooserDialog *self)
 {
