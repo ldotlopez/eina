@@ -169,6 +169,7 @@ gint lomo_player_get_prev(LomoPlayer *self);
 gint lomo_player_get_next(LomoPlayer *self);
 
 LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos);
+gint        lomo_player_get_position(LomoPlayer *self, LomoStream *stream);
 
 gboolean          lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error);
 #define           lomo_player_go_prev(p,e) lomo_player_go_nth(p,lomo_player_get_prev(p),e)

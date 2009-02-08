@@ -105,6 +105,16 @@ const GList* lomo_playlist_get_random_playlist (LomoPlaylist *l);
 LomoStream *lomo_playlist_get_nth(LomoPlaylist *l, guint pos);
 
 /*
+ * @lomo_playlist_get_position
+ * @Returns the position of a LomoStream 
+ *  LomoPlaylist* l: [self]
+ *  LomoStream* stream: Stream to find
+ *  gint ret: Position of stream in playlist or -1 if not found
+ */
+
+gint lomo_playlist_get_position(LomoPlaylist *l, LomoStream *stream);
+
+/*
  * @lomo_playlist_total
  * @Gets the number of streams currently in playlist
  *  LomoPlaylist* l: [self]

@@ -269,11 +269,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, error),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_STRING,
+			    lomo_marshal_VOID__POINTER_POINTER,
 			    G_TYPE_NONE,
 			    2,
 			    G_TYPE_POINTER,
-				G_TYPE_STRING);
+				G_TYPE_POINTER);
 	lomo_player_signals[TAG] =
 		g_signal_new ("tag",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -823,6 +823,12 @@ LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos)
 	return lomo_playlist_get_nth(self->priv->pl, pos);
 }
 
+gint
+lomo_player_get_position(LomoPlayer *self, LomoStream *stream)
+{ TRACE
+	return lomo_playlist_get_position(self->priv->pl, stream);
+}
+
 gint lomo_player_get_prev(LomoPlayer *self)
 { TRACE
 	return lomo_playlist_get_prev(self->priv->pl);
@@ -941,13 +947,14 @@ _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpointer data)
 	LomoPlayer *self = LOMO_PLAYER(data);
 	GError *err = NULL;
 	gchar *debug = NULL;
+	LomoStream *stream = NULL;
 
 	switch (GST_MESSAGE_TYPE(message)) {
 		case GST_MESSAGE_ERROR:
-			g_printf("Got GST_MESSAGE_ERROR\n");
 			gst_message_parse_error(message, &err, &debug);
-			lomo_stream_set_failed(lomo_player_get_stream(self), TRUE);
-			g_signal_emit(G_OBJECT(self), lomo_player_signals[ERROR], 0, err, debug);
+			if ((stream = lomo_player_get_stream(self)) != NULL)
+				lomo_stream_set_failed(stream, TRUE);
+			g_signal_emit(G_OBJECT(self), lomo_player_signals[ERROR], 0, stream, err);
 			g_error_free(err);
 			g_free(debug);
 			break;

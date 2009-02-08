@@ -196,6 +196,12 @@ lomo_playlist_get_nth(LomoPlaylist *l, guint pos)
 }
 
 gint
+lomo_playlist_get_position(LomoPlaylist *l, LomoStream *stream)
+{
+	return g_list_index(l->list, stream);
+}
+
+gint
 lomo_playlist_add_at_pos (LomoPlaylist *l, LomoStream *stream, gint pos)
 { BACKTRACE
 	GList *tmp = NULL;
