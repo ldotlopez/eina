@@ -120,7 +120,7 @@ static void lomo_random_cb
 static void lomo_eos_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
 static void lomo_error_cb
-(LomoPlayer *lomo, GError *error, EinaPlaylist *self);
+(LomoPlayer *lomo, LomoStream *stream, GError *error, EinaPlaylist *self);
 static void lomo_all_tags_cb
 (LomoPlayer *lomo, LomoStream *stream, EinaPlaylist *self);
 
@@ -471,16 +471,6 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 {
 	LomoState state = LOMO_STATE_INVALID;
 	gchar *new_state = NULL;
-	const LomoStream *stream;
-
-	stream = lomo_player_get_nth(eina_obj_get_lomo(self), item);
-	if (lomo_stream_is_failed((LomoStream *) stream))
-	{
-		gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
-			PLAYLIST_COLUMN_STATE, "gtk-stock-dialog-error",
-			-1);
-		return;
-	}
 
 	// If item is not the active one, new_state is NULL
 	if (item == current_item)
@@ -615,6 +605,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 				break;
 		}
 	} while(column != -1);
+
 	g_free(state);
 	g_free(title);
 	g_free(raw_title);
@@ -814,10 +805,14 @@ static void lomo_change_cb
 	}
 
 	gel_debug("Handling change signal %d -> %d", old, new);
-	/* Restore normal state on old stream */
-	if (old >= 0) {
+	/* Restore normal state on old stream except it was failed*/
+	if (old >= 0)
+	{
 		gel_debug("updating all columns from OLD %d", old);
-		eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
+		if (lomo_stream_is_failed(lomo_player_get_nth(lomo, old)))
+			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_TITLE, -1);
+		else
+			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
 	}
 
 	/* Create markup for the new stream */
@@ -856,9 +851,37 @@ static void lomo_eos_cb
 }
 
 static void lomo_error_cb
-(LomoPlayer *lomo, GError *error, EinaPlaylist *self)
+(LomoPlayer *lomo, LomoStream *stream, GError *error, EinaPlaylist *self)
 {
-	gel_error("Got error on stream %d (%s)\n", lomo_player_get_current(lomo), error->message);
+	gel_error("Got error on stream %p: %s", stream, error->message);
+
+	if ((stream == NULL) || !lomo_stream_is_failed(stream))
+		return;
+
+	gint pos;
+	if ((pos = lomo_player_get_position(lomo, stream)) == -1)
+	{
+		gel_warn("Stream %p doest belongs to Player %p", stream, lomo);
+		return;
+	}
+
+	GtkTreeIter iter;
+	GtkTreePath *treepath = gtk_tree_path_new_from_indices(pos, -1);
+
+	if (!gtk_tree_model_get_iter((GtkTreeModel *) self->model, &iter, treepath))
+	{
+		gel_warn("Cannot get iter for stream %p", stream);
+		gtk_tree_path_free(treepath);
+		return;
+	}
+	gtk_tree_path_free(treepath);
+		
+	gtk_list_store_set(GTK_LIST_STORE(self->model), &iter,
+		PLAYLIST_COLUMN_STATE, GTK_STOCK_STOP,
+		-1);
+
+	lomo_player_go_next(lomo, NULL);
+	lomo_player_play(lomo, NULL);
 }
 
 static void lomo_all_tags_cb
