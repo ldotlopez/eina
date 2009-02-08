@@ -1,3 +1,90 @@
+2009-02-08 11:28  xuzito
+
+	* eina/lomo.c, eina/player.c, eina/playlist.c: Sync API with lomo
+
+2009-02-08 11:27  xuzito
+
+	* lomo/pl.c, lomo/pl.h, lomo/player.c, lomo/player.h,
+	  lomo/stream.h: Remove some dead code. API updates
+
+2009-02-08 11:27  xuzito
+
+	* plugins/recently: Remove recently1 plugin
+
+2009-02-07 19:58  xuzito
+
+	* misc/eina.desktop.in: Fix .desktop category
+
+2009-02-07 19:58  xuzito
+
+	* eina/eina-file-chooser-dialog.c, eina/player.c: Fix some
+	  compilation errors
+
+2009-02-06 12:24  xuzito
+
+	* eina/player.c: Patch to disable preferences dialog until it works
+
+2009-02-06 12:16  xuzito
+
+	* eina/eina-file-chooser-dialog.c: Patch to add support to gtk <=
+	  2.12.0
+
+2009-02-04 12:10  xuzito
+
+	* eina/Makefile.am, eina/art.c, eina/art.h: Prototype of new
+	  artwork engine
+
+2009-02-02 22:29  xuzito
+
+	* eina/eina-plugin.c, eina/eina-plugin.h: Fix dock switch shortpath
+
+2009-02-02 22:29  xuzito
+
+	* plugins/adb/register.c: Fix missing migration functions
+
+2009-02-02 22:27  xuzito
+
+	* plugins/recently2/recently.c: Some cleanup, reorganization,
+	  support for hotpluggin-plugins
+
+2009-02-02 17:28  xuzito
+
+	* plugins/adb/adb.c, plugins/adb/adb.h, plugins/adb/register.c:
+	  Register all tags. Minor fixes
+
+2009-02-02 17:27  xuzito
+
+	* plugins/recently2/recently.c: Functional recently plugin
+
+2009-02-02 17:27  xuzito
+
+	* configure.in: Fallback for system sqlite3 if pkgconfig cant find
+	  it (systems like OSX)
+
+2009-02-02 17:25  xuzito
+
+	* lomo/stream.c, lomo/stream.h: Add new API call:
+	  lomo_stream_get_tags
+
+2009-02-02 17:23  xuzito
+
+	* eina/dbus.c: Be less verbose
+
+2009-02-02 11:19  xuzito
+
+	* lomo/meta.c, lomo/pl.c, lomo/pl.h, lomo/player.c, lomo/player.h,
+	  lomo/stream.c, lomo/stream.h: Change API, remove some const
+	  qualificators. New API call: lomo_stream_set_tag
+
+2009-02-01 22:59  xuzito
+
+	* plugins/adb/adb.h, plugins/adb/register.c,
+	  plugins/recently2/recently.c: Optimize ADB queryes
+
+2009-01-30 09:29  xuzito
+
+	* ChangeLog: Update Changelog
+
 2009-01-30 09:28  xuzito
 
 	* plugins/lastfm/artwork.c, plugins/lastfm/artwork.h: Add
