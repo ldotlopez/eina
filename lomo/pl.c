@@ -122,10 +122,10 @@ lomo_playlist_unref (LomoPlaylist * l)
 	g_free(l);
 }
 
-const GList*
+GList*
 lomo_playlist_get_playlist (LomoPlaylist *l) 
 { BACKTRACE
-	return l->list;
+	return g_list_copy(l->list);
 }
 
 const GList*

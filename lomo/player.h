@@ -109,27 +109,26 @@ typedef struct
 
 GType		lomo_player_get_type   (void);
 
+#define lomo_init(argc,argv)    gst_init(argc,argv)
 #define lomo_get_option_group() gst_init_get_option_group()
 
-void lomo_init(gint *argc, gchar **argv[]);
+LomoPlayer       *lomo_player_new(const gchar *option_name, ...);
 
-// LomoPlayer       *lomo_player_new(gchar *audio_output, GError **error);
-LomoPlayer       *lomo_player_new_with_opts(const gchar *option_name, ...);
-#define lomo_player_new lomo_player_new_with_opts("audio-output", "autoaudiosink", NULL);
-
-gboolean          lomo_player_reset(LomoPlayer *self, GError **error);
-const LomoStream *lomo_player_get_stream(LomoPlayer *self);
+gboolean    lomo_player_reset(LomoPlayer *self, GError **error); // API Changed
+LomoStream *lomo_player_get_stream(LomoPlayer *self);
 
 // Quick play functions, simple shortcuts.
-void        lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error);
-void        lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error);
+gboolean lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error); // API Changed
+gboolean lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error); // API Changed
 
+// Get/Set state
 LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error);
 #define lomo_player_play(p,error)  lomo_player_set_state(p,LOMO_STATE_PLAY, error)
 #define lomo_player_pause(p,error) lomo_player_set_state(p,LOMO_STATE_PAUSE,error)
 #define lomo_player_stop(p,error)  lomo_player_set_state(p,LOMO_STATE_STOP, error)
 LomoState lomo_player_get_state(LomoPlayer *self);
 
+// Seek/Query
 gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format);
 #define lomo_player_tell_time(p)    lomo_player_tell(p,LOMO_FORMAT_TIME)
 #define lomo_player_tell_percent(p) lomo_player_tell(p,LOMO_FORMAT_PERCENT)
@@ -142,12 +141,14 @@ gint64 lomo_player_length(LomoPlayer *self, LomoFormat format);
 #define lomo_player_length_time(c)    lomo_player_length(c,LOMO_FORMAT_TIME)
 #define lomo_player_length_percent(c) lomo_player_length(c,LOMO_FORMAT_PERCENT) // Br0ken
 
+// Volume and mute
 gboolean lomo_player_set_volume(LomoPlayer *self, gint val);
 gint lomo_player_get_volume(LomoPlayer *self);
 
 gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute);
 gboolean lomo_player_get_mute(LomoPlayer *self);
 
+// Adding and deleting streams
 gint    lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos);
 #define lomo_player_add(p,s)              lomo_player_add_at_pos(p,s,-1)
 #define lomo_player_add_uri(p,u)          lomo_player_add_at_pos(p,lomo_stream_new(u),-1)
@@ -162,8 +163,7 @@ gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos);
 #define lomo_player_add_multi(p,l)     lomo_player_add_multi_at_pos(p,l,-1)
 gboolean lomo_player_del(LomoPlayer *self, gint pos);
 
-// XXX: Make a copy
-const GList *lomo_player_get_playlist(LomoPlayer *self);
+GList *lomo_player_get_playlist(LomoPlayer *self);
 
 gint lomo_player_get_prev(LomoPlayer *self);
 gint lomo_player_get_next(LomoPlayer *self);

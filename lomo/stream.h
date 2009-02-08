@@ -111,9 +111,6 @@ GType lomo_stream_get_type (void);
 
 LomoStream* lomo_stream_new (gchar *uri);
 
-gboolean lomo_stream_has_all_tags(LomoStream *self);
-gboolean lomo_stream_is_failed(LomoStream *self);
-
 #ifdef LIBLOMO_COMPILATION
 void lomo_stream_set_all_tags(LomoStream *self, gboolean val);
 void lomo_stream_set_failed(LomoStream *self, gboolean val);
@@ -122,6 +119,9 @@ void lomo_stream_set_failed(LomoStream *self, gboolean val);
 #define lomo_stream_get_tag(stream,tag)  g_object_get_data(G_OBJECT(stream), tag)
 void    lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value);
 GList*  lomo_stream_get_tags(LomoStream *self);
+gboolean lomo_stream_has_all_tags(LomoStream *self);
+gboolean lomo_stream_is_failed(LomoStream *self);
+
 
 gchar *lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
 
