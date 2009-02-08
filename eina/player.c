@@ -105,7 +105,7 @@ static void lomo_change_cb
 static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlayer *self);
 static void lomo_all_tags_cb
-(LomoPlayer *lomo, const LomoStream *stream, EinaPlayer *self);
+(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
 
 // Callback for parse stream info string
 static gchar *
@@ -159,7 +159,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	else
 		switch_state(self, EINA_PLAYER_MODE_PAUSE);
 
-	set_info(self, (LomoStream *) lomo_player_get_stream(eina_obj_get_lomo(self)));
+	set_info(self, lomo_player_get_stream(eina_obj_get_lomo(self)));
 
 	gtk_widget_realize(GTK_WIDGET(self->main_window));
 
@@ -676,10 +676,10 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 }
 
 static void
-lomo_all_tags_cb (LomoPlayer *lomo, const LomoStream *stream, EinaPlayer *self) 
+lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self) 
 {
 	if (stream == lomo_player_get_stream(lomo))
-		set_info(self, (LomoStream *) stream);
+		set_info(self, stream);
 }
 
 // stream_info_parser_cb: Helps to format stream info for display

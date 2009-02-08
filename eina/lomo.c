@@ -46,7 +46,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	LomoPlayer *engine = NULL;
 
-	if ((engine = lomo_player_new_with_opts("audio-output", "autoaudiosink", NULL)) == NULL)
+	if ((engine = lomo_player_new("audio-output", "autoaudiosink", NULL)) == NULL)
 	{
 		g_set_error(error, lomo_quark(), LOMO_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
 		return FALSE;

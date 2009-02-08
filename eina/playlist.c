@@ -299,24 +299,21 @@ static gboolean
 playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlaylist *self = GEL_APP_GET_PLAYLIST(app);
-	const GList *pl;
-	GList *l;
 	gchar *file;
-	gchar **out;
-	gchar *buff;
 	gint i = 0;
 	gint fd;
 
-	pl = lomo_player_get_playlist(eina_obj_get_lomo(self));
-	l  = (GList *) pl;
-
-	out = g_new0(gchar*, g_list_length(l) + 1);
-	while (l) {
-		out[i++] = lomo_stream_get_tag(
-			LOMO_STREAM(l->data), LOMO_TAG_URI);
-		l = l->next;
+	GList *pl    = lomo_player_get_playlist(eina_obj_get_lomo(self));
+	GList *iter  = pl;
+	char **out = g_new0(gchar*, g_list_length(pl) + 1);
+	while (iter)
+	{
+		out[i++] = lomo_stream_get_tag(LOMO_STREAM(iter->data), LOMO_TAG_URI);
+		iter = iter->next;
 	}
-	buff = g_strjoinv("\n", out);
+	g_list_free(pl);
+	
+	gchar *buff = g_strjoinv("\n", out);
 	g_free(out);
 
 	file = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
