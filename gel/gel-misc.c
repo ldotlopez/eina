@@ -52,6 +52,19 @@ gel_init(gchar *name, gchar *data_dir)
 	atexit(_gel_atexit);
 }
 
+const gchar*
+gel_get_package_name(void)
+{
+	return (const gchar *) _gel_package_name;
+}
+
+
+const gchar*
+gel_get_package_data_dir(void)
+{
+	return (const gchar *) _gel_package_data_dir;
+}
+
 // --
 // Utilities for GList/GSList
 // --

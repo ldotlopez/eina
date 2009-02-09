@@ -22,8 +22,6 @@
 #include <gel/gel-misc.h>
 #include <gel/gel-plugin.h>
 
-extern gchar *_gel_package_data_dir;
-
 struct _GelPluginPrivate {
 	GelApp  *app;
 	gchar   *pathname;
@@ -206,7 +204,7 @@ gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path)
 		g_free(dirname);
 	}
 	else
-		ret = g_build_filename(_gel_package_data_dir, resource_path, NULL);
+		ret = g_build_filename(gel_get_package_name(), resource_path, NULL);
 
 	return ret;
 }

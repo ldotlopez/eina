@@ -68,6 +68,12 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 void
 gel_init(gchar *app_name, gchar *data_dir);
 
+const gchar*
+gel_get_package_name(void);
+
+const gchar*
+gel_get_package_data_dir(void);
+
 // --
 // Utilities for GList/GSList
 // --
