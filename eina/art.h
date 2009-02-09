@@ -27,9 +27,10 @@ void       art_cancel(Art *art, ArtSearch *search);
 // --
 // Backends
 // --
+/*
 ArtBackend* art_backend_new(Art *art, ArtFunc search_func, ArtFunc cancel_func, gpointer data);
 void        art_backend_destroy(ArtBackend *backend);
-
+*/
 // --
 // Searches
 // --
