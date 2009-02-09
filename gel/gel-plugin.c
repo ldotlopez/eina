@@ -22,6 +22,8 @@
 #include <gel/gel-misc.h>
 #include <gel/gel-plugin.h>
 
+extern gchar *_gel_package_data_dir;
+
 struct _GelPluginPrivate {
 	GelApp  *app;
 	gchar   *pathname;
@@ -191,6 +193,24 @@ gel_plugin_get_pathname(GelPlugin *self)
 	return self->priv->pathname;
 }
 
+gchar *
+gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path)
+{
+	gchar *ret = NULL;
+	const gchar *pathname = gel_plugin_get_pathname(plugin);
+
+	if (pathname != NULL)
+	{
+		gchar *dirname = g_path_get_dirname(pathname);
+		ret = g_build_filename(dirname, resource_path, NULL);
+		g_free(dirname);
+	}
+	else
+		ret = g_build_filename(_gel_package_data_dir, resource_path, NULL);
+
+	return ret;
+}
+
 const gchar *
 gel_plugin_stringify(GelPlugin *self)
 {
@@ -200,7 +220,6 @@ gel_plugin_stringify(GelPlugin *self)
 			self->priv->symbol);
 	return self->priv->stringified;
 }
-
 
 gboolean
 gel_plugin_init(GelPlugin *self, GError **error)
