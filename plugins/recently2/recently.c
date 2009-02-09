@@ -44,13 +44,14 @@ enum {
 enum {
 	RECENTLY_NO_ERROR,
 	RECENTLY_ERROR_CANNOT_LOAD_ADB,
-	RECENTLY_ERROR_CANNOT_UNLOAD_ADB
+	RECENTLY_ERROR_CANNOT_UNLOAD_ADB,
+	RECENTLY_ERROR_CANNOT_FETCH_ADB
 };
 
 // --
 // Utils
 // --
-static gchar*
+static const gchar*
 stamp_to_human(gchar *stamp);
 static gchar *
 summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
@@ -58,6 +59,7 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
 // --
 // plugin init/fini connect/disconnect lomo
 // --
+#if 0
 void
 connect_lomo(Recently *self);
 void
@@ -66,9 +68,9 @@ void
 app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Recently *self);
 void
 app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Recently *self);
-
 void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self);
+#endif
 
 // --
 // Dock related
@@ -82,6 +84,17 @@ dock_row_activated_cb(GtkWidget *w,
 	GtkTreePath *path,
 	GtkTreeViewColumn *column,
 	Recently *self);
+void
+dock_renderer_edited_cb(GtkWidget *w,
+	gchar *path,
+	gchar *new_text,
+	Recently *self);
+
+// --
+// ADB
+// --
+gboolean
+upgrade_adb_0(Adb *adb, Recently *self, GError **error);
 
 GQuark recently_quark(void)
 {
@@ -92,7 +105,7 @@ GQuark recently_quark(void)
 }
 
 // Convert a string in iso8601 format to a more human form
-static gchar*
+static const gchar*
 stamp_to_human(gchar *stamp)
 {
 	GTimeVal now, other;
@@ -178,6 +191,7 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many)
 	return ret;
 }
 
+#if 0
 void
 connect_lomo(Recently *self)
 {
@@ -214,6 +228,7 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 {
 	dock_update(self);
 }
+#endif
 
 // --
 // Dock related
@@ -242,9 +257,10 @@ dock_create(Recently *self)
 	g_object_set(G_OBJECT(render),
 		"ellipsize-set", TRUE,
 		"ellipsize", PANGO_ELLIPSIZE_END,
+		"editable", TRUE,
 		NULL);
 	g_object_set(G_OBJECT(col),
-		"visible",   TRUE,
+		"visible",   FALSE,
 		"resizable", FALSE,
 		NULL);
 	g_object_set(G_OBJECT(col2),
@@ -261,6 +277,8 @@ dock_create(Recently *self)
 
 	g_signal_connect(self->tv, "row-activated",
 		G_CALLBACK(dock_row_activated_cb), self);
+	g_signal_connect(render, "edited",
+		G_CALLBACK(dock_renderer_edited_cb), self);
 	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
@@ -286,24 +304,42 @@ dock_update(Recently *self)
 		gel_error("Cannot fetch playlist_history data");
 		return;
 	}
+
 	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
 	{
 		gchar *ts = (gchar *) sqlite3_column_text(stmt, 0);
-		gchar *summary = summary_playlist(adb, ts, 3);
-		gchar *escaped = g_markup_escape_text(summary, -1);
-		g_free(summary);
+		gchar *title = NULL;
+
+		// Check for alias
+		q = sqlite3_mprintf("SELECT alias FROM playlist_aliases where timestamp='%q'", ts);
+		sqlite3_stmt *stmt_alias = NULL;
+		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt_alias, NULL) == SQLITE_OK)
+		{
+			if (stmt_alias && (sqlite3_step(stmt_alias) == SQLITE_ROW))
+				title = g_strdup((gchar*) sqlite3_column_text(stmt_alias, 0));
+			sqlite3_finalize(stmt_alias);
+		}
+		sqlite3_free(q);
+
+		// If not alias, get summary
+		if (title == NULL)
+		{
+			gchar *summary = summary_playlist(adb, ts, 3);
+			title = g_markup_escape_text(summary, -1);
+			g_free(summary);
+		}
 
 		GtkTreeIter iter;
 		gtk_list_store_append((GtkListStore *) self->model, &iter);
 
-		gchar *title = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), escaped);
-		g_free(escaped);
+		gchar *markup = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), title);
+		g_free(title);
 
 		gtk_list_store_set((GtkListStore *) self->model, &iter,
 			RECENTLY_COLUMN_TIMESTAMP, ts,
-			RECENTLY_COLUMN_TITLE, title,
+			RECENTLY_COLUMN_TITLE, markup,
 			-1);
-		g_free(title);
+		g_free(markup);
 	}
 	sqlite3_finalize(stmt);
 }
@@ -368,10 +404,100 @@ dock_row_activated_cb(GtkWidget *w,
 	lomo_player_play(lomo, NULL);
 }
 
+void
+dock_renderer_edited_cb(GtkWidget *w,
+	gchar *path,
+	gchar *new_text,
+	Recently *self)
+{
+	// If Adb is not present changes could not be saved, so abort
+	Adb *adb = GEL_APP_GET_ADB(self->app);
+	if (adb == NULL)
+	{
+		gel_error("Adb not present, reverting edit");
+		return;
+	}
+
+	// Try to get data from model
+	GtkTreeIter iter;
+	if (!gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->model), &iter, path))
+	{
+		gel_warn("Cannot get iter for path %s", path);
+		return;
+	}
+
+	gchar *ts = NULL;
+	gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter,
+		RECENTLY_COLUMN_TIMESTAMP, &ts,
+		-1);
+
+	// Analize input to guess the real intention of the user
+	const gchar *ts_human = stamp_to_human(ts);
+	gchar *prefix = g_strdup_printf("%s:\n\t", ts_human);
+	gchar *alias = NULL;
+	if (strstr(new_text, prefix))
+		alias = new_text + (strlen(prefix) * sizeof(gchar));
+	else
+		alias = new_text;
+
+	char *q = NULL;
+	char *err = NULL;
+
+	// If alias is NULL or '' delete alias and revert markup to summary
+	if ((alias == NULL) || g_str_equal(alias, ""))
+	{
+		q = sqlite3_mprintf("DELETE FROM playlist_aliases WHERE timestamp='%q'", ts);
+		alias = summary_playlist(adb, ts, 3);
+	}
+	else
+	{
+		q = sqlite3_mprintf("INSERT OR REPLACE INTO playlist_aliases VALUES('%q', '%q')", ts, alias);
+		alias = g_strdup(alias);
+	}
+
+	// Update DB
+	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+	{
+		gel_error("Cannot delete alias for %s: %s", ts, err);
+		sqlite3_free(err);
+	}
+	sqlite3_free(q);
+
+	gchar *real_new_text = g_strdup_printf("<b>%s</b>:\n\t\%s",
+		ts_human,
+		alias);
+	gtk_list_store_set(GTK_LIST_STORE(self->model), &iter,
+		RECENTLY_COLUMN_TITLE, real_new_text,
+		-1);
+	g_free(real_new_text);
+	g_free(prefix);
+	g_free(alias);
+}
+
+// --
+// ADB
+// --
+gboolean
+upgrade_adb_0(Adb *adb, Recently *self, GError **error)
+{
+	gchar *q[] = {
+		"DROP TABLE IF EXISTS playlist_aliases;",
+
+		"CREATE TABLE IF NOT EXISTS playlist_aliases ("
+		"	timestamp TIMESTAMP PRIMARY KEY,"
+		"	alias VARCHAR(128),"
+		"	FOREIGN KEY(timestamp) REFERENCES playlist_history(timestamp) ON DELETE CASCADE ON UPDATE RESTRICT"
+		");",
+
+		NULL
+		};
+	return adb_exec_queryes(adb, q, NULL, error);
+}
+
 gboolean
 recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	// Load adb
+	// Load adb, upgrade database
 	GError *err = NULL;
 	if (!gel_app_load_plugin_by_name(app, "adb", &err))
 	{
@@ -381,18 +507,29 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
+	// Upgrade database
 	Adb *adb;
-	if ((adb = gel_app_shared_get(app, "adb")) == NULL)
+	if ((adb = GEL_APP_GET_ADB(app)) == NULL)
+	{
+		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_FETCH_ADB, N_("Cannot fetch Adb object"));
+		gel_app_unload_plugin_by_name(app, "adb", NULL);
+		return FALSE;
+	}
+
+	gpointer upgrades[] = {
+		upgrade_adb_0, NULL
+	};
+	if (!adb_schema_upgrade(adb, "recently", upgrades, NULL, error))
 		return FALSE;
 
 	Recently *self = g_new0(Recently, 1);
-	self->app = app;
+	self->app    = app;
 	self->plugin = plugin;
+	self->dock   = dock_create(self);
 
-	self->dock = dock_create(self);
-	gtk_widget_show(self->dock);
+	gtk_widget_show_all(self->dock);
+
 	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), self->dock);
-
 	plugin->data = self;
 
 	return TRUE;
@@ -402,6 +539,8 @@ gboolean
 recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	GError *err = NULL;
+	eina_plugin_remove_dock_widget(plugin, "recently");
+
 	if (!gel_app_unload_plugin_by_name(app, "adb", &err))
 	{
 		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_UNLOAD_ADB, 
@@ -409,6 +548,7 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 		g_error_free(err);
 		return FALSE;
 	}
+	g_free(plugin->data);
 	return TRUE;
 }
 
