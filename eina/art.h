@@ -6,6 +6,9 @@
 
 G_BEGIN_DECLS
 
+#define GEL_APP_GET_ART(app)  ((Art*) gel_app_shared_get(app, "art"))
+#define EINA_OBJ_GET_ART(obj) GEL_APP_GET_ART(EINA_OBJ_GET_APP(obj))
+
 typedef struct _Art        Art;
 typedef struct _ArtBackend ArtBackend;
 typedef struct _ArtSearch  ArtSearch;
@@ -24,16 +27,10 @@ void        art_remove_backend(Art *art, ArtBackend *backend);
 ArtSearch* art_search(Art *art, LomoStream *stream, ArtFunc success_func, ArtFunc fail_func, gpointer pointer);
 void       art_cancel(Art *art, ArtSearch *search);
 
-// --
-// Backends
-// --
-/*
-ArtBackend* art_backend_new(Art *art, ArtFunc search_func, ArtFunc cancel_func, gpointer data);
-void        art_backend_destroy(ArtBackend *backend);
-*/
-// --
-// Searches
-// --
+void art_report_success(Art *art, ArtSearch *search, gpointer result);
+void art_report_failure(Art *art, ArtSearch *search);
+
+gpointer art_search_get_result(ArtSearch *search);
 
 G_END_DECLS
 

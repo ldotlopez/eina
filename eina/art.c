@@ -230,6 +230,7 @@ art_forward_search(Art *art, ArtSearch *search)
 	{
 		ArtBackend *backend = (ArtBackend *) iter->data;
 		search->running = TRUE;
+		search->backend_link = iter;
 		backend->searches = g_list_append(backend->searches, search);
 		backend->search(art, search, backend->data);
 	}
@@ -238,12 +239,12 @@ art_forward_search(Art *art, ArtSearch *search)
 void
 art_run_search(Art *art, ArtSearch *search)
 {
-	ArtBackend *backend = (ArtBackend *) search->backend_link->data;
-
-	if (backend == NULL)
+	if (!search->backend_link || !search->backend_link->data)
 		art_run_fail(art, search);
 	else
 	{
+		ArtBackend *backend = (ArtBackend *) search->backend_link->data;
+		
 		search->running   = TRUE;
 		backend->searches = g_list_append(backend->searches, search);
 		backend->search(art, search, backend->data);
@@ -257,6 +258,15 @@ art_run_fail(Art *art, ArtSearch *search)
 	search->fail(art, search, search->data);
 	art->searches = g_list_remove(art->searches, search);
 	g_free(search);
+}
+
+// --
+// ArtSearch access functions
+// --
+gpointer
+art_search_get_result(ArtSearch *search)
+{
+	return search->result;
 }
 
 static gboolean
