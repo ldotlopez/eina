@@ -1,4 +1,6 @@
 #include "eina/art.h"
+#include <eina/eina-plugin.h>
+#include <config.h>
 
 struct _Art {
 	GList *backends; // updated by art_(add|remove)_backend
@@ -21,7 +23,6 @@ struct _ArtSearch {
 	gpointer data;
 	GList *backend_link;
 	gboolean running;
-	// gboolean completed;
 };
 
 static void
@@ -32,11 +33,74 @@ art_run_search(Art *art, ArtSearch *search);
 void
 art_run_fail(Art *art, ArtSearch *search);
 
+/*
+// Run seach and cancel from hooks
+static void
+art_run_search(Art *art, ArtSeach *search);
+static void
+art_run_cancel(Art *art, ArtSeach *seach);
+*/
+
+void
+art_backend_inject_search(ArtBackend *backend, ArtSearch *search)
+{
+	if (search->running)
+	{
+		g_warning("Search is running cannot be injected");
+		return;
+	}
+
+	if (search->backend_link->data != backend)
+	{
+		g_warning("Search is not linked to this backend");
+		return;
+	}
+
+	if (g_list_find(backend->searches, search))
+	{
+		g_warning("Search is already in this backend, this is not possible");
+		return;
+	}
+
+	// Add to backend searches, search's link its already ok
+	backend->searches = g_list_append(backend->searches, search);
+
+	// Set as running
+	search->running = TRUE;
+
+	// Run now, no reason to delay this
+	backend->search(backend->art, search, backend->data);
+}
+
+void
+art_backend_extract_search(ArtBackend *backend, ArtSearch *search)
+{
+	if (search->running)
+	{
+		g_warning("Search is still running, you must cancel it first");
+		return;
+	}
+
+	if ((search->backend_link->data != backend) || !g_list_find(backend->searches, search))
+	{
+		g_warning("Search has nothing to do with this backend");
+		return;
+	}
+
+	backend->searches = g_list_remove(backend->searches, search);
+}
+
 Art*
 art_new(void)
 {
 	Art *art = g_new0(Art, 1);
 	return art;
+}
+
+void
+art_destroy(Art *art)
+{
+	g_free(art);
 }
 
 // --
@@ -194,4 +258,29 @@ art_run_fail(Art *art, ArtSearch *search)
 	art->searches = g_list_remove(art->searches, search);
 	g_free(search);
 }
+
+static gboolean
+plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
+{
+	plugin->data = art_new();
+	gel_app_shared_set(app, "art", plugin->data);
+	return TRUE;
+}
+
+static gboolean
+plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
+{
+	art_destroy((Art *) plugin->data);
+	gel_app_shared_unregister(app, "art");
+	return TRUE;
+}
+
+G_MODULE_EXPORT EinaPlugin art_plugin = {
+	EINA_PLUGIN_SERIAL,
+	"art", PACKAGE_VERSION,
+	N_("Art"), N_("New art framework"), NULL,
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+	plugin_init, plugin_fini,
+	NULL, NULL
+};
 
