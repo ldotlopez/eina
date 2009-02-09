@@ -25,6 +25,8 @@
 
 G_BEGIN_DECLS
 
+#define GEL_APP_GET_ADB(app) ((Adb*) gel_app_shared_get(app, "adb"))
+
 typedef struct Adb {
 	sqlite3 *db;
 	GelApp  *app;
@@ -75,9 +77,6 @@ adb_schema_upgrade(Adb *self, gchar *schema, gpointer *handlers, gpointer data, 
 // --
 gboolean
 adb_exec_queryes(Adb *self, gchar **queryes, gint *successes, GError **error);
-
-gboolean
-adb_upgrade_schema(Adb *self, gchar *schema, gpointer *functions, gint *successes, GError **error);
 
 G_END_DECLS
 
