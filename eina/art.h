@@ -21,7 +21,7 @@ typedef void (*ArtFunc)(Art *art, ArtSearch *search, gpointer data);
 Art* art_new(void);
 void art_destroy(Art *art);
 
-ArtBackend* art_add_backend(Art *art, ArtFunc search_func, ArtFunc cancel_func, gpointer data);
+ArtBackend* art_add_backend(Art *art, gchar *name, ArtFunc search_func, ArtFunc cancel_func, gpointer data);
 void        art_remove_backend(Art *art, ArtBackend *backend);
 
 ArtSearch* art_search(Art *art, LomoStream *stream, ArtFunc success_func, ArtFunc fail_func, gpointer pointer);

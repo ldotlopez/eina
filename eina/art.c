@@ -1,6 +1,8 @@
+#define GEL_DOMAIN "Eina::Art"
 #include "eina/art.h"
 #include <eina/eina-plugin.h>
 #include <config.h>
+#define ART_AHEAD 1
 
 struct _Art {
 	GList *backends; // updated by art_(add|remove)_backend
@@ -8,6 +10,7 @@ struct _Art {
 };
 
 struct _ArtBackend {
+	gchar *name;
 	Art     *art;
 	ArtFunc  search, cancel;
 	GList   *searches;
@@ -33,62 +36,19 @@ art_run_search(Art *art, ArtSearch *search);
 void
 art_run_fail(Art *art, ArtSearch *search);
 
-/*
-// Run seach and cancel from hooks
-static void
-art_run_search(Art *art, ArtSeach *search);
-static void
-art_run_cancel(Art *art, ArtSeach *seach);
-*/
-
+ArtBackend *
+art_backend_new(Art *art, gchar *name, ArtFunc search, ArtFunc cancel, gpointer data);
 void
-art_backend_inject_search(ArtBackend *backend, ArtSearch *search)
-{
-	if (search->running)
-	{
-		g_warning("Search is running cannot be injected");
-		return;
-	}
-
-	if (search->backend_link->data != backend)
-	{
-		g_warning("Search is not linked to this backend");
-		return;
-	}
-
-	if (g_list_find(backend->searches, search))
-	{
-		g_warning("Search is already in this backend, this is not possible");
-		return;
-	}
-
-	// Add to backend searches, search's link its already ok
-	backend->searches = g_list_append(backend->searches, search);
-
-	// Set as running
-	search->running = TRUE;
-
-	// Run now, no reason to delay this
-	backend->search(backend->art, search, backend->data);
-}
-
+art_backend_destroy(ArtBackend *backend);
 void
-art_backend_extract_search(ArtBackend *backend, ArtSearch *search)
-{
-	if (search->running)
-	{
-		g_warning("Search is still running, you must cancel it first");
-		return;
-	}
+art_backend_search(ArtBackend *backend, ArtSearch *search);
+void
+art_backend_cancel(ArtBackend *backend, ArtSearch *search);
 
-	if ((search->backend_link->data != backend) || !g_list_find(backend->searches, search))
-	{
-		g_warning("Search has nothing to do with this backend");
-		return;
-	}
-
-	backend->searches = g_list_remove(backend->searches, search);
-}
+ArtSearch*
+art_search_new(LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data);
+void
+art_search_destroy(ArtSearch *search);
 
 Art*
 art_new(void)
@@ -100,6 +60,26 @@ art_new(void)
 void
 art_destroy(Art *art)
 {
+	GList *b = art->backends;
+	while (b)
+	{
+		ArtBackend *backend = (ArtBackend *) b->data;
+		GList *s = backend->searches;
+		while (s)
+		{
+			ArtSearch *search = (ArtSearch *) s->data;
+			if (search->running)
+				art_backend_cancel(backend, search);
+			art_search_destroy(search);
+
+			s = s->next;
+		}
+		art_backend_destroy(backend);
+
+		b = b->next;
+	}
+	g_list_free(art->searches);
+	g_list_free(art->backends);
 	g_free(art);
 }
 
@@ -108,13 +88,9 @@ art_destroy(Art *art)
 // work
 // --
 ArtBackend *
-art_add_backend(Art *art, ArtFunc search, ArtFunc cancel, gpointer data)
+art_add_backend(Art *art, gchar *name, ArtFunc search, ArtFunc cancel, gpointer data)
 {
-	ArtBackend *backend = g_new0(ArtBackend, 1);
-	backend->search  = search;
-	backend->cancel  = cancel;
-	backend->data    = data;
-	backend->enabled = TRUE;
+	ArtBackend *backend = art_backend_new(art, name, search, cancel, data);
 	art->backends = g_list_append(art->backends, backend);
 	return backend;
 }
@@ -148,33 +124,134 @@ art_remove_backend(Art *art, ArtBackend *backend)
 ArtSearch*
 art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
 {
-	ArtSearch *search = g_new0(ArtSearch, 1);
-	search->stream  = stream;
-	search->success = success;
-	search->fail    = fail;
-	search->data    = data;
+	ArtSearch *search = art_search_new(stream, success, fail, data);
 	search->backend_link = art->backends;
 
 	art->searches = g_list_append(art->searches, search);
-
-	art_run_search(art, search);
+	if (search->backend_link && search->backend_link->data)
+	{
+		ArtBackend *backend = (ArtBackend *) search->backend_link->data;
+		backend->searches = g_list_append(backend->searches, search);
+		art_backend_search(backend, search);
+	}
+	else
+	{
+		art_report_failure(art, search);
+	}
 	return search;
 }
 
 void
 art_cancel(Art *art, ArtSearch *search)
 {
+	// Must be linked and running, otherwise this call has no sense.
+	g_return_if_fail(search->backend_link && search->backend_link->data);
+	g_return_if_fail(search->running);
+
 	ArtBackend *backend = search->backend_link->data;
 
+#ifdef ART_AHEAD
+	g_return_if_fail(backend);
+	art_backend_cancel(backend, search);
+#else
 	// Just call cancel hook if exists and delete
+	gel_warn("Cancel in backend %s", backend->name);
 	if (backend->cancel)
 		backend->cancel(art, search, backend->data);
+#endif
 
 	backend->searches = g_list_remove(backend->searches, search);
 	art->searches     = g_list_remove(art->searches, search);
 
 	g_free(search);
 }
+
+void
+art_fail(Art *art, ArtSearch *search)
+{
+	// Must be unlinked, this function only is reacheable if all backends
+	// failed, must be stopped for the same reason.
+	g_return_if_fail(!search->backend_link);
+	g_return_if_fail(!search->running);
+
+	if (search->fail)
+		search->fail(art, search, search->data);
+	
+	// Search is not more useful, this is an exit point, wipe it.
+	art->searches = g_list_remove(art->searches, search);
+	art_search_destroy(search);
+}
+
+// --
+// NG
+// --
+ArtBackend *
+art_backend_new(Art *art, gchar *name, ArtFunc search, ArtFunc cancel, gpointer data)
+{
+	ArtBackend *backend = g_new0(ArtBackend, 1);
+	backend->name       = g_strdup(name);
+	backend->search     = search;
+	backend->cancel     = cancel;
+	backend->data       = data;
+	backend->enabled    = TRUE;
+	backend->art        = art;
+	return backend;
+}
+
+void
+art_backend_destroy(ArtBackend *backend)
+{
+	// XXX Running searches?
+
+	g_free(backend->name);
+	g_free(backend);
+}
+
+void
+art_backend_search(ArtBackend *backend, ArtSearch *search)
+{
+	g_return_if_fail(search->backend_link->data == backend);
+	g_return_if_fail(!search->running);
+
+	gel_warn("Run search on backend '%s'", backend->name);
+	search->running = TRUE;
+	if (backend->search)
+		backend->search(backend->art, search, backend->data);
+}
+
+void
+art_backend_cancel(ArtBackend *backend, ArtSearch *search)
+{
+	g_return_if_fail(search->backend_link->data == backend);
+	g_return_if_fail(search->running);
+
+	gel_warn("Run cancel on backend '%s'", backend->name);
+	if (backend->cancel)
+		backend->cancel(backend->art, search, backend->data);
+	search->running = FALSE;
+}
+
+ArtSearch*
+art_search_new(LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
+{
+	ArtSearch *search = g_new0(ArtSearch, 1);
+	search->stream  = stream;
+	search->success = success;
+	search->fail    = fail;
+	search->data    = data;
+	return search;
+}
+
+void
+art_search_destroy(ArtSearch *search)
+{
+	g_return_if_fail(!search->running);
+	g_return_if_fail(search->backend_link == NULL);
+	g_free(search);
+}
+// --
+// / NG
+// --
 
 // --
 // Backends need to report Art object his success or failure, these two
@@ -183,25 +260,38 @@ art_cancel(Art *art, ArtSearch *search)
 void
 art_report_success(Art *art, ArtSearch *search, gpointer result)
 {
+	// Search must be running, linked and result valid
+	g_return_if_fail(search->running);
+	g_return_if_fail(search->backend_link);
+	g_return_if_fail(result);
+
+	// Stop, unlink, merge result
+	ArtBackend *backend = (ArtBackend *) search->backend_link->data;
+	backend->searches = g_list_remove(backend->searches, search);
+	search->backend_link = NULL;
+	search->running = FALSE;
+
 	search->result = result;
+
 	if (search->success)
 		search->success(art, search, search->data);
 
-	// Forget search
-	search->running = FALSE;
+	art->searches = g_list_remove(art->searches, search);
 
-	ArtBackend *backend = (ArtBackend *) search->backend_link->data;
-	backend->searches = g_list_remove(backend->searches, search);
-	art->searches     = g_list_remove(art->searches, search);
-
-	g_free(search);
+	art_search_destroy(search);
 }
 
 void
 art_report_failure(Art *art, ArtSearch *search)
 {
-	ArtBackend *backend = (ArtBackend *) search->backend_link->data;
-	backend->searches = g_list_remove(backend->searches, search);
+	// Search must be running and linked
+	g_return_if_fail(search->running);
+	g_return_if_fail(search->backend_link);
+
+	// Stop
+	search->running = FALSE;
+
+	// Forward
 	art_forward_search(art, search);
 }
 
@@ -212,15 +302,21 @@ art_report_failure(Art *art, ArtSearch *search)
 static void
 art_forward_search(Art *art, ArtSearch *search)
 {
+	// Search must be stopped but linked
+	g_return_if_fail(!search->running);
+	g_return_if_fail(search->backend_link && search->backend_link->data);
+
+	ArtBackend *old_backend = (ArtBackend *) search->backend_link->data;
+	old_backend->searches = g_list_remove(old_backend->searches, search);
+
 	GList *iter = search->backend_link->next;
-	
-	// Find next enabled backend
 	while (iter && !((ArtBackend *) iter->data)->enabled)
 		iter = iter->next;
-
-	// No more backends, fail
+	
 	if (iter == NULL)
 	{
+		gel_warn("No more backends availables.");
+		// XXX: Make a function
 		if (search->fail)
 			search->fail(art, search, search->data);
 		art->searches = g_list_remove(art->searches, search);
@@ -228,11 +324,11 @@ art_forward_search(Art *art, ArtSearch *search)
 	}
 	else
 	{
-		ArtBackend *backend = (ArtBackend *) iter->data;
-		search->running = TRUE;
+		ArtBackend *new_backend = (ArtBackend *)iter->data;
 		search->backend_link = iter;
-		backend->searches = g_list_append(backend->searches, search);
-		backend->search(art, search, backend->data);
+		new_backend->searches = g_list_append(new_backend->searches, search);
+		gel_warn("Search move from %s to %s", old_backend->name, new_backend->name);
+		art_backend_search(new_backend, search);
 	}
 }
 
@@ -244,7 +340,8 @@ art_run_search(Art *art, ArtSearch *search)
 	else
 	{
 		ArtBackend *backend = (ArtBackend *) search->backend_link->data;
-		
+	
+		gel_warn("Run backend %s", backend->name);
 		search->running   = TRUE;
 		backend->searches = g_list_append(backend->searches, search);
 		backend->search(art, search, backend->data);
