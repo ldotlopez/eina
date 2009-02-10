@@ -15,9 +15,6 @@ typedef struct _ArtSearch  ArtSearch;
 
 typedef void (*ArtFunc)(Art *art, ArtSearch *search, gpointer data);
 
-// --
-// Art
-// --
 Art* art_new(void);
 void art_destroy(Art *art);
 
@@ -31,6 +28,7 @@ void art_report_success(Art *art, ArtSearch *search, gpointer result);
 void art_report_failure(Art *art, ArtSearch *search);
 
 gpointer art_search_get_result(ArtSearch *search);
+gpointer art_search_get_data  (ArtSearch *search);
 
 G_END_DECLS
 
