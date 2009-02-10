@@ -101,9 +101,9 @@ plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	g_signal_connect(lomo, "change", (GCallback) lomo_change_cb, self);
 
 	Art *art = GEL_APP_GET_ART(app);
-	self->backends[0] = art_add_backend(art, (ArtFunc) mini_search_random_1, NULL, self);
-	self->backends[1] = art_add_backend(art, (ArtFunc) mini_search_random_2, NULL, self);
-	self->backends[2] = art_add_backend(art, (ArtFunc) mini_search_fail, NULL, self);
+	self->backends[0] = art_add_backend(art, "random1", (ArtFunc) mini_search_random_1, NULL, self);
+	self->backends[1] = art_add_backend(art, "random2", (ArtFunc) mini_search_random_2, NULL, self);
+	self->backends[2] = art_add_backend(art, "fail",    (ArtFunc) mini_search_fail, NULL, self);
 
 	return TRUE;
 }
