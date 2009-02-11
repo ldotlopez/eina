@@ -1,3 +1,22 @@
+/*
+ * eina/art.h
+ *
+ * Copyright (C) 2004-2009 Eina
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef _ART_H
 #define _ART_H
 
@@ -20,6 +39,8 @@ void art_destroy(Art *art);
 
 ArtBackend* art_add_backend(Art *art, gchar *name, ArtFunc search_func, ArtFunc cancel_func, gpointer data);
 void        art_remove_backend(Art *art, ArtBackend *backend);
+
+const gchar *art_backend_get_name(ArtBackend *backend);
 
 ArtSearch* art_search(Art *art, LomoStream *stream, ArtFunc success_func, ArtFunc fail_func, gpointer pointer);
 void       art_cancel(Art *art, ArtSearch *search);
