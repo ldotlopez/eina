@@ -18,7 +18,6 @@
  */
 
 #define GEL_DOMAIN "Eina::Player"
-#define USE_ART 1
 
 // Stds
 #include <config.h>
@@ -44,12 +43,8 @@ struct _EinaPlayer {
 	EinaConf  *conf;
 
 	GtkWindow  *main_window;
-#if USE_ART
 	GtkImage *cover;
 	ArtSearch *art_search;
-#else
-	EinaArtwork *cover;
-#endif
 	EinaSeek   *seek;
 	EinaVolume *volume;
 
@@ -84,6 +79,8 @@ setup_dnd(EinaPlayer *self);
 
 // UI callbacks
 static gboolean
+update_cover_idle(EinaPlayer *self);
+static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 static gboolean
 main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, EinaPlayer *self);
@@ -93,11 +90,6 @@ static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
-#if USE_ART
-#else
-static void
-cover_change_cb(EinaArtwork *cover, EinaPlayer *self);
-#endif
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -112,16 +104,6 @@ static void lomo_all_tags_cb
 // Callback for parse stream info string
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
-
-#if USE_ART
-#else
-static gboolean
-update_cover_cb(gpointer data)
-{
-	eina_artwork_set_stream(EINA_PLAYER(data)->cover, (LomoStream*) lomo_player_get_current_stream(eina_obj_get_lomo(EINA_OBJ(data))));
-	return FALSE;
-}
-#endif
 
 static gboolean
 player_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -188,35 +170,21 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_widget_show(GTK_WIDGET(self->seek));
 
 	// Artwork
-#if USE_ART
-	self->cover = (GtkImage *) gtk_image_new();
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover),
-		eina_obj_get_widget(self, "cover-image-container")->allocation.height,
-		eina_obj_get_widget(self, "cover-image-container")->allocation.height);
-#else
-	EinaArtwork *artwork = self->cover = EINA_OBJ_GET_ARTWORK(EINA_OBJ(self));
-	g_signal_connect(self->cover, "change",  G_CALLBACK(cover_change_cb), self);
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover),
-		eina_obj_get_widget(self, "cover-image-container")->allocation.height,
-		eina_obj_get_widget(self, "cover-image-container")->allocation.height);
+	if (gel_app_load_plugin_by_name(app, "art", NULL))
+	{
+		self->cover = (GtkImage *) gtk_image_new();
+		gtk_widget_set_size_request(GTK_WIDGET(self->cover),
+			eina_obj_get_widget(self, "cover-image-container")->allocation.height,
+			eina_obj_get_widget(self, "cover-image-container")->allocation.height);
+		g_idle_add((GSourceFunc) update_cover_idle, self);
 
-	gchar *default_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	gchar *loading_cover_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
-	g_idle_add(update_cover_cb, self);
-	eina_artwork_set_default_pixbuf(artwork, gdk_pixbuf_new_from_file(default_cover_path, NULL));
-	eina_artwork_set_loading_pixbuf(artwork, gdk_pixbuf_new_from_file(loading_cover_path, NULL));
-	g_object_set(artwork,
-		"default-pixbuf", gdk_pixbuf_new_from_file(default_cover_path, NULL),
-		"loading-pixbuf", gdk_pixbuf_new_from_file(loading_cover_path, NULL), 
-		NULL); 
-	g_free(default_cover_path);
-	g_free(loading_cover_path);
-#endif
-
-	gel_ui_container_replace_children(
-		eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container"),
-		GTK_WIDGET(self->cover));
-	gtk_widget_show_all(GTK_WIDGET(self->cover));
+		gel_ui_container_replace_children(
+			eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container"),
+			GTK_WIDGET(self->cover));
+		gtk_widget_show_all(GTK_WIDGET(self->cover));
+	}
+	else
+		gel_warn("Canot load art plugin");
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -429,7 +397,6 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	g_free(title);
 }
 
-#if USE_ART
 static void
 update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 {
@@ -437,15 +404,20 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 	{
 		gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
 		pixbuf = gdk_pixbuf_new_from_file_at_scale(path,
-			GTK_WIDGET(self->cover)->allocation.height,
+			GTK_WIDGET(self->cover)->allocation.width,
 			GTK_WIDGET(self->cover)->allocation.height,
 			TRUE, NULL);
 	
 		g_free(path);
 	}
+	else
+		gdk_pixbuf_scale_simple(pixbuf, 
+			GTK_WIDGET(self->cover)->allocation.width,
+			GTK_WIDGET(self->cover)->allocation.height,
+			GDK_INTERP_BILINEAR);
 
-	gtk_window_set_icon(self->main_window, pixbuf);
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
+	gtk_window_set_icon(self->main_window, pixbuf);
 }
 
 static void
@@ -483,7 +455,6 @@ update_cover_query(EinaPlayer *self, LomoStream *stream)
 		(ArtFunc) update_cover_result_cb, (ArtFunc) update_cover_result_cb,
 		self);
 }
-#endif
 
 /*
 static GtkWidget*
@@ -553,6 +524,13 @@ about_show(void)
 	(GCallback) gtk_widget_destroy, NULL);
 
 	gtk_widget_show(GTK_WIDGET(about));
+}
+
+static gboolean
+update_cover_idle(EinaPlayer *self)
+{
+	update_cover_query(self, lomo_player_get_current_stream(eina_obj_get_lomo(self)));
+	return FALSE;
 }
 
 static gboolean
@@ -699,20 +677,6 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 	}
 }
 
-#if USE_ART
-#else
-static void
-cover_change_cb(EinaArtwork *cover, EinaPlayer *self)
-{
-	if (gtk_image_get_storage_type(GTK_IMAGE(cover)) != GTK_IMAGE_PIXBUF)
-	{
-		gel_warn("Unhandled storage type for image");
-		return;
-	}
-	gtk_window_set_icon(self->main_window, gtk_image_get_pixbuf(GTK_IMAGE(cover)));
-}
-#endif
-
 static void
 lomo_state_change_cb (LomoPlayer *lomo, EinaPlayer *self)
 {
@@ -736,11 +700,7 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlayer *self)
 {
 	update_sensitiviness(self);
 	set_info(self, lomo_player_get_nth(lomo, to));
-#if USE_ART
 	update_cover_query(self, lomo_player_get_nth(lomo, to));
-#else
-	eina_artwork_set_stream(self->cover, (LomoStream *) lomo_player_get_nth(eina_obj_get_lomo(self), to));
-#endif
 }
 
 static void
@@ -748,10 +708,7 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 {
 	set_info(self, NULL);
 	update_sensitiviness(self);
-#if USE_ART
-#else
-	eina_artwork_set_stream(self->cover, NULL);
-#endif
+	update_cover(self, NULL);
 }
 
 static void
