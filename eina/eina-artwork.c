@@ -147,7 +147,6 @@ eina_artwork_class_init (EinaArtworkClass *klass)
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE,
 		0);
-	g_warning("GObjectClass: %p", object_class);
 }
 
 static void

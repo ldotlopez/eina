@@ -35,6 +35,7 @@
 // Modules availables: lomo, settings, fs (utility functions)
 #include <eina/lomo.h>
 #include <eina/settings.h>
+#include <eina/art.h>
 #include <eina/artwork.h>
 #include <eina/fs.h>
 
