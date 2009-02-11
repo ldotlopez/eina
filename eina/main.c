@@ -179,7 +179,6 @@ gint main
 			g_error_free(error);
 			continue;
 		}
-		gel_warn("%s loaded!", modules[i]);
 	}
 
 	// --
