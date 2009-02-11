@@ -58,27 +58,7 @@ adb_new(GelApp *app, GError **error)
 	self = g_new0(Adb, 1);
 	self->db  = db;
 	self->app = app;
-	gel_warn("ADB sqlite3 pointer: %p", self->db);
 
-#if 0
-	// check exec
-	if (sqlite3_exec(self->db, "SELECT 1;", NULL, NULL, NULL) != SQLITE_OK)
-		gel_warn("exec interface fails");
-	else
-		gel_warn("exec interface works ok");
-	sqlite3_stmt *stmt = NULL;
-
-	// check prepare
-	if (sqlite3_prepare_v2(self->db, "SELECT 1;", -1, &stmt, NULL) != SQLITE_OK)
-		gel_warn("prepare_v2 interface fails");
-	else
-	{
-		while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
-			;
-		sqlite3_finalize(stmt);
-		gel_warn("prepare_v2 interface works ok");
-	}
-#endif
 	gpointer callbacks[] = {
 		adb_setup_0,
 		NULL
