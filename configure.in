@@ -171,7 +171,6 @@ misc/eina-0.7.pc
 misc/Makefile
 pixmaps/Makefile
 plugins/adb/Makefile
-plugins/artdock/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
 plugins/lastfm/Makefile
