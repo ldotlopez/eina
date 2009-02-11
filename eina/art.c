@@ -155,6 +155,7 @@ void
 art_cancel(Art *art, ArtSearch *search)
 {
 	// Must be linked and running, otherwise this call has no sense.
+	g_return_if_fail(g_list_find(art->searches, search));
 	g_return_if_fail(search->backend_link && search->backend_link->data);
 	g_return_if_fail(search->running);
 
@@ -163,6 +164,7 @@ art_cancel(Art *art, ArtSearch *search)
 	art_backend_cancel(backend, search);
 
 	// Wipe search, its not useful anymore
+	search->backend_link = NULL;
 	backend->searches = g_list_remove(backend->searches, search);
 	art->searches     = g_list_remove(art->searches, search);
 
