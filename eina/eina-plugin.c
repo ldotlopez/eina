@@ -182,6 +182,7 @@ gboolean eina_plugin_remove_configuration_widget
 // --
 // Artwork handling
 // --
+/*
 EinaArtwork*
 eina_plugin_get_artwork(EinaPlugin *plugin)
 {
@@ -214,6 +215,7 @@ eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id)
 
 	eina_artwork_remove_provider(artwork, id);
 }
+*/
 
 // --
 // LomoEvents handling

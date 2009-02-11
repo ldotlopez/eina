@@ -56,6 +56,8 @@ Art*
 art_new(void)
 {
 	Art *art = g_new0(Art, 1);
+	art->searches = art->backends = NULL;
+
 	return art;
 }
 

@@ -30,10 +30,8 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	art.h \
-	artwork.h                  \
 	eina-obj.h                 \
 	class-conf-file.h          \
-	eina-artwork.h             \
 	eina-preferences-dialog.h  \
 	fs.h                       \
 	preferences.h              \
@@ -45,11 +43,9 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	art.c \
-	artwork.c                  \
 	eina-obj.c                 \
 	class-conf-file.c          \
 	dock.c                     \
-	eina-artwork.c             \
 	eina-file-chooser-dialog.c \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \

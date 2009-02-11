@@ -90,7 +90,7 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "log", "lomo", "artwork", "player", "dock", "playlist", "plugins", "vogon", "dbus", NULL};
+	gchar          *modules[] = { "log", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus", NULL};
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;

@@ -32,11 +32,10 @@
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
 
-// Modules availables: lomo, settings, fs (utility functions)
+// Modules availables: lomo, settings, art, fs (utility functions)
 #include <eina/lomo.h>
 #include <eina/settings.h>
 #include <eina/art.h>
-#include <eina/artwork.h>
 #include <eina/fs.h>
 
 // Redefine some types and enums
@@ -101,10 +100,10 @@ gboolean eina_plugin_remove_configuration_widget
 // Artwork handling (cover replacement)
 // --
 void
-eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
-	EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data);
+eina_plugin_add_art_backend(EinaPlugin *plugin, gchar *id,
+	ArtFunc search, ArtFunc cancel, gpointer data);
 void
-eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id);
+eina_plugin_remove_art_backend(EinaPlugin *plugin, gchar *id);
 
 // --
 // Lomo events
