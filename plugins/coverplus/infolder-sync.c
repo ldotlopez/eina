@@ -74,6 +74,79 @@ coverplus_infolder_destroy(CoverPlusInfolder *self)
 }
 
 void
+coverplus_infolder_art_search_cb(Art *art, ArtSearch *search, CoverPlusInfolder *self)
+{
+	LomoStream *stream = art_search_get_stream(search);
+	const gchar *uri = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+
+	// Check is stream is local
+	gchar *scheme =  g_uri_parse_scheme(uri);
+	if (!g_str_equal(scheme, "file"))
+	{
+		gel_warn("sync search using coverplus-infolder only works in local files");
+		g_free(scheme);
+		art_report_failure(art, search);
+		return;
+	}
+	g_free(scheme);
+
+	gchar *baseuri = g_path_get_dirname(uri);
+
+	// Try to get a list of folder contents
+	GError *error = NULL;
+	gchar *dirname = g_filename_from_uri(baseuri, NULL, NULL);
+	g_free(baseuri);
+
+	GList *children = gel_dir_read(dirname, FALSE, &error);
+	if (error)
+	{
+		gel_warn("Error reading %s: %s", dirname, error->message);
+		g_free(dirname);
+		g_error_free(error);
+		art_report_failure(art, search);
+		return;
+	}
+
+	GList *iter = children;
+	gchar *winner = NULL;
+	gint score = G_MAXINT;
+	while (iter)
+	{
+		gint i;
+		for (i = 0; coverplus_infolder_regex_str[i] != NULL; i++)
+		{
+			if (self->regexes[i] && g_regex_match(self->regexes[i], (gchar *) iter->data, 0, NULL) && (score > i))
+			{
+				winner = iter->data;
+				score = i;
+			}
+		}
+		iter = iter->next;
+	}
+
+	if (score < G_MAXINT)
+	{	
+		gchar *cover_pathname = g_build_filename(dirname, winner, NULL);
+		GdkPixbuf *pb = gdk_pixbuf_new_from_file(cover_pathname, NULL);
+		g_free(cover_pathname);
+
+		if (!pb)
+			art_report_failure(art, search);
+		else
+			art_report_success(art, search, pb);
+	}
+	else
+	{
+		art_report_failure(art, search);
+	}
+
+	// Free used data
+	gel_list_deep_free(children, g_free);
+	g_free(dirname);
+}
+
+
+void
 coverplus_infolder_search_cb(EinaArtwork *artwork, LomoStream *stream, CoverPlusInfolder *self)
 {
 	const gchar *uri = lomo_stream_get_tag(stream, LOMO_TAG_URI);

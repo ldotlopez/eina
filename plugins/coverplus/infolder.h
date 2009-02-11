@@ -32,6 +32,8 @@ void
 coverplus_infolder_destroy(CoverPlusInfolder *self);
 
 void
+coverplus_infolder_art_search_cb(Art *art, ArtSearch *search, CoverPlusInfolder *self);
+void
 coverplus_infolder_search_cb(EinaArtwork *artwork, LomoStream *stream, CoverPlusInfolder *self);
 void
 coverplus_infolder_cancel_cb(EinaArtwork *artwork, CoverPlusInfolder *self);

@@ -87,6 +87,15 @@ coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	plugin->data = self;
 
+	// Load Art plugin
+	if (gel_app_load_plugin_by_name(app, "art", NULL))
+	{
+		Art *art = GEL_APP_GET_ART(app);
+		art_add_backend(art, "coverplus-infolder",
+			(ArtFunc) coverplus_infolder_art_search_cb, NULL,
+			self->infolder);
+	}
+
 	return TRUE;
 }
 
