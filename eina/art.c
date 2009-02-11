@@ -3,8 +3,8 @@
 #include <eina/eina-plugin.h>
 #include <config.h>
 
-#define art_debug(...) ;
-// #define art_debug(...) gel_warn(__VA_ARGS__)
+// #define art_debug(...) ;
+#define art_debug(...) gel_warn(__VA_ARGS__)
 
 struct _Art {
 	GList *backends;
@@ -129,6 +129,7 @@ art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer
 	ArtSearch *search = art_search_new(stream, success, fail, data);
 	search->backend_link = art->backends;
 
+	art_debug("Start search for %p", search);
 	art->searches = g_list_append(art->searches, search);
 	if (search->backend_link && search->backend_link->data)
 	{
@@ -138,7 +139,14 @@ art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer
 	}
 	else
 	{
-		art_report_failure(art, search);
+		// Cannot call art_report_failure directly, current state is far from
+		// function prerequisites. Call fail hook by hand
+		// art_report_failure(art, search);
+		if (search->fail)
+			search->fail(art, search, search->data);
+		art->searches = g_list_remove(art->searches, search);
+		art_search_destroy(search);
+		search = NULL; // Sure?
 	}
 	return search;
 }
@@ -336,6 +344,12 @@ art_search_destroy(ArtSearch *search)
 	g_return_if_fail(!search->running);
 	g_return_if_fail(search->backend_link == NULL);
 	g_free(search);
+}
+
+LomoStream *
+art_search_get_stream(ArtSearch *search)
+{
+	return search->stream;
 }
 
 gpointer

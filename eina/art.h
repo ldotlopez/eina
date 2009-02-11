@@ -27,8 +27,9 @@ void       art_cancel(Art *art, ArtSearch *search);
 void art_report_success(Art *art, ArtSearch *search, gpointer result);
 void art_report_failure(Art *art, ArtSearch *search);
 
-gpointer art_search_get_result(ArtSearch *search);
-gpointer art_search_get_data  (ArtSearch *search);
+LomoStream *art_search_get_stream(ArtSearch *search);
+gpointer    art_search_get_result(ArtSearch *search);
+gpointer    art_search_get_data  (ArtSearch *search);
 
 G_END_DECLS
 
