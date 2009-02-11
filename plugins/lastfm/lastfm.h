@@ -26,7 +26,6 @@
 
 #include <eina/eina-plugin.h>
 #include "submit.h"
-#include "artwork.h"
 
 G_BEGIN_DECLS
 

@@ -22,12 +22,19 @@
 #include "submit.h"
 #include "artwork.h"
 
+struct _LastFM {
+	LastFMArtwork *artwork;
+};
+
 // --
 // Main plugin
 // --
 gboolean
 lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	LastFM *self = g_new0(LastFM, 1);
+	plugin->data = self;
+
 	return lastfm_artwork_init(app, plugin, error);
 #if 0
 	plugin->data = g_new0(LastFM, 1);
@@ -102,7 +109,10 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	g_free(plugin->data);
 #endif
-	return lastfm_artwork_fini(app, plugin, error);
+	if (!lastfm_artwork_fini(app, plugin, error))
+		return FALSE;
+	g_free(plugin->data);
+	return TRUE;
 }
 
 G_MODULE_EXPORT EinaPlugin lastfm_plugin = {

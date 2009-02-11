@@ -20,27 +20,28 @@
 #include "artwork.h"
 
 struct _LastFMArtwork {
-	GHashTable *searches;
-} ;
+	ArtBackend *backend;
+	GHashTable *data;
+};
 
 typedef struct {
-	LastFM      *self;
-	gint         search;
-	LomoStream  *stream;
-	EinaArtwork *artwork;
+	Art          *art;
+	ArtSearch    *search;
+	gint          n;
+	GCancellable *cancellable;
 } SearchCtx;
 
-typedef void (*SearchFunc)(SearchCtx *ctx);
+typedef void(*SearchFunc)(SearchCtx *ctx);
 
 static void
-lastfm_artwork_search(EinaArtwork *artwork, LomoStream *stream, LastFM *self);
+lastfm_artwork_search(Art *art, ArtSearch *_search, LastFMArtwork *self);
 static void
-lastfm_artwork_cancel(EinaArtwork *artwork, LastFM *self);
+lastfm_artwork_cancel(Art *art, ArtSearch *_search, LastFMArtwork *self);
 
 static void
 search(SearchCtx *ctx);
 static void
-search_by_album (SearchCtx *ctx);
+search_by_album(SearchCtx *ctx);
 static void
 search_by_artist(SearchCtx *ctx);
 static void
@@ -49,13 +50,12 @@ search_by_single(SearchCtx *ctx);
 gboolean
 lastfm_artwork_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	EINA_PLUGIN_DATA(plugin)->artwork = g_new0(LastFMArtwork, 1);
-	// EINA_PLUGIN_DATA(plugin)->artwork->searches = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, search_ctx_free);
+	LastFMArtwork *self = EINA_PLUGIN_DATA(plugin)->artwork = g_new0(LastFMArtwork, 1);
 
-	eina_plugin_add_artwork_provider(plugin, "lastfm",
-		(EinaArtworkProviderSearchFunc) lastfm_artwork_search,
-		(EinaArtworkProviderCancelFunc) lastfm_artwork_cancel,
-		NULL);
+	self->data = g_hash_table_new(g_direct_hash, g_direct_equal);
+	self->backend = eina_plugin_add_art_backend(plugin, "lastfm",
+		(ArtFunc) lastfm_artwork_search, (ArtFunc) lastfm_artwork_cancel,
+		self);
 
 	gel_warn("Artwork init!");
 
@@ -65,48 +65,57 @@ lastfm_artwork_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 lastfm_artwork_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	eina_plugin_remove_artwork_provider(plugin, "lastfm");
+	LastFMArtwork *self = EINA_PLUGIN_DATA(plugin)->artwork;
 
-	// g_hash_table_destroy(EINA_PLUGIN_DATA(plugin)->artwork->searches);
-	g_free              (EINA_PLUGIN_DATA(plugin)->artwork);
+	// XXX: Remove all data search
+	g_hash_table_destroy(self->data);
+
+	eina_plugin_remove_art_backend(plugin, self->backend);
+	g_free(self);
 
 	gel_warn("Artwork fini!");
 	return TRUE;
 }
 
 SearchCtx*
-search_ctx_new(LomoStream *stream, EinaArtwork *artwork)
+search_ctx_new(Art *art, ArtSearch *search)
 {
 	SearchCtx *ctx = g_new0(SearchCtx, 1);
-	ctx->stream  = stream;
-	ctx->artwork = artwork;
-	ctx->search  = 0;
+	ctx->art = art;
+	ctx->search = search;
+	ctx->n = 0;
+	ctx->cancellable = g_cancellable_new();
 	return ctx;
 }
 
 void
 search_ctx_free(SearchCtx *ctx)
 {
+	g_object_unref(ctx->cancellable);
 	g_free(ctx);
 }
 
 void
-lastfm_artwork_search(EinaArtwork *artwork, LomoStream *stream, LastFM *self)
+lastfm_artwork_search(Art *art, ArtSearch *_search, LastFMArtwork *self)
 {
-	gel_warn("Start search for %s", lomo_stream_get_tag(stream, LOMO_TAG_URI));
-	SearchCtx *ctx = g_new0(SearchCtx, 1);
-	ctx->self    = self;
-	ctx->search  = 0;
-	ctx->stream  = stream;
-	ctx->artwork = artwork;
+	LomoStream *stream = art_search_get_stream(_search);
+
+	SearchCtx *ctx = search_ctx_new(art, _search);
+	g_hash_table_replace(self->data, _search, ctx);
+	gel_warn("%p => %p", _search, ctx->search);
+
+	gel_warn("Start search (%p) for %s", ctx, lomo_stream_get_tag(stream, LOMO_TAG_URI));
 
 	search(ctx);
 }
 
 void
-lastfm_artwork_cancel(EinaArtwork *artwork, LastFM *self)
+lastfm_artwork_cancel(Art *art, ArtSearch *_search, LastFMArtwork *self)
 {
+	SearchCtx *ctx = g_hash_table_lookup(self->data, _search);
+	g_return_if_fail(ctx);
 
+	gel_warn("Cancel search %p", ctx);
 }
 
 static void
@@ -118,28 +127,86 @@ search(SearchCtx *ctx)
 		search_by_single,
 		NULL
 	};
-	if (searches[ctx->search] == NULL)
+	if (searches[ctx->n] == NULL)
 	{
-		eina_artwork_provider_fail(ctx->artwork);
+		art_report_failure(ctx->art, ctx->search);
 		g_free(ctx);
 	}
 	else
-		searches[ctx->search](ctx);
+		searches[ctx->n](ctx);
+}
+
+static void
+search_by_album_cb(GFile *file, GAsyncResult *res, SearchCtx *ctx)
+{
+	gchar *buff = NULL;
+	gsize len;
+	GError *err = NULL;
+
+	if (!g_file_load_contents_finish(file, res, &buff, &len, NULL, &err))
+	{
+		gel_warn("Error loading: %s", err->message);
+		goto search_by_album_cb_fail;
+	}
+
+	gchar *tokens[] = {
+		"<span class=\"art\"><img",
+		"src=\"",
+		NULL
+	};
+
+	gint i;
+	gchar *p = buff;
+	for (i = 0; tokens[i] != NULL; i++)
+	{
+		if ((p = strstr(p, tokens[i])) == NULL)
+			goto search_by_album_cb_fail;
+		p += strlen(tokens[i]) * sizeof(gchar);
+	}
+	strstr(p, "\"")[0] = '\0';
+	gel_warn("Cover: %s", p);
+
+search_by_album_cb_fail:
+	gel_free_and_invalidate(file, NULL, g_object_unref);
+	gel_free_and_invalidate(err,  NULL, g_error_free);
+	gel_free_and_invalidate(buff, NULL, g_free);
+
+	ctx->n++;
+	search(ctx);
 }
 
 static void
 search_by_album(SearchCtx *ctx)
 {
+	LomoStream *stream = art_search_get_stream(ctx->search);
+	gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	gchar *album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+
 	gel_warn("Search by album %p fail", ctx);
-	ctx->search++;
-	search(ctx);
+
+	if (!artist || !album)
+	{
+		gel_warn("Needed artist(%s) and album(%s)", 
+			artist ? "found" : "not found",
+			album  ? "found" : "not found");
+		ctx->n++;
+		search(ctx);
+		return;
+	}
+
+	gchar *uri = g_strdup_printf("http://www.lastfm.es/music/%s/%s", artist, album);
+	gel_warn("Point to %s", uri);
+	g_file_load_contents_async(g_file_new_for_uri(uri), ctx->cancellable,
+		(GAsyncReadyCallback) search_by_album_cb, ctx);
+	// ctx->n++;
+	// search(ctx);
 }
 
 static void
 search_by_artist(SearchCtx *ctx)
 {
 	gel_warn("Search by artist %p fail", ctx);
-	ctx->search++;
+	ctx->n++;
 	search(ctx);
 }
 
@@ -147,6 +214,6 @@ static void
 search_by_single(SearchCtx *ctx)
 {
 	gel_warn("Search by single %p fail", ctx);
-	ctx->search++;
+	ctx->n++;
 	search(ctx);
 }
