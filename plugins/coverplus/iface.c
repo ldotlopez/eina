@@ -29,9 +29,11 @@
 #include "infolder.h"
 #include "banshee.h"
 
-// Hold sub-plugins data
+// Hold sub-plugins data and backends
 typedef struct CoverPlus {
 	CoverPlusInfolder *infolder;
+	ArtBackend *infolder_backend;
+	ArtBackend *banshee_backend;
 } CoverPlus;
 
 GQuark
@@ -53,61 +55,61 @@ enum {
 gboolean
 coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	/*
-	EinaArtwork *artwork = eina_plugin_get_artwork(plugin);
-	if (!artwork)
-	{
-		g_set_error_literal(error, coverplus_quark(), NO_ARTWORK, "No artwork object available");
+	// Load artwork module, and get the object since EinaPlugin has no support
+	// ATM
+	if (!gel_app_load_plugin_by_name(app, "art", error))
 		return FALSE;
-	}
-	*/
-	if (!gel_app_load_plugin_by_name(app, "artwork", error))
+
+	Art *art = GEL_APP_GET_ART(app);
+	if (!art)
 		return FALSE;
 
 	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
 
+	// Add infolder search
 	self->infolder = coverplus_infolder_new(plugin, error);
 	if (self->infolder)
-	{
-		// Add providers
-		eina_plugin_add_artwork_provider(plugin, "coverplus-infolder",
-			(EinaArtworkProviderSearchFunc) coverplus_infolder_search_cb,
-			(EinaArtworkProviderCancelFunc) coverplus_infolder_cancel_cb,
-			self->infolder);
-	}
-	else
-	{
-		gel_warn("Cannot init Infolder Coverplus add-on: %s", (*error)->message);
-		return FALSE;
-	}
-
-	eina_plugin_add_artwork_provider(plugin, "coverplus-banshee",
-		coverplus_banshee_search_cb, NULL,
-		NULL); 
-
-	plugin->data = self;
-
-	// Load Art plugin
-	if (gel_app_load_plugin_by_name(app, "art", NULL))
-	{
-		Art *art = GEL_APP_GET_ART(app);
-		art_add_backend(art, "coverplus-infolder",
+		self->infolder_backend = art_add_backend(art, "coverplus-infolder",
 			(ArtFunc) coverplus_infolder_art_search_cb, NULL,
 			self->infolder);
-	}
+	else
+		gel_warn("Cannot init Infolder Coverplus add-on: %s", (*error)->message);
 
+	// Add banshee search
+	self->banshee_backend = art_add_backend(art, "coverplus-banshee",
+		(ArtFunc) coverplus_banshee_art_search_cb, NULL,
+		NULL);
+
+	plugin->data = self;
 	return TRUE;
 }
 
 gboolean
 coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	if (!gel_app_unload_plugin_by_name(app, "artwork", error))
+	CoverPlus *self = EINA_PLUGIN_DATA(plugin);
+	if (!self)
+		return TRUE;
+
+	Art *art = GEL_APP_GET_ART(app);
+	if (!art)
 		return FALSE;
 
-	eina_plugin_remove_artwork_provider(plugin, "coverplus-infolder");
-	eina_plugin_remove_artwork_provider(plugin, "coverplus-banshee");
-	g_free(EINA_PLUGIN_DATA(plugin));
+	if (self->infolder_backend)
+	{
+		art_remove_backend(art, self->infolder_backend);
+		self->infolder_backend = NULL;
+	}
+	if (self->banshee_backend)
+	{
+		art_remove_backend(art, self->banshee_backend);
+		self->banshee_backend = NULL;
+	}
+	g_free(self);
+	plugin->data = NULL;
+
+	if (!gel_app_unload_plugin_by_name(app, "art", error))
+		return FALSE;
 
 	return TRUE;
 }

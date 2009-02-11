@@ -25,7 +25,7 @@
 G_BEGIN_DECLS
 
 void
-coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer data);
+coverplus_banshee_art_search_cb(Art *art, ArtSearch *search, gpointer data);
 
 G_END_DECLS
 

@@ -23,8 +23,9 @@
 // Banshee covers
 // --
 void
-coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer data)
+coverplus_banshee_art_search_cb(Art *art, ArtSearch *search, gpointer data)
 {
+	LomoStream *stream = art_search_get_stream(search);
 	GString *str;
 	gint i, j;
 	gchar *input[3] = {
@@ -59,9 +60,13 @@ coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer dat
 	{
 		if (g_file_test(paths[i], G_FILE_TEST_IS_REGULAR|G_FILE_TEST_EXISTS))
 		{
-			eina_artwork_provider_success(cover, G_TYPE_STRING, paths[i]);
-			found = TRUE;
-			break;
+			GdkPixbuf *pb = gdk_pixbuf_new_from_file(paths[i], NULL);
+			if (pb)
+			{
+				art_report_success(art, search, pb);
+				found = TRUE;
+				break;
+			}
 		}
 	}
 
@@ -69,7 +74,5 @@ coverplus_banshee_search_cb(EinaArtwork *cover, LomoStream *stream, gpointer dat
 		g_free(paths[i]);
 
 	if (!found);
-		eina_artwork_provider_fail(cover);
-		
+		art_report_failure(art, search);
 }
-
