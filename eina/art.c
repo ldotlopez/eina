@@ -3,8 +3,8 @@
 #include <eina/eina-plugin.h>
 #include <config.h>
 
-// #define art_debug(...) ;
-#define art_debug(...) gel_warn(__VA_ARGS__)
+#define art_debug(...) ;
+// #define art_debug(...) gel_warn(__VA_ARGS__)
 
 struct _Art {
 	GList *backends;
@@ -42,7 +42,7 @@ static void
 art_forward_search(Art *art, ArtSearch *search);
 
 static ArtSearch*
-art_search_new(LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data);
+art_search_new(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data);
 static void
 art_search_destroy(ArtSearch *search);
 
@@ -126,10 +126,10 @@ art_remove_backend(Art *art, ArtBackend *backend)
 ArtSearch*
 art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
 {
-	ArtSearch *search = art_search_new(stream, success, fail, data);
+	ArtSearch *search = art_search_new(art, stream, success, fail, data);
 	search->backend_link = art->backends;
 
-	art_debug("Start search for %p", search);
+	art_debug("Start search for %p", stream);
 	art->searches = g_list_append(art->searches, search);
 	if (search->backend_link && search->backend_link->data)
 	{
@@ -142,11 +142,12 @@ art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer
 		// Cannot call art_report_failure directly, current state is far from
 		// function prerequisites. Call fail hook by hand
 		// art_report_failure(art, search);
+		art_debug("Calling fail hook directly");
 		if (search->fail)
 			search->fail(art, search, search->data);
 		art->searches = g_list_remove(art->searches, search);
 		art_search_destroy(search);
-		search = NULL; // Sure?
+		search = NULL;
 	}
 	return search;
 }
@@ -154,6 +155,10 @@ art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer
 void
 art_cancel(Art *art, ArtSearch *search)
 {
+	// Search is already completed but still in schudele queue, do nothing
+	if (search->backend_link == NULL)
+		return;
+
 	// Must be linked and running, otherwise this call has no sense.
 	g_return_if_fail(g_list_find(art->searches, search));
 	g_return_if_fail(search->backend_link && search->backend_link->data);
@@ -171,20 +176,31 @@ art_cancel(Art *art, ArtSearch *search)
 	art_search_destroy(search);
 }
 
+static gboolean
+art_fail_idle(ArtSearch *search)
+{
+	art_debug("Calling fail hook");
+	if (search->fail)
+		search->fail(search->art, search, search->data);
+	
+	// Search is not more useful, this is an exit point, wipe it.
+	art_search_destroy(search);
+
+	return FALSE;
+}
+
 void
 art_fail(Art *art, ArtSearch *search)
 {
 	// Must be unlinked, this function only is reacheable if all backends
 	// failed, must be stopped for the same reason.
-	g_return_if_fail(!search->backend_link);
-	g_return_if_fail(!search->running);
+	g_return_if_fail(search->backend_link == NULL);
+	g_return_if_fail(search->running ==  FALSE);
 
-	if (search->fail)
-		search->fail(art, search, search->data);
-	
-	// Search is not more useful, this is an exit point, wipe it.
 	art->searches = g_list_remove(art->searches, search);
-	art_search_destroy(search);
+
+	art_debug("Scheduling fail");
+	g_idle_add((GSourceFunc) art_fail_idle, search);
 }
 
 // --
@@ -207,11 +223,8 @@ art_forward_search(Art *art, ArtSearch *search)
 	if (iter == NULL)
 	{
 		art_debug("No more backends availables.");
-		// XXX: Make a function
-		if (search->fail)
-			search->fail(art, search, search->data);
-		art->searches = g_list_remove(art->searches, search);
-		g_free(search);
+		search->backend_link = NULL;
+		art_fail(art, search);
 	}
 	else
 	{
@@ -227,6 +240,17 @@ art_forward_search(Art *art, ArtSearch *search)
 // Backends need to report Art object his success or failure, these two
 // functions do the work
 // --
+static gboolean
+art_report_success_idle(ArtSearch *search)
+{
+	art_debug("Calling success hook");
+	if (search->success)
+		 search->success(search->art, search, search->data);
+	search->art->searches = g_list_remove(search->art->searches, search);
+	art_search_destroy(search);
+	return FALSE;
+}
+
 void
 art_report_success(Art *art, ArtSearch *search, gpointer result)
 {
@@ -241,14 +265,9 @@ art_report_success(Art *art, ArtSearch *search, gpointer result)
 	search->backend_link = NULL;
 	search->running = FALSE;
 
+	art_debug("Schudeling success");
 	search->result = result;
-
-	if (search->success)
-		search->success(art, search, search->data);
-
-	art->searches = g_list_remove(art->searches, search);
-
-	art_search_destroy(search);
+	g_idle_add((GSourceFunc) art_report_success_idle, search);
 }
 
 void
@@ -264,7 +283,6 @@ art_report_failure(Art *art, ArtSearch *search)
 	// Forward
 	art_forward_search(art, search);
 }
-
 
 // -------------------------
 // -------------------------
@@ -330,9 +348,10 @@ art_backend_cancel(ArtBackend *backend, ArtSearch *search)
 // -------------------------
 // -------------------------
 static ArtSearch*
-art_search_new(LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
+art_search_new(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
 {
 	ArtSearch *search = g_new0(ArtSearch, 1);
+	search->art     = art;
 	search->stream  = stream;
 	search->success = success;
 	search->fail    = fail;
