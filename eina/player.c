@@ -411,10 +411,14 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 		g_free(path);
 	}
 	else
-		gdk_pixbuf_scale_simple(pixbuf, 
+	{
+		GdkPixbuf *old_pb = pixbuf;
+		pixbuf = gdk_pixbuf_scale_simple(old_pb, 
 			GTK_WIDGET(self->cover)->allocation.width,
 			GTK_WIDGET(self->cover)->allocation.height,
 			GDK_INTERP_BILINEAR);
+		g_object_unref(old_pb);
+	}
 
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
 	gtk_window_set_icon(self->main_window, pixbuf);
