@@ -1,8 +1,10 @@
+#ifndef _CURL_ENGINE_H
+#define _CURL_ENGINE_H
+
 #include <glib.h>
 #include <curl/curl.h>
 
 G_BEGIN_DECLS
-
 
 typedef struct _CurlEngine CurlEngine;
 typedef struct _CurlQuery  CurlQuery;
@@ -24,3 +26,5 @@ gboolean curl_query_finish(CurlQuery *query, guint8 **buffer, gsize *size, GErro
 
 
 G_END_DECLS
+
+#endif

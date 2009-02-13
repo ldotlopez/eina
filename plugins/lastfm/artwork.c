@@ -148,7 +148,7 @@ search_ctx_free(SearchCtx *ctx)
 }
 
 void
-search_ctx_go_next(SearchCtx *ctx)
+search_ctx_try_next(SearchCtx *ctx)
 {
 	ctx->n++;
 	search(ctx);
@@ -245,12 +245,13 @@ search_ctx_parse_buffer(SearchCtx *ctx, gchar *buffer)
 
 #if USE_CURL
 static void
-curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
+curl_engine_cover_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 {
 	guint8 *buffer;
 	gsize   size;
 	GError *error = NULL;
 
+	// Jump if there was an error fetching
 	if (!curl_query_finish(query, &buffer, &size, &error))
 	{
 		gchar *uri = curl_query_get_uri(query);
@@ -258,18 +259,52 @@ curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 		g_error_free(error);
 		g_free(uri);
 
-		// Next search
-		return;
+		goto curl_engine_cover_cb_fail;
 	}
+	gel_warn("Cover fetched: %d bytes", size);
+
+curl_engine_cover_cb_fail:
+	gel_free_and_invalidate(error,  NULL, g_error_free);
+	gel_free_and_invalidate(buffer, NULL, g_free);
+	search_ctx_try_next(ctx);
+}
+
+static void
+curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
+{
+	guint8 *buffer;
+	gsize   size;
+	GError *error = NULL;
+
+	// Jump if there was an error fetching
+	if (!curl_query_finish(query, &buffer, &size, &error))
+	{
+		gchar *uri = curl_query_get_uri(query);
+		gel_warn("Cannot get uri '%s': %s", uri, error->message);
+		g_error_free(error);
+		g_free(uri);
+
+		goto curl_engine_finish_cb_fail;
+	}
+
+	// Jump if parse failed
 	gchar *cover = search_ctx_parse_buffer(ctx, (gchar *) buffer);
-	if (cover)
+	if (cover == NULL)
 	{
-		// Go and fetch cover
+		gel_warn("Parse failed");
+		goto curl_engine_finish_cb_fail;
 	}
-	else
-	{
-		// Go to next search
-	}
+
+	// Ok, fetch the cover
+	curl_engine_query(ctx->self->engine, cover,
+		(CurlEngineFinishFunc) curl_engine_cover_cb, ctx);
+	g_free(cover);
+	return;
+
+curl_engine_finish_cb_fail:
+	gel_free_and_invalidate(error,  NULL, g_error_free);
+	gel_free_and_invalidate(buffer, NULL, g_free);
+	search_ctx_try_next(ctx);
 }
 
 #else
@@ -308,18 +343,22 @@ search_by_album(SearchCtx *ctx)
 
 	gel_warn("Search by album %p fail", ctx);
 
+	// search_by_album needs artist and album tags
 	if (!artist || !album)
 	{
+		/*
 		gel_warn("Needed artist(%s) and album(%s)", 
 			artist ? "found" : "not found",
-			album  ? "found" : "not found");
-		ctx->n++;
-		search(ctx);
+			album  ? "found" : "not found"); */
+		search_ctx_try_next(ctx);
 		return;
 	}
 
+	// Now control belongs to curl_engine_query_cb / load_contents_async_cb
+
 	gchar *uri = g_strdup_printf("http://www.lastfm.es/music/%s/%s", artist, album);
 	gel_warn("Point to %s", uri);
+
 #if USE_CURL
 	ctx->q = curl_engine_query(ctx->self->engine, uri, (CurlEngineFinishFunc) curl_engine_finish_cb, ctx);
 #else
@@ -334,14 +373,12 @@ static void
 search_by_artist(SearchCtx *ctx)
 {
 	gel_warn("Search by artist %p fail", ctx);
-	ctx->n++;
-	search(ctx);
+	search_ctx_try_next(ctx);
 }
 
 static void
 search_by_single(SearchCtx *ctx)
 {
 	gel_warn("Search by single %p fail", ctx);
-	ctx->n++;
-	search(ctx);
+	search_ctx_try_next(ctx);
 }

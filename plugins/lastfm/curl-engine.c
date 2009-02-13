@@ -22,6 +22,8 @@ struct _CurlQuery {
 	gpointer data;
 };
 
+static CurlQuery*
+curl_engine_find_matching_query(CurlEngine *self, CURL *handle);
 static gboolean
 curl_engine_timeout_cb(CurlEngine *self);
 
@@ -188,12 +190,14 @@ curl_query_free(CurlQuery *query)
 	g_free(query);
 }
 
-gchar* curl_query_get_uri(CurlQuery *query)
+gchar*
+curl_query_get_uri(CurlQuery *query)
 {
 	return (query->uri ? g_strdup(query->uri) : NULL);
 }
 
-gboolean curl_query_finish(CurlQuery *query, guint8 **buffer, gsize *size, GError **error)
+gboolean
+curl_query_finish(CurlQuery *query, guint8 **buffer, gsize *size, GError **error)
 {
 	if (query->msg->data.result != 0)
 	{
