@@ -20,17 +20,26 @@
 #include "artwork.h"
 #define USE_CURL 1
 
+#if USE_CURL
+#include "curl-engine.h"
+#endif
+
 struct _LastFMArtwork {
 	ArtBackend *backend;
 	GHashTable *data;
+
+#if USE_CURL
+	CurlEngine *engine;
+#endif
 };
 
 typedef struct {
 	Art          *art;
 	ArtSearch    *search;
 	gint          n;
+	LastFMArtwork *self;
 #if USE_CURL
-	CURL *curl;
+	CurlQuery  *q;
 #else
 	GCancellable *cancellable;
 #endif
@@ -52,6 +61,9 @@ search_by_artist(SearchCtx *ctx);
 static void
 search_by_single(SearchCtx *ctx);
 
+// --
+// init / fini
+// --
 gboolean
 lastfm_artwork_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
@@ -62,9 +74,34 @@ lastfm_artwork_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		(ArtFunc) lastfm_artwork_search, (ArtFunc) lastfm_artwork_cancel,
 		self);
 
+#if USE_CURL
+	if ((self->engine = curl_engine_new()) == NULL)
+	{
+		gel_warn("Cannit init curl interface");
+		goto lastfm_artwork_init_fail;
+	}
+#endif
+
 	gel_warn("Artwork init!");
 
 	return TRUE;
+
+lastfm_artwork_init_fail:
+	if (!self)
+		return FALSE;
+
+#if USE_CURL
+	curl_engine_free(self->engine);
+#endif
+	gel_free_and_invalidate(self->data, NULL, g_hash_table_destroy);
+	gel_free_and_invalidate(self, NULL, g_free);
+	if (self->backend)
+	{
+		eina_plugin_remove_art_backend(plugin, self->backend);
+		self->backend = NULL;
+	}
+
+	return FALSE;
 }
 
 gboolean
@@ -82,30 +119,50 @@ lastfm_artwork_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+// --
+// SearchCtx
+// --
 SearchCtx*
-search_ctx_new(Art *art, ArtSearch *search)
+search_ctx_new(LastFMArtwork *self, Art *art, ArtSearch *search)
 {
 	SearchCtx *ctx = g_new0(SearchCtx, 1);
 	ctx->art = art;
 	ctx->search = search;
 	ctx->n = 0;
+	ctx->self = self;
+#if USE_CURL
+#else
 	ctx->cancellable = g_cancellable_new();
+#endif
 	return ctx;
 }
 
 void
 search_ctx_free(SearchCtx *ctx)
 {
+#if USE_CURL
+#else
 	g_object_unref(ctx->cancellable);
+#endif
 	g_free(ctx);
 }
 
+void
+search_ctx_go_next(SearchCtx *ctx)
+{
+	ctx->n++;
+	search(ctx);
+}
+
+// --
+// Provider
+// --
 void
 lastfm_artwork_search(Art *art, ArtSearch *_search, LastFMArtwork *self)
 {
 	LomoStream *stream = art_search_get_stream(_search);
 
-	SearchCtx *ctx = search_ctx_new(art, _search);
+	SearchCtx *ctx = search_ctx_new(self, art, _search);
 	g_hash_table_replace(self->data, _search, ctx);
 
 	gel_warn("Start search (%p) for %s", ctx, lomo_stream_get_tag(stream, LOMO_TAG_URI));
@@ -141,7 +198,7 @@ search(SearchCtx *ctx)
 }
 
 gchar *
-parse_as_album(SearchCtx *ctx, gchar *buffer)
+parse_as_album(gchar *buffer)
 {
 	gchar *tokens[] = {
 		"<span class=\"art\"><img",
@@ -157,18 +214,62 @@ parse_as_album(SearchCtx *ctx, gchar *buffer)
 			return NULL;
 		p += strlen(tokens[i]) * sizeof(gchar);
 	}
+
 	gchar *p2 = strstr(p, "\"");
 	if (!p2)
 		return NULL;
 	p2[0] = '\0';
 
+	gel_warn("COVER: %s", p);
 	return g_strdup(p);
+}
+
+static gchar*
+search_ctx_parse_buffer(SearchCtx *ctx, gchar *buffer)
+{
+	static gpointer parsers[] = {
+		parse_as_album,
+		NULL,
+		NULL,
+		NULL
+	};
+
+	gchar *ret = NULL;
+	if (parsers[ctx->n] != NULL)
+	{
+		gchar* (*parser) (gchar *buffer) = parsers[ctx->n];
+		ret = parser(buffer);
+	}
+	return ret;
 }
 
 #if USE_CURL
 static void
-curl_read_cb() 
+curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 {
+	guint8 *buffer;
+	gsize   size;
+	GError *error = NULL;
+
+	if (!curl_query_finish(query, &buffer, &size, &error))
+	{
+		gchar *uri = curl_query_get_uri(query);
+		gel_warn("Cannot get uri '%s': %s", uri, error->message);
+		g_error_free(error);
+		g_free(uri);
+
+		// Next search
+		return;
+	}
+	gchar *cover = search_ctx_parse_buffer(ctx, (gchar *) buffer);
+	if (cover)
+	{
+		// Go and fetch cover
+	}
+	else
+	{
+		// Go to next search
+	}
 }
 
 #else
@@ -187,19 +288,6 @@ load_contents_async_cb(GFile *file, GAsyncResult *res, SearchCtx *ctx)
 	}
 	else
 	{
-		gpointer parsers[] = {
-			parse_as_album,
-			NULL,
-			NULL,
-			NULL
-		};
-		if (parsers[ctx->n] != NULL)
-		{
-			gchar* (*parser) (gchar *buffer) = parsers[ctx->n];
-			gchar *cover = parser(buff);
-			gel_warn("Got cover: %s", cover);
-			g_free(cover);
-		}
 	}
 
 	gel_free_and_invalidate(file, NULL, g_object_unref);
@@ -233,15 +321,13 @@ search_by_album(SearchCtx *ctx)
 	gchar *uri = g_strdup_printf("http://www.lastfm.es/music/%s/%s", artist, album);
 	gel_warn("Point to %s", uri);
 #if USE_CURL
-	ctx->curl = curl_easy_init();
-	curl_easy_setopt(ctx->curl, CURLOPT_URL, uri);
-	curl_easy_setopt(ctx->curl, CURLOPT_READFUNCTION, curl_read_cb);
-	curl_easy_setopt(ctx->curl, CURLOPT_READDATA,     ctx);
-	curl_easy_perform(ctx->curl);
+	ctx->q = curl_engine_query(ctx->self->engine, uri, (CurlEngineFinishFunc) curl_engine_finish_cb, ctx);
 #else
 	g_file_load_contents_async(g_file_new_for_uri(uri), ctx->cancellable,
 		(GAsyncReadyCallback) load_contents_async_cb, ctx);
 #endif
+
+	g_free(uri);
 }
 
 static void
