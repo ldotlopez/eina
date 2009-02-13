@@ -180,20 +180,38 @@ gboolean eina_plugin_remove_configuration_widget
 }
 
 // --
-// Artwork handling
-// --
-/*
-EinaArtwork*
-eina_plugin_get_artwork(EinaPlugin *plugin)
+// Art handling
+Art*
+eina_plugin_get_art(EinaPlugin *plugin)
 {
 	GelApp *app;
 
 	if ((app = gel_plugin_get_app(plugin)) == NULL)
 		return NULL;
 
-	return GEL_APP_GET_ARTWORK(app);
+	return GEL_APP_GET_ART(app);
 }
 
+ArtBackend*
+eina_plugin_add_art_backend(EinaPlugin *plugin, gchar *id,
+	ArtFunc search, ArtFunc cancel, gpointer data)
+{
+	Art *art;
+	if ((art = eina_plugin_get_art(plugin)) == NULL)
+		return NULL;
+	return art_add_backend(art, id, search, cancel, data);
+}
+
+void
+eina_plugin_remove_art_backend(EinaPlugin *plugin, ArtBackend *backend)
+{
+	Art *art;
+	if ((art = eina_plugin_get_art(plugin)) == NULL)
+		return;
+	art_remove_backend(art, backend);
+}
+
+/*
 void
 eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
     EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data)

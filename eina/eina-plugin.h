@@ -97,13 +97,13 @@ gboolean eina_plugin_remove_configuration_widget
 (EinaPlugin *plugin,  GtkWidget *widget);
 
 // --
-// Artwork handling (cover replacement)
+// Art handling
 // --
-void
+ArtBackend *
 eina_plugin_add_art_backend(EinaPlugin *plugin, gchar *id,
 	ArtFunc search, ArtFunc cancel, gpointer data);
 void
-eina_plugin_remove_art_backend(EinaPlugin *plugin, gchar *id);
+eina_plugin_remove_art_backend(EinaPlugin *plugin, ArtBackend *backend);
 
 // --
 // Lomo events
