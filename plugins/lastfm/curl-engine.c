@@ -56,6 +56,7 @@ void
 curl_engine_free(CurlEngine *self)
 {
 	g_source_remove(self->id);
+	self->id = 0;
 
 	GList *iter = self->querys;
 	while (iter)
@@ -81,7 +82,7 @@ curl_engine_query(CurlEngine *self, gchar *url, CurlEngineFinishFunc finish, gpo
 	curl_multi_add_handle(self->curlm, query->curl);
 
 	if (self->id == 0)
-		self->id = g_timeout_add(100, (GSourceFunc) curl_engine_timeout_cb, self);
+		self->id = g_timeout_add(20, (GSourceFunc) curl_engine_timeout_cb, self);
 
 	return query;
 }
@@ -113,6 +114,7 @@ curl_engine_timeout_cb(CurlEngine *self)
 	gint running;
 	while (curl_multi_perform(self->curlm, &running) == CURLM_CALL_MULTI_PERFORM)
 		;
+
 	ce_debug("%d running\n", running);
 
 	CURLMsg *msg;
@@ -142,6 +144,9 @@ curl_engine_timeout_cb(CurlEngine *self)
 			self->querys = g_list_remove(self->querys, q);
 			curl_multi_remove_handle(self->curlm, msg->easy_handle);
 			curl_query_free(q);
+
+			running--;
+
 			break;
 
 		default:
@@ -150,14 +155,17 @@ curl_engine_timeout_cb(CurlEngine *self)
 		}
 	}
 
-	ce_debug("Done\n");
 	if (running == 0)
 	{
+		ce_debug("all done, disabling timeout_cb\n");
 		self->id = 0;
 		return FALSE;
 	}
 	else
+	{
+		ce_debug("recllame\n");
 		return TRUE;
+	}
 }
 
 // --
