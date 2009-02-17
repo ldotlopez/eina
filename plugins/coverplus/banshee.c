@@ -26,13 +26,17 @@ void
 coverplus_banshee_art_search_cb(Art *art, ArtSearch *search, gpointer data)
 {
 	LomoStream *stream = art_search_get_stream(search);
+	gchar *a = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	gchar *b = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+	if (!a || !b)
+	{
+		art_report_failure(art, search);
+		return;
+	}
+
 	GString *str;
 	gint i, j;
-	gchar *input[3] = {
-		g_utf8_strdown(lomo_stream_get_tag(stream, LOMO_TAG_ARTIST), -1),
-		g_utf8_strdown(lomo_stream_get_tag(stream, LOMO_TAG_ALBUM), -1),
-		NULL
-	};
+	gchar *input[3] = { g_utf8_strdown(a, -1), g_utf8_strdown(b, -1), NULL };
 
 	str = g_string_new(NULL);
 
