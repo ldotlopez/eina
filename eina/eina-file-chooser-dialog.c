@@ -356,7 +356,8 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 	GtkFileFilter *filter;
 	const gchar *music_folder;
 
-	music_folder = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC);
+	if ((music_folder = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == NULL)
+		music_folder = g_get_home_dir();
 
 	switch (action)
 	{
