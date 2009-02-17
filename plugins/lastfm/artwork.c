@@ -269,7 +269,7 @@ search_ctx_by_album(SearchCtx *ctx)
 	gchar *a, *b;
 	a = g_uri_escape_string(artist, G_URI_RESERVED_CHARS_SUBCOMPONENT_DELIMITERS, FALSE);
 	b = g_uri_escape_string(album, G_URI_RESERVED_CHARS_SUBCOMPONENT_DELIMITERS, FALSE);
-	gchar *uri = g_strdup_printf("http://www.lastfm.es/music/%s/%s", a, b);
+	gchar *uri = g_strdup_printf("http://www.last.fm/music/%s/%s", a, b);
 	g_free(a);
 	g_free(b);
 	gel_warn("Point to %s", uri);
@@ -309,6 +309,9 @@ search_ctx_parse_as_album(gchar *buffer)
 	if (!p2)
 		return NULL;
 	p2[0] = '\0';
+	
+	if (g_str_has_suffix(p, "default_album_mega.png"))
+		return NULL;
 
 	return g_strdup(p);
 }
