@@ -29,7 +29,7 @@ typedef struct _LastFMSubmit LastFMSubmit;
 gboolean
 lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error);
 gboolean
-lastfm_submit_exit(GelApp *app, EinaPlugin *plugin, GError **error);
+lastfm_submit_fini(GelApp *app, EinaPlugin *plugin, GError **error);
 
 G_END_DECLS
 

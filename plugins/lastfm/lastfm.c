@@ -24,6 +24,7 @@
 
 struct _LastFM {
 	LastFMArtwork *artwork;
+	LastFMSubmit  *submit;
 };
 
 // --
@@ -35,7 +36,22 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	LastFM *self = g_new0(LastFM, 1);
 	plugin->data = self;
 
-	return lastfm_artwork_init(app, plugin, error);
+	if (!lastfm_artwork_init(app, plugin, error))
+		goto lastfm_init_fail;
+
+	if (!lastfm_submit_init(app, plugin, error))
+		goto lastfm_init_fail;
+
+	return TRUE;
+
+lastfm_init_fail:
+	if (self->artwork)
+		lastfm_artwork_fini(app, plugin, NULL);
+	if (self->submit)
+		lastfm_submit_fini(app, plugin, NULL);
+	g_free(self);
+	return FALSE;
+	
 #if 0
 	plugin->data = g_new0(LastFM, 1);
 
@@ -119,7 +135,7 @@ G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
 	EINA_PLUGIN_SERIAL, "lastfm", PACKAGE_VERSION,
 	N_("Lastfm integration"),
 	N_("Lastfm integration:\n"
-	"· Submit played streams to last.fm"),
+	"· Query Last.fm for covers"),
 	"lastfm.png", EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 	lastfm_init, lastfm_fini,
 
