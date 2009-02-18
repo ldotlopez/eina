@@ -18,6 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::Art"
+#define XDG_CACHE 0
 #include "eina/art.h"
 #include <eina/eina-plugin.h>
 #include <config.h>
@@ -65,6 +66,11 @@ art_search_new(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpoi
 static void
 art_search_destroy(ArtSearch *search);
 
+#if XDG_CACHE
+void
+art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data);
+#endif
+
 // -------------------------
 // -------------------------
 // Art object implementation
@@ -77,6 +83,9 @@ art_new(void)
 	Art *art = g_new0(Art, 1);
 	art->searches = art->backends = NULL;
 
+#if XDG_CACHE
+	art_add_backend(art, "xdg-cache", art_backend_xdg_cache, NULL, NULL);
+#endif
 	return art;
 }
 
@@ -442,3 +451,150 @@ G_MODULE_EXPORT EinaPlugin art_plugin = {
 	NULL, NULL
 };
 
+#if XDG_CACHE
+// --
+// Pseudo backend
+// --
+static char*
+strip_characters (const char *original)
+{
+	const char *foo = "()[]<>{}_!@#$^&*+=|\\/\"'?~";
+	int osize = strlen (original);
+	char *retval = (char *) malloc (sizeof (char *) * osize);
+	int i = 0, y = 0;
+
+	while (i < osize) {
+
+		/* Remove (anything) */
+
+		if (original[i] == '(') {
+			char *loc = strchr (original+i, ')');
+			if (loc) {
+				i = loc - original + 1;
+				continue;
+			}
+		}
+
+		/* Remove [anything] */
+
+		if (original[i] == '[') {
+			char *loc = strchr (original+i, ']');
+			if (loc) {
+				i = loc - original + 1;
+				continue;
+			}
+		}
+
+		/* Remove {anything} */
+
+		if (original[i] == '{') {
+			char *loc = strchr (original+i, '}');
+			if (loc) {
+				i = loc - original + 1;
+				continue;
+			}
+		}
+
+		/* Remove <anything> */
+
+		if (original[i] == '<') {
+			char *loc = strchr (original+i, '>');
+			if (loc) {
+				i = loc - original + 1;
+				continue;
+			}
+		}
+
+		/* Remove double whitespaces */
+
+		if ((y > 0) &&
+		    (original[i] == ' ' || original[i] == '\t') &&
+		    (retval[y-1] == ' ' || retval[y-1] == '\t')) {
+			i++;
+			continue;
+		}
+
+		/* Remove strange characters */
+
+		if (!strchr (foo, original[i])) {
+			retval[y] = original[i]!='\t'?original[i]:' ';
+			y++;
+		}
+
+		i++;
+	}
+
+	retval[y] = 0;
+
+	return retval;
+}
+
+static gchar*
+remove_unicode(gchar *input)
+{
+	g_return_val_if_fail(input != NULL, NULL);
+	g_return_val_if_fail(g_utf8_validate(input, -1, NULL), NULL);
+
+	// Lower case input
+	gchar *lc = g_utf8_strdown(input);
+	g_return_val_if_fail(lc, NULL);
+
+	// Strip wide-characters
+	gint i = 0;
+	gchar *light = g_new0(gchar, g_utf8_strlen(lc, -1));
+	gchar *p = lc;
+	do
+		if (g_ascii_isalnum(p[0]))
+			light[i++] = p[0];
+	} while (((p = g_utf8_find_next_char(p)) != NULL) && (p[0] != '\0'));
+	g_free(lc);
+
+	if (light[0] == '\0')
+	{
+		g_free(ret);
+		return NULL;
+	}
+
+	// Strip trash 
+	gchar *stripped = strip_characters(ret);
+	g_free(ret);
+
+	return stripped;
+}
+
+void
+art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data)
+{
+	LomoStream *stream = art_search_get_stream(search);
+	const gchar *a = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	const gchar *b = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+
+	if (!a || !b)
+	{
+		gel_warn("Needed artist(%p) and album(%p) tags", a, b);
+		art_report_failure(art, search);
+		return;
+	}
+
+	gboolean a_utf8 = g_utf8_validate(a, -1, NULL);
+	gboolean b_utf8 = g_utf8_validate(b, -1, NULL);
+	if (!a_utf8 || !b_utf8)
+	{
+		gel_warn("Invalid artist or album tags (A_UTF8:%d, B_UTF8:%d)", a_utf8, b_utf8);
+		art_report_failure(art, search);
+		return;
+	}
+
+	// Lower case tags
+	gchar *a_lc = g_utf8_strdown(a);
+	gchar *b_lc = g_utf8_strdown(b);
+
+	// Strip unicodes
+	gchar *p = (gchar *) a;
+	do
+	{
+		gel_warn("=> %c (0x%d)", p[0], p[0]);
+	} while (( p = g_utf8_find_next_char(p, NULL)) != NULL && p[0] != '\0');
+	art_report_failure(art, search);
+}
+#endif
