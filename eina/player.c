@@ -44,6 +44,7 @@ struct _EinaPlayer {
 
 	GtkWindow  *main_window;
 	GtkImage *cover;
+	gboolean  got_cover;
 	ArtSearch *art_search;
 	EinaSeek   *seek;
 	EinaVolume *volume;
@@ -173,6 +174,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if (gel_app_load_plugin_by_name(app, "art", NULL))
 	{
 		self->cover = (GtkImage *) gtk_image_new();
+		self->got_cover = FALSE;
 		gtk_widget_set_size_request(GTK_WIDGET(self->cover),
 			eina_obj_get_widget(self, "cover-image-container")->allocation.height,
 			eina_obj_get_widget(self, "cover-image-container")->allocation.height);
@@ -402,6 +404,7 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 {
 	if (pixbuf == NULL)
 	{
+		self->got_cover = FALSE;
 		gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
 		pixbuf = gdk_pixbuf_new_from_file_at_scale(path,
 			GTK_WIDGET(self->cover)->allocation.width,
@@ -412,6 +415,7 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 	}
 	else
 	{
+		self->got_cover = TRUE;
 		GdkPixbuf *old_pb = pixbuf;
 		pixbuf = gdk_pixbuf_scale_simple(old_pb, 
 			GTK_WIDGET(self->cover)->allocation.width,
@@ -719,7 +723,11 @@ static void
 lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self) 
 {
 	if (stream == lomo_player_get_stream(lomo))
+	{
 		set_info(self, stream);
+		if (!self->got_cover)
+		 	update_cover_query(self, stream);
+	}
 }
 
 // stream_info_parser_cb: Helps to format stream info for display
