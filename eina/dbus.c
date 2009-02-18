@@ -88,7 +88,24 @@ dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		"org.gnome.SettingsDaemon.MediaKeys",
 		error);
 	if (proxy == NULL)
-		return FALSE;
+	{
+		GError *e = *error;
+		if (e != NULL && (e->domain == DBUS_GERROR) && (e->code == DBUS_GERROR_UNKNOWN_METHOD))
+		{
+			g_clear_error(error);
+			g_object_unref(proxy);
+
+			proxy = dbus_g_proxy_new_for_name_owner(connection,
+				"org.gnome.SettingsDaemon",
+				"/org/gnome/SettingsDaemon",
+				"org.gnome.SettingsDaemon",
+				error);
+			if (proxy == NULL)
+				return FALSE;
+		}
+		else
+			return FALSE;
+	}
 
 	dbus_g_proxy_call(proxy, "GrabMediaPlayerKeys", error,
 		G_TYPE_STRING, PACKAGE_NAME,
@@ -96,29 +113,8 @@ dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		G_TYPE_INVALID,
 		G_TYPE_INVALID);
 
-	GError *e = *error;
-	if (e != NULL && (e->domain == DBUS_GERROR) && (e->code == DBUS_GERROR_UNKNOWN_METHOD))
-	{
-		g_clear_error(error);
-		g_object_unref(proxy);
-
-		proxy = dbus_g_proxy_new_for_name_owner(connection,
-			"org.gnome.SettingsDaemon",
-			"/org/gnome/SettingsDaemon",
-			"org.gnome.SettingsDaemon",
-			error);
-		if (proxy == NULL)
-			return FALSE;
-
-		dbus_g_proxy_call (proxy,
-			"GrabMediaPlayerKeys", error,
-			G_TYPE_STRING, PACKAGE_NAME,
-			G_TYPE_UINT, 0,
-			G_TYPE_INVALID,
-			G_TYPE_INVALID);
-		if (*error != NULL)
-			return FALSE;
-	}
+	if (*error != NULL)
+		return FALSE;
 
 	dbus_g_object_register_marshaller (eina_dbus_marshal_VOID__STRING_STRING,
 		G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
