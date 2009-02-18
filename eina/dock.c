@@ -30,8 +30,6 @@
 struct _EinaDock {
 	EinaObj      parent;
 
-	EinaConf    *conf;
-
 	GtkWidget   *widget;
 	GtkNotebook *dock;
 	GHashTable  *dock_items;
@@ -50,6 +48,9 @@ static gboolean
 player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
 
 static gboolean
+player_main_window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self);
+
+static gboolean
 dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaDock *self;
@@ -57,12 +58,6 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self = g_new0(EinaDock, 1);
 	if (!eina_obj_init(EINA_OBJ(self), app, "dock", EINA_OBJ_GTK_UI, error))
 		return FALSE;
-
-	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
-	{
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
 
 	if (!eina_obj_require(EINA_OBJ(self), "player", error))
 	{
@@ -74,15 +69,19 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self->widget = eina_obj_get_widget(self, "dock-expander");
 	self->dock   = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
 
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+
 	// Delete old keys
-	eina_conf_delete_key(self->conf, "/ui/size_w");
-	eina_conf_delete_key(self->conf, "/ui/size_h");
+	eina_conf_delete_key(conf, "/ui/size_w");
+	eina_conf_delete_key(conf, "/ui/size_h");
+	eina_conf_delete_key(conf, "/ui/main-window/width");
+	eina_conf_delete_key(conf, "/ui/main-window/height");
 
 	// Configure the dock route table
 	const gchar *order;
 	gchar **split;
 
-	order = eina_conf_get_str(self->conf, "/dock/order", "playlist");
+	order = eina_conf_get_str(conf, "/dock/order", "playlist");
 	gel_list_deep_free(self->dock_idx, g_free);
 	split = g_strsplit(order, ",", 0);
 	self->dock_idx = gel_strv_to_list(split, FALSE);
@@ -113,6 +112,14 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
 
+	gel_warn("Open dock: %d (%dx%d)",
+		eina_conf_get_bool(conf, "/dock/expanded", FALSE),
+		eina_conf_get_int(conf, "/dock/main-window-width", 1),
+		eina_conf_get_int(conf, "/dock/main-window-height", 1));
+	g_signal_connect(
+		eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)), "expose-event",
+		(GCallback) player_main_window_expose_event_cb, self);
+	
 	return TRUE;
 }
 
@@ -124,13 +131,12 @@ dock_exit(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 
 	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
-	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
-		
-	eina_conf_set_int(self->conf, "/ui/main-window/width",  self->w);
-	eina_conf_set_int(self->conf, "/ui/main-window/height", self->h);
+
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+	eina_conf_set_int(conf, "/dock/main-window-width",  self->w);
+	eina_conf_set_int(conf, "/dock/main-window-height", self->h);
 
 	eina_obj_fini(EINA_OBJ(self));
-
 	return TRUE;
 }
 
@@ -253,14 +259,7 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 			output = g_string_append_c(output, ',');
 	}
 
-	if (self->conf == NULL)
-	{
-		gel_error("Settings are not available, cannot save dock order");
-	}
-	else
-	{
-		eina_conf_set_str(self->conf, "/dock/order", output->str);
-	}
+	eina_conf_set_str(EINA_OBJ_GET_SETTINGS(self), "/dock/order", output->str);
 	g_string_free(output, TRUE);
 }
 
@@ -269,17 +268,20 @@ expander_activate_cb(GtkExpander *w, EinaDock *self)
 {
 	gboolean expanded = gtk_expander_get_expanded(w);
 	GtkWindow *win = eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self));
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
 
 	if (expanded)
 	{
 		g_signal_handlers_disconnect_by_func(win, player_main_window_configure_event_cb, self);
 		gtk_window_set_resizable(win, FALSE);
 		gtk_window_resize(win, 1, 1);
+		eina_conf_set_bool(conf, "/dock/expanded", FALSE);
 	}
 	else
 	{
 		g_signal_connect(win, "configure-event", (GCallback) player_main_window_configure_event_cb, self);
 		gtk_window_set_resizable(win, TRUE);
+		eina_conf_set_bool(conf, "/dock/expanded", TRUE);
 		gtk_window_resize(win, self->w, self->h);
 	}
 }
@@ -294,6 +296,30 @@ player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, Ei
 	self->w = event->width;
 
 	return FALSE; // Propagate event
+}
+
+static gboolean
+player_main_window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self)
+{
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+
+	if (eina_conf_get_bool(conf, "/dock/expanded", FALSE))
+	{
+		gtk_window_set_resizable(GTK_WINDOW(w), TRUE);
+		gtk_expander_set_expanded(GTK_EXPANDER(self->widget), TRUE);
+		gtk_window_resize(
+			eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)),
+			eina_conf_get_int(conf, "/dock/main-window-width", 1),
+			eina_conf_get_int(conf, "/dock/main-window-height", 1));
+	}
+	else
+	{
+		gtk_window_set_resizable(GTK_WINDOW(w), FALSE);
+		gtk_expander_set_expanded(GTK_EXPANDER(self->widget), FALSE);
+	}
+
+	g_signal_handlers_disconnect_by_func(w, player_main_window_configure_event_cb, self);
+	return FALSE;
 }
 
 G_MODULE_EXPORT GelPlugin dock_plugin = {
