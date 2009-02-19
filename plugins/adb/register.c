@@ -44,46 +44,32 @@ adb_register_setup_0(Adb *self, gpointer data, GError **error)
 {
 	gchar *q[] = {
 		"DROP TABLE IF EXISTS streams;",
-
-		"CREATE TABLE IF NOT EXISTS streams ("
+		"CREATE TABLE streams ("
 		"	sid INTEGER PRIMARY KEY AUTOINCREMENT,"
 		"	uri VARCHAR(1024) UNIQUE NOT NULL,"
 		"	timestamp TIMESTAMP NOT NULL,"
-		"	played INTEGER DEFAULT 0,"
-		"	last_play TIMESTAMP);",
+		"	played TIMESTAMP DEFAULT 0,"
+		"	count INTEGER DEFAULT 0"
+		");",
+		"CREATE INDEX streams_sid_idx ON streams(sid);",
 
-		"DROP TABLE IF EXISTS playlist_history;",
-
-		"CREATE TABLE IF NOT EXISTS playlist_history("
-		"	timestamp TIMESTAMP NOT NULL,"
-		"	uri VARCHAR(1024) NOT NULL);",
-
-		NULL
-	};
-	return adb_exec_queryes(self, q, NULL, error);
-}
-
-gboolean // Not released, may be change
-adb_register_setup_1(Adb *self, gpointer data, GError **error)
-{
-	gchar *q[] = {
 		"DROP TABLE IF EXISTS metadata;",
-
 		"CREATE TABLE metadata ("
-		"	sid INTEGER,"
-		"	key VARCHAR(64),"
-		"	value VARCHAR(64),"
-		"	PRIMARY KEY (sid,key),"
-		"	FOREIGN KEY(sid) REFERENCES streams(sid));",
-		
+		"	sid INTEGER NOT NULL,"
+		"	key VARCHAR(128),"
+		"	value VARCHAR(128),"
+		"	CONSTRAINT metadata_pk PRIMARY KEY(sid,key),"
+		"	CONSTRAINT metadata_sid_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
+		");",
 		"CREATE INDEX metadata_key_idx ON metadata(key);",
 
 		"DROP TABLE IF EXISTS playlist_history;",
-		"CREATE TABLE IF NOT EXISTS playlist_history("
+		"CREATE TABLE playlist_history("
 		"	timestamp TIMESTAMP NOT NULL,"
 		"	sid INTEGER,"
-		"	FOREIGN KEY(sid) REFERENCES streams(sid));",
-		"CREATE INDEX playlist_history_timestamp_idx ON playlist_history(timestamp);",
+		"	CONSTRAINT playlist_history_pk PRIMARY KEY(timestamp,sid),"
+		"	CONSTRAINT playlist_history_sid_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
+		");",
 
 		NULL
 	};
@@ -93,10 +79,8 @@ adb_register_setup_1(Adb *self, gpointer data, GError **error)
 void
 adb_register_enable(Adb *self)
 {
-
 	gpointer callbacks[] = {
 		adb_register_setup_0,
-		adb_register_setup_1,
 		NULL
 		};
 
@@ -209,18 +193,16 @@ lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 	gchar *uri = (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 	gchar *q[2];
 	q[0] = sqlite3_mprintf(
-		"INSERT OR REPLACE INTO streams (sid,uri,timestamp) VALUES("
-			"(SELECT sid FROM streams WHERE uri='%q'),"
+		"INSERT OR IGNORE INTO streams (uri,timestamp) VALUES("
 			"'%q',"
-			"DATETIME('NOW'));",
-			uri,
+			"DATETIME('NOW', 'UTC'));",
 			uri);
 	q[1] = NULL;
 
 	GError *error = NULL;
 	if (!adb_exec_queryes((Adb*) data, q, NULL, &error))
 	{
-		gel_error(error->message);
+		gel_error("%s", error->message);
 		g_error_free(error);
 	}
 	sqlite3_free(q[0]);

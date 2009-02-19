@@ -41,11 +41,16 @@ adb_quark(void)
 Adb*
 adb_new(GelApp *app, GError **error)
 {
-	Adb *self;
-	gchar   *db_path;
-	sqlite3 *db = NULL;
+	const gchar *conf_dir = g_get_user_config_dir();
+	if (!conf_dir)
+		conf_dir = ".cache";
 
-	db_path = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "adb.db", NULL);
+	gchar *db_path = g_build_filename(conf_dir, PACKAGE_NAME, "adb.db", NULL);
+	gchar *db_dirname = g_path_get_dirname(db_path);
+	g_mkdir_with_parents(db_dirname, 0755);
+	g_free(db_dirname);
+
+	sqlite3 *db = NULL;
 	if (sqlite3_open(db_path, &db) != SQLITE_OK)
 	{
 		gel_error("Cannot open db: %s", sqlite3_errmsg(db));
@@ -55,7 +60,7 @@ adb_new(GelApp *app, GError **error)
 	g_free(db_path);
 	sqlite3_extended_result_codes(db, 1);
 
-	self = g_new0(Adb, 1);
+	Adb *self = g_new0(Adb, 1);
 	self->db  = db;
 	self->app = app;
 
@@ -87,16 +92,18 @@ gboolean
 adb_setup_0(Adb *self, gpointer data, GError **error)
 {
 	gchar *q[] = {
-		"DROP TABLE IF EXISTS schema_versions;",
-		"CREATE TABLE IF NOT EXISTS schema_versions ("
-		"schema VARCHAR(32) PRIMARY KEY,"
-		"version INTERGER"
+		// Control schemas versions
+		"DROP TABLE IF EXISTS schema_versions;"
+		"CREATE TABLE schema_versions ("
+		"	schema VARCHAR(32) PRIMARY KEY,"
+		"	version INTERGER"
 		");",
 
-		"DROP TABLE IF EXISTS variables;",
-		"CREATE TABLE IF NOT EXISTS variables ("
-		"key VARCHAR(256) PRIMARY KEY,"
-		"value VARCHAR(1024)"
+		// Variables table
+		"DROP TABLE IF EXISTS variables;"
+		"CREATE TABLE variables ("
+		"	key VARCHAR(256) PRIMARY KEY,"
+		"	value VARCHAR(1024)"
 		");",
 
 		NULL
