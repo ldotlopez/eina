@@ -77,6 +77,6 @@ coverplus_banshee_art_search_cb(Art *art, ArtSearch *search, gpointer data)
 	for (i = 0; paths[i] != NULL; i++)
 		g_free(paths[i]);
 
-	if (!found);
+	if (!found)
 		art_report_failure(art, search);
 }
