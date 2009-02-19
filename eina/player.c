@@ -439,6 +439,12 @@ static void
 update_cover_query(EinaPlayer *self, LomoStream *stream)
 {
 	Art *art = EINA_OBJ_GET_ART(self);
+	if (stream == NULL)
+	{
+		update_cover(self, NULL);
+		return;
+	}
+
 	if (!art)
 	{
 		update_cover(self, NULL);
