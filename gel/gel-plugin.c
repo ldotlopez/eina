@@ -244,7 +244,7 @@ gel_plugin_init(GelPlugin *self, GError **error)
 	}
 
 	gboolean initialized = self->priv->enabled = self->init(self->priv->app, self, error);
-	if (!initialized && (*error == NULL))
+	if (!initialized && ((error == NULL) || (*error == NULL)))
 	{
 		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
 		 	N_("No reason"));
