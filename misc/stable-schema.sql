@@ -48,3 +48,14 @@ CREATE TABLE playlist_history(
 	CONSTRAINT playlist_history_sid_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+
+-- 
+-- Recently plugin
+--
+CREATE TABLE playlist_aliases (
+	timestamp TIMESTAMP PRIMARY KEY,
+	alias VARCHAR(128),
+	CONSTRAINT playlist_aliases_timestamp_fk FOREIGN KEY(timestamp) REFERENCES playlist_history(timestamp) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+CREATE INDEX playlist_aliases_timestamp_idx ON playlist_aliases(timestamp);
+
