@@ -37,6 +37,7 @@ typedef struct {
 
 enum {
 	RECENTLY_COLUMN_TIMESTAMP,
+	RECENTLY_COLUMN_ICON,
 	RECENTLY_COLUMN_TITLE,
 	RECENTLY_COLUMNS
 };
@@ -73,6 +74,12 @@ dock_renderer_edited_cb(GtkWidget *w,
 	gchar *path,
 	gchar *new_text,
 	Recently *self);
+
+// --
+// Callbacks
+// --
+void
+lomo_clear_cb(LomoPlayer *lomo, Recently *self);
 
 // --
 // ADB
@@ -182,27 +189,31 @@ static GtkWidget *
 dock_create(Recently *self)
 {
 	GtkScrolledWindow *sw;
-	GtkTreeViewColumn *col, *col2;
+	GtkTreeViewColumn *col, *col2, *col3;
 	GtkCellRenderer   *render;
 
 	self->tv = GTK_TREE_VIEW(gtk_tree_view_new());
 	render = gtk_cell_renderer_text_new();
 	col = gtk_tree_view_column_new_with_attributes("Timestamp",
 		render, "text", RECENTLY_COLUMN_TIMESTAMP, NULL);
-	col2 = gtk_tree_view_column_new_with_attributes("Description",
+	col2 = gtk_tree_view_column_new_with_attributes("Icon",
+		gtk_cell_renderer_pixbuf_new(), "stock-id", RECENTLY_COLUMN_ICON, NULL);
+	col3 = gtk_tree_view_column_new_with_attributes("Description",
 		render, "markup", RECENTLY_COLUMN_TITLE, NULL);
 
 	gtk_tree_view_append_column(self->tv, col);
 	gtk_tree_view_append_column(self->tv, col2);
+	gtk_tree_view_append_column(self->tv, col3);
 
 	self->model = gtk_list_store_new(RECENTLY_COLUMNS,
+		G_TYPE_STRING,
 		G_TYPE_STRING,
 		G_TYPE_STRING);
 
 	g_object_set(G_OBJECT(render),
 		"ellipsize-set", TRUE,
 		"ellipsize", PANGO_ELLIPSIZE_END,
-		// "editable", TRUE,
+		"editable", TRUE,
 		NULL);
 	g_object_set(G_OBJECT(col),
 		"visible",   FALSE,
@@ -222,10 +233,10 @@ dock_create(Recently *self)
 
 	g_signal_connect(self->tv, "row-activated",
 		G_CALLBACK(dock_row_activated_cb), self); 
-	/*
+	
 	g_signal_connect(render, "edited",
 		G_CALLBACK(dock_renderer_edited_cb), self);
-	*/
+
 	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
@@ -284,6 +295,7 @@ dock_update(Recently *self)
 
 		gtk_list_store_set((GtkListStore *) self->model, &iter,
 			RECENTLY_COLUMN_TIMESTAMP, ts,
+			RECENTLY_COLUMN_ICON, GTK_STOCK_MEDIA_PLAY,
 			RECENTLY_COLUMN_TITLE, markup,
 			-1);
 		g_free(markup);
@@ -421,6 +433,12 @@ dock_renderer_edited_cb(GtkWidget *w,
 	g_free(alias);
 }
 
+void
+lomo_clear_cb(LomoPlayer *lomo, Recently *self)
+{
+	dock_update(self);
+}
+
 // --
 // ADB
 // --
@@ -469,16 +487,18 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (!adb_schema_upgrade(adb, "recently", upgrades, NULL, error))
 		return FALSE;
 
+	// Create dock
 	Recently *self = g_new0(Recently, 1);
 	self->app    = app;
 	self->plugin = plugin;
 	self->dock   = dock_create(self);
-
 	gtk_widget_show_all(self->dock);
-
 	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), self->dock);
-	plugin->data = self;
 
+	// Signals
+	g_signal_connect(GEL_APP_GET_LOMO(app), "clear", (GCallback) lomo_clear_cb, self);
+
+	plugin->data = self;
 	return TRUE;
 }
 
