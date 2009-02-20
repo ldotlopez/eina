@@ -35,6 +35,7 @@ typedef struct {
 	GList          *plugins;
 	GList          *all_plugins;
 	GelPlugin      *active_plugin;
+	gint           *counters;
 	GtkActionEntry *ui_actions;
 	GtkActionGroup *ui_mng_ag;
 	guint           ui_mng_merge_id;
@@ -254,6 +255,7 @@ plugins_free_plugins(EinaPlugins *self)
 	}
 	gel_free_and_invalidate(self->plugins, NULL, g_list_free);
 	gel_free_and_invalidate(self->all_plugins, NULL, g_list_free);
+	g_free(self->counters);
 
 	dump = g_list_reverse(dump);
 	GString *dump_str = g_string_new(NULL);
@@ -331,6 +333,17 @@ plugins_treeview_fill(EinaPlugins *self)
 		l = l->next;
 	}
 	self->plugins = g_list_reverse(self->plugins);
+
+	// Save usage of plugins
+	self->counters = g_new0(gboolean, g_list_length(self->plugins));
+	guint i = 0;
+	l = self->plugins;
+	while (l)
+	{
+		self->counters[i] = gel_plugin_get_usage(GEL_PLUGIN(l->data));
+		i++;
+		l = l->next;
+	}
 }
 
 static void
@@ -430,7 +443,6 @@ plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self)
 
 	indices = gtk_tree_path_get_indices(path);
 	plugin = (GelPlugin *) g_list_nth_data(self->plugins, indices[0]);
-	gel_warn("Selected plugin is: %s at state %d, usage %d", plugin->name, gel_plugin_is_enabled(plugin), gel_plugin_get_usage(plugin));
 	if (self->active_plugin == plugin)
 		return;
 
@@ -462,9 +474,53 @@ plugins_cell_renderer_toggle_toggled_cb
 	}
 	gtk_tree_path_free(_path);
 
-	gboolean success;
-	gel_warn("Selected plugin is: %s at state %d, usage %d", plugin->name, gel_plugin_is_enabled(plugin), gel_plugin_get_usage(plugin));
+	gboolean success = FALSE;
+	if (gel_plugin_is_enabled(plugin))
+	{
+		// Info
+		guint counter = self->counters[indices[0]];
+		guint usage   = gel_plugin_get_usage(plugin);
+		gel_warn("[%d,%s] Counter: %d, usage: %d",
+			indices[0], GEL_PLUGIN(g_list_nth_data(self->plugins, indices[0]))->name,
+			counter, usage);
 
+		// enabled from home
+		gboolean can_do = FALSE;
+		if ((usage == 2) && (counter == usage))
+			can_do = TRUE;
+		// enabled by me in my timelife
+		if ((usage == 2) && (counter == 1))
+			can_do = TRUE;
+		// Plugins that required this were unloaded
+		if (usage < counter)
+			can_do = TRUE;
+
+		if (can_do && (success = gel_plugin_fini(plugin, &error)))
+			gel_warn("Unload done");
+		else
+			gel_warn("Cannot unload, its allowed: %d, fini successful: %d", can_do, success);
+		if (success)
+			gel_plugin_unref(plugin);
+		/*
+		// Can be unloaded?
+		guint usage = gel_plugin_get_usage(plugin);
+
+		if ((self->counters[indices[0]] == usage) || (self->counters[indices[0]] + 1 == usage))
+		{
+			success = gel_plugin_fini(plugin, &error);
+			gel_warn("Unloading plugin: %d", success);
+		}
+		else
+			gel_warn("Plugin is required by someone");
+		*/
+	}
+	else
+	{
+		if ((success = gel_plugin_init(plugin, &error)) == TRUE)
+			gel_plugin_ref(plugin);
+		gel_warn("Loading plugin: %d", success);
+	}
+/*
 	if (gel_plugin_is_enabled(plugin))
 	{
 		if (gel_plugin_get_usage(plugin) > 1)
@@ -486,6 +542,7 @@ plugins_cell_renderer_toggle_toggled_cb
 		gel_warn("Got error: %s", error->message);
 		g_error_free(error);
 	}
+*/
 }
 
 static void
