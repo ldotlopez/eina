@@ -96,7 +96,7 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gint i;
 	for (i = 0; i < gtk_notebook_get_n_pages(self->dock); i++)
 		gtk_notebook_remove_page(self->dock, i);
-	self->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	self->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	gtk_notebook_set_show_tabs(self->dock, FALSE);
 
 	// Transfer widget to player
@@ -151,13 +151,13 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 		return FALSE;
 	}
 
-	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
 	if (gtk_notebook_append_page(self->dock, dock_widget, label) == -1)
 	{
 		g_hash_table_remove(self->dock_items, id);
 		gel_error("Cannot add widget to dock");
 		return FALSE;
 	}
+	g_hash_table_insert(self->dock_items, g_strdup(id), (gpointer) dock_widget);
 
 	gel_info("Added dock '%s'", id);
 	gtk_notebook_set_tab_reorderable(self->dock, dock_widget, TRUE);
