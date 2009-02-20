@@ -57,22 +57,6 @@ static gchar *
 summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
 
 // --
-// plugin init/fini connect/disconnect lomo
-// --
-#if 0
-void
-connect_lomo(Recently *self);
-void
-disconnect_lomo(Recently *self);
-void
-app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Recently *self);
-void
-app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Recently *self);
-void
-lomo_clear_cb(LomoPlayer *lomo, Recently *self);
-#endif
-
-// --
 // Dock related
 // --
 static GtkWidget *
@@ -191,45 +175,6 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many)
 	return ret;
 }
 
-#if 0
-void
-connect_lomo(Recently *self)
-{
-	LomoPlayer *lomo = LOMO_PLAYER(gel_app_shared_get(self->app, "lomo"));
-	if ((lomo == NULL) || !LOMO_IS_PLAYER(lomo))
-		return;
-	g_signal_connect(lomo, "clear", (GCallback) lomo_clear_cb, self);
-}
-
-void
-disconnect_lomo(Recently *self)
-{
-	LomoPlayer *lomo = LOMO_PLAYER(gel_app_shared_get(self->app, "lomo"));
-	if ((lomo == NULL) || !LOMO_IS_PLAYER(lomo))
-		return;
-	g_signal_handlers_disconnect_by_func(lomo, lomo_clear_cb, self);
-}
-void
-app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Recently *self)
-{
-	if (g_str_equal(plugin->name, "lomo"))
-		connect_lomo(self);
-}
-
-void
-app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Recently *self)
-{
-	if (g_str_equal(plugin->name, "lomo"))
-		disconnect_lomo(self);
-}
-
-void
-lomo_clear_cb(LomoPlayer *lomo, Recently *self)
-{
-	dock_update(self);
-}
-#endif
-
 // --
 // Dock related
 // --
@@ -257,7 +202,7 @@ dock_create(Recently *self)
 	g_object_set(G_OBJECT(render),
 		"ellipsize-set", TRUE,
 		"ellipsize", PANGO_ELLIPSIZE_END,
-		"editable", TRUE,
+		// "editable", TRUE,
 		NULL);
 	g_object_set(G_OBJECT(col),
 		"visible",   FALSE,
@@ -276,9 +221,11 @@ dock_create(Recently *self)
     gtk_tree_view_set_model(self->tv, GTK_TREE_MODEL(self->model));
 
 	g_signal_connect(self->tv, "row-activated",
-		G_CALLBACK(dock_row_activated_cb), self);
+		G_CALLBACK(dock_row_activated_cb), self); 
+	/*
 	g_signal_connect(render, "edited",
 		G_CALLBACK(dock_renderer_edited_cb), self);
+	*/
 	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
