@@ -26,7 +26,7 @@
 #include "meta.h"
 #include "lomo-marshal.h"
 #include "util.h"
-#include "player-default-vtable.h"
+// #include "player-default-vtable.h"
 
 #ifdef LOMO_DEBUG
 #define TRACE g_printf("[LomoPlayer Trace] %s %d\n", __FUNCTION__, __LINE__);
@@ -57,7 +57,7 @@ enum {
 };
 
 struct _LomoPlayerPrivate {
-	LomoPlayerVTable  vtable;
+	// LomoPlayerVTable  vtable;
 	GHashTable       *options;
 
 	LomoStream *stream;
@@ -301,6 +301,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 
 static void lomo_player_init (LomoPlayer *self)
 { TRACE
+	/*
 	LomoPlayerVTable vtable = {
 		default_create,
 		default_destroy,
@@ -321,9 +322,10 @@ static void lomo_player_init (LomoPlayer *self)
 		NULL,
 		NULL
 	};
+	*/
 
 	self->priv = GET_PRIVATE(self);
-	self->priv->vtable = vtable;
+	// self->priv->vtable = vtable;
 	self->priv->options = g_hash_table_new(g_str_hash, g_str_equal);
 
 	self->priv->volume = 50;
@@ -386,7 +388,6 @@ lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 		return TRUE;
 }
 
-// LomoOperations vtable
 gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 { TRACE
 	GstElement *audio_sink;
