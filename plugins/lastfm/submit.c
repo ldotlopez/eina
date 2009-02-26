@@ -21,33 +21,67 @@
 #include <lomo/util.h> // lomo_nanosecs_to_secs et al
 
 struct _LastFMSubmit {
-	gint64 secs_required;
-	gint64 secs_played;
-	gint64 check_point;
-	/*
-	gchar *daemon_path;
-	gchar *client_path;
-	*/
+	gint64      length;
+	gint64      played;
+	gint64      check_point;
 };
 
 static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlugin *self);
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, LastFMSubmit *self);
 static void
-lomo_state_change_cb(LomoPlayer *lomo, EinaPlugin *self);
+lomo_state_change_cb(LomoPlayer *lomo, LastFMSubmit *self);
 static void
-lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self);
+lomo_eos_cb(LomoPlayer *lomo, LastFMSubmit *self);
+static void
+lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to, LastFMSubmit *self);
+
+static void
+reset_counters(LastFMSubmit *self)
+{
+	gel_warn("Reset counters");
+	self->length = G_MAXINT64;
+	self->played = 0;
+	self->check_point = 0;
+}
+
+static void
+set_length(LastFMSubmit *self, gint64 length)
+{
+	gel_warn("Set length: %d secs", lomo_nanosecs_to_secs(length));
+	self->length = length;
+}
+
+static void
+set_checkpoint(LastFMSubmit *self, gint64 check_point, gboolean add)
+{
+	gel_warn("Set checkpoint: %d secs (%d)", lomo_nanosecs_to_secs(check_point), add);
+	if (add)
+		self->played += (check_point - self->check_point);
+	self->check_point = check_point;
+	gel_warn("Currently %d secs played", lomo_nanosecs_to_secs(self->played));
+}
+
+static gboolean
+can_submit(LastFMSubmit *self)
+{
+	return ((lomo_nanosecs_to_secs(self->length) >= 30) && ((self->length / 2) >= self->played));
+}
 
 gboolean
 lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	EINA_PLUGIN_DATA(plugin)->submit = g_new0(LastFMSubmit, 1);
-	eina_plugin_attach_events(plugin,
-		"change", lomo_change_cb,
-		"play",   lomo_state_change_cb,
-		"pause",  lomo_state_change_cb,
-		"stop",   lomo_state_change_cb,
-		"eos",    lomo_eos_cb,
-		NULL);
+	LastFMSubmit *self = g_new0(LastFMSubmit, 1);
+	reset_counters(self);
+
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	g_signal_connect(lomo, "change", (GCallback) lomo_change_cb, self);
+	g_signal_connect(lomo, "play",   (GCallback) lomo_state_change_cb, self);
+	g_signal_connect(lomo, "pause",  (GCallback) lomo_state_change_cb, self);
+	g_signal_connect(lomo, "stop",   (GCallback) lomo_state_change_cb, self);
+	g_signal_connect(lomo, "eos",    (GCallback) lomo_eos_cb, self);
+	g_signal_connect(lomo, "seek",   (GCallback) lomo_seek_cb, self);
+
+	EINA_PLUGIN_DATA(plugin)->submit = self;
 
 	return TRUE;
 }
@@ -55,92 +89,65 @@ lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 lastfm_submit_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	eina_plugin_deattach_events(plugin,
-		"change", lomo_change_cb,
-		"play",   lomo_state_change_cb,
-		"pause",  lomo_state_change_cb,
-		"stop",   lomo_state_change_cb,
-		"eos",    lomo_eos_cb,
-		NULL);
 	g_free(EINA_PLUGIN_DATA(plugin)->submit);
 	return TRUE;
 }
 
 static void
-lastfm_submit_reset_count(EinaPlugin *self)
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, LastFMSubmit *self)
 {
-	LastFM *data = EINA_PLUGIN_DATA(self);
-
-	gel_warn("Reset counters");
-	data->submit->secs_required = G_MAXINT64;
-	data->submit->secs_played   = 0;
-	data->submit->check_point = 0;
+	reset_counters(self);
 }
 
 static void
-lastfm_submit_set_checkpoint(EinaPlugin *self, gint64 checkpoint, gboolean add_to_played)
+lomo_state_change_cb(LomoPlayer *lomo, LastFMSubmit *self)
 {
-	LastFM *data = EINA_PLUGIN_DATA(self);
-
-	gel_warn("Set checkpoint at %lld, add: %s", checkpoint, add_to_played ? "Yes" : "No");
-	if (add_to_played)
-		data->submit->secs_played += (checkpoint - data->submit->check_point);
-	data->submit->check_point = checkpoint;
-	gel_warn("played: %lld", data->submit->secs_played);
-}
-
-static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlugin *self)
-{
-	lastfm_submit_reset_count(self);
-}
-
-static void
-lomo_state_change_cb(LomoPlayer *lomo, EinaPlugin *self)
-{
-	LastFM *data = EINA_PLUGIN_DATA(self);
 	LomoState state = lomo_player_get_state(lomo);
 
 	switch (state)
 	{
 	case LOMO_STATE_STOP:
-		lastfm_submit_reset_count(self);
+		// Reset counters
+		reset_counters(self);
 		break;
+
 	case LOMO_STATE_PAUSE:
-		lastfm_submit_set_checkpoint(self, lomo_nanosecs_to_secs(lomo_player_tell_time(lomo)), TRUE);
+		// Set checkpoint adding
+		set_checkpoint(self, lomo_player_tell_time(lomo), TRUE);
 		break;
+
 	case LOMO_STATE_PLAY:
-		if (data->submit->secs_required == G_MAXINT64)
-			data->submit->secs_required = lomo_nanosecs_to_secs(lomo_player_length_time(lomo)) / 2;
-		lastfm_submit_set_checkpoint(self, lomo_nanosecs_to_secs(lomo_player_tell_time(lomo)), FALSE);
+		// State change to play but we still have no lenght
+		if (self->length == G_MAXINT64)
+			set_length(self, lomo_player_length_time(lomo));
+
+		// Set checkpoint without adding
+		set_checkpoint(self, lomo_player_tell_time(lomo), FALSE);
 		break;
+
 	case LOMO_STATE_INVALID:
 		break;
 	}
 }
 
 static void
-lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
+lomo_eos_cb(LomoPlayer *lomo, LastFMSubmit *self)
 {
-	LastFM *data = EINA_PLUGIN_DATA(self);
-	
 	LomoStream *stream;
 	stream = (LomoStream *) lomo_player_get_current_stream(lomo);
-	gchar *artist, *album, *title;
-	gchar *cmdl, *tmp;
 
-	lastfm_submit_set_checkpoint(self, lomo_nanosecs_to_secs(lomo_player_tell_time(lomo)), TRUE);
+	// Got EOS, set checkpoint at end
+	set_checkpoint(self, self->length, TRUE);
 
-	if (data->submit->secs_played < data->submit->secs_required)
-	{
-		gel_warn("Not sending stream %p, insufficient seconds played (%"G_GINT64_FORMAT"/ %"G_GINT64_FORMAT")", stream,
-			data->submit->secs_played, data->submit->secs_required);
-		return;
-	}
+	gel_warn("Submitting, played %"G_GINT64_FORMAT" seconds of %"G_GINT64_FORMAT,
+		self->played, self->length);
+	if (can_submit(self))
+		gel_warn("Submit!");
 
-	artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-	album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
-	title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+	/*
+	gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	gchar *album  = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+	gchar *title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
 	if (!artist || !title)
 	{
 		gel_error("Cannot submit stream %p, unavailable tags", stream);
@@ -159,5 +166,13 @@ lomo_eos_cb(LomoPlayer *lomo, EinaPlugin *self)
 	}
 	gel_warn("EXEC %lld/%lld: '%s'", data->submit->secs_played, data->submit->secs_required, cmdl);
 	g_spawn_command_line_async(cmdl, NULL);
+	*/
 }
 
+static void
+lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to, LastFMSubmit *self)
+{
+	gel_warn((lomo_player_get_state(lomo) == LOMO_STATE_PLAY) ? "Playing" : "Paused");
+	set_checkpoint(self, from, TRUE);
+	set_checkpoint(self, to,   FALSE);
+}
