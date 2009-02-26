@@ -18,13 +18,19 @@
  */
 
 #define GEL_DOMAIN "Eina::Art"
-#define XDG_CACHE 0
 #include "eina/art.h"
 #include <eina/eina-plugin.h>
 #include <config.h>
 
+#define ENABLE_ART_XDG_CACHE 0
+#define ENABLE_ART_TIMEOUT   0
+#define ENABLE_ART_DEBUG     0
+
+#if ENABLE_ART_DEBUG
+#define art_debug(...) gel_warn(__VA_ARGS__)
+#else
 #define art_debug(...) ;
-// #define art_debug(...) gel_warn(__VA_ARGS__)
+#endif
 
 struct _Art {
 	GList *backends;
@@ -48,6 +54,7 @@ struct _ArtSearch {
 	gpointer data;
 	GList *backend_link;
 	gboolean running;
+	guint timeout_id;
 };
 
 static ArtBackend*
@@ -65,8 +72,17 @@ static ArtSearch*
 art_search_new(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data);
 static void
 art_search_destroy(ArtSearch *search);
+static void
+art_search_enable_timeout(ArtSearch *search);
+static void
+art_search_disable_timeout(ArtSearch *search);
 
-#if XDG_CACHE
+#if ENABLE_ART_TIMEOUT
+static gboolean
+art_search_timeout_cb(ArtSearch *search);
+#endif
+
+#if ENABLE_ART_XDG_CACHE
 void
 art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data);
 #endif
@@ -83,7 +99,7 @@ art_new(void)
 	Art *art = g_new0(Art, 1);
 	art->searches = art->backends = NULL;
 
-#if XDG_CACHE
+#if ENABLE_ART_XDG_CACHE
 	art_add_backend(art, "xdg-cache", art_backend_xdg_cache, NULL, NULL);
 #endif
 	return art;
@@ -201,6 +217,8 @@ art_cancel(Art *art, ArtSearch *search)
 	g_return_if_fail(search->running);
 
 	// Run backend cancel func
+	art_search_disable_timeout(search);
+
 	ArtBackend *backend = search->backend_link->data;
 	art_backend_cancel(backend, search);
 
@@ -295,6 +313,8 @@ art_report_success(Art *art, ArtSearch *search, gpointer result)
 	g_return_if_fail(search->backend_link);
 	g_return_if_fail(result);
 
+	art_search_disable_timeout(search);
+
 	// Stop, unlink, merge result
 	ArtBackend *backend = (ArtBackend *) search->backend_link->data;
 	backend->searches = g_list_remove(backend->searches, search);
@@ -315,6 +335,7 @@ art_report_failure(Art *art, ArtSearch *search)
 
 	// Stop
 	search->running = FALSE;
+	art_search_disable_timeout(search);
 
 	// Forward
 	art_forward_search(art, search);
@@ -363,7 +384,10 @@ art_backend_search(ArtBackend *backend, ArtSearch *search)
 	art_debug("Run search on backend '%s'", backend->name);
 	search->running = TRUE;
 	if (backend->search)
+	{
+		art_search_enable_timeout(search);
 		backend->search(backend->art, search, backend->data);
+	}
 }
 
 static void
@@ -400,8 +424,57 @@ art_search_destroy(ArtSearch *search)
 {
 	g_return_if_fail(!search->running);
 	g_return_if_fail(search->backend_link == NULL);
+	if (search->timeout_id)
+		art_search_disable_timeout(search);
 	g_free(search);
 }
+
+static void
+art_search_enable_timeout(ArtSearch *search)
+{
+#if ENABLE_ART_TIMEOUT
+	g_return_if_fail(search->timeout_id == 0);
+	art_debug("Enabling timeout on %p", search);
+#if GLIB_CHECK_VERSION(2,14,0)
+	search->timeout_id = g_timeout_add_seconds(10, (GSourceFunc) art_search_timeout_cb, search);
+#else
+	search->timeout_id = g_timeout_add(10 * 1000, (GSourceFunc) art_search_timeout_cb, search);
+#endif
+#endif
+}
+
+static void
+art_search_disable_timeout(ArtSearch *search)
+{
+#if ENABLE_ART_TIMEOUT
+	g_return_if_fail(search->timeout_id);
+	art_debug("Disabled timeout on %p", search);
+	g_source_remove(search->timeout_id);
+	search->timeout_id = 0;
+#endif
+}
+
+#if ENABLE_ART_TIMEOUT
+static gboolean
+art_search_timeout_cb(ArtSearch *search)
+{
+	art_debug("Timout fired!");
+	// Call cancel on backend
+	if (
+		search->backend_link &&
+		search->backend_link->data)
+	{
+		art_backend_cancel(search->backend_link->data, search);
+	}
+
+	search->timeout_id = 0;
+
+	// Move forward
+	art_forward_search(search->art, search);
+
+	return FALSE;
+}
+#endif
 
 LomoStream *
 art_search_get_stream(ArtSearch *search)
@@ -451,7 +524,7 @@ G_MODULE_EXPORT EinaPlugin art_plugin = {
 	NULL, NULL
 };
 
-#if XDG_CACHE
+#if ENABLE_ART_XDG_CACHE
 // --
 // Pseudo backend
 // --
