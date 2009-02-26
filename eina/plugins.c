@@ -20,6 +20,8 @@
 #define GEL_DOMAIN "Eina::Plugins"
 #define EINA_PLUGIN_DATA_TYPE EinaPlugins
 
+#define debug(...) gel_warn(__VA_ARGS__)
+
 #include <gmodule.h>
 #include <config.h>
 #include <eina/eina-plugin.h>
@@ -146,7 +148,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
 	if (player == NULL)
 	{
-		gel_warn("Cannot access player");
+		debug("Cannot access player");
 		return FALSE;
 	}
 
@@ -374,7 +376,6 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
 	g_free(tmp);
 
-	gel_warn("Icon feature disabled");
 	tmp = gel_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
 	if ((tmp == NULL) || !g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
 		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
@@ -480,9 +481,11 @@ plugins_cell_renderer_toggle_toggled_cb
 		// Info
 		guint counter = self->counters[indices[0]];
 		guint usage   = gel_plugin_get_usage(plugin);
+		/*
 		gel_warn("[%d,%s] Counter: %d, usage: %d",
 			indices[0], GEL_PLUGIN(g_list_nth_data(self->plugins, indices[0]))->name,
 			counter, usage);
+		*/
 
 		// enabled from home
 		gboolean can_do = FALSE;
@@ -495,54 +498,24 @@ plugins_cell_renderer_toggle_toggled_cb
 		if (usage < counter)
 			can_do = TRUE;
 
-		if (can_do && (success = gel_plugin_fini(plugin, &error)))
-			gel_warn("Unload done");
-		else
-			gel_warn("Cannot unload, its allowed: %d, fini successful: %d", can_do, success);
+		if (can_do && !(success = gel_plugin_fini(plugin, &error)))
+		{
+			gel_error("Cannot unload plugin %s: %s", plugin->name, error->message);
+			g_error_free(error);
+		}
 		if (success)
 			gel_plugin_unref(plugin);
-		/*
-		// Can be unloaded?
-		guint usage = gel_plugin_get_usage(plugin);
-
-		if ((self->counters[indices[0]] == usage) || (self->counters[indices[0]] + 1 == usage))
+	}
+	else
+	{
+		if ((success = gel_plugin_init(plugin, &error)) == TRUE)
+			gel_plugin_ref(plugin);
+		else
 		{
-			success = gel_plugin_fini(plugin, &error);
-			gel_warn("Unloading plugin: %d", success);
+			gel_error("Cannot load plugin %s: %s", plugin->name, error->message);
+			g_error_free(error);
 		}
-		else
-			gel_warn("Plugin is required by someone");
-		*/
 	}
-	else
-	{
-		if ((success = gel_plugin_init(plugin, &error)) == TRUE)
-			gel_plugin_ref(plugin);
-		gel_warn("Loading plugin: %d", success);
-	}
-/*
-	if (gel_plugin_is_enabled(plugin))
-	{
-		if (gel_plugin_get_usage(plugin) > 1)
-			gel_plugin_unref(plugin);
-
-		if (gel_plugin_get_usage(plugin) == 1)
-			success = gel_plugin_fini(plugin, &error);
-		else
-			success = TRUE;
-	}
-	else
-	{
-		if ((success = gel_plugin_init(plugin, &error)) == TRUE)
-			gel_plugin_ref(plugin);
-	}
-
-	if (!success)
-	{
-		gel_warn("Got error: %s", error->message);
-		g_error_free(error);
-	}
-*/
 }
 
 static void
