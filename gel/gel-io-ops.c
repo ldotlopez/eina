@@ -717,6 +717,8 @@ list_read_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 		self->source = G_FILE(source);
 		gel_io_op_error(self, err);
 		g_error_free(err);
+		g_object_unref(source);
+		return;
 	}
 	g_object_unref(d->cancellable);
 
