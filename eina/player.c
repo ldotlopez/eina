@@ -55,6 +55,10 @@ struct _EinaPlayer {
 	GtkImage    *play_pause_image;
 
 	gchar *stream_info_fmt;
+
+	// Preferences widgets and data
+	GtkWidget *prefs_widget;
+	GtkBox    *prefs_custom_box, *prefs_tips_box;
 };
 
 typedef enum {
@@ -62,15 +66,46 @@ typedef enum {
 	EINA_PLAYER_MODE_PAUSE
 } EinaPlayerMode;
 
+static gchar *preferences_fmt_values[][2] = {
+	{ // Title - Artist
+		"<span size=\"x-large\" weight=\"bold\">%t</span>"
+		"<span size=\"x-large\" weight=\"normal\">{%a}</span>",
+
+		"<span size=\"x-large\" weight=\"bold\">Title</span>"
+		"<span size=\"x-large\" weight=\"normal\">Artist</span>"
+	},
+
+	{ // Title - Artist (Album)
+		"<span size=\"x-large\" weight=\"bold\">%t</span>"
+		"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>",
+
+		"<span size=\"x-large\" weight=\"bold\">Title</span>"
+		"<span size=\"x-large\" weight=\"normal\">Artist (Album)</span>"
+	},
+
+	{ // Title
+		"<span size=\"x-large\" weight=\"bold\">%t</span>",
+
+		"<span size=\"x-large\" weight=\"bold\">Title</span>",
+	},
+
+	{ // Custom
+		NULL,
+		"<span size=\"x-large\" weight=\"bold\">Custom</span>"
+		"<span size=\"x-large\" weight=\"normal\">Your own format</span>"
+	},
+
+	{ NULL, NULL }
+};
+
+
 // API
 static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
-/*
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self);
-*/
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
@@ -91,6 +126,8 @@ static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
+static void
+preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self);
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -267,20 +304,18 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(eina_obj_get_lomo(self), "random", G_CALLBACK(update_sensitiviness), self);
 
 	// Preferences is attached to us (like dock) but this is less than optimal
-	/*
-	EinaPreferencesDialog *prefs = eina_obj_require(EINA_OBJ(self), "preferences", NULL);
+	EinaPreferences *prefs = eina_obj_require(EINA_OBJ(self), "preferences", NULL);
 	if (prefs == NULL)
 	{
 		gel_warn("Cannot load preferences component");
 	}
 	else
 	{
-		eina_preferences_dialog_add_tab(prefs,
+		eina_preferences_add_tab(prefs,
 			GTK_IMAGE(gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_BUTTON)),
 			GTK_LABEL(gtk_label_new(_("Player"))),
 			build_preferences_widget(self));
 	}
-	*/
 
 	setup_dnd(self);
 
@@ -469,14 +504,146 @@ update_cover_query(EinaPlayer *self, LomoStream *stream)
 		(ArtFunc) update_cover_result_cb, (ArtFunc) update_cover_result_cb,
 		self);
 }
-
 /*
+static gchar*
+parse_example_str_cb(gchar key, gpointer data)
+{
+	switch (key)
+	{
+	case 'a':
+		return g_strdup(N_("Artist"));
+	case 'b':
+		return g_strdup(N_("Album"));
+	case 't':
+		return g_strdup(N_("Title"));
+	case 'n':
+		return g_strdup(N_("#01"));
+	default:
+		return NULL;
+	}
+}
+*/
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self)
 {
-	return gtk_label_new(":)");
+	GtkWidget     *ret;
+	GtkComboBox   *combo;
+	GtkTextView   *textview;
+	GtkBox        *custom_format_box, *tips_box;
+	GtkLinkButton *link_button;
+
+	//
+	// Create preferences widget from a gtkui file
+	//
+	GError *err = NULL;
+	gchar *ui_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "player-preferences.ui");
+	GtkBuilder *ui = gtk_builder_new();
+
+	if (gtk_builder_add_from_file(ui, ui_path, &err) == 0)
+	{
+		gel_error("Cannot load player-preferences.ui: %s", err->message);
+		goto build_preferences_widget_fail;
+	}
+	g_free(ui_path);
+
+	if ((ret = GTK_WIDGET(gtk_builder_get_object(ui, "main-widget"))) == NULL)
+	{
+		gel_error("Widget main-widget is not present in player-preferences.ui");
+		goto build_preferences_widget_fail;
+	}
+
+	GtkWidget *parent = gtk_widget_get_parent(ret);
+	g_object_ref((GObject *) ret);
+	gtk_container_remove((GtkContainer*) parent, ret);
+	gtk_widget_destroy(parent);
+
+	combo             = GTK_COMBO_BOX(gtk_builder_get_object(ui, "preset-format-combo"));
+	textview          = GTK_TEXT_VIEW(gtk_builder_get_object(ui, "custom-format-text"));
+	custom_format_box = GTK_BOX(gtk_builder_get_object(ui, "custom-format-box"));
+	tips_box          = GTK_BOX(gtk_builder_get_object(ui, "tips-box"));
+	link_button       = GTK_LINK_BUTTON(gtk_builder_get_object(ui, "link-button"));
+	if (!combo || !textview || !custom_format_box || !tips_box || !link_button)
+	{
+		gel_error("Some widgets cannot be found:"
+			" preset-format-combo(%p),"
+			" custom-format-text(%p),"
+			" custom-format-box(%p),"
+			" tips-box(%p),",
+			" link-button(%p)",
+			combo, textview, custom_format_box, tips_box, link_button
+			);
+		goto build_preferences_widget_fail;
+	}
+	g_object_unref(ui);
+	self->prefs_custom_box = custom_format_box;
+	self->prefs_tips_box = tips_box;
+
+	//
+	// Build and fill tree model
+	//
+	GtkListStore *model = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+	gtk_combo_box_set_model(combo, (GtkTreeModel *) model);
+
+	GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo), renderer, TRUE);
+	gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo), renderer,
+		"markup", 1,
+		NULL);
+
+	// Insert into model and set the active one
+	gint active = -1;
+	gint i = 0;
+	GtkTreeIter iter;
+	for (i = 0; preferences_fmt_values[i][1] != NULL; i++)
+	{
+		/*
+		gchar *l1 = gel_str_parser(preferences_fmt_values[i][0], parse_example_str_cb, NULL);
+		gchar *l2 = gel_str_parser(preferences_fmt_values[i][1], parse_example_str_cb, NULL);
+		gchar *str = g_str_concat(l1, "\n", l2, NULL);
+		g_free(l1);
+		g_free(l2);
+
+		gchar *fmt = g_str_concat(
+		*/
+		gtk_list_store_append(model, &iter);
+		gtk_list_store_set(model, &iter,
+			0, preferences_fmt_values[i][0],
+			1, preferences_fmt_values[i][1],
+			-1);
+
+		if ((active == -1) &&  preferences_fmt_values[i][0] && g_str_equal(self->stream_info_fmt,  preferences_fmt_values[i][0]))
+			active = i;
+	}
+	// Not match, format is customized
+	if (active == -1)
+	{
+		active = i - 1;
+		gtk_text_buffer_set_text(gtk_text_view_get_buffer(textview), self->stream_info_fmt, -1);
+		gtk_widget_show((GtkWidget *) custom_format_box);
+		gtk_widget_show((GtkWidget *) tips_box);
+	}
+	else
+	{
+		gtk_widget_hide((GtkWidget *) custom_format_box);
+		gtk_widget_hide((GtkWidget *) tips_box);
+	}
+	gtk_combo_box_set_active(combo, active);
+
+	// Signals
+	g_signal_connect(combo, "changed", (GCallback) preferences_combo_box_changed_cb, self);
+
+
+	return ret;
+
+build_preferences_widget_fail:
+	gel_free_and_invalidate(err, NULL, g_error_free);
+	gel_free_and_invalidate(ui_path, NULL, g_free);
+	gel_free_and_invalidate(ui, NULL, g_object_unref);
+	gel_free_and_invalidate(ret, NULL, g_object_unref);
+	gel_free_and_invalidate(parent, NULL, g_object_unref);
+	return NULL;
 }
-*/
+
 static void
 update_sensitiviness(EinaPlayer *self)
 {
@@ -689,6 +856,25 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 	{
 		gel_warn("Unhandled action %s", name);
 	}
+}
+
+static void
+preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self)
+{
+	gint idx = gtk_combo_box_get_active((GtkComboBox *) w);
+	gchar *v[2] = { preferences_fmt_values[idx][0], preferences_fmt_values[idx][1] };
+
+	if (v[0] == NULL)
+	{
+		gtk_widget_show((GtkWidget *) self->prefs_custom_box);
+		gtk_widget_show((GtkWidget *) self->prefs_tips_box);
+	}
+	else
+	{
+		gtk_widget_hide((GtkWidget *) self->prefs_custom_box);
+		gtk_widget_hide((GtkWidget *) self->prefs_tips_box);
+	}
+
 }
 
 static void

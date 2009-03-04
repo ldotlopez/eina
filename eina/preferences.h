@@ -17,17 +17,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PREFERENCES2_H
-#define _PREFERENCES2_H
+#ifndef _PREFERENCES_H
+#define _PREFERENCES_H
 
 #include <gel/gel.h>
 #include <eina/eina-obj.h>
-#include <eina/eina-preferences-dialog.h>
 
 G_BEGIN_DECLS
 
-#define GEL_APP_GET_PREFERENCES(app)  ((EinaPreferencesDialog *) gel_app_shared_get(app, "preferences"))
+#define EINA_PREFERENCES(p)           ((EinaPreferences *) p)
+#define GEL_APP_GET_PREFERENCES(app)  ((EinaPreferences *) gel_app_shared_get(app, "preferences"))
 #define EINA_OBJ_GET_PREFERENCES(obj) GEL_APP_GET_PREFERENCES(eina_obj_get_app(obj))
+
+typedef struct _EinaPreferences EinaPreferences;
+
+void
+eina_preferences_add_tab(EinaPreferences *self, GtkImage *icon, GtkLabel *label, GtkWidget *tab);
+
+void
+eina_preferences_remove_tab(EinaPreferences *self, GtkWidget *widget);
 
 G_END_DECLS
 

@@ -144,7 +144,7 @@ eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id)
 // --
 // Settings management
 // --
-static EinaPreferencesDialog *
+static EinaPreferences *
 eina_plugin_get_preferences(EinaPlugin *self)
 {
 	GelApp *app;
@@ -158,24 +158,24 @@ eina_plugin_get_preferences(EinaPlugin *self)
 gboolean eina_plugin_add_configuration_widget
 (EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget)
 {
-	EinaPreferencesDialog *prefs;
+	EinaPreferences *prefs;
 
 	if ((prefs = eina_plugin_get_preferences(plugin)) == NULL)
 		return FALSE;
 
-	eina_preferences_dialog_add_tab(prefs, icon, label, widget);
+	eina_preferences_add_tab(prefs, icon, label, widget);
 	return TRUE;
 }
 
 gboolean eina_plugin_remove_configuration_widget
 (EinaPlugin *plugin,  GtkWidget *widget)
 {
-	EinaPreferencesDialog *prefs;
+	EinaPreferences *prefs;
 
 	if ((prefs = eina_plugin_get_preferences(plugin)) == NULL)
 		return FALSE;
 
-	eina_preferences_dialog_remove_tab(prefs, widget);
+	eina_preferences_remove_tab(prefs, widget);
 	return TRUE;
 }
 
