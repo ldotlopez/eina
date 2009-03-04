@@ -28,11 +28,21 @@
 static gboolean
 settings_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaConf *conf = eina_conf_new();
+	gchar *cfg_file = NULL;
+	const gchar *config_dir = g_get_user_config_dir();
+	if (config_dir == NULL)
+		cfg_file = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "settings", NULL);
+	else
+		cfg_file = g_build_filename(config_dir, PACKAGE_NAME, "settings", NULL);
 
-	gchar *out = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "settings", NULL);
-	eina_conf_set_filename(conf, out);
-	g_free(out);
+	gchar *dirname = g_path_get_dirname(cfg_file);
+	g_mkdir_with_parents(dirname, 0755);
+	g_free(dirname);
+
+	EinaConf *conf = eina_conf_new();
+	eina_conf_set_filename(conf, cfg_file);
+
+	g_free(cfg_file);
 	eina_conf_load(conf);
 
 	if (!gel_app_shared_set(gel_plugin_get_app(plugin), "settings", conf))
