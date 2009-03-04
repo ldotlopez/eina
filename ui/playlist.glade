@@ -38,6 +38,7 @@
             <child>
               <widget class="GtkHBox" id="playlist-rr-box">
                 <property name="visible">True</property>
+                <property name="spacing">5</property>
                 <child>
                   <widget class="GtkToggleButton" id="playlist-random-button">
                     <property name="visible">True</property>
@@ -82,40 +83,50 @@
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <child>
-                  <widget class="GtkButton" id="playlist-add-button">
+                  <widget class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip" translatable="yes">Add or enqueue songs to this playlist</property>
-                    <property name="response_id">0</property>
+                    <property name="spacing">5</property>
                     <child>
-                      <widget class="GtkImage" id="image3">
+                      <widget class="GtkButton" id="playlist-add-button">
                         <property name="visible">True</property>
-                        <property name="stock">gtk-add</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip" translatable="yes">Add or enqueue songs to this playlist</property>
+                        <property name="response_id">0</property>
+                        <child>
+                          <widget class="GtkImage" id="image3">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-add</property>
+                          </widget>
+                        </child>
                       </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="playlist-remove-button">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip" translatable="yes">Remove selected songs from this playlist</property>
+                        <property name="response_id">0</property>
+                        <child>
+                          <widget class="GtkImage" id="image4">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-remove</property>
+                          </widget>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkButton" id="playlist-remove-button">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip" translatable="yes">Remove selected songs from this playlist</property>
-                    <property name="response_id">0</property>
-                    <child>
-                      <widget class="GtkImage" id="image4">
-                        <property name="visible">True</property>
-                        <property name="stock">gtk-remove</property>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -126,7 +137,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="padding">5</property>
-                    <property name="position">2</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -145,7 +156,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">3</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </widget>
