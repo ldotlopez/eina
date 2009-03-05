@@ -38,7 +38,7 @@ typedef struct {
 
 enum {
 	RECENTLY_COLUMN_TIMESTAMP, // Not visible, for reference
-	RECENTLY_COLUMN_SEARCH,
+	RECENTLY_COLUMN_SEARCH,    // Not visible, for matching
 	RECENTLY_COLUMN_COVER,
 	RECENTLY_COLUMN_TITLE,
 	RECENTLY_COLUMN_PLAY,
@@ -58,18 +58,26 @@ enum {
 // --
 // Utils
 // --
+static GtkWidget *
+dock_create(Recently *self);
+static void
+dock_update(Recently *self);
+static gboolean
+dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter);
+static void
+dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf);
+
+static LomoStream*
+stream_from_timestamp(Adb *adb, gchar *timestamp);
+
 static const gchar*
 stamp_to_human(gchar *stamp);
 static gchar *
 summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
 
 // --
-// Dock related
+// Callbacks
 // --
-static GtkWidget *
-dock_create(Recently *self);
-static void
-dock_update(Recently *self);
 void
 dock_row_activated_cb(GtkWidget *w,
 	GtkTreePath *path,
@@ -80,11 +88,11 @@ dock_renderer_edited_cb(GtkWidget *w,
 	gchar *path,
 	gchar *new_text,
 	Recently *self);
-
-// --
-// Callbacks
-// --
-void
+static void
+art_search_success_cb(Art *art, ArtSearch *search, Recently *self);
+static void
+art_search_fail_cb(Art *art, ArtSearch *search, Recently *self);
+static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self);
 
 // --
@@ -99,6 +107,258 @@ GQuark recently_quark(void)
 	if (ret == 0)
 		ret = g_quark_from_static_string("recently");
 	return ret;
+}
+
+// --
+// API / Utils
+// --
+static GtkWidget *
+dock_create(Recently *self)
+{
+	GtkScrolledWindow *sw;
+
+	self->tv = GTK_TREE_VIEW(gtk_tree_view_new());
+
+	// Renders
+	GtkCellRenderer *renders[RECENTLY_N_COLUMNS];
+	renders[RECENTLY_COLUMN_TIMESTAMP] = gtk_cell_renderer_text_new();
+	renders[RECENTLY_COLUMN_COVER]     = gtk_cell_renderer_pixbuf_new();
+	renders[RECENTLY_COLUMN_TITLE]     = gtk_cell_renderer_text_new();
+	renders[RECENTLY_COLUMN_PLAY]      = gtk_cell_renderer_pixbuf_new();
+	renders[RECENTLY_COLUMN_ENQUEUE]   = gtk_cell_renderer_pixbuf_new();
+	renders[RECENTLY_COLUMN_DELETE]    = gtk_cell_renderer_pixbuf_new();
+
+	// Columns
+	GtkTreeViewColumn *columns[RECENTLY_N_COLUMNS];
+	columns[RECENTLY_COLUMN_TIMESTAMP] = gtk_tree_view_column_new_with_attributes(N_("Timestamp"),
+		renders[RECENTLY_COLUMN_TIMESTAMP],
+		"text", RECENTLY_COLUMN_TIMESTAMP,
+		NULL);
+
+	columns[RECENTLY_COLUMN_SEARCH] = NULL;
+
+	columns[RECENTLY_COLUMN_COVER] = gtk_tree_view_column_new_with_attributes(N_("Cover"),
+		renders[RECENTLY_COLUMN_COVER],
+		"pixbuf", RECENTLY_COLUMN_COVER,
+		NULL);
+
+	columns[RECENTLY_COLUMN_TITLE] = gtk_tree_view_column_new_with_attributes(N_("Title"),
+		renders[RECENTLY_COLUMN_TITLE],
+		"markup", RECENTLY_COLUMN_TITLE,
+		NULL);
+
+	columns[RECENTLY_COLUMN_PLAY] = gtk_tree_view_column_new_with_attributes(N_("Play"),
+		renders[RECENTLY_COLUMN_PLAY],
+		"stock-id", RECENTLY_COLUMN_PLAY,
+		NULL);
+	columns[RECENTLY_COLUMN_ENQUEUE] = gtk_tree_view_column_new_with_attributes(N_("Enqueue"),
+		renders[RECENTLY_COLUMN_ENQUEUE],
+		"stock-id", RECENTLY_COLUMN_ENQUEUE,
+		NULL);
+	columns[RECENTLY_COLUMN_DELETE] = gtk_tree_view_column_new_with_attributes(N_("Delete"),
+		renders[RECENTLY_COLUMN_DELETE],
+		"stock-id", RECENTLY_COLUMN_DELETE,
+		NULL);
+
+	// Add to GtkTreeView
+	guint i;
+	for (i = 0; i < RECENTLY_N_COLUMNS; i++)
+	{
+		if (!columns[i])
+			continue;
+		gtk_tree_view_append_column(self->tv, columns[i]);
+		g_object_set(G_OBJECT(columns[i]),
+			"visible", i != RECENTLY_COLUMN_TIMESTAMP,
+			"resizable", i == RECENTLY_COLUMN_TITLE,
+			"expand", i == RECENTLY_COLUMN_TITLE,
+			NULL);
+	}
+
+	// Renderers props
+	g_object_set(G_OBJECT(renders[RECENTLY_COLUMN_TITLE]),
+		"ellipsize-set", TRUE,
+		"ellipsize", PANGO_ELLIPSIZE_END,
+		"editable", TRUE,
+		NULL);
+
+	g_object_set(G_OBJECT(columns[RECENTLY_COLUMN_COVER]),
+		"min-width", 32,
+		"max-width", 32,
+		NULL);
+
+	// Treeview props
+    g_object_set(G_OBJECT(self->tv),
+		"search-column", -1,
+		"headers-clickable", FALSE,
+		"headers-visible", FALSE,
+		NULL);
+
+	self->model = gtk_list_store_new(RECENTLY_N_COLUMNS,
+		G_TYPE_STRING,
+		G_TYPE_POINTER,
+		GDK_TYPE_PIXBUF,
+		G_TYPE_STRING,
+		G_TYPE_STRING,
+		G_TYPE_STRING,
+		G_TYPE_STRING);
+    gtk_tree_view_set_model(self->tv, GTK_TREE_MODEL(self->model));
+
+	g_signal_connect(self->tv, "row-activated", G_CALLBACK(dock_row_activated_cb), self); 
+	g_signal_connect(renders[RECENTLY_COLUMN_TITLE], "edited", G_CALLBACK(dock_renderer_edited_cb), self);
+
+	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
+
+	g_idle_add((GSourceFunc) dock_update, self);
+
+	return GTK_WIDGET(sw);
+}
+
+static void
+dock_update(Recently *self)
+{
+	gtk_list_store_clear(GTK_LIST_STORE(self->model));
+
+	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
+	if (adb == NULL)
+		return;
+
+	char *q = "SELECT DISTINCT(timestamp) FROM playlist_history WHERE timestamp > 0 ORDER BY timestamp DESC;";
+	sqlite3_stmt *stmt = NULL;
+	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
+	if (code != SQLITE_OK)
+	{
+		gel_error("Cannot fetch playlist_history data: %d", code);
+		return;
+	}
+
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	{
+		gchar *ts = (gchar *) sqlite3_column_text(stmt, 0);
+		gchar *title = NULL;
+
+		// Check for alias
+		q = sqlite3_mprintf("SELECT alias FROM playlist_aliases where timestamp='%q'", ts);
+		sqlite3_stmt *stmt_alias = NULL;
+		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt_alias, NULL) == SQLITE_OK)
+		{
+			if (stmt_alias && (sqlite3_step(stmt_alias) == SQLITE_ROW))
+				title = g_strdup((gchar*) sqlite3_column_text(stmt_alias, 0));
+			sqlite3_finalize(stmt_alias);
+		}
+		sqlite3_free(q);
+
+		// If not alias, get summary
+		if (title == NULL)
+		{
+			gchar *summary = summary_playlist(adb, ts, 3);
+			title = g_markup_escape_text(summary, -1);
+			g_free(summary);
+		}
+
+		GtkTreeIter iter;
+		gtk_list_store_append((GtkListStore *) self->model, &iter);
+
+		gchar *markup = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), title);
+		g_free(title);
+
+		// Start a search for cover
+		ArtSearch *search = NULL;
+		LomoStream *fake_stream = stream_from_timestamp(adb, ts);
+		if (fake_stream)
+			search = art_search(GEL_APP_GET_ART(self->app), fake_stream, 
+				(ArtFunc) art_search_success_cb, (ArtFunc) art_search_fail_cb,
+				self);
+
+		gtk_list_store_set((GtkListStore *) self->model, &iter,
+			RECENTLY_COLUMN_TIMESTAMP, ts,
+			RECENTLY_COLUMN_SEARCH, search,
+			RECENTLY_COLUMN_PLAY, GTK_STOCK_MEDIA_PLAY,
+			RECENTLY_COLUMN_ENQUEUE, "eina-queue",
+			RECENTLY_COLUMN_DELETE, GTK_STOCK_DELETE,
+			RECENTLY_COLUMN_TITLE, markup,
+			-1);
+		g_free(markup);
+	}
+	sqlite3_finalize(stmt);
+}
+
+static gboolean
+dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter)
+{
+	GtkTreeModel *model = gtk_tree_view_get_model(self->tv);
+
+	if (!gtk_tree_model_get_iter_first(model, iter))
+	{
+		gel_error("Cannot get first iter for model");
+		return FALSE;
+	}
+	do
+	{
+		ArtSearch *test = NULL;
+		gtk_tree_model_get(model, iter,
+			RECENTLY_COLUMN_SEARCH, &test, -1);
+		if (test == search)
+			return TRUE;
+	} while (gtk_list_store_iter_is_valid((GtkListStore *) model, iter) && gtk_tree_model_iter_next(model, iter));
+
+	gel_error("Unable to find matching row for search");
+	return FALSE;
+}
+
+static void
+dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf)
+{
+	g_return_if_fail(gtk_list_store_iter_is_valid((GtkListStore *) self->model, iter));
+	g_return_if_fail(pixbuf);
+
+	gtk_list_store_set(self->model, iter,
+		RECENTLY_COLUMN_COVER, gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR),
+		-1);
+}
+
+static LomoStream*
+stream_from_timestamp(Adb *adb, gchar *timestamp)
+{
+	char *q = sqlite3_mprintf("SELECT uri,key,value FROM streams JOIN metadata USING(sid) WHERE "
+	"sid = (SELECT sid FROM playlist_history WHERE timestamp = '%q' ORDER BY random() LIMIT 1)"
+	"AND KEY IN ('album','title','artist')",
+	timestamp);
+	
+	sqlite3_stmt *stmt;
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_error("Cannot select a fake stream using query %s", q);
+		sqlite3_free(q);
+		return NULL;
+	}
+
+	gchar *uri = NULL, *title = NULL, *artist = NULL, *album = NULL;
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	{
+		if (uri == NULL)
+			uri = g_strdup((gchar *) sqlite3_column_text(stmt, 0));
+		gchar *key   = (gchar *) sqlite3_column_text(stmt, 1);
+		gchar *value = (gchar *) sqlite3_column_text(stmt, 2);
+		if (g_str_equal(key, "title"))
+			title = g_strdup(value);
+		else if (g_str_equal(key, "album"))
+			album = g_strdup(value);
+		else if (g_str_equal(key, "artist"))
+			artist = g_strdup(value);
+	}
+	sqlite3_finalize(stmt);
+
+	if (!artist && !album && !title)
+		return NULL;
+	
+	LomoStream *ret = lomo_stream_new(uri);
+	g_object_set_data_full(G_OBJECT(ret), "artist", artist, g_free);
+	g_object_set_data_full(G_OBJECT(ret), "title", title, g_free);
+	g_object_set_data_full(G_OBJECT(ret), "album", album, g_free);
+
+	return (LomoStream*) ret;
 }
 
 // Convert a string in iso8601 format to a more human form
@@ -188,258 +448,12 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many)
 	return ret;
 }
 
-static void
-cover_search_success_cb(Art *art, ArtSearch *search, Recently *self)
-{
-	GtkTreeModel *model = gtk_tree_view_get_model(self->tv);
-	GtkTreeIter iter;
 
-	if (!gtk_tree_model_get_iter_first(model, &iter))
-	{	
-		g_object_unref(art_search_get_stream(search));
-		return;
-	}
-
-	do {
-		ArtSearch *p;
-		gtk_tree_model_get(model, &iter, RECENTLY_COLUMN_SEARCH, &p, -1);
-		if (p != search)
-			continue;
-
-		gtk_list_store_set((GtkListStore *) model, &iter,
-			RECENTLY_COLUMN_COVER, gdk_pixbuf_scale_simple(art_search_get_result(search), 32, 32, GDK_INTERP_BILINEAR),
-			-1);
-	} while (gtk_tree_model_iter_next(model, &iter));
-
-	g_object_unref(art_search_get_stream(search));
-}
-
-static void
-cover_search_fail_cb(Art *art, ArtSearch *search, Recently *self)
-{
-	LomoStream *stream = art_search_get_stream(search);
-	gel_implement("Set unknow cover on failure");
-	g_object_unref(stream);
-}
 
 // --
 // Dock related
 // --
-static GtkWidget *
-dock_create(Recently *self)
-{
-	GtkScrolledWindow *sw;
 
-	self->tv = GTK_TREE_VIEW(gtk_tree_view_new());
-
-	// Renders
-	GtkCellRenderer *renders[RECENTLY_N_COLUMNS];
-	renders[RECENTLY_COLUMN_TIMESTAMP] = gtk_cell_renderer_text_new();
-	renders[RECENTLY_COLUMN_COVER]     = gtk_cell_renderer_pixbuf_new();
-	renders[RECENTLY_COLUMN_TITLE]     = gtk_cell_renderer_text_new();
-	renders[RECENTLY_COLUMN_PLAY]      = gtk_cell_renderer_pixbuf_new();
-	renders[RECENTLY_COLUMN_ENQUEUE]   = gtk_cell_renderer_pixbuf_new();
-	renders[RECENTLY_COLUMN_DELETE]    = gtk_cell_renderer_pixbuf_new();
-
-	// Columns
-	GtkTreeViewColumn *columns[RECENTLY_N_COLUMNS];
-	columns[RECENTLY_COLUMN_TIMESTAMP] = gtk_tree_view_column_new_with_attributes(N_("Timestamp"),
-		renders[RECENTLY_COLUMN_TIMESTAMP],
-		"text", RECENTLY_COLUMN_TIMESTAMP,
-		NULL);
-
-	columns[RECENTLY_COLUMN_SEARCH] = NULL;
-
-	columns[RECENTLY_COLUMN_COVER] = gtk_tree_view_column_new_with_attributes(N_("Cover"),
-		renders[RECENTLY_COLUMN_COVER],
-		"pixbuf", RECENTLY_COLUMN_COVER,
-		NULL);
-
-	columns[RECENTLY_COLUMN_TITLE] = gtk_tree_view_column_new_with_attributes(N_("Title"),
-		renders[RECENTLY_COLUMN_TITLE],
-		"markup", RECENTLY_COLUMN_TITLE,
-		NULL);
-
-	columns[RECENTLY_COLUMN_PLAY] = gtk_tree_view_column_new_with_attributes(N_("Play"),
-		renders[RECENTLY_COLUMN_PLAY],
-		"stock-id", RECENTLY_COLUMN_PLAY,
-		NULL);
-	columns[RECENTLY_COLUMN_ENQUEUE] = gtk_tree_view_column_new_with_attributes(N_("Enqueue"),
-		renders[RECENTLY_COLUMN_ENQUEUE],
-		"stock-id", RECENTLY_COLUMN_ENQUEUE,
-		NULL);
-	columns[RECENTLY_COLUMN_DELETE] = gtk_tree_view_column_new_with_attributes(N_("Delete"),
-		renders[RECENTLY_COLUMN_DELETE],
-		"stock-id", RECENTLY_COLUMN_DELETE,
-		NULL);
-
-	// Add to GtkTreeView
-	guint i;
-	for (i = 0; i < RECENTLY_N_COLUMNS; i++)
-	{
-		if (!columns[i])
-			continue;
-		gtk_tree_view_append_column(self->tv, columns[i]);
-		g_object_set(G_OBJECT(columns[i]),
-			"visible", i != RECENTLY_COLUMN_TIMESTAMP,
-			"resizable", i == RECENTLY_COLUMN_TITLE,
-			"expand", i == RECENTLY_COLUMN_TITLE,
-			NULL);
-	}
-
-	// Renderers props
-	g_object_set(G_OBJECT(renders[RECENTLY_COLUMN_TITLE]),
-		"ellipsize-set", TRUE,
-		"ellipsize", PANGO_ELLIPSIZE_END,
-		"editable", TRUE,
-		NULL);
-
-	// Treeview props
-    g_object_set(G_OBJECT(self->tv),
-		"search-column", -1,
-		"headers-clickable", FALSE,
-		"headers-visible", FALSE,
-		NULL);
-
-	self->model = gtk_list_store_new(RECENTLY_N_COLUMNS,
-		G_TYPE_STRING,
-		G_TYPE_POINTER,
-		GDK_TYPE_PIXBUF,
-		G_TYPE_STRING,
-		G_TYPE_STRING,
-		G_TYPE_STRING,
-		G_TYPE_STRING);
-    gtk_tree_view_set_model(self->tv, GTK_TREE_MODEL(self->model));
-
-	g_signal_connect(self->tv, "row-activated", G_CALLBACK(dock_row_activated_cb), self); 
-	g_signal_connect(renders[RECENTLY_COLUMN_TITLE], "edited", G_CALLBACK(dock_renderer_edited_cb), self);
-
-	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
-
-	dock_update(self);
-
-	return GTK_WIDGET(sw);
-}
-
-static LomoStream*
-create_fake_stream_from_timestamp(Adb *adb, gchar *timestamp)
-{
-// Get metadata from a random stream by stam
-// select key,value from metadata where sid = (select sid from playlist_history
-// where timestamp = '2009-02-26T09:49:36.493095Z' order by random() limit 1)
-// and key in ('album','title','artist');
-	
-// select uri,key,value from streams join metadata using (sid) where sid = (select sid from playlist_history where timestamp = '2009-02-26T09:49:36.493095Z' order by random() limit 1) and key in ('album','title','artist');
-	char *q = sqlite3_mprintf("SELECT uri,key,value FROM streams JOIN metadata USING(sid) WHERE "
-	"sid = (SELECT sid FROM playlist_history WHERE timestamp = '%q' ORDER BY random() LIMIT 1)"
-	"AND KEY IN ('album','title','artist')",
-	timestamp);
-	
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
-	{
-		gel_error("Cannot select a fake stream using query %s", q);
-		sqlite3_free(q);
-		return NULL;
-	}
-
-	gchar *uri = NULL, *title = NULL, *artist = NULL, *album = NULL;
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
-	{
-		if (uri == NULL)
-			uri = g_strdup((gchar *) sqlite3_column_text(stmt, 0));
-		gchar *key   = (gchar *) sqlite3_column_text(stmt, 1);
-		gchar *value = (gchar *) sqlite3_column_text(stmt, 2);
-		if (g_str_equal(key, "title"))
-			title = g_strdup(value);
-		else if (g_str_equal(key, "album"))
-			album = g_strdup(value);
-		else if (g_str_equal(key, "artist"))
-			artist = g_strdup(value);
-	}
-	sqlite3_finalize(stmt);
-
-	if (!artist && !album && !title)
-		return NULL;
-	
-	LomoStream *ret = lomo_stream_new(uri);
-	g_object_set_data_full(G_OBJECT(ret), "artist", artist, g_free);
-	g_object_set_data_full(G_OBJECT(ret), "title", title, g_free);
-	g_object_set_data_full(G_OBJECT(ret), "album", album, g_free);
-
-	return (LomoStream*) ret;
-}	
-
-static void
-dock_update(Recently *self)
-{
-	gtk_list_store_clear(GTK_LIST_STORE(self->model));
-
-	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
-	if (adb == NULL)
-		return;
-
-	char *q = "SELECT DISTINCT(timestamp) FROM playlist_history WHERE timestamp > 0 ORDER BY timestamp DESC;";
-	sqlite3_stmt *stmt = NULL;
-	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
-	if (code != SQLITE_OK)
-	{
-		gel_error("Cannot fetch playlist_history data: %d", code);
-		return;
-	}
-
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
-	{
-		gchar *ts = (gchar *) sqlite3_column_text(stmt, 0);
-		gchar *title = NULL;
-
-		// Check for alias
-		q = sqlite3_mprintf("SELECT alias FROM playlist_aliases where timestamp='%q'", ts);
-		sqlite3_stmt *stmt_alias = NULL;
-		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt_alias, NULL) == SQLITE_OK)
-		{
-			if (stmt_alias && (sqlite3_step(stmt_alias) == SQLITE_ROW))
-				title = g_strdup((gchar*) sqlite3_column_text(stmt_alias, 0));
-			sqlite3_finalize(stmt_alias);
-		}
-		sqlite3_free(q);
-
-		// If not alias, get summary
-		if (title == NULL)
-		{
-			gchar *summary = summary_playlist(adb, ts, 3);
-			title = g_markup_escape_text(summary, -1);
-			g_free(summary);
-		}
-
-		GtkTreeIter iter;
-		gtk_list_store_append((GtkListStore *) self->model, &iter);
-
-		gchar *markup = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), title);
-		g_free(title);
-
-		// Start a search for cover
-		ArtSearch *search = NULL;
-		LomoStream *fake_stream = create_fake_stream_from_timestamp(adb, ts);
-		if (fake_stream)
-			search = art_search(GEL_APP_GET_ART(self->app), fake_stream, 
-				(ArtFunc) cover_search_success_cb, (ArtFunc) cover_search_fail_cb,
-				self);
-
-		gtk_list_store_set((GtkListStore *) self->model, &iter,
-			RECENTLY_COLUMN_TIMESTAMP, ts,
-			RECENTLY_COLUMN_SEARCH, search,
-			RECENTLY_COLUMN_PLAY, GTK_STOCK_MEDIA_PLAY,
-			RECENTLY_COLUMN_ENQUEUE, "eina-queue",
-			RECENTLY_COLUMN_DELETE, GTK_STOCK_DELETE,
-			RECENTLY_COLUMN_TITLE, markup,
-			-1);
-		g_free(markup);
-	}
-	sqlite3_finalize(stmt);
-}
 
 void
 dock_row_activated_cb(GtkWidget *w,
@@ -571,7 +585,27 @@ dock_renderer_edited_cb(GtkWidget *w,
 	g_free(alias);
 }
 
-void
+// --
+// Callbacks
+// --
+static void
+art_search_success_cb(Art *art, ArtSearch *search, Recently *self)
+{
+	GtkTreeIter iter;
+
+	if (dock_get_iter_for_search(self, search, &iter))
+		dock_update_cover(self, &iter, art_search_get_result(search));
+	g_object_unref(art_search_get_stream(search));
+}
+
+static void
+art_search_fail_cb(Art *art, ArtSearch *search, Recently *self)
+{
+	LomoStream *stream = art_search_get_stream(search);
+	gel_implement("Set unknow cover on failure");
+	g_object_unref(stream);
+}
+static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 {
 	dock_update(self);
