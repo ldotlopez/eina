@@ -6,10 +6,10 @@ INCLUDES = \
 	-DGEL_COMPILATION \
 	@PACKAGE_CFLAGS@
 
-lib_LTLIBRARIES = libgel.la
-
-libgel_la_LDFLAGS = -export-dynamic
-libgel_la_LIBADD = @PACKAGE_LIBS@
+# Version X.Y must be specified
+lib_LTLIBRARIES = libgel-1.0.la
+libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 0:90:0 -export-dynamic 
+libgel_1_0_la_LIBADD  = @PACKAGE_LIBS@
 
 NOINST_H_FILES = \
 	gel-app-marshal.h
@@ -31,7 +31,7 @@ INST_H_FILES = \
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/gel
 header_DATA = $(INST_H_FILES)
 
-libgel_la_SOURCES = \
+libgel_1_0_la_SOURCES = \
 	gel-misc.c              \
 	gel-string.c            \
 	gel-str-parser.c        \

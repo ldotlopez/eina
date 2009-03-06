@@ -15,7 +15,7 @@ eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 #-static $(top_builddir)/gel/libgel.la \
 #-static $(top_builddir)/lomo/liblomo-1.0.la
 
-eina_LDADD = @PACKAGE_LIBS@ -lgel -llomo-1.0
+eina_LDADD = @PACKAGE_LIBS@ -lgel-1.0 -llomo-1.0 
 
 NOINST_H_FILES = \
 	dock.h                     \
