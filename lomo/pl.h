@@ -21,7 +21,7 @@
 #define __LIBLOMO_PLAYLIST_H__
 
 #include <glib.h>
-#include "stream.h"
+#include <lomo/lomo-stream.h>
 
 G_BEGIN_DECLS
 

@@ -18,7 +18,7 @@
  */
 
 #include <string.h>
-#include "stream.h"
+#include <lomo/lomo-stream.h>
 #include "util.h"
 
 G_DEFINE_TYPE (LomoStream, lomo_stream, G_TYPE_OBJECT)

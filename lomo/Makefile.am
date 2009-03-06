@@ -18,7 +18,7 @@ NO_INST_H_FILES =   \
 
 INST_H_FILES = \
 	player.h   \
-	stream.h   \
+	lomo-stream.h   \
 	util.h
 
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/lomo
@@ -31,7 +31,7 @@ liblomo_1_0_la_SOURCES = \
 	player-default-vtable.c \
 	player-priv.c      \
 	player.c           \
-	stream.c           \
+	lomo-stream.c           \
 	util.c             \
 	$(INST_H_FILES)    \
 	$(NO_INST_H_FILES)

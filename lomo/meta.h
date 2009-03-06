@@ -23,7 +23,7 @@
 #include <glib-object.h>
 #include <gst/gst.h>
 #include "player.h"
-#include "stream.h"
+#include <lomo/lomo-stream.h>
 
 G_BEGIN_DECLS
 

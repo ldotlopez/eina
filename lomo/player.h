@@ -22,7 +22,7 @@
 
 #include <glib-object.h>
 #include <gst/gst.h>
-#include <lomo/stream.h>
+#include <lomo/lomo-stream.h>
 
 G_BEGIN_DECLS
 
