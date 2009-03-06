@@ -24,9 +24,8 @@
 #include "player-priv.h"
 #include "pl.h"
 #include "meta.h"
-#include "lomo-marshal.h"
+#include "lomo-marshallers.h"
 #include "util.h"
-// #include "player-default-vtable.h"
 
 #ifdef LOMO_DEBUG
 #define TRACE g_printf("[LomoPlayer Trace] %s %d\n", __FUNCTION__, __LINE__);

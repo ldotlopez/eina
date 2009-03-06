@@ -10,7 +10,7 @@ liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0
 liblomo_1_0_la_LIBADD = @PACKAGE_LIBS@ $(INTLLIBS)
 
 NO_INST_H_FILES =   \
-	lomo-marshal.h  \
+	lomo-marshallers.h  \
 	meta.h          \
 	pl.h            \
 	player-priv.h   \
@@ -25,7 +25,7 @@ headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/lomo
 header_DATA = $(INST_H_FILES)
 
 liblomo_1_0_la_SOURCES = \
-	lomo-marshal.c     \
+	lomo-marshallers.c     \
 	meta.c             \
 	pl.c               \
 	player-default-vtable.c \
@@ -36,13 +36,13 @@ liblomo_1_0_la_SOURCES = \
 	$(INST_H_FILES)    \
 	$(NO_INST_H_FILES)
 
-BUILT_SOURCES = lomo-marshal.c lomo-marshal.h
+BUILT_SOURCES = lomo-marshallers.c lomo-marshallers.h
 CLEANFILES = $(BUILT_SOURCES)
 
-lomo-marshal.c: lomo-marshal.list
+lomo-marshallers.c: lomo-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=lomo_marshal --header --body > $@
 
-lomo-marshal.h: lomo-marshal.list
+lomo-marshallers.h: lomo-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=lomo_marshal --header > $@
 
-EXTRA_DIST = lomo-marshal.list
+EXTRA_DIST = lomo-marshallers.list
