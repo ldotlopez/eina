@@ -1,0 +1,8 @@
+lomo/
+	liblomo -- Wrapper around GStreamer 0.10 providing a GObject player
+	featuring playlist, metadata parser, volumen control, etc... with
+	signals.
+
+gel/
+	libgel -- Glib, Gtk, GIO extension library
+
