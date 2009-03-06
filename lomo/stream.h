@@ -58,6 +58,7 @@ typedef struct {
  * sed -e 's/GST_/LOMO_/g' 
  */
 typedef const gchar* LomoTag;
+
 #define LOMO_TAG_INVALID NULL
 #define LOMO_TAG_URI "uri"
 #define LOMO_TAG_TITLE                  "title"
@@ -105,10 +106,14 @@ typedef const gchar* LomoTag;
 #define LOMO_TAG_LANGUAGE_CODE          "language-code"
 #define LOMO_TAG_IMAGE                  "image"
 #define LOMO_TAG_PREVIEW_IMAGE          "preview-image"
+#define LOMO_TAG_ATTACHMENT             "attachment"
 #define LOMO_TAG_BEATS_PER_MINUTE       "beats-per-minute"
+#define LOMO_TAG_KEYWORDS               "keywords"
+#define LOMO_TAG_GEO_LOCATION_NAME               "geo-location-name"
+#define LOMO_TAG_GEO_LOCATION_LATITUDE               "geo-location-latitude"
+#define LOMO_TAG_GEO_LOCATION_LONGITUDE               "geo-location-longitude"
 
 GType lomo_stream_get_type (void);
-
 LomoStream* lomo_stream_new (gchar *uri);
 
 #ifdef LIBLOMO_COMPILATION
