@@ -1,5 +1,5 @@
 /*
- * lomo/pl.h
+ * lomo/lomo-playlist.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LIBLOMO_PLAYLIST_H__
-#define __LIBLOMO_PLAYLIST_H__
+#ifndef __LOMO_PLAYLIST_H__
+#define __LOMO_PLAYLIST_H__
 
 #include <glib.h>
 #include <lomo/lomo-stream.h>
@@ -27,19 +27,28 @@ G_BEGIN_DECLS
 
 typedef struct _LomoPlaylist LomoPlaylist;
 
-/* 
- * @lomo_playlist_new
- * @ Creates a new playlist
- *  LomoPlaylist* ret: The new LomoPlaylist pseudo-object
+/**
+ * lomo_playlist_new:
+ *
+ * Creates a new playlist
+ *
+ * Returns: a new LomoPlaylist
  */
 LomoPlaylist *lomo_playlist_new(void);
 
+/**
+ * lomo_playlist_ref:
+ * @l: a #LomoPlaylist
+ *
+ * Adds a reference to the playlist
+ */
 void lomo_playlist_ref(LomoPlaylist *l);
 
 /*
- * @lomo_playlist_unref
- * @ Frees all resources from a LomoPlaylist object
- *  LomoPlaylist* l: [self]
+ * lomo_playlist_unref:
+ * @l: a #LomoPlaylist
+ *
+ * Removes a reference to the playlist
  */
 void lomo_playlist_unref(LomoPlaylist *l);
 
@@ -266,4 +275,4 @@ void lomo_playlist_print_random(LomoPlaylist *l);
 
 G_END_DECLS
 
-#endif /* __LIBLOMO_PLAYLIST_H__ */
+#endif /* __LOMO_PLAYLIST_H__ */

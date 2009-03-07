@@ -22,7 +22,7 @@
 #include <gst/gst.h>
 #include "player.h"
 #include "player-priv.h"
-#include "pl.h"
+#include <lomo-playlist.h>
 #include "meta.h"
 #include "lomo-marshallers.h"
 #include "util.h"

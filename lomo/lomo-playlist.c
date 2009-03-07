@@ -18,8 +18,8 @@
  */
 
 #include <glib/gprintf.h>
-#include "pl.h"
-#include "util.h"
+#include <lomo/lomo-playlist.h>
+#include <lomo/util.h>
 
 #ifdef LOMO_DEBUG
 #define BACKTRACE g_printf("[LomoPlaylist Backtrace] %s %d\n", __FUNCTION__, __LINE__);
