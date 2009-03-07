@@ -1,5 +1,5 @@
 /*
- * lomo/stream.h
+ * lomo/lomo-stream.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,12 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_STREAM
-#define _LOMO_STREAM
+#ifndef _LOMO_STREAM_H
+#define _LOMO_STREAM_H
 
 #include <glib-object.h>
 
 G_BEGIN_DECLS
+
+typedef const gchar* LomoTag;
 
 #define LOMO_TYPE_STREAM lomo_stream_get_type()
 
@@ -49,6 +51,24 @@ typedef struct {
 	GObjectClass parent_class;
 } LomoStreamClass;
 
+GType lomo_stream_get_type (void);
+
+LomoStream* lomo_stream_new (gchar *uri);
+
+#ifdef LIBLOMO_COMPILATION
+void lomo_stream_set_all_tags_flag(LomoStream *self, gboolean val);
+void lomo_stream_set_failed_flag  (LomoStream *self, gboolean val);
+#endif
+gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
+gboolean lomo_stream_get_failed_flag  (LomoStream *self);
+
+#define lomo_stream_get_tag(stream,tag)  g_object_get_data(G_OBJECT(stream), tag)
+gchar*  lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
+void    lomo_stream_set_tag      (LomoStream *self, LomoTag tag, gpointer value);
+GList*  lomo_stream_get_tags     (LomoStream *self);
+
+GType   lomo_tag_get_type(LomoTag tag);
+
 /* 
  * To (re-)generate this list, run:
  *
@@ -57,8 +77,6 @@ typedef struct {
  * grep -v '(' | \
  * sed -e 's/GST_/LOMO_/g' 
  */
-typedef const gchar* LomoTag;
-
 #define LOMO_TAG_INVALID NULL
 #define LOMO_TAG_URI "uri"
 #define LOMO_TAG_TITLE                  "title"
@@ -113,25 +131,6 @@ typedef const gchar* LomoTag;
 #define LOMO_TAG_GEO_LOCATION_LATITUDE               "geo-location-latitude"
 #define LOMO_TAG_GEO_LOCATION_LONGITUDE               "geo-location-longitude"
 
-GType lomo_stream_get_type (void);
-LomoStream* lomo_stream_new (gchar *uri);
-
-#ifdef LIBLOMO_COMPILATION
-void lomo_stream_set_all_tags(LomoStream *self, gboolean val);
-void lomo_stream_set_failed(LomoStream *self, gboolean val);
-#endif
-
-#define lomo_stream_get_tag(stream,tag)  g_object_get_data(G_OBJECT(stream), tag)
-void    lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value);
-GList*  lomo_stream_get_tags(LomoStream *self);
-gboolean lomo_stream_has_all_tags(LomoStream *self);
-gboolean lomo_stream_is_failed(LomoStream *self);
-
-
-gchar *lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
-
-GType lomo_tag_get_type(LomoTag tag);
-
 G_END_DECLS
 
-#endif // _LOMO_STREAM
+#endif // _LOMO_STREAM_H

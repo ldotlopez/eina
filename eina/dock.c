@@ -24,8 +24,8 @@
 #include <gmodule.h>
 #include <gel/gel.h>
 #include <eina/dock.h>
+#include <eina/eina-plugin.h>
 #include <eina/player.h>
-#include <eina/settings.h>
 
 struct _EinaDock {
 	EinaObj      parent;

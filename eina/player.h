@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PLAYER2_H
-#define _PLAYER2_H
+#ifndef _EINA_PLAYER_H
+#define _EINA_PLAYER_H
 
 #include <gtk/gtk.h>
 #include <gel/gel.h>

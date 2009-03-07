@@ -14,16 +14,19 @@
   settings
 
 - Is required?
-  settings
+  settings(yes)
 
 - dont load requiered components
   settings
 
-- Headers under eina/ folder should not have eina- prefix
-  settings
+- Every thing must be prefixed $package-$class
+  -settings
 
 - Move widgets to widgets/ folder
   settings
 
 - GQuarks should be prefixed
+  settings
+
+- Be careful with external resource files (images,ui,etc..)
   settings

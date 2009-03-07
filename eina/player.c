@@ -311,10 +311,12 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	else
 	{
-		eina_preferences_add_tab(prefs,
-			GTK_IMAGE(gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_BUTTON)),
-			GTK_LABEL(gtk_label_new(_("Player"))),
-			build_preferences_widget(self));
+		GtkWidget *prefs_widget = build_preferences_widget(self);
+		if (prefs_widget != NULL)
+			eina_preferences_add_tab(prefs,
+				GTK_IMAGE(gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_BUTTON)),
+				GTK_LABEL(gtk_label_new(_("Player"))),
+				prefs_widget);
 	}
 
 	setup_dnd(self);
@@ -526,19 +528,26 @@ parse_example_str_cb(gchar key, gpointer data)
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self)
 {
-	GtkWidget     *ret;
-	GtkComboBox   *combo;
-	GtkTextView   *textview;
-	GtkBox        *custom_format_box, *tips_box;
-	GtkLinkButton *link_button;
+	GtkWidget     *ret = NULL;
+	GtkWidget     *parent = NULL;
+	GtkComboBox   *combo = NULL;
+	GtkTextView   *textview = NULL;
+	GtkBox        *custom_format_box = NULL, *tips_box = NULL;
+	GtkLinkButton *link_button = NULL;
 
 	//
 	// Create preferences widget from a gtkui file
 	//
+	GtkBuilder *ui = NULL;
 	GError *err = NULL;
 	gchar *ui_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "player-preferences.ui");
-	GtkBuilder *ui = gtk_builder_new();
+	if (ui_path == NULL)
+	{
+		gel_error("Cannot find ui file player-preferences.ui");
+		goto build_preferences_widget_fail;
+	}
 
+	ui = gtk_builder_new();
 	if (gtk_builder_add_from_file(ui, ui_path, &err) == 0)
 	{
 		gel_error("Cannot load player-preferences.ui: %s", err->message);
@@ -552,7 +561,7 @@ build_preferences_widget(EinaPlayer *self)
 		goto build_preferences_widget_fail;
 	}
 
-	GtkWidget *parent = gtk_widget_get_parent(ret);
+	parent = gtk_widget_get_parent(ret);
 	g_object_ref((GObject *) ret);
 	gtk_container_remove((GtkContainer*) parent, ret);
 	gtk_widget_destroy(parent);

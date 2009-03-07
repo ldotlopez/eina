@@ -414,7 +414,7 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 	// g_printf("Set strema %p, uri: %s\n", self->priv->stream, (gchar*) lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI));
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
 	// inmediate queue on LomoMeta object to get them ASAP
-	if (!lomo_stream_has_all_tags(LOMO_STREAM(self->priv->stream)))
+	if (!lomo_stream_get_all_tags_flag(LOMO_STREAM(self->priv->stream)))
 	{
 		lomo_meta_parse(self->priv->meta, LOMO_STREAM(self->priv->stream), LOMO_META_PRIO_INMEDIATE);
 	}
@@ -953,7 +953,7 @@ _lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpointer data)
 		case GST_MESSAGE_ERROR:
 			gst_message_parse_error(message, &err, &debug);
 			if ((stream = lomo_player_get_stream(self)) != NULL)
-				lomo_stream_set_failed(stream, TRUE);
+				lomo_stream_set_failed_flag(stream, TRUE);
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[ERROR], 0, stream, err);
 			g_error_free(err);
 			g_free(debug);

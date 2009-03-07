@@ -1,5 +1,5 @@
 /*
- * lomo/stream.c
+ * lomo/lomo-stream.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -81,27 +81,29 @@ lomo_stream_init (LomoStream *self)
 	priv->all_tags = FALSE;
 }
 
+/**
+ * lomo_stream_new:
+ * @uri: An uri to create a #LomoStream from.
+ *
+ * Create a new #LomoStream from an uri
+ * 
+ * Returns: A new #LomoStream
+ */
 LomoStream*
 lomo_stream_new (gchar *uri)
 {
 	LomoStream *self;
 	gint i;
 
+	g_return_val_if_fail(uri != NULL, NULL);
+	
 	// Check valid URI, more strict methods than this: g_uri_parse_scheme
 	for (i = 0; uri[i] != '\0'; i++)
-	{
 		if ((uri[i] < 20) || (uri[i] > 126))
-		{
-			g_warning("%s is not valid uri", uri);
 			return NULL;
-		}
-	}
 
 	if (strstr(uri, "://") == NULL)
-	{
-		g_warning("%s is not valid uri", uri);
 		return NULL;
-	}
 
 	// Create instance once URI
 	self = g_object_new (LOMO_TYPE_STREAM, NULL);
@@ -110,10 +112,18 @@ lomo_stream_new (gchar *uri)
 	return self;
 }
 
+/**
+ * lomo_stream_set_tag:
+ * @self: a #LomoStream
+ * @tag: a #LomoTag to set
+ * @value: value for tag, must not be modified. It becomes owned by #LomoStream
+ *
+ * Sets a tag in a #LomoStream
+ */
 void
-lomo_stream_set_tag(LomoStream *stream, LomoTag tag, gpointer value)
+lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(stream);
+	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
 	GList *link = g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp);
 
 	if (tag != NULL)
@@ -132,41 +142,86 @@ lomo_stream_set_tag(LomoStream *stream, LomoTag tag, gpointer value)
 		g_free(link->data);
 		g_list_free(link);
 	}
-	g_object_set_data_full(G_OBJECT(stream), tag, value, g_free);
+	g_object_set_data_full(G_OBJECT(self), tag, value, g_free);
 }
 
+/**
+ * lomo_stream_get_tags:
+ * @self: a #LomoStream
+ *
+ * Gets the list of #LomoTag for a #LomoStream
+ *
+ * Returns: a #GList, it must be freed when no longer needed.
+ */
 GList*
 lomo_stream_get_tags(LomoStream *self)
 {
 	return g_list_copy(GET_PRIVATE(self)->tags);
 }
 
+/**
+ * lomo_stream_set_all_tags_flag:
+ * @self: a #LomoStream
+ * @value: value for flag
+ *
+ * Sets the all_tags flag to value
+ */
+void
+lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value)
+{
+	GET_PRIVATE(self)->all_tags = value;
+}
+
+/**
+ * lomo_stream_get_all_tags_flag:
+ * @self: a #LomoStream
+ *
+ * Gets value of all_tags flag
+ *
+ * Returns: the value of all_tags flag
+ */
 gboolean
-lomo_stream_has_all_tags(LomoStream *self)
+lomo_stream_get_all_tags_flag(LomoStream *self)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
-	return priv->all_tags;
+	return GET_PRIVATE(self)->all_tags;
 }
 
-void lomo_stream_set_all_tags(LomoStream *self, gboolean val)
+/**
+ * lomo_stream_set_failed_flag:
+ * @self: a #LomoStream
+ * @value: value for flag
+ *
+ * Sets the failed flag to value
+ */
+void
+lomo_stream_set_failed_flag(LomoStream *self, gboolean value)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
-	priv->all_tags = val;
+	GET_PRIVATE(self)->failed = value;
 }
 
+/**
+ * lomo_stream_get_failed_flag:
+ * @self: a #LomoStream
+ *
+ * Gets value of failed flag
+ *
+ * Returns: the value of failed flag
+ */
 gboolean
-lomo_stream_is_failed(LomoStream *self)
+lomo_stream_get_failed_flag(LomoStream *self)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
-	return priv->failed;
+	return GET_PRIVATE(self)->failed;
 }
 
-void lomo_stream_set_failed(LomoStream *self, gboolean val)
-{
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
-	priv->failed = val;
-}
-
+/**
+ * lomo_stream_get_tag_by_id:
+ * @self: a #LomoStream
+ * @id: identifier for tag (t = title, b = album, etc...)
+ *
+ * Gets the tag value as string for the matching id
+ *
+ * Retuns: the tag value as string
+ */
 gchar *
 lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 {
@@ -187,6 +242,14 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 	return ret;
 }
 
+/*
+ * lomo_tag_get_type:
+ * @tag: a #LomoTag
+ *
+ * Queries for the #GType corresponding for the tag
+ *
+ * Returns: the #GType for tag
+ */
 GType
 lomo_tag_get_type(LomoTag tag)
 {

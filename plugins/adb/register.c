@@ -232,6 +232,14 @@ lomo_clear_cb(LomoPlayer *lomo, gpointer data)
 	char *err = NULL;
 	GTimeVal now; g_get_current_time(&now);
 	gchar *now_str = g_time_val_to_iso8601(&now);
+
+	GDate dt;
+	g_date_clear(&dt, 1);
+	g_date_set_time_val(&dt, &now);
+	gchar a[20];
+	g_date_strftime(a, 20, "%Y-%m-%d %H:%m:%S", &dt);
+	gel_warn(a);
+
 	if (sqlite3_exec(self->db, "BEGIN TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
 	{
 		gel_warn("Cannot begin transaction: %s", err);

@@ -274,7 +274,7 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 		finalized = self->fini(self->priv->app, self, error);
 	
 	self->priv->enabled = !finalized;
-	if (!finalized && (*error == NULL))
+	if (!finalized && error && (*error == NULL))
 	{
 		 g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
 		 	N_("No reason"));

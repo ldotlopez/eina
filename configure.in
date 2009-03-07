@@ -27,6 +27,11 @@ AC_SUBST(GLIB_GENMARSHAL)
 AC_PATH_PROG(GTK_BUILDER_CONVERT, gtk-builder-convert)
 AC_SUBST(GTK_BUILDER_CONVERT)
 
+#**************
+# Documentation
+#**************
+GTK_DOC_CHECK([1.9])
+
 #*******************************************************************************
 # Internationalization
 #*******************************************************************************

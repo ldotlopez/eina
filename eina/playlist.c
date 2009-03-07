@@ -809,7 +809,7 @@ static void lomo_change_cb
 	if (old >= 0)
 	{
 		gel_debug("updating all columns from OLD %d", old);
-		if (lomo_stream_is_failed(lomo_player_get_nth(lomo, old)))
+		if (lomo_stream_get_failed_flag(lomo_player_get_nth(lomo, old)))
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_TITLE, -1);
 		else
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
@@ -855,7 +855,7 @@ static void lomo_error_cb
 {
 	gel_error("Got error on stream %p: %s", stream, error->message);
 
-	if ((stream == NULL) || !lomo_stream_is_failed(stream))
+	if ((stream == NULL) || !lomo_stream_get_failed_flag(stream))
 		return;
 
 	gint pos;

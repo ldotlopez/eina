@@ -283,7 +283,7 @@ disconnect:
 	}
 #endif
 	gst_element_set_state(priv->pipeline, GST_STATE_NULL);
-	lomo_stream_set_all_tags(priv->stream, TRUE);
+	lomo_stream_set_all_tags_flag(priv->stream, TRUE);
 	g_signal_emit(
 		G_OBJECT(priv->player), lomo_player_signals[ALL_TAGS],
 		0, priv->stream);

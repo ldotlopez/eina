@@ -621,7 +621,7 @@ upgrade_adb_0(Adb *adb, Recently *self, GError **error)
 		"DROP TABLE IF EXISTS playlist_aliases;",
 
 		"CREATE TABLE IF NOT EXISTS playlist_aliases ("
-		"	timestamp TIMESTAMP PRIMARY KEY,"
+		"	timestamp TIMESTAMP PRIMARY KEY UNIQUE,"
 		"	alias VARCHAR(128),"
 		"	FOREIGN KEY(timestamp) REFERENCES playlist_history(timestamp) ON DELETE CASCADE ON UPDATE RESTRICT"
 		");",
