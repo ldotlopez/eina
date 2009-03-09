@@ -916,6 +916,13 @@ static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self) 
 {
 	set_info(self, NULL);
+	if (self->art_search)
+	{
+		Art *art = EINA_OBJ_GET_ART(self);
+		if (art)
+			art_cancel(art, self->art_search);
+		self->art_search = NULL;
+	}
 	update_sensitiviness(self);
 	update_cover(self, NULL);
 }

@@ -147,13 +147,20 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute);
 gboolean lomo_player_get_mute(LomoPlayer *self);
 
 // Adding and deleting streams
+// : lomo_player_insert
 gint    lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos);
+// : lomo_player_append
 #define lomo_player_add(p,s)              lomo_player_add_at_pos(p,s,-1)
+// : lomo_player_append_uri
 #define lomo_player_add_uri(p,u)          lomo_player_add_at_pos(p,lomo_stream_new(u),-1)
+// : lomo_player_insert_uri
 #define lomo_player_add_uri_at_pos(s,u,p) lomo_player_add_at_pos(s,lomo_stream_new(u), p)
 
+// : lomo_player_insert_uri_strv
 gint lomo_player_add_uri_strv_at_pos(LomoPlayer *self, gchar **uris, gint pos);
+// : lomo_player_insert_uri_list
 gint lomo_player_add_uri_multi_at_pos(LomoPlayer *self, GList *uris, gint pos);
+// : lomo_player_insert_list
 gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos);
 
 #define lomo_player_add_uri_multi(p,l) lomo_player_add_uri_multi_at_pos(p,l,-1)

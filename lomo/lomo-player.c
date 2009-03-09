@@ -538,8 +538,8 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format)
 { TRACE
 	g_return_val_if_fail(self->priv->vtable.get_position, -1);
-	g_return_val_if_fail(self->priv->pipeline, -1);
-	g_return_val_if_fail(self->priv->stream, -1);
+	if (!self->priv->pipeline || !self->priv->stream)
+		return -1;
 
 	GstFormat gst_format;
 	if (!lomo_format_to_gst(format, &gst_format))
@@ -578,7 +578,8 @@ gint64
 lomo_player_length(LomoPlayer *self, LomoFormat format)
 { TRACE
 	g_return_val_if_fail(self->priv->vtable.get_length != NULL, -1);
-	g_return_val_if_fail(self->priv->stream != NULL, -1);
+	if (!self->priv->stream)
+		return -1;
 
 	// Format
 	GstFormat gst_format;
@@ -660,10 +661,11 @@ gboolean lomo_player_get_mute(LomoPlayer *self)
 		return self->priv->mute;
 }
 
-/*
- * Playlist functions
- */
-gint lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos)
+// --
+// Playlist functions
+// --
+gint
+lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos)
 { TRACE
 	GList *tmp = NULL;
 	gint ret;
@@ -883,11 +885,14 @@ guint lomo_player_get_total(LomoPlayer *self)
 
 void lomo_player_clear(LomoPlayer *self)
 { TRACE
-	lomo_player_stop(self, NULL);
-	lomo_playlist_clear(self->priv->pl);
-	lomo_metadata_parser_clear(self->priv->meta);
-	lomo_player_reset(self, NULL);
-	g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
+	if (lomo_player_get_stream(self))
+	{
+		lomo_player_stop(self, NULL);
+		lomo_playlist_clear(self->priv->pl);
+		lomo_metadata_parser_clear(self->priv->meta);
+		lomo_player_reset(self, NULL);
+		g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
+	}
 }
 
 void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
