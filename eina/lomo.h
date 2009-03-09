@@ -21,7 +21,7 @@
 #define _LOMO_H
 
 #include <gel/gel.h>
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 #include <eina/eina-obj.h>
 
 G_BEGIN_DECLS

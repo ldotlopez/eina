@@ -23,7 +23,7 @@
 #include <gmodule.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 
 static GQuark
 lomo_quark(void)

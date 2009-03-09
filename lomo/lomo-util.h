@@ -1,5 +1,5 @@
 /*
- * lomo/util.h
+ * lomo/lomo-util.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,11 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOMO_UTIL
-#define __LOMO_UTIL
+#ifndef __LOMO_UTIL_H
+#define __LOMO_UTIL_H
 
 #include <gst/gst.h>
-#include "player.h"
+#include <lomo/lomo-player.h>
 
 G_BEGIN_DECLS
 
@@ -47,5 +47,5 @@ GstState  lomo2_state_to_gst(LomoState in);
 
 G_END_DECLS
 
-#endif // _LOMO_UTL
+#endif // _LOMO_UTIL_H
 

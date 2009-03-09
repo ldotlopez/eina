@@ -21,7 +21,7 @@
 #define _ART_H
 
 #include <glib.h>
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 
 G_BEGIN_DECLS
 

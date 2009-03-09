@@ -23,8 +23,8 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <gel/gel-io.h>
-#include <lomo/player.h>
-#include <lomo/util.h>
+#include <lomo/lomo-player.h>
+#include <lomo/lomo-util.h>
 #include <eina/lomo.h>
 #include <eina/player.h>
 #include <eina/settings.h>

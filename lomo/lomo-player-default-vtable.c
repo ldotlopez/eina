@@ -1,5 +1,5 @@
 /*
- * lomo/player-default-vtable.c
+ * lomo/lomo-player-default-vtable.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "player-default-vtable.h"
+#include <lomo/lomo-player-default-vtable.h>
 #define ERROR_DOMAIN "Lomo2PlayerCore"
 
 enum {

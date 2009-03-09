@@ -23,7 +23,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 #include <gel/gel.h>
 #include <eina/lomo.h>
 

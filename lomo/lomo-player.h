@@ -1,5 +1,5 @@
 /*
- * lomo/player.h
+ * lomo/lomo-player.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,14 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOMO_PLAYER_H__
-#define __LOMO_PLAYER_H__
+#ifndef __LOMO_PLAYER_H
+#define __LOMO_PLAYER_H
 
 #include <glib-object.h>
 #include <gst/gst.h>
 #include <lomo/lomo-stream.h>
 
 G_BEGIN_DECLS
+
+#define LOMO_TYPE_PLAYER         (lomo_player_get_type ())
+#define LOMO_PLAYER(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), LOMO_TYPE_PLAYER, LomoPlayer))
+#define LOMO_PLAYER_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), LOMO_TYPE_PLAYER, LomoPlayerClass))
+#define LOMO_IS_PLAYER(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), LOMO_TYPE_PLAYER))
+#define LOMO_IS_PLAYER_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), LOMO_TYPE_PLAYER))
+#define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
 typedef enum {
 	LOMO_STATE_CHANGE_SUCCESS     = GST_STATE_CHANGE_SUCCESS,
@@ -48,36 +55,7 @@ typedef enum {
 	LOMO_FORMATS
 } LomoFormat;
 
-#define LOMO_TYPE_PLAYER         (lomo_player_get_type ())
-#define LOMO_PLAYER(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), LOMO_TYPE_PLAYER, LomoPlayer))
-#define LOMO_PLAYER_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), LOMO_TYPE_PLAYER, LomoPlayerClass))
-#define LOMO_IS_PLAYER(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), LOMO_TYPE_PLAYER))
-#define LOMO_IS_PLAYER_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), LOMO_TYPE_PLAYER))
-#define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
-
-typedef struct {
-	GstElement* (*create)  (GHashTable *opts, GError **error);
-	gboolean    (*destroy) (GstElement *pipeline, GError **error);
-	gboolean    (*reset)   (GstElement *pipeline, GHashTable *opts, GError **error);
-
-	gboolean     (*set_stream)  (GstElement *pipeline, const gchar *uri);
-	gchar*       (*get_stream)  (GstElement *pipeline);
-
-	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state, GError **error);
-	GstState             (*get_state) (GstElement *pipeline);
-
-	gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
-	gboolean             (*query_duration) (GstElement *pipeline, GstFormat *format, gint64 *duration);
-
-	gboolean (*set_volume) (GstElement *pipeline, gint volume);
-	gint     (*get_volume) (GstElement *pipeline);
-
-	gboolean (*set_mute) (GstElement *pipeline, gboolean mute);
-	gboolean (*get_mute) (GstElement *pipeline);
-} LomoPlayerVTable;
-
 typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
-
 typedef struct
 {
 	GObject parent;
@@ -106,8 +84,30 @@ typedef struct
 	void (*tag)      (LomoPlayer *self, LomoStream *stream, LomoTag tag);
 	void (*all_tags) (LomoPlayer *self, LomoStream *stream);
 } LomoPlayerClass;
+GType lomo_player_get_type(void);
 
-GType		lomo_player_get_type   (void);
+#ifdef LOMO_PLAYER_VTABLE
+typedef struct {
+	GstElement* (*create)  (GHashTable *opts, GError **error);
+	gboolean    (*destroy) (GstElement *pipeline, GError **error);
+	gboolean    (*reset)   (GstElement *pipeline, GHashTable *opts, GError **error);
+
+	gboolean     (*set_stream)  (GstElement *pipeline, const gchar *uri);
+	gchar*       (*get_stream)  (GstElement *pipeline);
+
+	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state, GError **error);
+	GstState             (*get_state) (GstElement *pipeline);
+
+	gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
+	gboolean             (*query_duration) (GstElement *pipeline, GstFormat *format, gint64 *duration);
+
+	gboolean (*set_volume) (GstElement *pipeline, gint volume);
+	gint     (*get_volume) (GstElement *pipeline);
+
+	gboolean (*set_mute) (GstElement *pipeline, gboolean mute);
+	gboolean (*get_mute) (GstElement *pipeline);
+} LomoPlayerVTable;
+#endif
 
 #define lomo_init(argc,argv)    gst_init(argc,argv)
 #define lomo_get_option_group() gst_init_get_option_group()
@@ -195,4 +195,4 @@ void lomo_player_print_random_pl(LomoPlayer *self);
 
 G_END_DECLS
 
-#endif /* __LOMO_PLAYER_H__ */
+#endif // __LOMO_PLAYER_H

@@ -17,10 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* lomo-metadata-parser.h */
-
-#ifndef _LOMO_METADATA_PARSER
-#define _LOMO_METADATA_PARSER
+#ifndef __LOMO_METADATA_PARSER_H
+#define __LOMO_METADATA_PARSER_H
 
 #include <glib-object.h>
 #include <lomo/lomo-stream.h>
@@ -67,5 +65,5 @@ void                lomo_metadata_parser_clear(LomoMetadataParser *meta);
 
 G_END_DECLS
 
-#endif /* _LOMO_METADATA_PARSER */
+#endif // __LOMO_METADATA_PARSER_H
 

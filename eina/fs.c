@@ -22,7 +22,7 @@
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <eina/eina-file-chooser-dialog.h>
-#include <lomo/util.h>
+#include <lomo/lomo-util.h>
 #include "fs.h"
 
 void

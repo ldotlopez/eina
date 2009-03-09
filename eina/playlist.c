@@ -34,7 +34,7 @@
 #include <gdk/gdkkeysyms.h>
 
 // Lomo
-#include <lomo/util.h>
+#include <lomo/lomo-util.h>
 
 // Gel
 #include <gel/gel-io.h>

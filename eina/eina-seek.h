@@ -22,7 +22,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 
 G_BEGIN_DECLS
 

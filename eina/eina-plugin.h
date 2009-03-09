@@ -26,7 +26,7 @@
 #include <gtk/gtk.h>
 
 // liblomo
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 
 // libgel
 #include <gel/gel.h>

@@ -19,7 +19,7 @@
 
 #define GEL_DOMAIN "Eina::Player::Seek"
 #include "eina-seek.h"
-#include <lomo/util.h>
+#include <lomo/lomo-util.h>
 #include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_HSCALE)

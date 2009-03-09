@@ -1,5 +1,5 @@
 /*
- * lomo/player.c
+ * lomo/lomo-player.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -20,11 +20,11 @@
 #include <glib/gprintf.h>
 #include <glib/gi18n.h>
 #include <gst/gst.h>
-#include "player.h"
-#include <lomo-playlist.h>
+#include <lomo/lomo-player.h>
+#include <lomo/lomo-playlist.h>
 #include <lomo/lomo-metadata-parser.h>
 #include <lomo/lomo-marshallers.h>
-#include "util.h"
+#include <lomo/lomo-util.h>
 
 #ifdef LOMO_DEBUG
 #define TRACE g_printf("[LomoPlayer Trace] %s %d\n", __FUNCTION__, __LINE__);

@@ -1,5 +1,5 @@
 /*
- * lomo/player-default-vtable.h
+ * lomo/lomo-player-default-vtable.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -18,10 +18,9 @@
  */
 
 #include <gst/gst.h>
-#include <lomo/player.h>
 
 GstElement* default_create(GHashTable *opts, GError **error);
-gboolean     default_destroy(GstElement *pipeline, GError **error);
+gboolean    default_destroy(GstElement *pipeline, GError **error);
 
 gboolean default_set_stream(GstElement *pipeline, const gchar *uri);
 

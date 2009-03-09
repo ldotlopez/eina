@@ -22,7 +22,7 @@
 
 #include <glib.h>
 #include <gio/gio.h>
-#include <lomo/player.h>
+#include <lomo/lomo-player.h>
 
 // Runs a file chooser dialog with all the stuff (cancel, loading, ...)
 // and adds results to lomo handling play or enqueue

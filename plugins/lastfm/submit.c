@@ -18,7 +18,7 @@
  */
 
 #include "lastfm.h"
-#include <lomo/util.h> // lomo_nanosecs_to_secs et al
+#include <lomo/lomo-util.h> // lomo_nanosecs_to_secs et al
 
 struct _LastFMSubmit {
 	gint64      length;
