@@ -11,13 +11,13 @@ liblomo_1_0_la_LIBADD = @PACKAGE_LIBS@ $(INTLLIBS)
 
 NO_INST_H_FILES =   \
 	lomo-marshallers.h  \
-	meta.h          \
+	lomo-metadata-parser.h \
 	lomo-playlist.h            \
-	player-priv.h   \
 	player-default-vtable.h
 
 INST_H_FILES = \
 	player.h   \
+	lomo-metadata-parser.h  \
 	lomo-stream.h   \
 	util.h
 
@@ -26,10 +26,9 @@ header_DATA = $(INST_H_FILES)
 
 liblomo_1_0_la_SOURCES = \
 	lomo-marshallers.c     \
-	meta.c             \
+	lomo-metadata-parser.c \
 	lomo-playlist.c               \
 	player-default-vtable.c \
-	player-priv.c      \
 	player.c           \
 	lomo-stream.c           \
 	util.c             \

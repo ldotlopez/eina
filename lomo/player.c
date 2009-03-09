@@ -21,10 +21,9 @@
 #include <glib/gi18n.h>
 #include <gst/gst.h>
 #include "player.h"
-#include "player-priv.h"
 #include <lomo-playlist.h>
-#include "meta.h"
-#include "lomo-marshallers.h"
+#include <lomo/lomo-metadata-parser.h>
+#include <lomo/lomo-marshallers.h>
 #include "util.h"
 
 #ifdef LOMO_DEBUG
@@ -64,7 +63,7 @@ struct _LomoPlayerPrivate {
 	GstElement *pipeline;
 
 	LomoPlaylist *pl;
-	LomoMeta     *meta;
+	LomoMetadataParser     *meta;
 	gint          volume;
 	gboolean      mute;
 };
@@ -72,10 +71,34 @@ struct _LomoPlayerPrivate {
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_PLAYER, LomoPlayerPrivate))
 
-static gboolean _lomo_player_bus_watcher (
-	GstBus *bus,
-	GstMessage *message,
-	gpointer data);
+enum {
+	PLAY,
+	PAUSE,
+	STOP,
+	SEEK,
+	VOLUME,
+	MUTE,
+	ADD,
+	DEL,
+	CHANGE,
+	CLEAR,
+	REPEAT,
+	RANDOM,
+	EOS,
+	ERROR,
+	TAG,
+	ALL_TAGS,
+
+	LAST_SIGNAL
+};
+guint lomo_player_signals[LAST_SIGNAL] = { 0 };
+
+static void
+tag_cb(LomoMetadataParser *parser, LomoStream *stream, LomoTag tag, LomoPlayer *self);
+static void
+all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self);
+static gboolean
+bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self); 
 
 static GQuark
 lomo_quark(void)
@@ -83,14 +106,6 @@ lomo_quark(void)
 	static GQuark ret = 0;
 	return ((ret == 0) ? (ret = g_quark_from_static_string("lomo-quark")) : ret);
 }
-
-/*
-void
-lomo_init(gint *argc, gchar **argv[])
-{ TRACE
-	gst_init(argc, argv);
-}
-*/
 
 static void
 lomo_player_dispose(GObject *object)
@@ -330,7 +345,9 @@ static void lomo_player_init (LomoPlayer *self)
 	self->priv->volume = 50;
 	self->priv->mute   = FALSE;
 	self->priv->pl     = lomo_playlist_new();
-	self->priv->meta   = lomo_meta_new(self);
+	self->priv->meta   = lomo_metadata_parser_new();
+	g_signal_connect(self->priv->meta, "tag", (GCallback) tag_cb, self);
+	g_signal_connect(self->priv->meta, "all-tags", (GCallback) all_tags_cb, self);
 }
 
 // --
@@ -413,10 +430,10 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 
 	// g_printf("Set strema %p, uri: %s\n", self->priv->stream, (gchar*) lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI));
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
-	// inmediate queue on LomoMeta object to get them ASAP
+	// inmediate queue on LomoMetadataParser object to get them ASAP
 	if (!lomo_stream_get_all_tags_flag(LOMO_STREAM(self->priv->stream)))
 	{
-		lomo_meta_parse(self->priv->meta, LOMO_STREAM(self->priv->stream), LOMO_META_PRIO_INMEDIATE);
+		lomo_metadata_parser_parse(self->priv->meta, LOMO_STREAM(self->priv->stream), LOMO_METADATA_PARSER_PRIO_INMEDIATE);
 	}
 
 	// Now, create pipeline
@@ -437,7 +454,7 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 	// Attach a bus watch
 	gst_bus_add_watch(
 		gst_pipeline_get_bus(GST_PIPELINE(self->priv->pipeline)),
-		_lomo_player_bus_watcher,
+		(GstBusFunc) bus_watcher,
 		self);
 
 	// Setup pipeline
@@ -755,7 +772,7 @@ gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos)
 	{
 		stream = (LomoStream *) l->data;
 
-		lomo_meta_parse(self->priv->meta, stream, LOMO_META_PRIO_DEFAULT);
+		lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[ADD], 0, stream, i);
 	
 		// Emit change if its first stream
@@ -891,7 +908,7 @@ void lomo_player_clear(LomoPlayer *self)
 { TRACE
 	lomo_player_stop(self, NULL);
 	lomo_playlist_clear(self->priv->pl);
-	lomo_meta_clear(self->priv->meta);
+	lomo_metadata_parser_clear(self->priv->meta);
 	lomo_player_reset(self, NULL);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
 }
@@ -935,16 +952,24 @@ lomo_player_print_random_pl(LomoPlayer *self)
 	lomo_playlist_print_random(self->priv->pl);
 }
 
-/*
- * 
- * Watchers and private functions
- * 
- */
+// --
+// Watchers and callbacks
+// --
+static void
+tag_cb(LomoMetadataParser *parser, LomoStream *stream, LomoTag tag, LomoPlayer *self)
+{
+	g_signal_emit(self, lomo_player_signals[TAG], 0, stream, tag);
+}
+
+static void
+all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self)
+{
+	g_signal_emit(self, lomo_player_signals[ALL_TAGS], 0, stream);
+}
 
 static gboolean
-_lomo_player_bus_watcher(GstBus *bus, GstMessage *message, gpointer data)
+bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 { TRACE
-	LomoPlayer *self = LOMO_PLAYER(data);
 	GError *err = NULL;
 	gchar *debug = NULL;
 	LomoStream *stream = NULL;
