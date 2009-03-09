@@ -55,15 +55,14 @@ enum {
 };
 
 struct _LomoPlayerPrivate {
-	// LomoPlayerVTable  vtable;
+	LomoPlayerVTable  vtable;
 	GHashTable       *options;
 
-	LomoStream *stream;
+	GstElement         *pipeline;
+	LomoPlaylist       *pl;
+	LomoMetadataParser *meta;
+	LomoStream         *stream;
 
-	GstElement *pipeline;
-
-	LomoPlaylist *pl;
-	LomoMetadataParser     *meta;
 	gint          volume;
 	gboolean      mute;
 };
@@ -93,6 +92,9 @@ enum {
 };
 guint lomo_player_signals[LAST_SIGNAL] = { 0 };
 
+// --
+// Callbacks
+// --
 static void
 tag_cb(LomoMetadataParser *parser, LomoStream *stream, LomoTag tag, LomoPlayer *self);
 static void
@@ -100,11 +102,36 @@ all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self);
 static gboolean
 bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self); 
 
+// --
+// VFuncs
+// --
+static GstElement*
+create_pipeline(const gchar *uri, GHashTable *opts);
+static void
+destroy_pipeline(GstElement *pipeline);
+static GstStateChangeReturn
+set_state(GstElement *pipeline, GstState state);
+static GstState
+get_state(GstElement *pipeline);
+static gboolean
+set_position(GstElement *pipeline, GstFormat format, gint64 position);
+static gboolean
+get_position(GstElement *pipeline, GstFormat *format, gint64 *position);
+static gboolean
+get_length(GstElement *pipeline, GstFormat *format, gint64 *duration);
+static gboolean
+set_volume(GstElement *pipeline, gint volume);
+
+// --
+// LomoPlayer
+// --
 static GQuark
 lomo_quark(void)
 {
 	static GQuark ret = 0;
-	return ((ret == 0) ? (ret = g_quark_from_static_string("lomo-quark")) : ret);
+	if (ret == 0)
+		ret = g_quark_from_static_string("lomo-quark");
+	return ret;
 }
 
 static void
@@ -120,20 +147,28 @@ lomo_player_dispose(GObject *object)
 		self->priv->options = NULL;
 	}
 
-	if (self->priv->pipeline) {
-		gst_element_set_state(self->priv->pipeline, GST_STATE_NULL);
-		g_object_unref(self->priv->pipeline);
+	if (self->priv->pipeline)
+	{
+		if (lomo_player_get_state(self) != LOMO_STATE_STOP)
+			lomo_player_stop(self, NULL);
+		self->priv->vtable.destroy_pipeline(self->priv->pipeline);
+		self->priv->pipeline = NULL;
 	}
 
-	if (self->priv->pl) {
+	if (self->priv->pl)
+	{
 		lomo_playlist_unref(self->priv->pl);
 		self->priv->pl = NULL;
 	}
+
 	if (self->priv->meta)
 	{
 		g_object_unref(self->priv->meta);
 		self->priv->meta = NULL;
 	}
+
+	self->priv->stream = NULL;
+
 	G_OBJECT_CLASS (lomo_player_parent_class)->dispose (object);
 }
 
@@ -315,37 +350,31 @@ lomo_player_class_init (LomoPlayerClass *klass)
 
 static void lomo_player_init (LomoPlayer *self)
 { TRACE
-	/*
 	LomoPlayerVTable vtable = {
-		default_create,
-		default_destroy,
-		NULL,
+		create_pipeline,
+		destroy_pipeline,
 
-		default_set_stream,
-		NULL,
+		set_state,
+		get_state,
 
-		default_set_state,
-		default_get_state,
+		set_position,
+		get_position,
+		get_length,
 
-		default_query_position,
-		default_query_duration,
+		set_volume,
+		NULL, // get volume,
 
-		default_set_volume,
-		default_get_volume,
-
-		NULL,
-		NULL
+		NULL, // set mute
+		NULL  // get mute
 	};
-	*/
 
 	self->priv = GET_PRIVATE(self);
-	// self->priv->vtable = vtable;
+	self->priv->vtable  = vtable;
 	self->priv->options = g_hash_table_new(g_str_hash, g_str_equal);
-
-	self->priv->volume = 50;
-	self->priv->mute   = FALSE;
-	self->priv->pl     = lomo_playlist_new();
-	self->priv->meta   = lomo_metadata_parser_new();
+	self->priv->volume  = 50;
+	self->priv->mute    = FALSE;
+	self->priv->pl      = lomo_playlist_new();
+	self->priv->meta    = lomo_metadata_parser_new();
 	g_signal_connect(self->priv->meta, "tag", (GCallback) tag_cb, self);
 	g_signal_connect(self->priv->meta, "all-tags", (GCallback) all_tags_cb, self);
 }
@@ -387,95 +416,65 @@ lomo_player_new(const gchar *option_name, ...)
 gboolean
 lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error)
 { TRACE
+	g_return_val_if_fail(uri, FALSE);
 	return lomo_player_play_stream(self, lomo_stream_new(uri), error);
 }
 
 gboolean
 lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 { TRACE
-	g_return_val_if_fail(stream != NULL, FALSE);
-		
+	g_return_val_if_fail(stream, FALSE);
+
 	lomo_player_clear(self);
 	lomo_player_add(self, stream);
 
-	if (!lomo_player_reset(self, error) || !lomo_player_play(self, error))
-		return FALSE;
-	else
-		return TRUE;
+	return (lomo_player_reset(self, error) && lomo_player_play(self, error));
 }
 
 gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 { TRACE
-	GstElement *audio_sink;
-	gint current = -1;
+	g_return_val_if_fail(self->priv->vtable.create_pipeline,  FALSE);
+	g_return_val_if_fail(self->priv->vtable.destroy_pipeline, FALSE);
 
 	// Destroy pipeline
-	if (self->priv->pipeline != NULL)
+	if (self->priv->pipeline)
 	{
-		gst_element_set_state(self->priv->pipeline, GST_STATE_NULL);
-		g_object_unref(self->priv->pipeline);
+		lomo_player_stop(self, NULL);
+		self->priv->vtable.destroy_pipeline(self->priv->pipeline);
 		self->priv->pipeline = NULL;
 	}
 
 	// Sync current stream
-	current = lomo_playlist_get_current(self->priv->pl);
+	gint current = lomo_playlist_get_current(self->priv->pl);
 	if (current == -1)
+	{
 		self->priv->stream = NULL;
+		return TRUE;
+	}
 	else
 		self->priv->stream = lomo_playlist_get_nth(self->priv->pl, current);
-	
-	// If there is no stream, nothing more to do.
-	if (self->priv->stream == NULL)
-		return TRUE;
 
-	// g_printf("Set strema %p, uri: %s\n", self->priv->stream, (gchar*) lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI));
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
 	// inmediate queue on LomoMetadataParser object to get them ASAP
-	if (!lomo_stream_get_all_tags_flag(LOMO_STREAM(self->priv->stream)))
-	{
-		lomo_metadata_parser_parse(self->priv->meta, LOMO_STREAM(self->priv->stream), LOMO_METADATA_PARSER_PRIO_INMEDIATE);
-	}
+	if (!lomo_stream_get_all_tags_flag(self->priv->stream))
+		lomo_metadata_parser_parse(self->priv->meta, self->priv->stream, LOMO_METADATA_PARSER_PRIO_INMEDIATE);
 
 	// Now, create pipeline
-	if ((self->priv->pipeline = gst_element_factory_make("playbin", "playbin")) == NULL)
-	{
-		g_printf("[liblomo (%s:%d)] Cannot create pipeline\n", __FILE__,__LINE__);
-		lomo_player_set_error(error, LOMO_PLAYER_ERROR_NO_PIPELINE,
-			"[liblomo (%s:%d)] Cannot create pipeline\n", __FILE__,__LINE__);
+	if (!(self->priv->pipeline = self->priv->vtable.create_pipeline(lomo_stream_get_tag(self->priv->stream, LOMO_TAG_URI), self->priv->options)))
 		return FALSE;
-	}
-
-	// set audio-sink
-	audio_sink = gst_element_factory_make(
-			(gchar *) g_hash_table_lookup(self->priv->options, (gpointer) "audio-output"),
-			"audio-sink");
-	g_object_set(self->priv->pipeline, "audio-sink", audio_sink, NULL);
-
+	
 	// Attach a bus watch
-	gst_bus_add_watch(
-		gst_pipeline_get_bus(GST_PIPELINE(self->priv->pipeline)),
-		(GstBusFunc) bus_watcher,
-		self);
+	gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(self->priv->pipeline)), (GstBusFunc) bus_watcher, self);
 
 	// Setup pipeline
-	g_object_set(self->priv->pipeline,
-		"uri", g_object_get_data(G_OBJECT(self->priv->stream), "uri"),
-		NULL);
 	lomo_player_set_volume(self, self->priv->volume);
 	lomo_player_set_mute  (self, self->priv->mute);
-	
-	GstStateChangeReturn r;
-	r = gst_element_set_state (self->priv->pipeline, GST_STATE_READY);
-	if (r == GST_STATE_CHANGE_FAILURE)
-	{
-		/// XXX: Emit some signal
-		g_printf("ERROR: change state\n");
-		return FALSE;
-	}
+
 	return TRUE;
 }
 
-LomoStream *lomo_player_get_stream(LomoPlayer *self)
+LomoStream*
+lomo_player_get_stream(LomoPlayer *self)
 { TRACE
 	// Hold this for a while to watch the DPP bug
 	if (lomo_playlist_get_nth(self->priv->pl, lomo_playlist_get_current(self->priv->pl)) != self->priv->stream)
@@ -483,51 +482,33 @@ LomoStream *lomo_player_get_stream(LomoPlayer *self)
 	return self->priv->stream;
 }
 
-LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
+// --
+// get/set state (using vfuncs)
+// --
+LomoStateChangeReturn
+lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 { TRACE
-    GstState gst_state;
-    GstStateChangeReturn ret;
+	g_return_val_if_fail(self->priv->vtable.set_state, LOMO_STATE_CHANGE_FAILURE);
+	g_return_val_if_fail(self->priv->pipeline, LOMO_STATE_CHANGE_FAILURE);
+	g_return_val_if_fail(self->priv->stream, LOMO_STATE_CHANGE_FAILURE);
 
-	// Unknow state
-    if (!lomo_state_to_gst(state, &gst_state))
+	GstState gst_state;
+	if (!lomo_state_to_gst(state, &gst_state))
 	{
-		lomo_player_set_error(error, LOMO_PLAYER_ERROR_UNKNOW_STATE,
-			"Unknow state '%d'", state);
-        return LOMO_STATE_CHANGE_FAILURE;
-	}
-
-	// No stream
-	if (self->priv->stream == NULL)
-	{
-		lomo_player_set_error(error, LOMO_PLAYER_ERROR_NO_STREAM,
-			"No active stream");
+		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_UNKNOW_STATE, "Unknow state '%d'", state);
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
 
-    switch (state)
-	{
-	case LOMO_STATE_PAUSE:
-		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PAUSED);
-		break;
-
-	case LOMO_STATE_PLAY:
-		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_PLAYING);
-		break;
-
-	case LOMO_STATE_STOP:
-		ret = gst_element_set_state(self->priv->pipeline, GST_STATE_NULL);
+	if ((gst_state != GST_STATE_PAUSED) && (gst_state != GST_STATE_PLAYING) && (gst_state != GST_STATE_NULL))
+		return LOMO_STATE_CHANGE_FAILURE;
+	
+	GstStateChangeReturn ret = self->priv->vtable.set_state(self->priv->pipeline, gst_state);
+	if (state == LOMO_STATE_STOP)
 		lomo_player_reset(self, NULL);
-		break;
-
-	default:
-		return LOMO_STATE_CHANGE_FAILURE;
-		break;
-	}
 
 	if (ret == GST_STATE_CHANGE_FAILURE)
 	{
-		lomo_player_set_error(error, LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
-			"Error while setting state on pipeline");
+		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE, "Error while setting state on pipeline");
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
 
@@ -536,151 +517,147 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 
 LomoState lomo_player_get_state(LomoPlayer *self)
 { TRACE
-	GstState gst_state;
-	LomoState lomo_state;
-	
-	if (self->priv->stream == NULL)
-		return LOMO_STATE_STOP;
+	g_return_val_if_fail(self->priv->vtable.get_state, LOMO_STATE_INVALID);
 
-	if (gst_element_get_state(self->priv->pipeline, &gst_state, NULL, 0) ==
-		GST_STATE_CHANGE_FAILURE)
+	if (!self->priv->pipeline || !self->priv->stream)
+		return LOMO_STATE_STOP;
+	
+	GstState gst_state = self->priv->vtable.get_state(self->priv->pipeline);
+
+	LomoState state;
+	if (!lomo_state_from_gst(gst_state, &state))
 		return LOMO_STATE_INVALID;
 
-	lomo_state_from_gst(gst_state, &lomo_state);
-	return lomo_state;
+	return state;
 }
 
+// --
+// get/set position (using vfuncs)
+// get lenght (using vfuncs)
+// --
 gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format)
 { TRACE
-	GstFormat gst_format_wanted, gst_format_used;
-	gint64 val, ret;
+	g_return_val_if_fail(self->priv->vtable.get_position, -1);
+	g_return_val_if_fail(self->priv->pipeline, -1);
+	g_return_val_if_fail(self->priv->stream, -1);
 
-	// No stream
-	if (self->priv->stream == NULL)
-		return -1;
-
-	// Invalid format
-	if (!lomo_format_to_gst(format, &gst_format_wanted)) {
-		return -1;
-	}
-
-	// Unable to get positition
-	gst_format_used = gst_format_wanted;
-	if(!gst_element_query_position(
-			GST_ELEMENT(self->priv->pipeline),
-			&gst_format_used, &val))
-	{
-		return -1;
-	}
-
-	// Ok, format is correct
-	if (gst_format_wanted == gst_format_used)
-		return val;
-
-	// Do a conversion if posible
-	if (!gst_element_query_convert(
-		GST_ELEMENT(self->priv->pipeline),
-		gst_format_used, val,
-		&gst_format_wanted, &ret))
-		return -1;
-	else
-		return ret;
-}
-
-gboolean
-lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
-{ TRACE
 	GstFormat gst_format;
-	gint64 old;
+	if (!lomo_format_to_gst(format, &gst_format))
+		return -1;
 
-	// No stream
-	if ( self->priv->stream == NULL ) 
-		return FALSE;
-
-	// Incorrect format
-	if (!lomo_format_to_gst(format, &gst_format)) {
-		return FALSE;
-	}
-
-	old = lomo_player_tell(self, format);
-	if (!gst_element_seek(
-			GST_ELEMENT(self->priv->pipeline), 1.0,
-			gst_format, GST_SEEK_FLAG_FLUSH,
-			GST_SEEK_TYPE_SET, val,
-			GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE)) {
-		return FALSE;
-	}
-
-	g_signal_emit(G_OBJECT(self), lomo_player_signals[SEEK], 0, old, val);
-	return TRUE;
-}
-
-gint64
-lomo_player_length(LomoPlayer *self, LomoFormat format)
-{ TRACE
-	GstFormat gst_format;
 	gint64 ret;
-
-	// No stream
-	if (self->priv->stream == NULL)
-		return -1;
-
-	// Invalid format
-	if (!lomo_format_to_gst(format, &gst_format)) {
-		return -1;
-	}
-
-	// Error quering duration
-	if (!gst_element_query_duration(
-		GST_ELEMENT(self->priv->pipeline), &gst_format, &ret))
+	if (!self->priv->vtable.get_position(self->priv->pipeline, &gst_format, &ret))
 		return -1;
 
 	return ret;
 }
 
+gboolean
+lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
+{ TRACE
+	g_return_val_if_fail(self->priv->vtable.set_position, FALSE);
+	g_return_val_if_fail(self->priv->pipeline, FALSE);
+	g_return_val_if_fail(self->priv->stream, FALSE);
+
+	// Incorrect format
+	GstFormat gst_format;
+	if (!lomo_format_to_gst(format, &gst_format))
+		return FALSE;
+
+	gint64 old_pos = lomo_player_tell(self, format);
+	if (old_pos == -1)
+		return FALSE;
+	
+	gboolean ret = self->priv->vtable.set_position(self->priv->pipeline, gst_format, val);
+	if (ret)
+		g_signal_emit(G_OBJECT(self), lomo_player_signals[SEEK], 0, old_pos, val);
+	return ret;
+}
+
+gint64
+lomo_player_length(LomoPlayer *self, LomoFormat format)
+{ TRACE
+	g_return_val_if_fail(self->priv->vtable.get_length != NULL, -1);
+	g_return_val_if_fail(self->priv->stream != NULL, -1);
+
+	// Format
+	GstFormat gst_format;
+	if (!lomo_format_to_gst(format, &gst_format)) 
+		return -1;
+
+	// Length
+	gint64 ret;
+	if (!self->priv->vtable.get_length(self->priv->pipeline, &gst_format, &ret))
+		return -1;
+
+	return ret;
+}
+
+// --
+// get/set volume (uses vfuncs)
+//--
 gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 { TRACE
-	gfloat _val;
+	// Check vtable
+	g_return_val_if_fail(self->priv->vtable.set_volume != NULL, FALSE);
+
+	if (self->priv->pipeline && !self->priv->vtable.set_volume(self->priv->pipeline, CLAMP(val, 0, 100)))
+		return FALSE;
 
 	self->priv->volume = val;
-	if (self->priv->pipeline == NULL)
-		return TRUE;
-
-	_val = (CLAMP(self->priv->volume, 0, 100)  * 0.01);
-	g_object_set(G_OBJECT(self->priv->pipeline), "volume", _val, NULL);
-	g_signal_emit(self, lomo_player_signals[VOLUME], 0, _val);
-
+	g_signal_emit(self, lomo_player_signals[VOLUME], 0, val);
 	return TRUE;
 }
 
 gint lomo_player_get_volume(LomoPlayer *self)
 { TRACE
-	return self->priv->volume;
+	// Call vfunc if needed
+	if (self->priv->vtable.get_volume)
+	{
+		g_return_val_if_fail(self->priv->pipeline, -1);
+		return self->priv->vtable.get_volume(self->priv->pipeline);
+	}
+	else
+		return self->priv->volume;
 }
 
+// --
+// get/set mute (uses vfuncs)
+// --
 gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 { TRACE
-	gfloat _val;
+	// Check vtable
+	g_return_val_if_fail((self->priv->vtable.set_mute != NULL) || (self->priv->vtable.set_volume != NULL), FALSE);
+	// Need pipeline, not mandatory
+	g_return_val_if_fail(self->priv->pipeline != NULL, FALSE);
 
-	self->priv->mute = mute;
-	if (self->priv->pipeline == NULL)
-		return TRUE;
-
+	gint vol;
 	if (mute)
-		g_object_set(self->priv->pipeline, "volume", (gfloat) 0 , NULL); 
+		vol = 0;
 	else
+		vol = self->priv->volume;
+
+	gboolean ret;
+	if (self->priv->vtable.set_mute)
+		ret = self->priv->vtable.set_mute(self->priv->pipeline, mute);
+	else
+		ret = self->priv->vtable.set_volume(self->priv->pipeline, vol);
+
+	if (ret)
 	{
-		_val = (CLAMP(self->priv->volume, 0, 100)  * 0.01);
-		g_object_set(self->priv->pipeline, "volume", _val, NULL);
+		self->priv->mute = mute;
+		g_signal_emit(self, lomo_player_signals[MUTE], 0 , mute);
 	}
 
-	g_signal_emit(self, lomo_player_signals[MUTE], 0 , mute);
-	return TRUE;
+	return ret;
 }
 
 gboolean lomo_player_get_mute(LomoPlayer *self)
 { TRACE
-	return self->priv->mute;
+	if (self->priv->vtable.get_mute)
+		return self->priv->vtable.get_mute(self->priv->pipeline);
+	else
+		return self->priv->mute;
 }
 
 /*
@@ -1058,6 +1035,89 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			break;
 	}
 
+	return TRUE;
+}
+
+// --
+// Defaul functions for LomoPlayerVTable
+// --
+static GstElement*
+create_pipeline(const gchar *uri, GHashTable *opts)
+{
+	GstElement *ret, *audio_sink;
+	const gchar *audio_sink_str;
+	
+	if ((ret = gst_element_factory_make("playbin", "playbin")) == NULL)
+		return NULL;
+
+	audio_sink_str = (gchar *) g_hash_table_lookup(opts, (gpointer) "audio-output");
+	if (audio_sink_str == NULL)
+		audio_sink_str = "autoaudiosink";
+	
+	audio_sink = gst_element_factory_make(audio_sink_str, "audio-sink");
+	if (audio_sink == NULL)
+	{
+		g_object_unref(ret);
+		return NULL;
+	}
+
+	g_object_set(G_OBJECT(ret),
+		"audio-sink", audio_sink,
+		"uri", uri,
+		NULL);
+
+	gst_element_set_state(ret, GST_STATE_READY); 
+
+	return ret;
+}
+
+static void
+destroy_pipeline(GstElement *pipeline)
+{
+	gst_element_set_state(pipeline, GST_STATE_NULL);
+	g_object_unref(G_OBJECT(pipeline));
+}
+
+static GstStateChangeReturn
+set_state(GstElement *pipeline, GstState state)
+{
+	return gst_element_set_state(pipeline, state);
+}
+
+static GstState
+get_state(GstElement *pipeline)
+{
+	GstState state, pending;
+	gst_element_get_state(pipeline, &state, &pending, GST_CLOCK_TIME_NONE);
+	return state;
+}
+
+static gboolean
+set_position(GstElement *pipeline, GstFormat format, gint64 position)
+{
+	return gst_element_seek(pipeline, 1.0,
+		format, GST_SEEK_FLAG_FLUSH,
+		GST_SEEK_TYPE_SET, position,
+		GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
+}
+
+static gboolean
+get_position(GstElement *pipeline, GstFormat *format, gint64 *position)
+{
+	return gst_element_query_position(pipeline, format, position);
+}
+
+static gboolean
+get_length(GstElement *pipeline, GstFormat *format, gint64 *duration)
+{
+	return gst_element_query_duration(pipeline, format, duration);
+}
+
+static gboolean
+set_volume(GstElement *pipeline, gint volume)
+{
+	gdouble v = (gdouble) volume / 100;
+	g_object_set(G_OBJECT(pipeline), "volume", v, NULL);
 	return TRUE;
 }
 

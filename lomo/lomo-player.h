@@ -86,28 +86,26 @@ typedef struct
 } LomoPlayerClass;
 GType lomo_player_get_type(void);
 
-#ifdef LOMO_PLAYER_VTABLE
 typedef struct {
-	GstElement* (*create)  (GHashTable *opts, GError **error);
-	gboolean    (*destroy) (GstElement *pipeline, GError **error);
-	gboolean    (*reset)   (GstElement *pipeline, GHashTable *opts, GError **error);
+	GstElement* (*create_pipeline)  (const gchar *uri, GHashTable *opts);
+	void        (*destroy_pipeline) (GstElement *pipeline);
 
-	gboolean     (*set_stream)  (GstElement *pipeline, const gchar *uri);
-	gchar*       (*get_stream)  (GstElement *pipeline);
-
-	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state, GError **error);
+	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state);
 	GstState             (*get_state) (GstElement *pipeline);
 
-	gboolean             (*query_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
-	gboolean             (*query_duration) (GstElement *pipeline, GstFormat *format, gint64 *duration);
+	gboolean (*set_position) (GstElement *pipeline, GstFormat  format, gint64  position);
+	gboolean (*get_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
+	gboolean (*get_length)   (GstElement *pipeline, GstFormat *format, gint64 *duration);
 
+	// 0 lowest, 100 highest (there is not a common range over all posible
+	// sinks, so make it relative and let vfunc set it
 	gboolean (*set_volume) (GstElement *pipeline, gint volume);
 	gint     (*get_volume) (GstElement *pipeline);
 
+	// Can be omited
 	gboolean (*set_mute) (GstElement *pipeline, gboolean mute);
 	gboolean (*get_mute) (GstElement *pipeline);
 } LomoPlayerVTable;
-#endif
 
 #define lomo_init(argc,argv)    gst_init(argc,argv)
 #define lomo_get_option_group() gst_init_get_option_group()
