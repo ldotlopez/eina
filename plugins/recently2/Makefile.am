@@ -7,16 +7,16 @@ librecently2_la_SOURCES = recently.c
 AM_CFLAGS = @PACKAGE_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
 
-#recently.ui: recently.glade
-#	$(GTK_BUILDER_CONVERT) $< $@
-#
-#BUILT_SOURCES = recently.ui
-#CLEANFILES = $(BUILT_SOURCES)
-#
-#EXTRA_DIST = \
-#	$(BUILT_SOURCES) \
-#	recently.png \
-#	recently.glade
+dock.ui: dock.glade
+	$(GTK_BUILDER_CONVERT) $< $@
+
+BUILT_SOURCES = dock.ui
+CLEANFILES = $(BUILT_SOURCES)
+
+EXTRA_DIST = \
+	$(BUILT_SOURCES) \
+	dock.glade
+#	recently.png 
 
 install-data-local: 
 	$(mkinstalldirs) $(DESTDIR)/$(plugindir); \

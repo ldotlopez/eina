@@ -40,7 +40,8 @@ enum {
 	RECENTLY_COLUMN_TIMESTAMP, // Not visible, for reference
 	RECENTLY_COLUMN_SEARCH,    // Not visible, for matching
 	RECENTLY_COLUMN_COVER,
-	RECENTLY_COLUMN_TITLE,
+	RECENTLY_COLUMN_SUMMARY,
+	RECENTLY_COLUMN_MARKUP,
 	RECENTLY_COLUMN_PLAY,
 	RECENTLY_COLUMN_ENQUEUE,
 	RECENTLY_COLUMN_DELETE,
@@ -115,15 +116,35 @@ GQuark recently_quark(void)
 static GtkWidget *
 dock_create(Recently *self)
 {
-	GtkScrolledWindow *sw;
+	// Get GtkBuilder interface
+	gchar *xml_path = gel_plugin_build_resource_path(self->plugin, "dock.ui");
+	GtkBuilder *xml_ui = gtk_builder_new();
 
-	self->tv = GTK_TREE_VIEW(gtk_tree_view_new());
+	GError *err = NULL;
+	if (gtk_builder_add_from_file(xml_ui, xml_path, &err) == 0)
+	{
+		gel_error("Cannot load ui from %s: %s", xml_path, err->message);
+		g_error_free(err);
+		g_object_unref(xml_ui);
+		g_free(xml_path);
+		return NULL;
+	}
+	g_free(xml_path);
+
+	GtkWidget *ret = GTK_WIDGET(gtk_builder_get_object(xml_ui, "main-container"));
+
+	g_object_ref(ret);
+	gtk_container_remove(
+		GTK_CONTAINER(gtk_builder_get_object(xml_ui, "main-window")),
+		ret);
+
+	self->tv = GTK_TREE_VIEW(gtk_builder_get_object(xml_ui, "treeview"));
 
 	// Renders
 	GtkCellRenderer *renders[RECENTLY_N_COLUMNS];
 	renders[RECENTLY_COLUMN_TIMESTAMP] = gtk_cell_renderer_text_new();
 	renders[RECENTLY_COLUMN_COVER]     = gtk_cell_renderer_pixbuf_new();
-	renders[RECENTLY_COLUMN_TITLE]     = gtk_cell_renderer_text_new();
+	renders[RECENTLY_COLUMN_MARKUP]    = gtk_cell_renderer_text_new();
 	renders[RECENTLY_COLUMN_PLAY]      = gtk_cell_renderer_pixbuf_new();
 	renders[RECENTLY_COLUMN_ENQUEUE]   = gtk_cell_renderer_pixbuf_new();
 	renders[RECENTLY_COLUMN_DELETE]    = gtk_cell_renderer_pixbuf_new();
@@ -142,9 +163,11 @@ dock_create(Recently *self)
 		"pixbuf", RECENTLY_COLUMN_COVER,
 		NULL);
 
-	columns[RECENTLY_COLUMN_TITLE] = gtk_tree_view_column_new_with_attributes(N_("Title"),
-		renders[RECENTLY_COLUMN_TITLE],
-		"markup", RECENTLY_COLUMN_TITLE,
+	columns[RECENTLY_COLUMN_SUMMARY] = NULL;
+
+	columns[RECENTLY_COLUMN_MARKUP] = gtk_tree_view_column_new_with_attributes(N_("Title"),
+		renders[RECENTLY_COLUMN_MARKUP],
+		"markup", RECENTLY_COLUMN_MARKUP,
 		NULL);
 
 	columns[RECENTLY_COLUMN_PLAY] = gtk_tree_view_column_new_with_attributes(N_("Play"),
@@ -169,13 +192,13 @@ dock_create(Recently *self)
 		gtk_tree_view_append_column(self->tv, columns[i]);
 		g_object_set(G_OBJECT(columns[i]),
 			"visible", i != RECENTLY_COLUMN_TIMESTAMP,
-			"resizable", i == RECENTLY_COLUMN_TITLE,
-			"expand", i == RECENTLY_COLUMN_TITLE,
+			"resizable", i == RECENTLY_COLUMN_MARKUP,
+			"expand", i == RECENTLY_COLUMN_MARKUP,
 			NULL);
 	}
 
 	// Renderers props
-	g_object_set(G_OBJECT(renders[RECENTLY_COLUMN_TITLE]),
+	g_object_set(G_OBJECT(renders[RECENTLY_COLUMN_MARKUP]),
 		"ellipsize-set", TRUE,
 		"ellipsize", PANGO_ELLIPSIZE_END,
 		"editable", TRUE,
@@ -200,19 +223,32 @@ dock_create(Recently *self)
 		G_TYPE_STRING,
 		G_TYPE_STRING,
 		G_TYPE_STRING,
+		G_TYPE_STRING,
 		G_TYPE_STRING);
     gtk_tree_view_set_model(self->tv, GTK_TREE_MODEL(self->model));
 
 	g_signal_connect(self->tv, "row-activated", G_CALLBACK(dock_row_activated_cb), self); 
-	g_signal_connect(renders[RECENTLY_COLUMN_TITLE], "edited", G_CALLBACK(dock_renderer_edited_cb), self);
+	g_signal_connect(renders[RECENTLY_COLUMN_MARKUP], "edited", G_CALLBACK(dock_renderer_edited_cb), self);
 
-	sw = (GtkScrolledWindow *) gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(sw, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_container_add(GTK_CONTAINER(sw), GTK_WIDGET(self->tv));
+	// --
+	// Setup GtkIconView
+	// --
+	GtkIconView *iv = GTK_ICON_VIEW(gtk_builder_get_object(xml_ui, "iconview"));
+	g_object_set(G_OBJECT(iv),
+		"model", GTK_TREE_MODEL(self->model),
+		"pixbuf-column", RECENTLY_COLUMN_COVER,
+		"text-column", RECENTLY_COLUMN_SUMMARY,
+		"item-width", 128,
+		NULL);
 
+	gtk_paned_set_position((GtkPaned *) gtk_builder_get_object(xml_ui, "paned"), 0);
+	gtk_widget_show_all((GtkWidget *) ret);
+	gtk_widget_hide((GtkWidget *) iv);
+	gtk_widget_hide((GtkWidget *) gtk_builder_get_object(xml_ui, "search-box"));
 	g_idle_add((GSourceFunc) dock_update, self);
 
-	return GTK_WIDGET(sw);
+	g_object_unref(xml_ui);
+	return ret;
 }
 
 static void
@@ -261,7 +297,6 @@ dock_update(Recently *self)
 		gtk_list_store_append((GtkListStore *) self->model, &iter);
 
 		gchar *markup = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), title);
-		g_free(title);
 
 		// Start a search for cover
 		ArtSearch *search = NULL;
@@ -277,8 +312,10 @@ dock_update(Recently *self)
 			RECENTLY_COLUMN_PLAY, GTK_STOCK_MEDIA_PLAY,
 			RECENTLY_COLUMN_ENQUEUE, "eina-queue",
 			RECENTLY_COLUMN_DELETE, GTK_STOCK_DELETE,
-			RECENTLY_COLUMN_TITLE, markup,
+			RECENTLY_COLUMN_SUMMARY, title,
+			RECENTLY_COLUMN_MARKUP, markup,
 			-1);
+		g_free(title);
 		g_free(markup);
 	}
 	sqlite3_finalize(stmt);
@@ -578,7 +615,7 @@ dock_renderer_edited_cb(GtkWidget *w,
 		ts_human,
 		alias);
 	gtk_list_store_set(GTK_LIST_STORE(self->model), &iter,
-		RECENTLY_COLUMN_TITLE, real_new_text,
+		RECENTLY_COLUMN_MARKUP, real_new_text,
 		-1);
 	g_free(real_new_text);
 	g_free(prefix);
@@ -664,7 +701,6 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	self->app    = app;
 	self->plugin = plugin;
 	self->dock   = dock_create(self);
-	gtk_widget_show_all(self->dock);
 	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), self->dock);
 
 	// Signals
