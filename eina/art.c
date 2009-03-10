@@ -18,16 +18,18 @@
  */
 
 #define GEL_DOMAIN "Eina::Art"
-#include "eina/art.h"
-#include <eina/eina-plugin.h>
 #include <config.h>
+#include <string.h>
+#include <glib/gstdio.h>
+#include <eina/eina-plugin.h>
+#include "eina/art.h"
 
-#define ENABLE_ART_XDG_CACHE 0
+#define ENABLE_ART_XDG_CACHE 1
 #define ENABLE_ART_TIMEOUT   0
 #define ENABLE_ART_DEBUG     0
 
 #if ENABLE_ART_DEBUG
-#define art_debug(...) gel_warn(__VA_ARGS__)
+#define art_debug(...) art_debug(__VA_ARGS__)
 #else
 #define art_debug(...) ;
 #endif
@@ -85,6 +87,14 @@ art_search_timeout_cb(ArtSearch *search);
 #if ENABLE_ART_XDG_CACHE
 void
 art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data);
+void
+xdg_save(ArtSearch *search);
+static gchar *
+xdg_gen_unique(LomoStream *stream);
+static gboolean
+xdg_ensure_folder(void);
+static char*
+xdg_strip_characters (const char *original);
 #endif
 
 // -------------------------
@@ -298,9 +308,15 @@ static gboolean
 art_report_success_idle(ArtSearch *search)
 {
 	art_debug("Calling success hook");
+
+#if ENABLE_ART_XDG_CACHE
+	xdg_save(search);
+#endif
+
 	if (search->success)
 		 search->success(search->art, search, search->data);
 	search->art->searches = g_list_remove(search->art->searches, search);
+
 	art_search_destroy(search);
 	return FALSE;
 }
@@ -528,8 +544,65 @@ G_MODULE_EXPORT EinaPlugin art_plugin = {
 // --
 // Pseudo backend
 // --
+static gchar *
+xdg_gen_unique(LomoStream *stream)
+{
+	// First round, with fallbacks
+	const gchar *artist = (const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	const gchar *album =  (const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
+	if (!artist)
+		artist = " ";
+	if (!album)
+		album = " ";
+
+	// Normalize round
+	gchar *a_norm, *b_norm;
+	if (g_utf8_validate(artist, -1 , NULL))
+		a_norm = g_utf8_normalize(artist, -1, G_NORMALIZE_NFKD);
+	else
+		a_norm = g_strdup(" ");
+
+	if (g_utf8_validate(album, -1 , NULL))
+		b_norm = g_utf8_normalize(album, -1, G_NORMALIZE_NFKD);
+	else
+		b_norm = g_strdup(" ");
+
+	// Lowercase round
+	gchar *a_lc = g_ascii_strdown(a_norm, -1);
+	gchar *b_lc = g_ascii_strdown(b_norm, -1);
+	g_free(a_norm);
+	g_free(b_norm);
+
+	// Strip round
+	gchar *a_strip = xdg_strip_characters(a_lc);
+	gchar *b_strip = xdg_strip_characters(b_lc);
+	g_free(a_lc);
+	g_free(b_lc);
+
+	// Generate unique
+	gchar *a_md5 = g_compute_checksum_for_string(G_CHECKSUM_MD5, a_strip, strlen(a_strip));
+	gchar *b_md5 = g_compute_checksum_for_string(G_CHECKSUM_MD5, b_strip, strlen(b_strip));
+	g_free(a_strip);
+	g_free(b_strip);
+
+	gchar *uniq = g_strconcat(g_get_user_cache_dir(), G_DIR_SEPARATOR_S, "media-art", G_DIR_SEPARATOR_S,  "album-", a_md5, "-", b_md5, ".jpeg", NULL);
+	g_free(a_md5);
+	g_free(b_md5);
+
+	return uniq;	
+}
+
+static gboolean
+xdg_ensure_folder(void)
+{
+	gchar *path = g_strconcat(g_get_user_cache_dir(), G_DIR_SEPARATOR_S, "media-art", G_DIR_SEPARATOR_S, NULL);
+	gboolean ret = (g_mkdir_with_parents(path, 0755) == 0);
+	g_free(path);
+	return ret;
+}
+
 static char*
-strip_characters (const char *original)
+xdg_strip_characters (const char *original)
 {
 	const char *foo = "()[]<>{}_!@#$^&*+=|\\/\"'?~";
 	int osize = strlen (original);
@@ -602,37 +675,39 @@ strip_characters (const char *original)
 	return retval;
 }
 
-static gchar*
-remove_unicode(gchar *input)
+void
+xdg_save(ArtSearch *search)
 {
-	g_return_val_if_fail(input != NULL, NULL);
-	g_return_val_if_fail(g_utf8_validate(input, -1, NULL), NULL);
+	GdkPixbuf *pb = art_search_get_result(search);
+	g_return_if_fail(pb && GDK_IS_PIXBUF(pb));
 
-	// Lower case input
-	gchar *lc = g_utf8_strdown(input);
-	g_return_val_if_fail(lc, NULL);
+	LomoStream *stream = art_search_get_stream(search);
+	gchar *uniq = xdg_gen_unique(stream);
+	g_return_if_fail(uniq);
 
-	// Strip wide-characters
-	gint i = 0;
-	gchar *light = g_new0(gchar, g_utf8_strlen(lc, -1));
-	gchar *p = lc;
-	do
-		if (g_ascii_isalnum(p[0]))
-			light[i++] = p[0];
-	} while (((p = g_utf8_find_next_char(p)) != NULL) && (p[0] != '\0'));
-	g_free(lc);
+	const gchar *a = (const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	const gchar *b = (const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
 
-	if (light[0] == '\0')
+	art_debug("Saving cover for %s-%s to %s", a, b, uniq);
+
+	if (g_file_test(uniq, G_FILE_TEST_EXISTS))
 	{
-		g_free(ret);
-		return NULL;
+		art_debug("Already cached, skipping");
+		g_free(uniq);
+		return;
+	}
+	
+	GError *err = NULL;
+	if (!gdk_pixbuf_save(pb, uniq, "jpeg", &err, "quality", "100", NULL))
+	{
+		art_debug("Cannot save");
+		g_unlink(uniq);
+		g_free(uniq);
+		return;
 	}
 
-	// Strip trash 
-	gchar *stripped = strip_characters(ret);
-	g_free(ret);
-
-	return stripped;
+	art_debug("Saved");
+	g_free(uniq);
 }
 
 void
@@ -642,32 +717,23 @@ art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data)
 	const gchar *a = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
 	const gchar *b = lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
 
-	if (!a || !b)
+	if (!a || !b || !xdg_ensure_folder())
 	{
-		gel_warn("Needed artist(%p) and album(%p) tags", a, b);
+		art_debug("Needed artist(%p) and album(%p) tags", a, b);
 		art_report_failure(art, search);
 		return;
 	}
 
-	gboolean a_utf8 = g_utf8_validate(a, -1, NULL);
-	gboolean b_utf8 = g_utf8_validate(b, -1, NULL);
-	if (!a_utf8 || !b_utf8)
+	gchar *uniq = xdg_gen_unique(art_search_get_stream(search));
+	art_debug("Try for %s %s: %s", a, b, uniq);
+	GdkPixbuf *pb = gdk_pixbuf_new_from_file(uniq, NULL);
+	g_free(uniq);
+	if (pb)
 	{
-		gel_warn("Invalid artist or album tags (A_UTF8:%d, B_UTF8:%d)", a_utf8, b_utf8);
-		art_report_failure(art, search);
-		return;
+		art_debug("XDG Cache successful");
+		art_report_success(art, search, pb);
 	}
-
-	// Lower case tags
-	gchar *a_lc = g_utf8_strdown(a);
-	gchar *b_lc = g_utf8_strdown(b);
-
-	// Strip unicodes
-	gchar *p = (gchar *) a;
-	do
-	{
-		gel_warn("=> %c (0x%d)", p[0], p[0]);
-	} while (( p = g_utf8_find_next_char(p, NULL)) != NULL && p[0] != '\0');
-	art_report_failure(art, search);
+	else
+		art_report_failure(art, search);
 }
 #endif
