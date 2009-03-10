@@ -685,10 +685,10 @@ xdg_save(ArtSearch *search)
 	gchar *uniq = xdg_gen_unique(stream);
 	g_return_if_fail(uniq);
 
-	const gchar *a = (const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-	const gchar *b = (const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ALBUM);
-
-	art_debug("Saving cover for %s-%s to %s", a, b, uniq);
+	art_debug("Saving cover for %s-%s to %s",
+		(const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ARTIST),
+		(const gchar *) lomo_stream_get_tag(stream, LOMO_TAG_ALBUM),
+		uniq);
 
 	if (g_file_test(uniq, G_FILE_TEST_EXISTS))
 	{
