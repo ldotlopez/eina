@@ -32,14 +32,19 @@ typedef struct {
 	GelApp       *app;
 	GelPlugin    *plugin;
 	GtkWidget    *dock;
-	GtkTreeView  *tv;
-	GtkListStore *model;
+
+	// Playlists
+	GtkTreeView  *pls_tv;
+	GtkListStore *pls_model;
 
 	// Search related
+	
 	GtkListStore       *search_results;
 	GtkTreeModelFilter *search_filter;
 	GtkEntry           *search_entry;
 	GtkLabel           *search_tip_label;
+
+	GtkIconView       *search_icon_view;
 
 	guint search_schedule_id;
 } Recently;
@@ -86,6 +91,10 @@ static const gchar*
 stamp_to_human(gchar *stamp);
 static gchar *
 summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
+
+// --
+// ADB related
+// --
 
 // --
 // Callbacks
@@ -151,7 +160,7 @@ dock_create(Recently *self)
 		GTK_CONTAINER(gtk_builder_get_object(xml_ui, "main-window")),
 		ret);
 
-	self->tv = GTK_TREE_VIEW(gtk_builder_get_object(xml_ui, "recent-treeview"));
+	self->pls_tv = GTK_TREE_VIEW(gtk_builder_get_object(xml_ui, "recent-treeview"));
 
 	// Renders
 	GtkCellRenderer *renders[RECENTLY_N_COLUMNS];
@@ -202,7 +211,7 @@ dock_create(Recently *self)
 	{
 		if (!columns[i])
 			continue;
-		gtk_tree_view_append_column(self->tv, columns[i]);
+		gtk_tree_view_append_column(self->pls_tv, columns[i]);
 		g_object_set(G_OBJECT(columns[i]),
 			"visible", i != RECENTLY_COLUMN_TIMESTAMP,
 			"resizable", i == RECENTLY_COLUMN_MARKUP,
@@ -223,13 +232,13 @@ dock_create(Recently *self)
 		NULL);
 
 	// Treeview props
-    g_object_set(G_OBJECT(self->tv),
+    g_object_set(G_OBJECT(self->pls_tv),
 		"search-column", -1,
 		"headers-clickable", FALSE,
 		"headers-visible", FALSE,
 		NULL);
 
-	self->model = gtk_list_store_new(RECENTLY_N_COLUMNS,
+	self->pls_model = gtk_list_store_new(RECENTLY_N_COLUMNS,
 		G_TYPE_STRING,
 		G_TYPE_POINTER,
 		GDK_TYPE_PIXBUF,
@@ -238,19 +247,19 @@ dock_create(Recently *self)
 		G_TYPE_STRING,
 		G_TYPE_STRING,
 		G_TYPE_STRING);
-    gtk_tree_view_set_model(self->tv, GTK_TREE_MODEL(self->model));
+    gtk_tree_view_set_model(self->pls_tv, GTK_TREE_MODEL(self->pls_model));
 
-	g_signal_connect(self->tv, "row-activated", G_CALLBACK(dock_row_activated_cb), self); 
+	g_signal_connect(self->pls_tv, "row-activated", G_CALLBACK(dock_row_activated_cb), self); 
 	g_signal_connect(renders[RECENTLY_COLUMN_MARKUP], "edited", G_CALLBACK(dock_renderer_edited_cb), self);
 
 	// --
 	// Setup GtkIconView
 	// --
-	GtkIconView *iv = GTK_ICON_VIEW(gtk_builder_get_object(xml_ui, "search-iconview"));
-	g_object_set(G_OBJECT(iv),
-		"model", GTK_TREE_MODEL(self->model),
-		"pixbuf-column", RECENTLY_COLUMN_COVER,
-		"text-column", RECENTLY_COLUMN_SUMMARY,
+	self->search_icon_view = GTK_ICON_VIEW(gtk_builder_get_object(xml_ui, "search-iconview"));
+	g_object_set(G_OBJECT(self->search_icon_view),
+		// "model", GTK_TREE_MODEL(self->pls_model),
+		// "pixbuf-column", RECENTLY_COLUMN_COVER,
+		// "text-column", RECENTLY_COLUMN_SUMMARY,
 		"item-width", 128,
 		NULL);
 
@@ -283,7 +292,7 @@ dock_create(Recently *self)
 static void
 dock_update(Recently *self)
 {
-	gtk_list_store_clear(GTK_LIST_STORE(self->model));
+	gtk_list_store_clear(GTK_LIST_STORE(self->pls_model));
 
 	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
 	if (adb == NULL)
@@ -323,7 +332,7 @@ dock_update(Recently *self)
 		}
 
 		GtkTreeIter iter;
-		gtk_list_store_append((GtkListStore *) self->model, &iter);
+		gtk_list_store_append((GtkListStore *) self->pls_model, &iter);
 
 		gchar *markup = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(ts), title);
 
@@ -335,7 +344,7 @@ dock_update(Recently *self)
 				(ArtFunc) art_search_success_cb, (ArtFunc) art_search_fail_cb,
 				self);
 
-		gtk_list_store_set((GtkListStore *) self->model, &iter,
+		gtk_list_store_set((GtkListStore *) self->pls_model, &iter,
 			RECENTLY_COLUMN_TIMESTAMP, ts,
 			RECENTLY_COLUMN_SEARCH, search,
 			RECENTLY_COLUMN_PLAY, GTK_STOCK_MEDIA_PLAY,
@@ -353,7 +362,7 @@ dock_update(Recently *self)
 static gboolean
 dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter)
 {
-	GtkTreeModel *model = gtk_tree_view_get_model(self->tv);
+	GtkTreeModel *model = gtk_tree_view_get_model(self->pls_tv);
 
 	if (!gtk_tree_model_get_iter_first(model, iter))
 	{
@@ -376,10 +385,10 @@ dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter)
 static void
 dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf)
 {
-	g_return_if_fail(gtk_list_store_iter_is_valid((GtkListStore *) self->model, iter));
+	g_return_if_fail(gtk_list_store_iter_is_valid((GtkListStore *) self->pls_model, iter));
 	g_return_if_fail(pixbuf);
 
-	gtk_list_store_set(self->model, iter,
+	gtk_list_store_set(self->pls_model, iter,
 		RECENTLY_COLUMN_COVER, gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR),
 		-1);
 }
@@ -537,8 +546,8 @@ dock_row_activated_cb(GtkWidget *w,
 	if (lomo == NULL)
 		return;
 	
-	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &iter, path);
-	gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter,
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->pls_model), &iter, path);
+	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
 		RECENTLY_COLUMN_TIMESTAMP, &ts,
 		-1);
 
@@ -597,14 +606,14 @@ dock_renderer_edited_cb(GtkWidget *w,
 
 	// Try to get data from model
 	GtkTreeIter iter;
-	if (!gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->model), &iter, path))
+	if (!gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->pls_model), &iter, path))
 	{
 		gel_warn("Cannot get iter for path %s", path);
 		return;
 	}
 
 	gchar *ts = NULL;
-	gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter,
+	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
 		RECENTLY_COLUMN_TIMESTAMP, &ts,
 		-1);
 
@@ -643,7 +652,7 @@ dock_renderer_edited_cb(GtkWidget *w,
 	gchar *real_new_text = g_strdup_printf("<b>%s</b>:\n\t\%s",
 		ts_human,
 		alias);
-	gtk_list_store_set(GTK_LIST_STORE(self->model), &iter,
+	gtk_list_store_set(GTK_LIST_STORE(self->pls_model), &iter,
 		RECENTLY_COLUMN_MARKUP, real_new_text,
 		-1);
 	g_free(real_new_text);
@@ -694,7 +703,7 @@ search_get_sql_results(Recently *self, gchar *input)
 	g_free(normalized);
 
 	gel_warn("Search '%s'", q);
-
+/*
 	Adb *adb = GEL_APP_GET_ADB(self->app);
 	sqlite3 *stmt = NULL;
 	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
@@ -708,6 +717,7 @@ search_get_sql_results(Recently *self, gchar *input)
 	{
 		
 	}
+	*/
 }
 
 static gboolean

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Wed Mar 11 11:48:22 2009 -->
+<!--Generated with glade3 3.4.5 on Wed Mar 11 22:05:33 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="main-window">
     <child>
@@ -26,6 +26,7 @@
             <child>
               <widget class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
+                <property name="spacing">5</property>
                 <child>
                   <widget class="GtkImage" id="image1">
                     <property name="visible">True</property>
@@ -44,7 +45,6 @@
                 </child>
                 <child>
                   <widget class="GtkLabel" id="search-tip-label">
-                    <property name="xpad">5</property>
                     <property name="label" translatable="yes">&lt;span color="#666"&gt;Type at least 3 characters&lt;/span&gt;</property>
                     <property name="use_markup">True</property>
                   </widget>
