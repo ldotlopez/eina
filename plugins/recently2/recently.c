@@ -34,6 +34,14 @@ typedef struct {
 	GtkWidget    *dock;
 	GtkTreeView  *tv;
 	GtkListStore *model;
+
+	// Search related
+	GtkListStore       *search_results;
+	GtkTreeModelFilter *search_filter;
+	GtkEntry           *search_entry;
+	GtkLabel           *search_tip_label;
+
+	guint search_schedule_id;
 } Recently;
 
 enum {
@@ -68,6 +76,9 @@ dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter);
 static void
 dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf);
 
+static void
+schedule_search(Recently *self);
+
 static LomoStream*
 stream_from_timestamp(Adb *adb, gchar *timestamp);
 
@@ -79,16 +90,18 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many);
 // --
 // Callbacks
 // --
-void
+static void
 dock_row_activated_cb(GtkWidget *w,
 	GtkTreePath *path,
 	GtkTreeViewColumn *column,
 	Recently *self);
-void
+static void
 dock_renderer_edited_cb(GtkWidget *w,
 	gchar *path,
 	gchar *new_text,
 	Recently *self);
+static void 
+dock_search_entry_changed_cb(Recently *self, GtkEntry *w); // swapped
 static void
 art_search_success_cb(Art *art, ArtSearch *search, Recently *self);
 static void
@@ -138,7 +151,7 @@ dock_create(Recently *self)
 		GTK_CONTAINER(gtk_builder_get_object(xml_ui, "main-window")),
 		ret);
 
-	self->tv = GTK_TREE_VIEW(gtk_builder_get_object(xml_ui, "treeview"));
+	self->tv = GTK_TREE_VIEW(gtk_builder_get_object(xml_ui, "recent-treeview"));
 
 	// Renders
 	GtkCellRenderer *renders[RECENTLY_N_COLUMNS];
@@ -233,7 +246,7 @@ dock_create(Recently *self)
 	// --
 	// Setup GtkIconView
 	// --
-	GtkIconView *iv = GTK_ICON_VIEW(gtk_builder_get_object(xml_ui, "iconview"));
+	GtkIconView *iv = GTK_ICON_VIEW(gtk_builder_get_object(xml_ui, "search-iconview"));
 	g_object_set(G_OBJECT(iv),
 		"model", GTK_TREE_MODEL(self->model),
 		"pixbuf-column", RECENTLY_COLUMN_COVER,
@@ -241,10 +254,26 @@ dock_create(Recently *self)
 		"item-width", 128,
 		NULL);
 
-	gtk_paned_set_position((GtkPaned *) gtk_builder_get_object(xml_ui, "paned"), 0);
-	gtk_widget_show_all((GtkWidget *) ret);
-	gtk_widget_hide((GtkWidget *) iv);
-	gtk_widget_hide((GtkWidget *) gtk_builder_get_object(xml_ui, "search-box"));
+	// --
+	// Signals
+	// --
+	/*
+	gchar *signals[] = {
+		"backspace",
+		"cut-copy-clipboard",
+		"delete-from-cursor",
+		"insert-at-cursor",
+		"paste-clipboard",
+		NULL
+		};
+	for (i = 0; signals[i] != NULL; i++) */
+	self->search_entry = GTK_ENTRY(gtk_builder_get_object(xml_ui, "search-entry")); 
+	self->search_tip_label = GTK_LABEL(gtk_builder_get_object(xml_ui, "search-tip-label"));
+	g_signal_connect_swapped(self->search_entry, "changed",
+		(GCallback) dock_search_entry_changed_cb, self);
+
+	gtk_widget_show((GtkWidget *) ret);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(xml_ui, "notebook")), 0);
 	g_idle_add((GSourceFunc) dock_update, self);
 
 	g_object_unref(xml_ui);
@@ -620,6 +649,81 @@ dock_renderer_edited_cb(GtkWidget *w,
 	g_free(real_new_text);
 	g_free(prefix);
 	g_free(alias);
+}
+
+static void
+dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
+{
+	const gchar *text = gtk_entry_get_text(self->search_entry);
+	gssize len = g_utf8_strlen(text, -1);
+
+	if (len < 3)
+	{
+		if (!GTK_WIDGET_VISIBLE(self->search_tip_label))
+			gtk_widget_show((GtkWidget *) self->search_tip_label);
+	}
+	else
+	{
+		if (GTK_WIDGET_VISIBLE(self->search_tip_label))
+			gtk_widget_hide((GtkWidget *) self->search_tip_label);
+		schedule_search(self);
+	}
+	/*
+	if (len 
+	gel_warn("Current text: %s",  gtk_entry_get_text(self->search_entry));
+	 */
+}
+
+static void
+search_get_sql_results(Recently *self, gchar *input)
+{
+	GString *like = g_string_sized_new(g_utf8_strlen(input, -1) * 2);
+	while (input && input[0])
+	{
+		like = g_string_append_c(like, '%');
+		like = g_string_append_unichar(like,  g_utf8_get_char(input));
+		input = g_utf8_find_next_char(input, NULL);
+	}
+	like = g_string_append_c(like, '%');
+	gchar *normalized = g_utf8_normalize(like->str, -1, G_NORMALIZE_NFKD);
+	g_string_free(like, TRUE);
+
+	char *q = sqlite3_mprintf("SELECT sid,key,value,uri FROM ("
+		"SELECT sid,key,value FROM metadata WHERE (key = 'title' or key = 'artist' or key='album') and value like '%q')"
+		"join streams using(sid)", normalized);
+	g_free(normalized);
+
+	gel_warn("Search '%s'", q);
+
+	Adb *adb = GEL_APP_GET_ADB(self->app);
+	sqlite3 *stmt = NULL;
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_error("Cannot query ADB for matches");	
+		sqlite3_free(q);
+		return;
+	}
+
+	while (stmt && (sqlite3_step(stmt_alias) == SQLITE_ROW))
+	{
+		
+	}
+}
+
+static gboolean
+run_search(Recently *self)
+{
+	search_get_sql_results(self, (gchar *) gtk_entry_get_text(self->search_entry));
+	self->search_schedule_id = 0;
+	return FALSE;
+}
+
+static void
+schedule_search(Recently *self)
+{
+	if (self->search_schedule_id)
+		g_source_remove(self->search_schedule_id);
+	self->search_schedule_id = g_timeout_add_seconds(1, (GSourceFunc) run_search, self);
 }
 
 // --
