@@ -296,8 +296,10 @@ dock_create(Recently *self)
 	self->search_view = GTK_ICON_VIEW(gtk_builder_get_object(xml_ui, "search-iconview"));
 	g_object_set(G_OBJECT(self->search_view),
 		"pixbuf-column", QUERYER_COLUMN_COVER,
-		"text-column",   QUERYER_COLUMN_TEXT,
-		"item-width", 128,
+		"markup-column",   QUERYER_COLUMN_TEXT,
+		"item-width", 256,
+		"columns", -1,
+		"orientation", GTK_ORIENTATION_HORIZONTAL,
 		"model", self->queryer_results,
 		NULL);
 
@@ -759,27 +761,32 @@ search_get_sql_results(Recently *self, gchar *input)
 		gchar *b = (gchar*) sqlite3_column_text(stmt, 3); 
 		gchar *t = (gchar*) sqlite3_column_text(stmt, 4);
 
+		gchar *text = NULL;
 		gint match_type = 0;
 		gchar *full_match = NULL;
 		if (g_regex_match(regex, a, 0, NULL))
 		{
 			match_type = MATCH_TYPE_ARTIST;
 			full_match = a;
+			text = g_strdup_printf(N_("<b>Artist:</b>\n  %s"), a);
 		}
 		else if (g_regex_match(regex,b, 0, NULL ))
 		{
 			match_type = MATCH_TYPE_ALBUM;
 			full_match = b;
+			text = g_strdup_printf(N_("<b>Album:</b>\n  %s (by %s)"), b, a);
 		}
 		else if (g_regex_match(regex,t, 0, NULL))
 		{
 			match_type = MATCH_TYPE_TITLE;
 			full_match = t;
+			text = g_strdup_printf(N_("<b>Song:</b>\n  %s (by %s)"), t, a);
 		}
 		else if (g_regex_match(regex,u, 0, NULL))
 		{
 			match_type = MATCH_TYPE_URI;
 			full_match = u;
+			text = g_strdup_printf(N_("<b>File:</b>\n  %s)"),u );
 		}
 
 		LomoStream *stream = lomo_stream_new(u);
@@ -796,8 +803,9 @@ search_get_sql_results(Recently *self, gchar *input)
 			QUERYER_COLUMN_SEARCH, search,
 			QUERYER_COLUMN_MATCH_TYPE, match_type,
 			QUERYER_COLUMN_FULL_MATCH, g_strdup(full_match),
-			QUERYER_COLUMN_TEXT, g_strdup(full_match),
+			QUERYER_COLUMN_TEXT, text,
 			-1);
+		g_free(text);
 
 		gel_warn("MATCH(%d) [%s]: %s %s %s", match_type, full_match, a , b, t);
 	}
@@ -835,23 +843,27 @@ queryer_search_art_success_cb(Art *art, ArtSearch *search, Recently *self)
 		gtk_tree_model_get((GtkTreeModel *) self->queryer_results, &iter,
 			QUERYER_COLUMN_SEARCH, &test,
 			-1);
-		if (test == art)
+		if (test == search)
 		{
 			GdkPixbuf *pb = art_search_get_result(search);
 			gtk_list_store_set(self->queryer_results, &iter,
 				QUERYER_COLUMN_SEARCH, NULL,
-				QUERYER_COLUMN_COVER, pb,
+				QUERYER_COLUMN_COVER, gdk_pixbuf_scale_simple(pb, 64, 64, GDK_INTERP_BILINEAR),
 				-1);
+			g_object_unref(pb);
+			gel_warn("Cover set");
 			break;
 		}
 		gtk_tree_model_iter_next((GtkTreeModel *) self->queryer_results, &iter);
 	}
+	gel_warn("success finish");
 	g_object_unref(G_OBJECT(art_search_get_stream(search)));
 }
 
 static void
 queryer_search_art_fail_cb(Art *art, ArtSearch *search, Recently *self)
 {
+	gel_warn("Search failed");
 	g_object_unref(G_OBJECT(art_search_get_stream(search)));
 }
 

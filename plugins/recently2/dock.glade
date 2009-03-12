@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Thu Mar 12 15:13:07 2009 -->
+<!--Generated with glade3 3.4.5 on Thu Mar 12 16:11:23 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="main-window">
     <child>
@@ -94,7 +94,6 @@
                   <widget class="GtkIconView" id="search-iconview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
                     <property name="columns">1</property>
                   </widget>
                 </child>
