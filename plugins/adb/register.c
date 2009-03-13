@@ -293,6 +293,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
 		return;
 	}
 
+	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 	GList *tags = lomo_stream_get_tags(stream);
 	GList *iter = tags;
 	while (iter)
@@ -304,9 +305,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
 			continue;
 		}
 
-		gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 		gchar *value = (gchar *) lomo_stream_get_tag(stream, iter->data);
-
 		char *q = sqlite3_mprintf("INSERT OR IGNORE INTO metadata "
 			"VALUES((SELECT sid FROM streams WHERE uri='%q'), '%q', '%q');", uri, tag, value);
 		if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)

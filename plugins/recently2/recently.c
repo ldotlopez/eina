@@ -65,11 +65,11 @@ enum {
 
 // Match type for search results
 enum {
-	MATCH_TYPE_URI    = 0x00001,
-	MATCH_TYPE_ARTIST = 0x00010,
-	MATCH_TYPE_ALBUM  = 0x00100,
-	MATCH_TYPE_TITLE  = 0x01000,
-	MATCH_TYPE_OTHER  = 0x10000
+	MATCH_TYPE_URI    = 0,
+	MATCH_TYPE_ARTIST,
+	MATCH_TYPE_ALBUM,
+	MATCH_TYPE_TITLE,
+	MATCH_N_TYPES
 };
 
 // Model for search results
@@ -136,7 +136,10 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self);
 // --
 static void
 queryer_schedule_search(Recently *self);
-
+static void
+queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch);
+static void
+queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self);
 static void
 queryer_search_art_success_cb(Art *art, ArtSearch *search, Recently *self);
 static void
@@ -285,7 +288,7 @@ dock_create(Recently *self)
 	// --
 	// Setup queryer
 	// --
-		self->queryer_results = gtk_list_store_new(QUERYER_N_COLUMNS,
+	self->queryer_results = gtk_list_store_new(QUERYER_N_COLUMNS,
 		G_TYPE_POINTER,
 		G_TYPE_INT,
 		G_TYPE_STRING,
@@ -299,9 +302,12 @@ dock_create(Recently *self)
 		"markup-column",   QUERYER_COLUMN_TEXT,
 		"item-width", 256,
 		"columns", -1,
+		"selection-mode", GTK_SELECTION_MULTIPLE,
 		"orientation", GTK_ORIENTATION_HORIZONTAL,
 		"model", self->queryer_results,
 		NULL);
+	g_signal_connect(self->search_view, "item-activated", (GCallback) queryer_search_view_selected_cb, self);
+	// g_signal_connect(self->search_view, "select-cursor-item", (GCallback) queryer_search_view_selected_cb, self);
 
 	self->search_entry = GTK_ENTRY(gtk_builder_get_object(xml_ui, "search-entry")); 
 	self->search_tip   = GTK_LABEL(gtk_builder_get_object(xml_ui, "search-tip-label"));
@@ -551,13 +557,9 @@ summary_playlist(Adb *adb, gchar *timestamp, guint how_many)
 	return ret;
 }
 
-
-
 // --
 // Dock related
 // --
-
-
 void
 dock_row_activated_cb(GtkWidget *w,
 	GtkTreePath *path,
@@ -829,6 +831,66 @@ queryer_schedule_search(Recently *self)
 	if (self->queryer_search_id)
 		g_source_remove(self->queryer_search_id);
 	self->queryer_search_id = g_timeout_add_seconds(1, (GSourceFunc) queryer_run_search, self);
+}
+
+static void
+queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
+{
+	const gchar *keys[MATCH_N_TYPES] = { "uri", "artist", "album", "title" };
+
+	g_return_if_fail((matchtype >= 0) && (matchtype < MATCH_N_TYPES) && (keys[matchtype] != NULL));
+
+	GList *uris = NULL;
+	gchar *q = sqlite3_mprintf("SELECT uri FROM recently_flat_metadata WHERE %q = '%q'", keys[matchtype], fullmatch);
+	
+	Adb *adb = GEL_APP_GET_ADB(self->app);
+	sqlite3_stmt *stmt = NULL;
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_error("Cannot prepare query %s", q);
+		sqlite3_free(q);
+		return;
+	}
+
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+		uris = g_list_prepend(uris, g_strdup((gchar *) sqlite3_column_text(stmt, 0)));
+	sqlite3_finalize(stmt);
+
+	uris = g_list_reverse(uris);
+	lomo_player_append_multi_uri(GEL_APP_GET_LOMO(self->app), uris);
+	gel_list_deep_free(uris, (GFunc) g_free);
+}
+
+static void
+queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self)
+{
+	GList *s = gtk_icon_view_get_selected_items(search_view);
+
+	GtkListStore *model = GTK_LIST_STORE(gtk_icon_view_get_model(search_view));
+	GtkTreeIter iter;
+	GList *i = s;
+	while (i)
+	{
+		if (!gtk_tree_model_get_iter((GtkTreeModel *) model, &iter, (GtkTreePath *) i->data))
+		{
+			gchar *pathstr = gtk_tree_path_to_string((GtkTreePath *) i->data);
+			gel_warn("Cannot get iter for %s", pathstr);
+			g_free(pathstr);
+			continue;
+		}
+
+		gchar *fullmatch;
+		gint    matchtype;
+		gtk_tree_model_get((GtkTreeModel *) model, &iter,
+			QUERYER_COLUMN_FULL_MATCH, &fullmatch,
+			QUERYER_COLUMN_MATCH_TYPE, &matchtype,
+			-1);
+		queryer_load_query(self, matchtype, fullmatch);
+		g_free(fullmatch);
+
+		i = i->next;
+	}
+	gel_list_deep_free(s,  (GFunc) gtk_tree_path_free);
 }
 
 static void
