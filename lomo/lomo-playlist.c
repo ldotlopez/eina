@@ -202,19 +202,19 @@ lomo_playlist_get_position(LomoPlaylist *l, LomoStream *stream)
 }
 
 gint
-lomo_playlist_add_at_pos (LomoPlaylist *l, LomoStream *stream, gint pos)
+lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
 { BACKTRACE
 	GList *tmp = NULL;
 	gint ret;
 
 	tmp = g_list_prepend(tmp, stream);
-	ret = lomo_playlist_add_multi_at_pos(l, tmp, pos);
+	ret = lomo_playlist_insert_multi(l, tmp, pos);
 	g_list_free(tmp);
 
 	return ret;
 }
 
-gint lomo_playlist_add_multi_at_pos
+gint lomo_playlist_insert_multi
 (LomoPlaylist *l, GList *streams, gint pos)
 { BACKTRACE
 	GList *iter;

@@ -59,8 +59,8 @@ void lomo_playlist_unref(LomoPlaylist *l);
  *  LomoStream* stream: Stream to add, it cannot be freed without previous lomo_playlist_del call
  *  gint ret: Position of the stream on playlist
  */
-#define lomo_playlist_add(l,s) lomo_playlist_add_at_pos(l,s,-1)
-gint lomo_playlist_add_at_pos(LomoPlaylist *l, LomoStream *stream, gint pos);
+#define lomo_playlist_append(l,s) lomo_playlist_insert(l,s,-1)
+gint lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos);
 
 /*
  * @lomo_playlist_add_multi
@@ -69,8 +69,8 @@ gint lomo_playlist_add_at_pos(LomoPlaylist *l, LomoStream *stream, gint pos);
  *  GList* streams: List of LomoStream's to add
  *  gint ret: Position of the first stream on playlist
  */
-#define lomo_playlist_add_multi(l,list) lomo_playlist_add_multi_at_pos(l,list,-1)
-gint lomo_playlist_add_multi_at_pos(LomoPlaylist *l, GList *streams, gint pos);
+#define lomo_playlist_append_multi(l,list) lomo_playlist_insert_multi(l,list,-1)
+gint lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
 
 /*
  * @lomo_player_del

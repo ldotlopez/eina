@@ -745,7 +745,7 @@ gint lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		emit_change = FALSE;
 
 	// Add streams to playlist
-	i = ret = lomo_playlist_add_multi_at_pos(self->priv->pl, streams, pos);
+	i = ret = lomo_playlist_insert_multi(self->priv->pl, streams, pos);
 
 	// For each one parse metadata and emit signals 
 	l = streams;
