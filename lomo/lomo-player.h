@@ -146,26 +146,18 @@ gint lomo_player_get_volume(LomoPlayer *self);
 gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute);
 gboolean lomo_player_get_mute(LomoPlayer *self);
 
-// Adding and deleting streams
-// : lomo_player_insert
-gint    lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos);
-// : lomo_player_append
-#define lomo_player_add(p,s)              lomo_player_add_at_pos(p,s,-1)
-// : lomo_player_append_uri
-#define lomo_player_add_uri(p,u)          lomo_player_add_at_pos(p,lomo_stream_new(u),-1)
-// : lomo_player_insert_uri
-#define lomo_player_add_uri_at_pos(s,u,p) lomo_player_add_at_pos(s,lomo_stream_new(u), p)
+gint    lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos);
+#define lomo_player_append(p,s)              lomo_player_insert(p,s,-1)
+#define lomo_player_insert_uri(p,u,i)        lomo_player_insert(p,lomo_stream_new(i), i)
+#define lomo_player_append_uri(p,u)          lomo_player_insert(p,lomo_stream_new(u),-1)
 
-// : lomo_player_insert_uri_strv
-gint lomo_player_add_uri_strv_at_pos(LomoPlayer *self, gchar **uris, gint pos);
-// : lomo_player_insert_uri_list
-gint lomo_player_add_uri_multi_at_pos(LomoPlayer *self, GList *uris, gint pos);
-// : lomo_player_insert_list
-gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos);
+gint    lomo_player_insert_multi    (LomoPlayer *self, GList *streams, gint pos);
+gint    lomo_player_insert_uri_strv (LomoPlayer *self, gchar **uris, gint pos);
+gint    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos);
+#define lomo_player_append_multi(p,l)     lomo_player_insert_multi(p,l,-1)
+#define lomo_player_append_uri_strv(p,v)  lomo_player_insert_uri_strv(p,v,-1)
+#define lomo_player_append_uri_multi(p,l) lomo_player_insert_uri_multi(p,l,-1)
 
-#define lomo_player_add_uri_multi(p,l) lomo_player_add_uri_multi_at_pos(p,l,-1)
-#define lomo_player_add_uri_strv(p,v)  lomo_player_add_uri_strv_at_pos(p,v,-1)
-#define lomo_player_add_multi(p,l)     lomo_player_add_multi_at_pos(p,l,-1)
 gboolean lomo_player_del(LomoPlayer *self, gint pos);
 
 GList *lomo_player_get_playlist(LomoPlayer *self);

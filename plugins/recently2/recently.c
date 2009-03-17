@@ -611,7 +611,7 @@ dock_row_activated_cb(GtkWidget *w,
 	g_free(ts);
 
 	lomo_player_clear(lomo);
-	lomo_player_add_uri_multi(lomo, pl);
+	lomo_player_append_uri_multi(lomo, pl);
 	gel_list_deep_free(pl, g_free);
 
 	eina_plugin_switch_dock_widget(self->plugin, "playlist");
@@ -857,7 +857,7 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 	sqlite3_finalize(stmt);
 
 	uris = g_list_reverse(uris);
-	lomo_player_append_multi_uri(GEL_APP_GET_LOMO(self->app), uris);
+	lomo_player_append_uri_multi(GEL_APP_GET_LOMO(self->app), uris);
 	gel_list_deep_free(uris, (GFunc) g_free);
 }
 

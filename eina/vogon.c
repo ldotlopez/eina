@@ -357,7 +357,7 @@ on_eina_vogon_drag_data_received
         TRUE, FALSE);
 
     lomo_player_clear(eina_obj_get_lomo(self));
-    lomo_player_add_uri_multi(eina_obj_get_lomo(self), (GList *) uri_filter);
+    lomo_player_append_uri_multi(eina_obj_get_lomo(self), (GList *) uri_filter);
 
     g_slist_free(uri_filter);
     g_ext_slist_free(uri_scan, g_free);

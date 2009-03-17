@@ -278,7 +278,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	if (g_file_get_contents(tmp, &buff, NULL, NULL))
 	{
 		uris = g_uri_list_extract_uris((const gchar *) buff);
-		lomo_player_add_uri_strv(eina_obj_get_lomo(self), uris);
+		lomo_player_append_uri_strv(eina_obj_get_lomo(self), uris);
 		g_strfreev(uris);
 	}
 	g_free(tmp);
@@ -996,7 +996,7 @@ void on_pl_drag_data_received(GtkWidget *widget,
 		FALSE, FALSE);
 	
 	/* Add valid uris to LomoPlayer */
-	lomo_player_add_uri_multi(eina_obj_get_lomo(self), (GList *) uri_filter);
+	lomo_player_append_uri_multi(eina_obj_get_lomo(self), (GList *) uri_filter);
 
 	/* Free our dirty data */
 	g_ext_slist_free(uri_scan, g_free);
@@ -1127,7 +1127,7 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	g_slist_free(filter);
 	gel_io_op_unref(op);
 
-	lomo_player_add_uri_multi(eina_obj_get_lomo(self), lomofeed);
+	lomo_player_append_uri_multi(eina_obj_get_lomo(self), lomofeed);
 	gel_list_deep_free(lomofeed, g_free);
 }
 

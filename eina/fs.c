@@ -51,7 +51,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 				break;
 			}
 			lomo_player_clear(lomo);
-			lomo_player_add_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
+			lomo_player_append_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
 			lomo_player_play(lomo, NULL);
 			run = FALSE; // Destroy
 		break;
@@ -71,7 +71,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
 			g_free(msg);
 
-			lomo_player_add_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
+			lomo_player_append_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
 
 			run = TRUE; // Keep alive
 			break;

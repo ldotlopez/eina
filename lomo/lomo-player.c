@@ -426,7 +426,7 @@ lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 	g_return_val_if_fail(stream, FALSE);
 
 	lomo_player_clear(self);
-	lomo_player_add(self, stream);
+	lomo_player_append(self, stream);
 
 	return (lomo_player_reset(self, error) && lomo_player_play(self, error));
 }
@@ -665,19 +665,20 @@ gboolean lomo_player_get_mute(LomoPlayer *self)
 // Playlist functions
 // --
 gint
-lomo_player_add_at_pos(LomoPlayer *self, LomoStream *stream, gint pos)
+lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
 { TRACE
 	GList *tmp = NULL;
 	gint ret;
 
 	tmp = g_list_prepend(tmp, stream);
-	ret = lomo_player_add_multi_at_pos(self, tmp, pos);
+	ret = lomo_player_insert_multi(self, tmp, pos);
 	g_list_free(tmp);
 
 	return ret;
 }
 
-gint lomo_player_add_uri_multi_at_pos(LomoPlayer *self, GList *uris, gint pos)
+gint
+lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos)
 { TRACE
 	GList *l, *streams = NULL;
 	LomoStream *stream = NULL;
@@ -691,13 +692,14 @@ gint lomo_player_add_uri_multi_at_pos(LomoPlayer *self, GList *uris, gint pos)
 	}
 	streams = g_list_reverse(streams);
 
-	ret = lomo_player_add_multi_at_pos(self, streams, pos);
+	ret = lomo_player_insert_multi(self, streams, pos);
 	g_list_free(streams);
 
 	return ret;
 }
 
-gint lomo_player_add_uri_strv_at_pos(LomoPlayer *self, gchar **uris, gint pos)
+gint
+lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 { TRACE
 	GList *l = NULL;
 	gint ret, i;
@@ -721,13 +723,13 @@ gint lomo_player_add_uri_strv_at_pos(LomoPlayer *self, gchar **uris, gint pos)
 	}
 
 	l = g_list_reverse(l);
-	ret = lomo_player_add_uri_multi_at_pos(self, l, pos);
+	ret = lomo_player_insert_uri_multi(self, l, pos);
 	g_list_free(l);
 
 	return ret;
 }
 
-gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos)
+gint lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 { TRACE
 	GList *l;
 	LomoStream *stream = NULL;
@@ -769,7 +771,6 @@ gint lomo_player_add_multi_at_pos(LomoPlayer *self, GList *streams, gint pos)
 	
 	return ret;
 }
-
 
 gboolean lomo_player_del(LomoPlayer *self, gint pos)
 { TRACE

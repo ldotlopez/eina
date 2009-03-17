@@ -233,7 +233,7 @@ gint main
 		if (g_file_get_contents(tmp, &buff, NULL, NULL))
 		{
 			gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
-			lomo_player_add_uri_strv(GEL_APP_GET_LOMO(app), uris);
+			lomo_player_append_uri_strv(GEL_APP_GET_LOMO(app), uris);
 			g_strfreev(uris);
 		}
 		g_free(tmp);
@@ -318,7 +318,7 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	}
 	gel_list_deep_free(results, g_object_unref);
 
-	lomo_player_add_uri_multi(GEL_APP_GET_LOMO(app), uris);
+	lomo_player_append_uri_multi(GEL_APP_GET_LOMO(app), uris);
 	gel_slist_deep_free(gel_io_list_read_get_sources(op), g_object_unref);
 	gel_list_deep_free(uris, g_free);
 

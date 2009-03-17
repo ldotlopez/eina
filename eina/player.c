@@ -1013,7 +1013,7 @@ list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer da
 	gel_io_op_unref(op);
 
 	lomo_player_clear(eina_obj_get_lomo(self));
-	lomo_player_add_uri_multi(eina_obj_get_lomo(self), lomofeed);
+	lomo_player_append_uri_multi(eina_obj_get_lomo(self), lomofeed);
 	gel_list_deep_free(lomofeed, g_free);
 }
 
