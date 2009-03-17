@@ -201,26 +201,22 @@ lomo_playlist_get_position(LomoPlaylist *l, LomoStream *stream)
 	return g_list_index(l->list, stream);
 }
 
-gint
+void
 lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
 { BACKTRACE
 	GList *tmp = NULL;
-	gint ret;
 
 	tmp = g_list_prepend(tmp, stream);
-	ret = lomo_playlist_insert_multi(l, tmp, pos);
+	lomo_playlist_insert_multi(l, tmp, pos);
 	g_list_free(tmp);
-
-	return ret;
 }
 
-gint lomo_playlist_insert_multi
+void lomo_playlist_insert_multi
 (LomoPlaylist *l, GList *streams, gint pos)
 { BACKTRACE
 	GList *iter;
 	LomoStream *stream;
 	guint randompos;
-	gint first_pos;
 
 	/* Own streams */
 	// g_list_foreach(streams, (GFunc) g_object_ref, NULL);
@@ -228,8 +224,6 @@ gint lomo_playlist_insert_multi
 	// pos == -1 means at the end
 	if (pos == -1)
 		pos = lomo_playlist_get_total(l);
-
-	first_pos = pos;
 
 	iter = streams;
 	while (iter) {
@@ -252,8 +246,6 @@ gint lomo_playlist_insert_multi
 	// Only if it is -1
 	if (l->current == -1)
 		l->current = 0;
-
-	return first_pos;
 }
 
 /* Delete element at position 'pos' from playlist */

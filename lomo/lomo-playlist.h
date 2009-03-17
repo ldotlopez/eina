@@ -60,7 +60,7 @@ void lomo_playlist_unref(LomoPlaylist *l);
  *  gint ret: Position of the stream on playlist
  */
 #define lomo_playlist_append(l,s) lomo_playlist_insert(l,s,-1)
-gint lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos);
+void lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos);
 
 /*
  * @lomo_playlist_add_multi
@@ -70,7 +70,7 @@ gint lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos);
  *  gint ret: Position of the first stream on playlist
  */
 #define lomo_playlist_append_multi(l,list) lomo_playlist_insert_multi(l,list,-1)
-gint lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
+void lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
 
 /*
  * @lomo_player_del

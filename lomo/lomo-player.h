@@ -146,14 +146,14 @@ gint lomo_player_get_volume(LomoPlayer *self);
 gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute);
 gboolean lomo_player_get_mute(LomoPlayer *self);
 
-gint    lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos);
+void    lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos);
 #define lomo_player_append(p,s)              lomo_player_insert(p,s,-1)
 #define lomo_player_insert_uri(p,u,i)        lomo_player_insert(p,lomo_stream_new(i), i)
 #define lomo_player_append_uri(p,u)          lomo_player_insert(p,lomo_stream_new(u),-1)
 
-gint    lomo_player_insert_multi    (LomoPlayer *self, GList *streams, gint pos);
-gint    lomo_player_insert_uri_strv (LomoPlayer *self, gchar **uris, gint pos);
-gint    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos);
+void    lomo_player_insert_multi    (LomoPlayer *self, GList *streams, gint pos);
+void    lomo_player_insert_uri_strv (LomoPlayer *self, gchar **uris, gint pos);
+void    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos);
 #define lomo_player_append_multi(p,l)     lomo_player_insert_multi(p,l,-1)
 #define lomo_player_append_uri_strv(p,v)  lomo_player_insert_uri_strv(p,v,-1)
 #define lomo_player_append_uri_multi(p,l) lomo_player_insert_uri_multi(p,l,-1)

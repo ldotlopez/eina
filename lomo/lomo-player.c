@@ -664,25 +664,21 @@ gboolean lomo_player_get_mute(LomoPlayer *self)
 // --
 // Playlist functions
 // --
-gint
+void
 lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
 { TRACE
 	GList *tmp = NULL;
-	gint ret;
 
 	tmp = g_list_prepend(tmp, stream);
-	ret = lomo_player_insert_multi(self, tmp, pos);
+	lomo_player_insert_multi(self, tmp, pos);
 	g_list_free(tmp);
-
-	return ret;
 }
 
-gint
+void
 lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos)
 { TRACE
 	GList *l, *streams = NULL;
 	LomoStream *stream = NULL;
-	gint ret;
 
 	l = uris;
 	while (l) {
@@ -692,21 +688,19 @@ lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos)
 	}
 	streams = g_list_reverse(streams);
 
-	ret = lomo_player_insert_multi(self, streams, pos);
+	lomo_player_insert_multi(self, streams, pos);
 	g_list_free(streams);
-
-	return ret;
 }
 
-gint
+void
 lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 { TRACE
 	GList *l = NULL;
-	gint ret, i;
+	gint i;
 	gchar *tmp;
 
 	if (uris == NULL)
-		return 0; 
+		return; 
 	
 	for (i = 0; uris[i] != NULL; i++)
 	{
@@ -723,20 +717,19 @@ lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 	}
 
 	l = g_list_reverse(l);
-	ret = lomo_player_insert_uri_multi(self, l, pos);
+	lomo_player_insert_uri_multi(self, l, pos);
 	g_list_free(l);
-
-	return ret;
 }
 
-gint lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
+void
+lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 { TRACE
 	GList *l;
 	LomoStream *stream = NULL;
-	gint ret, i, emit_change ;
+	gboolean emit_change;
 
 	if (streams == NULL)
-		return 0;
+		return;
 
 	// We should emit change if player was empty before add those streams
 	if (lomo_player_get_total(self) == 0)
@@ -745,7 +738,9 @@ gint lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		emit_change = FALSE;
 
 	// Add streams to playlist
-	i = ret = lomo_playlist_insert_multi(self->priv->pl, streams, pos);
+	if ((pos <= 0) || (pos >  lomo_player_get_total(self)))
+		pos = lomo_player_get_total(self);
+	lomo_playlist_insert_multi(self->priv->pl, streams, pos);
 
 	// For each one parse metadata and emit signals 
 	l = streams;
@@ -754,7 +749,7 @@ gint lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		stream = (LomoStream *) l->data;
 
 		lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
-		g_signal_emit(G_OBJECT(self), lomo_player_signals[ADD], 0, stream, i);
+		g_signal_emit(G_OBJECT(self), lomo_player_signals[ADD], 0, stream, pos);
 	
 		// Emit change if its first stream
 		if (emit_change)
@@ -764,12 +759,10 @@ gint lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 			emit_change = FALSE;
 		}
 
-		i++;
+		pos++;
 		
 		l = l->next;
 	}
-	
-	return ret;
 }
 
 gboolean lomo_player_del(LomoPlayer *self, gint pos)
