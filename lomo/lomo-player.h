@@ -33,6 +33,13 @@ G_BEGIN_DECLS
 #define LOMO_IS_PLAYER_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), LOMO_TYPE_PLAYER))
 #define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
+enum {
+    LOMO_PLAYER_NO_ERROR = 0,
+	LOMO_PLAYER_ERROR_UNKNOW_STATE,
+	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
+	LOMO_PLAYER_ERROR_NO_STREAM
+};
+
 typedef enum {
 	LOMO_STATE_CHANGE_SUCCESS     = GST_STATE_CHANGE_SUCCESS,
 	LOMO_STATE_CHANGE_ASYNC       = GST_STATE_CHANGE_ASYNC,
@@ -73,8 +80,10 @@ typedef struct
 	void (*seek)     (LomoPlayer *self, gint64 old, gint64 new);
 	void (*volume)   (LomoPlayer *self, gint volume);
 	void (*mute)     (LomoPlayer *self, gboolean mute);
-	void (*add)      (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*del)      (LomoPlayer *self, gint pos);
+	void (*insert)   (LomoPlayer *self, LomoStream *stream, gint pos);
+	// void (*add)   (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*remove)   (LomoPlayer *self, LomoStream *stream, gint pos);
+	// void (*del)   (LomoPlayer *self, gint pos);
 	void (*change)   (LomoPlayer *self, gint from, gint to);
 	void (*clear)    (LomoPlayer *self);
 	void (*repeat)   (LomoPlayer *self, gboolean val);

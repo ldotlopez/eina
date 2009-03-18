@@ -31,9 +31,9 @@ app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Adb *self);
 static void
 app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Adb *self);
 static void
-lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
+lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
 static void
-lomo_del_cb(LomoPlayer *lomo, gint pos, gpointer data);
+lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
 static void
 lomo_clear_cb(LomoPlayer *lomo, gpointer data);
 void
@@ -138,8 +138,8 @@ adb_register_connect_lomo(Adb *self, LomoPlayer *lomo)
 
 	g_signal_handlers_disconnect_by_func(self->app, app_plugin_init_cb, self);
 	g_signal_connect(self->app, "plugin-fini", (GCallback) app_plugin_fini_cb, self);
-	g_signal_connect(lomo,      "add",         (GCallback) lomo_add_cb,        self);
-	g_signal_connect(lomo,      "del",         (GCallback) lomo_del_cb,        self);
+	g_signal_connect(lomo,      "insert",      (GCallback) lomo_insert_cb,     self);
+	g_signal_connect(lomo,      "remove",      (GCallback) lomo_remove_cb,     self);
 	g_signal_connect(lomo,      "clear",       (GCallback) lomo_clear_cb,      self);
 	g_signal_connect(lomo,      "all-tags",    (GCallback) lomo_all_tags_cb,   self);
 }
@@ -153,8 +153,8 @@ adb_register_disconnect_lomo(Adb *self, LomoPlayer *lomo)
 {
 	if (lomo == NULL) return;
 
-	g_signal_handlers_disconnect_by_func(lomo, lomo_add_cb, self);
-	g_signal_handlers_disconnect_by_func(lomo, lomo_del_cb, self);
+	g_signal_handlers_disconnect_by_func(lomo, lomo_insert_cb, self);
+	g_signal_handlers_disconnect_by_func(lomo, lomo_remove_cb, self);
 	g_signal_handlers_disconnect_by_func(lomo, lomo_clear_cb, self);
 	g_signal_handlers_disconnect_by_func(lomo, lomo_all_tags_cb, self);
 	g_signal_connect(self->app, "plugin-init", (GCallback)  app_plugin_init_cb, self);
@@ -184,7 +184,7 @@ app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Adb *self)
 // Register each stream added
 // --
 static void
-lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
+lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 {
 	Adb *self = (Adb *) data;
 
@@ -209,10 +209,9 @@ lomo_add_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 }
 
 static void
-lomo_del_cb(LomoPlayer *lomo, gint pos, gpointer data)
+lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
 {
 	Adb *self = (Adb *) data;
-	LomoStream *stream = lomo_player_get_nth(lomo, pos);
 	GList *p;
 	if ((p = g_list_find_custom(self->pl, lomo_stream_get_tag(stream, LOMO_TAG_URI), (GCompareFunc) strcmp)) == NULL)
 	{

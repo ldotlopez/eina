@@ -298,8 +298,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-	g_signal_connect_swapped(eina_obj_get_lomo(self), "del",    G_CALLBACK(update_sensitiviness), self);
-	g_signal_connect_swapped(eina_obj_get_lomo(self), "add",    G_CALLBACK(update_sensitiviness), self);
+	g_signal_connect_swapped(eina_obj_get_lomo(self), "insert", G_CALLBACK(update_sensitiviness), self);
+	g_signal_connect_swapped(eina_obj_get_lomo(self), "remove", G_CALLBACK(update_sensitiviness), self);
 	g_signal_connect_swapped(eina_obj_get_lomo(self), "repeat", G_CALLBACK(update_sensitiviness), self);
 	g_signal_connect_swapped(eina_obj_get_lomo(self), "random", G_CALLBACK(update_sensitiviness), self);
 

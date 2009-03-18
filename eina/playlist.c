@@ -107,10 +107,10 @@ on_pl_repeat_button_toggled(GtkWidget *w, EinaPlaylist *self);
 // Lomo callbacks
 static void lomo_state_change_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
-static void lomo_add_cb
+static void lomo_insert_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self);
-static void lomo_del_cb
-(LomoPlayer *lomo, gint pos, EinaPlaylist *self);
+static void lomo_remove_cb
+(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self);
 static void lomo_change_cb
 (LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self);
 static void lomo_clear_cb
@@ -260,8 +260,8 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 		NULL);
 
 	/* Connect lomo signals */
-	g_signal_connect(eina_obj_get_lomo(self), "add",      G_CALLBACK(lomo_add_cb),      self);
-	g_signal_connect(eina_obj_get_lomo(self), "del",      G_CALLBACK(lomo_del_cb),      self);
+	g_signal_connect(eina_obj_get_lomo(self), "insert",   G_CALLBACK(lomo_insert_cb),      self);
+	g_signal_connect(eina_obj_get_lomo(self), "remove",   G_CALLBACK(lomo_remove_cb),      self);
 	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb),   self);
 	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb),    self);
 	g_signal_connect(eina_obj_get_lomo(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
@@ -734,7 +734,7 @@ static void lomo_state_change_cb
 	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
 }
 
-static void lomo_add_cb
+static void lomo_insert_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
 	GtkTreeIter iter;
@@ -763,8 +763,8 @@ static void lomo_add_cb
 	g_free(title);
 }
 
-static void lomo_del_cb
-(LomoPlayer *lomo, gint pos, EinaPlaylist *self)
+static void lomo_remove_cb
+(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
 	GtkTreeModel *model;
 	GtkTreeIter   iter;
