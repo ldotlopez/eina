@@ -427,7 +427,7 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 		return TRUE;
 	}
 	else
-		self->priv->stream = lomo_playlist_get_nth(self->priv->pl, current);
+		self->priv->stream = lomo_playlist_nth_stream(self->priv->pl, current);
 
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
 	// inmediate queue on LomoMetadataParser object to get them ASAP
@@ -452,7 +452,7 @@ LomoStream*
 lomo_player_get_stream(LomoPlayer *self)
 {
 	// Hold this for a while to watch the DPP bug
-	if (lomo_playlist_get_nth(self->priv->pl, lomo_playlist_get_current(self->priv->pl)) != self->priv->stream)
+	if (lomo_playlist_nth_stream(self->priv->pl, lomo_playlist_get_current(self->priv->pl)) != self->priv->stream)
 		g_printf("[liblomo (%s:%d)] DPP (desyncronized playlist and player) bug found\n", __FILE__, __LINE__);
 	return self->priv->stream;
 }
@@ -784,9 +784,9 @@ GList *lomo_player_get_playlist(LomoPlayer *self)
 	return lomo_playlist_get_playlist(self->priv->pl);
 }
 
-LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos)
+LomoStream *lomo_player_nth_stream(LomoPlayer *self, gint pos)
 {
-	return lomo_playlist_get_nth(self->priv->pl, pos);
+	return lomo_playlist_nth_stream(self->priv->pl, pos);
 }
 
 gint
@@ -812,7 +812,7 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	gint prev = -1;
 
 	// Cannot go to that position
-	stream = lomo_playlist_get_nth(self->priv->pl, pos);
+	stream = lomo_playlist_nth_stream(self->priv->pl, pos);
 	if (stream == NULL)
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_NO_STREAM, "No stream at position %d", pos);

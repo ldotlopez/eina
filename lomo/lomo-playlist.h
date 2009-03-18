@@ -105,13 +105,13 @@ GList *lomo_playlist_get_playlist(LomoPlaylist *l);
 const GList* lomo_playlist_get_random_playlist (LomoPlaylist *l);
 
 /*
- * @lomo_playlist_get_nth
+ * @lomo_playlist_nth_stream
  * @Returns the LomoStream at position 'pos'
  *  LomoPlaylist* l: [self]
  *  guint pos: Postion to query
  *  LomoStream* ret: LomoStream located at position 'pos'
  */
-LomoStream *lomo_playlist_get_nth(LomoPlaylist *l, guint pos);
+LomoStream *lomo_playlist_nth_stream(LomoPlaylist *l, guint pos);
 
 /*
  * @lomo_playlist_index

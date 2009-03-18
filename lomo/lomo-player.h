@@ -174,7 +174,7 @@ GList *lomo_player_get_playlist(LomoPlayer *self);
 gint lomo_player_get_prev(LomoPlayer *self);
 gint lomo_player_get_next(LomoPlayer *self);
 
-LomoStream *lomo_player_get_nth(LomoPlayer *self, gint pos);
+LomoStream *lomo_player_nth_stream(LomoPlayer *self, gint pos);
 gint        lomo_player_index(LomoPlayer *self, LomoStream *stream);
 
 gboolean          lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error);
@@ -182,7 +182,7 @@ gboolean          lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 #define           lomo_player_go_next(p,e) lomo_player_go_nth(p,lomo_player_get_next(p),e)
 
 gint              lomo_player_get_current(LomoPlayer *self);
-#define lomo_player_get_current_stream(p) lomo_player_get_nth(p, lomo_player_get_current(p))
+#define lomo_player_get_current_stream(p) lomo_player_nth_stream(p, lomo_player_get_current(p))
 
 guint lomo_player_get_total(LomoPlayer *self);
 

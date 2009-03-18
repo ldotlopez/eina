@@ -908,8 +908,8 @@ static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlayer *self)
 {
 	update_sensitiviness(self);
-	set_info(self, lomo_player_get_nth(lomo, to));
-	update_cover_query(self, lomo_player_get_nth(lomo, to));
+	set_info(self, lomo_player_nth_stream(lomo, to));
+	update_cover_query(self, lomo_player_nth_stream(lomo, to));
 }
 
 static void

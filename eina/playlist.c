@@ -809,7 +809,7 @@ static void lomo_change_cb
 	if (old >= 0)
 	{
 		gel_debug("updating all columns from OLD %d", old);
-		if (lomo_stream_get_failed_flag(lomo_player_get_nth(lomo, old)))
+		if (lomo_stream_get_failed_flag(lomo_player_nth_stream(lomo, old)))
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_TITLE, -1);
 		else
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_TITLE, -1);
@@ -1042,7 +1042,7 @@ void on_pl_drag_data_get(GtkWidget *w,
 		}
 
 		gtk_tree_model_get(GTK_TREE_MODEL(self->model), &iter, PLAYLIST_COLUMN_NUMBER, &pos, -1);
-		stream = (LomoStream *) lomo_player_get_nth(eina_obj_get_lomo(self), pos);
+		stream = (LomoStream *) lomo_player_nth_stream(eina_obj_get_lomo(self), pos);
 		charv[i] = lomo_stream_get_tag(stream, LOMO_TAG_URI); // Dont copy, its rigth.
 
 		i++;

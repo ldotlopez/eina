@@ -190,7 +190,7 @@ lomo_playlist_set_repeat (LomoPlaylist *l, gboolean val)
 
 /* Return element at position 'pos', NULL if off the list */
 LomoStream*
-lomo_playlist_get_nth(LomoPlaylist *l, guint pos)
+lomo_playlist_nth_stream(LomoPlaylist *l, guint pos)
 { BACKTRACE
 	return g_list_nth_data(l->list, pos);
 }
