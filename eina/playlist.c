@@ -859,7 +859,7 @@ static void lomo_error_cb
 		return;
 
 	gint pos;
-	if ((pos = lomo_player_get_position(lomo, stream)) == -1)
+	if ((pos = lomo_player_index(lomo, stream)) == -1)
 	{
 		gel_warn("Stream %p doest belongs to Player %p", stream, lomo);
 		return;

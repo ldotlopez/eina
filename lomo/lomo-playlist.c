@@ -196,7 +196,7 @@ lomo_playlist_get_nth(LomoPlaylist *l, guint pos)
 }
 
 gint
-lomo_playlist_get_position(LomoPlaylist *l, LomoStream *stream)
+lomo_playlist_index(LomoPlaylist *l, LomoStream *stream)
 {
 	return g_list_index(l->list, stream);
 }
