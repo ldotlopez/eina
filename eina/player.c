@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <gmodule.h>
 #include <gdk/gdkkeysyms.h>
+#include <glib/gprintf.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
 
@@ -44,6 +45,7 @@ struct _EinaPlayer {
 
 	GtkWindow  *main_window;
 	GtkImage *cover;
+	GdkPixbuf *cover_mask;
 	gboolean  got_cover;
 	ArtSearch *art_search;
 	EinaSeek   *seek;
@@ -112,6 +114,8 @@ static void
 about_show(void);
 static void
 setup_dnd(EinaPlayer *self);
+static GdkPixbuf*
+build_cover_mask(GtkWidget *w);
 
 // UI callbacks
 static gboolean
@@ -220,7 +224,10 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		gel_ui_container_replace_children(
 			eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container"),
 			GTK_WIDGET(self->cover));
-		gtk_widget_show_all(GTK_WIDGET(self->cover));
+		gtk_widget_realize((GtkWidget *) self->cover);
+		gtk_widget_show_all((GtkWidget *) self->cover);
+
+		self->cover_mask = build_cover_mask((GtkWidget *) self->cover);
 	}
 	else
 		gel_warn("Canot load art plugin");
@@ -460,7 +467,63 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 			GDK_INTERP_BILINEAR);
 		g_object_unref(old_pb);
 	}
+#if 0
+	gchar *overpath =  gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
+	GdkPixbuf *over = gdk_pixbuf_new_from_file_at_scale(overpath,
+			GTK_WIDGET(self->cover)->allocation.width,
+			GTK_WIDGET(self->cover)->allocation.height,
+			TRUE, NULL);
 
+	GdkColor *color = gtk_widget_get_style((GtkWidget *) self->cover)->bg;
+	gel_warn("BG: 0x%x%x%x", color->red, color->green, color->blue);
+
+	int width, height, rowstride, n_channels;
+	guchar *pixels/* , *p */;
+	n_channels = gdk_pixbuf_get_n_channels(over);
+	g_assert (gdk_pixbuf_get_colorspace (over) == GDK_COLORSPACE_RGB);
+	g_assert (gdk_pixbuf_get_bits_per_sample (over) == 8);
+	g_assert (gdk_pixbuf_get_has_alpha (over));
+	g_assert (n_channels == 4);
+	width = gdk_pixbuf_get_width (over);
+	height = gdk_pixbuf_get_height (over);
+	// g_assert (x >= 0 && x < width);
+	// g_assert (y >= 0 && y < height);
+	rowstride = gdk_pixbuf_get_rowstride (over);
+	pixels = gdk_pixbuf_get_pixels (over);
+	// p = pixels + y * rowstride + x * n_channels;
+
+	guchar *p;
+	int i, j;
+	for ( i = 0; i < width; i++)
+		for (j = 0; j < height; j++)
+		{
+			p = pixels + j * rowstride + i * n_channels;
+			p[0] = color->red;
+			p[1] = color->green;
+			p[2] = color->blue;
+		}
+	gdk_pixbuf_composite(self->cover_mask, pixbuf,
+		0, 0,
+		GTK_WIDGET(self->cover)->allocation.width,
+		GTK_WIDGET(self->cover)->allocation.height,
+		0, 0,
+		1,1,
+		GDK_INTERP_BILINEAR,
+		255);
+#else
+	if (self->cover_mask)
+	{
+		gdk_pixbuf_composite(self->cover_mask, pixbuf,
+			0, 0,
+			GTK_WIDGET(self->cover)->allocation.width,
+			GTK_WIDGET(self->cover)->allocation.height,
+			0, 0,
+			gdk_pixbuf_get_width(pixbuf) / (double) gdk_pixbuf_get_width(self->cover_mask),
+			gdk_pixbuf_get_height(pixbuf) / (double) gdk_pixbuf_get_height(self->cover_mask), 
+			GDK_INTERP_BILINEAR,
+			255);
+	}
+#endif
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
 	gtk_window_set_icon(self->main_window, pixbuf);
 }
@@ -1103,6 +1166,57 @@ void setup_dnd(EinaPlayer *self)
 	g_signal_connect (well_dest, "drag-drop",
 		G_CALLBACK (drag_drop_handl), NULL);
 */
+}
+
+static GdkPixbuf*
+build_cover_mask(GtkWidget *w)
+{
+	gchar *maskpath = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
+	g_return_val_if_fail(maskpath != NULL, NULL);
+
+	GError *error  = NULL;
+	GdkPixbuf *mask = gdk_pixbuf_new_from_file(maskpath, 
+			/*
+			GTK_WIDGET(w)->allocation.width,
+			GTK_WIDGET(w)->allocation.height,
+			TRUE, */ &error);
+	g_free(maskpath);
+
+	if (!mask)
+	{
+		gel_warn("Unable to load cover mask: %s", error->message);
+		g_error_free(error);
+		return NULL;
+	}
+
+	int width, height, rowstride, n_channels, i, j;
+	guchar *pixels, *p;
+	n_channels = gdk_pixbuf_get_n_channels(mask);
+	if ((gdk_pixbuf_get_colorspace (mask) != GDK_COLORSPACE_RGB) ||
+		(gdk_pixbuf_get_bits_per_sample (mask) != 8)             ||
+		(!gdk_pixbuf_get_has_alpha (mask))                       ||
+		(n_channels != 4))
+	{
+		g_object_unref(mask);
+		g_warning(N_("Invalid cover mask"));
+		return NULL;
+	}
+
+	width = gdk_pixbuf_get_width (mask);
+	height = gdk_pixbuf_get_height (mask);
+	rowstride = gdk_pixbuf_get_rowstride (mask);
+	pixels = gdk_pixbuf_get_pixels (mask);
+
+	GdkColor *color = gtk_widget_get_style(w)->bg;
+	for ( i = 0; i < width; i++)
+		for (j = 0; j < height; j++)
+		{
+			p = pixels + j * rowstride + i * n_channels;
+			p[0] = color->red;
+			p[1] = color->green;
+			p[2] = color->blue;
+		}
+	return mask;
 }
 
 // --
