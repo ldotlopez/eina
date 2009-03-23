@@ -57,14 +57,13 @@ struct _EinaPlaylist
 
 	GtkWidget    *dock;
 	GtkTreeView  *tv;
-	GtkListStore *model;
-	const gchar  *title_fmtstr;
+	gchar  *stream_fmt;
 };
 
 typedef enum
 {
+	PLAYLIST_COLUMN_STREAM,
 	PLAYLIST_COLUMN_STATE,
-	PLAYLIST_COLUMN_URI,
 	PLAYLIST_COLUMN_TEXT,
 	PLAYLIST_COLUMN_MARKUP,
 
@@ -72,12 +71,16 @@ typedef enum
 } EinaPlaylistColumn;
 
 // API
-GtkWidget *
-eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model);
+gboolean
+eina_playlist_dock_init(EinaPlaylist *self);
 static void
 remove_selected(EinaPlaylist *self);
 static void
 setup_dnd(EinaPlaylist *self);
+static gchar *
+format_stream(LomoStream *stream, gchar *fmt);
+static gchar*
+format_stream_cb(gchar key, LomoStream *stream);
 
 void
 eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...);
@@ -89,10 +92,11 @@ __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, 
 
 // UI Callbacks
 void
-on_pl_row_activated(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self);
-void on_pl_add_button_clicked
+dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self);
+static void
+add_button_clicked_cb
 (GtkWidget *w, EinaPlaylist *self);
-gint 
+static gint 
 sort_int_desc(gconstpointer a, gconstpointer b);
 void
 on_pl_remove_button_clicked(GtkWidget *w, EinaPlaylist *self);
@@ -124,12 +128,12 @@ static void lomo_all_tags_cb
 (LomoPlayer *lomo, LomoStream *stream, EinaPlaylist *self);
 
 // UI callbacks
-void on_pl_row_activated
+void dock_row_activated_cb
 (GtkWidget *w,
  	GtkTreePath *path,
 	GtkTreeViewColumn *column,
 	EinaPlaylist *self);
-void on_pl_add_button_clicked
+void add_button_clicked_cb
 (GtkWidget *w, EinaPlaylist *self);
 void on_pl_clear_button_clicked
 (GtkWidget *w, EinaPlaylist *self);
@@ -162,7 +166,7 @@ void on_pl_settings_change
 /* Signal definitions */
 GelUISignalDef _playlist_signals[] = {
 	{ "playlist-treeview",   "row-activated",
-		G_CALLBACK(on_pl_row_activated) },
+		G_CALLBACK(dock_row_activated_cb) },
 
 	{ "playlist-repeat-button", "toggled",
 	G_CALLBACK(on_pl_repeat_button_toggled) },
@@ -170,7 +174,7 @@ GelUISignalDef _playlist_signals[] = {
 	G_CALLBACK(on_pl_random_button_toggled) },
 	
 	{ "playlist-add-button",  "clicked",
-	G_CALLBACK(on_pl_add_button_clicked) },
+	G_CALLBACK(add_button_clicked_cb) },
 	{ "playlist-clear-button",  "clicked",
 	G_CALLBACK(on_pl_clear_button_clicked) },
 	{ "playlist-remove-button", "clicked",
@@ -229,7 +233,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	lomo_player_set_repeat(eina_obj_get_lomo(self), repeat);
 	lomo_player_set_random(eina_obj_get_lomo(self), random);
 
-	self->title_fmtstr = eina_conf_get_str(self->conf, "/ui/playlist/fmt", "{%a - }%t");
+	self->stream_fmt = (gchar *) eina_conf_get_str(self->conf, "/ui/playlist/fmt", "{%a - }%t");
 
 	/* Setup stock icons */
 	for (i = 0; rr_files[i] != NULL; i++) {
@@ -249,7 +253,11 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(tmp);
 	}
 
-	self->dock = eina_playlist_dock_init(self, &(self->tv), &(self->model));
+	if (!eina_playlist_dock_init(self))
+	{
+		gel_error(N_("Cannot init dock widget"));
+		return FALSE;
+	}
 
 	/* Connect some UI signals */
 	gel_ui_signal_connect_from_def_multiple(
@@ -333,7 +341,7 @@ playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self) 
+dock_key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self) 
 {
 	if (event->type != GDK_KEY_PRESS)
 		return FALSE;
@@ -349,17 +357,15 @@ key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self)
 	return TRUE;
 }
 
-GtkWidget *
-eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore **model)
+gboolean
+eina_playlist_dock_init(EinaPlaylist *self)
 {
-	GtkWidget    *ret;
-	GtkTreeView  *_tv;
-	GtkListStore *_model;
-	GtkTreeViewColumn *state_col, *title_col/*, *duration_col*/;
-	GtkCellRenderer *title_renderer;
+	GtkListStore      *model;
+	GtkTreeViewColumn *state_col, *title_col;
+	GtkCellRenderer   *title_renderer;
 	GtkTreeSelection  *selection;
 
-	_tv = GTK_TREE_VIEW(eina_obj_get_widget(self, "playlist-treeview"));
+	self->tv = GTK_TREE_VIEW(eina_obj_get_widget(self, "playlist-treeview"));
 
 	/* Setup treeview step 1: build renderers and attach to colums and columns to treeview*/
 	state_col = gtk_tree_view_column_new_with_attributes(NULL,
@@ -369,17 +375,17 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 	title_col = gtk_tree_view_column_new_with_attributes(_("Title"),
 		title_renderer,  "markup", PLAYLIST_COLUMN_MARKUP, NULL);
 
-	gtk_tree_view_append_column(_tv, state_col);
-	gtk_tree_view_append_column(_tv, title_col);
+	gtk_tree_view_append_column(self->tv, state_col);
+	gtk_tree_view_append_column(self->tv, title_col);
 
 	/* Setup treeview step 2: set model for treeview */
-	_model = gtk_list_store_new(PLAYLIST_N_COLUMNS,
-		G_TYPE_STRING, // State
-		G_TYPE_STRING, // URI
-		G_TYPE_STRING, // Raw title
-		G_TYPE_STRING  // Title
+	model = gtk_list_store_new(PLAYLIST_N_COLUMNS,
+		LOMO_TYPE_STREAM, // Stream
+		G_TYPE_STRING,    // State
+		G_TYPE_STRING,    // Text
+		G_TYPE_STRING     // Markup
 		);
-	gtk_tree_view_set_model(_tv, GTK_TREE_MODEL(_model));
+	gtk_tree_view_set_model(self->tv, (GtkTreeModel *) model);
 
 	/* Setup treeview step 3: set some properties */
 	g_object_set(G_OBJECT(title_renderer),
@@ -394,29 +400,23 @@ eina_playlist_dock_init(EinaPlaylist *self, GtkTreeView **treeview, GtkListStore
 		"visible",   TRUE,
 		"resizable", FALSE,
 		NULL);
-	g_object_set(G_OBJECT(_tv),
+	g_object_set(G_OBJECT(self->tv),
 		"headers-clickable", FALSE,
 		"headers-visible", TRUE,
 		NULL);
-	gtk_tree_view_set_search_column(_tv, PLAYLIST_COLUMN_MARKUP);
-	gtk_tree_view_set_search_equal_func(_tv, (GtkTreeViewSearchEqualFunc) __eina_playlist_search_func, self, NULL);
+	gtk_tree_view_set_search_column(self->tv, PLAYLIST_COLUMN_MARKUP);
+	gtk_tree_view_set_search_equal_func(self->tv, (GtkTreeViewSearchEqualFunc) __eina_playlist_search_func, self, NULL);
 
-	selection = gtk_tree_view_get_selection(_tv);
+	selection = gtk_tree_view_get_selection(self->tv);
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
 
-	ret = eina_obj_get_widget(self, "playlist-main-box");
-	g_object_ref(ret);
-	if (ret->parent != NULL)
-		gtk_widget_unparent(ret);
+	self->dock = eina_obj_get_widget(self, "playlist-main-box");
+	g_object_ref(self->dock);
+	if (self->dock->parent != NULL)
+		gtk_widget_unparent(self->dock);
 
-	if (treeview != NULL)
-		*treeview = _tv;
-	if (model != NULL)
-		*model = _model;
-
-	g_signal_connect(ret, "key-press-event",
-	G_CALLBACK(key_press_event_cb), self);
-	return ret;
+	g_signal_connect(self->dock, "key-press-event", G_CALLBACK(dock_key_press_event_cb), self);
+	return TRUE;
 }
 
 static void
@@ -492,7 +492,7 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 			return;
 
 	gel_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_state, new_state);
-	gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
+	gtk_list_store_set((GtkListStore *) gtk_tree_view_get_model(self->tv), iter,
 		PLAYLIST_COLUMN_STATE, new_state,
 		-1);
 }
@@ -512,7 +512,7 @@ __eina_playlist_update_item_title(EinaPlaylist *self, GtkTreeIter *iter, gint it
 	if (!g_str_equal(current_title, markup))
 	{
 		gel_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_title, markup);
-		gtk_list_store_set(GTK_LIST_STORE(self->model), iter,
+		gtk_list_store_set((GtkListStore *) gtk_tree_view_get_model(self->tv), iter,
 			PLAYLIST_COLUMN_MARKUP, markup,
 			-1);
 	}
@@ -543,7 +543,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 	// Get item from iter
 	if (item == -1)
 	{
-		treepath = gtk_tree_model_get_path(GTK_TREE_MODEL(self->model), iter);
+		treepath = gtk_tree_model_get_path(gtk_tree_view_get_model(self->tv), iter);
 		if (treepath == NULL)
 		{
 			gel_warn("Cannot get a GtkTreePath from index %d", item);
@@ -558,7 +558,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 	if (iter == NULL)
 	{
 		treepath = gtk_tree_path_new_from_indices(item, -1);
-		gtk_tree_model_get_iter(GTK_TREE_MODEL(self->model), &_iter, treepath);
+		gtk_tree_model_get_iter(gtk_tree_view_get_model(self->tv), &_iter, treepath);
 		gtk_tree_path_free(treepath);
 		iter = &_iter;
 	}
@@ -566,7 +566,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 	current = lomo_player_get_current(eina_obj_get_lomo(self));
 
 	// Get data from GtkListStore supported columns
-	gtk_tree_model_get(GTK_TREE_MODEL(self->model), iter,
+	gtk_tree_model_get(gtk_tree_view_get_model(self->tv), iter,
 		PLAYLIST_COLUMN_STATE, &state,
 		PLAYLIST_COLUMN_MARKUP, &title,
 		PLAYLIST_COLUMN_TEXT, &raw_title,
@@ -607,12 +607,15 @@ __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, 
 	gchar *title = NULL, *title_lc, *key_lc;
 	gboolean ret = FALSE;
 
+	if (model == NULL)
+		model = gtk_tree_view_get_model(self->tv);
+
 	if (column != PLAYLIST_COLUMN_MARKUP)
 	{
 		gel_warn("Invalid search column %d", column);
 		return TRUE;
 	}
-	gtk_tree_model_get(GTK_TREE_MODEL(self->model), iter,
+	gtk_tree_model_get(model, iter,
 		PLAYLIST_COLUMN_MARKUP, &title,
 		-1);
 	title_lc = g_utf8_strdown(title, -1);
@@ -633,7 +636,7 @@ __eina_playlist_search_func(GtkTreeModel *model, gint column, const gchar *key, 
  * UI Callbacks
  */
 void
-on_pl_row_activated(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self)
+dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self)
 {
 	gint *indexes;
 	GError *err = NULL;
@@ -651,13 +654,14 @@ on_pl_row_activated(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, 
 	}
 }
 
-void on_pl_add_button_clicked
+static void
+add_button_clicked_cb
 (GtkWidget *w, EinaPlaylist *self)
 {
 	eina_fs_file_chooser_load_files(eina_obj_get_lomo(self));
 }
 
-gint
+static gint
 sort_int_desc(gconstpointer a, gconstpointer b)
 {
 	gint int_a = GPOINTER_TO_INT(a);
@@ -667,8 +671,22 @@ sort_int_desc(gconstpointer a, gconstpointer b)
 	return 0;
 }
 
+static gchar *
+format_stream(LomoStream *stream, gchar *fmt)
+{
+	if (lomo_stream_get_all_tags_flag(stream))
+		return gel_str_parser(fmt, (GelStrParserFunc) format_stream_cb, stream);
+	else
+	{
+		gchar *unescape_uri = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+		gchar *ret = g_path_get_basename(unescape_uri);
+		g_free(unescape_uri);
+		return ret;
+	}
+}
+
 static gchar*
-playlist_format_stream_cb(gchar key, LomoStream *stream)
+format_stream_cb(gchar key, LomoStream *stream)
 {
 	gchar *tag = lomo_stream_get_tag_by_id(stream, key);
 	if ((tag == NULL) && (key == 't'))
@@ -727,29 +745,24 @@ static void lomo_state_change_cb
 static void lomo_insert_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
+	gchar *text = format_stream(stream, self->stream_fmt);
+	gchar *v = g_markup_escape_text(text, -1);
+	g_free(text);
+
+	gchar *m = NULL;
+	if (pos == lomo_player_get_current(lomo))
+		m = g_strdup_printf("<b>%s</b>", v);
+
 	GtkTreeIter iter;
-	gchar *title = NULL, *tmp;
-
-	title = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
-	if (title == NULL)
-	{
-		tmp = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
-		title = g_path_get_basename(tmp);
-		g_free(tmp);
-	}
-
-	tmp = title;
-	title = g_markup_escape_text(title, -1);
-	g_free(tmp);
-
-	gtk_list_store_insert_with_values(self->model,
+	gtk_list_store_insert_with_values((GtkListStore *) gtk_tree_view_get_model(self->tv),
 		&iter, pos,
-		PLAYLIST_COLUMN_STATE,     NULL,
-		PLAYLIST_COLUMN_URI,       lomo_stream_get_tag(stream, LOMO_TAG_URI),
-		PLAYLIST_COLUMN_TEXT, title,
-		PLAYLIST_COLUMN_MARKUP,     title,
+		PLAYLIST_COLUMN_STREAM, stream,
+		PLAYLIST_COLUMN_STATE,  NULL,
+		PLAYLIST_COLUMN_TEXT,   v,
+		PLAYLIST_COLUMN_MARKUP, m ? m : v,
 		-1);
-	g_free(title);
+	g_free(v);
+	gel_free_and_invalidate(m, NULL, g_free);
 }
 
 static void lomo_remove_cb
@@ -785,34 +798,23 @@ static void lomo_remove_cb
 static void lomo_change_cb
 (LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self)
 {
-	GtkTreePath *treepath;
+	g_return_if_fail((old >= 0) || (new >= 0));
 
-	/* If old and new are invalid return */
-	if ((old < 0) && (new < 0))
-	{
-		gel_warn("old AND new positions are invalid (%d -> %d)", old, new);
-		return;
-	}
-
-	gel_debug("Handling change signal %d -> %d", old, new);
-
-	/* Restore normal state on old stream except it was failed*/
+	// Restore normal (null) state on old stream except it was failed
 	if (old >= 0)
 	{
-		gel_debug("updating all columns from OLD %d", old);
 		if (lomo_stream_get_failed_flag(lomo_player_nth_stream(lomo, old)))
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_MARKUP, -1);
 		else
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_MARKUP, -1);
 	}
 
-	/* Create markup for the new stream */
-	if (new >= 0) {
-		gel_debug("updating all columns from NEW %d", new);
+	// Create markup for the new stream
+	if (new >= 0)
+	{
 		eina_playlist_update_item(self, NULL, new, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_MARKUP, -1);
 
-		// Scroll to new stream
-		treepath = gtk_tree_path_new_from_indices(new, -1);
+		GtkTreePath *treepath = gtk_tree_path_new_from_indices(new, -1);
 		gtk_tree_view_scroll_to_cell(self->tv, treepath, NULL,
 			TRUE, 0.5, 0.0);
 		gtk_tree_path_free(treepath);
@@ -822,7 +824,7 @@ static void lomo_change_cb
 static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self)
 {
-	gtk_list_store_clear(self->model);
+	gtk_list_store_clear((GtkListStore *) gtk_tree_view_get_model(self->tv));
 }
 
 static void lomo_random_cb
@@ -859,7 +861,7 @@ static void lomo_error_cb
 	GtkTreeIter iter;
 	GtkTreePath *treepath = gtk_tree_path_new_from_indices(pos, -1);
 
-	if (!gtk_tree_model_get_iter((GtkTreeModel *) self->model, &iter, treepath))
+	if (!gtk_tree_model_get_iter(gtk_tree_view_get_model(self->tv), &iter, treepath))
 	{
 		gel_warn("Cannot get iter for stream %p", stream);
 		gtk_tree_path_free(treepath);
@@ -867,7 +869,7 @@ static void lomo_error_cb
 	}
 	gtk_tree_path_free(treepath);
 		
-	gtk_list_store_set(GTK_LIST_STORE(self->model), &iter,
+	gtk_list_store_set((GtkListStore *) gtk_tree_view_get_model(self->tv), &iter,
 		PLAYLIST_COLUMN_STATE, GTK_STOCK_STOP,
 		-1);
 
@@ -878,56 +880,37 @@ static void lomo_error_cb
 static void lomo_all_tags_cb
 (LomoPlayer *lomo, LomoStream *stream, EinaPlaylist *self)
 {
-
-	GtkTreeModel *model;
-	GtkTreeIter   iter;
-	gchar        *uri;
-	gchar        *title = NULL;
-	gchar        *escape = NULL;
-	gchar        *title_markup = NULL;
-	/*
-	guint64      *duration;
-	gchar        *duration_str;
-	*/
-
-	model = gtk_tree_view_get_model(self->tv);
-	if (!gtk_tree_model_get_iter_first(model, &iter)) {
+	GtkTreeModel *model = gtk_tree_view_get_model(self->tv);
+	gint index = lomo_player_index(lomo, stream);
+	if (index < 0)
+	{
+		gel_error(N_("Cannot find index for stream %p (%s)"), stream, lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		return;
 	}
 
-	/* Search the stream on the treeview */
-	while (gtk_list_store_iter_is_valid(GTK_LIST_STORE(model), &iter))
+	GtkTreePath *treepath = gtk_tree_path_new_from_indices(index, -1);
+	GtkTreeIter iter;
+	if (!treepath || !gtk_tree_model_get_iter(model, &iter, treepath))
 	{
-		gtk_tree_model_get(model, &iter, PLAYLIST_COLUMN_URI, &uri, -1);
-		if (g_str_equal(lomo_stream_get_tag(stream, LOMO_TAG_URI), uri))
-		{
-	  		/* Title */
-			title = gel_str_parser((gchar *) self->title_fmtstr, 
-				(GelStrParserFunc) playlist_format_stream_cb, stream);
-
-			/* Escape the title  */
-			escape = g_markup_escape_text(title, -1);
-			g_free(title);
-
-			if (stream == lomo_player_get_current_stream(eina_obj_get_lomo(self))) {
-				title_markup = g_strconcat("<b>", escape, "</b>", NULL);
-				gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-					PLAYLIST_COLUMN_TEXT, escape,
-					PLAYLIST_COLUMN_MARKUP, title_markup,
-					-1);
-				g_free(title_markup);
-			} else {
-				gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-					PLAYLIST_COLUMN_TEXT, escape,
-					PLAYLIST_COLUMN_MARKUP, escape,
-					-1);
-			}
-			g_free(escape);
-		}
-
-		if (!gtk_tree_model_iter_next(model, &iter))
-			break;
+		gel_error(N_("Cannot get iter for index %d"), index);
+		return;
 	}
+	gtk_tree_path_free(treepath);
+
+	gchar *text = format_stream(stream, self->stream_fmt);
+	gchar *v = g_markup_escape_text(text, -1);
+	g_free(text);
+
+	gchar *m = NULL;
+	if (index == lomo_player_get_current(lomo))
+		m = g_strdup_printf("<b>%s</b>", v);
+
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+		PLAYLIST_COLUMN_TEXT, v,
+		PLAYLIST_COLUMN_MARKUP, m ? m : v,
+		-1);
+	g_free(v);
+	gel_free_and_invalidate(m, NULL, g_free);
 }
 
 
