@@ -181,7 +181,7 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 	object_class->dispose = eina_file_chooser_dialog_dispose;
 	object_class->finalize = eina_file_chooser_dialog_finalize;
 
-	if (!gel_ui_stock_add("queue.png", "eina-queue", GTK_ICON_SIZE_MENU, NULL))
+	if (!gel_ui_stock_add("eina-queue.png", "eina-queue", GTK_ICON_SIZE_MENU, NULL))
 		gel_error("Cannot find and add to stock file queue.png");
 }
 

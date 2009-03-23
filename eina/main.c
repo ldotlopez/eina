@@ -23,12 +23,10 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <gel/gel-io.h>
+#include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
-#include <eina/lomo.h>
-#include <eina/player.h>
-#include <eina/settings.h>
-#include <eina/fs.h>
+#include <eina/eina-plugin.h>
 
 #if HAVE_UNIQUE
 #include <unique/unique.h>
@@ -179,6 +177,10 @@ gint main
 	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, NULL);
 	g_mkdir(tmp, 00700);
 	g_free(tmp);
+
+	// Insert some stock icons
+	if (!gel_ui_stock_add("eina-queue.png", "eina-queue", GTK_ICON_SIZE_MENU, NULL))
+		gel_error("Cannot find and add to stock file eina-queue.png");
 
 	// --
 	// Create App and load modules
