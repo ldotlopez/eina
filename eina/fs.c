@@ -29,6 +29,10 @@ void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 {
 	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
+	static gchar *uri = NULL;
+	if (!uri)
+		uri = g_filename_to_uri(g_get_user_special_dir(G_USER_DIRECTORY_MUSIC), NULL, NULL);
+	gtk_file_chooser_set_current_folder_uri((GtkFileChooser *) picker, uri);
 
 	gboolean run = TRUE;
 	GSList *uris, *hold;
@@ -81,6 +85,10 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 			break;
 		}
 	} while (run);
+
+	if (uri)
+		g_free(uri);
+	uri = gtk_file_chooser_get_current_folder_uri((GtkFileChooser *) picker);
 
 	gtk_widget_destroy(GTK_WIDGET(picker));
 }
