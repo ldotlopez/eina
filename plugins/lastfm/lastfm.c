@@ -17,6 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define ENABLE_ARTWORK 1
+#define ENABLE_SUBMIT  0
+
 #include <config.h>
 #include "lastfm.h"
 #include "submit.h"
@@ -36,11 +39,15 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	LastFM *self = g_new0(LastFM, 1);
 	plugin->data = self;
 
+#if ENABLE_ARTWORK
 	if (!lastfm_artwork_init(app, plugin, error))
 		goto lastfm_init_fail;
+#endif
 
+#if ENABLE_SUBMIT
 	if (!lastfm_submit_init(app, plugin, error))
 		goto lastfm_init_fail;
+#endif
 
 	return TRUE;
 
@@ -125,8 +132,11 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	g_free(plugin->data);
 #endif
+#if ENABLE_ARTWORK
 	if (!lastfm_artwork_fini(app, plugin, error))
 		return FALSE;
+#endif
+
 	g_free(plugin->data);
 	return TRUE;
 }
@@ -134,8 +144,14 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
 	EINA_PLUGIN_SERIAL, "lastfm", PACKAGE_VERSION,
 	N_("Lastfm integration"),
-	N_("Lastfm integration:\n"
-	"· Query Last.fm for covers"),
+	N_("Lastfm integration on:"
+#if ENABLE_ARTWORK
+	"\n· Query Last.fm for covers"
+#endif
+#if ENABLE_SUBMIT
+	"\n· Submit information to Last.fm"
+#endif
+	),
 	"lastfm.png", EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 	lastfm_init, lastfm_fini,
 

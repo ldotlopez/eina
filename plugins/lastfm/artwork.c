@@ -272,7 +272,6 @@ search_ctx_by_album(SearchCtx *ctx)
 	gchar *uri = g_strdup_printf("http://www.last.fm/music/%s/%s", a, b);
 	g_free(a);
 	g_free(b);
-	gel_warn("Point to %s", uri);
 
 #if USE_CURL
 	ctx->q = curl_engine_query(ctx->engine, uri, (CurlEngineFinishFunc) curl_engine_finish_cb, ctx);
