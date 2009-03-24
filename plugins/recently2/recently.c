@@ -259,11 +259,6 @@ dock_create(Recently *self)
 		"editable", TRUE,
 		NULL);
 
-	g_object_set(G_OBJECT(columns[RECENTLY_COLUMN_COVER]),
-		"min-width", 32,
-		"max-width", 32,
-		NULL);
-
 	// Treeview props
     g_object_set(G_OBJECT(self->pls_tv),
 		"search-column", -1,
@@ -423,8 +418,9 @@ dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf)
 	g_return_if_fail(pixbuf);
 
 	gtk_list_store_set(self->pls_model, iter,
-		RECENTLY_COLUMN_COVER, gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR),
+		RECENTLY_COLUMN_COVER, gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR), 
 		-1);
+	g_object_unref(pixbuf);
 }
 
 static LomoStream*
@@ -945,10 +941,34 @@ art_search_success_cb(Art *art, ArtSearch *search, Recently *self)
 static void
 art_search_fail_cb(Art *art, ArtSearch *search, Recently *self)
 {
-	LomoStream *stream = art_search_get_stream(search);
-	gel_implement("Set unknow cover on failure");
-	g_object_unref(stream);
+	GtkTreeIter iter;
+	if (!dock_get_iter_for_search(self, search, &iter))
+	{
+		gel_error(N_("Cannot get iter for search %p"), search);
+		return;
+	}
+
+	gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+	if (!path)
+	{
+		gel_error(N_("Cannot get resource cover-default.png"));
+		return;
+	}
+
+	GError *err = NULL;
+	GdkPixbuf *pb = gdk_pixbuf_new_from_file(path, &err);
+	if (!pb)
+	{
+		gel_error(N_("Cannot load pixbuf from %s: %s"), path, err->message);
+		g_error_free(err);
+		g_free(path);
+		return;
+	}
+	g_free(path);
+
+	dock_update_cover(self, &iter, pb);
 }
+
 static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 {
