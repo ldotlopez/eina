@@ -67,8 +67,10 @@ static void       search_ctx_search(SearchCtx *ctx);
 static void       search_ctx_cancel(SearchCtx *ctx); 
 
 static void search_ctx_by_album(SearchCtx *ctx);
+static void search_ctx_by_artist(SearchCtx *ctx);
 
 gchar* search_ctx_parse_as_album(gchar *buffer);
+gchar* search_ctx_parse_as_artist(gchar *buffer);
 
 #if USE_CURL
 static void curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx);
@@ -173,7 +175,8 @@ search_ctx_new(LastFMArtwork *self, Art *art, ArtSearch *search)
 void
 search_ctx_free(SearchCtx *ctx)
 {
-	g_return_if_fail(ctx->q == NULL);
+	if (ctx->q != NULL)
+		curl_engine_cancel(ctx->engine, ctx->q);
 
 #if !USE_CURL
 	g_object_unref(ctx->cancellable);
@@ -191,10 +194,8 @@ search_ctx_search(SearchCtx *ctx)
 	// subsearches
 	static SearchFunc subsearches[] = {
 		search_ctx_by_album,
-		/*
 		search_ctx_by_artist,
-		search_ctx_by_single,
-		*/
+		// search_ctx_by_single,
 		NULL
 	};
 
@@ -232,10 +233,8 @@ search_ctx_parse(SearchCtx *ctx, gchar *buffer)
 {
 	static gpointer parsers[] = {
 		search_ctx_parse_as_album,
-		/*
-		NULL,
-		NULL,
-		*/
+		search_ctx_parse_as_artist,
+		// search_ctx_parse_as_single,
 		NULL
 	};
 
@@ -283,6 +282,35 @@ search_ctx_by_album(SearchCtx *ctx)
 	g_free(uri);
 }
 
+static void
+search_ctx_by_artist(SearchCtx *ctx)
+{
+	LomoStream *stream = art_search_get_stream(ctx->search);
+	gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+
+	// search_by_artist needs artist tag
+	if (!artist)
+	{
+		search_ctx_try_next(ctx);
+		return;
+	}
+
+	// Now control belongs to curl_engine_query_cb / load_contents_async_cb
+	gchar *a   = g_uri_escape_string(artist, G_URI_RESERVED_CHARS_SUBCOMPONENT_DELIMITERS, FALSE);
+	gchar *uri = g_strdup_printf("http://www.last.fm/music/%s", a);
+	g_free(a);
+
+#if USE_CURL
+	ctx->q = curl_engine_query(ctx->engine, uri, (CurlEngineFinishFunc) curl_engine_finish_cb, ctx);
+#else
+	g_file_load_contents_async(g_file_new_for_uri(uri), ctx->cancellable,
+		(GAsyncReadyCallback) load_contents_async_cb, ctx);
+#endif
+
+	g_free(uri);
+}
+
+
 // *******
 // SubParsers
 // *******
@@ -315,6 +343,34 @@ search_ctx_parse_as_album(gchar *buffer)
 	return g_strdup(p);
 }
 
+gchar *
+search_ctx_parse_as_artist(gchar *buffer)
+{
+	gchar *tokens[] = {
+		"id=\"catalogueImage\"",
+		"src=\"",
+		NULL
+	};
+
+	gint i;
+	gchar *p = buffer;
+	for (i = 0; tokens[i] != NULL; i++)
+	{
+		if (!p || (p = strstr(p, tokens[i])) == NULL)
+			return NULL;
+		p += strlen(tokens[i]) * sizeof(gchar);
+	}
+
+	gchar *p2 = strstr(p, "\"");
+	if (!p2)
+		return NULL;
+	p2[0] = '\0';
+	
+	if (g_str_has_suffix(p, "default_album_mega.png"))
+		return NULL;
+
+	return g_strdup(p);
+}
 // ******************
 // Callback functions
 // ******************
@@ -327,11 +383,14 @@ curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	gsize   size;
 	GError *error = NULL;
 
+	// Search is finished
+	ctx->q = NULL;
+
 	// Jump if there was an error fetching
 	if (!curl_query_finish(query, &buffer, &size, &error))
 	{
 		gchar *uri = curl_query_get_uri(query);
-		gel_warn("Cannot get uri '%s': %s", uri, error->message);
+		gel_warn(N_("Cannot fetch uri '%s': %s"), uri, error->message);
 		g_free(uri);
 
 		goto curl_engine_finish_cb_fail;
@@ -341,7 +400,7 @@ curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	gchar *cover = search_ctx_parse(ctx, (gchar *) buffer);
 	if (cover == NULL)
 	{
-		gel_warn("Parse failed");
+		gel_warn(N_("Parse in stage %d failed for search %p"), ctx->n, ctx);
 		goto curl_engine_finish_cb_fail;
 	}
 
