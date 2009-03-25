@@ -51,14 +51,13 @@ typedef struct {
 
 // Model for playlists
 enum {
-	RECENTLY_COLUMN_TIMESTAMP, // Not visible, for reference
-	RECENTLY_COLUMN_SEARCH,    // Not visible, for matching
-	RECENTLY_COLUMN_COVER,
-	RECENTLY_COLUMN_SUMMARY,
-	RECENTLY_COLUMN_MARKUP,
-	RECENTLY_COLUMN_PLAY,
-	RECENTLY_COLUMN_ENQUEUE,
-	RECENTLY_COLUMN_DELETE,
+	RECENTLY_COLUMN_TIMESTAMP, // (gchar *)     Timestamp of the playlist
+	RECENTLY_COLUMN_SEARCH,    // (gpointer)    Search for cover
+	RECENTLY_COLUMN_COVER,     // (GdkPixbuf *) Cover
+	RECENTLY_COLUMN_MARKUP,    // (gchar*)      Markup to render
+	RECENTLY_COLUMN_PLAY,      // (GdkPixbuf *) Play indicator
+	RECENTLY_COLUMN_ENQUEUE,   // (GdkPixbuf *) Enqueue indicator
+	RECENTLY_COLUMN_DELETE,    // (GdkPixbuf *) Delete indicator
 
 	RECENTLY_N_COLUMNS
 };
@@ -145,12 +144,6 @@ queryer_search_art_success_cb(Art *art, ArtSearch *search, Recently *self);
 static void
 queryer_search_art_fail_cb(Art *art, ArtSearch *search, Recently *self);
 
-
-// --
-// ADB related
-// --
-
-
 // --
 // ADB
 // --
@@ -217,8 +210,6 @@ dock_create(Recently *self)
 		renders[RECENTLY_COLUMN_COVER],
 		"pixbuf", RECENTLY_COLUMN_COVER,
 		NULL);
-
-	columns[RECENTLY_COLUMN_SUMMARY] = NULL;
 
 	columns[RECENTLY_COLUMN_MARKUP] = gtk_tree_view_column_new_with_attributes(N_("Title"),
 		renders[RECENTLY_COLUMN_MARKUP],
@@ -379,7 +370,6 @@ dock_update(Recently *self)
 			RECENTLY_COLUMN_PLAY, GTK_STOCK_MEDIA_PLAY,
 			RECENTLY_COLUMN_ENQUEUE, "eina-queue",
 			RECENTLY_COLUMN_DELETE, GTK_STOCK_DELETE,
-			RECENTLY_COLUMN_SUMMARY, title,
 			RECENTLY_COLUMN_MARKUP, markup,
 			-1);
 		g_free(title);
@@ -571,49 +561,89 @@ dock_row_activated_cb(GtkWidget *w,
 	LomoPlayer *lomo = (LomoPlayer *) gel_app_shared_get(self->app, "lomo");
 	if (lomo == NULL)
 		return;
+
+	GList *columns = gtk_tree_view_get_columns(GTK_TREE_VIEW(w));
+	gint action = g_list_length(columns) - (g_list_index(columns, column) + 1);
+	g_list_free(columns);
+	
+	gboolean do_play = FALSE;
+	gboolean do_delete = FALSE;
+
+	switch (action)
+	{
+	case 4:
+	case 2:
+		do_play = TRUE;
+		do_delete = TRUE;
+		gel_warn("Play it");
+		break;
+	case 1:
+		do_play = TRUE;
+		do_delete = FALSE;
+		gel_warn("Enqueue it");
+		break;
+	case 0:
+		do_play = FALSE;
+		do_delete = TRUE;
+		gel_warn("Delete it");
+		break;
+	}
 	
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->pls_model), &iter, path);
 	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
 		RECENTLY_COLUMN_TIMESTAMP, &ts,
 		-1);
 
-	char *q = sqlite3_mprintf(
-		"SELECT uri FROM streams WHERE sid IN ("
-			"SELECT sid FROM playlist_history WHERE timestamp='%q'"
-		");", ts);
-	sqlite3_stmt *stmt = NULL;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
-	{
-		gel_warn("Cannot get URIs for %s: %s", ts, sqlite3_errmsg(adb->db));
-		sqlite3_free(q);
-		return;
-	}
-
 	GList *pl = NULL;
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+
+	// Get playlist if we are going to play it
+	if (do_play)
 	{
-		pl = g_list_prepend(pl, g_strdup((gchar*) sqlite3_column_text(stmt, 0)));
-	}
-	sqlite3_finalize(stmt);
-	pl = g_list_reverse(pl);
+		char *q = sqlite3_mprintf(
+			"SELECT uri FROM streams WHERE sid IN ("
+				"SELECT sid FROM playlist_history WHERE timestamp='%q'"
+			");", ts);
+		sqlite3_stmt *stmt = NULL;
+		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+		{
+			gel_warn("Cannot get URIs for %s: %s", ts, sqlite3_errmsg(adb->db));
+			sqlite3_free(q);
+			return;
+		}
 
-	q = sqlite3_mprintf("DELETE FROM playlist_history WHERE timestamp='%q'", ts);
-	char *err = NULL;
-	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+		while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+		{
+			pl = g_list_prepend(pl, g_strdup((gchar*) sqlite3_column_text(stmt, 0)));
+		}
+		sqlite3_finalize(stmt);
+		pl = g_list_reverse(pl);
+	}
+
+	if (do_delete)
 	{
-		gel_error("Cannot delete playlist %s form history: %s", ts, err);
-		sqlite3_free(err);
+		char *q = sqlite3_mprintf("DELETE FROM playlist_history WHERE timestamp='%q'", ts);
+		char *err = NULL;
+		if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+		{
+			gel_error("Cannot delete playlist %s form history: %s", ts, err);
+			sqlite3_free(err);
+		}
+		g_free(ts);
 	}
-	g_free(ts);
 
-	lomo_player_clear(lomo);
-	lomo_player_append_uri_multi(lomo, pl);
-	gel_list_deep_free(pl, g_free);
+	if (do_delete && do_play)
+		lomo_player_clear(lomo);
+	if (do_play)
+	{
+		lomo_player_append_uri_multi(lomo, pl);
+		eina_plugin_switch_dock_widget(self->plugin, "playlist");
 
-	eina_plugin_switch_dock_widget(self->plugin, "playlist");
-	dock_update(self);
+		lomo_player_play(lomo, NULL);
+		gel_list_deep_free(pl, g_free);
+	}
 
-	lomo_player_play(lomo, NULL);
+	if (do_delete || do_play)
+		dock_update(self);
 }
 
 void

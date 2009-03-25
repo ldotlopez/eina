@@ -402,7 +402,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 		NULL);
 	g_object_set(G_OBJECT(self->tv),
 		"headers-clickable", FALSE,
-		"headers-visible", TRUE,
+		"headers-visible", FALSE,
 		NULL);
 	gtk_tree_view_set_search_column(self->tv, PLAYLIST_COLUMN_MARKUP);
 	gtk_tree_view_set_search_equal_func(self->tv, (GtkTreeViewSearchEqualFunc) __eina_playlist_search_func, self, NULL);

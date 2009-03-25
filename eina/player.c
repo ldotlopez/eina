@@ -467,50 +467,9 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 			GDK_INTERP_BILINEAR);
 		g_object_unref(old_pb);
 	}
-#if 0
-	gchar *overpath =  gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
-	GdkPixbuf *over = gdk_pixbuf_new_from_file_at_scale(overpath,
-			GTK_WIDGET(self->cover)->allocation.width,
-			GTK_WIDGET(self->cover)->allocation.height,
-			TRUE, NULL);
 
-	GdkColor *color = gtk_widget_get_style((GtkWidget *) self->cover)->bg;
-	gel_warn("BG: 0x%x%x%x", color->red, color->green, color->blue);
+	gtk_window_set_icon(self->main_window, pixbuf);
 
-	int width, height, rowstride, n_channels;
-	guchar *pixels/* , *p */;
-	n_channels = gdk_pixbuf_get_n_channels(over);
-	g_assert (gdk_pixbuf_get_colorspace (over) == GDK_COLORSPACE_RGB);
-	g_assert (gdk_pixbuf_get_bits_per_sample (over) == 8);
-	g_assert (gdk_pixbuf_get_has_alpha (over));
-	g_assert (n_channels == 4);
-	width = gdk_pixbuf_get_width (over);
-	height = gdk_pixbuf_get_height (over);
-	// g_assert (x >= 0 && x < width);
-	// g_assert (y >= 0 && y < height);
-	rowstride = gdk_pixbuf_get_rowstride (over);
-	pixels = gdk_pixbuf_get_pixels (over);
-	// p = pixels + y * rowstride + x * n_channels;
-
-	guchar *p;
-	int i, j;
-	for ( i = 0; i < width; i++)
-		for (j = 0; j < height; j++)
-		{
-			p = pixels + j * rowstride + i * n_channels;
-			p[0] = color->red;
-			p[1] = color->green;
-			p[2] = color->blue;
-		}
-	gdk_pixbuf_composite(self->cover_mask, pixbuf,
-		0, 0,
-		GTK_WIDGET(self->cover)->allocation.width,
-		GTK_WIDGET(self->cover)->allocation.height,
-		0, 0,
-		1,1,
-		GDK_INTERP_BILINEAR,
-		255);
-#else
 	if (self->cover_mask)
 	{
 		gdk_pixbuf_composite(self->cover_mask, pixbuf,
@@ -523,9 +482,7 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 			GDK_INTERP_BILINEAR,
 			255);
 	}
-#endif
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
-	gtk_window_set_icon(self->main_window, pixbuf);
 }
 
 static void

@@ -111,11 +111,6 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 		(GCallback) player_main_window_configure_event_cb, self);
 
 	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
-
-	gel_warn("Open dock: %d (%dx%d)",
-		eina_conf_get_bool(conf, "/dock/expanded", FALSE),
-		eina_conf_get_int(conf, "/dock/main-window-width", 1),
-		eina_conf_get_int(conf, "/dock/main-window-height", 1));
 	g_signal_connect(
 		eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)), "expose-event",
 		(GCallback) player_main_window_expose_event_cb, self);
