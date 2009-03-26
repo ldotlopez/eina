@@ -575,17 +575,14 @@ dock_row_activated_cb(GtkWidget *w,
 	case 2:
 		do_play = TRUE;
 		do_delete = TRUE;
-		gel_warn("Play it");
 		break;
 	case 1:
 		do_play = TRUE;
 		do_delete = FALSE;
-		gel_warn("Enqueue it");
 		break;
 	case 0:
 		do_play = FALSE;
 		do_delete = TRUE;
-		gel_warn("Delete it");
 		break;
 	}
 	
@@ -631,8 +628,12 @@ dock_row_activated_cb(GtkWidget *w,
 		g_free(ts);
 	}
 
+	if (do_delete || do_play)
+		gtk_list_store_remove((GtkListStore *) self->pls_model, &iter);
+
 	if (do_delete && do_play)
 		lomo_player_clear(lomo);
+
 	if (do_play)
 	{
 		lomo_player_append_uri_multi(lomo, pl);
@@ -641,9 +642,6 @@ dock_row_activated_cb(GtkWidget *w,
 		lomo_player_play(lomo, NULL);
 		gel_list_deep_free(pl, g_free);
 	}
-
-	if (do_delete || do_play)
-		dock_update(self);
 }
 
 void
