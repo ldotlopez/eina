@@ -27,18 +27,19 @@
 #include <eina/eina-plugin.h>
 #include "plugins/adb/adb.h"
 
-
 typedef struct {
 	GelApp       *app;
 	GelPlugin    *plugin;
-	GtkWidget    *dock;
 
-	// Playlists
+	// Dock
+	GtkWidget    *dock;
+	GtkNotebook *tabs;
+
+	// Recently
 	GtkTreeView  *pls_tv;
 	GtkListStore *pls_model;
 
-	GtkNotebook *tabs;
-
+	// Queryer
 	GtkEntry           *search_entry;    
 	GtkLabel           *search_tip;
 	GtkIconView        *search_view;
@@ -46,10 +47,12 @@ typedef struct {
 	GtkListStore       *queryer_results;
 	GtkTreeModelFilter *queryer_filter;
 
+	gint                queryer_state;
+
 	guint queryer_search_id;
 } Recently;
 
-// Model for playlists
+// Model for playlist 
 enum {
 	RECENTLY_COLUMN_TIMESTAMP, // (gchar *)     Timestamp of the playlist
 	RECENTLY_COLUMN_SEARCH,    // (gpointer)    Search for cover
@@ -82,6 +85,12 @@ enum {
 	QUERYER_N_COLUMNS
 };
 
+enum {
+	QUERYER_STATE_NULL = 0,
+	QUERYER_STATE_SQL,
+	QUERYER_STATE_REFINE
+};
+
 // Error codes 
 enum {
 	RECENTLY_NO_ERROR = 0,
@@ -90,20 +99,63 @@ enum {
 	RECENTLY_ERROR_CANNOT_FETCH_ADB
 };
 
+#define RECENTLY_MARKUP "<b>%s:</b>\n\t%s"
+#define RECENTLY_COVER_SIZE 32
+#define QUERYER_COVER_SIZE 64
+
 // --
-// Utils
+// Generic stuff
 // --
-static GtkWidget *
-dock_create(Recently *self);
 static gboolean
-dock_update(Recently *self);
-static gboolean
-dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter);
+list_store_get_iter_for_search(GtkListStore *model, gint column, ArtSearch *search, GtkTreeIter *iter);
 static void
-dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf);
+list_store_set_cover(GtkListStore *model, gint column, GtkTreeIter *iter, GdkPixbuf *pixbuf, guint size);
 static const gchar*
 stamp_to_human(gchar *stamp);
 
+// --
+// Dock related
+// --
+static GtkWidget*
+dock_create(Recently *self);
+static void 
+dock_search_entry_changed_cb(Recently *self, GtkEntry *w); // swapped
+
+// --
+// Recently tab
+// --
+static gboolean
+recently_refresh(Recently *self);
+static void
+recently_row_activated_cb(GtkWidget *w,
+	GtkTreePath *path,
+	GtkTreeViewColumn *column,
+Recently *self);
+static void
+recently_markup_edited_cb(GtkWidget *w,
+	gchar *path,
+	gchar *new_text,
+	Recently *self);
+static void
+recently_search_cb(Art *art, ArtSearch *search, Recently *self);
+
+// --
+// The queryer
+// --
+static void
+queryer_fill_model_for_query(Recently *self, gchar *input);
+static void
+queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch);
+static void
+queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self);
+static void
+queryer_search_cb(Art *art, ArtSearch *search, Recently *self);
+static gboolean
+queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Recently *self);
+
+// --
+// ADB utils
+// --
 gboolean
 adb_upgrade_0(Adb *adb, Recently *self, GError **error);
 static gchar *
@@ -114,43 +166,22 @@ static gchar*
 adb_get_title_for_timestamp(Adb *adb, gchar *timestamp);
 static gchar**
 adb_get_n_timestamps(Adb *adb, gint n);
+static gchar**
+adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp);
+static void
+adb_delete_playlist_from_timestamp(Adb *Adb, gchar *timestamp);
 
 // --
-// Callbacks
+// Lomo callbacks
 // --
-static void
-dock_row_activated_cb(GtkWidget *w,
-	GtkTreePath *path,
-	GtkTreeViewColumn *column,
-	Recently *self);
-static void
-dock_renderer_edited_cb(GtkWidget *w,
-	gchar *path,
-	gchar *new_text,
-	Recently *self);
-static void 
-dock_search_entry_changed_cb(Recently *self, GtkEntry *w); // swapped
-static void
-art_search_success_cb(Art *art, ArtSearch *search, Recently *self);
-static void
-art_search_fail_cb(Art *art, ArtSearch *search, Recently *self);
 static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self);
 
 // --
-// The queryer
 // --
-static void
-queryer_schedule_search(Recently *self);
-static void
-queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch);
-static void
-queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self);
-static void
-queryer_search_art_success_cb(Art *art, ArtSearch *search, Recently *self);
-static void
-queryer_search_art_fail_cb(Art *art, ArtSearch *search, Recently *self);
-
+// Implementation
+// --
+// --
 
 GQuark recently_quark(void)
 {
@@ -161,7 +192,100 @@ GQuark recently_quark(void)
 }
 
 // --
-// API / Utils
+// Generic stuff
+// --
+static gboolean
+list_store_get_iter_for_search(GtkListStore *model, gint column, ArtSearch *search, GtkTreeIter *iter)
+{
+	g_return_val_if_fail(gtk_tree_model_get_iter_first((GtkTreeModel *) model, iter), FALSE);
+
+	do
+	{
+		ArtSearch *test = NULL;
+		gtk_tree_model_get((GtkTreeModel *) model, iter, column, &test, -1);
+		if (test == search)
+			return TRUE;
+	} while (gtk_list_store_iter_is_valid(model, iter) && gtk_tree_model_iter_next((GtkTreeModel *) model, iter));
+
+	gel_error(N_("Unable to find matching row for search"));
+	return FALSE;
+}
+
+static void
+list_store_set_cover(GtkListStore *model, gint column, GtkTreeIter *iter, GdkPixbuf *pixbuf, guint size)
+{
+	g_return_if_fail(gtk_list_store_iter_is_valid(model, iter));
+	g_return_if_fail(size > 0);
+
+	if (pixbuf == NULL)
+	{
+		gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+		if (!path)
+		{
+			gel_error(N_("Cannot get resource cover-default.png"));
+			return;
+		}
+
+		GError *err = NULL;
+		pixbuf = gdk_pixbuf_new_from_file_at_scale(path, size, size, TRUE, &err);
+		if (!pixbuf)
+		{
+			gel_error(N_("Cannot load pixbuf from %s: %s"), path, err->message);
+			g_error_free(err);
+			g_free(path);
+			return;
+		}
+		g_free(path);
+	}
+
+	gtk_list_store_set(model, iter, column, gdk_pixbuf_scale_simple(pixbuf, size, size, GDK_INTERP_BILINEAR), -1);
+	g_object_unref(pixbuf);
+}
+
+// Convert a string in iso8601 format to a more human form
+static const gchar*
+stamp_to_human(gchar *stamp)
+{
+	GTimeVal now, other;
+	g_get_current_time(&now);
+	if (!g_time_val_from_iso8601(stamp, &other))
+	{
+		gel_warn("Invalid input");
+		return NULL;
+	}
+	gchar *weekdays[] = {
+		NULL,
+		N_("Monday"),
+		N_("Tuesday"),
+		N_("Wednesday"),
+		N_("Thursday"),
+		N_("Saturday"),
+		N_("Sunday")
+	};
+	gint diff = ((now.tv_sec - other.tv_sec) / 60 / 60 / 24);
+
+	if (diff == 0)
+		return N_("Today");
+	else if (diff == 1)
+		return N_("Yesterday");
+	else if ((diff >= 2) && (diff <= 6))
+	{
+		GDate *d = g_date_new();
+		g_date_set_time_val(d, &other);
+		gchar *ret = weekdays[g_date_get_weekday(d)];
+		g_date_free(d);
+		return ret;
+	}
+	else if ((diff >= 7) && (diff <= 30))
+		return N_("More than 7 days ago");
+	else if ((diff >= 31) && (diff <= 365))
+		return N_("More than a month ago");
+	else
+		return N_("More than a year ago");
+}
+
+// --
+// Dock related
 // --
 static GtkWidget *
 dock_create(Recently *self)
@@ -173,7 +297,7 @@ dock_create(Recently *self)
 	GError *err = NULL;
 	if (gtk_builder_add_from_file(xml_ui, xml_path, &err) == 0)
 	{
-		gel_error("Cannot load ui from %s: %s", xml_path, err->message);
+		gel_error(N_("Cannot load ui from %s: %s"), xml_path, err->message);
 		g_error_free(err);
 		g_object_unref(xml_ui);
 		g_free(xml_path);
@@ -181,13 +305,19 @@ dock_create(Recently *self)
 	}
 	g_free(xml_path);
 
+	// Get main widget
 	GtkWidget *ret = GTK_WIDGET(gtk_builder_get_object(xml_ui, "main-container"));
-
 	g_object_ref(ret);
 	gtk_container_remove(
 		GTK_CONTAINER(gtk_builder_get_object(xml_ui, "main-window")),
 		ret);
 
+
+	// --
+	// Recently playlists
+	// --
+
+	// Build recently model and his view
 	self->pls_tv = GTK_TREE_VIEW(gtk_builder_get_object(xml_ui, "recent-treeview"));
 
 	// Renders
@@ -222,10 +352,12 @@ dock_create(Recently *self)
 		renders[RECENTLY_COLUMN_PLAY],
 		"stock-id", RECENTLY_COLUMN_PLAY,
 		NULL);
+
 	columns[RECENTLY_COLUMN_ENQUEUE] = gtk_tree_view_column_new_with_attributes(N_("Enqueue"),
 		renders[RECENTLY_COLUMN_ENQUEUE],
 		"stock-id", RECENTLY_COLUMN_ENQUEUE,
 		NULL);
+
 	columns[RECENTLY_COLUMN_DELETE] = gtk_tree_view_column_new_with_attributes(N_("Delete"),
 		renders[RECENTLY_COLUMN_DELETE],
 		"stock-id", RECENTLY_COLUMN_DELETE,
@@ -270,8 +402,9 @@ dock_create(Recently *self)
 		G_TYPE_STRING);
     gtk_tree_view_set_model(self->pls_tv, GTK_TREE_MODEL(self->pls_model));
 
-	g_signal_connect(self->pls_tv, "row-activated", G_CALLBACK(dock_row_activated_cb), self); 
-	g_signal_connect(renders[RECENTLY_COLUMN_MARKUP], "edited", G_CALLBACK(dock_renderer_edited_cb), self);
+	g_signal_connect(self->pls_tv, "row-activated", G_CALLBACK(recently_row_activated_cb), self); 
+	g_signal_connect(renders[RECENTLY_COLUMN_MARKUP], "edited", G_CALLBACK(recently_markup_edited_cb), self);
+	g_idle_add((GSourceFunc) recently_refresh, self);
 
 	// --
 	// Setup queryer
@@ -303,16 +436,83 @@ dock_create(Recently *self)
 
 	self->tabs = GTK_NOTEBOOK(gtk_builder_get_object(xml_ui, "notebook"));
 	gtk_notebook_set_current_page(self->tabs, 0);
+	self->queryer_state = QUERYER_STATE_NULL;
+	gtk_icon_view_set_model(self->search_view, NULL);
 
 	g_object_unref(xml_ui);
 	gtk_widget_show_all((GtkWidget *) ret);
-	g_idle_add((GSourceFunc) dock_update, self);
+	gtk_widget_hide((GtkWidget *) self->search_tip);
 
 	return ret;
 }
 
+static void
+dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
+{
+	const gchar *q = gtk_entry_get_text(w);
+	gssize len = g_utf8_strlen(q, -1);
+
+	// Search tip
+	if ((len >= 1) && (len < 3))
+	{
+		if (!GTK_WIDGET_VISIBLE(self->search_tip))
+			gtk_widget_show((GtkWidget *) self->search_tip);
+	}
+	else
+	{
+		if (GTK_WIDGET_VISIBLE(self->search_tip))
+			gtk_widget_hide((GtkWidget *) self->search_tip);
+	}
+
+	// Tab to show
+	if (len < 3)
+		gtk_notebook_set_current_page(self->tabs, 0);
+	else
+		gtk_notebook_set_current_page(self->tabs, 1);
+
+	// Fill the search_results model or free it
+	if (len < 3)
+	{
+		gel_warn("Discart all models");
+		gtk_list_store_clear(self->queryer_results);
+		gel_free_and_invalidate(self->queryer_filter, NULL, g_object_unref);
+	}
+	else if ((len >= 3) && (gtk_icon_view_get_model(self->search_view) == NULL))
+	{
+		gel_warn("Fill results model, create filter");
+
+		queryer_fill_model_for_query(self, (gchar *) q);
+
+		gel_free_and_invalidate(self->queryer_filter, NULL, g_object_unref);
+		self->queryer_filter = (GtkTreeModelFilter *) gtk_tree_model_filter_new((GtkTreeModel *) self->queryer_results, NULL);
+		gtk_tree_model_filter_set_visible_func(self->queryer_filter,
+			(GtkTreeModelFilterVisibleFunc) queryer_tree_model_filter_visible_cb,
+			self, NULL);
+	}
+
+	// Must be refreshed?
+	if (len > 3)
+		gtk_tree_model_filter_refilter(self->queryer_filter);
+
+	// Which model should be displayed
+	if (len < 3)
+	{
+		gel_warn("Set model for view to null");
+		gtk_icon_view_set_model(self->search_view, NULL);
+	}
+
+	else if ((len >= 3) && (gtk_icon_view_get_model(self->search_view) == NULL))
+	{
+		gel_warn("Set model to filter");
+		gtk_icon_view_set_model(self->search_view, (GtkTreeModel *) self->queryer_filter);
+	}
+}
+
+// --
+// Recently tab
+// --
 static gboolean
-dock_update(Recently *self)
+recently_refresh(Recently *self)
 {
 	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
 	g_return_val_if_fail(adb != NULL, FALSE);
@@ -326,7 +526,7 @@ dock_update(Recently *self)
 		gchar *title = adb_get_title_for_timestamp(adb, timestamps[i]);
 		gchar *escaped = g_markup_escape_text(title, -1);
 		g_free(title);
-		gchar *markup = g_strdup_printf("<b>%s:</b>\n\t%s ", stamp_to_human(timestamps[i]), escaped);
+		gchar *markup = g_strdup_printf(N_(RECENTLY_MARKUP), stamp_to_human(timestamps[i]), escaped);
 		g_free(escaped);
 
 		// Start a search for cover
@@ -334,7 +534,7 @@ dock_update(Recently *self)
 		LomoStream *fake_stream = adb_get_stream_from_timestamp(adb, timestamps[i]);
 		if (fake_stream)
 			search = art_search(GEL_APP_GET_ART(self->app), fake_stream, 
-				(ArtFunc) art_search_success_cb, (ArtFunc) art_search_fail_cb,
+				(ArtFunc) recently_search_cb, (ArtFunc) recently_search_cb,
 				self);
 
 		GtkTreeIter iter;
@@ -356,81 +556,149 @@ dock_update(Recently *self)
 	return FALSE;
 }
 
-static gboolean
-dock_get_iter_for_search(Recently *self, ArtSearch *search, GtkTreeIter *iter)
+void
+recently_row_activated_cb(GtkWidget *w,
+	GtkTreePath *path,
+	GtkTreeViewColumn *column,
+	Recently *self)
 {
-	GtkTreeModel *model = gtk_tree_view_get_model(self->pls_tv);
+	GtkTreeIter iter;
+	gchar *ts;
 
-	if (!gtk_tree_model_get_iter_first(model, iter))
+	Adb *adb = (Adb *) gel_app_shared_get(self->app, "adb");
+	LomoPlayer *lomo = (LomoPlayer *) gel_app_shared_get(self->app, "lomo");
+	g_return_if_fail((adb != NULL) && (lomo != NULL));
+
+	GList *columns = gtk_tree_view_get_columns(GTK_TREE_VIEW(w));
+	gint action = g_list_length(columns) - (g_list_index(columns, column) + 1);
+	g_list_free(columns);
+	
+	gboolean do_play = FALSE;
+	gboolean do_delete = FALSE;
+
+	switch (action)
 	{
-		gel_error("Cannot get first iter for model");
-		return FALSE;
+	case 4:
+	case 2:
+		do_play = TRUE;
+		do_delete = TRUE;
+		break;
+	case 1:
+		do_play = TRUE;
+		do_delete = FALSE;
+		break;
+	case 0:
+		do_play = FALSE;
+		do_delete = TRUE;
+		break;
 	}
-	do
-	{
-		ArtSearch *test = NULL;
-		gtk_tree_model_get(model, iter,
-			RECENTLY_COLUMN_SEARCH, &test, -1);
-		if (test == search)
-			return TRUE;
-	} while (gtk_list_store_iter_is_valid((GtkListStore *) model, iter) && gtk_tree_model_iter_next(model, iter));
+	
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->pls_model), &iter, path);
+	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
+		RECENTLY_COLUMN_TIMESTAMP, &ts,
+		-1);
 
-	gel_error("Unable to find matching row for search");
-	return FALSE;
+	gchar **pl = NULL;
+
+	// Get playlist if we are going to play it
+	if (do_play)
+		pl = adb_get_playlist_from_timestamp(adb, ts);
+
+	if (do_delete)
+		adb_delete_playlist_from_timestamp(adb, ts);
+
+	if (do_delete || do_play)
+		gtk_list_store_remove((GtkListStore *) self->pls_model, &iter);
+
+	if (do_delete && do_play)
+		lomo_player_clear(lomo);
+
+	if (do_play)
+	{
+		lomo_player_append_uri_strv(lomo, pl);
+		eina_plugin_switch_dock_widget(self->plugin, "playlist");
+
+		lomo_player_play(lomo, NULL);
+		g_strfreev(pl);
+	}
+
+	g_free(ts);
+}
+
+void
+recently_markup_edited_cb(GtkWidget *w,
+	gchar *path,
+	gchar *new_text,
+	Recently *self)
+{
+	// If Adb is not present changes could not be saved, so abort
+	Adb *adb = GEL_APP_GET_ADB(self->app);
+	g_return_if_fail(adb != NULL);
+
+	// Try to get data from model
+	GtkTreeIter iter;
+	if (!gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->pls_model), &iter, path))
+	{
+		gel_warn("Cannot get iter for path %s", path);
+		return;
+	}
+
+	gchar *ts = NULL;
+	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
+		RECENTLY_COLUMN_TIMESTAMP, &ts,
+		-1);
+
+	// Analize input to guess the real intention of the user
+	const gchar *ts_human = stamp_to_human(ts);
+	gchar *prefix = g_strdup_printf("%s:\n\t", ts_human);
+	gchar *alias = NULL;
+	if (strstr(new_text, prefix))
+		alias = new_text + (strlen(prefix) * sizeof(gchar));
+	else
+		alias = new_text;
+
+	char *q = NULL;
+	char *err = NULL;
+
+	// If alias is NULL or '' delete alias and revert markup to summary
+	if ((alias == NULL) || g_str_equal(alias, ""))
+	{
+		q = sqlite3_mprintf("DELETE FROM playlist_aliases WHERE timestamp='%q'", ts);
+		alias = adb_get_summary_from_timestamp(adb, ts, 3);
+	}
+	else
+	{
+		q = sqlite3_mprintf("INSERT OR REPLACE INTO playlist_aliases VALUES('%q', '%q')", ts, alias);
+		alias = g_strdup(alias);
+	}
+
+	// Update DB
+	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+	{
+		gel_error("Cannot delete alias for %s: %s", ts, err);
+		sqlite3_free(err);
+	}
+	sqlite3_free(q);
+
+	gchar *real_new_text = g_strdup_printf("<b>%s</b>:\n\t\%s",
+		ts_human,
+		alias);
+	gtk_list_store_set(GTK_LIST_STORE(self->pls_model), &iter,
+		RECENTLY_COLUMN_MARKUP, real_new_text,
+		-1);
+	g_free(real_new_text);
+	g_free(prefix);
+	g_free(alias);
 }
 
 static void
-dock_update_cover(Recently *self, GtkTreeIter *iter, GdkPixbuf *pixbuf)
+recently_search_cb(Art *art, ArtSearch *search, Recently *self)
 {
-	g_return_if_fail(gtk_list_store_iter_is_valid((GtkListStore *) self->pls_model, iter));
-	g_return_if_fail(pixbuf);
+	GtkTreeIter iter;
 
-	gtk_list_store_set(self->pls_model, iter,
-		RECENTLY_COLUMN_COVER, gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR), 
-		-1);
-	g_object_unref(pixbuf);
-}
-
-// Convert a string in iso8601 format to a more human form
-static const gchar*
-stamp_to_human(gchar *stamp)
-{
-	GTimeVal now, other;
-	g_get_current_time(&now);
-	if (!g_time_val_from_iso8601(stamp, &other))
-	{
-		gel_warn("Invalid input");
-		return NULL;
-	}
-	gchar *weekdays[] = {
-		NULL,
-		N_("Monday"),
-		N_("Tuesday"),
-		N_("Wednesday"),
-		N_("Thursday"),
-		N_("Saturday"),
-		N_("Sunday")
-	};
-	gint diff = ((now.tv_sec - other.tv_sec) / 60 / 60 / 24);
-
-	if (diff == 0)
-		return N_("Today");
-	else if (diff == 1)
-		return N_("Yesterday");
-	else if ((diff >= 2) && (diff <= 6))
-	{
-		GDate *d = g_date_new();
-		g_date_set_time_val(d, &other);
-		gchar *ret = weekdays[g_date_get_weekday(d)];
-		g_date_free(d);
-		return ret;
-	}
-	else if ((diff >= 7) && (diff <= 30))
-		return N_("More than 7 days ago");
-	else if ((diff >= 31) && (diff <= 365))
-		return N_("More than a month ago");
-	else
-		return N_("More than a year ago");
+	if (list_store_get_iter_for_search(self->pls_model, RECENTLY_COLUMN_SEARCH, search, &iter))
+		list_store_set_cover(self->pls_model, RECENTLY_COLUMN_COVER, &iter, art_search_get_result(search), RECENTLY_COVER_SIZE);
+	g_object_unref(art_search_get_stream(search)); 
 }
 
 // --
@@ -595,202 +863,51 @@ adb_get_n_timestamps(Adb *adb, gint n)
 	return ret;
 }
 
-// --
-// Dock related
-// --
-void
-dock_row_activated_cb(GtkWidget *w,
-	GtkTreePath *path,
-	GtkTreeViewColumn *column,
-	Recently *self)
+static gchar **
+adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp)
 {
-	GtkTreeIter iter;
-	gchar *ts;
-
-	Adb *adb = (Adb *) gel_app_shared_get(self->app, "adb");
-	if (adb == NULL)
-		return;
-	LomoPlayer *lomo = (LomoPlayer *) gel_app_shared_get(self->app, "lomo");
-	if (lomo == NULL)
-		return;
-
-	GList *columns = gtk_tree_view_get_columns(GTK_TREE_VIEW(w));
-	gint action = g_list_length(columns) - (g_list_index(columns, column) + 1);
-	g_list_free(columns);
-	
-	gboolean do_play = FALSE;
-	gboolean do_delete = FALSE;
-
-	switch (action)
+	char *q = sqlite3_mprintf(
+		"SELECT uri FROM streams WHERE sid IN ("
+		"SELECT sid FROM playlist_history WHERE timestamp='%q'"
+		");", timestamp);
+	sqlite3_stmt *stmt = NULL;
+	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
+	if (code != SQLITE_OK)
 	{
-	case 4:
-	case 2:
-		do_play = TRUE;
-		do_delete = TRUE;
-		break;
-	case 1:
-		do_play = TRUE;
-		do_delete = FALSE;
-		break;
-	case 0:
-		do_play = FALSE;
-		do_delete = TRUE;
-		break;
+		gel_warn(N_("Error %d with query %s: %s"), code, q, sqlite3_errmsg(adb->db));
+		sqlite3_free(q);
+		return NULL;
 	}
-	
-	gtk_tree_model_get_iter(GTK_TREE_MODEL(self->pls_model), &iter, path);
-	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
-		RECENTLY_COLUMN_TIMESTAMP, &ts,
-		-1);
 
 	GList *pl = NULL;
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+		pl = g_list_prepend(pl, g_strdup((gchar*) sqlite3_column_text(stmt, 0)));
+	sqlite3_finalize(stmt);
+	sqlite3_free(q);
 
-	// Get playlist if we are going to play it
-	if (do_play)
-	{
-		char *q = sqlite3_mprintf(
-			"SELECT uri FROM streams WHERE sid IN ("
-				"SELECT sid FROM playlist_history WHERE timestamp='%q'"
-			");", ts);
-		sqlite3_stmt *stmt = NULL;
-		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
-		{
-			gel_warn("Cannot get URIs for %s: %s", ts, sqlite3_errmsg(adb->db));
-			sqlite3_free(q);
-			return;
-		}
-
-		while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
-			pl = g_list_prepend(pl, g_strdup((gchar*) sqlite3_column_text(stmt, 0)));
-		sqlite3_finalize(stmt);
-		sqlite3_free(q);
-		pl = g_list_reverse(pl);
-	}
-
-	if (do_delete)
-	{
-		char *q = sqlite3_mprintf("DELETE FROM playlist_history WHERE timestamp='%q'", ts);
-		char *err = NULL;
-		if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
-		{
-			gel_error("Cannot delete playlist %s form history: %s", ts, err);
-			sqlite3_free(err);
-		}
-		g_free(ts);
-	}
-
-	if (do_delete || do_play)
-		gtk_list_store_remove((GtkListStore *) self->pls_model, &iter);
-
-	if (do_delete && do_play)
-		lomo_player_clear(lomo);
-
-	if (do_play)
-	{
-		lomo_player_append_uri_multi(lomo, pl);
-		eina_plugin_switch_dock_widget(self->plugin, "playlist");
-
-		lomo_player_play(lomo, NULL);
-		gel_list_deep_free(pl, g_free);
-	}
+	gchar **ret = gel_list_to_strv(pl, FALSE);
+	g_list_free(pl);
+	return ret;
 }
 
-void
-dock_renderer_edited_cb(GtkWidget *w,
-	gchar *path,
-	gchar *new_text,
-	Recently *self)
+static void
+adb_delete_playlist_from_timestamp(Adb *adb, gchar *timestamp)
 {
-	// If Adb is not present changes could not be saved, so abort
-	Adb *adb = GEL_APP_GET_ADB(self->app);
-	if (adb == NULL)
-	{
-		gel_error("Adb not present, reverting edit");
-		return;
-	}
-
-	// Try to get data from model
-	GtkTreeIter iter;
-	if (!gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(self->pls_model), &iter, path))
-	{
-		gel_warn("Cannot get iter for path %s", path);
-		return;
-	}
-
-	gchar *ts = NULL;
-	gtk_tree_model_get(GTK_TREE_MODEL(self->pls_model), &iter,
-		RECENTLY_COLUMN_TIMESTAMP, &ts,
-		-1);
-
-	// Analize input to guess the real intention of the user
-	const gchar *ts_human = stamp_to_human(ts);
-	gchar *prefix = g_strdup_printf("%s:\n\t", ts_human);
-	gchar *alias = NULL;
-	if (strstr(new_text, prefix))
-		alias = new_text + (strlen(prefix) * sizeof(gchar));
-	else
-		alias = new_text;
-
-	char *q = NULL;
+	char *q = sqlite3_mprintf("DELETE FROM playlist_history WHERE timestamp='%q'", timestamp);
 	char *err = NULL;
-
-	// If alias is NULL or '' delete alias and revert markup to summary
-	if ((alias == NULL) || g_str_equal(alias, ""))
-	{
-		q = sqlite3_mprintf("DELETE FROM playlist_aliases WHERE timestamp='%q'", ts);
-		alias = adb_get_summary_from_timestamp(adb, ts, 3);
-	}
-	else
-	{
-		q = sqlite3_mprintf("INSERT OR REPLACE INTO playlist_aliases VALUES('%q', '%q')", ts, alias);
-		alias = g_strdup(alias);
-	}
-
-	// Update DB
 	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
 	{
-		gel_error("Cannot delete alias for %s: %s", ts, err);
+		gel_error("Cannot delete playlist %s form history: %s", timestamp, err);
 		sqlite3_free(err);
 	}
 	sqlite3_free(q);
-
-	gchar *real_new_text = g_strdup_printf("<b>%s</b>:\n\t\%s",
-		ts_human,
-		alias);
-	gtk_list_store_set(GTK_LIST_STORE(self->pls_model), &iter,
-		RECENTLY_COLUMN_MARKUP, real_new_text,
-		-1);
-	g_free(real_new_text);
-	g_free(prefix);
-	g_free(alias);
 }
 
+// --
+// Dock related
+// --
 static void
-dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
-{
-	const gchar *text = gtk_entry_get_text(self->search_entry);
-	gssize len = g_utf8_strlen(text, -1);
-
-	if (len < 3)
-	{
-		gtk_notebook_set_current_page(self->tabs, 0);
-		if (!GTK_WIDGET_VISIBLE(self->search_tip))
-			gtk_widget_show((GtkWidget *) self->search_tip);
-	}
-	else
-	{
-		if (GTK_WIDGET_VISIBLE(self->search_tip))
-			gtk_widget_hide((GtkWidget *) self->search_tip);
-		queryer_schedule_search(self);
-	}
-	/*
-	if (len 
-	gel_warn("Current text: %s",  gtk_entry_get_text(self->search_entry));
-	 */
-}
-
-static void
-search_get_sql_results(Recently *self, gchar *input)
+queryer_fill_model_for_query(Recently *self, gchar *input)
 {
 	// Too complex search, since this is a prototype we start with a simplier
 	// approach
@@ -829,6 +946,7 @@ search_get_sql_results(Recently *self, gchar *input)
 		G_REGEX_CASELESS|G_REGEX_DOTALL|G_REGEX_DOLLAR_ENDONLY|G_REGEX_OPTIMIZE|G_REGEX_NO_AUTO_CAPTURE,
 		0, NULL);
 	g_free(tmp);
+
 	GtkTreeIter iter;
 	gtk_list_store_clear(self->queryer_results);
 	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
@@ -872,7 +990,7 @@ search_get_sql_results(Recently *self, gchar *input)
 		g_object_set_data(G_OBJECT(stream), "title",  g_strdup(t));
 
 		ArtSearch *search =  art_search(art, stream,
-			(ArtFunc) queryer_search_art_success_cb, (ArtFunc) queryer_search_art_fail_cb,
+			(ArtFunc) queryer_search_cb, (ArtFunc) queryer_search_cb,
 			self);
 
 		gtk_list_store_append(GTK_LIST_STORE(self->queryer_results), &iter);
@@ -889,23 +1007,6 @@ search_get_sql_results(Recently *self, gchar *input)
 	g_regex_unref(regex);
 	sqlite3_finalize(stmt);
 	sqlite3_free(q);
-}
-
-static gboolean
-queryer_run_search(Recently *self)
-{
-	search_get_sql_results(self, (gchar *) gtk_entry_get_text(self->search_entry));
-	gtk_notebook_set_current_page(self->tabs, 1);
-	self->queryer_search_id = 0;
-	return FALSE;
-}
-
-static void
-queryer_schedule_search(Recently *self)
-{
-	if (self->queryer_search_id)
-		g_source_remove(self->queryer_search_id);
-	self->queryer_search_id = g_timeout_add_seconds(1, (GSourceFunc) queryer_run_search, self);
 }
 
 static void
@@ -969,85 +1070,28 @@ queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Rec
 }
 
 static void
-queryer_search_art_success_cb(Art *art, ArtSearch *search, Recently *self)
+queryer_search_cb(Art *art, ArtSearch *search, Recently *self)
 {
 	GtkTreeIter iter;
-	gpointer test;
-
-	gtk_tree_model_get_iter_first((GtkTreeModel *) self->queryer_results, &iter);
-	while (gtk_list_store_iter_is_valid(self->queryer_results, &iter))
-	{
-		gtk_tree_model_get((GtkTreeModel *) self->queryer_results, &iter,
-			QUERYER_COLUMN_SEARCH, &test,
-			-1);
-		if (test == search)
-		{
-			GdkPixbuf *pb = art_search_get_result(search);
-			gtk_list_store_set(self->queryer_results, &iter,
-				QUERYER_COLUMN_SEARCH, NULL,
-				QUERYER_COLUMN_COVER, gdk_pixbuf_scale_simple(pb, 64, 64, GDK_INTERP_BILINEAR),
-				-1);
-			g_object_unref(pb);
-			gel_warn("Cover set");
-			break;
-		}
-		gtk_tree_model_iter_next((GtkTreeModel *) self->queryer_results, &iter);
-	}
-	gel_warn("success finish");
+	if (list_store_get_iter_for_search(self->queryer_results, QUERYER_COLUMN_SEARCH, search, &iter))
+		list_store_set_cover(self->queryer_results, QUERYER_COLUMN_COVER, &iter, art_search_get_result(search), QUERYER_COVER_SIZE);
 	g_object_unref(G_OBJECT(art_search_get_stream(search)));
+
 }
 
-static void
-queryer_search_art_fail_cb(Art *art, ArtSearch *search, Recently *self)
+static gboolean
+queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Recently *self)
 {
-	gel_warn("Search failed");
-	g_object_unref(G_OBJECT(art_search_get_stream(search)));
+	const gchar *q = gtk_entry_get_text(self->search_entry);
+	gchar *data = NULL;
+	gtk_tree_model_get(model, iter, QUERYER_COLUMN_FULL_MATCH, &data, -1);
+
+	return (data && q && strstr(data, q));
 }
 
 // --
 // Callbacks
 // --
-static void
-art_search_success_cb(Art *art, ArtSearch *search, Recently *self)
-{
-	GtkTreeIter iter;
-
-	if (dock_get_iter_for_search(self, search, &iter))
-		dock_update_cover(self, &iter, art_search_get_result(search));
-	g_object_unref(art_search_get_stream(search));
-}
-
-static void
-art_search_fail_cb(Art *art, ArtSearch *search, Recently *self)
-{
-	GtkTreeIter iter;
-	if (!dock_get_iter_for_search(self, search, &iter))
-	{
-		gel_error(N_("Cannot get iter for search %p"), search);
-		return;
-	}
-
-	gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	if (!path)
-	{
-		gel_error(N_("Cannot get resource cover-default.png"));
-		return;
-	}
-
-	GError *err = NULL;
-	GdkPixbuf *pb = gdk_pixbuf_new_from_file(path, &err);
-	if (!pb)
-	{
-		gel_error(N_("Cannot load pixbuf from %s: %s"), path, err->message);
-		g_error_free(err);
-		g_free(path);
-		return;
-	}
-	g_free(path);
-
-	dock_update_cover(self, &iter, pb);
-}
-
 static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 {
@@ -1068,7 +1112,7 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 	LomoStream *stream = adb_get_stream_from_timestamp(adb, ts);
 	if (stream)
 		search = art_search(GEL_APP_GET_ART(self->app), stream, 
-			(ArtFunc) art_search_success_cb, (ArtFunc) art_search_fail_cb,
+			(ArtFunc) recently_search_cb, (ArtFunc) recently_search_cb,
 			self);
 
 	GtkTreeIter iter;
