@@ -47,9 +47,6 @@ typedef struct {
 	GtkListStore       *queryer_results;
 	GtkTreeModelFilter *queryer_filter;
 
-	gint                queryer_state;
-
-	guint queryer_search_id;
 } Recently;
 
 // Model for playlist 
@@ -170,6 +167,8 @@ static gchar**
 adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp);
 static void
 adb_delete_playlist_from_timestamp(Adb *Adb, gchar *timestamp);
+static LomoStream*
+adb_get_stream_from_uri(Adb *adb, gchar *uri);
 
 // --
 // Lomo callbacks
@@ -436,7 +435,6 @@ dock_create(Recently *self)
 
 	self->tabs = GTK_NOTEBOOK(gtk_builder_get_object(xml_ui, "notebook"));
 	gtk_notebook_set_current_page(self->tabs, 0);
-	self->queryer_state = QUERYER_STATE_NULL;
 	gtk_icon_view_set_model(self->search_view, NULL);
 
 	g_object_unref(xml_ui);
@@ -903,110 +901,140 @@ adb_delete_playlist_from_timestamp(Adb *adb, gchar *timestamp)
 	sqlite3_free(q);
 }
 
+static LomoStream*
+adb_get_stream_from_uri(Adb *adb, gchar *uri)
+{
+	char *q = sqlite3_mprintf(
+		"SELECT key,value FROM metadata "
+		"WHERE sid = (SELECT sid FROM streams WHERE uri = '%q');", uri);
+
+	sqlite3_stmt *stmt = NULL;
+	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
+	if (code != SQLITE_OK)
+	{
+		gel_error(N_("Cannot prepare query %s: (%d) %s"), q, code, sqlite3_errmsg(adb->db));
+		sqlite3_free(q);
+		return NULL;
+	}
+
+	LomoStream *ret = lomo_stream_new(uri);
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	{
+		const gchar *k = (const gchar *) sqlite3_column_text(stmt, 0);
+		const gchar *v = (const gchar *) sqlite3_column_text(stmt, 1);
+
+		LomoTag tag = LOMO_TAG_INVALID;
+		if (g_str_equal(k, "album"))
+			tag = LOMO_TAG_ALBUM;
+		else if (g_str_equal(k, "artist"))
+			tag = LOMO_TAG_ARTIST;
+		else if (g_str_equal(k, "title"))
+			tag = LOMO_TAG_TITLE;
+
+		if (tag != LOMO_TAG_INVALID)
+			lomo_stream_set_tag(ret, tag, g_strdup(v));
+	}
+	return ret;
+}
+
+
 // --
 // Dock related
 // --
 static void
 queryer_fill_model_for_query(Recently *self, gchar *input)
 {
-	// Too complex search, since this is a prototype we start with a simplier
-	// approach
-#if 0
-	GString *like = g_string_sized_new(g_utf8_strlen(input, -1) * 2);
-	while (input && input[0])
-	{
-		like = g_string_append_c(like, '%');
-		like = g_string_append_unichar(like,  g_utf8_get_char(input));
-		input = g_utf8_find_next_char(input, NULL);
-	}
-	like = g_string_append_c(like, '%');
-	gchar *normalized = g_utf8_normalize(like->str, -1, G_NORMALIZE_NFKD);
-	g_string_free(like, TRUE);
-#endif
-
 	Adb *adb = GEL_APP_GET_ADB(self->app);
 	Art *art = GEL_APP_GET_ART(self->app);
 
-	char *q = sqlite3_mprintf("SELECT sid,uri,artist,album,title FROM recently_flat_metadata WHERE "
-		"uri like '%%%q%%' or artist like '%%%q%%' or album like '%%%q%%' or title like '%%%q%%' "
-		"GROUP BY album,artist",
-		input, input, input, input);
-	gel_warn("Search '%s'", q);
-
-	sqlite3_stmt *stmt = NULL;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
-	{
-		gel_error("Cannot query ADB for matches");	
-		sqlite3_free(q);
-		return;
-	}
-
-	gchar *tmp = g_strdup_printf(".*%s.*", input);
-	GRegex *regex = g_regex_new(tmp,
-		G_REGEX_CASELESS|G_REGEX_DOTALL|G_REGEX_DOLLAR_ENDONLY|G_REGEX_OPTIMIZE|G_REGEX_NO_AUTO_CAPTURE,
-		0, NULL);
-	g_free(tmp);
-
-	GtkTreeIter iter;
 	gtk_list_store_clear(self->queryer_results);
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+
+	g_return_if_fail(adb != NULL);
+	g_return_if_fail(art != NULL);
+
+	char *keys[] = {
+	//	"uri",
+		"album",
+		"artist",
+		"title",
+		NULL };
+	gint match_t[] = {
+	//	MATCH_TYPE_URI,
+		MATCH_TYPE_ALBUM,
+		MATCH_TYPE_ARTIST,
+		MATCH_TYPE_TITLE,
+		-1 };
+
+	/*
+	gchar *markups[] = {
+		N_("File"),
+		N_("Album"),
+		N_("Artist"),
+		N_("Title"),
+		NULL };
+	*/
+	char *base_q = "SELECT sid,c,value,uri FROM "
+		"(SELECT sid,value,count(*) as c from metadata WHERE "
+		"	key='%q' and UPPER(value) LIKE ('%%'||UPPER('%q')||'%%') GROUP BY (value)) "
+		"JOIN streams USING(sid);";
+
+	int i = 0;
+	for (i = 0; keys[i] != NULL; i++)
 	{
-		gchar *u = (gchar*) sqlite3_column_text(stmt, 1); 
-		gchar *a = (gchar*) sqlite3_column_text(stmt, 2); 
-		gchar *b = (gchar*) sqlite3_column_text(stmt, 3); 
-		gchar *t = (gchar*) sqlite3_column_text(stmt, 4);
-
-		gchar *text = NULL;
-		gint match_type = 0;
-		gchar *full_match = NULL;
-		if (g_regex_match(regex, a, 0, NULL))
+		char *q = NULL;
+		q = sqlite3_mprintf(base_q, keys[i], input);
+		sqlite3_stmt *stmt = NULL;
+		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
 		{
-			match_type = MATCH_TYPE_ARTIST;
-			full_match = a;
-			text = g_strdup_printf(N_("<b>Artist:</b>\n  %s"), a);
+			gel_error(N_("Cannot prepare query %s: %s"), q, sqlite3_errmsg(adb->db));
+			sqlite3_free(q);
+			continue;
 		}
-		else if (g_regex_match(regex,b, 0, NULL ))
+		sqlite3_free(q);
+		
+		while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
 		{
-			match_type = MATCH_TYPE_ALBUM;
-			full_match = b;
-			text = g_strdup_printf(N_("<b>Album:</b>\n  %s (by %s)"), b, a);
+			const gchar *fullmatch = (const gchar*) sqlite3_column_text(stmt, 2);
+			const gint   n_matches = (const gint  ) sqlite3_column_int (stmt, 1);
+			gchar *escaped = g_markup_escape_text(fullmatch, -1);
+
+			gchar *markup = NULL;
+			switch (match_t[i])
+			{
+			case MATCH_TYPE_ARTIST:
+				markup = g_strdup_printf(N_("<b>%s (Artist)</b>\n %d matches"), escaped, n_matches);
+				break;
+			case MATCH_TYPE_ALBUM:
+				markup = g_strdup_printf(N_("<b>%s (Album)</b>\n %d matches"), escaped, n_matches);
+				break;
+			case MATCH_TYPE_TITLE:
+				markup = g_strdup_printf(N_("<b>%s</b>\n"), escaped);
+				break;
+			default:
+				markup = g_strdup(escaped);
+
+			}
+			g_free(escaped);
+
+
+			ArtSearch *search = NULL;
+			LomoStream *stream = adb_get_stream_from_uri(adb, (gchar*) sqlite3_column_text(stmt, 3));
+			if (stream != NULL)
+				search = art_search(art, stream, (ArtFunc) queryer_search_cb, (ArtFunc) queryer_search_cb, self);
+
+			GtkTreeIter iter;
+			gtk_list_store_append(GTK_LIST_STORE(self->queryer_results), &iter);
+			gtk_list_store_set(GTK_LIST_STORE(self->queryer_results), &iter,
+				QUERYER_COLUMN_SEARCH, search,
+				QUERYER_COLUMN_MATCH_TYPE, match_t[i],
+				QUERYER_COLUMN_FULL_MATCH, fullmatch,
+				QUERYER_COLUMN_TEXT, markup,
+				-1);
+
+			g_free(markup);
 		}
-		else if (g_regex_match(regex,t, 0, NULL))
-		{
-			match_type = MATCH_TYPE_TITLE;
-			full_match = t;
-			text = g_strdup_printf(N_("<b>Song:</b>\n  %s (by %s)"), t, a);
-		}
-		else if (g_regex_match(regex,u, 0, NULL))
-		{
-			match_type = MATCH_TYPE_URI;
-			full_match = u;
-			text = g_strdup_printf(N_("<b>File:</b>\n  %s)"),u );
-		}
-
-		LomoStream *stream = lomo_stream_new(u);
-		g_object_set_data(G_OBJECT(stream), "artist", g_strdup(a));
-		g_object_set_data(G_OBJECT(stream), "album",  g_strdup(b));
-		g_object_set_data(G_OBJECT(stream), "title",  g_strdup(t));
-
-		ArtSearch *search =  art_search(art, stream,
-			(ArtFunc) queryer_search_cb, (ArtFunc) queryer_search_cb,
-			self);
-
-		gtk_list_store_append(GTK_LIST_STORE(self->queryer_results), &iter);
-		gtk_list_store_set(GTK_LIST_STORE(self->queryer_results), &iter,
-			QUERYER_COLUMN_SEARCH, search,
-			QUERYER_COLUMN_MATCH_TYPE, match_type,
-			QUERYER_COLUMN_FULL_MATCH, g_strdup(full_match),
-			QUERYER_COLUMN_TEXT, text,
-			-1);
-		g_free(text);
-
-		gel_warn("MATCH(%d) [%s]: %s %s %s", match_type, full_match, a , b, t);
+		sqlite3_finalize(stmt);
 	}
-	g_regex_unref(regex);
-	sqlite3_finalize(stmt);
-	sqlite3_free(q);
 }
 
 static void
@@ -1017,8 +1045,11 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 	g_return_if_fail((matchtype >= 0) && (matchtype < MATCH_N_TYPES) && (keys[matchtype] != NULL));
 
 	GList *uris = NULL;
-	gchar *q = sqlite3_mprintf("SELECT uri FROM recently_flat_metadata WHERE %q = '%q'", keys[matchtype], fullmatch);
-	
+	char *q = sqlite3_mprintf(
+		"SELECT uri FROM streams WHERE sid IN"
+		"	(SELECT sid FROM metadata WHERE key='%q' AND value='%q');",
+		keys[matchtype], fullmatch);
+
 	Adb *adb = GEL_APP_GET_ADB(self->app);
 	sqlite3_stmt *stmt = NULL;
 	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
@@ -1040,11 +1071,16 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 static void
 queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self)
 {
-	GList *s = gtk_icon_view_get_selected_items(search_view);
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
+	g_return_if_fail(lomo != NULL);
 
-	GtkListStore *model = GTK_LIST_STORE(gtk_icon_view_get_model(search_view));
+	GList *s = gtk_icon_view_get_selected_items(search_view);
+	GtkTreeModel *model = GTK_TREE_MODEL(gtk_icon_view_get_model(search_view));
 	GtkTreeIter iter;
 	GList *i = s;
+
+	if (s)
+		lomo_player_clear(lomo);
 	while (i)
 	{
 		if (!gtk_tree_model_get_iter((GtkTreeModel *) model, &iter, (GtkTreePath *) i->data))
@@ -1066,7 +1102,12 @@ queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Rec
 
 		i = i->next;
 	}
-	gel_list_deep_free(s,  (GFunc) gtk_tree_path_free);
+	if (s)
+	{
+		lomo_player_play(lomo, NULL);
+		eina_plugin_switch_dock_widget(self->plugin, "playlist");
+	}
+	gel_list_deep_free(s, (GFunc) gtk_tree_path_free);
 }
 
 static void
@@ -1082,11 +1123,25 @@ queryer_search_cb(Art *art, ArtSearch *search, Recently *self)
 static gboolean
 queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Recently *self)
 {
-	const gchar *q = gtk_entry_get_text(self->search_entry);
-	gchar *data = NULL;
-	gtk_tree_model_get(model, iter, QUERYER_COLUMN_FULL_MATCH, &data, -1);
+	gchar *str1 = NULL;
+	gtk_tree_model_get(model, iter, QUERYER_COLUMN_FULL_MATCH, &str1, -1);
+	gchar *str2 = (gchar *) gtk_entry_get_text(self->search_entry);
 
-	return (data && q && strstr(data, q));
+	gchar *str1_lc = g_utf8_strdown(str1, -1);
+	gchar *str2_lc = g_utf8_strdown(str2, -1);
+	g_free(str1);
+
+	gchar *str1_normal = g_utf8_normalize (str1_lc, -1, G_NORMALIZE_NFKD);
+	gchar *str2_normal = g_utf8_normalize (str2_lc, -1, G_NORMALIZE_NFKD);
+	g_free(str1_lc);
+	g_free(str2_lc);
+
+	gboolean ret = (str1_normal && str2_normal && strstr(str1_normal, str2_normal));
+
+	g_free(str1_normal);
+	g_free(str2_normal);
+
+	return ret;
 }
 
 // --
