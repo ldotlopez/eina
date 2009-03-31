@@ -26,6 +26,10 @@
 
 #include <eina/eina-plugin.h>
 #include "submit.h"
+#include "artwork.h"
+#if HAVE_WEBKIT
+#include "webview.h"
+#endif
 
 G_BEGIN_DECLS
 
@@ -37,6 +41,9 @@ typedef struct {
 	// Subplugins
 	struct _LastFMSubmit  *submit;
 	struct _LastFMArtwork *artwork;
+#if HAVE_WEBKIT
+	struct _LastFMWebView *webview;
+#endif
 } LastFM;
 
 G_END_DECLS

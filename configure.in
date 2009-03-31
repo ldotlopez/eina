@@ -1,3 +1,13 @@
+#AC_DEFUN([MAJOR], [0])
+#AC_DEFUN([MINOR], [7])
+#AC_DEFUN([MICRO], [3])
+#AC_DEFUN([EINA_VERSION], [MAJOR.MINOR.MICRO])
+#AC_INIT([eina], [EINA_VERSION], [xuzo@cuarentaydos.com]
+#AC_SUBST(MAJOR)
+#AC_SUBST(MINOR)
+#AC_SUBST(MICRO)
+#AC_SUBST(EINA_VERSION)
+
 AC_INIT([eina], 0.7.3, xuzo@cuarentaydos.com)
 AM_INIT_AUTOMAKE([eina], [0.7.3])
 AM_CONFIG_HEADER(config.h)
@@ -26,11 +36,6 @@ AC_SUBST(GLIB_GENMARSHAL)
 
 AC_PATH_PROG(GTK_BUILDER_CONVERT, gtk-builder-convert)
 AC_SUBST(GTK_BUILDER_CONVERT)
-
-#**************
-# Documentation
-#**************
-GTK_DOC_CHECK([1.9])
 
 #*******************************************************************************
 # Internationalization
@@ -162,18 +167,18 @@ dnl     )
 dnl AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
 
 dnl webkit (LastfmInfo) delayed until 0.8.0
-dnl webkitgtk_modules="WebKitGtk = 1d"
-dnl PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
-dnl    [
-dnl        AC_SUBST(WEBKITGTK_CFLAGS)
-dnl        AC_SUBST(WEBKITGTK_LIBS)
-dnl        HAVE_WEBKITGTK=yes
-dnl    ],
-dnl    [
-dnl        HAVE_WEBKITGTK=no
-dnl    ]
-dnl    )
-dnl AM_CONDITIONAL(USE_LASTFMINFO, test x"$HAVE_WEBKITGTK" = "xyes")
+webkitgtk_modules="webkit-1.0 >= 1.0.1"
+PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
+[
+	AC_SUBST(WEBKITGTK_CFLAGS)
+	AC_SUBST(WEBKITGTK_LIBS)
+	HAVE_WEBKITGTK=yes
+],
+[
+	HAVE_WEBKITGTK=no
+]
+)
+AM_CONDITIONAL(USE_LASTFM_WEBVIEW, test x"$HAVE_WEBKITGTK" = "xyes")
 
 dnl Keep in alphabetical order
 AC_OUTPUT([

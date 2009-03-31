@@ -81,9 +81,7 @@ typedef struct
 	void (*volume)   (LomoPlayer *self, gint volume);
 	void (*mute)     (LomoPlayer *self, gboolean mute);
 	void (*insert)   (LomoPlayer *self, LomoStream *stream, gint pos);
-	// void (*add)   (LomoPlayer *self, LomoStream *stream, gint pos);
 	void (*remove)   (LomoPlayer *self, LomoStream *stream, gint pos);
-	// void (*del)   (LomoPlayer *self, gint pos);
 	void (*change)   (LomoPlayer *self, gint from, gint to);
 	void (*clear)    (LomoPlayer *self);
 	void (*repeat)   (LomoPlayer *self, gboolean val);

@@ -70,30 +70,32 @@ typedef enum {
 
 static gchar *preferences_fmt_values[][2] = {
 	{ // Title - Artist
-		"<span size=\"x-large\" weight=\"bold\">%t</span>"
+		"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 		"<span size=\"x-large\" weight=\"normal\">{%a}</span>",
 
-		"<span size=\"x-large\" weight=\"bold\">Title</span>"
+		"<span size=\"x-large\" weight=\"bold\">Title</span>\n"
 		"<span size=\"x-large\" weight=\"normal\">Artist</span>"
 	},
 
 	{ // Title - Artist (Album)
-		"<span size=\"x-large\" weight=\"bold\">%t</span>"
+		"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 		"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>",
 
-		"<span size=\"x-large\" weight=\"bold\">Title</span>"
+		"<span size=\"x-large\" weight=\"bold\">Title</span>\n"
 		"<span size=\"x-large\" weight=\"normal\">Artist (Album)</span>"
 	},
 
 	{ // Title
-		"<span size=\"x-large\" weight=\"bold\">%t</span>",
+		"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+		"<span size=\"x-large\" weight=\"normal\">\u200B</span>",
 
-		"<span size=\"x-large\" weight=\"bold\">Title</span>",
+		"<span size=\"x-large\" weight=\"bold\">Title</span>"
+		"<span size=\"x-large\" weight=\"normal\">\u200B</span>"
 	},
 
 	{ // Custom
 		NULL,
-		"<span size=\"x-large\" weight=\"bold\">Custom</span>"
+		"<span size=\"x-large\" weight=\"bold\">Custom</span>\n"
 		"<span size=\"x-large\" weight=\"normal\">Your own format</span>"
 	},
 
@@ -469,9 +471,9 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 	}
 
 	gtk_window_set_icon(self->main_window, pixbuf);
-
-	if (self->cover_mask)
+	if (self->cover_mask && eina_conf_get_bool(self->conf, "/player/cover_mask_effect", TRUE))
 	{
+		
 		gdk_pixbuf_composite(self->cover_mask, pixbuf,
 			0, 0,
 			GTK_WIDGET(self->cover)->allocation.width,
@@ -482,6 +484,7 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 			GDK_INTERP_BILINEAR,
 			255);
 	}
+
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
 }
 

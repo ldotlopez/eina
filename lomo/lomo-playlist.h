@@ -27,29 +27,10 @@ G_BEGIN_DECLS
 
 typedef struct _LomoPlaylist LomoPlaylist;
 
-/**
- * lomo_playlist_new:
- *
- * Creates a new playlist
- *
- * Returns: a new LomoPlaylist
- */
 LomoPlaylist *lomo_playlist_new(void);
 
-/**
- * lomo_playlist_ref:
- * @l: a #LomoPlaylist
- *
- * Adds a reference to the playlist
- */
 void lomo_playlist_ref(LomoPlaylist *l);
 
-/*
- * lomo_playlist_unref:
- * @l: a #LomoPlaylist
- *
- * Removes a reference to the playlist
- */
 void lomo_playlist_unref(LomoPlaylist *l);
 
 /* 
@@ -78,7 +59,8 @@ void lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
  *  LomoPlaylist* l: [self]
  *  gint ret: Items in the playlist
  */
-gint lomo_playlist_del(LomoPlaylist * l, gint pos);
+void
+lomo_playlist_del(LomoPlaylist * l, guint pos);
 
 /*
  * @lomo_playlist_clear
@@ -102,7 +84,7 @@ GList *lomo_playlist_get_playlist(LomoPlaylist *l);
  *  LomoPlaylist* l: [self]
  *  GList* ret: A GList of LomoStreams
  */
-const GList* lomo_playlist_get_random_playlist (LomoPlaylist *l);
+GList* lomo_playlist_get_random_playlist (LomoPlaylist *l);
 
 /*
  * @lomo_playlist_nth_stream
@@ -122,12 +104,7 @@ LomoStream *lomo_playlist_nth_stream(LomoPlaylist *l, guint pos);
  */
 gint lomo_playlist_index(LomoPlaylist *l, LomoStream *stream);
 
-/*
- * @lomo_playlist_total
- * @Gets the number of streams currently in playlist
- *  LomoPlaylist* l: [self]
- *  gint ret: The number of streams in playlist
- */
+// XXX: This must return a guint
 gint lomo_playlist_get_total (LomoPlaylist *l);
 
 /*

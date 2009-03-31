@@ -27,6 +27,7 @@
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
 #include <eina/eina-plugin.h>
+#include <eina/player.h>
 
 #if HAVE_UNIQUE
 #include <unique/unique.h>
@@ -240,10 +241,9 @@ gint main
 		}
 		g_free(tmp);
 		g_free(buff);
-		lomo_player_go_nth(
-			GEL_APP_GET_LOMO(app),
-			eina_conf_get_int(GEL_APP_GET_SETTINGS(app), "/playlist/last_current", 0),
-			NULL);
+		gint current = eina_conf_get_int(GEL_APP_GET_SETTINGS(app), "/playlist/last_current", 0);
+		if (current >= 0)
+			lomo_player_go_nth( GEL_APP_GET_LOMO(app), current, NULL);
 	}
 
 	gtk_main();

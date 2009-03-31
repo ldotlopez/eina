@@ -1,5 +1,5 @@
 /*
- * lomo/pl.c
+ * lomo/lomo-playlist.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -69,11 +69,17 @@ lomo_playlist_random_to_normal (LomoPlaylist *l, gint pos)
 	return g_list_index(l->list, data);
 }
 
-/* * * * * * * * * * * * * * * * * */
-/* Public functions implementation */
-/* * * * * * * * * * * * * * * * * */
+// --
+// Public functions implementation
+// --
 
-/* Create new LomoPlaylist object */
+/**
+ * lomo_playlist_new:
+ *
+ * Creates a new playlist
+ *
+ * Returns: a new LomoPlaylist
+ */
 LomoPlaylist*
 lomo_playlist_new (void) 
 { BACKTRACE
@@ -93,13 +99,24 @@ lomo_playlist_new (void)
 	return self;
 }
 
+/**
+ * lomo_playlist_ref:
+ * @l: a #LomoPlaylist
+ *
+ * Adds a reference to the playlist
+ */
 void
 lomo_playlist_ref (LomoPlaylist *l)
 { BACKTRACE
 	l->ref_count++;
 }
 
-/* Destroy LomoPlaylist object */
+/*
+ * lomo_playlist_unref:
+ * @l: a #LomoPlaylist
+ *
+ * Removes a reference to the playlist
+ */
 void
 lomo_playlist_unref (LomoPlaylist * l)
 { BACKTRACE
@@ -122,85 +139,180 @@ lomo_playlist_unref (LomoPlaylist * l)
 	g_free(l);
 }
 
+/**
+ * lomo_playlist_get_playlist:
+ * @l: a #LomoPlaylist
+ *
+ * Gets the current elements of the playlist
+ *
+ * Returns: a newly created #GList of #LomoStream, this should be freeded when
+ * no longer needed
+ */
 GList*
 lomo_playlist_get_playlist (LomoPlaylist *l) 
 { BACKTRACE
 	return g_list_copy(l->list);
 }
-
-const GList*
+/**
+ * lomo_playlist_get_random_playlist:
+ * @l: a #LomoPlaylist
+ *
+ * Gets the current elements of the playlist in the internal random order
+ *
+ * Returns: a newly created #GList of #LomoStream, this should be freeded when
+ * no longer needed
+ */
+GList*
 lomo_playlist_get_random_playlist (LomoPlaylist *l) 
 { BACKTRACE
-	return l->random_list;
+	return g_list_copy(l->random_list);
 }
 
-/* Return number of elements in playlist */
+/*
+ * lomo_playlist_get_total:
+ * @l: a #LomoPlaylist
+ *
+ * Gets the number of elements in the playlist
+ *
+ * Returns: a #gint
+ */
 gint
 lomo_playlist_get_total (LomoPlaylist *l)
 { BACKTRACE
 	return l->total;
 }
 
-/* Return position of active element or -1 if no current */
+/*
+ * lomo_playlist_get_current:
+ * @l: a #LomoPlaylist
+ *
+ * Gets the index of the current active element or -1 if there is no current
+ * element
+ *
+ * Returns: a #gint
+ */
 gint
 lomo_playlist_get_current (LomoPlaylist *l)
 { BACKTRACE
 	return l->current;
 }
 
-/* Mark element at position 'pos' as active */
+/**
+ * lomo_playlist_set_current:
+ * @l: a #LomoPlaylist
+ * @pos: Position index to mark as active
+ *
+ * Sets the stream on the position pos as active
+ *
+ * Returns: TRUE if successful, FALSE if index is outside limits
+ */
 gboolean
 lomo_playlist_set_current (LomoPlaylist* l, gint pos)
 { BACKTRACE
-	if (pos > (lomo_playlist_get_total(l) - 1))
-		return FALSE;
-
+	g_return_val_if_fail(pos <= (lomo_playlist_get_total(l) - 1), FALSE);
 	l->current = pos;
 
 	return TRUE;
 }
 
-/* Get random state (TRUE/FALSE) */
+/**
+ * lomo_playlist_get_random:
+ * @l: a #LomoPlaylist
+ *
+ * Gets the value for the random flag
+ *
+ * Returns: a #gboolean representing the value of the flag
+ */
 gboolean
 lomo_playlist_get_random (LomoPlaylist *l)
 { BACKTRACE
 	return l->random;
 }
 
-/* Set random ON/OFF */
+/**
+ * lomo_playlist_set_random:
+ * @l: a #LomoPlaylist
+ * @value: the value for the random flag
+ *
+ * Sets the value for the random flag
+ */
 void
 lomo_playlist_set_random (LomoPlaylist *l, gboolean val)
 { BACKTRACE
 	l->random = val;
 }
 
-/* Get repeat state (TRUE/FALSE) */
+/**
+ * lomo_playlist_get_repeat:
+ * @l: a #LomoPlaylist
+ *
+ * Gets the value for the repeat flag
+ *
+ * Returns: a #gboolean representing the value of the flag
+ */
 gboolean
 lomo_playlist_get_repeat (LomoPlaylist *l)
 { BACKTRACE
 	return l->repeat;
 }
 
-/* Set repeat ON/OFF */
+/**
+ * lomo_playlist_set_random:
+ * @l: a #LomoPlaylist
+ * @value: the value for the random flag
+ *
+ * Sets the value for the random flag
+ */
 void
 lomo_playlist_set_repeat (LomoPlaylist *l, gboolean val)
 { BACKTRACE
 	l->repeat = val;
 }
 
-/* Return element at position 'pos', NULL if off the list */
+/**
+ * lomo_playlist_get_nth:
+ * @l: a #LomoPlaylist
+ * @pos: Index to retrieve
+ *
+ * Gets the #LomoStream at the given position or NULL if the index its outside
+ * limits
+ *
+ * Returns: the #LomoStream
+ */
 LomoStream*
 lomo_playlist_nth_stream(LomoPlaylist *l, guint pos)
 { BACKTRACE
+	g_return_val_if_fail(pos <= (l->total - 1), NULL);
 	return g_list_nth_data(l->list, pos);
 }
 
+/**
+ * lomo_playlist_index:
+ * @l: a #LomoPlaylist
+ * @stream: the #LomoStream to find
+ *
+ * Gets the position of the element containing the given data (starting from
+ * 0)
+ *
+ * Returns: the index of the element containing the data, or -1 if the data is
+ * not found
+ */
 gint
 lomo_playlist_index(LomoPlaylist *l, LomoStream *stream)
 {
 	return g_list_index(l->list, stream);
 }
 
+/**
+ * lomo_playlist_insert:
+ * @l: a #LomoPlaylist
+ * @stream: the stream to insert
+ * @pos: the position to insert the element. If this is negative, or is larger
+ * than the number of elements in the list, the new element is added on to the
+ * end of the list.
+ *
+ * Inserts a new element into the list at the given position.
+ */
 void
 lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
 { BACKTRACE
@@ -211,6 +323,17 @@ lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
 	g_list_free(tmp);
 }
 
+/**
+ * lomo_playlist_multi_insert:
+ * @l: a #LomoPlaylist
+ * @streams: a list of #LomoStreams
+ * 
+ * @pos: the position to insert the elements. If this is negative, or is larger
+ * than the number of elements in the list, the new element is added on to the
+ * end of the list.
+ *
+ * Inserts a list of #LomoStream into the list at the given position.
+ */
 void lomo_playlist_insert_multi
 (LomoPlaylist *l, GList *streams, gint pos)
 { BACKTRACE
@@ -224,9 +347,9 @@ void lomo_playlist_insert_multi
 	// pos == -1 means at the end
 	if (pos == -1)
 		pos = lomo_playlist_get_total(l);
-
 	iter = streams;
-	while (iter) {
+	while (iter)
+	{
 		stream = (LomoStream *) iter->data;
 
 		// Insert into list, each element must be located after previous,
@@ -248,15 +371,20 @@ void lomo_playlist_insert_multi
 		l->current = 0;
 }
 
-/* Delete element at position 'pos' from playlist */
-gint lomo_playlist_del
-(LomoPlaylist *l, gint pos)
+/**
+ * lomo_playlist_del:
+ * @l: a #LomoPlaylist
+ * @pos: index of the element to delete
+ *
+ * Deletes the element at position pos
+ */
+void lomo_playlist_del
+(LomoPlaylist *l, guint pos)
 { BACKTRACE
 	gpointer data;
 
-	// Corner case: not in list
-	if ((data = g_list_nth_data(l->list, pos)) == NULL)
-		return l->total;
+	data = g_list_nth_data(l->list, pos);
+	g_return_if_fail(data != NULL);
 
 	g_object_unref((LomoStream *) data);
 	l->list        = g_list_remove(l->list,        data);
@@ -287,8 +415,6 @@ gint lomo_playlist_del
 			l->current--;
 	}
 #endif
-
-	return l->total;
 }
 
 void lomo_playlist_clear

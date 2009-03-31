@@ -795,6 +795,7 @@ gint
 lomo_player_index(LomoPlayer *self, LomoStream *stream)
 {
 	return lomo_playlist_index(self->priv->pl, stream);
+	return lomo_playlist_index(self->priv->pl, stream);
 }
 
 gint lomo_player_get_prev(LomoPlayer *self)
