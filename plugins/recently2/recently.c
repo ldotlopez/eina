@@ -1223,21 +1223,6 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (!adb_schema_upgrade(adb, "recently", upgrades, NULL, error))
 		return FALSE;
 
-	// Create a view
-	gchar *view_query = "DROP VIEW IF EXISTS recently_flat_metadata;"
-	"CREATE TEMP VIEW recently_flat_metadata AS SELECT streams.sid as sid,uri,artist,album,title FROM "
-	"   (SELECT sid, uri   AS uri    FROM streams)                       AS streams JOIN "
-	"	(SELECT sid, value AS artist FROM metadata where key = 'artist') AS artists JOIN "
-	"	(SELECT sid, value AS album  FROM metadata where key = 'album')  AS albums JOIN "
-	"	(SELECT sid, value AS title  FROM metadata where key = 'title')  AS titles "
-	"ON streams.sid = artists.sid AND artists.sid = albums.sid AND albums.sid = titles.sid;";
-	gchar *sql_err = NULL;
-	if (sqlite3_exec(adb->db, view_query, NULL, NULL, &sql_err) != SQLITE_OK)
-	{
-		gel_error("Cannot create view: %s", sql_err);
-		sqlite3_free(sql_err);
-	}
-
 	// Create dock
 	Recently *self = g_new0(Recently, 1);
 	self->app    = app;
@@ -1257,14 +1242,6 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	GError *err = NULL;
 	eina_plugin_remove_dock_widget(plugin, "recently");
-
-	Adb *adb = GEL_APP_GET_ADB(app);
-	gchar *sql_err = NULL;
-	if (!sqlite3_exec(adb->db, "DROP VIEW IF EXISTS recently_flat_metadata", NULL, NULL, &sql_err) != SQLITE_OK)
-	{
-		gel_warn("Cannot drop view: %s", sql_err);
-		sqlite3_free(sql_err);
-	}
 
 	if (!gel_app_unload_plugin_by_name(app, "adb", &err))
 	{
