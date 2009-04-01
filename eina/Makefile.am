@@ -30,6 +30,7 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	art.h \
+	curl-engine.h              \
 	eina-obj.h                 \
 	class-conf-file.h          \
 	eina-preferences-dialog.h  \
@@ -45,6 +46,7 @@ eina_SOURCES = \
 	art.c \
 	eina-obj.c                 \
 	class-conf-file.c          \
+	curl-engine.c              \
 	dock.c                     \
 	eina-file-chooser-dialog.c \
 	eina-preferences-dialog.c  \
