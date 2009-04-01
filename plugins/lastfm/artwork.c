@@ -17,12 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define USE_CURL 1
-
 #include "artwork.h"
-#if USE_CURL
-#include "curl-engine.h"
-#endif
+#include <eina/curl-engine.h>
 
 // ****************************
 // Store artwork-subplugin data
@@ -30,9 +26,7 @@
 struct _LastFMArtwork {
 	ArtBackend *backend; // Reference the backend
 	GHashTable *data;    // SearchCtx's
-#if USE_CURL
 	CurlEngine *engine;  // CurlEngine C-class
-#endif
 };
 
 // *********************************
@@ -42,12 +36,8 @@ typedef struct {
 	Art          *art;         // Art reference
 	ArtSearch    *search;      // Art search
 	gint          n;           // sub-search index
-#if USE_CURL
 	CurlEngine   *engine;      // Inet engine
 	CurlQuery    *q;           // This query
-#else
-	GCancellable *cancellable; // GCancellable object
-#endif
 } SearchCtx;
 
 // **********************
@@ -72,11 +62,8 @@ static void search_ctx_by_artist(SearchCtx *ctx);
 gchar* search_ctx_parse_as_album(gchar *buffer);
 gchar* search_ctx_parse_as_artist(gchar *buffer);
 
-#if USE_CURL
 static void curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx);
 static void curl_engine_cover_cb (CurlEngine *engine, CurlQuery *query, SearchCtx *ctx);
-#else
-#endif
 
 // ******************************************
 // Initialize and finalize artwork sub-plugin
@@ -86,14 +73,12 @@ lastfm_artwork_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFMArtwork *self = EINA_PLUGIN_DATA(plugin)->artwork = g_new0(LastFMArtwork, 1);
 
-#if USE_CURL
 	if ((self->engine = curl_engine_new()) == NULL)
 	{
 		gel_warn("Cannit init curl interface");
 		g_free(self);
 		return FALSE;
 	}
-#endif
 
 	self->data    = g_hash_table_new(g_direct_hash, g_direct_equal);
 	self->backend = eina_plugin_add_art_backend(plugin, "lastfm",
@@ -108,10 +93,8 @@ lastfm_artwork_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFMArtwork *self = EINA_PLUGIN_DATA(plugin)->artwork;
 
-#if USE_CURL
 	curl_engine_free(self->engine);
 	g_hash_table_destroy(self->data);
-#endif
 
 	eina_plugin_remove_art_backend(plugin, self->backend);
 	g_free(self);
@@ -162,12 +145,8 @@ search_ctx_new(LastFMArtwork *self, Art *art, ArtSearch *search)
 	ctx->art    = art;
 	ctx->search = search;
 	ctx->n      = 0;
-#if USE_CURL
 	ctx->engine = self->engine;
 	ctx->q      = NULL;
-#else
-	ctx->cancellable = g_cancellable_new();
-#endif
 
 	return ctx;
 }
@@ -177,10 +156,6 @@ search_ctx_free(SearchCtx *ctx)
 {
 	if (ctx->q != NULL)
 		curl_engine_cancel(ctx->engine, ctx->q);
-
-#if !USE_CURL
-	g_object_unref(ctx->cancellable);
-#endif
 
 	g_free(ctx);
 }
@@ -272,12 +247,7 @@ search_ctx_by_album(SearchCtx *ctx)
 	g_free(a);
 	g_free(b);
 
-#if USE_CURL
 	ctx->q = curl_engine_query(ctx->engine, uri, (CurlEngineFinishFunc) curl_engine_finish_cb, ctx);
-#else
-	g_file_load_contents_async(g_file_new_for_uri(uri), ctx->cancellable,
-		(GAsyncReadyCallback) load_contents_async_cb, ctx);
-#endif
 
 	g_free(uri);
 }
@@ -300,12 +270,7 @@ search_ctx_by_artist(SearchCtx *ctx)
 	gchar *uri = g_strdup_printf("http://www.last.fm/music/%s", a);
 	g_free(a);
 
-#if USE_CURL
 	ctx->q = curl_engine_query(ctx->engine, uri, (CurlEngineFinishFunc) curl_engine_finish_cb, ctx);
-#else
-	g_file_load_contents_async(g_file_new_for_uri(uri), ctx->cancellable,
-		(GAsyncReadyCallback) load_contents_async_cb, ctx);
-#endif
 
 	g_free(uri);
 }
@@ -371,11 +336,10 @@ search_ctx_parse_as_artist(gchar *buffer)
 
 	return g_strdup(p);
 }
+
 // ******************
 // Callback functions
 // ******************
-#if USE_CURL
-
 static void
 curl_engine_finish_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 {
@@ -464,6 +428,3 @@ curl_engine_cover_cb_fail:
 	search_ctx_try_next(ctx);
 }
 
-#else
-
-#endif

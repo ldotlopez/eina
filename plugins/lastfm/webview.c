@@ -60,6 +60,8 @@ lastfm_webview_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFMWebView *self = EINA_PLUGIN_DATA(plugin)->webview;
 
+	eina_plugin_remove_dock_widget(plugin, "lastfm-webview");
+
 	g_object_unref(self->webview);
 	g_free(self);
 

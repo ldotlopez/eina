@@ -137,9 +137,9 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	g_free(plugin->data);
 #endif
-	LastFM *self = EINA_PLUGIN_DATA(plugin);
 
 #if HAVE_WEBKIT
+	LastFM *self = EINA_PLUGIN_DATA(plugin);
 	if (self->webview && !lastfm_webview_fini(app, plugin, error))
 		return FALSE;
 #endif
