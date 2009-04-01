@@ -77,22 +77,15 @@ gel_list_to_strv(GList *list, gboolean copy)
 	gchar **ret;
 	gint i;
 
-	if (list == NULL)
-		return NULL;
+	g_return_val_if_fail(list != NULL, NULL);
 
 	len = g_list_length(list);
-	if (g_list_length(list) <= 0)
-		return NULL;
+	g_return_val_if_fail(len > 0, NULL);
 
 	ret = g_new0(gchar*, len + 1);
-
 	for (iter = list, i = 0; iter != NULL; iter = iter->next, i++)
-	{
-		if (copy) 
-			ret[i] = g_strdup((gchar *) iter->data);
-		else 
-			ret[i] = (gchar *) iter->data;
-	}
+		ret[i] = copy ? g_strdup((gchar *) iter->data) : iter->data;
+
 	return ret;
 }
 
