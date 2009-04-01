@@ -41,14 +41,12 @@ struct _EinaDock {
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
 
-static void
-expander_activate_cb(GtkExpander *w, EinaDock *self);
-
-static gboolean
-player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
-
 static gboolean
 player_main_window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self);
+static gboolean
+player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
+static void
+expander_activate_cb(GtkExpander *w, EinaDock *self);
 
 static gboolean
 dock_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -89,8 +87,7 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Handle tab-reorder
 	gtk_widget_realize(GTK_WIDGET(self->dock));
-	g_signal_connect(self->dock, "page-reordered",
-		G_CALLBACK(page_reorder_cb), self);
+	g_signal_connect(self->dock, "page-reordered", G_CALLBACK(page_reorder_cb), self);
 
 	// Remove preexistent tabs
 	gint i;
@@ -107,14 +104,12 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	eina_player_add_widget(EINA_OBJ_GET_PLAYER(self), self->widget);
 	gtk_widget_destroy(parent);
 
-	g_signal_connect(eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)), "configure-event",
-		(GCallback) player_main_window_configure_event_cb, self);
-
-	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
+	// On first expose restore settings, connect expander signal, disconnect
+	// myself
 	g_signal_connect(
 		eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)), "expose-event",
 		(GCallback) player_main_window_expose_event_cb, self);
-	
+
 	return TRUE;
 }
 
@@ -126,10 +121,6 @@ dock_exit(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 
 	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
-
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-	eina_conf_set_int(conf, "/dock/main-window-width",  self->w);
-	eina_conf_set_int(conf, "/dock/main-window-height", self->h);
 
 	eina_obj_fini(EINA_OBJ(self));
 	return TRUE;
@@ -258,27 +249,26 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 	g_string_free(output, TRUE);
 }
 
-static void
-expander_activate_cb(GtkExpander *w, EinaDock *self)
+static gboolean
+player_main_window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self)
 {
-	gboolean expanded = gtk_expander_get_expanded(w);
-	GtkWindow *win = eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self));
 	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+	gboolean expanded = eina_conf_get_bool(conf, "/dock/expanded", FALSE);
+	self->w = eina_conf_get_int(conf, "/dock/main-window-width",  1);
+	self->h = eina_conf_get_int(conf, "/dock/main-window-height", 1);
+
+	gtk_expander_set_expanded((GtkExpander*) self->widget, expanded);
+	gtk_window_set_resizable((GtkWindow *) w, expanded);
+	gtk_window_resize((GtkWindow *) w, self->w, self->h);
 
 	if (expanded)
-	{
-		g_signal_handlers_disconnect_by_func(win, player_main_window_configure_event_cb, self);
-		gtk_window_set_resizable(win, FALSE);
-		gtk_window_resize(win, 1, 1);
-		eina_conf_set_bool(conf, "/dock/expanded", FALSE);
-	}
-	else
-	{
-		g_signal_connect(win, "configure-event", (GCallback) player_main_window_configure_event_cb, self);
-		gtk_window_set_resizable(win, TRUE);
-		eina_conf_set_bool(conf, "/dock/expanded", TRUE);
-		gtk_window_resize(win, self->w, self->h);
-	}
+		g_signal_connect(w, "configure-event",
+			(GCallback) player_main_window_configure_event_cb, self);
+
+	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
+
+	g_signal_handlers_disconnect_by_func(w, player_main_window_expose_event_cb, self);
+	return FALSE;
 }
 
 static gboolean
@@ -286,35 +276,38 @@ player_main_window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, Ei
 {
 	if (event->type != GDK_CONFIGURE)
 		return FALSE;
-
-	self->h = event->height;
 	self->w = event->width;
+	self->h = event->height;
 
-	return FALSE; // Propagate event
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+	eina_conf_set_int(conf, "/dock/main-window-width", self->w);
+	eina_conf_set_int(conf, "/dock/main-window-height", self->h);
+
+	return FALSE;
 }
 
-static gboolean
-player_main_window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self)
+static void
+expander_activate_cb(GtkExpander *w, EinaDock *self)
 {
 	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+	gboolean expanded = !gtk_expander_get_expanded((GtkExpander *) self->widget);
+	GtkWindow *win = (GtkWindow *) eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self));
 
-	if (eina_conf_get_bool(conf, "/dock/expanded", FALSE))
+	eina_conf_set_bool(conf, "/dock/expanded", expanded);
+	if (expanded)
 	{
-		gtk_window_set_resizable(GTK_WINDOW(w), TRUE);
-		gtk_expander_set_expanded(GTK_EXPANDER(self->widget), TRUE);
-		gtk_window_resize(
-			eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)),
-			eina_conf_get_int(conf, "/dock/main-window-width", 1),
-			eina_conf_get_int(conf, "/dock/main-window-height", 1));
+		gtk_window_set_resizable(win, TRUE);
+		gtk_window_resize(win, self->w, self->h);
+		g_signal_connect(eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)), "configure-event",
+			(GCallback) player_main_window_configure_event_cb, self);
 	}
 	else
 	{
-		gtk_window_set_resizable(GTK_WINDOW(w), FALSE);
-		gtk_expander_set_expanded(GTK_EXPANDER(self->widget), FALSE);
+		g_signal_handlers_disconnect_by_func(eina_player_get_main_window(EINA_OBJ_GET_PLAYER(self)),
+			player_main_window_configure_event_cb,
+			self);
+		gtk_window_set_resizable(win, FALSE);
 	}
-
-	g_signal_handlers_disconnect_by_func(w, player_main_window_configure_event_cb, self);
-	return FALSE;
 }
 
 G_MODULE_EXPORT GelPlugin dock_plugin = {
