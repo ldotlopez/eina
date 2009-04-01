@@ -788,6 +788,7 @@ main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 		lomo_player_go_prev(eina_obj_get_lomo(self), &err);
 		break;
 	case GDK_x:
+	case GDK_space:
 		if (lomo_player_get_state(eina_obj_get_lomo(self)) == LOMO_STATE_PLAY)
 			lomo_player_pause(eina_obj_get_lomo(self), &err);
 		else
