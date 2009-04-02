@@ -281,6 +281,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 				eina_obj_get_typed(self, GTK_BOX, "main-box"),
 				gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"),
 				0);
+
 			gtk_widget_show_all(gtk_ui_manager_get_widget(self->ui_manager, "/MainMenuBar"));
 		}
 		g_free(ui_manager_file);

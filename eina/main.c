@@ -28,7 +28,6 @@
 #include <lomo/lomo-util.h>
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
-
 #if HAVE_UNIQUE
 #include <unique/unique.h>
 #endif
@@ -100,7 +99,11 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "log", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus", NULL};
+	gchar          *modules[] = { "log", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
+#if HAVE_IGE
+		"ige",
+#endif
+		NULL};
 	gchar          *tmp;
 
 	GOptionContext *opt_ctx;

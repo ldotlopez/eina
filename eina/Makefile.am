@@ -3,8 +3,8 @@ INCLUDES = \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	-DEINA_COMPILATION \
-	@PACKAGE_CFLAGS@
+	-DEINA_COMPILATION
+AM_CFLAGS =	@PACKAGE_CFLAGS@
 
 bin_PROGRAMS = eina
 
@@ -82,3 +82,8 @@ eina_SOURCES += dbus.c dbus-marshallers.c
 NOINST_H_FILES += dbus-marshallers.h
 endif
 
+if USE_IGE
+eina_SOURCES += eina-ige.c
+eina_LDADD += @IGE_LIBS@
+AM_CFLAGS += @IGE_CFLAGS@
+endif

@@ -70,7 +70,7 @@ pkg_modules="\
 	gmodule-2.0 >= $GLIB_VERSION,   \
 	gio-2.0 >= $GLIB_VERSION,       \
 	gtk+-2.0 >= $GTK_VERSION,       \
-	gstreamer-0.10 >= $GSTREAMER_VERSION
+	gstreamer-0.10 >= $GSTREAMER_VERSION \
 	"
 PKG_CHECK_MODULES(PACKAGE, $pkg_modules)
 PACKAGE_CFLAGS="\
@@ -98,6 +98,23 @@ AC_SUBST(PACKAGE_RELEASE_DATE)
 dnl
 dnl Plugins
 dnl
+
+dnl ige-mac-integracion aka ige
+IGE_VERSION="0.8.0"
+ige_modules="ige-mac-integration >= $IGE_VERSION"
+PKG_CHECK_MODULES(IGE, $ige_modules,
+	[
+		HAVE_IGE=yes
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=1"
+		AC_SUBST(IGE_CFLAGS)
+		AC_SUBST(IGE_LIBS)
+	],
+	[
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=0"
+		HAVE_IGE=no
+	]
+	)
+AM_CONDITIONAL(USE_IGE, test x"$HAVE_IGE" = "xyes")
 
 dnl dbus-glib
 DBUS_GLIB_VERSION="0.76"
@@ -192,6 +209,7 @@ plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
 plugins/lastfm/Makefile
+plugins/lyrics/Makefile
 plugins/recently2/Makefile
 plugins/Makefile
 po/Makefile.in

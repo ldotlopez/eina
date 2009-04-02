@@ -386,6 +386,7 @@ curl_engine_cover_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	guint8 *buffer;
 	gsize   size;
 	GError *error = NULL;
+	GdkPixbufLoader *loader = NULL;
 
 	// Jump if there was an error fetching
 	if (!curl_query_finish(query, &buffer, &size, &error))
@@ -399,7 +400,7 @@ curl_engine_cover_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	}
 
 	// Load pixbuf
-	GdkPixbufLoader *loader = gdk_pixbuf_loader_new();
+	loader = gdk_pixbuf_loader_new();
 	if (!gdk_pixbuf_loader_write(loader, buffer, size, &error))
 	{
 		gdk_pixbuf_loader_close(loader, NULL);
