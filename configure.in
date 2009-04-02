@@ -209,7 +209,6 @@ plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
 plugins/lastfm/Makefile
-plugins/lyrics/Makefile
 plugins/recently2/Makefile
 plugins/Makefile
 po/Makefile.in
