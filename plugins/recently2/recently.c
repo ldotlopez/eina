@@ -1198,6 +1198,8 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 gboolean
 recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	gel_warn("ADB compiled with: %s, runtime: %s", SQLITE_VERSION, sqlite3_libversion());
+
 	// Load adb, upgrade database
 	GError *err = NULL;
 	if (!gel_app_load_plugin_by_name(app, "adb", &err))

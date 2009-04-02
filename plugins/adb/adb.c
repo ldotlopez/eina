@@ -45,6 +45,8 @@ adb_new(GelApp *app, GError **error)
 	if (!conf_dir)
 		conf_dir = ".cache";
 
+	gel_warn("ADB compiled with: %s, runtime: %s", SQLITE_VERSION, sqlite3_libversion());
+
 	gchar *db_path = g_build_filename(conf_dir, PACKAGE_NAME, "adb.db", NULL);
 	gchar *db_dirname = g_path_get_dirname(db_path);
 	g_mkdir_with_parents(db_dirname, 0755);
