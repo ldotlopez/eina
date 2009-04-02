@@ -298,26 +298,28 @@ status_icon_activate_cb
 (GtkWidget *w, EinaVogon *self)
 {
 	EinaPlayer *player;
-	GtkWidget  *window;
+	GtkWindow  *window;
 	if (!gel_app_get_plugin_by_name(eina_obj_get_app(self), "player"))
 		return FALSE;
 
 	player = GEL_APP_GET_PLAYER(eina_obj_get_app(self));
-	window = eina_obj_get_widget(player, "main-window");
+	window = GTK_WINDOW(eina_obj_get_widget(player, "main-window"));
 
 	if (GTK_WIDGET_VISIBLE(window))
 	{
-		gtk_window_get_position(GTK_WINDOW(window),
+		gtk_window_get_position(window,
 			&self->player_x,
 			&self->player_y);
-		gtk_widget_hide(window);
+		gtk_widget_hide((GtkWidget *) window);
 	}
 	else
 	{
-		gtk_window_move(GTK_WINDOW(window),
+		gtk_window_move(window,
 			self->player_x,
 			self->player_y);
-		gtk_widget_show(window);
+		gtk_widget_show((GtkWidget *) window);
+		if (!gtk_window_is_active(window))
+			gtk_window_activate_default(window);
 	}
 	return FALSE;
 }
