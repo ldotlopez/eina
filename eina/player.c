@@ -134,6 +134,8 @@ static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
 static void
 preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self);
+static void
+volume_value_change_cb(GtkWidget *w, gdouble value, EinaPlayer *self);
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -201,6 +203,12 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		eina_obj_get_typed(self, GTK_CONTAINER, "volume-button-container"),
 		GTK_WIDGET(self->volume));
 	gtk_widget_show(GTK_WIDGET(self->volume));
+	lomo_player_set_volume(
+		EINA_OBJ_GET_LOMO(self),
+		eina_conf_get_int(EINA_OBJ_GET_SETTINGS(self), "/player/volume", 50));
+	gtk_scale_button_set_value((GtkScaleButton *) self->volume, 
+		((gdouble) eina_conf_get_int(EINA_OBJ_GET_SETTINGS(self), "/player/volume", 50)) / 100);
+	g_signal_connect(self->volume, "value-changed", (GCallback) volume_value_change_cb, self);
 
 	// Initialize seek
 	self->seek = eina_seek_new();
@@ -909,6 +917,12 @@ preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self)
 		gtk_widget_hide((GtkWidget *) self->prefs_tips_box);
 	}
 
+}
+
+static void
+volume_value_change_cb(GtkWidget *w, gdouble value, EinaPlayer *self)
+{
+	eina_conf_set_int(EINA_OBJ_GET_SETTINGS(self), "/player/volume", (value*100)/ 1);
 }
 
 static void

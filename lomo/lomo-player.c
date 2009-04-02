@@ -487,7 +487,7 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
 	if (ret == GST_STATE_CHANGE_SUCCESS)
-		g_printf("Catched a sync result");
+		g_printf("\n\nCatched a sync result\n\n\n");
 
 	return LOMO_STATE_CHANGE_SUCCESS; // Or async, or preroll...
 }
@@ -581,7 +581,7 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 
 	if (self->priv->pipeline && !self->priv->vtable.set_volume(self->priv->pipeline, CLAMP(val, 0, 100)))
 		return FALSE;
-
+	
 	self->priv->volume = val;
 	g_signal_emit(self, lomo_player_signals[VOLUME], 0, val);
 	return TRUE;
