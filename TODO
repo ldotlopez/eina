@@ -21,26 +21,26 @@ V Kill eina_stream_format
 V Under some circunstances Eina shows no cover (at first run, with no playlist)
 V Window icon at startup (see prev bug)
 - EinaPlayer must listen EinaConf for changes in info format
-- If eina window is maximized, dock must be expanded, if no dock, eina cannot
+V If eina window is maximized, dock must be expanded, if no dock, eina cannot
   will maximize
 V DnD (Add support to playlist to enqueue)
 
 0.8 Series - Plugins
 ====================
 - LastFM Info plugin (Update on demand, CSS love)
-- Recently plugin doesnt work
+V Recently plugin doesnt work
 - Vogon must be a versatile miniplayer
 
 0.10 Series
 ===========
 - Remove dead and depreacted code
-- EinaCover should be based on LomoStream to allow more flexible cover fetching
+V EinaCover should be based on LomoStream to allow more flexible cover fetching
   Some requisites:
   Must be an 'artwork provider'. Diferent widgets may query EinaCover.
   Must supply a GdkPixbuf from a LomoStream.
   Providers must be shared, they should be stored in EinaCoverClass to be
   shared between instances
-- Make Dock an entity
+V Make Dock an entity
 V Unify GelHub/GelSlave and EinaPlugin
 - Reduce memory usage to target netbooks and MID devices
 V Multimedia keys (DBus:
@@ -48,7 +48,7 @@ V Multimedia keys (DBus:
 - SQL playlist plugin
 - Dock must be an independant component, EinaPlayer or EinaFoo should be
   reclaim them
-- Rethink the EinaCover interface to plugins
+V Rethink the EinaCover interface to plugins
 V LibUnique
 - warn_unused_result gcc 3.4 attribute
 
@@ -58,3 +58,9 @@ Misc
 - Migrate to GObject and GInterface
 V DnD
 V Single instance
+
+Long Term (Gnome 3)
+===================
+- World domination
+- OSX bundle
+- Follow streamlined gnome platform

@@ -14,7 +14,7 @@ EXTRA_DIST = \
 	intltool-extract.in \
 	intltool-merge.in \
 	intltool-update.in \
-	COPYRIGHT README AUTHORS INSTALL COPYING
+	COPYRIGHT README AUTHORS INSTALL
 
 #intltool_extra = intltool-extract.in intltool-merge.in intltool-update.in
 #

@@ -6,9 +6,11 @@ EXTRA_DIST = \
 	audio-volume-mute.png \
 	cover-default.png \
 	cover-loading.png \
+	cover-mask.png \
+	eina-queue.png \
 	icon.png \
+	icon-512.png \
 	logo.png \
-	queue.png \
 	random.png \
 	repeat.png \
 	vogon-icon.png

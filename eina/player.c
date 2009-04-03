@@ -705,7 +705,7 @@ about_show(void)
 	gchar *logo_path;
 	GdkPixbuf  *pb;
 
-	static gchar *release_name = "It's all over but the crying";
+	static gchar *release_name = "Running up that hill";
 	gchar *tmp;
 
 	GError *err = NULL;
