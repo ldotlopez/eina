@@ -1,0 +1,4 @@
+ige-mac-integration 420
+variants universal variant_desc {universal {Build for multiple architectures}} portdir aqua/ige-mac-integration description {Gtk+-2.x OSX integration} homepage http://developer.imendio.com/projects/gtk-macosx/integration epoch 0 platforms darwin name ige-mac-integration depends_lib port:gtk2 maintainers xuzo@cuarentaydos.com long_description {Gtk+-2.x OSX integration} version 0.8.2 categories {aqua devel} revision 0
+eina 514
+variants universal variant_desc {universal {Build for multiple architectures}} portdir audio/eina description {Eina music player} homepage http://eina.sourceforge.net/ epoch 0 platforms darwin name eina depends_lib {port:sqlite3 port:gstreamer port:gtk2 port:gtk2-clearlooks port:gst-ffmpeg port:gst-plugins-bad port:gst-plugins-base port:gst-plugins-good port:gst-plugins-ugly} maintainers xuzo long_description {{Eina music player,} a classic player for the modern era} version 0.7.2 categories audio revision 0

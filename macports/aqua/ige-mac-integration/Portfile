@@ -1,0 +1,19 @@
+# $Id$
+
+PortSystem	1.0
+
+name		ige-mac-integration	
+version		0.8.2
+categories	aqua devel
+maintainers	xuzo@cuarentaydos.com
+description	Gtk+-2.x OSX integration
+long_description	Gtk+-2.x OSX integration
+
+platforms		darwin
+master_sites	http://ftp.imendio.com/pub/imendio/ige-mac-integration/
+
+homepage		http://developer.imendio.com/projects/gtk-macosx/integration
+checksums		md5 c9ad0b80b5daa23891be654e29d7bcdc \
+				sha1 4d5f2a88c3d354133105b3c84e4a12abcb017eeb
+
+depends_lib 	port:gtk2
