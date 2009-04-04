@@ -2,7 +2,7 @@ Source: eina
 Section: sound
 Priority: extra
 Maintainer: Luis Lopez <xuzo@cuarentaydos.com>
-Build-Depends: debhelper (>= 5), autotools-dev, intltool, pkg-config, python2.5, libgstreamer0.10-dev, libgtk2.0-dev, libdbus-glib-1-dev, libunique-dev, libsqlite3-dev
+Build-Depends: debhelper (>= 5), autotools-dev, intltool, pkg-config, python2.5, libgstreamer0.10-dev, libgtk2.0-dev, libdbus-glib-1-dev, libunique-dev, libsqlite3-dev, libcurl4-gnutls-dev
 Standards-Version: 3.7.3
 
 Package: eina
@@ -19,7 +19,7 @@ Description: Music player based on gtk+-2.0 and gstreamer
 Package: eina-dev
 Section: devel
 Architecture: any
-Depends: libc6-dev, eina (= ${Source-Version}), libgtk2.0-dev (>= 2.12.0), libgstreamer0.10-0 (>= 0.10.0), libsqlite3-dev, libcurl4-gnutls-dev
+Depends: libc6-dev, eina (= ${Source-Version}), libgtk2.0-dev (>= 2.12.0), libgstreamer0.10-0 (>= 0.10.0), libsqlite3-dev
 Replaces: liblomo-dev
 Conflicts: liblomo-dev
 Provides: liblomo-dev

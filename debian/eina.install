@@ -1,6 +1,10 @@
 usr/bin
 usr/lib/*.so.*
 usr/share
-usr/lib/eina/coverplus/*.so
-usr/lib/eina/adb/*.so
-usr/lib/eina/recently/*.so
+usr/lib/eina/adb/libadb.so
+usr/lib/eina/coverplus/libcoverplus.so
+usr/lib/eina/lastfm/lastfm.png
+usr/lib/eina/lastfm/lastfm.ui
+usr/lib/eina/lastfm/liblastfm.so
+usr/lib/eina/recently2/dock.ui
+usr/lib/eina/recently2/librecently2.so
