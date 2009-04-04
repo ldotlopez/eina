@@ -202,7 +202,7 @@ curl_query_new(gchar *uri, CurlEngineFinishFunc finish, gpointer data)
 
 	query->curl = curl_easy_init();
 	curl_easy_setopt(query->curl, CURLOPT_URL,           query->uri);
-	curl_easy_setopt(query->curl, CURLOPT_WRITEFUNCTION, curl_query_write_cb);
+	curl_easy_setopt(query->curl, CURLOPT_WRITEFUNCTION, (void *) curl_query_write_cb);
 	curl_easy_setopt(query->curl, CURLOPT_WRITEDATA,     query);
 
 	return query;

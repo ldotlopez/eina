@@ -1,3 +1,9 @@
+eina (0.7.3.91~ppa1) intrepid; urgency=low
+
+  * Release of 0.7.3.91 (0.7.4 beta 1)
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Sat, 04 Apr 2009 13:51:38 +0200
+
 eina (0.7.3~ppa1) intrepid; urgency=low
 
   * Release of 0.7.3

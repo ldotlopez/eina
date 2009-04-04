@@ -2,3 +2,5 @@ usr/bin
 usr/lib/*.so.*
 usr/share
 usr/lib/eina/coverplus/*.so
+usr/lib/eina/adb/*.so
+usr/lib/eina/recently/*.so
