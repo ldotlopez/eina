@@ -22,6 +22,10 @@
 #include "submit.h"
 #include "artwork.h"
 
+#ifdef HAVE_WEBKIT // Disable webkit
+#undef HAVE_WEBKIT
+#endif
+
 struct _LastFM {
 	LastFMArtwork *artwork;
 	LastFMSubmit  *submit;
