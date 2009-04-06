@@ -151,12 +151,16 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
-	EINA_PLUGIN_SERIAL, "lastfm", PACKAGE_VERSION,
+	EINA_PLUGIN_SERIAL,
+	"lastfm", PACKAGE_VERSION, "art",
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+
 	N_("Lastfm integration"),
 	N_("Lastfm integration:\n"
 	"· Query Last.fm for covers"),
-	"lastfm.png", EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+	"lastfm.png",
+	
 	lastfm_init, lastfm_fini,
 
-	NULL, NULL
+	NULL, NULL, NULL
 };

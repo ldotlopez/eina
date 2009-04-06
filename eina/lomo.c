@@ -78,11 +78,13 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT GelPlugin lomo_plugin = 
 {
 	GEL_PLUGIN_SERIAL,
-	"lomo", PACKAGE_VERSION,
-	N_("Build-in lomo plugin"), NULL,
-	NULL, NULL, NULL,
-	lomo_plugin_init,
-	lomo_plugin_fini,
-	NULL, NULL
+	"lomo", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in lomo plugin"), N_("Build-in lomo plugin"), NULL,
+
+	lomo_plugin_init, lomo_plugin_fini,
+
+	NULL, NULL, NULL
 };
 

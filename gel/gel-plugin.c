@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define GEL_DOMAIN "Gel::Plugin"
 #include <gmodule.h>
 #include <glib/gi18n.h>
 #include <gel/gel-misc.h>
@@ -30,6 +31,11 @@ struct _GelPluginPrivate {
 	GModule *module;
 	guint    refs;
 	gboolean enabled;
+	GList    *dependats;
+};
+
+struct _GelPluginExtend {
+	gpointer dummy;
 };
 
 static GQuark
@@ -86,6 +92,14 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 	self->priv->module   = mod;
 	self->priv->app      = app;
 
+#if 0
+	gel_warn("== Plugin: %s", self->priv->pathname);
+	gel_warn("Name: %s (%s), depends on: %s", self->name, self->version, self->depends);
+	gel_warn("Author: %s (%s)", self->author, self->url);
+	gel_warn("Desc: (%s) (%s) (%s)", self->short_desc, self->long_desc, self->icon);
+	gel_warn("Init/Fini %p %p", self->init, self->fini);
+	gel_warn(" ");
+#endif
 	gel_app_emit_load(self->priv->app, self);
 
 	return self;

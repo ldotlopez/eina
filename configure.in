@@ -19,6 +19,9 @@ EINA_VERSION_CODENAME="Running up that hill"
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_VERSION_CODENAME)
 AC_SUBST(EINA_API_VERSION)
+#export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
+#/Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
+#/Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`

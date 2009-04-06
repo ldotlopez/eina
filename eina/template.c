@@ -89,10 +89,13 @@ template_fini (GelApp *app, EinaPlugin *plugin, GError **error)
 // --
 G_MODULE_EXPORT EinaPlugin template_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"template", PACKAGE_VERSION,
-	N_("Build-in template plugin"), NULL,
-	NULL, NULL, NULL,
+	"template", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in template plugin"), NULL, NULL,
+
 	template_init, template_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

@@ -312,10 +312,13 @@ expander_activate_cb(GtkExpander *w, EinaDock *self)
 
 G_MODULE_EXPORT GelPlugin dock_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"dock", PACKAGE_VERSION,
-	N_("Build-in dock plugin"), NULL,
-	NULL, NULL, NULL, 
+	"dock", PACKAGE_VERSION, NULL,
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+
+	N_("Build-in dock plugin"), N_("Build-in dock plugin"), NULL,
+
 	dock_init, dock_exit,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

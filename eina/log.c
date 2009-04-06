@@ -126,10 +126,13 @@ log_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT GelPlugin log_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"log", PACKAGE_VERSION,
-	N_("Build-in log"), NULL,
-	NULL, NULL, NULL,
+	"log", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in log"), N_("Build-in log"), NULL,
+	
 	log_init, log_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

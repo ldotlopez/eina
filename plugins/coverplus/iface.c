@@ -116,16 +116,17 @@ coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin coverplus_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"coverplus", PACKAGE_VERSION,
+	"coverplus", PACKAGE_VERSION, "art",
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+
 	N_("Enhace your covers"),
 	N_("Brings Eina several simple but fundamental cover providers like:\n"
 	   "· In-folder cover discover\n"
 	   "· Banshee (on Linux) covers"),
 	NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL, 
 
 	coverplus_init, coverplus_exit,
 
-	NULL, NULL
+	NULL, NULL, NULL
 };
 

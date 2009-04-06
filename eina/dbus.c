@@ -149,9 +149,12 @@ dbus_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin dbus_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"dbus", PACKAGE_VERSION,
+	"dbus", PACKAGE_VERSION, NULL,
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL, 
+
 	N_("DBus interface for Eina"), NULL, NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+
 	dbus_init, dbus_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };

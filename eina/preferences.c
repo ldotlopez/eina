@@ -187,10 +187,13 @@ menu_activate_cb(GtkAction *action, EinaPreferences *self)
 
 G_MODULE_EXPORT GelPlugin preferences_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"preferences", PACKAGE_VERSION,
-	N_("Build-in preferences plugin"), NULL,
-	NULL, NULL, NULL,
+	"preferences", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in preferences plugin"), NULL, NULL,
+
 	preferences_init, preferences_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

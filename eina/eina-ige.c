@@ -95,11 +95,13 @@ ige_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin ige_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"ige", PACKAGE_VERSION,
-	N_("OSX integration"), NULL, NULL,
+	"ige", PACKAGE_VERSION, NULL,
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+
+	N_("OSX integration"), NULL, NULL,
+
 	ige_plugin_init, ige_plugin_exit,
 
-	NULL, NULL
+	NULL, NULL, NULL
 };
 

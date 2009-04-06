@@ -365,16 +365,29 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "name-label"), tmp);
 	g_free(tmp);
 
-	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "short-desc-label"), plugin->short_desc);
-	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "long-desc-label"), plugin->long_desc);
+	if ((tmp = g_markup_escape_text(plugin->short_desc, -1)) != NULL)
+	{
+		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "short-desc-label"), tmp);
+		g_free(tmp);
+	}
 
-	tmp = g_markup_escape_text(plugin->author, -1);
-	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "author-label"), tmp);
-	g_free(tmp);
+	if ((tmp = g_markup_escape_text(plugin->long_desc, -1)) != NULL)
+	{
+		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "long-desc-label"), tmp);
+		g_free(tmp);
+	}
 
-	tmp = g_markup_escape_text(plugin->url, -1);
-	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
-	g_free(tmp);
+	if ((tmp = g_markup_escape_text(plugin->author, -1)) != NULL)
+	{
+		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "author-label"), tmp);
+		g_free(tmp);
+	}
+
+	if ((tmp = g_markup_escape_text(plugin->url, -1)) != NULL)
+	{
+		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
+		g_free(tmp);
+	}
 
 	tmp = gel_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
 	if ((tmp == NULL) || !g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
@@ -535,10 +548,13 @@ plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self)
 
 G_MODULE_EXPORT GelPlugin plugins_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"plugins", PACKAGE_VERSION,
-	N_("Build-in plugin manager plugin"), NULL,
-	NULL, NULL, NULL,
+	"plugins", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in plugin manager plugin"), NULL, NULL,
+
 	plugins_init, plugins_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

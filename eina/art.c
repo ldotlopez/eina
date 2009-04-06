@@ -510,36 +510,6 @@ art_search_get_data(ArtSearch *search)
 	return search->data;
 }
 
-// -------------------------
-// -------------------------
-// EinaPlugin interface
-// -------------------------
-// -------------------------
-static gboolean
-plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
-{
-	plugin->data = art_new();
-	gel_app_shared_set(app, "art", plugin->data);
-	return TRUE;
-}
-
-static gboolean
-plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
-{
-	art_destroy((Art *) plugin->data);
-	gel_app_shared_unregister(app, "art");
-	return TRUE;
-}
-
-G_MODULE_EXPORT EinaPlugin art_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"art", PACKAGE_VERSION,
-	N_("Art"), N_("Art framework"), NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
-	plugin_init, plugin_fini,
-	NULL, NULL
-};
-
 #if ENABLE_ART_XDG_CACHE
 // --
 // Pseudo backend
@@ -737,3 +707,37 @@ art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data)
 		art_report_failure(art, search);
 }
 #endif
+
+// -------------------------
+// -------------------------
+// EinaPlugin interface
+// -------------------------
+// -------------------------
+static gboolean
+plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
+{
+	plugin->data = art_new();
+	gel_app_shared_set(app, "art", plugin->data);
+	return TRUE;
+}
+
+static gboolean
+plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
+{
+	art_destroy((Art *) plugin->data);
+	gel_app_shared_unregister(app, "art");
+	return TRUE;
+}
+
+G_MODULE_EXPORT EinaPlugin art_plugin = {
+	EINA_PLUGIN_SERIAL,
+	"art", PACKAGE_VERSION, NULL,
+
+	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+	N_("Art"), N_("Art framework"), NULL,
+
+	plugin_init, plugin_fini,
+
+	NULL, NULL, NULL
+};
+

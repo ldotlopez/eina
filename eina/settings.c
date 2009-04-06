@@ -92,10 +92,13 @@ settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT GelPlugin settings_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"settings", PACKAGE_VERSION,
-	N_("Build-in settings plugin"), NULL,
-	NULL, NULL, NULL,
+	"settings", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in settings plugin"), NULL, NULL,
+
 	settings_init, settings_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

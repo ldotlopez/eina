@@ -385,10 +385,13 @@ settings_change_cb (EinaConf *conf, const gchar *key, EinaVogon *self)
 
 G_MODULE_EXPORT GelPlugin vogon_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"vogon", PACKAGE_VERSION,
-	N_("Build-in vogon plugin"), NULL,
-	NULL, NULL, NULL,
+	"vogon", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in vogon plugin"), NULL, NULL,
+
 	vogon_init, vogon_fini,
-	NULL, NULL
+
+	NULL, NULL, NULL
 };
 

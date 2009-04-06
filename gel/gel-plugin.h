@@ -24,11 +24,12 @@
 
 G_BEGIN_DECLS
 
-typedef struct _GelPlugin GelPlugin;
+typedef struct _GelPlugin       GelPlugin;
+typedef struct _GelPluginExtend GelPluginExtend;
 #include <gel/gel-app.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
-#define GEL_PLUGIN_SERIAL 2009011401
+#define GEL_PLUGIN_SERIAL 2009040601
 
 enum {
 	GEL_PLUGIN_NO_ERROR = 0,
@@ -50,19 +51,20 @@ struct _GelPlugin {
 	guint serial;            // GEL_PLUGIN_SERIAL
 	const gchar *name;       // "My cool plugin"
 	const gchar *version;    // "1.0.0"
+	const gchar *depends;    // "foo,bar,baz" or NULL
+	const gchar *author;     // "me <me@company.com>"
+	const gchar *url;        // "http://www.company.com"
 	const gchar *short_desc; // "This plugins makes my app cooler"
 	const gchar *long_desc;  // "Blah blah blah..."
 	const gchar *icon;       // "icon.png", relative path
-	const gchar *author;     // "me <me@company.com>"
-	const gchar *url;        // "http://www.company.com"
-	// const gchar *depends; // "foo,bar,baz" or NULL
 
 	gboolean (*init) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Init function
 	gboolean (*fini) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Exit function
 
-	gpointer data; // Plugin's own data
+	gpointer data;             // Plugin's own data
 
-	GelPluginPrivate *priv;
+	GelPluginPrivate *priv;   // GelPlugin system private data, must be NULL
+	GelPluginExtend  *extend; // Reserved for extensions, must be NULL
 };
 
 gboolean     gel_plugin_matches     (GelPlugin *plugin, gchar *pathname, gchar *symbol);

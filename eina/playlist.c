@@ -1190,10 +1190,12 @@ void setup_dnd(EinaPlaylist *self)
  */
 G_MODULE_EXPORT GelPlugin playlist_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"playlist", PACKAGE_VERSION,
-	N_("Build-in playlist plugin"), NULL,
-	NULL, NULL, NULL,
+	"playlist", PACKAGE_VERSION, NULL,
+	NULL, NULL,
+
+	N_("Build-in playlist plugin"), NULL, NULL,
+
 	playlist_init, playlist_fini,
-	NULL, NULL
+	NULL, NULL, NULL
 };
 

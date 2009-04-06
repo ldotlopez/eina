@@ -61,11 +61,13 @@ adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin adb_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"adb", PACKAGE_VERSION,
-	N_("Audio database"), NULL, NULL,
+	"adb", PACKAGE_VERSION, NULL,
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+
+	N_("Audio database"), NULL, NULL,
+
 	adb_plugin_init, adb_plugin_exit,
 
-	NULL, NULL
+	NULL, NULL, NULL
 };
 
