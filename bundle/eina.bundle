@@ -18,7 +18,7 @@
          app. If you leave out the path, the current directory is
          used. Note the usage of an environment variable here again.
     -->
-    <destination overwrite="yes">${env:HOME}/Desktop</destination>
+    <destination overwrite="yes">${project}/</destination>
 
     <image>
       <!-- Not implemented yet (DMG image). -->
@@ -71,6 +71,12 @@
   <binary>${prefix}/lib/gstreamer-0.10/libgstaudioresample.so</binary>
   <binary>${prefix}/lib/gstreamer-0.10/libgstvolume.so</binary>
 
+
+  <binary>${prefix}/lib/eina/adb/*.so</binary>
+  <binary>${prefix}/lib/eina/coverplus/*.so</binary>
+  <binary>${prefix}/lib/eina/lastfm/*.so</binary>
+  <binary>${prefix}/lib/eina/recently2/*.so</binary>
+
   <!-- Data to copy in, usually Glade/UI files, images, sounds files
        etc. The destination inside the bundle can be specified if the
        files should end up at a different location, by using the
@@ -80,9 +86,12 @@
   <data>
     ${prefix}/share/eina
   </data>
-<!--
+  <data>${prefix}/lib/eina/lastfm/*.png</data>
+  <data>${prefix}/lib/eina/lastfm/*.ui</data>
+  <data>${prefix}/lib/eina/recently2/*.ui</data>
+
   <data dest="${bundle}/Contents/Resources">
-    ${project}/Giggle.icns
+    ${project}/Eina.icns
   </data>
   -->
   <data dest="${bundle}/Contents/Resources/etc/gtk-2.0/gtkrc">

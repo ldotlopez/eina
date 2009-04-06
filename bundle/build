@@ -1,0 +1,8 @@
+#!/bin/bash
+
+~/bin/ige-mac-bundler eina.bundle 
+cp pango* Eina.app/Contents/Resources/etc/pango/
+cp environment.sh Eina.app/Contents/Resources
+[ -e "Eina 0.7.3.91.dmg" ] && rm -rf -- "Eina 0.7.3.91.dmg"
+hdiutil create -srcfolder Eina.app "Eina 0.7.3.91.dmg"
+

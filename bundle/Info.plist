@@ -5,26 +5,26 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleExecutable</key>
-    <string>Giggle</string>
+    <string>Eina</string>
     <key>CFBundleGetInfoString</key>
-    <string>0.3, Copyright 2006-2007 Imendio AB</string>
+    <string>0.7.3.91, Copyright 2003-2009 Luis Lopez</string>
     <key>CFBundleIconFile</key>
-    <string>Giggle.icns</string>
+    <string>Eina.icns</string>
     <key>CFBundleIdentifier</key>
-    <string>com.imendio.Giggle</string>
+    <string>net.sourceforge.Eina</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.3</string>
+    <string>0.7.3.91</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleVersion</key>
-    <string>0.3</string>
+    <string>0.7.3.91</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright 2006-2007 Imendio AB, GNU General Public License.</string>
+    <string>Copyright 2006-2007 Luis Lopez, GNU General Public License.</string>
     <key>LSMinimumSystemVersion</key>
-    <string>10.4</string>
+    <string>10.5</string>
 </dict>
 </plist>
