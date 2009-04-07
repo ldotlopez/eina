@@ -156,14 +156,14 @@ gel_file_strings(gchar *pathname);
 // --
 // Debug functions
 // --
-typedef void (*GelDebugHandler) (GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
+typedef void (*GelDebugHandler) (GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer, gpointer data);
 
 GelDebugLevel
 gel_get_debug_level(void);
 void
 gel_set_debug_level(GelDebugLevel level);
 
-void gel_debug_add_handler   (GelDebugHandler func);
+void gel_debug_add_handler   (GelDebugHandler func, gpointer data);
 void gel_debug_remove_handler(GelDebugHandler func);
 
 

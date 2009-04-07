@@ -27,7 +27,9 @@
 static gchar *_gel_package_name = NULL;
 static gchar *_gel_package_data_dir = NULL;
 static gint   _gel_debug_level = GEL_DEBUG_LEVEL_INFO;
-static GList *_gel_debug_handlers = NULL;
+
+static GList *_gel_debug_handlers      = NULL;
+static GList *_gel_debug_handlers_data = NULL;
 
 void
 gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
@@ -38,9 +40,10 @@ gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar 
 void
 _gel_atexit(void)
 {
-	gel_free_and_invalidate(_gel_package_name,     NULL, g_free);
-	gel_free_and_invalidate(_gel_package_data_dir, NULL, g_free);
-	gel_free_and_invalidate(_gel_debug_handlers,   NULL, g_list_free);
+	gel_free_and_invalidate(_gel_package_name,        NULL, g_free);
+	gel_free_and_invalidate(_gel_package_data_dir,    NULL, g_free);
+	gel_free_and_invalidate(_gel_debug_handlers,      NULL, g_list_free);
+	gel_free_and_invalidate(_gel_debug_handlers_data, NULL, g_list_free);
 }
 
 void
@@ -48,7 +51,8 @@ gel_init(gchar *name, gchar *data_dir)
 {
 	_gel_package_name     = g_strdup(name);
 	_gel_package_data_dir = g_strdup(data_dir);
-	_gel_debug_handlers = g_list_append(NULL, gel_debug_default_handler);
+	_gel_debug_handlers      = g_list_append(NULL, gel_debug_default_handler);
+	_gel_debug_handlers_data = g_list_append(NULL, NULL);
 	atexit(_gel_atexit);
 }
 
@@ -315,23 +319,35 @@ gel_set_debug_level(GelDebugLevel level)
 }
 
 void
-gel_debug_add_handler(GelDebugHandler func)
+gel_debug_add_handler(GelDebugHandler func, gpointer data)
 {
 	if ((_gel_debug_handlers != NULL) && (_gel_debug_handlers->next == NULL))
 	{
 		g_list_free(_gel_debug_handlers);
+		g_list_free(_gel_debug_handlers_data);
 		_gel_debug_handlers = NULL;
+		_gel_debug_handlers_data = NULL;
 	}
 
 	_gel_debug_handlers = g_list_append(_gel_debug_handlers, (gpointer) func);
+	_gel_debug_handlers_data = g_list_append(_gel_debug_handlers_data, (gpointer) data);
 }
 
 void
 gel_debug_remove_handler(GelDebugHandler func)
 {
-	_gel_debug_handlers = g_list_remove_all(_gel_debug_handlers, (gpointer) func);
+	gint index = g_list_index(_gel_debug_handlers, func);
+	if (index >= 0)
+	{
+		_gel_debug_handlers = g_list_remove_all(_gel_debug_handlers, (gpointer) func);
+		_gel_debug_handlers_data = g_list_remove_all(_gel_debug_handlers_data, g_list_nth_data(_gel_debug_handlers_data, index));
+	}
+
 	if (_gel_debug_handlers == NULL)
+	{
 		_gel_debug_handlers = g_list_append(NULL, gel_debug_default_handler);
+		_gel_debug_handlers_data = g_list_append(NULL, _gel_debug_handlers_data);
+	}
 }
 
 void
@@ -363,11 +379,15 @@ gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const
 	va_end(args);
 
 	GList *iter = _gel_debug_handlers;
+	GList *data = _gel_debug_handlers_data;
 	while (iter)
 	{
 		GelDebugHandler callback = (GelDebugHandler) iter->data;
-		callback(level, domain, func, file, line, buffer);
+		callback(level, domain, func, file, line, buffer, data ? data->data : NULL);
 		iter = iter->next;
+
+		if (data)
+			data = data->next;
 	}
 
 	g_free(buffer);
