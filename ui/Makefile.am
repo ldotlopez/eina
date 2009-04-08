@@ -1,4 +1,4 @@
-BUILT_SOURCES = about.ui dock.ui player.ui player-preferences.ui playlist.ui plugins.ui
+BUILT_SOURCES = about.ui dock.ui log.ui player.ui player-preferences.ui playlist.ui plugins.ui
 
 CLEANFILES = $(BUILT_SOURCES)
 
@@ -6,6 +6,9 @@ about.ui: about.glade
 	$(GTK_BUILDER_CONVERT) $< $@
 
 dock.ui: dock.glade
+	$(GTK_BUILDER_CONVERT) $< $@
+
+log.ui: log.glade
 	$(GTK_BUILDER_CONVERT) $< $@
 
 player.ui: player.glade
@@ -24,6 +27,7 @@ EXTRA_DIST = \
 	$(BUILT_SOURCES)         \
 	about.glade              \
 	dock.glade               \
+	log.glade                \
 	player-menu.ui           \
 	player.glade             \
 	player-preferences.glade \
