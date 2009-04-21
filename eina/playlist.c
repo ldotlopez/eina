@@ -579,7 +579,6 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 		if (column == -1)
 			break;
 
-		gel_debug("Updating column %d", column);
 		switch (column)
 		{
 			case PLAYLIST_COLUMN_STATE:
