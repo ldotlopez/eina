@@ -19,6 +19,7 @@
 
 #define GEL_DOMAIN "Eina::Log"
 #define GEL_PLUGIN_DATA_TYPE EinaLog
+#define LOG_SIGNALS 0
 
 #include <config.h>
 #include <eina/eina-plugin.h>
@@ -39,6 +40,9 @@ typedef struct {
 	GtkDialog         *dialog;
 	GtkScrolledWindow *sc;
 	GtkTextView       *textview;
+	GtkScale          *scale;
+	GtkImage          *img;
+	GtkLabel          *label;
 
 	GList         *msgs;
 	gint           flags;
@@ -48,6 +52,11 @@ enum {
 	FLAG_NONE        = 0x00,
 	FLAG_LOMO_INIT   = 0x01,
 	FLAG_PLAYER_INIT = 0x10
+};
+
+enum {
+	EINA_LOG_RESPONSE_CLEAR = 1,
+	EINA_LOG_RESPONSE_CLOSE
 };
 
 typedef struct {
@@ -60,9 +69,11 @@ typedef struct {
 } LogMsg;
 
 static gboolean
-setup_player(EinaLog *self);
+build_player(EinaLog *self);
 static gboolean
 setup_lomo(EinaLog *self);
+static void
+set_debug_level(EinaLog *self, GelDebugLevel level);
 static void
 append_msg(EinaLog *self, GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
 static void
@@ -70,6 +81,12 @@ debug_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const
 
 static void
 action_entry_activate_cb(GtkAction *action, EinaLog *self);
+static void
+dialog_response_cb(GtkWidget *w, gint response, EinaLog *self);
+static gboolean
+dialog_expose_event_cb(GtkWidget *w, GdkEventExpose *ev, EinaLog *self);
+static void
+log_level_scale_value_change_cb(GtkWidget *w, EinaLog *self);
 static void
 plugin_load_cb(GelApp *app, GelPlugin *plugin, gpointer data);
 static void
@@ -79,10 +96,11 @@ plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaLog *self);
 static void
 plugin_fini_cb(GelApp *app, GelPlugin *plugin, gpointer data);
 static void
-lomo_signal_cb(gchar *signal);
-static void
 lomo_error_cb(LomoPlayer *lomo, GError *error, gpointer data);
-
+#if LOG_SIGNALS
+static void
+lomo_signal_cb(gchar *signal);
+#endif
 
 static gboolean
 log_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -90,10 +108,11 @@ log_init(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaLog *self = g_new0(EinaLog, 1);
 	self->app    = app;
 	self->plugin = plugin;
+	plugin->data = self;
 
 	// If player is loaded attach menu
 	if (GEL_APP_GET_PLAYER(app))
-		setup_player(self);
+		build_player(self);
 
 	// If lomo is loaded attach signals
 	if (GEL_APP_GET_LOMO(app))
@@ -105,17 +124,61 @@ log_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(app, "plugin-fini",   (GCallback) plugin_fini_cb,   self);
 
 	gel_debug_add_handler((GelDebugHandler) debug_handler, self);
-	gel_set_debug_level(GEL_DEBUG_LEVEL_VERBOSE);
 	return TRUE;
 }
+
 static gboolean
 log_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
+	EinaLog *self = GEL_PLUGIN_DATA(plugin);
+	GList *iter = self->msgs;
+	while (iter)
+	{
+		LogMsg *msg = (LogMsg *) iter->data;
+		g_free(msg->domain);
+		g_free(msg->func);
+		g_free(msg->file);
+		g_free(msg->buffer);
+		g_free(msg);
+
+		iter = iter->next;
+	}
+	g_list_free(self->msgs);
+	g_free(self);
+
 	return TRUE;
 }
 
 static gboolean
 setup_player(EinaLog *self)
+{
+	set_debug_level(self, gel_get_debug_level());
+	g_signal_connect(self->dialog, "delete-event",  (GCallback) gtk_widget_hide_on_delete, NULL);
+	g_signal_connect(self->scale,  "value-changed", (GCallback) log_level_scale_value_change_cb, self);
+	g_signal_connect(self->dialog, "response", (GCallback) dialog_response_cb, self);
+
+	GList *iter = g_list_last(self->msgs);
+	while (iter)
+	{
+		LogMsg *msg = (LogMsg *) iter->data;
+		append_msg(self, msg->level, msg->domain, msg->func, msg->file, msg->line, msg->buffer);
+
+		g_free(msg->domain);
+		g_free(msg->func);
+		g_free(msg->file);
+		g_free(msg->buffer);
+		g_free(msg);
+
+		iter = iter->prev;
+	}
+	gel_free_and_invalidate(self->msgs, NULL, g_list_free);
+
+	self->flags |= FLAG_PLAYER_INIT;
+	return TRUE;
+}
+
+static gboolean
+build_player(EinaLog *self)
 {
 	g_return_val_if_fail((self->flags & FLAG_PLAYER_INIT) == 0, FALSE);
 
@@ -134,7 +197,10 @@ setup_player(EinaLog *self)
 	if (
 		!(self->dialog   = GTK_DIALOG         (gtk_builder_get_object(xml_ui, "main-window"))) ||
 		!(self->sc       = GTK_SCROLLED_WINDOW(gtk_builder_get_object(xml_ui, "scrolledwindow"))) ||
-		!(self->textview = GTK_TEXT_VIEW      (gtk_builder_get_object(xml_ui, "textview")))
+		!(self->textview = GTK_TEXT_VIEW      (gtk_builder_get_object(xml_ui, "textview"))) ||
+		!(self->scale    = GTK_SCALE          (gtk_builder_get_object(xml_ui, "log-level-scale"))) ||
+		!(self->img      = GTK_IMAGE          (gtk_builder_get_object(xml_ui, "log-level-image"))) ||
+		!(self->label    = GTK_LABEL          (gtk_builder_get_object(xml_ui, "log-level-human-level")))
 		)
 	{
 		gel_error(N_("Not all required widgets are valids"));
@@ -142,8 +208,6 @@ setup_player(EinaLog *self)
 		return FALSE;
 	}
 	g_object_unref(xml_ui);
-	g_signal_connect(self->dialog, "response",     (GCallback) gtk_widget_hide_on_delete, NULL);
-	g_signal_connect(self->dialog, "delete-event", (GCallback) gtk_widget_hide_on_delete, NULL);
 
 	GtkUIManager *uimng = eina_player_get_ui_manager(GEL_APP_GET_PLAYER(self->app));
 	self->merge_id = gtk_ui_manager_add_ui_from_string(uimng,
@@ -172,23 +236,8 @@ setup_player(EinaLog *self)
 	gtk_ui_manager_insert_action_group(uimng, self->ag, 1);
 	gtk_ui_manager_ensure_update(uimng);
 
-	GList *iter = g_list_last(self->msgs);
-	while (iter)
-	{
-		LogMsg *msg = (LogMsg *) iter->data;
-		append_msg(self, msg->level, msg->domain, msg->func, msg->file, msg->line, msg->buffer);
+	g_signal_connect(self->dialog, "expose-event", (GCallback) dialog_expose_event_cb, self);
 
-		g_free(msg->domain);
-		g_free(msg->func);
-		g_free(msg->file);
-		g_free(msg->buffer);
-		g_free(msg);
-
-		iter = iter->prev;
-	}
-	gel_free_and_invalidate(self->msgs, NULL, g_list_free);
-
-	self->flags |= FLAG_PLAYER_INIT;
 	return TRUE;
 }
 
@@ -196,6 +245,11 @@ static gboolean
 setup_lomo(EinaLog *self)
 {
 	g_return_val_if_fail((self->flags & FLAG_LOMO_INIT) == 0, FALSE);
+
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
+	g_return_val_if_fail(lomo != NULL, FALSE);
+
+#if LOG_SIGNALS
 	const gchar *lomo_signals[] =
 	{
 		"play",
@@ -216,15 +270,45 @@ setup_lomo(EinaLog *self)
 	};
 	gint i;
 	
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
-	g_return_val_if_fail(lomo != NULL, FALSE);
-
 	for (i = 0; i < G_N_ELEMENTS(lomo_signals); i++)
 		g_signal_connect_swapped(lomo, lomo_signals[i], (GCallback) lomo_signal_cb, (gpointer) lomo_signals[i]);
+#endif
 
 	g_signal_connect(lomo, "error", (GCallback) lomo_error_cb, NULL);
 	self->flags |= FLAG_LOMO_INIT;
 	return TRUE;
+}
+
+static void
+set_debug_level(EinaLog *self, GelDebugLevel level)
+{
+	static gchar *icons[] = {
+		GTK_STOCK_STOP,
+		GTK_STOCK_DIALOG_ERROR,
+		GTK_STOCK_DIALOG_WARNING,
+		GTK_STOCK_DIALOG_INFO,
+		GTK_STOCK_INFO,
+		GTK_STOCK_EXECUTE,
+	};
+	static gchar *labels[] = {
+		N_("Severe errors"),
+		N_("Errors"),
+		N_("Warnings"),
+		N_("Information messages"),
+		N_("Debug information"),
+		N_("Full debug")
+	};
+	static gint curr_level = -1;
+	g_return_if_fail((level >= 0) && (level < GEL_N_DEBUG_LEVELS));
+
+	gel_warn("Set level to %s", labels[level]);
+	if (curr_level == level)
+		return;
+
+	curr_level = level;
+	gtk_image_set_from_stock(self->img, icons[level], GTK_ICON_SIZE_MENU);
+	gtk_label_set_text(self->label, labels[level]);
+	gtk_range_set_value((GtkRange *) self->scale, (gdouble) level);
 }
 
 static void
@@ -280,7 +364,7 @@ plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaLog *self)
 	gel_debug("Init plugin '%s'", PSTR(plugin));
 
 	if (g_str_equal(plugin->name, "player") && !(self->flags & FLAG_PLAYER_INIT))
-		setup_player(self);
+		build_player(self);
 	else if (g_str_equal(plugin->name, "lomo") && !(self->flags & FLAG_LOMO_INIT))
 		setup_lomo(self);
 }
@@ -291,11 +375,13 @@ plugin_fini_cb(GelApp *app, GelPlugin *plugin, gpointer data)
 	gel_debug("Fini plugin '%s'", PSTR(plugin));
 }
 
+#if LOG_SIGNALS
 static void
 lomo_signal_cb(gchar *signal)
 {
 	gel_debug("Lomo signal: %s", signal);
 }
+#endif
 
 static void
 lomo_error_cb(LomoPlayer *lomo, GError *error, gpointer data)
@@ -314,6 +400,45 @@ action_entry_activate_cb(GtkAction *action, EinaLog *self)
 		gel_warn(N_("Cannot not shot dialog, it doest exists"));
 	else
 		gtk_widget_show((GtkWidget *) self->dialog);
+}
+
+static void
+dialog_response_cb(GtkWidget *w, gint response, EinaLog *self)
+{
+	GtkTextBuffer *buffer;
+	GtkTextIter start, end;
+
+	switch (response)
+	{
+	case EINA_LOG_RESPONSE_CLEAR:
+		buffer = gtk_text_view_get_buffer(self->textview);
+		gtk_text_buffer_get_start_iter(buffer, &start);
+		gtk_text_buffer_get_end_iter(buffer,   &end);
+		gtk_text_buffer_delete(buffer, &start, &end);
+		break;
+
+	case EINA_LOG_RESPONSE_CLOSE:
+		gtk_widget_hide((GtkWidget *) w);
+		break;
+
+	default:
+		break;
+	}
+}
+
+static gboolean
+dialog_expose_event_cb(GtkWidget *w, GdkEventExpose *ev, EinaLog *self)
+{
+	setup_player(self);
+	g_signal_handlers_disconnect_by_func((GObject *) w, dialog_expose_event_cb, self);
+	return FALSE;
+}
+
+static void
+log_level_scale_value_change_cb(GtkWidget *w, EinaLog *self)
+{
+	GelDebugLevel level = CLAMP((gint) gtk_range_get_value ((GtkRange *) w), 0, GEL_N_DEBUG_LEVELS - 1);
+	set_debug_level(self, level);
 }
 
 G_MODULE_EXPORT GelPlugin log_plugin = {
