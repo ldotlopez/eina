@@ -19,9 +19,9 @@ EINA_VERSION_CODENAME="Running up that hill"
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_VERSION_CODENAME)
 AC_SUBST(EINA_API_VERSION)
-#export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
-#/Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
-#/Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
+# export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
+# /Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
+# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
@@ -95,18 +95,23 @@ dnl
 dnl ige-mac-integracion aka ige
 IGE_VERSION="0.8.0"
 ige_modules="ige-mac-integration >= $IGE_VERSION"
-PKG_CHECK_MODULES(IGE, $ige_modules,
-	[
-		HAVE_IGE=yes
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=1"
-		AC_SUBST(IGE_CFLAGS)
-		AC_SUBST(IGE_LIBS)
-	],
-	[
+if test test `pkg-config --variable target gtk+-2.0` = "quartz"; then
+	PKG_CHECK_MODULES(IGE, $ige_modules,
+		[
+			HAVE_IGE=yes
+			PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=1"
+			AC_SUBST(IGE_CFLAGS)
+			AC_SUBST(IGE_LIBS)
+		],
+		[
+			PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=0"
+			HAVE_IGE=no
+		]
+		)
+else
 		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=0"
 		HAVE_IGE=no
-	]
-	)
+fi
 AM_CONDITIONAL(USE_IGE, test x"$HAVE_IGE" = "xyes")
 
 dnl dbus-glib
