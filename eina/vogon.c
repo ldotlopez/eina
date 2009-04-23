@@ -103,7 +103,11 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaVogon *self;
 	GdkPixbuf *pixbuf  = NULL;
 	GelUIImageDef img_def = {
-		NULL, "vogon-icon.png",
+#if defined(__APPLE__) || defined(__APPLE_CC__)
+		NULL, "osx-systray-icon.png",
+#else
+		NULL, "standard-systray-icon.png",
+#endif
 		24, 24
 	};
 
