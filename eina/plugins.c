@@ -25,7 +25,6 @@
 #include <gmodule.h>
 #include <config.h>
 #include <eina/eina-plugin.h>
-#include <eina/settings.h>
 #include <eina/player.h>
 
 typedef struct {

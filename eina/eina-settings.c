@@ -1,5 +1,5 @@
 /*
- * eina/settings.c
+ * eina/eina-settings.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -21,7 +21,7 @@
 #define GEL_PLUGIN_DATA_TYPE EinaConf
 
 #include <config.h>
-#include <eina/settings.h>
+#include <eina/eina-settings.h>
 
 static GQuark
 settings_quark(void)

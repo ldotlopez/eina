@@ -1,5 +1,5 @@
 /*
- * eina/settings.h
+ * eina/eina-settings.h
  *
  * Copyright (C) 2004-2009 Eina
  *

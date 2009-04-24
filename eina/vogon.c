@@ -23,9 +23,8 @@
 #include <string.h>
 #include <gmodule.h>
 #include <gel/gel-ui.h>
-#include <eina/eina-obj.h>
+#include <eina/eina-plugin.h>
 #include <eina/player.h>
-#include <eina/settings.h>
 
 typedef struct 
 {

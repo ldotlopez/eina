@@ -41,8 +41,8 @@
 #include <gel/gel-ui.h>
 
 // Modules
+#include <eina/eina-plugin.h>
 #include <eina/playlist.h>
-#include <eina/settings.h>
 #include <eina/dock.h>
 
 // Widgets and utils
