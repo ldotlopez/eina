@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Eina 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-12-06 13:46+0100\n"
+"POT-Creation-Date: 2009-04-24 12:53+0200\n"
 "PO-Revision-Date: 2008-10-03 13:25+0200\n"
 "Last-Translator: xuzo . <xuzo@cuarentaydos.com>\n"
 "Language-Team: ES <eina-users@lists.sourceforge.net>\n"
@@ -16,148 +16,152 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../eina/base.c:22
+#: ../eina/eina-settings.c:52
 #, c-format
-msgid "Error creating GelUI for '%s': %s"
+msgid "Cannot create config folder %s"
 msgstr ""
 
-#: ../eina/base.c:36
-msgid "Trying to free a NULL pointer"
+#: ../eina/eina-settings.c:83
+msgid "Conf object not found"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:293
-msgid "Loading files..."
+#: ../eina/eina-settings.c:98
+msgid "Build-in settings plugin"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:354
-msgid "_Enqueue"
-msgstr "_Encolar"
-
-#: ../eina/eina-file-chooser-dialog.c:362
-msgid "Enqueue files"
-msgstr "_Encolar ficheros"
-
-#: ../ui/about.ui.h:1
-msgid "A classic player for the modern era"
-msgstr "Un reproductor clásico para los tiempos modernos"
-
-#: ../ui/about.ui.h:2
-msgid "About Eina"
-msgstr "Sobre Eina"
-
-#: ../ui/about.ui.h:3
-msgid "About|Website"
-msgstr "Página web"
-
-#: ../ui/about.ui.h:4
-msgid ""
-"Copyright &#xA9; 2003-2008 xuzo\n"
-"Copyright &#xA9; 2003-2005 xuzo and eru"
+#: ../eina/log.c:206
+msgid "Not all required widgets are valids"
 msgstr ""
 
-#: ../ui/about.ui.h:6
-msgid ""
-"Eina is free software; you can redistribute it and/or modify it under the "
-"terms of the GNU General Public License as published by the Free Software "
-"Foundation; either version 2 of the License, or (at your option) any later "
-"version.\n"
-"\n"
-"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
-"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
-"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
-"details.\n"
-"\n"
-"You should have received a copy of the GNU General Public License along with "
-"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
-"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+#: ../eina/log.c:224
+#, c-format
+msgid "Cannot create menu item: %s"
 msgstr ""
 
-#: ../ui/about.ui.h:11
-msgid "None yet :)"
-msgstr "Ninguno aún"
+#: ../eina/log.c:230
+msgid "Debug window"
+msgstr ""
 
-#: ../ui/player.ui.h:1
+#: ../eina/log.c:294
+msgid "Severe errors"
+msgstr ""
+
+#: ../eina/log.c:295
+msgid "Errors"
+msgstr ""
+
+#: ../eina/log.c:296
+msgid "Warnings"
+msgstr ""
+
+#: ../eina/log.c:297
+msgid "Information messages"
+msgstr ""
+
+#: ../eina/log.c:298
+msgid "Debug information"
+msgstr ""
+
+#: ../eina/log.c:299
+msgid "Full debug"
+msgstr ""
+
+#: ../eina/log.c:400
+msgid "Cannot not shot dialog, it doest exists"
+msgstr ""
+
+#: ../eina/log.c:449
+msgid "Build-in log"
+msgstr ""
+
+#: ../eina/eina-lomo.c:42
+msgid "Cannot create engine"
+msgstr ""
+
+#: ../eina/eina-lomo.c:48
+msgid "Cannot share engine"
+msgstr ""
+
+#: ../eina/eina-lomo.c:62
+msgid "Cannot destroy engine"
+msgstr ""
+
+#: ../eina/eina-lomo.c:76
+msgid "Build-in lomo plugin"
+msgstr ""
+
+#~ msgid "_Enqueue"
+#~ msgstr "_Encolar"
+
+#~ msgid "Enqueue files"
+#~ msgstr "_Encolar ficheros"
+
+#~ msgid "A classic player for the modern era"
+#~ msgstr "Un reproductor clásico para los tiempos modernos"
+
+#~ msgid "About Eina"
+#~ msgstr "Sobre Eina"
+
+#~ msgid "About|Website"
+#~ msgstr "Página web"
+
+#~ msgid "None yet :)"
+#~ msgstr "Ninguno aún"
+
 #, fuzzy
-msgid "<small><tt></tt></small>"
-msgstr "<small><tt>00:00</tt></small>"
+#~ msgid "<small><tt></tt></small>"
+#~ msgstr "<small><tt>00:00</tt></small>"
 
-#: ../ui/player.ui.h:3
-#, fuzzy, no-c-format
-msgid ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
-msgstr ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
-
-#: ../ui/player.ui.h:5
-msgid "Browse"
-msgstr "Examinar"
-
-#: ../ui/player.ui.h:6
-msgid "Next song"
-msgstr "Pasar al siguiente tema"
-
-#: ../ui/player.ui.h:7
-msgid "Previous song"
-msgstr "Volver al tema anterior"
-
-#: ../ui/playlist.ui.h:1
-msgid "Activate or deactivate random mode"
-msgstr "Activar o desactivar el modo aleatorio"
-
-#: ../ui/playlist.ui.h:2
-msgid "Activate or deactivate repeat mode"
-msgstr "Activar o desactivar el modo repeticin"
-
-#: ../ui/playlist.ui.h:3
-msgid "Add or enqueue songs to this playlist"
-msgstr "Aadir o encolar temas a la lista de reproduccin"
-
-#: ../ui/playlist.ui.h:4
-msgid "Clear the playlist"
-msgstr "Vaciar la lista de reproduccin"
-
-#: ../ui/playlist.ui.h:5
-msgid "Playlist"
-msgstr "Lista de reproduccin"
-
-#: ../ui/playlist.ui.h:6
-msgid "Remove selected songs from this playlist"
-msgstr "Eliminar los temas seleccionados de la lista de reproduccin"
-
-#: ../ui/plugins.ui.h:1
-msgid "<b>Author:</b>"
-msgstr "<b>Autor:</b>"
-
-#: ../ui/plugins.ui.h:2
-msgid "<b>Website:</b>"
-msgstr "<b>Página web:</b>"
-
-#: ../ui/plugins.ui.h:3
 #, fuzzy
-msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
-msgstr "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+#~ msgid ""
+#~ "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+#~ "<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+#~ msgstr ""
+#~ "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+#~ "<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
 
-#: ../ui/plugins.ui.h:4
-msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
-msgstr ""
+#~ msgid "Browse"
+#~ msgstr "Examinar"
 
-#: ../ui/plugins.ui.h:5
-msgid "<u>http://eina.sf.net</u>"
-msgstr "<u>http://eina.sf.net</u>"
+#~ msgid "Next song"
+#~ msgstr "Pasar al siguiente tema"
 
-#: ../ui/plugins.ui.h:6
-msgid "Long description"
-msgstr ""
+#~ msgid "Previous song"
+#~ msgstr "Volver al tema anterior"
 
-#: ../ui/plugins.ui.h:7
-msgid "Short description"
-msgstr ""
+#~ msgid "Activate or deactivate random mode"
+#~ msgstr "Activar o desactivar el modo aleatorio"
 
-#: ../ui/plugins.ui.h:8
-msgid "gtk-close"
-msgstr "gtk-close"
+#~ msgid "Activate or deactivate repeat mode"
+#~ msgstr "Activar o desactivar el modo repeticin"
+
+#~ msgid "Add or enqueue songs to this playlist"
+#~ msgstr "Aadir o encolar temas a la lista de reproduccin"
+
+#~ msgid "Clear the playlist"
+#~ msgstr "Vaciar la lista de reproduccin"
+
+#~ msgid "Playlist"
+#~ msgstr "Lista de reproduccin"
+
+#~ msgid "Remove selected songs from this playlist"
+#~ msgstr "Eliminar los temas seleccionados de la lista de reproduccin"
+
+#~ msgid "<b>Author:</b>"
+#~ msgstr "<b>Autor:</b>"
+
+#~ msgid "<b>Website:</b>"
+#~ msgstr "<b>Página web:</b>"
+
+#, fuzzy
+#~ msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
+#~ msgstr "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+
+#~ msgid "<u>http://eina.sf.net</u>"
+#~ msgstr "<u>http://eina.sf.net</u>"
+
+#~ msgid "gtk-close"
+#~ msgstr "gtk-close"
 
 #~ msgid "\t"
 #~ msgstr "\t"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-12-06 13:46+0100\n"
+"POT-Creation-Date: 2009-04-24 12:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,141 +16,76 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../eina/base.c:22
+#: ../eina/eina-settings.c:52
 #, c-format
-msgid "Error creating GelUI for '%s': %s"
+msgid "Cannot create config folder %s"
 msgstr ""
 
-#: ../eina/base.c:36
-msgid "Trying to free a NULL pointer"
+#: ../eina/eina-settings.c:83
+msgid "Conf object not found"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:293
-msgid "Loading files..."
+#: ../eina/eina-settings.c:98
+msgid "Build-in settings plugin"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:354
-msgid "_Enqueue"
+#: ../eina/log.c:206
+msgid "Not all required widgets are valids"
 msgstr ""
 
-#: ../eina/eina-file-chooser-dialog.c:362
-msgid "Enqueue files"
+#: ../eina/log.c:224
+#, c-format
+msgid "Cannot create menu item: %s"
 msgstr ""
 
-#: ../ui/about.ui.h:1
-msgid "A classic player for the modern era"
+#: ../eina/log.c:230
+msgid "Debug window"
 msgstr ""
 
-#: ../ui/about.ui.h:2
-msgid "About Eina"
+#: ../eina/log.c:294
+msgid "Severe errors"
 msgstr ""
 
-#: ../ui/about.ui.h:3
-msgid "About|Website"
+#: ../eina/log.c:295
+msgid "Errors"
 msgstr ""
 
-#: ../ui/about.ui.h:4
-msgid ""
-"Copyright &#xA9; 2003-2008 xuzo\n"
-"Copyright &#xA9; 2003-2005 xuzo and eru"
+#: ../eina/log.c:296
+msgid "Warnings"
 msgstr ""
 
-#: ../ui/about.ui.h:6
-msgid ""
-"Eina is free software; you can redistribute it and/or modify it under the "
-"terms of the GNU General Public License as published by the Free Software "
-"Foundation; either version 2 of the License, or (at your option) any later "
-"version.\n"
-"\n"
-"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
-"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
-"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
-"details.\n"
-"\n"
-"You should have received a copy of the GNU General Public License along with "
-"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
-"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+#: ../eina/log.c:297
+msgid "Information messages"
 msgstr ""
 
-#: ../ui/about.ui.h:11
-msgid "None yet :)"
+#: ../eina/log.c:298
+msgid "Debug information"
 msgstr ""
 
-#: ../ui/player.ui.h:1
-msgid "<small><tt></tt></small>"
+#: ../eina/log.c:299
+msgid "Full debug"
 msgstr ""
 
-#: ../ui/player.ui.h:3
-#, no-c-format
-msgid ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+#: ../eina/log.c:400
+msgid "Cannot not shot dialog, it doest exists"
 msgstr ""
 
-#: ../ui/player.ui.h:5
-msgid "Browse"
+#: ../eina/log.c:449
+msgid "Build-in log"
 msgstr ""
 
-#: ../ui/player.ui.h:6
-msgid "Next song"
+#: ../eina/eina-lomo.c:42
+msgid "Cannot create engine"
 msgstr ""
 
-#: ../ui/player.ui.h:7
-msgid "Previous song"
+#: ../eina/eina-lomo.c:48
+msgid "Cannot share engine"
 msgstr ""
 
-#: ../ui/playlist.ui.h:1
-msgid "Activate or deactivate random mode"
+#: ../eina/eina-lomo.c:62
+msgid "Cannot destroy engine"
 msgstr ""
 
-#: ../ui/playlist.ui.h:2
-msgid "Activate or deactivate repeat mode"
-msgstr ""
-
-#: ../ui/playlist.ui.h:3
-msgid "Add or enqueue songs to this playlist"
-msgstr ""
-
-#: ../ui/playlist.ui.h:4
-msgid "Clear the playlist"
-msgstr ""
-
-#: ../ui/playlist.ui.h:5
-msgid "Playlist"
-msgstr ""
-
-#: ../ui/playlist.ui.h:6
-msgid "Remove selected songs from this playlist"
-msgstr ""
-
-#: ../ui/plugins.ui.h:1
-msgid "<b>Author:</b>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:2
-msgid "<b>Website:</b>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:3
-msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:4
-msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:5
-msgid "<u>http://eina.sf.net</u>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:6
-msgid "Long description"
-msgstr ""
-
-#: ../ui/plugins.ui.h:7
-msgid "Short description"
-msgstr ""
-
-#: ../ui/plugins.ui.h:8
-msgid "gtk-close"
+#: ../eina/eina-lomo.c:76
+msgid "Build-in lomo plugin"
 msgstr ""
