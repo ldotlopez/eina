@@ -187,7 +187,7 @@ build_player(EinaLog *self)
 	GError *error = NULL;
 	if (gtk_builder_add_from_file(xml_ui, xml_path, &error) == 0)
 	{
-		gel_warn("Cannot load UI from %s: %s", xml_path, error->message);
+		gel_warn(N_("Cannot load UI from %s: %s"), xml_path, error->message);
 		g_error_free(error);
 		g_free(xml_path);
 		return FALSE;
@@ -221,7 +221,7 @@ build_player(EinaLog *self)
 		-1, &error);
 	if (self->merge_id == 0)
 	{
-		gel_warn("Cannot create menu item: %s", error->message);
+		gel_warn(N_("Cannot create menu item: %s"), error->message);
 		g_error_free(error);
 		return FALSE;
 	}
@@ -301,7 +301,7 @@ set_debug_level(EinaLog *self, GelDebugLevel level)
 	static gint curr_level = -1;
 	g_return_if_fail((level >= 0) && (level < GEL_N_DEBUG_LEVELS));
 
-	gel_warn("Set level to %s", labels[level]);
+	gel_debug(N_("Set level to %s"), labels[level]);
 	if (curr_level == level)
 		return;
 
