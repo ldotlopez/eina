@@ -55,8 +55,8 @@ enum {
 };
 
 enum {
-	EINA_LOG_RESPONSE_CLEAR = 1,
-	EINA_LOG_RESPONSE_CLOSE
+	RESPONSE_CLEAR = 1,
+	RESPONSE_CLOSE
 };
 
 typedef struct {
@@ -410,14 +410,14 @@ dialog_response_cb(GtkWidget *w, gint response, EinaLog *self)
 
 	switch (response)
 	{
-	case EINA_LOG_RESPONSE_CLEAR:
+	case RESPONSE_CLEAR:
 		buffer = gtk_text_view_get_buffer(self->textview);
 		gtk_text_buffer_get_start_iter(buffer, &start);
 		gtk_text_buffer_get_end_iter(buffer,   &end);
 		gtk_text_buffer_delete(buffer, &start, &end);
 		break;
 
-	case EINA_LOG_RESPONSE_CLOSE:
+	case RESPONSE_CLOSE:
 		gtk_widget_hide((GtkWidget *) w);
 		break;
 
