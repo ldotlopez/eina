@@ -42,7 +42,7 @@ void        art_remove_backend(Art *art, ArtBackend *backend);
 
 const gchar *art_backend_get_name(ArtBackend *backend);
 
-ArtSearch* art_search(Art *art, LomoStream *stream, ArtFunc success_func, ArtFunc fail_func, gpointer pointer);
+ArtSearch* art_search(Art *art, LomoStream *stream, ArtFunc callback, gpointer pointer);
 void       art_cancel(Art *art, ArtSearch *search);
 
 void art_report_success(Art *art, ArtSearch *search, gpointer result);

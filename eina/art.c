@@ -51,7 +51,7 @@ struct _ArtBackend {
 struct _ArtSearch {
 	Art *art;
 	LomoStream *stream;
-	ArtFunc success, fail;
+	ArtFunc callback;
 	gpointer result;
 	gpointer data;
 	GList *backend_link;
@@ -71,7 +71,7 @@ static void
 art_forward_search(Art *art, ArtSearch *search);
 
 static ArtSearch*
-art_search_new(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data);
+art_search_new(Art *art, LomoStream *stream, ArtFunc callback, gpointer data);
 static void
 art_search_destroy(ArtSearch *search);
 static void
@@ -186,9 +186,9 @@ art_backend_get_name(ArtBackend *backend)
 // the app and failures from ourselves
 // --
 ArtSearch*
-art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
+art_search(Art *art, LomoStream *stream, ArtFunc callback , gpointer data)
 {
-	ArtSearch *search = art_search_new(art, stream, success, fail, data);
+	ArtSearch *search = art_search_new(art, stream, callback, data);
 	search->backend_link = art->backends;
 
 	art_debug("Start search for %p", stream);
@@ -205,8 +205,8 @@ art_search(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer
 		// function prerequisites. Call fail hook by hand
 		// art_report_failure(art, search);
 		art_debug("Calling fail hook directly");
-		if (search->fail)
-			search->fail(art, search, search->data);
+		if (search->callback)
+			search->callback(art, search, search->data);
 		art->searches = g_list_remove(art->searches, search);
 		art_search_destroy(search);
 		search = NULL;
@@ -244,8 +244,8 @@ static gboolean
 art_fail_idle(ArtSearch *search)
 {
 	art_debug("Calling fail hook");
-	if (search->fail)
-		search->fail(search->art, search, search->data);
+	if (search->callback)
+		search->callback(search->art, search, search->data);
 	
 	// Search is not more useful, this is an exit point, wipe it.
 	art_search_destroy(search);
@@ -313,8 +313,8 @@ art_report_success_idle(ArtSearch *search)
 	xdg_save(search);
 #endif
 
-	if (search->success)
-		 search->success(search->art, search, search->data);
+	if (search->callback)
+		 search->callback(search->art, search, search->data);
 	search->art->searches = g_list_remove(search->art->searches, search);
 
 	art_search_destroy(search);
@@ -424,14 +424,13 @@ art_backend_cancel(ArtBackend *backend, ArtSearch *search)
 // -------------------------
 // -------------------------
 static ArtSearch*
-art_search_new(Art *art, LomoStream *stream, ArtFunc success, ArtFunc fail, gpointer data)
+art_search_new(Art *art, LomoStream *stream, ArtFunc callback, gpointer data)
 {
 	ArtSearch *search = g_new0(ArtSearch, 1);
-	search->art     = art;
-	search->stream  = stream;
-	search->success = success;
-	search->fail    = fail;
-	search->data    = data;
+	search->art      = art;
+	search->stream   = stream;
+	search->callback = callback;
+	search->data     = data;
 	return search;
 }
 
