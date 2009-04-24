@@ -24,7 +24,7 @@
 #include <eina/eina-obj.h>
 // Included for direct access to eina_conf_*, but this could be in
 // eina-plugin.h
-#include <eina/class-conf-file.h>
+#include <eina/eina-conf.h>
 
 G_BEGIN_DECLS
 

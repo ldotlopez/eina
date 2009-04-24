@@ -31,7 +31,7 @@ INST_H_FILES = \
 	curl-engine.h              \
 	eina-lomo.h                \
 	eina-obj.h                 \
-	class-conf-file.h          \
+	eina-conf.h                \
 	eina-preferences-dialog.h  \
 	eina-plugin.h              \
 	fs.h                       \
@@ -45,7 +45,7 @@ header_DATA = $(INST_H_FILES)
 eina_SOURCES = \
 	art.c \
 	eina-obj.c                 \
-	class-conf-file.c          \
+	eina-conf-file.c           \
 	curl-engine.c              \
 	dock.c                     \
 	eina-file-chooser-dialog.c \

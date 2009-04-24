@@ -1,5 +1,5 @@
 /*
- * eina/class-conf-file.c
+ * eina/eina-conf-file.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Class::Conf::File"
+#define GEL_DOMAIN "Eina::Conf::File"
 
 #include <string.h>
 #include <unistd.h>
@@ -28,7 +28,7 @@
 #include <glib-object.h>
 #include <glib/gstdio.h>
 #include <gel/gel.h>
-#include "class-conf-file.h"
+#include <eina/eina-conf.h>
 
 #define CLASS_CONF_FILE_TIMEOUT 5000
 #define GET_PRIVATE(o) \
