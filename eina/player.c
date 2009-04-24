@@ -534,9 +534,7 @@ update_cover_query(EinaPlayer *self, LomoStream *stream)
 	update_cover(self, pb);
 	g_free(path);
 
-	self->art_search = art_search(art, stream,
-		(ArtFunc) update_cover_result_cb, (ArtFunc) update_cover_result_cb,
-		self);
+	self->art_search = art_search(art, stream, (ArtFunc) update_cover_result_cb, self);
 }
 /*
 static gchar*

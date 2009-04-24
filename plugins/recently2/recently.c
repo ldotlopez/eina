@@ -531,9 +531,7 @@ recently_refresh(Recently *self)
 		ArtSearch *search = NULL;
 		LomoStream *fake_stream = adb_get_stream_from_timestamp(adb, timestamps[i]);
 		if (fake_stream)
-			search = art_search(GEL_APP_GET_ART(self->app), fake_stream, 
-				(ArtFunc) recently_search_cb, (ArtFunc) recently_search_cb,
-				self);
+			search = art_search(GEL_APP_GET_ART(self->app), fake_stream, (ArtFunc) recently_search_cb, self);
 
 		GtkTreeIter iter;
 		gtk_list_store_append((GtkListStore *) self->pls_model, &iter);
@@ -1020,7 +1018,7 @@ queryer_fill_model_for_query(Recently *self, gchar *input)
 			ArtSearch *search = NULL;
 			LomoStream *stream = adb_get_stream_from_uri(adb, (gchar*) sqlite3_column_text(stmt, 3));
 			if (stream != NULL)
-				search = art_search(art, stream, (ArtFunc) queryer_search_cb, (ArtFunc) queryer_search_cb, self);
+				search = art_search(art, stream, (ArtFunc) queryer_search_cb, self);
 
 			GtkTreeIter iter;
 			gtk_list_store_append(GTK_LIST_STORE(self->queryer_results), &iter);
@@ -1166,9 +1164,7 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 	ArtSearch *search = NULL;
 	LomoStream *stream = adb_get_stream_from_timestamp(adb, ts);
 	if (stream)
-		search = art_search(GEL_APP_GET_ART(self->app), stream, 
-			(ArtFunc) recently_search_cb, (ArtFunc) recently_search_cb,
-			self);
+		search = art_search(GEL_APP_GET_ART(self->app), stream, (ArtFunc) recently_search_cb, self);
 
 	GtkTreeIter iter;
 	if (!gtk_tree_model_get_iter_first((GtkTreeModel*) self->pls_model, &iter))
