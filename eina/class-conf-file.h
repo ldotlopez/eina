@@ -1,5 +1,5 @@
 /*
- * eina/class-conf-file.h
+ * eina/eina-conf.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CLASS_CONF_FILE_H__
-#define __CLASS_CONF_FILE_H__
+#ifndef _EINA_CONF_H
+#define _EINA_CONF_H
 
 #include <glib-object.h>
 
@@ -26,20 +26,19 @@ G_BEGIN_DECLS
 
 #define EINA_TYPE_CONF eina_conf_get_type()
 #define EINA_CONF(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-  EINA_TYPE_CONF, EinaConf))
+  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_CONF, EinaConf))
+
 #define EINA_CONF_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST ((klass), \
-  EINA_TYPE_CONF, EinaConfClass))
+  (G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_CONF, EinaConfClass))
+
 #define EINA_IS_CONF(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-  EINA_TYPE_CONF))
+  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_CONF))
+
 #define EINA_IS_CONF_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-  EINA_TYPE_CONF))
+  (G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_CONF))
+
 #define EINA_CONF_GET_CLASS(obj) \
-  (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-  EINA_TYPE_CONF, EinaConfClass))
+  (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_CONF, EinaConfClass))
 
 typedef struct {
 	GObject parent;
@@ -53,8 +52,8 @@ typedef struct {
 GType eina_conf_get_type (void);
 EinaConf* eina_conf_new (void);
 
-void eina_conf_set_filename(EinaConf *self, gchar *filename);
-const gchar *eina_conf_get_filename(EinaConf *self);
+void eina_conf_set_source(EinaConf *self, gchar *source);
+const gchar *eina_conf_get_source(EinaConf *self);
 
 void eina_conf_load(EinaConf *self);
 
@@ -73,4 +72,4 @@ eina_conf_delete_key(EinaConf *self, gchar *key);
 
 G_END_DECLS
 
-#endif
+#endif // _EINA_CONF_H

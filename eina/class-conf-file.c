@@ -130,13 +130,13 @@ EinaConf *eina_conf_new (void) {
 	return g_object_new (EINA_TYPE_CONF, NULL);
 }
 
-void eina_conf_set_filename(EinaConf *self, gchar *filename) {
+void eina_conf_set_source(EinaConf *self, gchar *source) {
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 
-	priv->filename = g_strdup(filename);
+	priv->filename = g_strdup(source);
 }
 
-const gchar *eina_conf_get_filename(EinaConf *self) {
+const gchar *eina_conf_get_source(EinaConf *self) {
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 
 	return priv->filename;

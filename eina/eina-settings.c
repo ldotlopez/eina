@@ -58,7 +58,7 @@ settings_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Load settings
 	EinaConf *conf = eina_conf_new();
-	eina_conf_set_filename(conf, cfg_file);
+	eina_conf_set_source(conf, cfg_file);
 	g_free(cfg_file);
 	eina_conf_load(conf);
 
