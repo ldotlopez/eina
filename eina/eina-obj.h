@@ -25,7 +25,7 @@
 #include <gtk/gtk.h>
 #include <lomo/lomo-player.h>
 #include <gel/gel.h>
-#include <eina/lomo.h>
+#include <eina/eina-lomo.h>
 
 G_BEGIN_DECLS
 

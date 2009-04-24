@@ -1,32 +1,32 @@
 - Public stuff namespaced with EINA_$COMPONENT_ / eina_$component_
-  settings, log
+  settings, log, lomo
 
 - Stripped header files
-  settings, log
+  settings, log, lomo
 
 - The fast access 3 macros
-  settings, log
+  settings, log, lomo
 
 - Public error codes (need typedef Eina$ComponentError)
-  settings, log
+  settings, log, lomo
 
 - ref/unref objects
-  settings, log
+  settings, log, lomo
 
 - Is required?
-  settings(yes), log(no)
+  settings(yes), log(no), lomo(yes)
 
 - dont load requiered components
-  settings, log
+  settings, log, lomo
 
 - Every thing must be prefixed $package-$class
-  -settings(rename file to be done), log
+  -settings, log, lomo
 
 - Move widgets to widgets/ folder
-  settings, log
+  settings, log, lomo
 
 - GQuarks should be prefixed
-  settings, log
+  settings, log, lomo
 
 - Be careful with external resource files (images,ui,etc..)
-  settings, log
+  settings, log, lomo

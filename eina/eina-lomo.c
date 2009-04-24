@@ -1,5 +1,5 @@
 /*
- * eina/lomo.c
+ * eina/eina-lomo.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -20,10 +20,8 @@
 #define GEL_DOMAIN "Eina::Lomo"
 
 #include <config.h>
-#include <gmodule.h>
 #include <glib/gi18n.h>
-#include <gel/gel.h>
-#include <lomo/lomo-player.h>
+#include <eina/eina-lomo.h>
 
 static GQuark
 lomo_quark(void)
@@ -34,13 +32,6 @@ lomo_quark(void)
 	return ret;
 }
 
-enum {
-	LOMO_NO_ERROR = 0,
-	LOMO_CANNOT_CREATE_ENGINE,
-	LOMO_CANNOT_SET_SHARED,
-	LOMO_CANNOT_DESTROY_ENGINE
-};
-
 gboolean
 lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
@@ -48,15 +39,16 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	if ((engine = lomo_player_new("audio-output", "autoaudiosink", NULL)) == NULL)
 	{
-		g_set_error(error, lomo_quark(), LOMO_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
+		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
 		return FALSE;
 	}
 
 	if (!gel_app_shared_set(gel_plugin_get_app(plugin), "lomo", engine))
 	{
-		g_set_error(error, lomo_quark(), LOMO_CANNOT_SET_SHARED, N_("Cannot share engine"));
+		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_SET_SHARED, N_("Cannot share engine"));
 		return FALSE;
 	}
+
 	return TRUE;
 }
 
@@ -67,7 +59,7 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 	if ((engine == NULL) || !gel_app_shared_unregister(app, "lomo"))
 	{
-		g_set_error(error, lomo_quark(), LOMO_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
+		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
 	g_object_unref(G_OBJECT(engine));

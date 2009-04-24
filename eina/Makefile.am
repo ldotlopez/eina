@@ -22,18 +22,18 @@ NOINST_H_FILES = \
 	eina-file-chooser-dialog.h \
 	eina-seek.h                \
 	eina-volume.h              \
-	lomo.h                     \
 	player.h                   \
 	playlist.h                 \
-	eina-plugin.h              \
 	template.h
 
 INST_H_FILES = \
 	art.h \
 	curl-engine.h              \
+	eina-lomo.h                \
 	eina-obj.h                 \
 	class-conf-file.h          \
 	eina-preferences-dialog.h  \
+	eina-plugin.h              \
 	fs.h                       \
 	preferences.h              \
 	eina-settings.h
@@ -54,7 +54,7 @@ eina_SOURCES = \
 	eina-volume.c              \
 	fs.c                       \
 	log.c                      \
-	lomo.c                     \
+	eina-lomo.c                     \
 	main.c                     \
 	player.c                   \
 	playlist.c                 \

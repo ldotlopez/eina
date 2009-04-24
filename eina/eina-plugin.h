@@ -33,7 +33,7 @@
 #include <gel/gel-ui.h>
 
 // Modules availables: lomo, settings, art, fs (utility functions)
-#include <eina/lomo.h>
+#include <eina/eina-lomo.h>
 #include <eina/preferences.h>
 #include <eina/eina-settings.h>
 #include <eina/art.h>
