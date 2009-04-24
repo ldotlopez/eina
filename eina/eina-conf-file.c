@@ -30,16 +30,12 @@
 #include <gel/gel.h>
 #include <eina/eina-conf.h>
 
-#define CLASS_CONF_FILE_TIMEOUT 5000
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_CONF, EinaConfPrivate))
 
-static gboolean
-eina_conf_dump(EinaConf *self);
-
-/*
- * Value handling
- */
+// --
+// Internal EinaConfValue
+// --
 typedef struct EinaConfValue
 {
 	GType type;
@@ -51,7 +47,9 @@ typedef struct EinaConfValue
 	} value;
 } EinaConfValue;
 
-void eina_conf_value_free(gpointer value) {
+static void
+eina_conf_value_free(gpointer value)
+{
 	EinaConfValue *val = (EinaConfValue *) value;
 
 	if (val->type == G_TYPE_STRING)
@@ -59,28 +57,87 @@ void eina_conf_value_free(gpointer value) {
 	g_free(val);
 }
 
-/*
- * Implementation of the klass
- */
+// --
+// EinaConf stuff
+// --
+
 G_DEFINE_TYPE (EinaConf, eina_conf, G_TYPE_OBJECT);
 
-typedef struct _EinaConfPrivate EinaConfPrivate;
-struct _EinaConfPrivate {
-	GHashTable *values;
-	guint       timeout_id;
-	gchar      *filename;
-	gint        io_fd;
+// Properties
+enum {
+	PROPERTY_SOURCE = 1,
+	PROPERTY_TIMEOUT
 };
 
-/* Signals */
+// Signals
 enum {
 	CHANGE,
 	LAST_SIGNAL
 };
 static guint eina_conf_signals[LAST_SIGNAL] = { 0 };
 
-/* Dispose method */
-static void eina_conf_dispose(GObject *object) {
+// Types
+typedef struct _EinaConfPrivate EinaConfPrivate;
+struct _EinaConfPrivate {
+	GHashTable *values;
+	guint       timeout_id;
+	gchar      *filename;
+	guint       timeout;
+	gint        io_fd;
+};
+
+static gboolean
+eina_conf_dump(EinaConf *self);
+
+// Property Getter and setter
+static void
+eina_conf_get_property(GObject *object, guint property_id,
+    GValue *value, GParamSpec *pspec)
+{
+	EinaConf *self = EINA_CONF(object);
+	switch (property_id)
+	{
+
+    case PROPERTY_SOURCE:
+		g_value_set_string(value, (gpointer) eina_conf_get_source(self));
+		break;
+
+    case PROPERTY_TIMEOUT:
+		g_value_set_uint(value, (guint) eina_conf_get_timeout(self));
+		break;
+
+    default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
+	}
+}
+
+static void
+eina_conf_set_property (GObject *object, guint property_id,
+	const GValue *value, GParamSpec *pspec)
+{
+	EinaConf *self = EINA_CONF(object);
+	switch (property_id)
+	{
+
+    case PROPERTY_SOURCE:
+		eina_conf_set_source(self, (gchar *) g_value_get_string(value));
+		break;
+
+    case PROPERTY_TIMEOUT:
+		eina_conf_set_timeout(self, (guint) g_value_get_uint(value));
+		break;
+
+    default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
+	}
+}
+
+// Disposer
+static void
+eina_conf_dispose(GObject *object)
+{
 	EinaConf *self = EINA_CONF(object);
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 
@@ -101,12 +158,27 @@ static void eina_conf_dispose(GObject *object) {
 	G_OBJECT_CLASS (eina_conf_parent_class)->dispose(object);
 }
 
-static void eina_conf_class_init (EinaConfClass *klass) {
+// Class init
+static void
+eina_conf_class_init (EinaConfClass *klass)
+{
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	object_class->dispose = eina_conf_dispose;
+	object_class->get_property = eina_conf_get_property;
+	object_class->set_property = eina_conf_set_property;
 
 	g_type_class_add_private (klass, sizeof (EinaConfPrivate));
+
+    g_object_class_install_property(object_class, PROPERTY_SOURCE,
+		g_param_spec_object("source", "Source", "Source for configuration",
+		G_TYPE_STRING, G_PARAM_READABLE | G_PARAM_WRITABLE
+		));
+
+    g_object_class_install_property(object_class, PROPERTY_TIMEOUT,
+		g_param_spec_object("timeout", "Timeout", "Delay between flushes",
+		G_TYPE_UINT, G_PARAM_READABLE | G_PARAM_WRITABLE
+		));
 
 	eina_conf_signals[CHANGE] = g_signal_new ("change",
 		G_OBJECT_CLASS_TYPE (object_class),
@@ -119,34 +191,57 @@ static void eina_conf_class_init (EinaConfClass *klass) {
 		G_TYPE_POINTER);
 }
 
-static void eina_conf_init (EinaConf *self) {
+// Instance init
+static void
+eina_conf_init (EinaConf *self)
+{
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	priv->values = g_hash_table_new_full(
 		g_str_hash, g_str_equal,
 		g_free, eina_conf_value_free);
+	priv->timeout = 5000;
+	priv->filename = NULL;
 }
 
-EinaConf *eina_conf_new (void) {
+EinaConf *
+eina_conf_new (void)
+{
 	return g_object_new (EINA_TYPE_CONF, NULL);
 }
 
-void eina_conf_set_source(EinaConf *self, gchar *source) {
+void
+eina_conf_set_source(EinaConf *self, gchar *source)
+{
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 
 	priv->filename = g_strdup(source);
 }
 
-const gchar *eina_conf_get_source(EinaConf *self) {
-	EinaConfPrivate *priv = GET_PRIVATE(self);
-
-	return priv->filename;
+G_CONST_RETURN gchar*
+eina_conf_get_source(EinaConf *self)
+{
+	return GET_PRIVATE(self)->filename;
 }
 
-void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
-	EinaConf *self       = (EinaConf *) data;
+guint
+eina_conf_get_timeout(EinaConf *self)
+{
+	return GET_PRIVATE(self)->timeout;
+}
+
+void
+eina_conf_set_timeout(EinaConf *self, guint timeout)
+{
+	GET_PRIVATE(self)->timeout = timeout;
+}
+
+static void
+dump_forearch_cb(gpointer _key, gpointer _value, gpointer data)
+{
+	EinaConf *self        = (EinaConf *) data;
 	EinaConfPrivate *priv = GET_PRIVATE(self);
-	gchar *key           = (gchar *) _key;
-	EinaConfValue *value = (EinaConfValue *) _value;
+	gchar *key            = (gchar *) _key;
+	EinaConfValue *value  = (EinaConfValue *) _value;
 	gchar *buff = NULL;
 
 	switch (value->type)
@@ -179,7 +274,9 @@ void _eina_conf_dump_foreach_cb(gpointer _key, gpointer _value, gpointer data) {
 	}
 }
 
-gboolean eina_conf_dump(EinaConf *self) {
+gboolean
+eina_conf_dump(EinaConf *self)
+{
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	priv->io_fd = g_open(
 		priv->filename,
@@ -192,7 +289,7 @@ gboolean eina_conf_dump(EinaConf *self) {
 	}
 	
 	g_hash_table_foreach(priv->values,
-		_eina_conf_dump_foreach_cb,
+		dump_forearch_cb,
 		self);
 	close(priv->io_fd);
 
@@ -251,7 +348,7 @@ void eina_conf_set(EinaConf *self, gchar *key, EinaConfValue *val) {
 
 	if (priv->timeout_id)
 		g_source_remove(priv->timeout_id);
-	priv->timeout_id = g_timeout_add(CLASS_CONF_FILE_TIMEOUT, (GSourceFunc) eina_conf_dump, self);
+	priv->timeout_id = g_timeout_add(priv->timeout, (GSourceFunc) eina_conf_dump, self);
 
 	g_signal_emit(G_OBJECT(self), eina_conf_signals[CHANGE], 0, key);
 }

@@ -52,8 +52,11 @@ typedef struct {
 GType eina_conf_get_type (void);
 EinaConf* eina_conf_new (void);
 
-void eina_conf_set_source(EinaConf *self, gchar *source);
+void         eina_conf_set_source(EinaConf *self, gchar *source);
 const gchar *eina_conf_get_source(EinaConf *self);
+
+void  eina_conf_set_timeout(EinaConf *self, guint timeout);
+guint eina_conf_get_timeout(EinaConf *self);
 
 void eina_conf_load(EinaConf *self);
 
