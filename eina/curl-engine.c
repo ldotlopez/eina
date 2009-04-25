@@ -1,5 +1,5 @@
 /*
- * plugins/lastfm/curl-engine.c
+ * eina/curl-engine.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,12 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "curl-engine.h"
+#include <eina/curl-engine.h>
+#include <glib/gi18n.h>
 
-#include <stdio.h>
-#include <glib/gprintf.h>
-// #define ce_debug(...) g_printf(__VA_ARGS__);
-#define ce_debug(...) ;
+#define ENABLE_DEBUG 0
+
+#if ENABLE_DEBUG
+#  include <glib/gprintf.h>
+#  define ce_debug(...) g_printf(__VA_ARGS__);
+#else
+#  define ce_debug(...) ;
+#endif
 
 struct _CurlEngine {
 	CURLM *curlm;
@@ -228,7 +233,7 @@ curl_query_finish(CurlQuery *query, guint8 **buffer, gsize *size, GError **error
 {
 	if (query->msg->data.result != 0)
 	{
-		g_set_error(error, curl_engine_quark(), CURL_ENGINE_GENERAL_ERROR, "Unknow error");
+		g_set_error(error, curl_engine_quark(), CURL_ENGINE_GENERAL_ERROR, N_("Unknow error"));
 		return FALSE;
 	}
 

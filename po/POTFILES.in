@@ -2,5 +2,6 @@
 eina/eina-settings.c
 eina/log.c
 eina/eina-lomo.c
+eina/curl-engine.c
 
 [type: gettext/glade]ui/player-menu.ui
