@@ -164,21 +164,19 @@ eina_conf_class_init (EinaConfClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-	object_class->dispose = eina_conf_dispose;
+	g_type_class_add_private (klass, sizeof (EinaConfPrivate));
+
+	object_class->dispose      = eina_conf_dispose;
 	object_class->get_property = eina_conf_get_property;
 	object_class->set_property = eina_conf_set_property;
 
-	g_type_class_add_private (klass, sizeof (EinaConfPrivate));
-
-    g_object_class_install_property(object_class, PROPERTY_SOURCE,
-		g_param_spec_object("source", "Source", "Source for configuration",
-		G_TYPE_STRING, G_PARAM_READABLE | G_PARAM_WRITABLE
-		));
+	g_object_class_install_property(object_class, PROPERTY_SOURCE,
+		g_param_spec_string("source", "Source", "Source for configuration", NULL,
+		G_PARAM_READABLE | G_PARAM_WRITABLE));
 
     g_object_class_install_property(object_class, PROPERTY_TIMEOUT,
-		g_param_spec_object("timeout", "Timeout", "Delay between flushes",
-		G_TYPE_UINT, G_PARAM_READABLE | G_PARAM_WRITABLE
-		));
+		g_param_spec_uint("timeout", "Timeout", "Delay between flushes", 0, G_MAXUINT, 50000,
+		G_PARAM_READABLE | G_PARAM_WRITABLE));
 
 	eina_conf_signals[CHANGE] = g_signal_new ("change",
 		G_OBJECT_CLASS_TYPE (object_class),
