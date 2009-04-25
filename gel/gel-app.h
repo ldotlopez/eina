@@ -64,7 +64,8 @@ typedef void (*GelAppDisposeFunc) (GelApp *self, gpointer data);
 
 enum {
 	GEL_APP_NO_ERROR = 0,
-	GEL_APP_PLUGIN_NOT_FOUND
+	GEL_APP_PLUGIN_NOT_FOUND,
+	GEL_APP_PLUGIN_DEP_NOT_FOUND
 	/*
 	GEL_APP_NO_OWNED_PLUGIN,
 	GEL_APP_PLUGIN_STILL_ENABLED,

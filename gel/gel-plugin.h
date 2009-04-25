@@ -29,7 +29,7 @@ typedef struct _GelPluginExtend GelPluginExtend;
 #include <gel/gel-app.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
-#define GEL_PLUGIN_SERIAL 2009040601
+#define GEL_PLUGIN_SERIAL 2009042401
 
 enum {
 	GEL_PLUGIN_NO_ERROR = 0,
@@ -87,15 +87,13 @@ gchar *gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
 #endif
 
 // Create or destroy plugins
-#if (defined GEL_COMPILATION) && (defined _GEL_APP_H)
 GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
 gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
-#endif
 
-// Refcount
-void gel_plugin_ref(GelPlugin *plugin);
-void gel_plugin_unref(GelPlugin *plugin);
-guint gel_plugin_get_usage(GelPlugin *plugin);
+void     gel_plugin_add_reference(GelPlugin *plugin, GelPlugin *dependant);
+void     gel_plugin_remove_reference(GelPlugin *plugin, GelPlugin *dependant);
+gboolean gel_plugin_is_in_use(GelPlugin *plugin);
+guint    gel_plugin_get_usage(GelPlugin *plugin);
 
 // Initialize or finalize plugins
 gboolean gel_plugin_init(GelPlugin *plugin, GError **error);

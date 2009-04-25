@@ -31,7 +31,7 @@ struct _GelPluginPrivate {
 	GModule *module;
 	guint    refs;
 	gboolean enabled;
-	GList    *dependats;
+	GList    *dependants;
 };
 
 struct _GelPluginExtend {
@@ -108,15 +108,19 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 gboolean
 gel_plugin_free(GelPlugin *self, GError **error)
 {
-	if (gel_plugin_is_enabled(self))
+	// Plugin in use (referenced) cannot be destroyed
+	if (gel_plugin_is_in_use(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_ENABLED, N_("Still enabled"));
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_REFERENCED, N_("Is in use"));
+		g_warning("%s(%p): %s", __FUNCTION__, self, N_("Is in use"));
 		return FALSE;
 	}
 
-	if (gel_plugin_get_usage(self) > 0)
+	// Neither an enabled plugin
+	if (gel_plugin_is_enabled(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_REFERENCED, N_("Still referenced"));
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_ENABLED, N_("Still enabled"));
+		g_warning("%s(%p): %s", __FUNCTION__, self, N_("Still enabled"));
 		return FALSE;
 	}
 
@@ -134,53 +138,41 @@ gel_plugin_free(GelPlugin *self, GError **error)
 	return TRUE;
 }
 
-void
-gel_plugin_ref(GelPlugin *self)
+gboolean
+gel_plugin_is_enabled(GelPlugin *self)
 {
-	self->priv->refs++;
+	return self->priv->enabled;
 }
 
-void
-gel_plugin_unref(GelPlugin *self)
+gboolean
+gel_plugin_is_in_use(GelPlugin *self)
 {
-	// Warn if refcount already 0
-	if (self->priv->refs == 0)
-	{
-		g_warning(N_("GelPlugin %s refcount catch a negative refcount. Ignoring, but this is a bug in someone's code"), gel_plugin_stringify(self));
-		return;
-	}
-
-	// Warn and abort if ref count will reach 0 and still enabled
-	if ((self->priv->refs == 1) && gel_plugin_is_enabled(self))
-	{
-		g_warning(N_("GelPlugin %s catch drop last reference while plugin enabled. Ignoring, but this is a bug in someone's code"), gel_plugin_stringify(self));
-		return;
-	}
-
-	self->priv->refs--;
-	if (self->priv->refs == 0)
-	{
-		GError *error = NULL;
-		if (gel_plugin_is_enabled(self) && !gel_plugin_fini(self, &error))
-		{
-			g_warning(N_("Cannot finalize plugin %s: %s"), gel_plugin_stringify(self), error->message);
-			self->priv->refs++;
-			return;
-		}
-		gel_plugin_free(self, NULL);
-	}
+	return self->priv->dependants != NULL;
 }
 
 guint
 gel_plugin_get_usage(GelPlugin *self)
 {
-	return self->priv->refs;
+	return g_list_length(self->priv->dependants);
 }
 
-gboolean
-gel_plugin_is_enabled(GelPlugin *self)
+void
+gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 {
-	return self->priv->enabled;
+	GList *p = g_list_find(self->priv->dependants, dependant);
+	g_return_if_fail(p == NULL);
+
+	self->priv->dependants = g_list_prepend(self->priv->dependants, dependant);
+}
+
+void
+gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
+{
+	GList *p = g_list_find(self->priv->dependants, dependant);
+	g_return_if_fail(p != NULL);
+
+	self->priv->dependants = g_list_remove_link(self->priv->dependants, p);
+	g_list_free(p);
 }
 
 gboolean
@@ -240,13 +232,6 @@ gel_plugin_init(GelPlugin *self, GError **error)
 	{
 		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ALREADY_INITIALIZED,
 			N_("Already initialized"));
-		return FALSE;
-	}
-
-	if (gel_plugin_get_usage(self) == 0)
-	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NOT_REFERENCED,
-			N_("Is not referenced by anyone"));
 		return FALSE;
 	}
 

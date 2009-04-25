@@ -279,7 +279,6 @@ gel_app_get_plugin_by_name(GelApp *self, gchar *name)
 	return NULL;
 }
 
-
 // --
 // Querying
 // --
@@ -289,10 +288,7 @@ gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	// Search in know plugins
 	GelPlugin *plugin = gel_app_get_plugin(self, pathname, name);
 	if (plugin != NULL)
-	{
-		gel_plugin_ref(plugin);
 		return plugin;
-	}
 
 	gchar *symbol = g_strconcat(name, "_plugin", NULL);
 	if ((plugin = gel_plugin_new(self, pathname, symbol, error)) != NULL)
@@ -310,10 +306,7 @@ gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
 	// Search in know plugins
 	GelPlugin *plugin = gel_app_get_plugin_by_pathname(self, pathname);
 	if (plugin != NULL)
-	{
-		gel_plugin_ref(plugin);
 		return plugin;
-	}
 
 	// Create new plugin
 	gchar *symbol = symbol_from_pathname(pathname);
@@ -336,10 +329,7 @@ gel_app_query_plugin_by_name(GelApp *self, gchar *name, GError **error)
 	// Search in know plugins
 	GelPlugin *plugin = gel_app_get_plugin_by_name(self, name);
 	if (plugin != NULL)
-	{
-		gel_plugin_ref(plugin);
 		return plugin;
-	}
 
 	// Search into paths for matching plugin
 	GList *paths = gel_app_query_paths(self);
@@ -408,16 +398,103 @@ gel_app_query_plugins(GelApp *self)
 // Load plugins
 // --
 
+static gboolean
+unload_n_deps(GelApp *app, GelPlugin *plugin, gint n, GError **error)
+{
+	gchar **deps = g_strsplit(plugin->depends, ",", 0);
+
+	if (n < 0)
+		n = g_strv_length(deps) - 1;
+
+	gel_warn("Rollback started from %d", n);
+	while (n >= 0)
+	{
+		GelPlugin *p = gel_app_get_plugin_by_name(app, deps[n]);
+		if (p)
+		{
+			gel_plugin_remove_reference(p, plugin);
+			if (!gel_plugin_is_in_use(p))
+			{
+				if (!gel_plugin_fini(p, NULL))
+					gel_warn("EH?!");
+			}
+		}
+		n--;
+	}
+	g_free(deps);
+	return TRUE;
+}
+
+gboolean
+gel_app_unload_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
+{
+	return unload_n_deps(app, plugin, -1, error);
+}
+
+gboolean
+gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
+{
+	if (plugin->depends == NULL)
+		return TRUE;
+
+	gchar **deps = g_strsplit(plugin->depends, ",", 0);
+	gint i = 0;
+	while (deps[i])
+	{
+		GError *err = NULL;
+		GelPlugin *p = NULL;
+		if ((p = gel_app_load_plugin_by_name(app, deps[i], &err)) == NULL)
+		{
+			// gel_warn("   Dep %s failed", deps[i]);
+			g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_DEP_NOT_FOUND,
+				N_("Dependecy %s for %s not found"), deps[i], gel_plugin_stringify(plugin));
+			g_error_free(err);
+			break;
+		}
+		// gel_warn("   Dep %s loaded", deps[i]);
+		gel_plugin_add_reference(p, plugin);
+		i++;
+	}
+	g_free(deps);
+
+	if (deps[i] == NULL)
+		return TRUE;
+	else
+	{
+		if (i > 0)
+		{
+			// gel_warn("Calling rollback with n = %d", i - 1);
+			unload_n_deps(app, plugin, i - 1, NULL);
+		}
+		return FALSE;
+	}
+}
+
 GelPlugin *
 gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 {
 	GelPlugin *plugin = gel_app_query_plugin(self, pathname, name, error);
 	if (plugin == NULL)
-		return NULL;
-	
-	if (!gel_plugin_is_enabled(plugin) && !gel_plugin_init(plugin, error))
 	{
-		gel_plugin_unref(plugin);
+		// gel_warn("Plugin %s:%s not found", pathname ? pathname : "(null)", name);
+		return NULL;
+	}
+
+	if (gel_plugin_is_enabled(plugin))
+	{
+		// gel_warn("Plugin %s already enabled, its ok", gel_plugin_stringify(plugin));
+		return plugin;
+	}
+
+	if (!gel_app_load_plugin_dependences(self, plugin, error))
+	{
+		// gel_warn("Cannot load dependences for %s: %s", gel_plugin_stringify(plugin), (*error)->message);
+		return NULL;
+	}
+	
+	if (!gel_plugin_init(plugin, error))
+	{
+		// gel_warn("Cannot init %s: %s (unload deps)", gel_plugin_stringify(plugin), (*error)->message);
 		return NULL;
 	}
 
@@ -474,10 +551,8 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	if (plugin == NULL)
 		return FALSE;
 
-	if ((gel_plugin_get_usage(plugin) == 1) && gel_plugin_is_enabled(plugin) && (!gel_plugin_fini(plugin, error)))
+	if (gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, error))
 		return FALSE;
-
-	gel_plugin_unref(plugin);
 
 	return TRUE;
 }
@@ -568,7 +643,7 @@ gel_app_emit_fini(GelApp *self, GelPlugin *plugin)
 void
 gel_app_delete_plugin(GelApp *self, GelPlugin *plugin)
 {
-	if (gel_plugin_is_enabled(plugin) || (gel_plugin_get_usage(plugin) > 0))
+	if (gel_plugin_is_in_use(plugin) || gel_plugin_is_enabled(plugin))
 	{
 		g_warning("Invalid deletion");
 		return;
