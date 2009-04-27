@@ -1,8 +1,14 @@
 <?xml version="1.0"?>
-<glade-interface>
-  <!-- interface-requires gtk+ 2.10 -->
+<interface>
+  <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
-  <widget class="GtkDialog" id="main-window">
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">6</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+    <property name="page_size">1</property>
+  </object>
+  <object class="GtkDialog" id="main-window">
     <property name="border_width">5</property>
     <property name="default_width">320</property>
     <property name="default_height">260</property>
@@ -10,114 +16,110 @@
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
-      <widget class="GtkVBox" id="dialog-vbox1">
+      <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
         <property name="spacing">2</property>
         <child>
-          <widget class="GtkVBox" id="vbox1">
+          <object class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
             <child>
-              <widget class="GtkFrame" id="frame1">
+              <object class="GtkFrame" id="frame1">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
                 <property name="shadow_type">none</property>
                 <child>
-                  <widget class="GtkHBox" id="hbox2">
+                  <object class="GtkHBox" id="hbox2">
                     <property name="visible">True</property>
                     <property name="spacing">5</property>
                     <child>
-                      <widget class="GtkImage" id="log-level-image">
+                      <object class="GtkImage" id="log-level-image">
                         <property name="visible">True</property>
                         <property name="stock">gtk-missing-image</property>
                         <property name="icon-size">1</property>
-                      </widget>
+                      </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkHScale" id="log-level-scale">
+                      <object class="GtkHScale" id="log-level-scale">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="update_policy">discontinuous</property>
-                        <property name="adjustment">0 0 6 1 1 1</property>
+                        <property name="adjustment">adjustment1</property>
                         <property name="draw_value">False</property>
-                      </widget>
+                      </object>
                       <packing>
                         <property name="position">1</property>
                       </packing>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-                <child>
-                  <widget class="GtkHBox" id="hbox1">
+                <child type="label">
+                  <object class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkLabel" id="label1">
+                      <object class="GtkLabel" id="label1">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">&lt;b&gt;Log level:&lt;/b&gt; </property>
                         <property name="use_markup">True</property>
-                      </widget>
+                      </object>
                       <packing>
                         <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkLabel" id="log-level-human-level">
+                      <object class="GtkLabel" id="log-level-human-level">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">label</property>
-                      </widget>
+                      </object>
                       <packing>
                         <property name="position">1</property>
                       </packing>
                     </child>
-                  </widget>
-                  <packing>
-                    <property name="type">label_item</property>
-                  </packing>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkScrolledWindow" id="scrolledwindow">
+              <object class="GtkScrolledWindow" id="scrolledwindow">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <child>
-                  <widget class="GtkTextView" id="textview">
+                  <object class="GtkTextView" id="textview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="position">1</property>
               </packing>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="position">1</property>
           </packing>
         </child>
         <child internal-child="action_area">
-          <widget class="GtkHButtonBox" id="dialog-action_area1">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <widget class="GtkButton" id="clear-button">
+              <object class="GtkButton" id="clear-button">
                 <property name="label" translatable="yes">gtk-clear</property>
-                <property name="response_id">1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
@@ -125,28 +127,31 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="close-button">
+              <object class="GtkButton" id="close-button">
                 <property name="label" translatable="yes">gtk-close</property>
-                <property name="response_id">2</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="pack_type">end</property>
             <property name="position">0</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-</glade-interface>
+    <action-widgets>
+      <action-widget response="1">clear-button</action-widget>
+      <action-widget response="2">close-button</action-widget>
+    </action-widgets>
+  </object>
+</interface>

@@ -18,6 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::Playlist"
+#define USE_GTK_BUILDER 1
 
 #include <config.h>
 
@@ -62,7 +63,7 @@ struct _EinaPlaylist
 
 typedef enum
 {
-	PLAYLIST_COLUMN_STREAM,
+	PLAYLIST_COLUMN_STREAM = 0,
 	PLAYLIST_COLUMN_STATE,
 	PLAYLIST_COLUMN_TEXT,
 	PLAYLIST_COLUMN_MARKUP,
@@ -360,25 +361,35 @@ dock_key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self)
 gboolean
 eina_playlist_dock_init(EinaPlaylist *self)
 {
+#if !USE_GTK_BUILDER
 	GtkListStore      *model;
 	GtkTreeViewColumn *state_col, *title_col;
+
 	GtkCellRenderer   *title_renderer;
-	GtkTreeSelection  *selection;
+#endif
 
 	self->tv = GTK_TREE_VIEW(eina_obj_get_widget(self, "playlist-treeview"));
 
-	/* Setup treeview step 1: build renderers and attach to colums and columns to treeview*/
+#if !USE_GTK_BUILDER
+	/*
+	 * Setup treeview step 1: build renderers and attach to colums and columns
+	 * to treeview
+	 */
 	state_col = gtk_tree_view_column_new_with_attributes(NULL,
 		gtk_cell_renderer_pixbuf_new(), "stock-id", PLAYLIST_COLUMN_STATE, NULL);
 
 	title_renderer = gtk_cell_renderer_text_new();
+
 	title_col = gtk_tree_view_column_new_with_attributes(_("Title"),
 		title_renderer,  "markup", PLAYLIST_COLUMN_MARKUP, NULL);
 
 	gtk_tree_view_append_column(self->tv, state_col);
 	gtk_tree_view_append_column(self->tv, title_col);
 
-	/* Setup treeview step 2: set model for treeview */
+	/* 
+	 * Setup treeview step 2: set model for treeview
+	 */
+	 /*
 	model = gtk_list_store_new(PLAYLIST_N_COLUMNS,
 		LOMO_TYPE_STREAM, // Stream
 		G_TYPE_STRING,    // State
@@ -386,7 +397,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 		G_TYPE_STRING     // Markup
 		);
 	gtk_tree_view_set_model(self->tv, (GtkTreeModel *) model);
-
+	*/
 	/* Setup treeview step 3: set some properties */
 	g_object_set(G_OBJECT(title_renderer),
 		"ellipsize-set", TRUE,
@@ -399,16 +410,17 @@ eina_playlist_dock_init(EinaPlaylist *self)
 	g_object_set(G_OBJECT(title_col),
 		"visible",   TRUE,
 		"resizable", FALSE,
-		NULL);
+		NULL); 
 	g_object_set(G_OBJECT(self->tv),
 		"headers-clickable", FALSE,
 		"headers-visible", FALSE,
 		NULL);
+#endif
+
 	gtk_tree_view_set_search_column(self->tv, PLAYLIST_COLUMN_MARKUP);
 	gtk_tree_view_set_search_equal_func(self->tv, (GtkTreeViewSearchEqualFunc) __eina_playlist_search_func, self, NULL);
 
-	selection = gtk_tree_view_get_selection(self->tv);
-	gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(self->tv), GTK_SELECTION_MULTIPLE);
 
 	self->dock = eina_obj_get_widget(self, "playlist-main-box");
 	g_object_ref(self->dock);
@@ -472,7 +484,10 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 				// leave stock-id as NULL
 				break;
 			case LOMO_STATE_PLAY:
-				new_state = GTK_STOCK_MEDIA_PLAY;
+				 if (gtk_widget_get_direction((GtkWidget *)self->dock) == GTK_TEXT_DIR_LTR)
+					new_state = "gtk-media-play-ltr";
+				else
+					new_state = "gtk-media-play-rtl";
 				break;
 			case LOMO_STATE_PAUSE:
 				new_state = GTK_STOCK_MEDIA_PAUSE;

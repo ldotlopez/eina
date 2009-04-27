@@ -65,11 +65,12 @@ unique_message_received_cb (UniqueApp *unique,
 	gpointer           data);
 #endif
 
+
 static void
-link_button_uri_hook(GtkLinkButton *button, const gchar *link_, gpointer user_data)
+open_uri_hook(GtkWidget *widget, const gchar *link_, gpointer user_data)
 {
 	GError *err = NULL;
-	if (!g_app_info_launch_default_for_uri(link_, NULL, &err))
+	if (!gtk_show_uri(NULL, link_, GDK_CURRENT_TIME, &err))
 	{
 		gel_error("Cannot open link '%s': %s", link_, err->message);
 		g_error_free(err);
@@ -141,7 +142,7 @@ gint main
 	}
 	g_option_context_free(opt_ctx);
 
-	gtk_link_button_set_uri_hook(link_button_uri_hook, NULL, NULL);
+	gtk_about_dialog_set_url_hook((GtkAboutDialogActivateLinkFunc) open_uri_hook, NULL, NULL);
 
 	// --
 	// Unique App stuff

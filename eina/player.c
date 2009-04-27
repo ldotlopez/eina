@@ -102,7 +102,6 @@ static gchar *preferences_fmt_values[][2] = {
 	{ NULL, NULL }
 };
 
-
 // API
 static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
@@ -306,7 +305,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		{ "prev-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "next-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "play-pause-button", "clicked", G_CALLBACK(button_clicked_cb) },
-		{ "open-button",       "clicked", G_CALLBACK(button_clicked_cb) } ,
+		{ "open-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		GEL_UI_SIGNAL_DEF_NONE
 	};
 	gel_ui_signal_connect_from_def_multiple(eina_obj_get_ui(self), ui_signals, self, NULL);
