@@ -56,7 +56,7 @@ else
 fi
 
 GLIB_VERSION="2.16"
-GTK_VERSION="2.12"
+GTK_VERSION="2.16"
 GSTREAMER_VERSION="0.10"
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
@@ -95,7 +95,7 @@ dnl
 dnl ige-mac-integracion aka ige
 IGE_VERSION="0.8.0"
 ige_modules="ige-mac-integration >= $IGE_VERSION"
-if test test `pkg-config --variable target gtk+-2.0` = "quartz"; then
+if test `pkg-config --variable target gtk+-2.0` = "quartz"; then
 	PKG_CHECK_MODULES(IGE, $ige_modules,
 		[
 			HAVE_IGE=yes
@@ -115,7 +115,7 @@ fi
 AM_CONDITIONAL(USE_IGE, test x"$HAVE_IGE" = "xyes")
 
 dnl dbus-glib
-DBUS_GLIB_VERSION="0.76"
+DBUS_GLIB_VERSION="0.80"
 unique_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
 PKG_CHECK_MODULES(DBUS_GLIB, $unique_modules,
 	[
