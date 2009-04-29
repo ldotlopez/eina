@@ -25,7 +25,7 @@
 
 #include <string.h>
 #include <eina/eina-plugin.h>
-#include "plugins/adb/adb.h"
+#include <plugins/adb/adb.h>
 
 typedef struct {
 	GelApp       *app;
@@ -311,7 +311,6 @@ dock_create(Recently *self)
 		GTK_CONTAINER(gtk_builder_get_object(xml_ui, "main-window")),
 		ret);
 
-
 	// --
 	// Recently playlists
 	// --
@@ -401,6 +400,9 @@ dock_create(Recently *self)
 		G_TYPE_STRING);
     gtk_tree_view_set_model(self->pls_tv, GTK_TREE_MODEL(self->pls_model));
 
+	// self->pls_model = GTK_LIST_STORE(gtk_tree_view_get_model(self->pls_tv));
+	// gel_warn("Model for recently treeview: %p (%p)", gtk_tree_view_get_model(self->pls_tv), self->pls_model);
+
 	g_signal_connect(self->pls_tv, "row-activated", G_CALLBACK(recently_row_activated_cb), self); 
 	g_signal_connect(renders[RECENTLY_COLUMN_MARKUP], "edited", G_CALLBACK(recently_markup_edited_cb), self);
 	g_idle_add((GSourceFunc) recently_refresh, self);
@@ -427,7 +429,7 @@ dock_create(Recently *self)
 		"model", self->queryer_results,
 		NULL);
 	g_signal_connect(self->search_view, "item-activated", (GCallback) queryer_search_view_selected_cb, self);
-	// g_signal_connect(self->search_view, "select-cursor-item", (GCallback) queryer_search_view_selected_cb, self);
+	g_signal_connect(self->search_view, "select-cursor-item", (GCallback) queryer_search_view_selected_cb, self);
 
 	self->search_entry = GTK_ENTRY(gtk_builder_get_object(xml_ui, "search-entry")); 
 	self->search_tip   = GTK_LABEL(gtk_builder_get_object(xml_ui, "search-tip-label"));
@@ -539,10 +541,10 @@ recently_refresh(Recently *self)
 			RECENTLY_COLUMN_TIMESTAMP, timestamps[i],
 			RECENTLY_COLUMN_SEARCH, search,
 			RECENTLY_COLUMN_COVER, NULL,
-			RECENTLY_COLUMN_MARKUP, markup,
+			RECENTLY_COLUMN_MARKUP, markup, 
 			RECENTLY_COLUMN_PLAY, GTK_STOCK_MEDIA_PLAY,
-			RECENTLY_COLUMN_ENQUEUE, "eina-queue",
-			RECENTLY_COLUMN_DELETE, GTK_STOCK_DELETE,
+			RECENTLY_COLUMN_ENQUEUE, EINA_STOCK_QUEUE,
+			RECENTLY_COLUMN_DELETE, GTK_STOCK_DELETE, 
 			-1);
 		g_free(markup);
 	}
