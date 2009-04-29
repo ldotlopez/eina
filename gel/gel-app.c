@@ -70,6 +70,23 @@ enum {
 };
 static guint gel_app_signals[LAST_SIGNAL] = { 0 };
 
+static gchar *
+list_loaded_plugins(GelApp *self)
+{
+	GList *l = NULL, *iter;
+	iter = self->priv->plugins;
+	while (iter)
+	{
+		l = g_list_prepend(l, (gpointer) gel_plugin_stringify((GelPlugin *) iter->data));
+		iter = iter->next;
+	}
+	
+	gchar *ret = gel_list_join(",", l);
+	g_list_free(l);
+
+	return ret;
+}
+
 static void
 gel_app_dispose (GObject *object)
 {
@@ -89,6 +106,7 @@ gel_app_dispose (GObject *object)
 		{
 			g_warning(N_("%d plugins still loadeds, will be leaked. Use a dispose func (gel_app_set_dispose_func) to unload them at exit"),
 				g_list_length(self->priv->plugins));
+			g_warning(list_loaded_plugins(self));
 			gel_free_and_invalidate(self->priv->plugins, NULL, g_list_free);
 		}
 
