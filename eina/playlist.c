@@ -324,12 +324,21 @@ playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	gchar *buff = g_strjoinv("\n", out);
 	g_free(out);
 
-	file = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
-	fd = g_open(file, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR | S_IWUSR);
-	if (write(fd, buff, strlen(buff)) == -1)
-		; // XXX Just avoid warnings
-	close(fd);
-	g_free(file);
+	GError *err = NULL;
+	file = gel_app_build_config_filename("playlist", TRUE, 0755, &err);
+	if (file == NULL)
+	{
+		gel_warn("Cannot create playlist file: %s", err->message);
+		g_error_free(err);
+	}
+	else
+	{
+		fd = g_open(file, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR | S_IWUSR);
+		if (write(fd, buff, strlen(buff)) == -1)
+			; // XXX Just avoid warnings
+		close(fd);
+		g_free(file);
+	}
 
 	i = lomo_player_get_current(eina_obj_get_lomo(self));
 	eina_conf_set_int(self->conf, "/playlist/last_current", i);
@@ -389,7 +398,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 	/* 
 	 * Setup treeview step 2: set model for treeview
 	 */
-	 /*
+
 	model = gtk_list_store_new(PLAYLIST_N_COLUMNS,
 		LOMO_TYPE_STREAM, // Stream
 		G_TYPE_STRING,    // State
@@ -397,7 +406,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 		G_TYPE_STRING     // Markup
 		);
 	gtk_tree_view_set_model(self->tv, (GtkTreeModel *) model);
-	*/
+
 	/* Setup treeview step 3: set some properties */
 	g_object_set(G_OBJECT(title_renderer),
 		"ellipsize-set", TRUE,
