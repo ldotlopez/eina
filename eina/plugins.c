@@ -25,7 +25,6 @@
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
 
-#define MAGIC_REFERENCE ((GelPlugin *) 0xdeadbeef)
 #if 1
 #define debug(...) gel_warn(__VA_ARGS__)
 #else
@@ -34,6 +33,7 @@
 
 typedef struct {
 	EinaObj         parent;
+	GelPlugin      *plugin;
 	EinaConf       *conf;
 	GtkWidget      *window;
 	GtkTreeView    *treeview;
@@ -88,6 +88,7 @@ static gboolean
 plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlugins *self =  g_new0(EinaPlugins, 1);
+	self->plugin = plugin;
 
 	if (!eina_obj_init(EINA_OBJ(self), app, "plugins", EINA_OBJ_GTK_UI, error))
 	{
@@ -202,13 +203,26 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 			GError *err = NULL;
 
 			GelPlugin *plugin = gel_app_load_plugin_by_pathname(app, plugins[i], &err);
-			if (!plugin)
+			if (plugin)
+				continue;
+
+			gel_error("Cannot load plugin from path '%s': %s", plugins[i], err->message);
+			gel_free_and_invalidate(err, NULL, g_error_free);
+			
+			gchar *dirname = g_path_get_dirname(plugins[i]);
+			gchar *plugin_name = g_path_get_basename(dirname);
+			g_free(dirname);
+
+			plugin = gel_app_load_plugin_by_name(app, plugin_name, &err);
+			if (plugin)
 			{
-				gel_error("Cannot load plugin from path '%s': %s", plugins[i], err->message);
-				gel_free_and_invalidate(err, NULL, g_error_free);
+				g_free(plugin_name);
 				continue;
 			}
 
+			gel_error("Cannot load plugin from name '%s': %s", plugin_name, err->message);
+			g_free(plugin_name);
+			gel_free_and_invalidate(err, NULL, g_error_free);
 		}
 		g_strfreev(plugins);
 	}
@@ -266,7 +280,7 @@ plugins_load_plugins(EinaPlugins *self)
 		{
 			self->preenable_plugins = g_list_prepend(self->preenable_plugins, plugin);
 			gel_warn("Added lock on %s", gel_plugin_stringify(plugin));
-			gel_plugin_add_reference(plugin, MAGIC_REFERENCE);
+			gel_plugin_add_reference(plugin, self->plugin);
 		}
 		iter = iter->next;
 	}
@@ -276,7 +290,7 @@ plugins_load_plugins(EinaPlugins *self)
 static void
 plugins_unload_plugins(EinaPlugins *self)
 {
-	g_list_foreach(self->preenable_plugins, (GFunc) gel_plugin_remove_reference, (gpointer) MAGIC_REFERENCE);
+	g_list_foreach(self->preenable_plugins, (GFunc) gel_plugin_remove_reference, (gpointer) self->plugin);
 	g_list_free(self->preenable_plugins);
 	self->preenable_plugins = NULL;
 
@@ -511,16 +525,20 @@ plugins_cell_renderer_toggle_toggled_cb
 		if (g_list_find(self->preenable_plugins, plugin))
 		{
 			self->preenable_plugins = g_list_remove(self->preenable_plugins, plugin);
-			gel_plugin_remove_reference(plugin, MAGIC_REFERENCE);
+			gel_plugin_remove_reference(plugin, self->plugin);
 		}
 		gel_app_unload_plugin(eina_obj_get_app(self), plugin, &err);
 	}
 	else
-	{
-		if (gel_app_load_plugin(eina_obj_get_app(self), (gchar *) gel_plugin_get_pathname(plugin), (gchar*) plugin->name, &err))
+	{	
+		gchar *dirname = g_path_get_dirname((gchar *) gel_plugin_get_pathname(plugin));
+		gchar *plugin_name = g_path_get_basename(dirname);
+		g_free(dirname);
+
+		if (gel_app_load_plugin(eina_obj_get_app(self), (gchar *) gel_plugin_get_pathname(plugin), plugin_name, &err))
 		{
 			self->preenable_plugins = g_list_prepend(self->preenable_plugins, plugin);
-			gel_plugin_add_reference(plugin, MAGIC_REFERENCE);
+			gel_plugin_add_reference(plugin, self->plugin);
 		}
 	}
 
