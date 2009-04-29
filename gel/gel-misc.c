@@ -18,8 +18,11 @@
  */
 
 #include <stdlib.h>
+#include <errno.h>
 #include <glib/gprintf.h>
 #include <gel/gel.h>
+
+extern int errno;
 
 // --
 // Internal variables
@@ -211,7 +214,7 @@ gel_app_resource_get_list(GelAppResourceType type, gchar *resource)
 	ret = g_list_append(ret, tmp);
 
 	/* Build the system dir */
-	tmp = g_build_filename(_gel_package_data_dir, _gel_package_name, map_table[type], resource, NULL);
+	tmp = g_build_filename(_gel_package_data_dir, map_table[type], resource, NULL);
 	ret = g_list_append(ret, tmp);
 	return ret;
 }
@@ -265,6 +268,29 @@ gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_pa
 		g_free(dirname);
 	}
 
+	return ret;
+}
+
+gchar *
+gel_app_build_config_filename(gchar *name, gboolean create_path, gint dir_mode, GError **error)
+{
+	const gchar *conf_dir = g_get_user_config_dir();
+	if (conf_dir == NULL)
+		conf_dir = ".config";
+
+	gchar *ret = g_build_filename(conf_dir, _gel_package_name, name, NULL);
+	gchar *dirname = g_path_get_dirname(ret);
+	if (!g_file_test(dirname, G_FILE_TEST_EXISTS))
+	{
+		if (g_mkdir_with_parents(dirname, dir_mode) == -1)
+		{
+			g_set_error(error, G_FILE_ERROR, g_file_error_from_errno(errno), g_strerror(errno));
+			g_free(dirname);
+			g_free(ret);
+		return NULL;
+		}
+	}
+	g_free(dirname);
 	return ret;
 }
 
