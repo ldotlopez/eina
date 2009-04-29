@@ -100,12 +100,11 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "log", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
+	gchar          *modules[] = { "log", "settings", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
 #if HAVE_IGE
 		"ige",
 #endif
 		NULL};
-	gchar          *tmp;
 
 	GOptionContext *opt_ctx;
 	GError *err = NULL;
@@ -179,16 +178,26 @@ gint main
 
 	// Allow to read all files
 	g_setenv("G_BROKEN_FILENAMES", "1", TRUE);
-	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, NULL);
-	g_mkdir(tmp, 00700);
-	g_free(tmp);
 
-	// Insert some stock icons
-	if (!gel_ui_stock_add("eina-queue.png", "eina-queue", GTK_ICON_SIZE_MENU, NULL))
-		gel_error("Cannot find and add to stock file eina-queue.png");
+	// Initialize stock icons stuff
+	eina_stock_init();
+	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
+	        PACKAGE_DATA_DIR G_DIR_SEPARATOR_S "icons");
+#if 0
+	gel_warn(PACKAGE_DATA_DIR G_DIR_SEPARATOR_S "icons");
+	GtkImage *stock_test = (GtkImage *) gtk_image_new_from_stock("queue", GTK_ICON_SIZE_MENU);
+	if (stock_test)
+	{
+		 g_object_ref_sink(stock_test);
+		g_object_unref(stock_test);
+	}
+	else
+		gel_warn("Stock test failed");
+#endif
 
 	// --
 	// Create App and load modules
+	// --
 	app = gel_app_new();
 	for (i = 0; modules[i]; i++)
 	{
@@ -197,7 +206,6 @@ gint main
 		{
 			gel_error("Cannot load %s: %s", modules[i], error->message);
 			g_error_free(error);
-			continue;
 		}
 	}
 
@@ -236,18 +244,27 @@ gint main
 	else
 	{
 		gchar *buff = NULL;
-		gchar *tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
-		if (g_file_get_contents(tmp, &buff, NULL, NULL))
+		GError *err = NULL;
+		gchar *file = gel_app_build_config_filename("playlist", FALSE, -1, &err);
+		if (file == NULL)
 		{
-			gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
-			lomo_player_append_uri_strv(GEL_APP_GET_LOMO(app), uris);
-			g_strfreev(uris);
+			gel_warn("Cannot load playlist: %s", err->message);
+			g_error_free(err);
 		}
-		g_free(tmp);
-		g_free(buff);
-		gint current = eina_conf_get_int(GEL_APP_GET_SETTINGS(app), "/playlist/last_current", 0);
-		if (current >= 0)
-			lomo_player_go_nth( GEL_APP_GET_LOMO(app), current, NULL);
+		else
+		{
+			if (g_file_get_contents(file, &buff, NULL, NULL))
+			{
+				gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
+				lomo_player_append_uri_strv(GEL_APP_GET_LOMO(app), uris);
+				gint current = eina_conf_get_int(GEL_APP_GET_SETTINGS(app), "/playlist/last_current", 0);
+				if (current >= 0)
+					lomo_player_go_nth( GEL_APP_GET_LOMO(app), current, NULL);
+				g_strfreev(uris);
+				g_free(buff);
+			}
+			g_free(file);
+		}
 	}
 
 	gtk_main();

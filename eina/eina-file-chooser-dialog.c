@@ -24,6 +24,7 @@
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
+#include <eina/eina-stock.h>
 #include <eina/eina-file-chooser-dialog.h>
 #include <glib/gprintf.h>
 
@@ -181,8 +182,7 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 	object_class->dispose = eina_file_chooser_dialog_dispose;
 	object_class->finalize = eina_file_chooser_dialog_finalize;
 
-	if (!gel_ui_stock_add("eina-queue.png", "eina-queue", GTK_ICON_SIZE_MENU, NULL))
-		gel_error("Cannot find and add to stock file queue.png");
+	eina_stock_init();
 }
 
 static void
@@ -371,12 +371,8 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 		gtk_file_chooser_set_action(GTK_FILE_CHOOSER(self), GTK_FILE_CHOOSER_ACTION_OPEN);
 		gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(self), TRUE);
 
-		GtkButton *queue_button = (GtkButton *) gtk_button_new_with_mnemonic(Q_("_Enqueue"));
-		gtk_button_set_image(queue_button, gtk_image_new_from_stock("eina-queue", GTK_ICON_SIZE_BUTTON));
-		gtk_widget_show_all(GTK_WIDGET(queue_button));
-
 		gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_MEDIA_PLAY, EINA_FILE_CHOOSER_RESPONSE_PLAY);
-		gtk_dialog_add_action_widget(GTK_DIALOG(self), GTK_WIDGET(queue_button), EINA_FILE_CHOOSER_RESPONSE_QUEUE);
+		gtk_dialog_add_button(GTK_DIALOG(self), EINA_STOCK_QUEUE, EINA_FILE_CHOOSER_RESPONSE_QUEUE);
 		gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 
 		gtk_window_set_title(GTK_WINDOW(self), _("Enqueue files"));

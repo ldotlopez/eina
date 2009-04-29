@@ -1,10 +1,15 @@
 INCLUDES = \
 	-I$(top_srcdir) \
-	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+	-DPACKAGE_LIB_DIR=\""$(pkglibdir)"\" \
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+	-DPACKAGE_LOCALE_DIR=\""$(pkgdatadir)/locale"\" \
 	-DEINA_COMPILATION
 AM_CFLAGS =	@PACKAGE_CFLAGS@
+
+#	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
+#	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
+#	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+#	-DEINA_COMPILATION
 
 bin_PROGRAMS = eina
 
@@ -12,8 +17,8 @@ eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	-L$(top_srcdir)/gel/.libs \
 	-L$(top_srcdir)/lomo/.libs
 
-#-static $(top_builddir)/gel/libgel.la \
-#-static $(top_builddir)/lomo/liblomo-1.0.la
+# -static $(top_builddir)/gel/libgel.la 
+# -static $(top_builddir)/lomo/liblomo-1.0.la
 
 eina_LDADD = @PACKAGE_LIBS@ -lgel-1.0 -llomo-1.0 
 
@@ -34,6 +39,7 @@ INST_H_FILES = \
 	eina-conf.h                \
 	eina-preferences-dialog.h  \
 	eina-plugin.h              \
+	eina-stock.h               \
 	fs.h                       \
 	preferences.h              \
 	eina-settings.h
@@ -61,6 +67,7 @@ eina_SOURCES = \
 	eina-plugin.c              \
 	preferences.c              \
 	eina-settings.c                 \
+	eina-stock.c               \
 	template.c                 \
 	vogon.c                    \
 	plugins.c                  \
