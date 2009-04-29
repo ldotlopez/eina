@@ -1,20 +1,19 @@
-plugindir = $(libdir)/$(PACKAGE)/adb
+adbdir = $(pkglibdir)/adb
+adb_LTLIBRARIES = libadb.la
 
-plugin_LTLIBRARIES = libadb.la
+INST_H_FILES = adb.h
+NOINST_H_FILES = register.h
+
+headerdir = $(includedir)/eina-@EINA_API_VERSION@/plugins/adb
+header_DATA = $(INST_H_FILES)
+
+AM_CFLAGS         = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
 libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
-libadb_la_SOURCES = iface.c adb.c adb.h register.c register.h
 
-AM_CFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
-INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
-
-install-data-local: 
-	$(mkinstalldirs) $(DESTDIR)/$(plugindir); \
-	for p in `find . -iname '*.png'`; do \
-		$(INSTALL_DATA) $$p $(DESTDIR)/$(plugindir); \
-	done
-
-uninstall-local:    
-	for p in `find . -iname '*.png'`; do \
-		rm -- $(DESTDIR)/$(plugindir)/$$p; \
-	done
+libadb_la_SOURCES =   \
+	$(INST_H_FILES)   \
+	$(NOINST_H_FILES) \
+	register.c        \
+	adb.c             \
+	iface.c
 
