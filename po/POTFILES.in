@@ -4,4 +4,11 @@ eina/log.c
 eina/eina-lomo.c
 eina/curl-engine.c
 
+[type: gettext/glade]ui/about.ui
+[type: gettext/glade]ui/dock.ui
+[type: gettext/glade]ui/log.ui
 [type: gettext/glade]ui/player-menu.ui
+[type: gettext/glade]ui/player-preferences.ui
+[type: gettext/glade]ui/player.ui
+[type: gettext/glade]ui/playlist.ui
+[type: gettext/glade]ui/plugins.ui

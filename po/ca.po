@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-24 12:53+0200\n"
+"POT-Creation-Date: 2009-04-28 12:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,6 +27,11 @@ msgstr ""
 
 #: ../eina/eina-settings.c:98
 msgid "Build-in settings plugin"
+msgstr ""
+
+#: ../eina/log.c:190
+#, c-format
+msgid "Cannot load UI from %s: %s"
 msgstr ""
 
 #: ../eina/log.c:206
@@ -66,6 +71,11 @@ msgstr ""
 msgid "Full debug"
 msgstr ""
 
+#: ../eina/log.c:304
+#, c-format
+msgid "Set level to %s"
+msgstr ""
+
 #: ../eina/log.c:400
 msgid "Cannot not shot dialog, it doest exists"
 msgstr ""
@@ -88,4 +98,174 @@ msgstr ""
 
 #: ../eina/eina-lomo.c:76
 msgid "Build-in lomo plugin"
+msgstr ""
+
+#: ../eina/curl-engine.c:236
+msgid "Unknow error"
+msgstr ""
+
+#: ../ui/about.ui.h:1
+msgid "A classic player for the modern era"
+msgstr ""
+
+#: ../ui/about.ui.h:2
+msgid "About Eina"
+msgstr ""
+
+#: ../ui/about.ui.h:3
+msgid ""
+"Copyright &#xA9; 2003-2008 xuzo\n"
+"Copyright &#xA9; 2003-2005 xuzo and eru"
+msgstr ""
+
+#: ../ui/about.ui.h:5
+msgid ""
+"Eina is free software; you can redistribute it and/or modify it under the "
+"terms of the GNU General Public License as published by the Free Software "
+"Foundation; either version 2 of the License, or (at your option) any later "
+"version.\n"
+"\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
+"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
+"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
+"details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License along with "
+"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+msgstr ""
+
+#: ../ui/about.ui.h:10
+msgid "None yet :)"
+msgstr ""
+
+#: ../ui/about.ui.h:11
+msgid "http://eina.sourceforge.net/"
+msgstr ""
+
+#: ../ui/dock.ui.h:1
+msgid "\t"
+msgstr ""
+
+#: ../ui/dock.ui.h:2
+msgid "Dock"
+msgstr ""
+
+#: ../ui/log.ui.h:1
+msgid "<b>Log level:</b> "
+msgstr ""
+
+#: ../ui/log.ui.h:2
+msgid "gtk-clear"
+msgstr ""
+
+#: ../ui/log.ui.h:3 ../ui/plugins.ui.h:8
+msgid "gtk-close"
+msgstr ""
+
+#: ../ui/log.ui.h:4
+msgid "label"
+msgstr ""
+
+#: ../ui/player-preferences.ui.h:1
+msgid "<b>Information format</b>"
+msgstr ""
+
+#: ../ui/player-preferences.ui.h:2
+msgid "Custom format:"
+msgstr ""
+
+#: ../ui/player-preferences.ui.h:3
+msgid "More info about Pango markup language"
+msgstr ""
+
+#: ../ui/player-preferences.ui.h:5
+#, no-c-format
+msgid ""
+"This format uses the pango markup, follow next link to learn about it.\n"
+"\n"
+"The following 'tags' can be used: %a for artist, %b for album, %t for title "
+"and %n for track number.\n"
+"\n"
+"Embracing any text with curly brackets makes it optional, disapearing if no "
+"matches for its content is found.\n"
+msgstr ""
+
+#: ../ui/player.ui.h:1
+msgid "<small><tt></tt></small>"
+msgstr ""
+
+#: ../ui/player.ui.h:3
+#, no-c-format
+msgid ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+msgstr ""
+
+#: ../ui/player.ui.h:5
+msgid "Browse"
+msgstr ""
+
+#: ../ui/player.ui.h:6
+msgid "Next song"
+msgstr ""
+
+#: ../ui/player.ui.h:7
+msgid "Previous song"
+msgstr ""
+
+#: ../ui/playlist.ui.h:1
+msgid "<b>Playlist</b>"
+msgstr ""
+
+#: ../ui/playlist.ui.h:2
+msgid "Activate or deactivate random mode"
+msgstr ""
+
+#: ../ui/playlist.ui.h:3
+msgid "Activate or deactivate repeat mode"
+msgstr ""
+
+#: ../ui/playlist.ui.h:4
+msgid "Add or enqueue songs to this playlist"
+msgstr ""
+
+#: ../ui/playlist.ui.h:5
+msgid "Clear the playlist"
+msgstr ""
+
+#: ../ui/playlist.ui.h:6
+msgid "Playlist"
+msgstr ""
+
+#: ../ui/playlist.ui.h:7
+msgid "Remove selected songs from this playlist"
+msgstr ""
+
+#: ../ui/plugins.ui.h:1
+msgid "<b>Author:</b>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:2
+msgid "<b>Website:</b>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:3
+msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:4
+msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:5
+msgid "<u>http://eina.sf.net</u>"
+msgstr ""
+
+#: ../ui/plugins.ui.h:6
+msgid "Long description"
+msgstr ""
+
+#: ../ui/plugins.ui.h:7
+msgid "Short description"
 msgstr ""
