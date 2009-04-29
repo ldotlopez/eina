@@ -38,6 +38,7 @@
 #include <eina/eina-settings.h>
 #include <eina/art.h>
 #include <eina/fs.h>
+#include <eina/eina-stock.h>
 
 // Redefine some types and enums
 #define EinaPlugin GelPlugin
