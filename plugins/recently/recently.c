@@ -1,5 +1,5 @@
 /*
- * plugins/recently2/recently.c
+ * plugins/recently/recently.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -1254,13 +1254,13 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPlugin recently2_plugin = {
+G_MODULE_EXPORT EinaPlugin recently_plugin = {
 	EINA_PLUGIN_SERIAL,
 	"recently", PACKAGE_VERSION, "adb",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
 	N_("Stores your recent playlists"),
-	N_("Recently plugin 2. ADB based version"), // long desc
+	N_("Recently plugin. ADB based version"), // long desc
 	NULL, // icon
 
 	recently_plugin_init, recently_plugin_fini,

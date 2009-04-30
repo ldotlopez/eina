@@ -73,6 +73,11 @@ PACKAGE_CFLAGS="\
 	-Wall -Werror -std=c99 $BUILD_MODE_CFLAGS"
 
 AC_PATH_PROG(CURL_CONFIG, curl-config)
+if test x$CURL_CONFIG = 'x'; then
+	echo "curl-config not found"
+	exit 1
+fi
+
 CURL_CFLAGS="`$CURL_CONFIG --cflags`"
 CURL_LIBS="`$CURL_CONFIG --libs`"
 
@@ -192,7 +197,7 @@ plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
 plugins/lastfm/Makefile
-plugins/recently2/Makefile
+plugins/recently/Makefile
 plugins/Makefile
 po/Makefile.in
 ui/Makefile
