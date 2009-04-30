@@ -284,7 +284,7 @@ gel_app_build_config_filename(gchar *name, gboolean create_path, gint dir_mode, 
 	{
 		if (g_mkdir_with_parents(dirname, dir_mode) == -1)
 		{
-			g_set_error(error, G_FILE_ERROR, g_file_error_from_errno(errno), g_strerror(errno));
+			g_set_error_literal(error, G_FILE_ERROR, g_file_error_from_errno(errno), g_strerror(errno));
 			g_free(dirname);
 			g_free(ret);
 		return NULL;

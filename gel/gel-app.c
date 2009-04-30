@@ -106,7 +106,9 @@ gel_app_dispose (GObject *object)
 		{
 			g_warning(N_("%d plugins still loadeds, will be leaked. Use a dispose func (gel_app_set_dispose_func) to unload them at exit"),
 				g_list_length(self->priv->plugins));
-			g_warning(list_loaded_plugins(self));
+			gchar *tmp = list_loaded_plugins(self);
+			g_warning("%s", tmp);
+			g_free(tmp);
 			gel_free_and_invalidate(self->priv->plugins, NULL, g_list_free);
 		}
 
