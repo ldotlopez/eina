@@ -164,7 +164,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Load conf
-	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
+	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
 	{
 		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
@@ -221,25 +221,20 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_widget_show(GTK_WIDGET(self->seek));
 
 	// Artwork
-	if (gel_app_load_plugin_by_name(app, "art", NULL))
-	{
-		self->cover = (GtkImage *) gtk_image_new();
-		self->got_cover = FALSE;
-		gtk_widget_set_size_request(GTK_WIDGET(self->cover),
-			eina_obj_get_widget(self, "cover-image-container")->allocation.height,
-			eina_obj_get_widget(self, "cover-image-container")->allocation.height);
-		g_idle_add((GSourceFunc) update_cover_idle, self);
+	self->cover = (GtkImage *) gtk_image_new();
+	self->got_cover = FALSE;
+	gtk_widget_set_size_request(GTK_WIDGET(self->cover),
+		eina_obj_get_widget(self, "cover-image-container")->allocation.height,
+		eina_obj_get_widget(self, "cover-image-container")->allocation.height);
+	g_idle_add((GSourceFunc) update_cover_idle, self);
 
-		gel_ui_container_replace_children(
-			eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container"),
-			GTK_WIDGET(self->cover));
-		gtk_widget_realize((GtkWidget *) self->cover);
-		gtk_widget_show_all((GtkWidget *) self->cover);
+	gel_ui_container_replace_children(
+		eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container"),
+		GTK_WIDGET(self->cover));
+	gtk_widget_realize((GtkWidget *) self->cover);
+	gtk_widget_show_all((GtkWidget *) self->cover);
 
-		self->cover_mask = build_cover_mask((GtkWidget *) self->cover);
-	}
-	else
-		gel_warn("Canot load art plugin");
+	self->cover_mask = build_cover_mask((GtkWidget *) self->cover);
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -321,7 +316,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(eina_obj_get_lomo(self), "random", G_CALLBACK(update_sensitiviness), self);
 
 	// Preferences is attached to us (like dock) but this is less than optimal
-	EinaPreferences *prefs = eina_obj_require(EINA_OBJ(self), "preferences", NULL);
+	EinaPreferences *prefs = GEL_APP_GET_PREFERENCES(app);
 	if (prefs == NULL)
 	{
 		gel_warn("Cannot load preferences component");
@@ -359,8 +354,6 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 	g_free(self->stream_info_fmt);
 
-	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
-	eina_obj_unrequire(EINA_OBJ(self), "preferences", NULL);
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
@@ -765,9 +758,10 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 	eina_conf_set_int(self->conf, "/ui/size_w", width);
 	eina_conf_set_int(self->conf, "/ui/size_h", height);
 
-	g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
+	gtk_widget_hide(w);
 
-	return FALSE;
+	g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
+	return TRUE;
 }
 
 static gboolean
@@ -1198,7 +1192,7 @@ build_cover_mask(GtkWidget *w)
 G_MODULE_EXPORT GelPlugin player_plugin = {
 	GEL_PLUGIN_SERIAL,
 
-	"player", PACKAGE_VERSION, NULL,
+	"player", PACKAGE_VERSION, "art,preferences",
 	NULL, NULL,
 
 	N_("Build-in player plugin"), NULL, NULL,
