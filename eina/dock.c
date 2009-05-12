@@ -57,13 +57,6 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if (!eina_obj_init(EINA_OBJ(self), app, "dock", EINA_OBJ_GTK_UI, error))
 		return FALSE;
 
-	if (!eina_obj_require(EINA_OBJ(self), "player", error))
-	{
-		eina_obj_unrequire(EINA_OBJ(self), "settings", error);
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
-
 	self->widget = eina_obj_get_widget(self, "dock-expander");
 	self->dock   = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
 
@@ -114,13 +107,11 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-dock_exit(GelApp *app, GelPlugin *plugin, GError **error)
+dock_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaDock *self = gel_app_shared_get(app, "dock");
 	if (self == NULL)
 		return FALSE;
-
-	eina_obj_unrequire(EINA_OBJ(self), "player", NULL);
 
 	eina_obj_fini(EINA_OBJ(self));
 	return TRUE;
@@ -312,12 +303,12 @@ expander_activate_cb(GtkExpander *w, EinaDock *self)
 
 G_MODULE_EXPORT GelPlugin dock_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"dock", PACKAGE_VERSION, NULL,
+	"dock", PACKAGE_VERSION, "player",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
 	N_("Build-in dock plugin"), N_("Build-in dock plugin"), NULL,
 
-	dock_init, dock_exit,
+	dock_init, dock_fini,
 
 	NULL, NULL, NULL
 };
