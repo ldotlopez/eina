@@ -76,13 +76,15 @@ settings_init(GelApp *app, GelPlugin *plugin, GError **error)
 static gboolean
 settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaConf *conf = GEL_PLUGIN_DATA(plugin);
-	if ((conf == NULL) || !EINA_IS_CONF_CLASS(conf))
+	EinaConf *conf = GEL_APP_GET_SETTINGS(app);
+	if ((conf == NULL) || !EINA_IS_CONF(conf))
 	{
 		g_set_error(error, settings_quark(), EINA_SETTINGS_CONF_OBJECT_NOT_FOUND,
 			N_("Conf object not found"));
 		return FALSE;
 	}
+	
+	return FALSE;
 
 	gel_app_shared_unregister(app, "settings");
 	g_object_unref(conf);
