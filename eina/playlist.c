@@ -218,7 +218,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Load settings module
-	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
+	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
 	{
 		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
@@ -344,7 +344,6 @@ playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	eina_conf_set_int(self->conf, "/playlist/last_current", i);
 	eina_dock_remove_widget(EINA_OBJ_GET_DOCK(self), "playlist");
 
-	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
@@ -1205,8 +1204,6 @@ void setup_dnd(EinaPlaylist *self)
 		G_CALLBACK (drag_drop_handl), NULL);
 */
 }
-
-
 
 /*
  * Connector
