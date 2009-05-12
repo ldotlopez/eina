@@ -156,7 +156,7 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"lastfm", PACKAGE_VERSION, "art",
+	"lastfm", PACKAGE_VERSION, NULL,
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
 	N_("Lastfm integration"),
