@@ -1213,7 +1213,6 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if ((adb = GEL_APP_GET_ADB(app)) == NULL)
 	{
 		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_FETCH_ADB, N_("Cannot fetch Adb object"));
-		gel_app_unload_plugin_by_name(app, "adb", NULL);
 		return FALSE;
 	}
 
@@ -1240,16 +1239,7 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	GError *err = NULL;
 	eina_plugin_remove_dock_widget(plugin, "recently");
-
-	if (!gel_app_unload_plugin_by_name(app, "adb", &err))
-	{
-		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_UNLOAD_ADB, 
-			N_("Cannot unload adb plugin: %s"), err->message);
-		g_error_free(err);
-		return FALSE;
-	}
 	g_free(plugin->data);
 	return TRUE;
 }
