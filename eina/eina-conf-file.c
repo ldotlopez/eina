@@ -30,9 +30,6 @@
 #include <gel/gel.h>
 #include <eina/eina-conf.h>
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_CONF, EinaConfPrivate))
-
 // --
 // Internal EinaConfValue
 // --
@@ -60,13 +57,19 @@ eina_conf_value_free(gpointer value)
 // --
 // EinaConf stuff
 // --
+G_DEFINE_TYPE (EinaConf, eina_conf, G_TYPE_OBJECT)
 
-G_DEFINE_TYPE (EinaConf, eina_conf, G_TYPE_OBJECT);
+#define GET_PRIVATE(o) \
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_CONF, EinaConfPrivate))
 
-// Properties
-enum {
-	PROPERTY_SOURCE = 1,
-	PROPERTY_TIMEOUT
+typedef struct _EinaConfPrivate EinaConfPrivate;
+
+struct _EinaConfPrivate {
+	GHashTable *values;
+	guint       timeout_id;
+	gchar      *filename;
+	guint       timeout;
+	gint        io_fd;
 };
 
 // Signals
@@ -76,39 +79,33 @@ enum {
 };
 static guint eina_conf_signals[LAST_SIGNAL] = { 0 };
 
-// Types
-typedef struct _EinaConfPrivate EinaConfPrivate;
-struct _EinaConfPrivate {
-	GHashTable *values;
-	guint       timeout_id;
-	gchar      *filename;
-	guint       timeout;
-	gint        io_fd;
+// Properties
+enum {
+	PROPERTY_SOURCE = 1,
+	PROPERTY_TIMEOUT
 };
 
 static gboolean
 eina_conf_dump(EinaConf *self);
 
-// Property Getter and setter
 static void
-eina_conf_get_property(GObject *object, guint property_id,
-    GValue *value, GParamSpec *pspec)
+eina_conf_get_property (GObject *object, guint property_id,
+	GValue *value, GParamSpec *pspec)
 {
 	EinaConf *self = EINA_CONF(object);
 	switch (property_id)
 	{
 
-    case PROPERTY_SOURCE:
+	case PROPERTY_SOURCE:
 		g_value_set_string(value, (gpointer) eina_conf_get_source(self));
 		break;
 
-    case PROPERTY_TIMEOUT:
+	case PROPERTY_TIMEOUT:
 		g_value_set_uint(value, (guint) eina_conf_get_timeout(self));
 		break;
 
-    default:
+	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
 	}
 }
 
@@ -120,23 +117,21 @@ eina_conf_set_property (GObject *object, guint property_id,
 	switch (property_id)
 	{
 
-    case PROPERTY_SOURCE:
+	case PROPERTY_SOURCE:
 		eina_conf_set_source(self, (gchar *) g_value_get_string(value));
 		break;
 
-    case PROPERTY_TIMEOUT:
+	case PROPERTY_TIMEOUT:
 		eina_conf_set_timeout(self, (guint) g_value_get_uint(value));
 		break;
 
-    default:
+	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
 	}
 }
 
-// Disposer
 static void
-eina_conf_dispose(GObject *object)
+eina_conf_dispose (GObject *object)
 {
 	EinaConf *self = EINA_CONF(object);
 	EinaConfPrivate *priv = GET_PRIVATE(self);
@@ -155,10 +150,9 @@ eina_conf_dispose(GObject *object)
 		g_free(priv->filename);
 	}
 
-	G_OBJECT_CLASS (eina_conf_parent_class)->dispose(object);
+	G_OBJECT_CLASS (eina_conf_parent_class)->dispose (object);
 }
 
-// Class init
 static void
 eina_conf_class_init (EinaConfClass *klass)
 {
@@ -166,17 +160,18 @@ eina_conf_class_init (EinaConfClass *klass)
 
 	g_type_class_add_private (klass, sizeof (EinaConfPrivate));
 
-	object_class->dispose      = eina_conf_dispose;
 	object_class->get_property = eina_conf_get_property;
 	object_class->set_property = eina_conf_set_property;
+	object_class->dispose = eina_conf_dispose;
 
 	g_object_class_install_property(object_class, PROPERTY_SOURCE,
-		g_param_spec_string("source", "Source", "Source for configuration", NULL,
-		G_PARAM_READABLE | G_PARAM_WRITABLE));
+		g_param_spec_string("source", "Source", "Source for configuration",
+		NULL, G_PARAM_READABLE | G_PARAM_WRITABLE));
 
-    g_object_class_install_property(object_class, PROPERTY_TIMEOUT,
+	g_object_class_install_property(object_class, PROPERTY_TIMEOUT,
 		g_param_spec_uint("timeout", "Timeout", "Delay between flushes", 0, G_MAXUINT, 50000,
 		G_PARAM_READABLE | G_PARAM_WRITABLE));
+
 
 	eina_conf_signals[CHANGE] = g_signal_new ("change",
 		G_OBJECT_CLASS_TYPE (object_class),
@@ -189,7 +184,6 @@ eina_conf_class_init (EinaConfClass *klass)
 		G_TYPE_POINTER);
 }
 
-// Instance init
 static void
 eina_conf_init (EinaConf *self)
 {
@@ -201,7 +195,7 @@ eina_conf_init (EinaConf *self)
 	priv->filename = NULL;
 }
 
-EinaConf *
+EinaConf*
 eina_conf_new (void)
 {
 	return g_object_new (EINA_TYPE_CONF, NULL);

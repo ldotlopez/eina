@@ -17,14 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_CONF_H
-#define _EINA_CONF_H
+#ifndef _EINA_CONF
+#define _EINA_CONF
 
 #include <glib-object.h>
 
 G_BEGIN_DECLS
 
 #define EINA_TYPE_CONF eina_conf_get_type()
+
 #define EINA_CONF(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_CONF, EinaConf))
 
@@ -50,6 +51,7 @@ typedef struct {
 } EinaConfClass;
 
 GType eina_conf_get_type (void);
+
 EinaConf* eina_conf_new (void);
 
 void         eina_conf_set_source(EinaConf *self, gchar *source);
@@ -75,4 +77,4 @@ eina_conf_delete_key(EinaConf *self, gchar *key);
 
 G_END_DECLS
 
-#endif // _EINA_CONF_H
+#endif
