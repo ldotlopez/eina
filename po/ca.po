@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-28 12:05+0200\n"
+"POT-Creation-Date: 2009-05-11 10:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "Cannot create config folder %s"
 msgstr ""
 
-#: ../eina/eina-settings.c:83
+#: ../eina/eina-settings.c:85
 msgid "Conf object not found"
 msgstr ""
 
-#: ../eina/eina-settings.c:98
+#: ../eina/eina-settings.c:102
 msgid "Build-in settings plugin"
 msgstr ""
 

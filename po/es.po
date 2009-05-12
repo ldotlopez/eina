@@ -1,108 +1,109 @@
-# Spanish po file for Eina
-# Copyright (C) 2008
-# This file is distributed under the same license as the Eina package.
-# xuzo . <xuzo@cuarentaydos.com>, 2008.
+# Spanish translation for eina
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the eina package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Eina 0.7.0\n"
+"Project-Id-Version: eina\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-28 12:05+0200\n"
-"PO-Revision-Date: 2008-10-03 13:25+0200\n"
-"Last-Translator: xuzo . <xuzo@cuarentaydos.com>\n"
-"Language-Team: ES <eina-users@lists.sourceforge.net>\n"
+"POT-Creation-Date: 2009-05-11 10:34+0200\n"
+"PO-Revision-Date: 2009-05-11 15:39+0000\n"
+"Last-Translator: xuzo <Unknown>\n"
+"Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2009-05-11 15:44+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: ../eina/eina-settings.c:52
 #, c-format
 msgid "Cannot create config folder %s"
-msgstr ""
+msgstr "No se puede crear el directorio %s"
 
-#: ../eina/eina-settings.c:83
+#: ../eina/eina-settings.c:85
 msgid "Conf object not found"
-msgstr ""
+msgstr "Objecto 'Conf' no encontrado"
 
-#: ../eina/eina-settings.c:98
+#: ../eina/eina-settings.c:102
 msgid "Build-in settings plugin"
-msgstr ""
+msgstr "Complemento de ajustes interno"
 
 #: ../eina/log.c:190
 #, c-format
 msgid "Cannot load UI from %s: %s"
-msgstr ""
+msgstr "No se puede cargar el IGU desde %s: %s"
 
 #: ../eina/log.c:206
 msgid "Not all required widgets are valids"
-msgstr ""
+msgstr "No todos los elementos requeridos son validos"
 
 #: ../eina/log.c:224
 #, c-format
 msgid "Cannot create menu item: %s"
-msgstr ""
+msgstr "No se puede crear la entrada de menu: %s"
 
 #: ../eina/log.c:230
 msgid "Debug window"
-msgstr ""
+msgstr "Ventana de depuración"
 
 #: ../eina/log.c:294
 msgid "Severe errors"
-msgstr ""
+msgstr "Errores graves"
 
 #: ../eina/log.c:295
 msgid "Errors"
-msgstr ""
+msgstr "Errores"
 
 #: ../eina/log.c:296
 msgid "Warnings"
-msgstr ""
+msgstr "Advertencias"
 
 #: ../eina/log.c:297
 msgid "Information messages"
-msgstr ""
+msgstr "Mensajes de información"
 
 #: ../eina/log.c:298
 msgid "Debug information"
-msgstr ""
+msgstr "Información de depuración"
 
 #: ../eina/log.c:299
 msgid "Full debug"
-msgstr ""
+msgstr "Depuración completa"
 
 #: ../eina/log.c:304
 #, c-format
 msgid "Set level to %s"
-msgstr ""
+msgstr "Ajustar el nivel a %s"
 
 #: ../eina/log.c:400
 msgid "Cannot not shot dialog, it doest exists"
-msgstr ""
+msgstr "No se puede mostrar el dialogo, no existe"
 
 #: ../eina/log.c:449
 msgid "Build-in log"
-msgstr ""
+msgstr "Registro interno"
 
 #: ../eina/eina-lomo.c:42
 msgid "Cannot create engine"
-msgstr ""
+msgstr "No se ha creado el motor"
 
 #: ../eina/eina-lomo.c:48
 msgid "Cannot share engine"
-msgstr ""
+msgstr "No se ha compartido el motor"
 
 #: ../eina/eina-lomo.c:62
 msgid "Cannot destroy engine"
-msgstr ""
+msgstr "No se ha destruido el motor"
 
 #: ../eina/eina-lomo.c:76
 msgid "Build-in lomo plugin"
-msgstr ""
+msgstr "Complemento lomo interno"
 
 #: ../eina/curl-engine.c:236
 msgid "Unknow error"
-msgstr ""
+msgstr "Error desconocido"
 
 #: ../ui/about.ui.h:1
 msgid "A classic player for the modern era"
@@ -110,7 +111,7 @@ msgstr "Un reproductor clásico para los tiempos modernos"
 
 #: ../ui/about.ui.h:2
 msgid "About Eina"
-msgstr "Sobre Eina"
+msgstr "Acerca de Eina"
 
 #: ../ui/about.ui.h:3
 msgid ""
@@ -137,12 +138,11 @@ msgstr ""
 
 #: ../ui/about.ui.h:10
 msgid "None yet :)"
-msgstr "Ninguno aún"
+msgstr "Luis Lopez Lopez &lt;xuzo@cuarentaydos.com&gt;"
 
 #: ../ui/about.ui.h:11
-#, fuzzy
 msgid "http://eina.sourceforge.net/"
-msgstr "<u>http://eina.sf.net</u>"
+msgstr "http://eina.sourceforge.net/"
 
 #: ../ui/dock.ui.h:1
 msgid "\t"
@@ -150,21 +150,19 @@ msgstr "\t"
 
 #: ../ui/dock.ui.h:2
 msgid "Dock"
-msgstr "Dock"
+msgstr "Acoples"
 
 #: ../ui/log.ui.h:1
-#, fuzzy
 msgid "<b>Log level:</b> "
-msgstr "<b>Página web:</b>"
+msgstr "<b>Nivel de registro:</b> "
 
 #: ../ui/log.ui.h:2
-#, fuzzy
 msgid "gtk-clear"
-msgstr "gtk-close"
+msgstr ""
 
 #: ../ui/log.ui.h:3 ../ui/plugins.ui.h:8
 msgid "gtk-close"
-msgstr "gtk-close"
+msgstr ""
 
 #: ../ui/log.ui.h:4
 msgid "label"
@@ -172,15 +170,15 @@ msgstr ""
 
 #: ../ui/player-preferences.ui.h:1
 msgid "<b>Information format</b>"
-msgstr ""
+msgstr "<b>Formato de información</b>"
 
 #: ../ui/player-preferences.ui.h:2
 msgid "Custom format:"
-msgstr ""
+msgstr "Formato personalizado:"
 
 #: ../ui/player-preferences.ui.h:3
 msgid "More info about Pango markup language"
-msgstr ""
+msgstr "Más información sobre el lenguaje de marcado de Pango"
 
 #: ../ui/player-preferences.ui.h:5
 #, no-c-format
@@ -193,37 +191,43 @@ msgid ""
 "Embracing any text with curly brackets makes it optional, disapearing if no "
 "matches for its content is found.\n"
 msgstr ""
+"Este formato usa el lenguaje de marcado Pango, sigue el siguiente enlace "
+"para aprender mas sobre él.\n"
+"\n"
+"Puede usar las siguientes «etiquetas» : %a para artista, %b para álbum, %t "
+"para título y %n para número de pista.\n"
+"\n"
+"Rodeando cualquier texto entre llaves lo convierte en opcional, será omitido "
+"si no se encuentran coincidencias para su contenido\n"
 
 #: ../ui/player.ui.h:1
-#, fuzzy
 msgid "<small><tt></tt></small>"
-msgstr "<small><tt>00:00</tt></small>"
+msgstr "<small><tt></tt></small>"
 
 #: ../ui/player.ui.h:3
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}{ (%b)}</span>"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 
 #: ../ui/player.ui.h:5
 msgid "Browse"
-msgstr "Examinar"
+msgstr "Explorar"
 
 #: ../ui/player.ui.h:6
 msgid "Next song"
-msgstr "Pasar al siguiente tema"
+msgstr "Siguiente canción"
 
 #: ../ui/player.ui.h:7
 msgid "Previous song"
-msgstr "Volver al tema anterior"
+msgstr "Canción anterior"
 
 #: ../ui/playlist.ui.h:1
-#, fuzzy
 msgid "<b>Playlist</b>"
-msgstr "Lista de reproduccin"
+msgstr "<b>Lista de reproducción</b>"
 
 #: ../ui/playlist.ui.h:2
 msgid "Activate or deactivate random mode"
@@ -231,23 +235,23 @@ msgstr "Activar o desactivar el modo aleatorio"
 
 #: ../ui/playlist.ui.h:3
 msgid "Activate or deactivate repeat mode"
-msgstr "Activar o desactivar el modo repeticin"
+msgstr "Activar o desactivar el modo repetición"
 
 #: ../ui/playlist.ui.h:4
 msgid "Add or enqueue songs to this playlist"
-msgstr "Aadir o encolar temas a la lista de reproduccin"
+msgstr "Añadir o encolar canciones a la lista de reproducción"
 
 #: ../ui/playlist.ui.h:5
 msgid "Clear the playlist"
-msgstr "Vaciar la lista de reproduccin"
+msgstr "Vaciar la lista de reproducción"
 
 #: ../ui/playlist.ui.h:6
 msgid "Playlist"
-msgstr "Lista de reproduccin"
+msgstr "Lista de reproducción"
 
 #: ../ui/playlist.ui.h:7
 msgid "Remove selected songs from this playlist"
-msgstr "Eliminar los temas seleccionados de la lista de reproduccin"
+msgstr "Quitar las canciones seleccionadas de la lista de reproducción"
 
 #: ../ui/plugins.ui.h:1
 msgid "<b>Author:</b>"
@@ -255,16 +259,15 @@ msgstr "<b>Autor:</b>"
 
 #: ../ui/plugins.ui.h:2
 msgid "<b>Website:</b>"
-msgstr "<b>Página web:</b>"
+msgstr "<b>Sitio web:</b>"
 
 #: ../ui/plugins.ui.h:3
-#, fuzzy
 msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
-msgstr "<span size=\"x-large\" weight=\"bold\">Cover Plus</span>"
+msgstr "<span size=\"x-large\" weight=\"bold\">Nombre del complemento</span>"
 
 #: ../ui/plugins.ui.h:4
 msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
-msgstr ""
+msgstr "<u>Nombre del autor &lt;eina-users@lists.sourceforge.net&gt;</u>"
 
 #: ../ui/plugins.ui.h:5
 msgid "<u>http://eina.sf.net</u>"
@@ -272,41 +275,8 @@ msgstr "<u>http://eina.sf.net</u>"
 
 #: ../ui/plugins.ui.h:6
 msgid "Long description"
-msgstr ""
+msgstr "Descripción completa"
 
 #: ../ui/plugins.ui.h:7
 msgid "Short description"
-msgstr ""
-
-#~ msgid "_Enqueue"
-#~ msgstr "_Encolar"
-
-#~ msgid "Enqueue files"
-#~ msgstr "_Encolar ficheros"
-
-#~ msgid "About|Website"
-#~ msgstr "Página web"
-
-#~ msgid "<small><tt>07:59</tt></small>"
-#~ msgstr "<small><tt>07:59</tt></small>"
-
-#~ msgid "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
-#~ msgstr "<u>xuzo &lt;xuzo@cuarentaydos.com&gt;</u>"
-
-#~ msgid ""
-#~ "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
-#~ "incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
-#~ "nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
-#~ "consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
-#~ "dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
-#~ "proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-#~ msgstr ""
-#~ "Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor "
-#~ "incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
-#~ "nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi "
-#~ "consequat. Quis aute iure reprehenderit in voluptate velit esse cillum "
-#~ "dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non "
-#~ "proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-
-#~ msgid "More for your covers"
-#~ msgstr "Más para tus cartulas"
+msgstr "Descripción"

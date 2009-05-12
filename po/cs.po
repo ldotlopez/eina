@@ -1,0 +1,156 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-12-06 13:46+0100\n"
+"PO-Revision-Date: 2009-05-09 09:43+0100\n"
+"Last-Translator: Václav Kramář <vaclav.kramar@tiscali.cz>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../eina/base.c:22
+#, c-format
+msgid "Error creating GelUI for '%s': %s"
+msgstr "Chyba při vytváření GelUI for '%s': %s"
+
+#: ../eina/base.c:36
+msgid "Trying to free a NULL pointer"
+msgstr "Zkouším uvolnit ukazatel NULL"
+
+#: ../eina/eina-file-chooser-dialog.c:293
+msgid "Loading files..."
+msgstr "Načítám soubory..."
+
+#: ../eina/eina-file-chooser-dialog.c:354
+msgid "_Enqueue"
+msgstr "Zařadit"
+
+#: ../eina/eina-file-chooser-dialog.c:362
+msgid "Enqueue files"
+msgstr "Zařadit soubory"
+
+#: ../ui/about.ui.h:1
+msgid "A classic player for the modern era"
+msgstr "Klasický přehrávač pro moderní dobu"
+
+#: ../ui/about.ui.h:2
+msgid "About Eina"
+msgstr "O aplikaci Eina"
+
+#: ../ui/about.ui.h:3
+msgid "About|Website"
+msgstr "O aplikaci|Stránky"
+
+#: ../ui/about.ui.h:4
+msgid ""
+"Copyright &#xA9; 2003-2008 xuzo\n"
+"Copyright &#xA9; 2003-2005 xuzo and eru"
+msgstr ""
+"Copyright &#xA9; 2003-2008 xuzo\n"
+"Copyright &#xA9; 2003-2005 xuzo and eru"
+
+#: ../ui/about.ui.h:6
+msgid ""
+"Eina is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.\n"
+"\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License along with Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA."
+msgstr ""
+"Tento program je svobodný software; můžete jej šířit a modifikovat podle ustanovení Obecné veřejné licence GNU, vydávané Free Software Foundation; a to buď verze 2 této licence anebo (podle vašeho uvážení) kterékoli pozdější verze.\n"
+"\n"
+"Tento program je rozšiřován v naději, že bude užitečný, avšak BEZ JAKÉKOLI ZÁRUKY; neposkytují se ani odvozené záruky PRODEJNOSTI anebo VHODNOSTI PRO URČITÝ ÚČEL. Další podrobnosti hledejte ve Obecné veřejné licenci GNU.\n"
+"\n"
+"Kopii Obecné veřejné licence GNU jste měl obdržet spolu s tímto programem; pokud se tak nestalo, napište o ni Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA."
+
+#: ../ui/about.ui.h:11
+msgid "None yet :)"
+msgstr "Zatím žádné... :-)"
+
+#: ../ui/player.ui.h:1
+msgid "<small><tt></tt></small>"
+msgstr "<small><tt></tt></small>"
+
+#: ../ui/player.ui.h:3
+#, no-c-format
+msgid ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+msgstr ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+
+#: ../ui/player.ui.h:5
+msgid "Browse"
+msgstr "Procházet"
+
+#: ../ui/player.ui.h:6
+msgid "Next song"
+msgstr "Další skladba"
+
+#: ../ui/player.ui.h:7
+msgid "Previous song"
+msgstr "Předchozí skladba"
+
+#: ../ui/playlist.ui.h:1
+msgid "Activate or deactivate random mode"
+msgstr "Zapnout nebo vypnout náhodné přehrávání"
+
+#: ../ui/playlist.ui.h:2
+msgid "Activate or deactivate repeat mode"
+msgstr "Zapnout nebo vypnout opakované přehrávání"
+
+#: ../ui/playlist.ui.h:3
+msgid "Add or enqueue songs to this playlist"
+msgstr "Přidat skladby do seznamu"
+
+#: ../ui/playlist.ui.h:4
+msgid "Clear the playlist"
+msgstr "Vymazat seznam"
+
+#: ../ui/playlist.ui.h:5
+msgid "Playlist"
+msgstr "Seznam"
+
+#: ../ui/playlist.ui.h:6
+msgid "Remove selected songs from this playlist"
+msgstr "Odebrat vybrané skladby ze seznamu"
+
+#: ../ui/plugins.ui.h:1
+msgid "<b>Author:</b>"
+msgstr "<b>Autor:</b>"
+
+#: ../ui/plugins.ui.h:2
+msgid "<b>Website:</b>"
+msgstr "<b>Stránky:</b>"
+
+#: ../ui/plugins.ui.h:3
+msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
+msgstr "<span size=\"x-large\" weight=\"bold\">Jméno zásuvného modul</span>"
+
+#: ../ui/plugins.ui.h:4
+msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
+msgstr "<u>Jméno autora &lt;eina-users@lists.sourceforge.net&gt;</u>"
+
+#: ../ui/plugins.ui.h:5
+msgid "<u>http://eina.sf.net</u>"
+msgstr "<u>http://eina.sf.net</u>"
+
+#: ../ui/plugins.ui.h:6
+msgid "Long description"
+msgstr "Detailní popis"
+
+#: ../ui/plugins.ui.h:7
+msgid "Short description"
+msgstr "Krátký popis"
+
+#: ../ui/plugins.ui.h:8
+msgid "gtk-close"
+msgstr "gtk-close"
+
