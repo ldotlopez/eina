@@ -23,11 +23,11 @@
 #include <string.h>
 #include <gmodule.h>
 #include <gel/gel-ui.h>
+#include <eina/vogon.h>
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
 
-typedef struct 
-{
+struct _EinaVogon {
 	EinaObj        parent;
 
 	EinaConf      *conf;
@@ -36,7 +36,7 @@ typedef struct
 	GtkWidget     *menu;
 
 	gint player_x, player_y;
-} EinaVogon ;
+} _EinaVogon;
 
 // --
 // Lomo callbacks
@@ -96,6 +96,15 @@ static const gchar ui_def[] =
 "	</popup>"
 "</ui>";
 
+static GQuark
+vogon_quark(void)
+{
+	static GQuark ret = 0;
+	if (ret == 0)
+		ret = g_quark_from_static_string("eina-vogon");
+	return ret;
+}
+
 static gboolean
 vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
@@ -142,6 +151,13 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Crete icon
 	self->icon = gtk_status_icon_new();
+	if (!gtk_status_icon_is_embedded(self->icon))
+	{
+		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_CANNOT_EMBED, N_("Cannot embed GtkStatusIcon, aborting."));
+		g_object_unref(self->icon);
+		eina_obj_fini((EinaObj *) self);
+		return FALSE;
+	}
 
 	pixbuf = gel_ui_load_pixbuf_from_imagedef(img_def, error);
 	if (pixbuf == NULL)
@@ -172,7 +188,7 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 		G_CALLBACK(status_icon_activate_cb), self);
 
 	// Load settings 
-	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
+	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
 	{
 		g_object_unref(self->ui_mng);
 		g_object_unref(self->icon);
@@ -191,6 +207,10 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gel_warn(GEL_DOMAIN " is buggy on OSX. You have been warned, dont file any bugs about this.");
 #endif
 
+	// If player exists add a reference to GelApp to prevent exit
+	if (eina_player_get_main_window(GEL_APP_GET_PLAYER(app)) != NULL)
+		g_object_ref(app);
+
 	// Prepare destroy
 	g_signal_connect(self->icon, "notify::destryoy",
 	G_CALLBACK(status_icon_destroy_cb), self);
@@ -206,7 +226,6 @@ vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	gel_free_and_invalidate(self->icon, NULL, g_object_unref);
 	gel_free_and_invalidate(self->ui_mng, NULL, g_object_unref);
 
-	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
