@@ -33,11 +33,12 @@ AC_SUBST(GTK_BUILDER_CONVERT)
 #*******************************************************************************
 # Internationalization
 #*******************************************************************************
-# ALL_LINGUAS="ca cs es"
+AM_GLIB_GNU_GETTEXT
 GETTEXT_PACKAGE=eina
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
-AM_GLIB_GNU_GETTEXT
+DATADIRNAME="share"
+AC_SUBST(DATADIRNAME)
 
 # Some flags
 TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
