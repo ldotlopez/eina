@@ -1192,7 +1192,7 @@ build_cover_mask(GtkWidget *w)
 G_MODULE_EXPORT GelPlugin player_plugin = {
 	GEL_PLUGIN_SERIAL,
 
-	"player", PACKAGE_VERSION, "art,preferences",
+	"player", PACKAGE_VERSION, "preferences",
 	NULL, NULL,
 
 	N_("Build-in player plugin"), NULL, NULL,

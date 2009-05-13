@@ -66,10 +66,13 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 // Initialization and finilization functions
 // --
 void
-gel_init(gchar *app_name, gchar *data_dir);
+gel_init(gchar *app_name, gchar *lib_dir, gchar *data_dir);
 
 const gchar*
 gel_get_package_name(void);
+
+const gchar*
+gel_get_package_lib_dir(void);
 
 const gchar*
 gel_get_package_data_dir(void);

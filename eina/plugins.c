@@ -40,8 +40,8 @@ typedef struct {
 	GtkListStore   *model;
 	
 	GList          *visible_plugins;
-	GList          *all_plugins;
-	GList          *preenable_plugins;
+	// GList          *all_plugins;
+	// GList          *preenable_plugins;
 
 	GelPlugin      *active_plugin;
 
@@ -49,6 +49,13 @@ typedef struct {
 	GtkActionGroup *ui_mng_ag;
 	guint           ui_mng_merge_id;
 } EinaPlugins;
+
+typedef enum {
+	EINA_PLUGINS_NO_ERROR,
+	EINA_PLUGINS_ERROR_NO_SETTINGS,
+	EINA_PLUGINS_ERROR_NO_PLAYER,
+	EINA_PLUGINS_ERROR_MERGE_MENU
+} EinaPluginsError;
 
 enum {
 	PLUGINS_COLUMN_ENABLED,
@@ -81,6 +88,15 @@ plugins_cell_renderer_toggle_toggled_cb(GtkCellRendererToggle *w, gchar *path, E
 static void
 plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self);
 
+static GQuark
+plugins_quark(void)
+{
+	static GQuark ret = 0;
+	if (ret == 0)
+		ret = g_quark_from_static_string("eina-plugins");
+	return ret;
+}
+
 //--
 // Init/Exit functions 
 //--
@@ -97,12 +113,24 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Load settings
-	if ((self->conf = eina_obj_require(EINA_OBJ(self), "settings", error)) == NULL)
+	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
 	{
+		g_set_error(error, plugins_quark(), EINA_PLUGINS_ERROR_NO_SETTINGS,
+			N_("Cannot get settings object"));
 		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
 
+	// Get player
+	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
+	if (player == NULL)
+	{
+		g_set_error(error, plugins_quark(), EINA_PLUGINS_ERROR_NO_PLAYER,
+			N_("Cannot get player object"));
+		eina_obj_fini(EINA_OBJ(self));
+		return FALSE;
+	}
+	
 	// Build the GtkTreeView
 	GtkTreeViewColumn *tv_col_enabled, *tv_col_name;
 	GtkCellRenderer *enabled_render, *name_render;
@@ -157,13 +185,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(enabled_render, "toggled",
 	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
-	// Menu entry
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		debug("Cannot access player");
-		return FALSE;
-	}
 
 	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
@@ -177,7 +198,8 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		-1, error);
 	if (self->ui_mng_merge_id == 0)
 	{
-		eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
+		g_set_error(error, plugins_quark(), EINA_PLUGINS_ERROR_MERGE_MENU,
+			N_("Cannot merge menu"));
 		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
@@ -206,12 +228,11 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 			if (plugin)
 				continue;
 
-			gel_error("Cannot load plugin from path '%s': %s", plugins[i], err->message);
-			gel_free_and_invalidate(err, NULL, g_error_free);
-			
 			gchar *dirname = g_path_get_dirname(plugins[i]);
 			gchar *plugin_name = g_path_get_basename(dirname);
 			g_free(dirname);
+			gel_warn("Plugin %s loaded by pathname failed: %s.\nTrying with name %s.", plugins[i], err->message, plugin_name);
+			g_clear_error(&err);
 
 			plugin = gel_app_load_plugin_by_name(app, plugin_name, &err);
 			if (plugin)
@@ -220,7 +241,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 				continue;
 			}
 
-			gel_error("Cannot load plugin from name '%s': %s", plugin_name, err->message);
+			gel_error("Cannot load plugin (neither path or name)'%s': %s", plugin_name, err->message);
 			g_free(plugin_name);
 			gel_free_and_invalidate(err, NULL, g_error_free);
 		}
@@ -236,6 +257,26 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlugins *self = EINA_PLUGIN_DATA(plugin);
 
+	GList *plugins = gel_app_get_plugins(app);
+	GList *iter = plugins;
+	while (iter)
+	{
+		GelPlugin *plugin = (GelPlugin *) iter->data;
+		if (
+			(gel_plugin_get_pathname(plugin) == NULL) ||
+			(gel_plugin_get_usage(plugin) > 0)        ||
+			(gel_plugin_is_in_use(plugin) == TRUE)
+			)
+		{
+			iter = iter->next;
+			continue;
+		}
+
+		gel_app_unload_plugin(app, plugin, NULL);
+
+		iter = iter->next;
+	}
+
 	plugins_unload_plugins(self);
 	
 	// Unmerge menu
@@ -250,7 +291,6 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	gtk_widget_destroy(self->window);
 
-	eina_obj_unrequire(EINA_OBJ(self), "settings", NULL);
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
@@ -262,10 +302,14 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 static void
 plugins_load_plugins(EinaPlugins *self)
 {
+	/*
 	if (self->all_plugins)
 		plugins_unload_plugins(self);
-	
-	GList *iter = self->all_plugins = gel_app_query_plugins(eina_obj_get_app(self));
+	*/
+
+	GList *plugins, *iter;
+	iter = plugins = gel_app_query_plugins(eina_obj_get_app(self));
+	gel_warn("App is aware of %d plugins", g_list_length(plugins));
 	while (iter)
 	{
 		GelPlugin *plugin = (GelPlugin *) iter->data;
@@ -275,64 +319,47 @@ plugins_load_plugins(EinaPlugins *self)
 			continue;
 		}
 
+		// Add a lock on visible plugins
 		self->visible_plugins = g_list_prepend(self->visible_plugins, plugin);
-		if (gel_plugin_is_enabled(plugin))
-		{
-			self->preenable_plugins = g_list_prepend(self->preenable_plugins, plugin);
-			gel_warn("Added lock on %s", gel_plugin_stringify(plugin));
-			gel_plugin_add_reference(plugin, self->plugin);
-		}
+		gel_plugin_add_lock(plugin);
+
+		gel_warn("Got visible plugin: %s", gel_plugin_stringify(plugin));
+		gel_warn("Added lock on %s", gel_plugin_stringify(plugin));
+
+
 		iter = iter->next;
 	}
 	self->visible_plugins = g_list_reverse(self->visible_plugins);
+	g_list_free(plugins);
 }
 
 static void
 plugins_unload_plugins(EinaPlugins *self)
 {
-	g_list_foreach(self->preenable_plugins, (GFunc) gel_plugin_remove_reference, (gpointer) self->plugin);
-	g_list_free(self->preenable_plugins);
-	self->preenable_plugins = NULL;
-
-	GList *dump = NULL;
-	GList *iter = self->all_plugins;
+	GString *dump_str = g_string_new(NULL);
+	GList *iter = self->visible_plugins;
 	while (iter)
 	{
-		GelPlugin *plugin = (GelPlugin *) iter->data;
-		if ((gel_plugin_get_usage(plugin) == 0) && !gel_plugin_is_enabled(plugin))
+		GelPlugin *plugin = (GelPlugin*) iter->data;
+		if (gel_plugin_is_enabled(plugin))
 		{
-			GError *err = NULL;
-			if (!gel_plugin_free(plugin, &err))
-			{
-				gel_error("Cannot free unused and not enabled plugin %s: %s",
-					gel_plugin_stringify(plugin), err->message);
-				g_error_free(err);
-			}
+			if (dump_str->str != NULL)
+				dump_str = g_string_append_c(dump_str, ',');
+			dump_str = g_string_append(dump_str, gel_plugin_get_pathname(plugin));
 		}
-		else
-			dump = g_list_prepend(dump, plugin);
-
 		iter = iter->next;
 	}
 
-	g_list_free(self->visible_plugins);
-	g_list_free(self->all_plugins);
-	self->visible_plugins = NULL;
-	self->all_plugins = NULL;
-
-	GString *dump_str = g_string_new(NULL);
-	iter = g_list_last(dump);
-	while (iter)
-	{
-		dump_str = g_string_append(dump_str, gel_plugin_get_pathname(GEL_PLUGIN(iter->data)));
-		if (iter->prev)
-			dump_str = g_string_append_c(dump_str, ',');
-		iter = iter->prev;
-	}
-	g_list_free(dump);
 	eina_conf_set_str(self->conf, "/plugins/enabled", dump_str->str);
 	g_string_free(dump_str, TRUE);
 
+	// Remove locks on visible plugins
+	g_list_foreach(self->visible_plugins, (GFunc) gel_plugin_remove_lock, NULL);
+	g_list_free(self->visible_plugins);
+	self->visible_plugins = NULL;
+
+	// Purge
+	gel_app_purge(gel_plugin_get_app(self->plugin));
 }
 
 static void
@@ -522,24 +549,29 @@ plugins_cell_renderer_toggle_toggled_cb
 	GError *err = NULL;
 	if (gel_plugin_is_enabled(plugin))
 	{
+#if 0
 		if (g_list_find(self->preenable_plugins, plugin))
 		{
 			self->preenable_plugins = g_list_remove(self->preenable_plugins, plugin);
 			gel_plugin_remove_reference(plugin, self->plugin);
 		}
+#endif
 		gel_app_unload_plugin(eina_obj_get_app(self), plugin, &err);
 	}
 	else
-	{	
+	{
 		gchar *dirname = g_path_get_dirname((gchar *) gel_plugin_get_pathname(plugin));
 		gchar *plugin_name = g_path_get_basename(dirname);
 		g_free(dirname);
 
+		gel_app_load_plugin(eina_obj_get_app(self), (gchar *) gel_plugin_get_pathname(plugin), plugin_name, &err);
+#if 0
 		if (gel_app_load_plugin(eina_obj_get_app(self), (gchar *) gel_plugin_get_pathname(plugin), plugin_name, &err))
 		{
 			self->preenable_plugins = g_list_prepend(self->preenable_plugins, plugin);
 			gel_plugin_add_reference(plugin, self->plugin);
 		}
+#endif
 	}
 
 	debug("%s of plugin %s: %s (%s)",

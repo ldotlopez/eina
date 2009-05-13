@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
+#include <glib/gprintf.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
@@ -100,7 +101,7 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "log", "settings", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
+	gchar          *modules[] = { /* "log", */ "settings", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
 #if HAVE_IGE
 		"ige",
 #endif
@@ -109,15 +110,14 @@ gint main
 	GOptionContext *opt_ctx;
 	GError *err = NULL;
 
-#ifdef ENABLE_NLS
+	g_printf("=> Locale dir: " PACKAGE_LOCALE_DIR "\n");
 	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
-#endif
 
 	gtk_init(&argc, &argv);
 	lomo_init(&argc, &argv);
-	gel_init(PACKAGE_NAME, PACKAGE_DATA_DIR);
+	gel_init(PACKAGE_NAME, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
 
 	// --
 	// Parse commandline
@@ -202,11 +202,14 @@ gint main
 	for (i = 0; modules[i]; i++)
 	{
 		GError *error = NULL;
-		if (!gel_app_load_plugin_by_name(app, modules[i],& error))
+		GelPlugin *plugin = gel_app_load_plugin_by_name(app, modules[i],& error);
+		if (plugin == NULL)
 		{
 			gel_error("Cannot load %s: %s", modules[i], error->message);
 			g_error_free(error);
 		}
+		else
+			gel_plugin_add_lock(plugin);
 	}
 
 	// --
@@ -367,13 +370,22 @@ app_dispose_cb(GelApp *app, gpointer data)
 	for (;i >= 0; i--)
 	{
 		GError *error = NULL;
-		if (gel_app_get_plugin_by_name(app, modules[i]) && !gel_app_unload_plugin_by_name(app, modules[i], &error))
+		GelPlugin *plugin = gel_app_get_plugin_by_name(app, modules[i]);
+		if (plugin == NULL)
 		{
-			gel_error(N_("Cannot fini plugin %s: %s"), modules[i], error->message);
+			gel_error(N_("Cannot find loaded plugin %s"), modules[i]);
+			continue;
+		}
+	
+		gel_plugin_remove_lock(plugin);
+		if (!gel_app_unload_plugin(app, plugin, &error))
+		{
+			gel_error(N_("Cannot fini plugin %s: %s"), gel_plugin_stringify(plugin), error->message);
 			g_error_free(error);
 			continue;
 		}
 	}
+	gel_app_purge(app);
 
 	gtk_main_quit();
 }

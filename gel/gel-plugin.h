@@ -43,7 +43,8 @@ enum {
 	GEL_PLUGIN_HAS_NO_INIT_HOOK,
 	GEL_PLUGIN_NO_ERROR_AVAILABLE,
 	GEL_PLUGIN_NOT_INITIALIZED,
-	GEL_PLUGIN_CANNOT_LOAD
+	GEL_PLUGIN_CANNOT_LOAD,
+	GEL_PLUGIN_ERROR_LOCKED
 };
 
 typedef struct _GelPluginPrivate GelPluginPrivate;
@@ -67,38 +68,38 @@ struct _GelPlugin {
 	GelPluginExtend  *extend; // Reserved for extensions, must be NULL
 };
 
-gboolean     gel_plugin_matches     (GelPlugin *plugin, gchar *pathname, gchar *symbol);
+#ifdef GEL_COMPILATION
+GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
+gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
+
+gboolean gel_plugin_init(GelPlugin *plugin, GError **error);
+gboolean gel_plugin_fini(GelPlugin *plugin, GError **error);
+
+void     gel_plugin_add_reference(GelPlugin *plugin, GelPlugin *dependant);
+void     gel_plugin_remove_reference(GelPlugin *plugin, GelPlugin *dependant);
+#endif
+
+gboolean gel_plugin_is_in_use(GelPlugin *plugin);
+guint    gel_plugin_get_usage(GelPlugin *plugin);
+
+gboolean gel_plugin_is_locked(GelPlugin *plugin);
+void     gel_plugin_add_lock(GelPlugin *plugin);
+void     gel_plugin_remove_lock(GelPlugin *plugin);
+
 GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
 const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
-
-gchar *gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
-/*
-#define gel_plugin_build_resource_path(plugin,resource_path) \
-	(((plugin == NULL) || (gel_plugin_get_pathname(plugin) == NULL)) ? \
-	NULL : \
-	g_build_filename(gel_plugin_get_pathname(plugin), resource_path, NULL))
-*/
+gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
 
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE
 #define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data)
 #endif
 
-// Create or destroy plugins
-GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
-gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
+// Utils
+#define gel_plugin_util_stringify(pathname,name) g_build_filename((pathname?pathname:"<NULL>"),name,NULL)
+gchar*  gel_plugin_util_stringify_for_pathname(gchar *pathname);
+gchar*  gel_plugin_util_join_list(gchar *separator, GList *plugin_list);
 
-void     gel_plugin_add_reference(GelPlugin *plugin, GelPlugin *dependant);
-void     gel_plugin_remove_reference(GelPlugin *plugin, GelPlugin *dependant);
-gboolean gel_plugin_is_in_use(GelPlugin *plugin);
-guint    gel_plugin_get_usage(GelPlugin *plugin);
-
-// Initialize or finalize plugins
-gboolean gel_plugin_init(GelPlugin *plugin, GError **error);
-gboolean gel_plugin_fini(GelPlugin *plugin, GError **error);
-
-G_END_DECLS
-
-#endif /* _GEL_PLUGIN */
+#endif

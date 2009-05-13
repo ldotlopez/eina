@@ -29,6 +29,7 @@ extern int errno;
 // --
 static gchar *_gel_package_name = NULL;
 static gchar *_gel_package_data_dir = NULL;
+static gchar *_gel_package_lib_dir  = NULL;
 static gint   _gel_debug_level = GEL_DEBUG_LEVEL_INFO;
 
 static GList *_gel_debug_handlers      = NULL;
@@ -50,9 +51,10 @@ _gel_atexit(void)
 }
 
 void
-gel_init(gchar *name, gchar *data_dir)
+gel_init(gchar *name, gchar *lib_dir, gchar *data_dir)
 {
 	_gel_package_name     = g_strdup(name);
+	_gel_package_lib_dir  = g_strdup(lib_dir);
 	_gel_package_data_dir = g_strdup(data_dir);
 	_gel_debug_handlers      = g_list_append(NULL, gel_debug_default_handler);
 	_gel_debug_handlers_data = g_list_append(NULL, NULL);
@@ -65,6 +67,11 @@ gel_get_package_name(void)
 	return (const gchar *) _gel_package_name;
 }
 
+const gchar*
+gel_get_package_lib_dir(void)
+{
+	return (const gchar *) _gel_package_lib_dir;
+}
 
 const gchar*
 gel_get_package_data_dir(void)

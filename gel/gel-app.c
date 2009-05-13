@@ -47,15 +47,16 @@ static GList*
 build_paths(void);
 
 #define is_owned(self,plugin) \
-	((gel_plugin_get_app(plugin) == self) && (g_list_find(self->priv->plugins, plugin) != NULL))
+	((gel_plugin_get_app(plugin) == self) && (g_hash_table_lookup(self->priv->lookup, gel_plugin_stringify(plugin)) != NULL))
 
 struct _GelAppPrivate {
 	GelAppDisposeFunc dispose_func;
 	gpointer  dispose_data;
 
-	GList      *plugins; // Loaded plugins
 	GHashTable *shared;  // Shared memory
 	GList      *paths;   // Paths to search plugins
+
+	GHashTable *lookup;  // Fast lookup table
 };
 
 enum {
@@ -63,8 +64,6 @@ enum {
 	PLUGIN_FINI,
 	PLUGIN_LOAD,
 	PLUGIN_UNLOAD,
-	// MODULE_REF,
-	// MODULE_UNREF,
 
 	LAST_SIGNAL
 };
@@ -73,15 +72,17 @@ static guint gel_app_signals[LAST_SIGNAL] = { 0 };
 static gchar *
 list_loaded_plugins(GelApp *self)
 {
-	GList *l = NULL, *iter;
-	iter = self->priv->plugins;
+	GList *l = NULL;
+	GList *plugins = g_hash_table_get_values(self->priv->lookup);
+	GList *iter = plugins;
 	while (iter)
 	{
 		l = g_list_prepend(l, (gpointer) gel_plugin_stringify((GelPlugin *) iter->data));
 		iter = iter->next;
 	}
-	
-	gchar *ret = gel_list_join(",", l);
+	g_list_free(plugins);
+
+	gchar *ret = gel_list_join("\n", l);
 	g_list_free(l);
 
 	return ret;
@@ -102,14 +103,16 @@ gel_app_dispose (GObject *object)
 		}
 
 		// Unload all plugins in reverse order
-		if (self->priv->plugins)
+		GList *plugins = g_hash_table_get_values(self->priv->lookup);
+		if (plugins)
 		{
 			g_warning(N_("%d plugins still loadeds, will be leaked. Use a dispose func (gel_app_set_dispose_func) to unload them at exit"),
-				g_list_length(self->priv->plugins));
+				g_list_length(plugins));
 			gchar *tmp = list_loaded_plugins(self);
 			g_warning("%s", tmp);
 			g_free(tmp);
-			gel_free_and_invalidate(self->priv->plugins, NULL, g_list_free);
+			g_list_free(plugins);
+			g_hash_table_destroy(self->priv->lookup);
 		}
 
 		// Clear paths
@@ -179,29 +182,6 @@ gel_app_class_init (GelAppClass *klass)
         G_TYPE_NONE,
         1,
 		G_TYPE_POINTER);
-	/* ref / unref */
-	/*
-    gel_app_signals[MODULE_REF] = g_signal_new ("plugin-ref",
-        G_OBJECT_CLASS_TYPE (object_class),
-        G_SIGNAL_RUN_LAST,
-        G_STRUCT_OFFSET (GelAppClass, plugin_ref),
-        NULL, NULL,
-        gel_app_marshal_VOID__POINTER_UINT,
-        G_TYPE_NONE,
-        2,
-		G_TYPE_POINTER,
-		G_TYPE_UINT);
-    gel_app_signals[MODULE_UNREF] = g_signal_new ("plugin-unref",
-        G_OBJECT_CLASS_TYPE (object_class),
-        G_SIGNAL_RUN_LAST,
-        G_STRUCT_OFFSET (GelAppClass, plugin_unref),
-        NULL, NULL,
-        gel_app_marshal_VOID__POINTER_UINT,
-        G_TYPE_NONE,
-        2,
-		G_TYPE_POINTER,
-		G_TYPE_UINT);
-	*/
 }
 
 static void
@@ -210,9 +190,9 @@ gel_app_init (GelApp *self)
 	GelAppPriv *priv = self->priv = g_new0(GelAppPriv, 1);
 
 	priv->dispose_func = priv->dispose_data = NULL;
-	priv->plugins = NULL;
 	priv->paths  = NULL;
 	priv->shared = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+	priv->lookup = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 }
 
 GelApp*
@@ -224,9 +204,6 @@ gel_app_new (void)
 void
 gel_app_set_dispose_callback(GelApp *self, GelAppDisposeFunc callback, gpointer user_data)
 {
-	g_warn_if_fail(self->priv->dispose_func == NULL);
-	g_warn_if_fail(callback != NULL);
-
 	self->priv->dispose_func = callback;
 	self->priv->dispose_data = user_data;
 }
@@ -245,8 +222,8 @@ symbol_from_pathname(gchar *pathname)
 GList *
 gel_app_query_paths(GelApp *self)
 {
-	gel_list_deep_free(self->priv->paths, g_free);
-	self->priv->paths = build_paths();
+	if (self->priv->paths == NULL)
+		self->priv->paths = build_paths();
 	return g_list_copy(self->priv->paths);
 }
 
@@ -256,47 +233,54 @@ gel_app_query_paths(GelApp *self)
 GelPlugin*
 gel_app_get_plugin(GelApp *self, gchar *pathname, gchar *name)
 {
-	gchar *symbol = g_strconcat(name, "_plugin", NULL);
+	// DONT remove this comment
+	// g_return_val_if_fail(pathname != NULL, NULL); // pathname can be NULL,
+	g_return_val_if_fail(name != NULL, NULL);
 
-	GList *iter = self->priv->plugins;
-	while (iter != NULL)
-	{
-		if (gel_plugin_matches(GEL_PLUGIN(iter->data), pathname, symbol))
-		{
-			g_free(symbol);
-			return GEL_PLUGIN(iter->data);
-		}
-		iter = iter->next;
-	}
-	
-	g_free(symbol);
-	return NULL;
+	gchar *pstr = gel_plugin_util_stringify(pathname, name);
+	GelPlugin *ret = g_hash_table_lookup(self->priv->lookup, pstr);
+	g_free(pstr);
+
+	return ret;
 }
 
 GelPlugin*
 gel_app_get_plugin_by_pathname(GelApp *self, gchar *pathname)
 {
-	gchar *dirname = g_path_get_dirname(pathname);
-	gchar *name = g_path_get_basename(dirname);
-	g_free(dirname);
-	GelPlugin *plugin = gel_app_get_plugin(self, pathname, name);
-	g_free(name);
+	g_return_val_if_fail(pathname != NULL, NULL);
 
-	return plugin;
+	gchar *pstr = gel_plugin_util_stringify_for_pathname(pathname);
+	GelPlugin *ret =  g_hash_table_lookup(self->priv->lookup, pstr);
+	g_free(pstr);
+
+	return ret;
 }
 
 GelPlugin*
 gel_app_get_plugin_by_name(GelApp *self, gchar *name)
 {
-	GList *iter = self->priv->plugins;
+	g_return_val_if_fail(name != NULL, NULL);
+
+	GelPlugin *ret = NULL;
+	GList *paths = gel_app_query_paths(self);
+	paths = g_list_prepend(paths, NULL);
+
+	GList *iter = paths;
 	while (iter)
 	{
-		if (g_str_equal(GEL_PLUGIN(iter->data)->name, name))
-			return GEL_PLUGIN(iter->data);
+		if ((ret = gel_app_get_plugin(self, (gchar *) iter->data, name)) != NULL)
+			break;
 		iter = iter->next;
 	}
+	g_list_free(paths);
 
-	return NULL;
+	return ret;
+}
+
+GList *
+gel_app_get_plugins(GelApp *self)
+{
+	return g_hash_table_get_values(self->priv->lookup);
 }
 
 // --
@@ -311,8 +295,7 @@ gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 		return plugin;
 
 	gchar *symbol = g_strconcat(name, "_plugin", NULL);
-	if ((plugin = gel_plugin_new(self, pathname, symbol, error)) != NULL)
-		self->priv->plugins = g_list_append(self->priv->plugins, plugin);
+	plugin = gel_plugin_new(self, pathname, symbol, error);
 	g_free(symbol);
 
 	return plugin;
@@ -320,8 +303,12 @@ gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 
 GelPlugin *
 gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
-{
-	if (!self && !pathname) return NULL;
+{	
+	if (!self || !pathname)
+	{
+		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_GENERIC, N_("Invalid arguments"));
+		return NULL;
+	}
 
 	// Search in know plugins
 	GelPlugin *plugin = gel_app_get_plugin_by_pathname(self, pathname);
@@ -330,15 +317,8 @@ gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
 
 	// Create new plugin
 	gchar *symbol = symbol_from_pathname(pathname);
-	if ((plugin = gel_plugin_new(self, pathname, symbol, error)) != NULL)
-		self->priv->plugins = g_list_append(self->priv->plugins, plugin);
+	plugin = gel_plugin_new(self, pathname, symbol, error);
 	g_free(symbol);
-
-	if (plugin == NULL)
-	{
-		g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_NOT_FOUND, N_("Plugin not found"));
-		return NULL;
-	}
 
 	return plugin;
 }
@@ -359,7 +339,6 @@ gel_app_query_plugin_by_name(GelApp *self, gchar *name, GError **error)
 		gchar *pathname = g_module_build_path((gchar *) iter->data, name);
 		if ((plugin = gel_plugin_new(self, pathname, name, NULL)) != NULL)
 		{
-			self->priv->plugins = g_list_append(self->priv->plugins, plugin);
 			g_free(pathname);
 			g_list_free(paths);
 			return plugin;
@@ -370,13 +349,10 @@ gel_app_query_plugin_by_name(GelApp *self, gchar *name, GError **error)
 
 	// Build-in
 	gchar *symbol = g_strconcat(name, "_plugin", NULL);
-	if ((plugin = gel_plugin_new(self, NULL, symbol, NULL)) != NULL)
-		self->priv->plugins = g_list_append(self->priv->plugins, plugin);
+	if ((plugin = gel_plugin_new(self, NULL, symbol, NULL)) == NULL)
+		g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_NOT_FOUND, N_("Plugin not found"));
 	g_free(symbol);
 
-	// Not found
-	if (plugin == NULL)
-		g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_NOT_FOUND, N_("Plugin not found"));
 	return plugin;
 }
 
@@ -390,18 +366,26 @@ gel_app_query_plugins(GelApp *self)
 	while (iter)
 	{
 		GList *child, *children;
+		gel_warn("Inspecting %s", iter->data);
 		child = children = gel_dir_read(iter->data, TRUE, NULL);
 		while (child)
 		{
 			gchar *plugin_name = g_path_get_basename(child->data);
 			gchar *module_path = g_module_build_path(child->data, plugin_name);
 			g_free(plugin_name);
+			gel_warn("Querying for plugin %s", module_path);
 
-			GelPlugin *plugin = gel_app_query_plugin_by_pathname(self, module_path, NULL);
-			g_free(module_path);
+			GError *err = NULL;
+			GelPlugin *plugin = gel_app_query_plugin_by_pathname(self, module_path, &err);
 
 			if (plugin)
 				ret = g_list_prepend(ret, plugin);
+			else
+			{
+				gel_error("Cannot load %s: %s", module_path, err->message);
+				g_error_free(err);
+			}
+			g_free(module_path);
 
 			child = child->next;
 		}
@@ -417,27 +401,31 @@ gel_app_query_plugins(GelApp *self)
 // --
 // Load plugins
 // --
-
+#if 0
 static gboolean
 unload_n_deps(GelApp *app, GelPlugin *plugin, gint n, GError **error)
 {
+	if (plugin->depends == NULL)
+		return TRUE;
+
 	gchar **deps = g_strsplit(plugin->depends, ",", 0);
 
 	if (n < 0)
 		n = g_strv_length(deps) - 1;
 
-	gel_warn("Rollback started from %d", n);
 	while (n >= 0)
 	{
 		GelPlugin *p = gel_app_get_plugin_by_name(app, deps[n]);
 		if (p)
 		{
 			gel_plugin_remove_reference(p, plugin);
+		/*
 			if (!gel_plugin_is_in_use(p))
 			{
 				if (!gel_plugin_fini(p, NULL))
 					gel_warn("EH?!");
 			}
+			*/
 		}
 		n--;
 	}
@@ -450,6 +438,7 @@ gel_app_unload_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error
 {
 	return unload_n_deps(app, plugin, -1, error);
 }
+#endif
 
 gboolean
 gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
@@ -465,18 +454,18 @@ gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
 		GelPlugin *p = NULL;
 		if ((p = gel_app_load_plugin_by_name(app, deps[i], &err)) == NULL)
 		{
-			// gel_warn("   Dep %s failed", deps[i]);
 			g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_DEP_NOT_FOUND,
 				N_("Dependecy %s for %s not found"), deps[i], gel_plugin_stringify(plugin));
 			g_error_free(err);
 			break;
 		}
-		// gel_warn("   Dep %s loaded", deps[i]);
 		gel_plugin_add_reference(p, plugin);
 		i++;
 	}
 	g_free(deps);
 
+	return (deps[i] == NULL);
+#if 0
 	if (deps[i] == NULL)
 		return TRUE;
 	else
@@ -484,34 +473,44 @@ gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
 		if (i > 0)
 		{
 			// gel_warn("Calling rollback with n = %d", i - 1);
+			gel_warn("Rollback started from %d", i - 1);
 			unload_n_deps(app, plugin, i - 1, NULL);
 		}
 		return FALSE;
 	}
+#endif
 }
 
 GelPlugin *
 gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 {
-	GelPlugin *plugin = gel_app_query_plugin(self, pathname, name, error);
-	if (plugin == NULL)
-	{
-		// gel_warn("Plugin %s:%s not found", pathname ? pathname : "(null)", name);
+	// Check if another plugin with the same name is already loaded
+	GelPlugin *plugin = gel_app_get_plugin_by_name(self,name);
+	if (plugin && gel_plugin_is_enabled(plugin))
+		/*
+		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_PLUGIN_ALREADY_LOADED_BY_NAME,
+			N_("Another plugin (%s) with the same name (%s) is loaded and initialized"), gel_plugin_get_pathname(plugin), name);
+		*/
+		return plugin;
+	
+	if (!plugin && ((plugin = gel_app_query_plugin(self, pathname, name, error)) == NULL))
 		return NULL;
-	}
 
+	// PLugin is already enabled, continue
 	if (gel_plugin_is_enabled(plugin))
 	{
 		// gel_warn("Plugin %s already enabled, its ok", gel_plugin_stringify(plugin));
 		return plugin;
 	}
 
+	// Before init we need to load other deps
 	if (!gel_app_load_plugin_dependences(self, plugin, error))
 	{
 		// gel_warn("Cannot load dependences for %s: %s", gel_plugin_stringify(plugin), (*error)->message);
 		return NULL;
 	}
-	
+
+	// Call init hook
 	if (!gel_plugin_init(plugin, error))
 	{
 		// gel_warn("Cannot init %s: %s (unload deps)", gel_plugin_stringify(plugin), (*error)->message);
@@ -520,7 +519,6 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 
 	return plugin;
 }
-
 
 GelPlugin *
 gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
@@ -564,17 +562,82 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 // --
 // Unload plugins, _by_name and _by_pathname are provided via macros
 // --
-
 gboolean
 gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 {
-	if (plugin == NULL)
-		return FALSE;
+	g_return_val_if_fail(plugin != NULL, FALSE);
+	GError *err = NULL;
 
-	if (gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, error))
+	// Check if any other plugin references this plugin
+	if (gel_plugin_is_in_use(plugin))
+	{
+		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_PLUGIN_IN_USE,
+			N_("Cannot unload plugin %s, its used by %d plugins"),
+			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
+		gel_warn(N_("Cannot unload plugin %s, its used by %d plugins"),
+			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
 		return FALSE;
+	}
+
+	// Disable in case it was enabled
+	if (gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, &err))
+	{
+		gel_warn("Cannot finalize plugin %s: %s", gel_plugin_stringify(plugin), err->message);
+		g_propagate_error(error, err);
+		return FALSE;
+	}
+
+#if 0
+	// Now remove references from this plugin
+	if (!gel_app_unload_plugin_dependences(self, plugin, &err))
+	{
+		gel_warn("Error while unloading deps for %s", gel_plugin_stringify(plugin));
+		g_propagate_error(error, err);
+		return FALSE;
+	}
+#endif
+
+	if (gel_plugin_is_locked(plugin))
+		return TRUE;
+
+	if (!gel_plugin_free(plugin, &err))
+	{
+		gel_warn("Cannot free plugin after all: %s", err->message);
+		g_propagate_error(error, err);
+		return FALSE;
+	}
 
 	return TRUE;
+}
+
+void
+gel_app_purge(GelApp *app)
+{
+	GList *plugins = g_hash_table_get_values(app->priv->lookup);
+	GList *iter = plugins;
+	while (iter)
+	{
+		GelPlugin *plugin = GEL_PLUGIN(iter->data);
+		GError *err = NULL;
+
+		if (!gel_plugin_is_enabled(plugin) && !gel_plugin_is_in_use(plugin))
+		{
+			gchar *pstr = g_strdup(gel_plugin_stringify(plugin));
+			if (gel_plugin_free(plugin, &err))
+			{
+				gel_warn("PURGE %s", pstr);
+			}
+			else
+			{
+				gel_error("Cannot free plugin %s: %s", gel_plugin_stringify(plugin), err->message);
+				g_error_free(err);
+			}
+			g_free(pstr);
+		}
+
+		iter = iter->next;
+	}
+	g_list_free(plugins);
 }
 
 // --
@@ -635,7 +698,7 @@ gel_app_emit_signal(GelApp *self, guint id, GelPlugin *plugin)
 		return;
 	g_signal_emit(self, gel_app_signals[id], 0, plugin);
 }
-
+/*
 void
 gel_app_emit_load(GelApp *self, GelPlugin *plugin)
 {
@@ -647,7 +710,7 @@ gel_app_emit_unload(GelApp *self, GelPlugin *plugin)
 {
 	gel_app_emit_signal(self, PLUGIN_UNLOAD, plugin);
 }
-
+*/
 void
 gel_app_emit_init(GelApp *self, GelPlugin *plugin)
 {
@@ -661,15 +724,29 @@ gel_app_emit_fini(GelApp *self, GelPlugin *plugin)
 }
 
 void
-gel_app_delete_plugin(GelApp *self, GelPlugin *plugin)
+gel_app_add_plugin(GelApp *self, GelPlugin *plugin)
 {
-	if (gel_plugin_is_in_use(plugin) || gel_plugin_is_enabled(plugin))
-	{
-		g_warning("Invalid deletion");
-		return;
-	}
+	g_return_if_fail(plugin != NULL);
+	const gchar *pstr = gel_plugin_stringify(plugin);
+	g_return_if_fail(g_hash_table_lookup(self->priv->lookup, pstr) == NULL);
+	
+	g_hash_table_insert(self->priv->lookup, g_strdup(pstr), plugin);
+	gel_warn("Added plugin %s", gel_plugin_stringify(plugin));
+	gel_app_emit_signal(self, PLUGIN_LOAD, plugin);
+}
 
-	self->priv->plugins = g_list_remove(self->priv->plugins, plugin);
+void
+gel_app_remove_plugin(GelApp *self, GelPlugin *plugin)
+{
+	g_return_if_fail(plugin != NULL);
+	const gchar *pstr = gel_plugin_stringify(plugin);
+	g_return_if_fail(g_hash_table_lookup(self->priv->lookup, pstr) != NULL);
+	g_return_if_fail(gel_plugin_is_in_use(plugin) == FALSE);
+	g_return_if_fail(gel_plugin_is_enabled(plugin) == FALSE);
+
+	g_hash_table_remove(self->priv->lookup, pstr);
+	gel_warn("Removed plugin %s", gel_plugin_stringify(plugin));
+	gel_app_emit_signal(self, PLUGIN_UNLOAD, plugin);
 }
 
 // --
@@ -682,10 +759,9 @@ build_paths(void)
 {
 	GList *ret = NULL;
 
-#ifdef PACKAGE_LIB_DIR
-	// Add PACKAGE_LIB_DIR
-	ret = g_list_prepend(ret, g_strdup(PACKAGE_LIB_DIR));
-#endif
+	const gchar *libdir = gel_get_package_lib_dir();
+	if (libdir)
+		ret = g_list_prepend(ret, g_strdup(libdir));
 
 #ifdef PACKAGE_NAME
 	// Add users dir

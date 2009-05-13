@@ -299,7 +299,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	setup_dnd(self);
 
 	gtk_widget_show(self->dock);
-	return eina_dock_add_widget(EINA_OBJ_GET_DOCK(self), "playlist",
+	return eina_dock_add_widget(GEL_APP_GET_DOCK(app), "playlist",
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), self->dock);
 }
 
@@ -1210,7 +1210,7 @@ void setup_dnd(EinaPlaylist *self)
  */
 G_MODULE_EXPORT GelPlugin playlist_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"playlist", PACKAGE_VERSION, NULL,
+	"playlist", PACKAGE_VERSION, "dock",
 	NULL, NULL,
 
 	N_("Build-in playlist plugin"), NULL, NULL,
