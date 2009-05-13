@@ -1,10 +1,12 @@
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir) \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-	@PACKAGE_CFLAGS@ \
-	-DLIBLOMO_COMPILATION
+	-DLIBLOMO_COMPILATION \
+	@PACKAGE_CFLAGS@
 
+#	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
+#	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+#
+	
 lib_LTLIBRARIES = liblomo-1.0.la
 liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0
 liblomo_1_0_la_LIBADD = @PACKAGE_LIBS@ $(INTLLIBS)

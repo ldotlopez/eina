@@ -1,15 +1,10 @@
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DPACKAGE_LIB_DIR=\""$(pkglibdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(pkgdatadir)/locale"\" \
-	-DEINA_COMPILATION
-AM_CFLAGS =	@PACKAGE_CFLAGS@
-
-#	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
-#	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-#	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-#	-DEINA_COMPILATION
+	-DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" \
+	-DEINA_COMPILATION \
+	@PACKAGE_CFLAGS@
 
 bin_PROGRAMS = eina
 
@@ -92,5 +87,5 @@ endif
 if USE_IGE
 eina_SOURCES += eina-ige.c
 eina_LDADD += @IGE_LIBS@
-AM_CFLAGS += @IGE_CFLAGS@
+AM_CPPFLAGS += @IGE_CFLAGS@
 endif

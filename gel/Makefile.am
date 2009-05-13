@@ -1,10 +1,12 @@
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir) \
-	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DGEL_COMPILATION \
 	@PACKAGE_CFLAGS@
+
+#	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
+#	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
+#	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
+#
 
 # Version X.Y must be specified
 lib_LTLIBRARIES = libgel-1.0.la
