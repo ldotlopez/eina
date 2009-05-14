@@ -296,7 +296,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	GelUISignalDef ui_signals[] = {
 		{ "main-window",       "delete-event",       G_CALLBACK(main_window_delete_event_cb) },
 		{ "main-window",       "window-state-event", G_CALLBACK(main_window_window_state_event_cb) },
-		{ "main-box",          "key-press-event",    G_CALLBACK(main_box_key_press_event_cb) },
+		{ "main-window",       "key-press-event",    G_CALLBACK(main_box_key_press_event_cb) },
 		{ "prev-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "next-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "play-pause-button", "clicked", G_CALLBACK(button_clicked_cb) },
@@ -758,9 +758,9 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 	eina_conf_set_int(self->conf, "/ui/size_w", width);
 	eina_conf_set_int(self->conf, "/ui/size_h", height);
 
-	gtk_widget_hide(w);
-
+	gtk_widget_hide((GtkWidget *) w);
 	g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
+
 	return TRUE;
 }
 
@@ -875,7 +875,12 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 
 	else if (g_str_equal(name, "Help"))
 	{
-		g_spawn_command_line_async("gnome-open http://eina.sourceforge.net/help", NULL);
+		GError *error = NULL;
+		if (!gtk_show_uri(NULL, "http://answers.launchpad.net/eina", GDK_CURRENT_TIME, &error))
+		{
+			gel_error(N_("Cannot open URI http://answers.launchpad.net/eina: %s"), error->message);
+			g_error_free(error);
+		}
 	}
 	else if (g_str_equal(name, "About"))
 	{
