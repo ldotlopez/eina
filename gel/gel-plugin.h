@@ -98,7 +98,10 @@ gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_p
 #endif
 
 // Utils
-#define gel_plugin_util_stringify(pathname,name) g_build_filename((pathname?pathname:"<NULL>"),name,NULL)
+gchar*  gel_plugin_util_symbol_from_pathname(gchar *pathname);
+#define gel_plugin_util_symbol_from_name(name) g_strconcat((name?name:""), "_plugin", NULL)
+gchar*  gel_plugin_util_symbol_from_pathname(gchar *pathname);
+#define gel_plugin_util_stringify(pathname,name) g_build_filename((pathname?pathname:"<NULL>"),name?name:"<NULL>",NULL)
 gchar*  gel_plugin_util_stringify_for_pathname(gchar *pathname);
 gchar*  gel_plugin_util_join_list(gchar *separator, GList *plugin_list);
 

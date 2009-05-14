@@ -208,17 +208,6 @@ gel_app_set_dispose_callback(GelApp *self, GelAppDisposeFunc callback, gpointer 
 	self->priv->dispose_data = user_data;
 }
 
-static gchar *
-symbol_from_pathname(gchar *pathname)
-{
-	gchar *dirname = g_path_get_dirname(pathname);
-	gchar *plugin_name = g_path_get_basename(dirname);
-	g_free(dirname);
-	gchar *symbol_name = g_strconcat(plugin_name, "_plugin", NULL);
-	g_free(plugin_name);
-	return symbol_name;
-}
-
 GList *
 gel_app_query_paths(GelApp *self)
 {
@@ -228,7 +217,7 @@ gel_app_query_paths(GelApp *self)
 }
 
 // --
-// Getting from know plugins
+// Getting from know plugins (full, by pathname, by name)
 // --
 GelPlugin*
 gel_app_get_plugin(GelApp *self, gchar *pathname, gchar *name)
@@ -261,18 +250,19 @@ gel_app_get_plugin_by_name(GelApp *self, gchar *name)
 {
 	g_return_val_if_fail(name != NULL, NULL);
 
+	GList *plugins, *iter;
 	GelPlugin *ret = NULL;
-	GList *paths = gel_app_query_paths(self);
-	paths = g_list_prepend(paths, NULL);
-
-	GList *iter = paths;
+	plugins = iter = gel_app_get_plugins(self);
 	while (iter)
 	{
-		if ((ret = gel_app_get_plugin(self, (gchar *) iter->data, name)) != NULL)
+		if (g_str_equal(GEL_PLUGIN(iter->data)->name, name))
+		{
+			ret = GEL_PLUGIN(iter->data);
 			break;
+		}
 		iter = iter->next;
 	}
-	g_list_free(paths);
+	g_list_free(plugins);
 
 	return ret;
 }
@@ -284,7 +274,7 @@ gel_app_get_plugins(GelApp *self)
 }
 
 // --
-// Querying
+// Querying for plugins (loaded or not) and full, by pathname, by name
 // --
 GelPlugin *
 gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
@@ -294,7 +284,7 @@ gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	if (plugin != NULL)
 		return plugin;
 
-	gchar *symbol = g_strconcat(name, "_plugin", NULL);
+	gchar *symbol = gel_plugin_util_symbol_from_name(name);
 	plugin = gel_plugin_new(self, pathname, symbol, error);
 	g_free(symbol);
 
@@ -316,7 +306,7 @@ gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
 		return plugin;
 
 	// Create new plugin
-	gchar *symbol = symbol_from_pathname(pathname);
+	gchar *symbol = gel_plugin_util_symbol_from_pathname(pathname);
 	plugin = gel_plugin_new(self, pathname, symbol, error);
 	g_free(symbol);
 
@@ -399,47 +389,8 @@ gel_app_query_plugins(GelApp *self)
 }
 
 // --
-// Load plugins
+// Load and unload plugins
 // --
-#if 0
-static gboolean
-unload_n_deps(GelApp *app, GelPlugin *plugin, gint n, GError **error)
-{
-	if (plugin->depends == NULL)
-		return TRUE;
-
-	gchar **deps = g_strsplit(plugin->depends, ",", 0);
-
-	if (n < 0)
-		n = g_strv_length(deps) - 1;
-
-	while (n >= 0)
-	{
-		GelPlugin *p = gel_app_get_plugin_by_name(app, deps[n]);
-		if (p)
-		{
-			gel_plugin_remove_reference(p, plugin);
-		/*
-			if (!gel_plugin_is_in_use(p))
-			{
-				if (!gel_plugin_fini(p, NULL))
-					gel_warn("EH?!");
-			}
-			*/
-		}
-		n--;
-	}
-	g_free(deps);
-	return TRUE;
-}
-
-gboolean
-gel_app_unload_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
-{
-	return unload_n_deps(app, plugin, -1, error);
-}
-#endif
-
 gboolean
 gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
 {
@@ -465,20 +416,6 @@ gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
 	g_free(deps);
 
 	return (deps[i] == NULL);
-#if 0
-	if (deps[i] == NULL)
-		return TRUE;
-	else
-	{
-		if (i > 0)
-		{
-			// gel_warn("Calling rollback with n = %d", i - 1);
-			gel_warn("Rollback started from %d", i - 1);
-			unload_n_deps(app, plugin, i - 1, NULL);
-		}
-		return FALSE;
-	}
-#endif
 }
 
 GelPlugin *
@@ -587,15 +524,23 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-#if 0
-	// Now remove references from this plugin
-	if (!gel_app_unload_plugin_dependences(self, plugin, &err))
+	// Remove deps from dependencies
+	if (plugin->depends)
 	{
-		gel_warn("Error while unloading deps for %s", gel_plugin_stringify(plugin));
-		g_propagate_error(error, err);
-		return FALSE;
+		gint i;
+		gchar **deps = g_strsplit(plugin->depends, ",", 0);
+		for (i = 0; deps[i] != NULL; i++)
+		{
+			GelPlugin *p = gel_app_get_plugin_by_name(self, deps[i]);
+			if (p == NULL)
+			{
+				gel_warn("Dependency %s for plugin %s not found", deps[i], gel_plugin_stringify(plugin));
+				continue;
+			}
+			gel_warn("Removed dep %s", deps[i]);
+			gel_plugin_remove_reference(p, plugin);
+		}
 	}
-#endif
 
 	if (gel_plugin_is_locked(plugin))
 		return TRUE;
@@ -610,30 +555,36 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+// --
+// Automatically purges all plugins which are neither initialized or locked
+// Usefull to cleanup a GelApp after a query_plugins call
+// --
 void
 gel_app_purge(GelApp *app)
 {
-	GList *plugins = g_hash_table_get_values(app->priv->lookup);
-	GList *iter = plugins;
+	GList *plugins, *iter;
+	plugins = iter = gel_app_get_plugins(app);
 	while (iter)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(iter->data);
 		GError *err = NULL;
 
-		if (!gel_plugin_is_enabled(plugin) && !gel_plugin_is_in_use(plugin))
+		if (gel_plugin_is_enabled(plugin) || gel_plugin_is_in_use(plugin) || gel_plugin_is_locked(plugin))
 		{
-			gchar *pstr = g_strdup(gel_plugin_stringify(plugin));
-			if (gel_plugin_free(plugin, &err))
-			{
-				gel_warn("PURGE %s", pstr);
-			}
-			else
-			{
-				gel_error("Cannot free plugin %s: %s", gel_plugin_stringify(plugin), err->message);
-				g_error_free(err);
-			}
-			g_free(pstr);
+			iter = iter->next;
+			continue;
 		}
+
+		gchar *pstr = g_strdup(gel_plugin_stringify(plugin));
+		if (!gel_plugin_free(plugin, &err))
+		{
+			gel_error("Cannot free plugin %s: %s", gel_plugin_stringify(plugin), err->message);
+			g_error_free(err);
+		}
+		else
+			gel_warn("PURGE %s", pstr);
+
+		g_free(pstr);
 
 		iter = iter->next;
 	}
@@ -641,12 +592,11 @@ gel_app_purge(GelApp *app)
 }
 
 // --
-// Shared management
+// Shared memory management
 // --
 gboolean gel_app_shared_register(GelApp *self, gchar *name, gsize size)
 {
-	if (gel_app_shared_get(self, name) != NULL)
-		return FALSE;
+	g_return_val_if_fail(gel_app_shared_get(self, name) == NULL, FALSE);
 	return gel_app_shared_set(self, name, g_malloc0(size));
 }
 
@@ -662,8 +612,7 @@ gel_app_shared_unregister(GelApp *self, gchar *name)
 gboolean gel_app_shared_set
 (GelApp *self, gchar *name, gpointer data)
 {
-	if (gel_app_shared_get(self, name) != NULL)
-		return FALSE;
+	g_return_val_if_fail(gel_app_shared_get(self, name) == NULL, FALSE);
 	g_hash_table_insert(self->priv->shared, g_strdup(name), data);
 
 	return TRUE;
@@ -673,66 +622,39 @@ gpointer gel_app_shared_get
 (GelApp *self, gchar *name)
 {
 	return g_hash_table_lookup(self->priv->shared, name);
-	/*
-	g_printf("Request for %s: %p\n", name, ret);
-	if (ret == NULL)
-	{
-		g_printf("Key not found, currently:\n");
-		GList *keys = g_hash_table_get_keys(self->priv->shared);
-		GList *iter = keys;
-		while (iter)
-		{
-			g_printf("+ %s\n", (gchar *) iter->data);
-			iter = iter->next;
-		}
-		g_list_free(keys);
-	}
-
-	return ret; */
 }
 
-void
-gel_app_emit_signal(GelApp *self, guint id, GelPlugin *plugin)
-{
-	if (!is_owned(self,plugin))
-		return;
-	g_signal_emit(self, gel_app_signals[id], 0, plugin);
-}
-/*
-void
-gel_app_emit_load(GelApp *self, GelPlugin *plugin)
-{
-	gel_app_emit_signal(self, PLUGIN_LOAD, plugin);
-}
-
-void
-gel_app_emit_unload(GelApp *self, GelPlugin *plugin)
-{
-	gel_app_emit_signal(self, PLUGIN_UNLOAD, plugin);
-}
-*/
+// --
+// Proxies for "init" and "fini" signals. To be called from GelPlugin module
+// Only these functions can emit those signals.
+// --
 void
 gel_app_emit_init(GelApp *self, GelPlugin *plugin)
 {
-	gel_app_emit_signal(self, PLUGIN_INIT, plugin);
+	g_signal_emit(self, gel_app_signals[PLUGIN_INIT], 0, plugin);
 }
 
 void
 gel_app_emit_fini(GelApp *self, GelPlugin *plugin)
 {
-	gel_app_emit_signal(self, PLUGIN_FINI, plugin);
+	g_signal_emit(self, gel_app_signals[PLUGIN_FINI], 0, plugin);
 }
 
+// --
+// Add and remove plugins from app registry, called from GelPlugin module
+// Only these functions are allowed to access self->priv->lookup table and
+// emit "load" and "unload" signals
+// --
 void
 gel_app_add_plugin(GelApp *self, GelPlugin *plugin)
 {
 	g_return_if_fail(plugin != NULL);
 	const gchar *pstr = gel_plugin_stringify(plugin);
 	g_return_if_fail(g_hash_table_lookup(self->priv->lookup, pstr) == NULL);
-	
+
 	g_hash_table_insert(self->priv->lookup, g_strdup(pstr), plugin);
 	gel_warn("Added plugin %s", gel_plugin_stringify(plugin));
-	gel_app_emit_signal(self, PLUGIN_LOAD, plugin);
+	g_signal_emit(self, gel_app_signals[PLUGIN_LOAD], 0, plugin);
 }
 
 void
@@ -746,14 +668,12 @@ gel_app_remove_plugin(GelApp *self, GelPlugin *plugin)
 
 	g_hash_table_remove(self->priv->lookup, pstr);
 	gel_warn("Removed plugin %s", gel_plugin_stringify(plugin));
-	gel_app_emit_signal(self, PLUGIN_UNLOAD, plugin);
+	g_signal_emit(self, gel_app_signals[PLUGIN_UNLOAD], 0, plugin);
 }
 
 // --
 // Statics
 // --
-
-
 static GList*
 build_paths(void)
 {

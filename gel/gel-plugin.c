@@ -133,9 +133,8 @@ gel_plugin_free(GelPlugin *self, GError **error)
 		return FALSE;
 	}
 
-	gel_app_remove_plugin(self->priv->app, self);
-
 	gel_warn("Plugin %s destroyed", gel_plugin_stringify(self));
+	gel_app_remove_plugin(self->priv->app, self);
 
 	gel_free_and_invalidate(self->priv->pathname, NULL, g_free);
 	gel_free_and_invalidate(self->priv->symbol, NULL, g_free);
@@ -330,6 +329,17 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 	// gel_warn("Plugin %s finalized", gel_plugin_stringify(self));
 	gel_app_emit_fini(self->priv->app, self);
 	return TRUE;
+}
+
+gchar*
+gel_plugin_util_symbol_from_pathname(gchar *pathname)
+{
+	gchar *dirname = g_path_get_dirname(pathname);
+	gchar *plugin_name = g_path_get_basename(dirname);
+	g_free(dirname);
+	gchar *symbol_name = g_strconcat(plugin_name, "_plugin", NULL);
+	g_free(plugin_name);
+	return symbol_name;
 }
 
 gchar*
