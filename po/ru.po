@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-05-06 21:53+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-05-14 13:49+0200\n"
 "PO-Revision-Date: 2009-05-11 19:54+0000\n"
 "Last-Translator: Koptev Oleg <Unknown>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "Не могу создать папку конфигурации %s"
 msgid "Conf object not found"
 msgstr "Не найден conf объект"
 
-#: ../eina/eina-settings.c:98
+#: ../eina/eina-settings.c:100
 msgid "Build-in settings plugin"
 msgstr "Встроенный плагин настроек"
 
