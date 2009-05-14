@@ -1,29 +1,32 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Czech translation for eina
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the eina package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-05-14 13:49+0200\n"
-"PO-Revision-Date: 2009-05-09 09:43+0100\n"
-"Last-Translator: Václav Kramář <vaclav.kramar@tiscali.cz>\n"
+"Project-Id-Version: eina\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2009-05-06 21:53+0200\n"
+"PO-Revision-Date: 2009-05-13 16:13+0000\n"
+"Last-Translator: vkramar <Unknown>\n"
+"Language-Team: Czech <cs@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2009-05-14 11:52+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: ../eina/eina-settings.c:52
 #, c-format
 msgid "Cannot create config folder %s"
-msgstr ""
+msgstr "Nemohu vytvořit konfigurační adresář %s"
 
 #: ../eina/eina-settings.c:83
 msgid "Conf object not found"
 msgstr ""
 
-#: ../eina/eina-settings.c:100
+#: ../eina/eina-settings.c:98
 msgid "Build-in settings plugin"
 msgstr ""
 
@@ -39,40 +42,40 @@ msgstr ""
 #: ../eina/log.c:224
 #, c-format
 msgid "Cannot create menu item: %s"
-msgstr ""
+msgstr "Nelze vytvořit položku menu:  %s"
 
 #: ../eina/log.c:230
 msgid "Debug window"
-msgstr ""
+msgstr "Ladící okno"
 
 #: ../eina/log.c:294
 msgid "Severe errors"
-msgstr ""
+msgstr "Závažné chyby"
 
 #: ../eina/log.c:295
 msgid "Errors"
-msgstr ""
+msgstr "Chyby"
 
 #: ../eina/log.c:296
 msgid "Warnings"
-msgstr ""
+msgstr "Varování"
 
 #: ../eina/log.c:297
 msgid "Information messages"
-msgstr ""
+msgstr "Informační hlášení"
 
 #: ../eina/log.c:298
 msgid "Debug information"
-msgstr ""
+msgstr "Ladící informace"
 
 #: ../eina/log.c:299
 msgid "Full debug"
-msgstr ""
+msgstr "Plné ladění"
 
 #: ../eina/log.c:304
 #, c-format
 msgid "Set level to %s"
-msgstr ""
+msgstr "Nastavit úroveň %s"
 
 #: ../eina/log.c:400
 msgid "Cannot not shot dialog, it doest exists"
@@ -80,7 +83,7 @@ msgstr ""
 
 #: ../eina/log.c:449
 msgid "Build-in log"
-msgstr ""
+msgstr "Vestavěný log"
 
 #: ../eina/eina-lomo.c:42
 msgid "Cannot create engine"
@@ -96,7 +99,7 @@ msgstr ""
 
 #: ../eina/eina-lomo.c:76
 msgid "Build-in lomo plugin"
-msgstr ""
+msgstr "Vestavěný plugin lomo"
 
 #: ../eina/curl-engine.c:236
 msgid "Unknow error"
@@ -108,7 +111,7 @@ msgstr "Klasický přehrávač pro moderní dobu"
 
 #: ../ui/about.ui.h:2
 msgid "About Eina"
-msgstr "O aplikaci Eina"
+msgstr "O aplikaci"
 
 #: ../ui/about.ui.h:3
 msgid ""
@@ -138,41 +141,36 @@ msgstr ""
 "ustanovení Obecné veřejné licence GNU, vydávané Free Software Foundation; a "
 "to buď verze 2 této licence anebo (podle vašeho uvážení) kterékoli pozdější "
 "verze.\n"
-"\n"
 "Tento program je rozšiřován v naději, že bude užitečný, avšak BEZ JAKÉKOLI "
 "ZÁRUKY; neposkytují se ani odvozené záruky PRODEJNOSTI anebo VHODNOSTI PRO "
 "URČITÝ ÚČEL. Další podrobnosti hledejte ve Obecné veřejné licenci GNU.\n"
-"\n"
 "Kopii Obecné veřejné licence GNU jste měl obdržet spolu s tímto programem; "
 "pokud se tak nestalo, napište o ni Free Software Foundation, Inc., 675 Mass "
 "Ave, Cambridge, MA 02139, USA."
 
 #: ../ui/about.ui.h:10
 msgid "None yet :)"
-msgstr "Zatím žádné... :-)"
+msgstr "Zatím nic ;-)"
 
 #: ../ui/about.ui.h:11
-#, fuzzy
 msgid "http://eina.sourceforge.net/"
-msgstr "<u>http://eina.sf.net</u>"
+msgstr "http://eina.sourceforge.net/"
 
 #: ../ui/dock.ui.h:1
 msgid "\t"
-msgstr ""
+msgstr "\t"
 
 #: ../ui/dock.ui.h:2
 msgid "Dock"
 msgstr ""
 
 #: ../ui/log.ui.h:1
-#, fuzzy
 msgid "<b>Log level:</b> "
-msgstr "<b>Stránky:</b>"
+msgstr "<b>Úroveň logování:</b> "
 
 #: ../ui/log.ui.h:2
-#, fuzzy
 msgid "gtk-clear"
-msgstr "gtk-close"
+msgstr "gtk-clear"
 
 #: ../ui/log.ui.h:3 ../ui/plugins.ui.h:8
 msgid "gtk-close"
@@ -180,7 +178,7 @@ msgstr "gtk-close"
 
 #: ../ui/log.ui.h:4
 msgid "label"
-msgstr ""
+msgstr "label"
 
 #: ../ui/player-preferences.ui.h:1
 msgid "<b>Information format</b>"
@@ -188,11 +186,11 @@ msgstr ""
 
 #: ../ui/player-preferences.ui.h:2
 msgid "Custom format:"
-msgstr ""
+msgstr "Uživatelský formát"
 
 #: ../ui/player-preferences.ui.h:3
 msgid "More info about Pango markup language"
-msgstr ""
+msgstr "Více informací o značkovacím jazyku Pango"
 
 #: ../ui/player-preferences.ui.h:5
 #, no-c-format
@@ -225,16 +223,15 @@ msgstr "Procházet"
 
 #: ../ui/player.ui.h:6
 msgid "Next song"
-msgstr "Další skladba"
+msgstr "Následující skladba"
 
 #: ../ui/player.ui.h:7
 msgid "Previous song"
 msgstr "Předchozí skladba"
 
 #: ../ui/playlist.ui.h:1
-#, fuzzy
 msgid "<b>Playlist</b>"
-msgstr "Seznam"
+msgstr "<b>Seznam skladeb</b>"
 
 #: ../ui/playlist.ui.h:2
 msgid "Activate or deactivate random mode"
@@ -250,11 +247,11 @@ msgstr "Přidat skladby do seznamu"
 
 #: ../ui/playlist.ui.h:5
 msgid "Clear the playlist"
-msgstr "Vymazat seznam"
+msgstr "Vymazat seznam skladeb"
 
 #: ../ui/playlist.ui.h:6
 msgid "Playlist"
-msgstr "Seznam"
+msgstr "Seznam skladeb"
 
 #: ../ui/playlist.ui.h:7
 msgid "Remove selected songs from this playlist"
@@ -266,15 +263,15 @@ msgstr "<b>Autor:</b>"
 
 #: ../ui/plugins.ui.h:2
 msgid "<b>Website:</b>"
-msgstr "<b>Stránky:</b>"
+msgstr "<b>Web:</b>"
 
 #: ../ui/plugins.ui.h:3
 msgid "<span size=\"x-large\" weight=\"bold\">Plugin name</span>"
-msgstr "<span size=\"x-large\" weight=\"bold\">Jméno zásuvného modul</span>"
+msgstr "<span size=\"x-large\" weight=\"bold\">Název pluginu</span>"
 
 #: ../ui/plugins.ui.h:4
 msgid "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
-msgstr "<u>Jméno autora &lt;eina-users@lists.sourceforge.net&gt;</u>"
+msgstr "<u>Author name &lt;eina-users@lists.sourceforge.net&gt;</u>"
 
 #: ../ui/plugins.ui.h:5
 msgid "<u>http://eina.sf.net</u>"
@@ -287,21 +284,3 @@ msgstr "Detailní popis"
 #: ../ui/plugins.ui.h:7
 msgid "Short description"
 msgstr "Krátký popis"
-
-#~ msgid "Error creating GelUI for '%s': %s"
-#~ msgstr "Chyba při vytváření GelUI for '%s': %s"
-
-#~ msgid "Trying to free a NULL pointer"
-#~ msgstr "Zkouším uvolnit ukazatel NULL"
-
-#~ msgid "Loading files..."
-#~ msgstr "Načítám soubory..."
-
-#~ msgid "_Enqueue"
-#~ msgstr "Zařadit"
-
-#~ msgid "Enqueue files"
-#~ msgstr "Zařadit soubory"
-
-#~ msgid "About|Website"
-#~ msgstr "O aplikaci|Stránky"
