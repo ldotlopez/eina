@@ -4,8 +4,7 @@ plugin_LTLIBRARIES = libhooktest.la
 libhooktest_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 libhooktest_la_SOURCES = hook-test.c
 
-AM_CFLAGS = @PACKAGE_CFLAGS@
-INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
+AM_CPPFLAGS = @PACKAGE_CFLAGS@ -I$(top_srcdir)/src -I$(top_srcdir)
 
 install-data-local: 
 	$(mkinstalldirs) $(DESTDIR)/$(plugindir); \

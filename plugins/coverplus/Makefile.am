@@ -7,8 +7,7 @@ libcoverplus_la_SOURCES = \
 	infolder-sync.c infolder.h \
 	banshee.h banshee.c
 
-AM_CFLAGS = @PACKAGE_CFLAGS@ 
-INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
+AM_CPPFLAGS = @PACKAGE_CFLAGS@ -I$(top_srcdir)/src -I$(top_srcdir)
 
 install-data-local: 
 	$(mkinstalldirs) $(DESTDIR)/$(plugindir); \

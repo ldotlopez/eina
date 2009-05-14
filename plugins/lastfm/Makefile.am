@@ -12,14 +12,13 @@ liblastfm_la_SOURCES = lastfm.c lastfm.h submit.c submit.h artwork.c artwork.h
 #liblastfm_la_SOURCES += webview.c webview.h
 #endif
 
-AM_CFLAGS = @PACKAGE_CFLAGS@
+AM_CPPFLAGS = @PACKAGE_CFLAGS@ -I$(top_srcdir)/src -I$(top_srcdir)
 #if USE_LASTFM_WEBVIEW
 #AM_CFLAGS += -DHAVE_WEBKIT=1 @WEBKITGTK_CFLAGS@
 #else
 #AM_CFLAGS += -DHAVE_WEBKIT=0
 #endif
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_srcdir)
 
 lastfm.ui: lastfm.glade
 	$(GTK_BUILDER_CONVERT) $< $@
