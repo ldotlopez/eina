@@ -92,6 +92,8 @@ gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
 gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
 
+gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
+
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE
 #define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data)

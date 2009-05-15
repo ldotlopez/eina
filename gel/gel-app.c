@@ -421,40 +421,83 @@ gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
 GelPlugin *
 gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 {
-	// Check if another plugin with the same name is already loaded
-	GelPlugin *plugin = gel_app_get_plugin_by_name(self,name);
-	if (plugin && gel_plugin_is_enabled(plugin))
-		/*
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_PLUGIN_ALREADY_LOADED_BY_NAME,
-			N_("Another plugin (%s) with the same name (%s) is loaded and initialized"), gel_plugin_get_pathname(plugin), name);
-		*/
-		return plugin;
-	
-	if (!plugin && ((plugin = gel_app_query_plugin(self, pathname, name, error)) == NULL))
-		return NULL;
-
-	// PLugin is already enabled, continue
-	if (gel_plugin_is_enabled(plugin))
+	if ((self == NULL) || (name == NULL))
 	{
-		// gel_warn("Plugin %s already enabled, its ok", gel_plugin_stringify(plugin));
-		return plugin;
+		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_INVALID_ARGUMENTS,
+			N_("Invalid arguments, set breakpoint on %s to debug"), name);
+		return NULL;
 	}
 
+	// Check if another plugin with the same name is already loaded
+	// Set some pointers to posible matchmes.
+	GelPlugin *exact_plugin = NULL, *fuzzy_plugin = NULL;
+	GList *plugins, *iter;
+	plugins = iter = gel_app_get_plugins(self);
+	while (iter)
+	{
+		GelPlugin *p = GEL_PLUGIN(iter->data);
+
+		// Invalid data
+		if (p->name == NULL)
+		{
+			gel_warn(N_("Plugin %p has NULL name"), p);
+			iter = iter->next;
+			continue;
+		}
+
+		// not match
+		if (!g_str_equal(p->name, name))
+		{
+			iter = iter->next;
+			continue;
+		}
+
+		// Name matches at this point
+		if (
+			((pathname == NULL) && (gel_plugin_get_pathname(p) == NULL)) || // Both have NULL path
+			((pathname != NULL) && (gel_plugin_get_pathname(p) != NULL) && g_str_equal(gel_plugin_get_pathname(p), pathname)) // path match
+		)
+			exact_plugin = p;
+		else
+			fuzzy_plugin = p;
+
+		iter = iter->next;
+	}
+	g_list_free(plugins);
+
+	// Exact match found and enabled, nothing to do
+	if (exact_plugin && gel_plugin_is_enabled(exact_plugin))
+		return exact_plugin;
+
+	// Fuzzy plugin (matches name) found, if its enabled return it. Two enabled
+	// plugins cannot have the same name, warn about this.
+	if (fuzzy_plugin && gel_plugin_is_enabled(fuzzy_plugin))
+	{
+		gel_warn("Returning fuzzy plugin");
+		return fuzzy_plugin;
+	}
+
+	// Ok, maybe we have nothing and we can get nothing :(
+	if (!exact_plugin && ((exact_plugin = gel_app_query_plugin(self, pathname, name, error)) == NULL))
+		return NULL;
+
+	// Try to enable this exact_match and all the stuff
+
 	// Before init we need to load other deps
-	if (!gel_app_load_plugin_dependences(self, plugin, error))
+	if (!gel_app_load_plugin_dependences(self, exact_plugin, error))
 	{
 		// gel_warn("Cannot load dependences for %s: %s", gel_plugin_stringify(plugin), (*error)->message);
 		return NULL;
 	}
 
 	// Call init hook
-	if (!gel_plugin_init(plugin, error))
+	if (!gel_plugin_init(exact_plugin, error))
 	{
 		// gel_warn("Cannot init %s: %s (unload deps)", gel_plugin_stringify(plugin), (*error)->message);
 		return NULL;
 	}
 
-	return plugin;
+	return exact_plugin;
 }
 
 GelPlugin *
@@ -511,8 +554,11 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_PLUGIN_IN_USE,
 			N_("Cannot unload plugin %s, its used by %d plugins"),
 			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
-		gel_warn(N_("Cannot unload plugin %s, its used by %d plugins"),
+		gel_error(N_("Cannot unload plugin %s, its used by %d plugins"),
 			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
+		gchar *tmp = gel_plugin_stringify_dependants(plugin);
+		gel_error(tmp);
+		g_free(tmp);
 		return FALSE;
 	}
 

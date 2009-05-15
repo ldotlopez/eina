@@ -332,6 +332,22 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 }
 
 gchar*
+gel_plugin_stringify_dependants(GelPlugin *plugin)
+{
+	GList *strs = NULL;
+	GList *iter = plugin->priv->dependants;
+	while (iter)
+	{
+		strs = g_list_prepend(strs, (gpointer) gel_plugin_stringify(GEL_PLUGIN(iter->data)));
+		iter = iter->next;
+	}
+	gchar *ret = gel_list_join(", ", strs);
+	g_list_free(strs);
+
+	return ret;
+}
+
+gchar*
 gel_plugin_util_symbol_from_pathname(gchar *pathname)
 {
 	gchar *dirname = g_path_get_dirname(pathname);
