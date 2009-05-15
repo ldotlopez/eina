@@ -1196,18 +1196,6 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 gboolean
 recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	gel_warn("ADB compiled with: %s, runtime: %s", SQLITE_VERSION, sqlite3_libversion());
-
-	// Load adb, upgrade database
-	GError *err = NULL;
-	if (!gel_app_load_plugin_by_name(app, "adb", &err))
-	{
-		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_LOAD_ADB, 
-			N_("Cannot load adb plugin: %s"), err->message);
-		g_error_free(err);
-		return FALSE;
-	}
-
 	// Upgrade database
 	Adb *adb;
 	if ((adb = GEL_APP_GET_ADB(app)) == NULL)
@@ -1239,6 +1227,9 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	if (lomo)
+		g_signal_handlers_disconnect_by_func(lomo, "clear", lomo_clear_cb);
 	eina_plugin_remove_dock_widget(plugin, "recently");
 	g_free(plugin->data);
 	return TRUE;

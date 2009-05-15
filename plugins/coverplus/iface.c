@@ -45,9 +45,10 @@ coverplus_quark(void)
 	return ret;
 }
 
-enum {
-	NO_ARTWORK = 1
-};
+typedef enum {
+	EINA_COVERPLUS_NO_ERROR = 0,
+	EINA_COVERPLUS_ERROR_NO_ARTWORK_OBJECT
+} EinaCoverPlusError;
 
 // --
 // Main
@@ -55,14 +56,13 @@ enum {
 gboolean
 coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	// Load artwork module, and get the object since EinaPlugin has no support
-	// ATM
-	if (!gel_app_load_plugin_by_name(app, "art", error))
-		return FALSE;
-
 	Art *art = GEL_APP_GET_ART(app);
 	if (!art)
+	{
+		g_set_error(error, coverplus_quark(), EINA_COVERPLUS_ERROR_NO_ARTWORK_OBJECT,
+			N_("Art object not found"));
 		return FALSE;
+	}
 
 	CoverPlus *self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
 
@@ -107,9 +107,6 @@ coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 	}
 	g_free(self);
 	plugin->data = NULL;
-
-	if (!gel_app_unload_plugin_by_name(app, "art", error))
-		return FALSE;
 
 	return TRUE;
 }

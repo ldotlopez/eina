@@ -37,6 +37,7 @@ typedef gboolean (*AdbUpgradeHandler)(Adb *self, gpointer data, GError **error);
 
 enum {
 	ADB_NO_ERROR = 0,
+	EINA_ADB_ERROR_VERSION_MISMATCH,
 	ADB_CANNOT_GET_LOMO,
 	ADB_CANNOT_REGISTER_OBJECT,
 	ADB_QUERY_ERROR,
