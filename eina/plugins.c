@@ -40,9 +40,6 @@ typedef struct {
 	GtkListStore   *model;
 	
 	GList          *visible_plugins;
-	// GList          *all_plugins;
-	// GList          *preenable_plugins;
-
 	GelPlugin      *active_plugin;
 
 	GtkActionEntry *ui_actions;
@@ -326,7 +323,6 @@ plugins_load_plugins(EinaPlugins *self)
 		gel_warn("Got visible plugin: %s", gel_plugin_stringify(plugin));
 		gel_warn("Added lock on %s", gel_plugin_stringify(plugin));
 
-
 		iter = iter->next;
 	}
 	self->visible_plugins = g_list_reverse(self->visible_plugins);
@@ -464,7 +460,7 @@ update_enabled(EinaPlugins *self, GelPlugin *plugin)
 	gint index;
 	if ((index = g_list_index(self->visible_plugins, plugin)) == -1)
 	{
-		gel_warn("Unknow plugin initialized, ignoring");
+		gel_warn("Unknow plugin (%s) initialized, ignoring", gel_plugin_stringify(plugin));
 		return;
 	}
 
@@ -549,13 +545,6 @@ plugins_cell_renderer_toggle_toggled_cb
 	GError *err = NULL;
 	if (gel_plugin_is_enabled(plugin))
 	{
-#if 0
-		if (g_list_find(self->preenable_plugins, plugin))
-		{
-			self->preenable_plugins = g_list_remove(self->preenable_plugins, plugin);
-			gel_plugin_remove_reference(plugin, self->plugin);
-		}
-#endif
 		gel_app_unload_plugin(eina_obj_get_app(self), plugin, &err);
 	}
 	else
@@ -565,13 +554,6 @@ plugins_cell_renderer_toggle_toggled_cb
 		g_free(dirname);
 
 		gel_app_load_plugin(eina_obj_get_app(self), (gchar *) gel_plugin_get_pathname(plugin), plugin_name, &err);
-#if 0
-		if (gel_app_load_plugin(eina_obj_get_app(self), (gchar *) gel_plugin_get_pathname(plugin), plugin_name, &err))
-		{
-			self->preenable_plugins = g_list_prepend(self->preenable_plugins, plugin);
-			gel_plugin_add_reference(plugin, self->plugin);
-		}
-#endif
 	}
 
 	debug("%s of plugin %s: %s (%s)",
