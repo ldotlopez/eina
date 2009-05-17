@@ -44,6 +44,7 @@ struct _EinaPlayer {
 	EinaConf  *conf;
 
 	GtkWindow  *main_window;
+	gboolean    persistent;
 	GtkImage *cover;
 	GdkPixbuf *cover_mask;
 	gboolean  got_cover;
@@ -382,6 +383,17 @@ void
 eina_player_remove_widget(EinaPlayer* self, GtkWidget *widget)
 {
 	 gtk_container_remove(eina_obj_get_typed(self, GTK_CONTAINER, "widgets-box"), widget);
+}
+void
+eina_player_set_persistent (EinaPlayer* self, gboolean value)
+{
+	self->persistent = value;
+}
+
+gboolean
+eina_player_get_persistent (EinaPlayer *self)
+{
+	return self->persistent;
 }
 
 static void
@@ -750,18 +762,24 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 {
     gint x, y, width, height;
 
-	gtk_window_get_position(self->main_window, &x, &y);
-	gtk_window_get_size(self->main_window, &width, &height);
+	if (self->persistent)
+	{
+		gtk_widget_hide((GtkWidget *) w);
+		return TRUE;
+	}
+	else
+	{
+		gtk_window_get_position(self->main_window, &x, &y);
+		gtk_window_get_size(self->main_window, &width, &height);
 
-	eina_conf_set_int(self->conf, "/ui/pos_x", x);
-	eina_conf_set_int(self->conf, "/ui/pos_y", y);
-	eina_conf_set_int(self->conf, "/ui/size_w", width);
-	eina_conf_set_int(self->conf, "/ui/size_h", height);
+		eina_conf_set_int(self->conf, "/ui/pos_x", x);
+		eina_conf_set_int(self->conf, "/ui/pos_y", y);
+		eina_conf_set_int(self->conf, "/ui/size_w", width);
+		eina_conf_set_int(self->conf, "/ui/size_h", height);
 
-	gtk_widget_hide((GtkWidget *) w);
-	g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
-
-	return TRUE;
+		g_object_unref(eina_obj_get_app(EINA_OBJ(self)));
+		return FALSE;
+	}
 }
 
 static gboolean
