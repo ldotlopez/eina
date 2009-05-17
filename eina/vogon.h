@@ -21,7 +21,9 @@
 #define _EINA_VOGON_H
 
 typedef enum {
-	EINA_VOGON_ERROR_CANNOT_EMBED = 1
+	EINA_VOGON_NO_ERROR = 0, 
+	EINA_VOGON_ERROR_CANNOT_EMBED,
+	EINA_VOGON_ERROR_OSX_QUARTZ
 } EinaVogonError;
 
 typedef struct _EinaVogon EinaVogon;

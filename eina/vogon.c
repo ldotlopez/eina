@@ -36,6 +36,8 @@ struct _EinaVogon {
 	GtkWidget     *menu;
 
 	gint player_x, player_y;
+
+	gboolean hold;
 } _EinaVogon;
 
 // --
@@ -145,16 +147,21 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 		"<alt>r", "Repeat playlist", G_CALLBACK(action_activate_cb) }
 	};
 
+	// Systray is broken on OSX using Quartz backend
+#ifdef __GDK_QUARTZ_H__
+	g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_OSX_QUARTZ, N_("Gtk+ with Quartz backend is not supported"));
+	return FALSE;
+#endif
+
 	self = g_new0(EinaVogon, 1);
 	if (!eina_obj_init(EINA_OBJ(self), app, "vogon", EINA_OBJ_NONE, error))
 		return FALSE;
 
 	// Crete icon
 	self->icon = gtk_status_icon_new();
-	if (!gtk_status_icon_is_embedded(self->icon))
+	if (!self->icon)
 	{
 		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_CANNOT_EMBED, N_("Cannot embed GtkStatusIcon, aborting."));
-		g_object_unref(self->icon);
 		eina_obj_fini((EinaObj *) self);
 		return FALSE;
 	}
@@ -207,12 +214,11 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gel_warn(GEL_DOMAIN " is buggy on OSX. You have been warned, dont file any bugs about this.");
 #endif
 
-	// If player exists add a reference to GelApp to prevent exit
-	if (eina_player_get_main_window(GEL_APP_GET_PLAYER(app)) != NULL)
-		g_object_ref(app);
+	if (GEL_APP_GET_PLAYER(app))
+		eina_player_set_persistent(GEL_APP_GET_PLAYER(app), TRUE);
 
 	// Prepare destroy
-	g_signal_connect(self->icon, "notify::destryoy",
+	g_signal_connect(self->icon, "notify::destroy",
 	G_CALLBACK(status_icon_destroy_cb), self);
 
 	return TRUE;
@@ -222,15 +228,13 @@ static gboolean
 vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaVogon *self = gel_app_shared_get(app, "vogon");
-
-	gel_free_and_invalidate(self->icon, NULL, g_object_unref);
+	gel_free_and_invalidate(self->icon,   NULL, g_object_unref);
 	gel_free_and_invalidate(self->ui_mng, NULL, g_object_unref);
 
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
 }
-
 
 // --
 // Implement UI Callbacks 
