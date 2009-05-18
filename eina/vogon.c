@@ -18,6 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::Vogon"
+#define EINA_PLUGIN_DATA_TYPE EinaVogon
 
 #include <config.h>
 #include <string.h>
@@ -85,7 +86,7 @@ static const gchar ui_def[] =
 "	<popup name='MainMenu'>"
 "		<menuitem action='Play'  />"
 "		<menuitem action='Pause' />"
-"		<menuitem action='Stop'  />"
+// "		<menuitem action='Stop'  />"
 "		<separator />"
 "		<menuitem action='Previous'  />"
 "		<menuitem action='Next' />"
@@ -110,70 +111,58 @@ vogon_quark(void)
 static gboolean
 vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaVogon *self;
-	GdkPixbuf *pixbuf  = NULL;
-	GelUIImageDef img_def = {
-#if defined(__APPLE__) || defined(__APPLE_CC__)
-		NULL, "osx-systray-icon.png",
-#else
-		NULL, "standard-systray-icon.png",
-#endif
-		24, 24
-	};
-
 	GtkActionGroup *ag;
-
 	const GtkActionEntry ui_actions[] = {
-		/* Menu actions */
-		{ "Play", GTK_STOCK_MEDIA_PLAY, N_("Play"),
-		"<alt>x", "Play", G_CALLBACK(action_activate_cb) },
-		{ "Pause", GTK_STOCK_MEDIA_PAUSE, N_("Pause"),
-		"<alt>c", "Pause", G_CALLBACK(action_activate_cb) },
-		{ "Stop", GTK_STOCK_MEDIA_STOP, N_("Stop"),
-		"<alt>v", "Stop", G_CALLBACK(action_activate_cb) },
-		{ "Next", GTK_STOCK_MEDIA_NEXT, N_("Next"),
-		"<alt>b", "Next stream", G_CALLBACK(action_activate_cb) },
-		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"),
-		"<alt>z", "Previous stream", G_CALLBACK(action_activate_cb) },
-		{ "Clear", GTK_STOCK_CLEAR, N_("C_lear"),
-		"<alt>l", "Clear playlist", G_CALLBACK(action_activate_cb) },
-		{ "Quit", GTK_STOCK_QUIT, N_("_Quit"),
-		"<alt>q", "Quit Eina", G_CALLBACK(action_activate_cb) }
+		{ "Play",     GTK_STOCK_MEDIA_PLAY,     N_("Play"),     "<alt>x", "Play",            G_CALLBACK(action_activate_cb) },
+		{ "Pause",    GTK_STOCK_MEDIA_PAUSE,    N_("Pause"),    "<alt>c", "Pause",           G_CALLBACK(action_activate_cb) },
+		// { "Stop",     GTK_STOCK_MEDIA_STOP,     N_("Stop"),     "<alt>v", "Stop",            G_CALLBACK(action_activate_cb) },
+		{ "Next",     GTK_STOCK_MEDIA_NEXT,     N_("Next"),     "<alt>b", "Next stream",     G_CALLBACK(action_activate_cb) },
+		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"), "<alt>z", "Previous stream", G_CALLBACK(action_activate_cb) },
+		{ "Clear",    GTK_STOCK_CLEAR,          N_("C_lear"),   "<alt>l", "Clear playlist",  G_CALLBACK(action_activate_cb) },
+		{ "Quit",     GTK_STOCK_QUIT,           N_("_Quit"),    "<alt>q", "Quit Eina",       G_CALLBACK(action_activate_cb) }
 	};
 	const GtkToggleActionEntry ui_toggle_actions[] = {
-		{ "Shuffle", NULL, N_("Shuffle"),
-		"<alt>s", "Shuffle playlist", G_CALLBACK(action_activate_cb) },
-		{ "Repeat", NULL , N_("Repeat"),
-		"<alt>r", "Repeat playlist", G_CALLBACK(action_activate_cb) }
+		{ "Shuffle", NULL, N_("Shuffle"), "<alt>s", "Shuffle playlist", G_CALLBACK(action_activate_cb) },
+		{ "Repeat",  NULL, N_("Repeat"),  "<alt>r", "Repeat playlist",  G_CALLBACK(action_activate_cb) }
 	};
 
 	// Systray is broken on OSX using Quartz backend
-#ifdef __GDK_QUARTZ_H__
-	g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_OSX_QUARTZ, N_("Gtk+ with Quartz backend is not supported"));
+	#ifndef __GDK_QUARTZ_H__
+	g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_OSX_QUARTZ,
+		N_("Gtk+ X11 backend is not supported"));
 	return FALSE;
-#endif
+	#endif
 
-	self = g_new0(EinaVogon, 1);
+	EinaVogon *self = g_new0(EinaVogon, 1);
 	if (!eina_obj_init(EINA_OBJ(self), app, "vogon", EINA_OBJ_NONE, error))
 		return FALSE;
 
 	// Crete icon
-	self->icon = gtk_status_icon_new();
+	gchar *pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, 
+	#if defined(__APPLE__) || defined(__APPLE_CC__)
+		"osx-systray-icon.png"
+	#else
+		"standard-systray-icon.png"
+	#endif
+		);
+	self->icon = gtk_status_icon_new_from_file(pathname);
+	g_free(pathname);
 	if (!self->icon)
 	{
-		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_CANNOT_EMBED, N_("Cannot embed GtkStatusIcon, aborting."));
-		eina_obj_fini((EinaObj *) self);
-		return FALSE;
-	}
-
-	pixbuf = gel_ui_load_pixbuf_from_imagedef(img_def, error);
-	if (pixbuf == NULL)
-	{
-		g_object_unref(self->icon);
+		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_NO_STATUS_ICON,
+			N_("Cannot create status icon"));
 		eina_obj_fini(EINA_OBJ(self));
 		return FALSE;
 	}
-	gtk_status_icon_set_from_pixbuf(self->icon, pixbuf);
+
+	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
+	{
+		g_object_unref(self->icon);
+		eina_obj_fini(EINA_OBJ(self));
+		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_NO_SETTINGS_OBJECT,
+			N_("Object 'settings' not found"));
+		return FALSE;
+	}
 
 	// Create menu
 	self->ui_mng = gtk_ui_manager_new();
@@ -188,49 +177,40 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	self->menu = gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu");
 
-	g_signal_connect(self->icon, "popup-menu",
-		G_CALLBACK(popup_menu_cb), self);
-	g_signal_connect(
-		G_OBJECT(self->icon), "activate",
-		G_CALLBACK(status_icon_activate_cb), self);
-
-	// Load settings 
-	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
-	{
-		g_object_unref(self->ui_mng);
-		g_object_unref(self->icon);
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
-
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat")),
 		eina_conf_get_bool(self->conf, "/core/repeat", FALSE));
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
 		eina_conf_get_bool(self->conf, "/core/random", FALSE));
 
-	g_signal_connect(self->conf, "change", G_CALLBACK(settings_change_cb), self);
-
-#if defined(__APPLE__) || defined(__APPLE_CC__)
-	gel_warn(GEL_DOMAIN " is buggy on OSX. You have been warned, dont file any bugs about this.");
-#endif
+	g_signal_connect(self->icon, "popup-menu",      G_CALLBACK(popup_menu_cb), self);
+	g_signal_connect(self->icon, "activate",        G_CALLBACK(status_icon_activate_cb), self);
+	g_signal_connect(self->icon, "notify::destroy", G_CALLBACK(status_icon_destroy_cb), self);
+	g_signal_connect(self->conf, "change",          G_CALLBACK(settings_change_cb), self);
 
 	if (GEL_APP_GET_PLAYER(app))
 		eina_player_set_persistent(GEL_APP_GET_PLAYER(app), TRUE);
 
-	// Prepare destroy
-	g_signal_connect(self->icon, "notify::destroy",
-	G_CALLBACK(status_icon_destroy_cb), self);
+	#if defined(__APPLE__) || defined(__APPLE_CC__)
+		gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
+	#endif
 
+	plugin->data = self;
 	return TRUE;
 }
 
 static gboolean
 vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaVogon *self = gel_app_shared_get(app, "vogon");
+	EinaVogon *self = EINA_PLUGIN_DATA(plugin);
+
+	// Disconnect signals
+	g_signal_handlers_disconnect_by_func(self->conf, settings_change_cb, self);
+
+	// Free/unref objects
 	gel_free_and_invalidate(self->icon,   NULL, g_object_unref);
 	gel_free_and_invalidate(self->ui_mng, NULL, g_object_unref);
 
+	// Free self
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
