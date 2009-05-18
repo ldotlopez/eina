@@ -33,6 +33,7 @@ typedef struct _ArtBackend ArtBackend;
 typedef struct _ArtSearch  ArtSearch;
 
 typedef void (*ArtFunc)(Art *art, ArtSearch *search, gpointer data);
+#define ART_FUNC(x) ((ArtFunc) x)
 
 Art* art_new(void);
 void art_destroy(Art *art);
