@@ -34,8 +34,7 @@ typedef enum GelDebugLevel
 	GEL_DEBUG_LEVEL_WARN    = 2,
 	GEL_DEBUG_LEVEL_INFO    = 3,
 	GEL_DEBUG_LEVEL_DEBUG   = 4,
-	GEL_DEBUG_LEVEL_VERBOSE = 5,
-	GEL_N_DEBUG_LEVELS      = 6
+	GEL_N_DEBUG_LEVELS      = 5
 } GelDebugLevel;
 
 enum {
@@ -181,7 +180,7 @@ void gel_debug_remove_handler(GelDebugHandler func);
 #define _gel_debug
 #endif
 
-#define gel_verbose(...)    _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
+// #define gel_verbose(...)    _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
 #define gel_debug(...)	    _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)
 #define gel_info(...)       _gel_debug(GEL_DEBUG_LEVEL_INFO,    __VA_ARGS__)
 #define gel_warn(...)       _gel_debug(GEL_DEBUG_LEVEL_WARN,    __VA_ARGS__)

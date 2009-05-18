@@ -57,28 +57,31 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 
 	if (!g_module_supported())
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_DYNAMIC_LOADING_NOT_SUPPORTED,
-			N_("Module loading is NOT supported on this platform"));
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_NOT_SUPPORTED,
+			N_("Module loading is not supported on this platform"));
 		return NULL;
 	}
 
 	if ((mod = g_module_open(pathname, G_MODULE_BIND_LAZY)) == NULL)
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_CANNOT_LOAD, N_("%s is not loadable"), pathname);
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
+			N_("%s is not loadable"), pathname);
 		return NULL;
 	}
 
 	if (!g_module_symbol(mod, symbol, &symbol_p))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_SYMBOL_NOT_FOUND, N_("Cannot find symbol %s in %s"), symbol, pathname);
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_SYMBOL_NOT_FOUND,
+			N_("Cannot find symbol %s in %s"), symbol, pathname);
 		g_module_close(mod);
 		return NULL;
 	}
 
 	if (GEL_PLUGIN(symbol_p)->serial != GEL_PLUGIN_SERIAL)
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_INVALID_SERIAL,
-			N_("Invalid serial in object %s (app:%d, plugin:%d)"), pathname, GEL_PLUGIN_SERIAL, GEL_PLUGIN(symbol_p)->serial);
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_INVALID_SERIAL,
+			N_("Invalid serial in object %s:%s (app:%d, plugin:%d)"),
+			pathname ? pathname : "<NULL>", symbol, GEL_PLUGIN_SERIAL, GEL_PLUGIN(symbol_p)->serial);
 		g_module_close(mod);
 		return NULL;
 	}
@@ -100,7 +103,7 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 	gel_warn(" ");
 #endif
 
-	gel_warn("New plugin %s created", gel_plugin_stringify(self));
+	gel_debug(N_("Plugin %s created"), gel_plugin_stringify(self));
 	gel_app_add_plugin(app, self);
 
 	return self;
@@ -112,7 +115,7 @@ gel_plugin_free(GelPlugin *self, GError **error)
 	// Plugin in use (referenced) cannot be destroyed
 	if (gel_plugin_is_in_use(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_REFERENCED,
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_IN_USE,
 			N_("Plugin %s is in use"), gel_plugin_stringify(self));
 		return FALSE;
 	}
@@ -120,7 +123,7 @@ gel_plugin_free(GelPlugin *self, GError **error)
 	// Plugin is not referenced, but it is enabled
 	if (gel_plugin_is_enabled(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_STILL_ENABLED,
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_IS_ENABLED,
 			N_("Plugin %s is still enabled"), gel_plugin_stringify(self));
 		return FALSE;
 	}
@@ -133,7 +136,7 @@ gel_plugin_free(GelPlugin *self, GError **error)
 		return FALSE;
 	}
 
-	gel_warn("Plugin %s destroyed", gel_plugin_stringify(self));
+	gel_debug(N_("Plugin %s destroyed"), gel_plugin_stringify(self));
 	gel_app_remove_plugin(self->priv->app, self);
 
 	gel_free_and_invalidate(self->priv->pathname, NULL, g_free);
@@ -197,8 +200,10 @@ gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 	}
 	self->priv->dependants = g_list_prepend(self->priv->dependants, dependant);
 
-	gel_warn("Reference added on %s from %s", gel_plugin_stringify(self), gel_plugin_stringify(dependant));
-	gel_warn("  current refs: %s", gel_plugin_util_join_list(", ", self->priv->dependants));
+	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
+	gel_debug(N_("Reference added on %s from %s"), gel_plugin_stringify(self), gel_plugin_stringify(dependant));
+	gel_debug(N_("Current refs: %s"), refs);
+	g_free(refs);
 }
 
 void
@@ -215,8 +220,10 @@ gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 	self->priv->dependants = g_list_remove_link(self->priv->dependants, p);
 	g_list_free(p);
 
-	gel_warn("Reference removed on %s from %s", gel_plugin_stringify(self), gel_plugin_stringify(dependant));
-	gel_warn("  current refs: %s", gel_plugin_util_join_list(", ", self->priv->dependants));
+	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
+	gel_debug(N_("Reference added on %s from %s"), gel_plugin_stringify(self), gel_plugin_stringify(dependant));
+	gel_debug(N_("Current refs: %s"), refs);
+	g_free(refs);
 }
 
 GelApp *
@@ -262,14 +269,14 @@ gel_plugin_init(GelPlugin *self, GError **error)
 {
 	if (gel_plugin_is_enabled(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ALREADY_INITIALIZED,
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_ALREADY_INITIALIZED,
 			N_("Plugin %s already initialized"), gel_plugin_stringify(self));
 		return FALSE;
 	}
 
 	if (self->init == NULL)
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_HAS_NO_INIT_HOOK,
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_NO_INIT_HOOK,
 			N_("Plugin %s has not init hook"), gel_plugin_stringify(self));
 		return FALSE;
 	}
@@ -281,12 +288,12 @@ gel_plugin_init(GelPlugin *self, GError **error)
 				gel_plugin_stringify(self),
 				(*error)->message);
 		else
-			g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
+			g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_UNKNOW,
 		 		N_("Cannot init plugin %s, unknow reason"), gel_plugin_stringify(self));
 		return FALSE;
 	}
 
-	// gel_warn("Plugin %s initialized", gel_plugin_stringify(self));
+	gel_debug(N_("Plugin %s initialized"), gel_plugin_stringify(self));
 	gel_app_emit_init(self->priv->app, self);
 	return TRUE;
 }
@@ -296,7 +303,7 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 {
 	if (!gel_plugin_is_enabled(self))
 	{
-		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NOT_INITIALIZED,
+		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_NOT_INITIALIZED,
 			N_("Plugin %s is not initialized"), gel_plugin_stringify(self));
 		return FALSE;
 	}
@@ -321,12 +328,12 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 				gel_plugin_stringify(self),
 				(*error)->message);
 		else
-			g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_NO_ERROR_AVAILABLE,
+			g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_UNKNOW,
 				N_("Cannot finalize plugin %s: unknow reason"), gel_plugin_stringify(self));
 		return FALSE;
 	}
 
-	// gel_warn("Plugin %s finalized", gel_plugin_stringify(self));
+	gel_debug(N_("Plugin %s finalized"), gel_plugin_stringify(self));
 	gel_app_emit_fini(self->priv->app, self);
 	return TRUE;
 }
@@ -385,5 +392,4 @@ gel_plugin_util_join_list(gchar *separator, GList *plugin_list)
 	gel_list_deep_free(pstrs, g_free);
 	return ret;
 }
-
 

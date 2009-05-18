@@ -31,21 +31,20 @@ typedef struct _GelPluginExtend GelPluginExtend;
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
 #define GEL_PLUGIN_SERIAL 2009042401
 
-enum {
+typedef enum {
 	GEL_PLUGIN_NO_ERROR = 0,
-	GEL_PLUGIN_DYNAMIC_LOADING_NOT_SUPPORTED,
-	GEL_PLUGIN_SYMBOL_NOT_FOUND,
-	GEL_PLUGIN_INVALID_SERIAL,
-	GEL_PLUGIN_STILL_REFERENCED,
-	GEL_PLUGIN_STILL_ENABLED,
-	GEL_PLUGIN_ALREADY_INITIALIZED,
-	GEL_PLUGIN_NOT_REFERENCED,
-	GEL_PLUGIN_HAS_NO_INIT_HOOK,
-	GEL_PLUGIN_NO_ERROR_AVAILABLE,
-	GEL_PLUGIN_NOT_INITIALIZED,
-	GEL_PLUGIN_CANNOT_LOAD,
-	GEL_PLUGIN_ERROR_LOCKED
-};
+	GEL_PLUGIN_ERROR_NOT_SUPPORTED,
+	GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
+	GEL_PLUGIN_ERROR_SYMBOL_NOT_FOUND,
+	GEL_PLUGIN_ERROR_INVALID_SERIAL,
+	GEL_PLUGIN_ERROR_IN_USE,
+	GEL_PLUGIN_ERROR_IS_ENABLED,
+	GEL_PLUGIN_ERROR_LOCKED,
+	GEL_PLUGIN_ERROR_ALREADY_INITIALIZED,
+	GEL_PLUGIN_ERROR_NO_INIT_HOOK,
+	GEL_PLUGIN_ERROR_UNKNOW,
+	GEL_PLUGIN_ERROR_NOT_INITIALIZED,
+} GelPluginError;
 
 typedef struct _GelPluginPrivate GelPluginPrivate;
 struct _GelPlugin {
@@ -91,7 +90,6 @@ const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
 gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
-
 gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 
 // Access to plugin's data if defined
