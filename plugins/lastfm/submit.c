@@ -26,6 +26,7 @@ struct _LastFMSubmit {
 	gint64      check_point;
 };
 
+
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, LastFMSubmit *self);
 static void
@@ -34,6 +35,20 @@ static void
 lomo_eos_cb(LomoPlayer *lomo, LastFMSubmit *self);
 static void
 lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to, LastFMSubmit *self);
+
+struct {
+	gchar *signal;
+	GCallback callback;
+} signals[] = {
+	{ "change", (GCallback) lomo_change_cb       },
+	{ "change", (GCallback) lomo_change_cb       },
+	{ "play",   (GCallback) lomo_state_change_cb },
+	{ "pause",  (GCallback) lomo_state_change_cb },
+	{ "stop",   (GCallback) lomo_state_change_cb },
+	{ "eos",    (GCallback) lomo_eos_cb          },
+	{ "seek",   (GCallback) lomo_seek_cb         }
+};
+
 
 static void
 reset_counters(LastFMSubmit *self)
@@ -70,16 +85,14 @@ can_submit(LastFMSubmit *self)
 gboolean
 lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	g_return_val_if_fail(lomo != NULL, FALSE);
+
 	LastFMSubmit *self = g_new0(LastFMSubmit, 1);
 	reset_counters(self);
-
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
-	g_signal_connect(lomo, "change", (GCallback) lomo_change_cb, self);
-	g_signal_connect(lomo, "play",   (GCallback) lomo_state_change_cb, self);
-	g_signal_connect(lomo, "pause",  (GCallback) lomo_state_change_cb, self);
-	g_signal_connect(lomo, "stop",   (GCallback) lomo_state_change_cb, self);
-	g_signal_connect(lomo, "eos",    (GCallback) lomo_eos_cb, self);
-	g_signal_connect(lomo, "seek",   (GCallback) lomo_seek_cb, self);
+	gint i;
+	for ( i = 0; i < G_N_ELEMENTS(signals); i++)
+		g_signal_connect(lomo, signals[i].signal, signals[i].callback, self);
 
 	EINA_PLUGIN_DATA(plugin)->submit = self;
 
@@ -89,6 +102,14 @@ lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 lastfm_submit_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	g_return_val_if_fail(lomo != NULL, FALSE);
+
+	LastFMSubmit *self = EINA_PLUGIN_DATA(plugin)->submit;
+	gint i;
+	for ( i = 0; i < G_N_ELEMENTS(signals); i++)
+		g_signal_handlers_disconnect_by_func(lomo, signals[i].callback, self);
+
 	g_free(EINA_PLUGIN_DATA(plugin)->submit);
 	return TRUE;
 }

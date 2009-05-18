@@ -22,14 +22,15 @@
 #include "submit.h"
 #include "artwork.h"
 
-#ifdef HAVE_WEBKIT // Disable webkit
-#undef HAVE_WEBKIT
-#endif
+#define ENABLE_SUBMIT  0
+#define ENABLE_WEBVIEW 0
 
 struct _LastFM {
 	LastFMArtwork *artwork;
+#if ENABLE_SUBMIT
 	LastFMSubmit  *submit;
-#if HAVE_WEBKIT
+#endif
+#if ENABLE_WEBVIEW
 	LastFMWebView *webview;
 #endif
 };
@@ -46,10 +47,12 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (!lastfm_artwork_init(app, plugin, error))
 		goto lastfm_init_fail;
 
+#if ENABLE_SUBMIT
 	if (!lastfm_submit_init(app, plugin, error))
 		goto lastfm_init_fail;
+#endif
 
-#if HAVE_WEBKIT
+#if ENABLE_WEBVIEW
 	GError *non_fatal_err = NULL;
 	if (!lastfm_webview_init(app, plugin, &non_fatal_err))
 	{
@@ -63,8 +66,10 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 lastfm_init_fail:
 	if (self->artwork)
 		lastfm_artwork_fini(app, plugin, NULL);
+#if ENABLE_SUBMIT
 	if (self->submit)
 		lastfm_submit_fini(app, plugin, NULL);
+#endif
 	g_free(self);
 	return FALSE;
 	
@@ -142,15 +147,24 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	g_free(plugin->data);
 #endif
 
-#if HAVE_WEBKIT
 	LastFM *self = EINA_PLUGIN_DATA(plugin);
+
+#if ENABLE_SUBMIT
+	if (self->submit && !lastfm_submit_fini(app, plugin, error))
+		return FALSE;
+#endif
+
+#if ENABLE_WEBVIEW
 	if (self->webview && !lastfm_webview_fini(app, plugin, error))
 		return FALSE;
 #endif
 
 	if (!lastfm_artwork_fini(app, plugin, error))
 		return FALSE;
+
 	g_free(plugin->data);
+	self = plugin->data = NULL;
+
 	return TRUE;
 }
 
