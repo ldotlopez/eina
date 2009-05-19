@@ -254,6 +254,15 @@ gel_app_resource_get_pathname(GelAppResourceType type, gchar *resource)
 	}
 	g_list_free(candidates);
 
+	if (!g_path_is_absolute(ret))
+	{
+		gchar *cwd = g_get_current_dir();
+		gchar *tmp = g_build_filename(cwd, ret, NULL);
+		g_free(cwd);
+		g_free(ret);
+		ret = tmp;
+	}
+
 	return ret;
 }
 
