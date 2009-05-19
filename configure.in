@@ -98,6 +98,24 @@ dnl
 dnl Plugins
 dnl
 
+dnl notify
+NOTIFY_VERSION="0.4.0"
+notify_modules="libnotify >= $NOTIFY_VERSION"
+PKG_CHECK_MODULES(NOTIFY, $notify_modules,
+	[
+		AC_SUBST(NOTIFY_CFLAGS)
+		AC_SUBST(NOTIFY_LIBS)
+		HAVE_NOTIFY=yes
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS $NOTIFY_CFLAGS -DHAVE_NOTIFY=1"
+		PACKAGE_LIBS="$PACKAGE_LIBS $NOTIFY_LIBS"
+	],
+	[
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_NOTIFY=0"
+		HAVE_NOTIFY=no
+	]
+	)
+AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
+
 dnl ige-mac-integracion aka ige
 IGE_VERSION="0.8.0"
 ige_modules="ige-mac-integration >= $IGE_VERSION"
@@ -122,8 +140,8 @@ AM_CONDITIONAL(USE_IGE, test x"$HAVE_IGE" = "xyes")
 
 dnl dbus-glib
 DBUS_GLIB_VERSION="0.80"
-unique_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
-PKG_CHECK_MODULES(DBUS_GLIB, $unique_modules,
+dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
+PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
 	[
 		AC_SUBST(DBUS_GLIB_CFLAGS)
 		AC_SUBST(DBUS_GLIB_LIBS)
