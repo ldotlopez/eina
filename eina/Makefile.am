@@ -24,7 +24,8 @@ NOINST_H_FILES = \
 	eina-volume.h              \
 	player.h                   \
 	playlist.h                 \
-	template.h
+	template.h                 \
+	vogon.h
 
 INST_H_FILES = \
 	art.h \

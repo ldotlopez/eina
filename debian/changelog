@@ -1,3 +1,9 @@
+eina (0.8.0~ppa1) jaunty; urgency=low
+
+  * Update package for 0.8.0 version
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Tue, 19 May 2009 19:55:06 +0200
+
 eina (0.7.3.91~ppa3) intrepid; urgency=low
 
   * Fix eina.install to get all plugins and associated files installed

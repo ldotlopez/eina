@@ -9,5 +9,5 @@ ui_DATA = \
 	playlist.ui \
 	plugins.ui
 
-EXTRA_DIR = $(ui_DATA)
+EXTRA_DIST = $(ui_DATA)
 

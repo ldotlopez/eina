@@ -707,7 +707,7 @@ about_show(void)
 	gchar *logo_path;
 	GdkPixbuf  *pb;
 
-	static gchar *release_name = "Running up that hill";
+	static gchar *release_name = "Hostile Negotiations";
 	gchar *tmp;
 
 	GError *err = NULL;
