@@ -123,7 +123,6 @@ adb_register_setup_db(Adb *self)
 		schema_version = atoi((gchar *) schema_version_str);
 		g_free(schema_version_str);
 	}
-	// gel_warn("Got schema version: %d", schema_version);
 }
 
 // --

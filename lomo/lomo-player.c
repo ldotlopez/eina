@@ -486,8 +486,10 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE, "Error while setting state on pipeline");
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
+	/*
 	if (ret == GST_STATE_CHANGE_SUCCESS)
 		g_printf("\n\nCatched a sync result\n\n\n");
+	*/
 
 	return LOMO_STATE_CHANGE_SUCCESS; // Or async, or preroll...
 }
