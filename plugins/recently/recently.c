@@ -866,8 +866,8 @@ adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp)
 {
 	char *q = sqlite3_mprintf(
 		"SELECT uri FROM streams WHERE sid IN ("
-		"SELECT sid FROM playlist_history WHERE timestamp='%q'"
-		");", timestamp);
+		"SELECT sid FROM playlist_history WHERE timestamp='%q'" 
+		") ORDER BY sid DESC;", timestamp);
 	sqlite3_stmt *stmt = NULL;
 	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
 	if (code != SQLITE_OK)
