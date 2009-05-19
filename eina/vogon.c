@@ -110,8 +110,10 @@ static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaVogon *self);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaVogon *self);
+/*
 static void
 art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self);
+*/
 static gchar*
 ntfy_str_parse_cb(gchar key, gpointer data);
 #endif
@@ -543,7 +545,9 @@ ntfy_send(EinaVogon *self, LomoStream *stream)
 
 	// Set summary
 	if (lomo_stream_get_all_tags_flag(stream))
-		self->ntfy_summary = gel_str_parser("{%a - }%t", ntfy_str_parse_cb, stream);
+	{
+		self->ntfy_summary = gel_str_parser("%t\n{%a}", ntfy_str_parse_cb, stream);
+	}
 	else
 	{
 		gchar *tmp = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
@@ -551,9 +555,9 @@ ntfy_send(EinaVogon *self, LomoStream *stream)
 		g_free(tmp);
 	}
 
-	// Set cover to default and query for artwork
-	self->ntfy_imgpath = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	self->ntfy_search  = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
+	// Start a search for the cover, ntfy_update will set a default cover if
+	// not found
+	// self->ntfy_search  = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
 
 	// Create and show notification
 	ntfy_update(self);
@@ -569,6 +573,12 @@ ntfy_update(EinaVogon *self)
 		notify_notification_set_icon_from_pixbuf(self->ntfy, self->ntfy_pixbuf);
 	else if (self->ntfy_imgpath)
 		notify_notification_update(self->ntfy, self->ntfy_summary, NULL, self->ntfy_imgpath);
+	else
+	{
+		gchar *tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+		notify_notification_update(self->ntfy, self->ntfy_summary, NULL, tmp);
+		g_free(tmp);
+	}
 
 	GError *error = NULL;
 	if (!notify_notification_show(self->ntfy, &error))
@@ -594,15 +604,23 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaVogon *self)
 		return;
 
 	gel_free_and_invalidate(self->ntfy_summary, NULL, g_free);
-	self->ntfy_summary = gel_str_parser("{%a - }%t", ntfy_str_parse_cb, stream);
+	self->ntfy_summary = gel_str_parser("%t\n{%a}", ntfy_str_parse_cb, stream);
+	/*
+	if (!self->ntfy_imgpath && !self->ntfy_pixbuf)
+	{
+		if (self->ntfy_search)
+			art_cancel(EINA_OBJ_GET_ART(self), self->ntfy_search);
+		self->ntfy_search = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
+	}
+	*/
 	ntfy_update(self);
 }
-
+/*
 static void
 art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self)
 {
-	self->ntfy_search = NULL;
 	gpointer result = art_search_get_result(search);
+	self->ntfy_search = NULL;
 	if (result == NULL)
 		return;
 
@@ -616,7 +634,7 @@ art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self)
 	
 	ntfy_update(self);
 }
-
+*/
 static gchar*
 ntfy_str_parse_cb(gchar key, gpointer data)
 {
