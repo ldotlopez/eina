@@ -134,6 +134,10 @@ static const gchar ui_def[] =
 "		<separator />"
 "		<menuitem action='Repeat' />"
 "		<menuitem action='Shuffle' />"
+#if HAVE_NOTIFY
+"		<separator />"
+"		<menuitem action='Notifications' />"
+#endif
 "		<separator />"
 "		<menuitem action='Clear' />"
 "		<menuitem action='Quit' />"
@@ -165,6 +169,9 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	const GtkToggleActionEntry ui_toggle_actions[] = {
 		{ "Shuffle", NULL, N_("Shuffle"), "<alt>s", "Shuffle playlist", G_CALLBACK(action_activate_cb) },
 		{ "Repeat",  NULL, N_("Repeat"),  "<alt>r", "Repeat playlist",  G_CALLBACK(action_activate_cb) }
+		#if HAVE_NOTIFY
+		,{ "Notifications",  NULL, N_("Enable notifications"), "<alt>r", "Enable notifications",  G_CALLBACK(action_activate_cb) }
+		#endif
 	};
 
 	// Systray is broken on OSX using Quartz backend
@@ -228,6 +235,8 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Notify
 	#if HAVE_NOTIFY
 		ntfy_init(self);
+		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
+			self->ntfy_enabled);
 	#endif
 
 	g_signal_connect(self->icon, "popup-menu",      G_CALLBACK(popup_menu_cb), self);
@@ -368,6 +377,13 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 		eina_conf_set_bool(
 			self->conf, "/core/random",
 			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
+	}
+	else if (g_str_equal(name, "Notifications"))
+	{
+		self->ntfy_enabled = gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action));
+		eina_conf_set_bool(
+			self->conf, "/vogon/notifications",
+			self->ntfy_enabled);
 	}
 
 	else if (g_str_equal(name, "Clear"))
@@ -520,6 +536,7 @@ ntfy_init(EinaVogon *self)
 		g_signal_connect(EINA_OBJ_GET_LOMO(self), "change",   G_CALLBACK(lomo_change_cb),   self);
 		g_signal_connect(EINA_OBJ_GET_LOMO(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
 	}
+	self->ntfy_enabled = eina_conf_get_bool(EINA_OBJ_GET_SETTINGS(self), "/vogon/notification", TRUE);
 }
 
 // Sends a notification with minimal values
