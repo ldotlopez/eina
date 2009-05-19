@@ -101,7 +101,7 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { /* "log", */ "settings", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
+	gchar          *modules[] = { "log", "settings", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
 #if HAVE_IGE
 		"ige",
 #endif
@@ -110,7 +110,6 @@ gint main
 	GOptionContext *opt_ctx;
 	GError *err = NULL;
 
-	g_printf("=> Locale dir: " PACKAGE_LOCALE_DIR "\n");
 	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
