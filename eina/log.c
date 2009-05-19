@@ -131,6 +131,11 @@ static gboolean
 log_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaLog *self = GEL_PLUGIN_DATA(plugin);
+	gel_debug_remove_handler((GelDebugHandler) debug_handler);
+	g_signal_handlers_disconnect_by_func(app, plugin_load_cb, self);
+	g_signal_handlers_disconnect_by_func(app, plugin_unload_cb, self);
+	g_signal_handlers_disconnect_by_func(app, plugin_init_cb, self);
+	g_signal_handlers_disconnect_by_func(app, plugin_fini_cb, self);
 	GList *iter = self->msgs;
 	while (iter)
 	{
