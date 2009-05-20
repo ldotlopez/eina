@@ -39,13 +39,12 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="model">playlist-model</property>
-                        <property name="headers_visible">False</property>
                         <property name="headers_clickable">False</property>
                         <property name="rubber_banding">True</property>
+                        <property name="tooltip_column">2</property>
                         <child>
                           <object class="GtkTreeViewColumn" id="state-column">
                             <property name="sizing">autosize</property>
-                            <property name="title">column</property>
                             <child>
                               <object class="GtkCellRendererPixbuf" id="state-renderer"/>
                               <attributes>
@@ -57,7 +56,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="title-column">
                             <property name="sizing">autosize</property>
-                            <property name="title">column</property>
+                            <property name="title">Title</property>
                             <property name="expand">True</property>
                             <child>
                               <object class="GtkCellRendererText" id="title-renderer"/>

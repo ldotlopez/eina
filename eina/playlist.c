@@ -18,7 +18,6 @@
  */
 
 #define GEL_DOMAIN "Eina::Playlist"
-#define USE_GTK_BUILDER 1
 
 #include <config.h>
 
@@ -369,62 +368,12 @@ dock_key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self)
 gboolean
 eina_playlist_dock_init(EinaPlaylist *self)
 {
-#if !USE_GTK_BUILDER
-	GtkListStore      *model;
-	GtkTreeViewColumn *state_col, *title_col;
-
-	GtkCellRenderer   *title_renderer;
-#endif
-
 	self->tv = GTK_TREE_VIEW(eina_obj_get_widget(self, "playlist-treeview"));
 
-#if !USE_GTK_BUILDER
-	/*
-	 * Setup treeview step 1: build renderers and attach to colums and columns
-	 * to treeview
-	 */
-	state_col = gtk_tree_view_column_new_with_attributes(NULL,
-		gtk_cell_renderer_pixbuf_new(), "stock-id", PLAYLIST_COLUMN_STATE, NULL);
-
-	title_renderer = gtk_cell_renderer_text_new();
-
-	title_col = gtk_tree_view_column_new_with_attributes(_("Title"),
-		title_renderer,  "markup", PLAYLIST_COLUMN_MARKUP, NULL);
-
-	gtk_tree_view_append_column(self->tv, state_col);
-	gtk_tree_view_append_column(self->tv, title_col);
-
-	/* 
-	 * Setup treeview step 2: set model for treeview
-	 */
-
-	model = gtk_list_store_new(PLAYLIST_N_COLUMNS,
-		LOMO_TYPE_STREAM, // Stream
-		G_TYPE_STRING,    // State
-		G_TYPE_STRING,    // Text
-		G_TYPE_STRING     // Markup
-		);
-	gtk_tree_view_set_model(self->tv, (GtkTreeModel *) model);
-
-	/* Setup treeview step 3: set some properties */
-	g_object_set(G_OBJECT(title_renderer),
+	g_object_set(eina_obj_get_widget(self, "title-renderer"),
 		"ellipsize-set", TRUE,
-		"ellipsize", PANGO_ELLIPSIZE_END,
+		"ellipsize", PANGO_ELLIPSIZE_NONE,
 		NULL);
-	g_object_set(G_OBJECT(state_col),
-		"visible",   TRUE,
-		"resizable", FALSE,
-		NULL);
-	g_object_set(G_OBJECT(title_col),
-		"visible",   TRUE,
-		"resizable", FALSE,
-		NULL); 
-	g_object_set(G_OBJECT(self->tv),
-		"headers-clickable", FALSE,
-		"headers-visible", FALSE,
-		NULL);
-#endif
-
 	gtk_tree_view_set_search_column(self->tv, PLAYLIST_COLUMN_MARKUP);
 	gtk_tree_view_set_search_equal_func(self->tv, (GtkTreeViewSearchEqualFunc) __eina_playlist_search_func, self, NULL);
 
