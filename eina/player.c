@@ -258,6 +258,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 		{ "Help", GTK_STOCK_HELP, N_("Help"),
 		NULL, "About", G_CALLBACK(menu_activate_cb) },
+		{ "Bug", EINA_STOCK_BUG , N_("Report a bug"),
+		NULL, "Bug", G_CALLBACK(menu_activate_cb) },
 		{ "About", GTK_STOCK_ABOUT, N_("About"),
 		NULL, "About", G_CALLBACK(menu_activate_cb) }
 	};
@@ -900,6 +902,15 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 			g_error_free(error);
 		}
 	}
+	else if (g_str_equal(name, "Bug"))
+	{
+		GError *error = NULL;
+		if (!gtk_show_uri(NULL, "https://bugs.launchpad.net/eina/+filebug", GDK_CURRENT_TIME, &error))
+		{
+			gel_error(N_("https://bugs.launchpad.net/eina/+filebug: %s"), error->message);
+			g_error_free(error);
+		}
+	}
 	else if (g_str_equal(name, "About"))
 	{
 		about_show();
@@ -1215,7 +1226,7 @@ build_cover_mask(GtkWidget *w)
 G_MODULE_EXPORT GelPlugin player_plugin = {
 	GEL_PLUGIN_SERIAL,
 
-	"player", PACKAGE_VERSION, "preferences",
+	"player", PACKAGE_VERSION, /* "preferences" */ NULL,
 	NULL, NULL,
 
 	N_("Build-in player plugin"), NULL, NULL,

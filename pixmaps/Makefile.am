@@ -6,7 +6,7 @@ t22actions = 22x22/actions
 t24actions = 24x24/actions
 
 theme16actionsdir = $(themedir)/$(t16actions)
-theme16actions_DATA = $(t16actions)/queue.png
+theme16actions_DATA = $(t16actions)/queue.png $(t16actions)/bug.png
 
 theme22actionsdir = $(themedir)/$(t22actions)
 theme22actions_DATA = $(t22actions)/queue.png

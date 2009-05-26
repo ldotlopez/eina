@@ -6,11 +6,11 @@
 	</menu>
 
     <menu name="Edit" action="EditMenu" >
-	 <!-- <menuitem name="Preferences" action="Preferences" /> -->
 	</menu>
 
     <menu name="Help" action="HelpMenu">
 	  <menuitem name="Help" action="Help" />
+	  <menuitem name="Bug" action="Bug" />
 	  <menuitem name="About" action="About" />
 	</menu>
   </menubar>

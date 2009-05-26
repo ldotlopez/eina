@@ -202,8 +202,8 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	GtkActionEntry action_entries[] = {
-		{ "Plugins", NULL, N_("Plugins"),
-	    NULL, NULL, G_CALLBACK(plugins_menu_activate_cb) }
+		{ "Plugins", GTK_STOCK_EXECUTE, N_("Plugins"),
+	    "<control>u", NULL, G_CALLBACK(plugins_menu_activate_cb) }
 	};
 	
 	self->ui_mng_ag = gtk_action_group_new("plugins");
