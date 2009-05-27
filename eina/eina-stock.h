@@ -21,6 +21,7 @@
 #define _EINA_STOCK_H
 
 #define EINA_STOCK_QUEUE "queue"
+#define EINA_STOCK_BUG   "bug"
 
 void
 eina_stock_init(void);
