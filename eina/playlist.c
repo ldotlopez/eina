@@ -192,21 +192,6 @@ static gboolean
 playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlaylist *self;
-	gint i;
-	gchar *tmp;
-
-	static const gchar *rr_files[] = {
-		"random.png",
-		"repeat.png",
-		NULL
-	};
-	static const gchar *rr_widgets[] = {
-		"playlist-random-image",
-		"playlist-repeat-image",
-		NULL
-	};
-	GdkPixbuf *pb = NULL;
-	GError *err = NULL;
 	gboolean random, repeat;
 
 	self = g_new0(EinaPlaylist, 1);
@@ -236,22 +221,8 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	self->stream_fmt = (gchar *) eina_conf_get_str(self->conf, "/ui/playlist/fmt", "{%a - }%t");
 
 	/* Setup stock icons */
-	for (i = 0; rr_files[i] != NULL; i++) {
-		if ((tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, (gchar *) rr_files[i])) == NULL) {
-			gel_warn("Cannot find %s pixmap", rr_files[i]);
-			continue;
-		}
-
-		if ((pb = gdk_pixbuf_new_from_file_at_scale(tmp, 24, 24, TRUE, &err)) == NULL) {
-			gel_warn("Cannot load %s into pixbuf: %s", tmp, err->message);
-			g_error_free(err);
-			g_free(tmp);
-			continue;
-		}
-		gtk_image_set_from_pixbuf(GTK_IMAGE(eina_obj_get_widget(self, rr_widgets[i])), pb);
-		g_object_unref(pb);
-		g_free(tmp);
-	}
+	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "playlist-random-image"), EINA_STOCK_RANDOM, GTK_ICON_SIZE_BUTTON);
+	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "playlist-repeat-image"), EINA_STOCK_REPEAT, GTK_ICON_SIZE_BUTTON);
 
 	if (!eina_playlist_dock_init(self))
 	{
@@ -370,7 +341,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 {
 	self->tv = GTK_TREE_VIEW(eina_obj_get_widget(self, "playlist-treeview"));
 
-	g_object_set(eina_obj_get_widget(self, "title-renderer"),
+	g_object_set(eina_obj_get_object(self, "title-renderer"),
 		"ellipsize-set", TRUE,
 		"ellipsize", PANGO_ELLIPSIZE_NONE,
 		NULL);

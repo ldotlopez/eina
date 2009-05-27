@@ -20,8 +20,10 @@
 #ifndef _EINA_STOCK_H
 #define _EINA_STOCK_H
 
-#define EINA_STOCK_QUEUE "queue"
-#define EINA_STOCK_BUG   "bug"
+#define EINA_STOCK_RANDOM      "random"
+#define EINA_STOCK_REPEAT      "repeat"
+#define EINA_STOCK_QUEUE       "queue"
+#define EINA_STOCK_BUG         "bug"
 
 void
 eina_stock_init(void);

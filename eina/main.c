@@ -179,20 +179,13 @@ gint main
 	g_setenv("G_BROKEN_FILENAMES", "1", TRUE);
 
 	// Initialize stock icons stuff
+	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
+	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
+	g_free(themedir);
+
+	if ((themedir = (gchar*) g_getenv("EINA_THEME_DIR")) != NULL)
+		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
-	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
-	        PACKAGE_DATA_DIR G_DIR_SEPARATOR_S "icons");
-#if 0
-	gel_warn(PACKAGE_DATA_DIR G_DIR_SEPARATOR_S "icons");
-	GtkImage *stock_test = (GtkImage *) gtk_image_new_from_stock("queue", GTK_ICON_SIZE_MENU);
-	if (stock_test)
-	{
-		 g_object_ref_sink(stock_test);
-		g_object_unref(stock_test);
-	}
-	else
-		gel_warn("Stock test failed");
-#endif
 
 	// --
 	// Create App and load modules

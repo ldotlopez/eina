@@ -3,12 +3,12 @@
 # AUTOMAKE_OPTIONS = 1.8
 
 SUBDIRS =                 \
-	misc pixmaps ui       \
+	misc icons pixmaps ui       \
 	gel lomo eina plugins \
 	po
 
-DIST_SUBDIRS = \
-	$(SUBDIRS)
+#DIST_SUBDIRS = \
+#	$(SUBDIRS)
 
 EXTRA_DIST = \
 	intltool-extract.in \
