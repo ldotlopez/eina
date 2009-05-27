@@ -107,13 +107,11 @@ ntfy_send(EinaVogon *self, LomoStream *stream);
 static void
 ntfy_update(EinaVogon *self);
 static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaVogon *self);
+lomo_play_cb(LomoPlayer *lomo, EinaVogon *self);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaVogon *self);
-/*
 static void
 art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self);
-*/
 static gchar*
 ntfy_str_parse_cb(gchar key, gpointer data);
 #endif
@@ -127,7 +125,6 @@ static const gchar ui_def[] =
 "	<popup name='MainMenu'>"
 "		<menuitem action='Play'  />"
 "		<menuitem action='Pause' />"
-// "		<menuitem action='Stop'  />"
 "		<separator />"
 "		<menuitem action='Previous'  />"
 "		<menuitem action='Next' />"
@@ -160,7 +157,6 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	const GtkActionEntry ui_actions[] = {
 		{ "Play",     GTK_STOCK_MEDIA_PLAY,     N_("Play"),     "<alt>x", "Play",            G_CALLBACK(action_activate_cb) },
 		{ "Pause",    GTK_STOCK_MEDIA_PAUSE,    N_("Pause"),    "<alt>c", "Pause",           G_CALLBACK(action_activate_cb) },
-		// { "Stop",     GTK_STOCK_MEDIA_STOP,     N_("Stop"),     "<alt>v", "Stop",            G_CALLBACK(action_activate_cb) },
 		{ "Next",     GTK_STOCK_MEDIA_NEXT,     N_("Next"),     "<alt>b", "Next stream",     G_CALLBACK(action_activate_cb) },
 		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"), "<alt>z", "Previous stream", G_CALLBACK(action_activate_cb) },
 		{ "Clear",    GTK_STOCK_CLEAR,          N_("C_lear"),   "<alt>l", "Clear playlist",  G_CALLBACK(action_activate_cb) },
@@ -181,20 +177,25 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	return FALSE;
 	#endif
 
+	//
+	// Getting other modules
+	//
 	EinaVogon *self = g_new0(EinaVogon, 1);
 	if (!eina_obj_init(EINA_OBJ(self), app, "vogon", EINA_OBJ_NONE, error))
 		return FALSE;
 
-	// Crete icon
-	gchar *pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, 
-	#if defined(__APPLE__) || defined(__APPLE_CC__)
-		"osx-systray-icon.png"
-	#else
-		"standard-systray-icon.png"
-	#endif
-		);
-	self->icon = gtk_status_icon_new_from_file(pathname);
-	g_free(pathname);
+	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
+	{
+		eina_obj_fini(EINA_OBJ(self));
+		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_NO_SETTINGS_OBJECT,
+			N_("Object 'settings' not found"));
+		return FALSE;
+	}
+
+	if (GEL_APP_GET_PLAYER(app))
+		eina_player_set_persistent(GEL_APP_GET_PLAYER(app), TRUE);
+
+	self->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON);
 	if (!self->icon)
 	{
 		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_NO_STATUS_ICON,
@@ -203,16 +204,6 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
-	{
-		g_object_unref(self->icon);
-		eina_obj_fini(EINA_OBJ(self));
-		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_NO_SETTINGS_OBJECT,
-			N_("Object 'settings' not found"));
-		return FALSE;
-	}
-
-	// Create menu
 	self->ui_mng = gtk_ui_manager_new();
 	gtk_ui_manager_add_ui_from_string(self->ui_mng, ui_def, -1, NULL);
 
@@ -222,35 +213,37 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	gtk_ui_manager_insert_action_group(self->ui_mng, ag, 0);
 	gtk_ui_manager_ensure_update(self->ui_mng);
-
 	self->menu = gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu");
-
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat")),
-		eina_conf_get_bool(self->conf, "/core/repeat", FALSE));
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
-		eina_conf_get_bool(self->conf, "/core/random", FALSE));
-
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	update_ui_manager(self);
 
 	// Notify
 	#if HAVE_NOTIFY
-		ntfy_init(self);
-		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
-			self->ntfy_enabled);
+	ntfy_init(self);
 	#endif
 
+	// Setup properties on UI
+	g_object_set(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat"),
+		"active", eina_conf_get_bool(self->conf, "/core/repeat", FALSE),
+		NULL);
+	g_object_set(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle"),
+		"active", eina_conf_get_bool(self->conf, "/core/random", FALSE),
+		NULL);
+	g_object_set(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Notifications"),
+		"active", eina_conf_get_bool(self->conf, "/vogon/notifications", FALSE),
+		NULL);
+
+	// Connect signals
+	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
 	g_signal_connect(self->icon, "popup-menu",      G_CALLBACK(popup_menu_cb), self);
 	g_signal_connect(self->icon, "activate",        G_CALLBACK(status_icon_activate_cb), self);
 	g_signal_connect(self->icon, "notify::destroy", G_CALLBACK(status_icon_destroy_cb), self);
 	g_signal_connect(self->conf, "change",          G_CALLBACK(settings_change_cb), self);
 
-	g_signal_connect(lomo, "play", G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(lomo, "play",  G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(lomo, "pause", G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(lomo, "stop", G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect(lomo, "stop",  G_CALLBACK(lomo_state_change_cb), self);
 
-	if (GEL_APP_GET_PLAYER(app))
-		eina_player_set_persistent(GEL_APP_GET_PLAYER(app), TRUE);
-
+	// Done, just a warning before
 	#if defined(__APPLE__) || defined(__APPLE_CC__)
 		gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
 	#endif
@@ -268,7 +261,7 @@ vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_handlers_disconnect_by_func(self->conf, settings_change_cb, self);
 	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), lomo_state_change_cb, self);
 	#if HAVE_NOTIFY
-	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), lomo_change_cb, self);
+	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), lomo_play_cb, self);
 	if (self->ntfy_stream)
 		g_signal_handlers_disconnect_by_func(self->ntfy_stream, lomo_all_tags_cb, self);
 	#endif
@@ -380,12 +373,12 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 	}
 	else if (g_str_equal(name, "Notifications"))
 	{
-		self->ntfy_enabled = gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action));
-		eina_conf_set_bool(
-			self->conf, "/vogon/notifications",
-			self->ntfy_enabled);
-	}
+		gboolean bool_val;
+		g_object_get(action, "active", &bool_val, NULL);
 
+		eina_conf_set_bool(self->conf, "/vogon/notifications", bool_val);
+		self->ntfy_enabled = bool_val;
+	}
 	else if (g_str_equal(name, "Clear"))
 		lomo_player_clear(eina_obj_get_lomo(self));
 	
@@ -533,7 +526,7 @@ ntfy_init(EinaVogon *self)
 	
 	if (self->ntfy_enabled)
 	{
-		g_signal_connect(EINA_OBJ_GET_LOMO(self), "change",   G_CALLBACK(lomo_change_cb),   self);
+		g_signal_connect(EINA_OBJ_GET_LOMO(self), "play",     G_CALLBACK(lomo_play_cb),     self);
 		g_signal_connect(EINA_OBJ_GET_LOMO(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
 	}
 	self->ntfy_enabled = eina_conf_get_bool(EINA_OBJ_GET_SETTINGS(self), "/vogon/notification", TRUE);
@@ -574,7 +567,7 @@ ntfy_send(EinaVogon *self, LomoStream *stream)
 
 	// Start a search for the cover, ntfy_update will set a default cover if
 	// not found
-	// self->ntfy_search  = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
+	self->ntfy_search  = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
 
 	// Create and show notification
 	ntfy_update(self);
@@ -584,16 +577,19 @@ static void
 ntfy_update(EinaVogon *self)
 {
 	if (!self->ntfy)
-		self->ntfy = notify_notification_new_with_status_icon(self->ntfy_summary, NULL, NULL, self->icon);
+		self->ntfy = notify_notification_new_with_status_icon(N_("Playing"), self->ntfy_summary, NULL, self->icon);
 
 	if (self->ntfy_pixbuf)
-		notify_notification_set_icon_from_pixbuf(self->ntfy, self->ntfy_pixbuf);
+	{
+		gdk_pixbuf_save(self->ntfy_pixbuf, "/tmp/a.jpg", "jpeg", NULL, NULL);
+		notify_notification_update(self->ntfy, N_("Playing"), self->ntfy_summary, "/tmp/a.jpg");
+	}
 	else if (self->ntfy_imgpath)
-		notify_notification_update(self->ntfy, self->ntfy_summary, NULL, self->ntfy_imgpath);
+		notify_notification_update(self->ntfy, N_("Playing"), self->ntfy_summary, self->ntfy_imgpath);
 	else
 	{
 		gchar *tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-		notify_notification_update(self->ntfy, self->ntfy_summary, NULL, tmp);
+		notify_notification_update(self->ntfy, N_("Playing"), self->ntfy_summary, tmp);
 		g_free(tmp);
 	}
 
@@ -606,11 +602,8 @@ ntfy_update(EinaVogon *self)
 }
 
 static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaVogon *self)
+lomo_play_cb(LomoPlayer *lomo, EinaVogon *self)
 {
-	if (to == -1)
-		return;
-
 	ntfy_send(self, lomo_player_get_current_stream(lomo));
 }
 
@@ -632,7 +625,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaVogon *self)
 	*/
 	ntfy_update(self);
 }
-/*
+
 static void
 art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self)
 {
@@ -651,7 +644,7 @@ art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self)
 	
 	ntfy_update(self);
 }
-*/
+
 static gchar*
 ntfy_str_parse_cb(gchar key, gpointer data)
 {

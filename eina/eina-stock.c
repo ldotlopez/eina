@@ -25,20 +25,26 @@
 static gboolean done = FALSE;
 
 static const  struct {
-	char *stock_id;
-	char *icon;
+	gchar *stock_id;
+	gchar *icon;
 } stock_icons [] = {
-	{ EINA_STOCK_RANDOM, "random" },
-	{ EINA_STOCK_REPEAT, "repeat" },
-	{ EINA_STOCK_QUEUE , "queue"  },
-	{ EINA_STOCK_BUG,    "bug"    }
+	#if defined(__APPLE__) || defined(__APPLE_CC__)
+	{ EINA_STOCK_STATUS_ICON, "osx-status-icon"      },
+	#else
+	{ EINA_STOCK_STATUS_ICON, "standard-status-icon" },
+	#endif
+	{ EINA_STOCK_RANDOM,      "random"      },
+	{ EINA_STOCK_REPEAT,      "repeat"      },
+	{ EINA_STOCK_QUEUE ,      "queue"       },
+	{ EINA_STOCK_BUG,         "bug"         },
 };
 
 static const GtkStockItem stock_items [] = {
-	{ EINA_STOCK_RANDOM, N_("_Random"), 0, 0, GETTEXT_PACKAGE },
-	{ EINA_STOCK_REPEAT, N_("_Shuffle"), 0, 0, GETTEXT_PACKAGE },
-	{ EINA_STOCK_QUEUE,  N_("_Queue"), 0, 0, GETTEXT_PACKAGE },
-	{ EINA_STOCK_BUG,    N_("Report a bug"), 0, 0, GETTEXT_PACKAGE },
+	{ EINA_STOCK_STATUS_ICON, N_("Status icon"),  0, 0, GETTEXT_PACKAGE },
+	{ EINA_STOCK_RANDOM,      N_("_Random"),      0, 0, GETTEXT_PACKAGE },
+	{ EINA_STOCK_REPEAT,      N_("_Shuffle"),     0, 0, GETTEXT_PACKAGE },
+	{ EINA_STOCK_QUEUE,       N_("_Queue"),       0, 0, GETTEXT_PACKAGE },
+	{ EINA_STOCK_BUG,         N_("Report a bug"), 0, 0, GETTEXT_PACKAGE },
 };
 
 void
