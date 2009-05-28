@@ -53,6 +53,7 @@ enum {
 	// ADD,
 	REMOVE,
 	// DEL,
+	PRE_CHANGE,
 	CHANGE,
 	CLEAR,
 	REPEAT,
@@ -236,6 +237,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
+	lomo_player_signals[PRE_CHANGE] =
+		g_signal_new ("pre-change",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, pre_change),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[CHANGE] =
 		g_signal_new ("change",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -829,6 +839,9 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	if (state == LOMO_STATE_INVALID)
 		state = LOMO_STATE_STOP;
 
+	// Emit prechange for cleanup
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[PRE_CHANGE], 0);
+
 	// Change
 	prev = lomo_player_get_current(self);
 	lomo_player_stop(self, NULL);
@@ -940,6 +953,7 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			break;
 
 		case GST_MESSAGE_EOS:
+			// g_printf("===> %"G_GINT64_FORMAT" (%"G_GINT64_FORMAT" secs)\n", lomo_player_tell_time(self), lomo_nanosecs_to_secs(lomo_player_tell_time(self)));
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[EOS], 0);
 			break;
 
@@ -966,7 +980,13 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 				signal = lomo_player_signals[STOP];
 				break;
 			case GST_STATE_PAUSED:
-				signal = lomo_player_signals[PAUSE];
+				// Ignore pause events before 50 miliseconds, gstreamer pauses
+				// pipeline after a first play event, returning to play state
+				// inmediatly. 
+				if ((lomo_player_tell_time(self) / 1000000) > 50)
+					signal = lomo_player_signals[PAUSE];
+				else
+					return TRUE;
 				break;
 			case GST_STATE_PLAYING:
 				signal = lomo_player_signals[PLAY];
