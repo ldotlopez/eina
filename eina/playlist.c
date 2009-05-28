@@ -776,13 +776,21 @@ static void lomo_random_cb
 		lomo_player_randomize(lomo);
 }
 
-static void lomo_eos_cb
-(LomoPlayer *lomo, EinaPlaylist *self)
+static gboolean
+lomo_eos_cb_helper(LomoPlayer *lomo)
 {
 	if (lomo_player_get_next(lomo) != -1) {
 		lomo_player_go_next(lomo, NULL);
 		lomo_player_play(lomo, NULL); //XXX: Handle GError
 	}
+
+	return FALSE;
+}
+
+static void lomo_eos_cb
+(LomoPlayer *lomo, EinaPlaylist *self)
+{
+	g_idle_add((GSourceFunc) lomo_eos_cb_helper, lomo);
 }
 
 static void lomo_error_cb
