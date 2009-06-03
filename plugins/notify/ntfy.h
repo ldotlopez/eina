@@ -1,5 +1,5 @@
 /*
- * eina/vogon.h
+ * plugins/notify/ntfy.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -16,30 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef _EINA_PLUGIN_NTFY_H
+#define _EINA_PLUGIN_NTFY_H
 
-#ifndef _EINA_VOGON_H
-#define _EINA_VOGON_H
+typedef struct _EinaNtfy EinaNtfy;
 
-#include <eina/eina-plugin.h>
+enum {
+	EINA_NTFY_NO_ERROR = 0,
+	EINA_NTFY_LIBRARY_ERROR,
+	EINA_NTFY_SETTINGS_ERROR
+} EinaNtfyError;
 
-#define EINA_VOGON(p)           ((EinaVogon *) p)
-#define GEL_APP_GET_VOGON(app)  EINA_VOGON(gel_app_shared_get(app, "vogon"))
-#define EINA_OBJ_GET_VOGON(obj) GEL_APP_GET_VOGON(eina_obj_get_app(obj))
-
-typedef enum {
-	EINA_VOGON_NO_ERROR = 0, 
-	EINA_VOGON_ERROR_OSX_QUARTZ,
-	EINA_VOGON_ERROR_NO_STATUS_ICON,
-	EINA_VOGON_ERROR_NO_SETTINGS_OBJECT
-} EinaVogonError;
-
-typedef struct _EinaVogon EinaVogon;
-
-GtkStatusIcon*
-eina_vogon_get_status_icon(EinaVogon *self);
-
-GtkUIManager*
-eina_vogon_get_ui_manager(EinaVogon *self);
-
-#endif // _EINA_VOGON_H
+#endif
 

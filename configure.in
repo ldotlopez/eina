@@ -214,6 +214,7 @@ pixmaps/Makefile
 plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
+plugins/notify/Makefile
 plugins/lastfm/Makefile
 plugins/recently/Makefile
 plugins/Makefile

@@ -24,9 +24,6 @@
 #include <string.h>
 #include <gmodule.h>
 #include <gel/gel-ui.h>
-#if HAVE_NOTIFY
-#include <libnotify/notify.h>
-#endif
 #include <eina/vogon.h>
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
@@ -42,27 +39,10 @@ struct _EinaVogon {
 	gint player_x, player_y;
 
 	gboolean hold;
-
-	#if HAVE_NOTIFY
-	gboolean ntfy_enabled;
-	LomoStream *ntfy_stream;
-	ArtSearch  *ntfy_search;
-
-	NotifyNotification *ntfy;
-	gchar     *ntfy_summary;
-	GdkPixbuf *ntfy_pixbuf;
-	gchar     *ntfy_imgpath;
-	#endif
 } _EinaVogon;
 
 static void
 update_ui_manager(EinaVogon *self);
-
-// --
-// Lomo callbacks
-// --
-static void
-lomo_state_change_cb(LomoPlayer *lomo, EinaVogon *self);
 
 // --
 // UI callbacks
@@ -75,46 +55,12 @@ static void
 popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
 static gboolean
 status_icon_destroy_cb(GtkWidget *w, EinaVogon *self);
-#if 0
-static void
-on_eina_vogon_drag_data_received
-    (GtkWidget       *widget,
-    GdkDragContext   *drag_context,
-    gint              x,
-    gint              y,
-    GtkSelectionData *data,
-    guint             info,
-    guint             time,
-	EinaVogon *self);
-#endif
 
 // --
 // Other callbacks
 // --
 static void
 settings_change_cb(EinaConf *conf, const gchar *key, EinaVogon *self);
-
-// ------------
-// ------------
-// Notify stuff
-// ------------
-// ------------
-#if HAVE_NOTIFY
-static void
-ntfy_init(EinaVogon *self);
-static void
-ntfy_send(EinaVogon *self, LomoStream *stream);
-static void
-ntfy_update(EinaVogon *self);
-static void
-lomo_play_cb(LomoPlayer *lomo, EinaVogon *self);
-static void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaVogon *self);
-static void
-art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self);
-static gchar*
-ntfy_str_parse_cb(gchar key, gpointer data);
-#endif
 
 /*
  * Init/Exit functions 
@@ -131,10 +77,8 @@ static const gchar ui_def[] =
 "		<separator />"
 "		<menuitem action='Repeat' />"
 "		<menuitem action='Shuffle' />"
-#if HAVE_NOTIFY
 "		<separator />"
-"		<menuitem action='Notifications' />"
-#endif
+"		<placeholder name='PluginsPlaceholder' />"
 "		<separator />"
 "		<menuitem action='Clear' />"
 "		<menuitem action='Quit' />"
@@ -155,19 +99,16 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	GtkActionGroup *ag;
 	const GtkActionEntry ui_actions[] = {
-		{ "Play",     GTK_STOCK_MEDIA_PLAY,     N_("Play"),     "<alt>x", "Play",            G_CALLBACK(action_activate_cb) },
-		{ "Pause",    GTK_STOCK_MEDIA_PAUSE,    N_("Pause"),    "<alt>c", "Pause",           G_CALLBACK(action_activate_cb) },
-		{ "Next",     GTK_STOCK_MEDIA_NEXT,     N_("Next"),     "<alt>b", "Next stream",     G_CALLBACK(action_activate_cb) },
-		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"), "<alt>z", "Previous stream", G_CALLBACK(action_activate_cb) },
-		{ "Clear",    GTK_STOCK_CLEAR,          N_("C_lear"),   "<alt>l", "Clear playlist",  G_CALLBACK(action_activate_cb) },
-		{ "Quit",     GTK_STOCK_QUIT,           N_("_Quit"),    "<alt>q", "Quit Eina",       G_CALLBACK(action_activate_cb) }
+		{ "Play",     GTK_STOCK_MEDIA_PLAY,     N_("Play"),     "<alt>x", N_("Play"),            G_CALLBACK(action_activate_cb) },
+		{ "Pause",    GTK_STOCK_MEDIA_PAUSE,    N_("Pause"),    "<alt>c", N_("Pause"),           G_CALLBACK(action_activate_cb) },
+		{ "Next",     GTK_STOCK_MEDIA_NEXT,     N_("Next"),     "<alt>b", N_("Next stream"),     G_CALLBACK(action_activate_cb) },
+		{ "Previous", GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"), "<alt>z", N_("Previous stream"), G_CALLBACK(action_activate_cb) },
+		{ "Clear",    GTK_STOCK_CLEAR,          N_("C_lear"),   "<alt>l", N_("Clear playlist"),  G_CALLBACK(action_activate_cb) },
+		{ "Quit",     GTK_STOCK_QUIT,           N_("_Quit"),    "<alt>q", N_("Quit Eina"),       G_CALLBACK(action_activate_cb) }
 	};
 	const GtkToggleActionEntry ui_toggle_actions[] = {
-		{ "Shuffle", NULL, N_("Shuffle"), "<alt>s", "Shuffle playlist", G_CALLBACK(action_activate_cb) },
-		{ "Repeat",  NULL, N_("Repeat"),  "<alt>r", "Repeat playlist",  G_CALLBACK(action_activate_cb) }
-		#if HAVE_NOTIFY
-		,{ "Notifications",  NULL, N_("Enable notifications"), "<alt>r", "Enable notifications",  G_CALLBACK(action_activate_cb) }
-		#endif
+		{ "Shuffle", NULL, N_("Shuffle"), "<alt>s", N_("Shuffle playlist"), G_CALLBACK(action_activate_cb) },
+		{ "Repeat",  NULL, N_("Repeat"),  "<alt>r", N_("Repeat playlist"),  G_CALLBACK(action_activate_cb) }
 	};
 
 	// Systray is broken on OSX using Quartz backend
@@ -216,20 +157,12 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self->menu = gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu");
 	update_ui_manager(self);
 
-	// Notify
-	#if HAVE_NOTIFY
-	ntfy_init(self);
-	#endif
-
 	// Setup properties on UI
 	g_object_set(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Repeat"),
 		"active", eina_conf_get_bool(self->conf, "/core/repeat", FALSE),
 		NULL);
 	g_object_set(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle"),
 		"active", eina_conf_get_bool(self->conf, "/core/random", FALSE),
-		NULL);
-	g_object_set(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Notifications"),
-		"active", eina_conf_get_bool(self->conf, "/vogon/notifications", FALSE),
 		NULL);
 
 	// Connect signals
@@ -239,13 +172,13 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(self->icon, "notify::destroy", G_CALLBACK(status_icon_destroy_cb), self);
 	g_signal_connect(self->conf, "change",          G_CALLBACK(settings_change_cb), self);
 
-	g_signal_connect(lomo, "play",  G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(lomo, "pause", G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(lomo, "stop",  G_CALLBACK(lomo_state_change_cb), self);
+	g_signal_connect_swapped(lomo, "play",  G_CALLBACK(update_ui_manager), self);
+	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(update_ui_manager), self);
+	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(update_ui_manager), self);
 
 	// Done, just a warning before
 	#if defined(__APPLE__) || defined(__APPLE_CC__)
-		gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
+	gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
 	#endif
 
 	plugin->data = self;
@@ -259,29 +192,30 @@ vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Disconnect signals
 	g_signal_handlers_disconnect_by_func(self->conf, settings_change_cb, self);
-	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), lomo_state_change_cb, self);
-	#if HAVE_NOTIFY
-	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), lomo_play_cb, self);
-	if (self->ntfy_stream)
-		g_signal_handlers_disconnect_by_func(self->ntfy_stream, lomo_all_tags_cb, self);
-	#endif
+	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), update_ui_manager, self);
 
 	// Free/unref objects
 	gel_free_and_invalidate(self->icon,   NULL, g_object_unref);
 	gel_free_and_invalidate(self->ui_mng, NULL, g_object_unref);
-	#if HAVE_NOTIFY
-	if (self->ntfy_search)
-		art_cancel(GEL_APP_GET_ART(app), self->ntfy_search);
-	gel_free_and_invalidate(self->ntfy, NULL, g_object_unref);
-	gel_free_and_invalidate(self->ntfy_summary, NULL, g_free);
-	gel_free_and_invalidate(self->ntfy_imgpath, NULL, g_free);
-	gel_free_and_invalidate(self->ntfy_pixbuf, NULL, g_object_unref);
-	#endif
 
 	// Free self
 	eina_obj_fini(EINA_OBJ(self));
 
 	return TRUE;
+}
+
+GtkStatusIcon*
+eina_vogon_get_status_icon(EinaVogon *self)
+{
+	g_return_val_if_fail(self != NULL, NULL);
+	return self->icon;
+}
+
+GtkUIManager*
+eina_vogon_get_ui_manager(EinaVogon *self)
+{
+	g_return_val_if_fail(self != NULL, NULL);
+	return self->ui_mng;
 }
 
 static void
@@ -309,12 +243,6 @@ update_ui_manager(EinaVogon *self)
 	}
 	gtk_widget_hide(gtk_ui_manager_get_widget(self->ui_mng, hide));
 	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
-}
-
-static void
-lomo_state_change_cb(LomoPlayer *lomo, EinaVogon *self)
-{
-	update_ui_manager(self);
 }
 
 // --
@@ -370,14 +298,6 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 		eina_conf_set_bool(
 			self->conf, "/core/random",
 			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
-	}
-	else if (g_str_equal(name, "Notifications"))
-	{
-		gboolean bool_val;
-		g_object_get(action, "active", &bool_val, NULL);
-
-		eina_conf_set_bool(self->conf, "/vogon/notifications", bool_val);
-		self->ntfy_enabled = bool_val;
 	}
 	else if (g_str_equal(name, "Clear"))
 		lomo_player_clear(eina_obj_get_lomo(self));
@@ -438,48 +358,6 @@ status_icon_activate_cb
 	return FALSE;
 }
 
-#if 0
-static void
-on_eina_vogon_drag_data_received
-    (GtkWidget       *widget,
-    GdkDragContext  *drag_context,
-    gint             x,
-    gint             y,
-    GtkSelectionData *data,
-    guint            info,
-    guint            time,
-    EinaVogon     *self)
-{
-	gint i;
-	gchar *filename;
-	gchar **uris;
-	GSList *uri_list = NULL, *uri_scan, *uri_filter;
-
-	uris = g_uri_list_extract_uris((gchar *) data->data);
-    for ( i = 0; uris[i] != NULL; i++ ) {
-        filename = g_filename_from_uri(uris[i], NULL, NULL);
-        uri_list = g_slist_prepend(uri_list, g_strconcat("file://", filename, NULL));
-        g_free(filename);
-    }
-    g_strfreev(uris);
-    uri_list = g_slist_reverse(uri_list);
-
-    uri_scan = eina_fs_scan(uri_list); //  Scan
-    g_ext_slist_free(uri_list, g_free);
-
-    uri_filter = eina_fs_filter_filter(self->stream_filter, // Filter
-        uri_scan,
-        TRUE, FALSE, FALSE,
-        TRUE, FALSE);
-
-    lomo_player_clear(eina_obj_get_lomo(self));
-    lomo_player_append_uri_multi(eina_obj_get_lomo(self), (GList *) uri_filter);
-
-    g_slist_free(uri_filter);
-    g_ext_slist_free(uri_scan, g_free);
-}
-#endif
-
 /*
  * Other callbacks
  */
@@ -496,171 +374,7 @@ settings_change_cb (EinaConf *conf, const gchar *key, EinaVogon *self)
 			GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
 			eina_conf_get_bool(conf, "/core/random", TRUE));
 }
-
-
-#if HAVE_NOTIFY
-// ------------------
-// ------------------
-// Notification stuff
-// ------------------
-// ------------------
-
-// --
-// Mini API
-// --
-static void
-ntfy_init(EinaVogon *self)
-{
-	if (!notify_is_initted())
-	{
-		if (notify_init(PACKAGE_NAME))
-			self->ntfy_enabled = TRUE;
-		else
-		{
-			gel_error(N_("Cannot init notify library, notifications will be disabled"));
-			self->ntfy_enabled = FALSE;
-		}
-	}
-	else
-		self->ntfy_enabled = TRUE;
 	
-	if (self->ntfy_enabled)
-	{
-		g_signal_connect(EINA_OBJ_GET_LOMO(self), "play",     G_CALLBACK(lomo_play_cb),     self);
-		g_signal_connect(EINA_OBJ_GET_LOMO(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-	}
-	self->ntfy_enabled = eina_conf_get_bool(EINA_OBJ_GET_SETTINGS(self), "/vogon/notification", TRUE);
-}
-
-// Sends a notification with minimal values
-static void
-ntfy_send(EinaVogon *self, LomoStream *stream)
-{
-	g_return_if_fail(self != NULL);
-	g_return_if_fail((stream != NULL) && LOMO_IS_STREAM(stream));
-
-	if (!self->ntfy_enabled || !eina_conf_get_bool(self->conf, "/vogon/notifications", TRUE))
-		return;
-
-	// Invalidate previous resources
-	if (self->ntfy_search)
-		art_cancel(EINA_OBJ_GET_ART(self), self->ntfy_search);
-
-	gel_free_and_invalidate(self->ntfy_summary, NULL, g_free);
-	gel_free_and_invalidate(self->ntfy_imgpath, NULL, g_free);
-	gel_free_and_invalidate(self->ntfy_pixbuf,  NULL, g_object_unref);
-
-	// Set stream
-	self->ntfy_stream = stream;
-
-	// Set summary
-	if (lomo_stream_get_all_tags_flag(stream))
-	{
-		self->ntfy_summary = gel_str_parser("%t\n{%a}", ntfy_str_parse_cb, stream);
-	}
-	else
-	{
-		gchar *tmp = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
-		self->ntfy_summary = g_path_get_basename(tmp);
-		g_free(tmp);
-	}
-
-	// Start a search for the cover, ntfy_update will set a default cover if
-	// not found
-	self->ntfy_search  = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
-
-	// Create and show notification
-	ntfy_update(self);
-}
-
-static void
-ntfy_update(EinaVogon *self)
-{
-	if (!self->ntfy)
-		self->ntfy = notify_notification_new_with_status_icon(N_("Playing"), self->ntfy_summary, NULL, self->icon);
-
-	if (self->ntfy_pixbuf)
-	{
-		gdk_pixbuf_save(self->ntfy_pixbuf, "/tmp/a.jpg", "jpeg", NULL, NULL);
-		notify_notification_update(self->ntfy, N_("Playing"), self->ntfy_summary, "/tmp/a.jpg");
-	}
-	else if (self->ntfy_imgpath)
-		notify_notification_update(self->ntfy, N_("Playing"), self->ntfy_summary, self->ntfy_imgpath);
-	else
-	{
-		gchar *tmp = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-		notify_notification_update(self->ntfy, N_("Playing"), self->ntfy_summary, tmp);
-		g_free(tmp);
-	}
-
-	GError *error = NULL;
-	if (!notify_notification_show(self->ntfy, &error))
-	{
-		gel_error(N_("Cannot show notification for '%s': %s"), self->ntfy_summary, error->message);
-		g_error_free(error);
-	}
-}
-
-static void
-lomo_play_cb(LomoPlayer *lomo, EinaVogon *self)
-{
-	ntfy_send(self, lomo_player_get_current_stream(lomo));
-}
-
-static void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaVogon *self)
-{
-	if (stream != self->ntfy_stream)
-		return;
-
-	gel_free_and_invalidate(self->ntfy_summary, NULL, g_free);
-	self->ntfy_summary = gel_str_parser("%t\n{%a}", ntfy_str_parse_cb, stream);
-	/*
-	if (!self->ntfy_imgpath && !self->ntfy_pixbuf)
-	{
-		if (self->ntfy_search)
-			art_cancel(EINA_OBJ_GET_ART(self), self->ntfy_search);
-		self->ntfy_search = art_search(EINA_OBJ_GET_ART(self), self->ntfy_stream, ART_FUNC(art_finish_cb), self);
-	}
-	*/
-	ntfy_update(self);
-}
-
-static void
-art_finish_cb(Art *art, ArtSearch *search, EinaVogon *self)
-{
-	gpointer result = art_search_get_result(search);
-	self->ntfy_search = NULL;
-	if (result == NULL)
-		return;
-
-	gel_free_and_invalidate(self->ntfy_pixbuf,  NULL, g_object_unref);
-	gel_free_and_invalidate(self->ntfy_imgpath, NULL, g_free);
-
-	if (GDK_IS_PIXBUF(result))
-		self->ntfy_pixbuf = gdk_pixbuf_copy((GdkPixbuf *) result);
-	else
-		self->ntfy_imgpath = g_strdup((gchar*) result);
-	
-	ntfy_update(self);
-}
-
-static gchar*
-ntfy_str_parse_cb(gchar key, gpointer data)
-{
-	LomoStream *stream = (LomoStream *) data;
-	switch (key)
-	{
-	case 'a':
-		return g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_ARTIST));
-	case 't':
-		return g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
-	default:
-		return NULL;
-	}
-}
-#endif
-
 G_MODULE_EXPORT GelPlugin vogon_plugin = {
 	GEL_PLUGIN_SERIAL,
 	"vogon", PACKAGE_VERSION, "lomo,settings,art",
