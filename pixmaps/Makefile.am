@@ -11,10 +11,6 @@ pixmaps_DATA = \
 	standard-systray-icon.png \
 	osx-systray-icon.png
 
-#EXTRA_DIST = \
-#	$(icons_DATA)          \
-#	$(pixmaps_DATA)        \
-#	$(theme16actions_DATA) \
-#	$(theme22actions_DATA) \
-#	$(theme24actions_DATA)
+EXTRA_DIST = \
+	$(pixmaps_DATA)
 

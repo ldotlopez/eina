@@ -56,13 +56,13 @@ eina_SOURCES = \
 	eina-volume.c              \
 	fs.c                       \
 	log.c                      \
-	eina-lomo.c                     \
+	eina-lomo.c                \
 	main.c                     \
 	player.c                   \
 	playlist.c                 \
 	eina-plugin.c              \
 	preferences.c              \
-	eina-settings.c                 \
+	eina-settings.c            \
 	eina-stock.c               \
 	template.c                 \
 	vogon.c                    \
@@ -90,3 +90,4 @@ eina_SOURCES += eina-ige.c
 eina_LDADD += @IGE_LIBS@
 AM_CPPFLAGS += @IGE_CFLAGS@
 endif
+

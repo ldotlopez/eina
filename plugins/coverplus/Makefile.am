@@ -1,22 +1,14 @@
-plugindir = $(libdir)/$(PACKAGE)/coverplus
+coverplusdir = $(pkglibdir)/coverplus
+coverplus_LTLIBRARIES = libcoverplus.la
 
-plugin_LTLIBRARIES = libcoverplus.la
+NOINST_H_FILES = banshee.h infolder.h
+
+AM_CFLAGS = @PACKAGE_CFLAGS@
 libcoverplus_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+
 libcoverplus_la_SOURCES = \
-	iface.c \
-	infolder-sync.c infolder.h \
-	banshee.h banshee.c
-
-AM_CPPFLAGS = @PACKAGE_CFLAGS@ -I$(top_srcdir)/src -I$(top_srcdir)
-
-install-data-local: 
-	$(mkinstalldirs) $(DESTDIR)/$(plugindir); \
-	for p in `find . -iname '*.png'`; do \
-		$(INSTALL_DATA) $$p $(DESTDIR)/$(plugindir); \
-	done
-
-uninstall-local:    
-	for p in `find . -iname '*.png'`; do \
-		rm -- $(DESTDIR)/$(plugindir)/$$p; \
-	done
+	$(NOINST_H_FILES) \
+	banshee.c         \
+	iface.c           \
+	infolder-sync.c
 
