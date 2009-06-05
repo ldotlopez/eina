@@ -1,6 +1,13 @@
-eina (0.8.0~ppa1) jaunty; urgency=low
+eina (0.8.0~rc1~ppa3) jaunty; urgency=low
+
+  * Missing files
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Tue, 26 May 2009 22:21:39 +0200
+
+ina (0.8.0~rc1~ppa1) jaunty; urgency=low
 
   * Update package for 0.8.0 version
+  * Enable dep on libnotify
 
  -- Luis Lopez <xuzo@cuarentaydos.com>  Tue, 19 May 2009 19:55:06 +0200
 

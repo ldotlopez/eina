@@ -47,16 +47,7 @@ enum {
 	EINA_PREFERENCES_CANNOT_ACCESS_UI_MANAGER,
 	EINA_PREFERENCES_CANNOT_REGISTER_SHARED
 };
-/*
-static GQuark
-preferences_quark(void)
-{
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("preferences");
-	return ret;
-}
-*/
+
 static gboolean
 preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
@@ -72,6 +63,13 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Setup dialog
 	self->dialog = eina_preferences_dialog_new();
+	g_object_set((GObject*) self->dialog,
+		"title", N_("Preferences"),
+		"window-position", GTK_WIN_POS_CENTER_ON_PARENT,
+		"width-request", 600,
+		"height-request", 400,
+		NULL);
+
 	g_signal_connect(G_OBJECT(self->dialog), "response", G_CALLBACK(gtk_widget_hide), self->dialog);
 	g_signal_connect(G_OBJECT(self->dialog), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), self->dialog);
 

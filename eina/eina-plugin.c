@@ -112,20 +112,16 @@ eina_plugin_get_dock(EinaPlugin *self)
 
 gboolean eina_plugin_add_dock_widget(EinaPlugin *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
-	EinaDock *dock;
-
-	if ((dock = eina_plugin_get_dock(self)) == NULL)
-		return FALSE;
+	EinaDock *dock = eina_plugin_get_dock(self);
+	g_return_val_if_fail(dock != NULL, FALSE);
 
 	return eina_dock_add_widget(dock, id, label, dock_widget);
 }
 
 gboolean eina_plugin_remove_dock_widget(EinaPlugin *self, gchar *id)
 {
-	EinaDock *dock;
-
-	if ((dock = eina_plugin_get_dock(self)) == NULL)
-		return FALSE;
+	EinaDock *dock = eina_plugin_get_dock(self);
+	g_return_val_if_fail(dock != NULL, FALSE);
 
 	return eina_dock_remove_widget(dock, id);
 }
@@ -133,10 +129,8 @@ gboolean eina_plugin_remove_dock_widget(EinaPlugin *self, gchar *id)
 gboolean
 eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id)
 {
-	EinaDock *dock;
-
-	if ((dock = eina_plugin_get_dock(self)) == NULL)
-		return FALSE;
+	EinaDock *dock = eina_plugin_get_dock(self);
+	g_return_val_if_fail(dock != NULL, FALSE);
 
 	return eina_dock_switch_widget(dock, id);
 }
@@ -147,21 +141,17 @@ eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id)
 static EinaPreferences *
 eina_plugin_get_preferences(EinaPlugin *self)
 {
-	GelApp *app;
+	GelApp *app = gel_plugin_get_app(self);
+	g_return_val_if_fail(app != NULL, NULL);
 
-	if ((app = gel_plugin_get_app(self)) == NULL);
-		return NULL;
-	
 	return GEL_APP_GET_PREFERENCES(app);
 }
 
 gboolean eina_plugin_add_configuration_widget
 (EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget)
 {
-	EinaPreferences *prefs;
-
-	if ((prefs = eina_plugin_get_preferences(plugin)) == NULL)
-		return FALSE;
+	EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
+	g_return_val_if_fail(prefs != NULL, FALSE);
 
 	eina_preferences_add_tab(prefs, icon, label, widget);
 	return TRUE;
@@ -170,10 +160,8 @@ gboolean eina_plugin_add_configuration_widget
 gboolean eina_plugin_remove_configuration_widget
 (EinaPlugin *plugin,  GtkWidget *widget)
 {
-	EinaPreferences *prefs;
-
-	if ((prefs = eina_plugin_get_preferences(plugin)) == NULL)
-		return FALSE;
+	EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
+	g_return_val_if_fail(prefs != NULL, FALSE);
 
 	eina_preferences_remove_tab(prefs, widget);
 	return TRUE;
@@ -196,44 +184,20 @@ ArtBackend*
 eina_plugin_add_art_backend(EinaPlugin *plugin, gchar *id,
 	ArtFunc search, ArtFunc cancel, gpointer data)
 {
-	Art *art;
-	if ((art = eina_plugin_get_art(plugin)) == NULL)
-		return NULL;
+	Art *art = eina_plugin_get_art(plugin);
+	g_return_val_if_fail(art != NULL, NULL);
+	
 	return art_add_backend(art, id, search, cancel, data);
 }
 
 void
 eina_plugin_remove_art_backend(EinaPlugin *plugin, ArtBackend *backend)
 {
-	Art *art;
-	if ((art = eina_plugin_get_art(plugin)) == NULL)
-		return;
+	Art *art = eina_plugin_get_art(plugin);
+	g_return_if_fail(art != NULL);
+
 	art_remove_backend(art, backend);
 }
-
-/*
-void
-eina_plugin_add_artwork_provider(EinaPlugin *plugin, gchar *id,
-    EinaArtworkProviderSearchFunc search, EinaArtworkProviderCancelFunc cancel, gpointer data)
-{
-	EinaArtwork *artwork;
-	
-	if ((artwork = eina_plugin_get_artwork(plugin)) == NULL)
-		return;
-	eina_artwork_add_provider(artwork, id, search, cancel, data);
-}
-
-void
-eina_plugin_remove_artwork_provider(EinaPlugin *plugin, gchar *id)
-{
-	EinaArtwork *artwork;
-
-	if ((artwork = eina_plugin_get_artwork(plugin)) == NULL)
-		return;
-
-	eina_artwork_remove_provider(artwork, id);
-}
-*/
 
 // --
 // LomoEvents handling

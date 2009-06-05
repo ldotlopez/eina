@@ -17,7 +17,7 @@ do
 	do
 		ln -fs "../../../plugins/$B/.libs/$(basename -- "$SO")" "$D/$B"
 	done
-	for F in $(find $PLUGIN_DIR -iname '*.ui' -o -iname '*.glade' -o -iname '*.png' 2>/dev/null)
+	for F in $(find $PLUGIN_DIR -maxdepth 1 | tail -n +2)
 	do
 		ln -fs "../../../plugins/$B/$(basename -- "$F")" "$D/$B"
 	done

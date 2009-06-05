@@ -162,10 +162,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		"visible",   TRUE,
 		"resizable", FALSE,
 		NULL);
-	g_object_set(G_OBJECT(self->treeview),
-		"headers-clickable", FALSE,
-		"headers-visible", TRUE,
-		NULL);
 
 	// Setup signals
 	self->window = eina_obj_get_widget(self, "main-window");

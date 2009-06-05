@@ -54,5 +54,7 @@ gchar* eina_fs_ondisk_to_utf8(gchar *path);
 
 gboolean eina_fs_file_test(gchar *utf8_path, GFileTest test);
 
+#define eina_fs_mkdir(pathname,mode) (g_mkdir_with_parents(pathname,mode) == 0)
+
 #endif
 

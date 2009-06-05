@@ -92,7 +92,8 @@ void
 eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, GtkImage *icon, GtkLabel *label, GtkWidget *tab)
 {
 	struct _EinaPreferencesDialogPrivate *priv = GET_PRIVATE(self);
-
+	if (!icon)
+		icon = (GtkImage *) gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_SMALL_TOOLBAR);
 	GtkHBox *box = (GtkHBox *) gtk_hbox_new(FALSE, EINA_HIG_BOX_SPACING);
 
 	gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(icon),  FALSE, FALSE, 0);
