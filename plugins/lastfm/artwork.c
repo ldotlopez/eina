@@ -25,7 +25,7 @@
 // ****************************
 struct _LastFMArtwork {
 	ArtBackend *backend; // Reference the backend
-	GHashTable *data;    // SearchCtx's
+	GHashTable *ctxs;    // SearchCtx's
 	CurlEngine *engine;  // CurlEngine C-class
 };
 
@@ -33,6 +33,7 @@ struct _LastFMArtwork {
 // SearchCtx is a ArtSearch extended
 // *********************************
 typedef struct {
+	LastFMArtwork *self;
 	Art          *art;         // Art reference
 	ArtSearch    *search;      // Art search
 	gint          n;           // sub-search index
@@ -57,7 +58,7 @@ static void       search_ctx_search(SearchCtx *ctx);
 static void       search_ctx_cancel(SearchCtx *ctx); 
 
 static void search_ctx_by_album(SearchCtx *ctx);
-static void search_ctx_by_artist(SearchCtx *ctx);
+// static void search_ctx_by_artist(SearchCtx *ctx);
 
 gchar* search_ctx_parse_as_album(gchar *buffer);
 gchar* search_ctx_parse_as_artist(gchar *buffer);
@@ -80,7 +81,7 @@ lastfm_artwork_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	self->data    = g_hash_table_new(g_direct_hash, g_direct_equal);
+	self->ctxs    = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) search_ctx_free);
 	self->backend = eina_plugin_add_art_backend(plugin, "lastfm",
 		(ArtFunc) lastfm_artwork_search, (ArtFunc) lastfm_artwork_cancel,
 		self);
@@ -93,8 +94,8 @@ lastfm_artwork_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFMArtwork *self = EINA_PLUGIN_DATA(plugin)->artwork;
 
+	g_hash_table_destroy(self->ctxs);
 	curl_engine_free(self->engine);
-	g_hash_table_destroy(self->data);
 
 	eina_plugin_remove_art_backend(plugin, self->backend);
 	g_free(self);
@@ -109,29 +110,21 @@ void
 lastfm_artwork_search(Art *art, ArtSearch *search, LastFMArtwork *self)
 {
 	SearchCtx *ctx = search_ctx_new(self, art, search);
-	if (ctx == NULL)
-	{
-		gel_warn("Cannot create search context");
-		art_report_failure(art, search);
-	}
-	else
-	{
-		g_hash_table_replace(self->data, search, ctx);
-		search_ctx_search(ctx);
-	}
+	g_return_if_fail(ctx != NULL);
+
+	g_hash_table_replace(self->ctxs, search, ctx);
+	search_ctx_search(ctx);
 }
 
 void
 lastfm_artwork_cancel(Art *art, ArtSearch *search, LastFMArtwork *self)
 {
-	SearchCtx *ctx = g_hash_table_lookup(self->data, search);
+	SearchCtx *ctx = g_hash_table_lookup(self->ctxs, search);
 	g_return_if_fail(ctx);
 
 	gel_warn("Cancel search %p", ctx);
-	search_ctx_cancel(ctx);
-	search_ctx_free(ctx);
 
-	g_hash_table_remove(self->data, search);
+	g_hash_table_remove(self->ctxs, search);
 }
 
 // **********************************
@@ -142,6 +135,7 @@ search_ctx_new(LastFMArtwork *self, Art *art, ArtSearch *search)
 {
 	SearchCtx *ctx = g_new0(SearchCtx, 1);
 
+	ctx->self   = self;
 	ctx->art    = art;
 	ctx->search = search;
 	ctx->n      = 0;
@@ -154,9 +148,9 @@ search_ctx_new(LastFMArtwork *self, Art *art, ArtSearch *search)
 void
 search_ctx_free(SearchCtx *ctx)
 {
-	if (ctx->q != NULL)
-		curl_engine_cancel(ctx->engine, ctx->q);
+	g_return_if_fail(ctx != NULL);
 
+	search_ctx_cancel(ctx);
 	g_free(ctx);
 }
 
@@ -169,7 +163,7 @@ search_ctx_search(SearchCtx *ctx)
 	// subsearches
 	static SearchFunc subsearches[] = {
 		search_ctx_by_album,
-		search_ctx_by_artist,
+		// search_ctx_by_artist,
 		// search_ctx_by_single,
 		NULL
 	};
@@ -178,7 +172,7 @@ search_ctx_search(SearchCtx *ctx)
 	if (subsearches[ctx->n] == NULL)
 	{
 		art_report_failure(ctx->art, ctx->search);
-		search_ctx_free(ctx);
+		g_hash_table_remove(ctx->self->ctxs, ctx->search);
 	}
 	else
 	{
@@ -208,6 +202,7 @@ search_ctx_parse(SearchCtx *ctx, gchar *buffer)
 {
 	static gpointer parsers[] = {
 		search_ctx_parse_as_album,
+		NULL,
 		search_ctx_parse_as_artist,
 		// search_ctx_parse_as_single,
 		NULL
@@ -252,6 +247,7 @@ search_ctx_by_album(SearchCtx *ctx)
 	g_free(uri);
 }
 
+/*
 static void
 search_ctx_by_artist(SearchCtx *ctx)
 {
@@ -274,7 +270,7 @@ search_ctx_by_artist(SearchCtx *ctx)
 
 	g_free(uri);
 }
-
+*/
 
 // *******
 // SubParsers
@@ -388,6 +384,8 @@ curl_engine_cover_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	GError *error = NULL;
 	GdkPixbufLoader *loader = NULL;
 
+	ctx->q = NULL;
+
 	// Jump if there was an error fetching
 	if (!curl_query_finish(query, &buffer, &size, &error))
 	{
@@ -417,7 +415,6 @@ curl_engine_cover_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	g_object_unref(loader);
 
 	// Report and cleanup
-	ctx->q = NULL;
 	art_report_success(ctx->art, ctx->search, (gpointer) pb);
 	search_ctx_free(ctx);
 	return;

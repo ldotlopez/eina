@@ -31,6 +31,13 @@ lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error);
 gboolean
 lastfm_submit_fini(GelApp *app, EinaPlugin *plugin, GError **error);
 
+gboolean
+lastfm_submit_set_account_info(LastFMSubmit *self, gchar *username, gchar *password);
+void
+lastfm_submit_set_submit(LastFMSubmit *self, gboolean submit);
+gboolean
+lastfm_submit_get_submit(LastFMSubmit *self);
+
 G_END_DECLS
 
 #endif

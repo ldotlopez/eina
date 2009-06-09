@@ -1,0 +1,2 @@
+URL: http://www.red-bean.com/decklin/lastfmsubmitd/
+Version: 1.0.5

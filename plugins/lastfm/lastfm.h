@@ -33,18 +33,29 @@
 
 G_BEGIN_DECLS
 
+typedef struct _LastFMPriv LastFMPriv;
 typedef struct {
-	GtkWidget *configuration_widget;
-	gchar *daemon_path;
-	gchar *client_path;
+	EinaObj base;
+	GelPlugin *plugin;
 
 	// Subplugins
+	struct _LastFMPrefs   *prefs;
 	struct _LastFMSubmit  *submit;
 	struct _LastFMArtwork *artwork;
 #if HAVE_WEBKIT
 	struct _LastFMWebView *webview;
 #endif
+	LastFMPriv *priv;
 } LastFM;
+
+GQuark
+lastfm_quark(void);
+
+enum {
+	EINA_LASTFM_NO_ERRROR = 0,
+	EINA_LASTFM_ERROR_START_DAEMON,
+	EINA_LASTFM_ERROR_STOP_DAEMON
+} LastFMError;
 
 G_END_DECLS
 
