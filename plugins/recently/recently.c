@@ -88,6 +88,12 @@ enum {
 	QUERYER_STATE_REFINE
 };
 
+enum {
+	TAB_RECENTLY = 0,
+	TAB_QUERYER,
+	TAB_INFO
+};
+
 // Error codes 
 enum {
 	RECENTLY_NO_ERROR = 0,
