@@ -69,6 +69,7 @@ typedef enum {
 	EINA_PLAYER_MODE_PAUSE
 } EinaPlayerMode;
 
+#if 0
 static gchar *preferences_fmt_values[][2] = {
 	{ // Title - Artist
 		"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
@@ -102,14 +103,18 @@ static gchar *preferences_fmt_values[][2] = {
 
 	{ NULL, NULL }
 };
+#endif
 
 // API
 static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
+#if 0
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self);
+#endif
+
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
@@ -132,8 +137,10 @@ static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
+#if 0
 static void
 preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self);
+#endif
 static void
 volume_value_change_cb(GtkWidget *w, gdouble value, EinaPlayer *self);
 
@@ -319,6 +326,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(eina_obj_get_lomo(self), "random", G_CALLBACK(update_sensitiviness), self);
 
 	// Preferences is attached to us (like dock) but this is less than optimal
+	/*
 	EinaPreferences *prefs = GEL_APP_GET_PREFERENCES(app);
 	if (prefs == NULL)
 	{
@@ -333,6 +341,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 				GTK_LABEL(gtk_label_new(_("Player"))),
 				prefs_widget);
 	}
+	*/
 
 	setup_dnd(self);
 
@@ -561,6 +570,8 @@ parse_example_str_cb(gchar key, gpointer data)
 	}
 }
 */
+
+#if 0
 static GtkWidget*
 build_preferences_widget(EinaPlayer *self)
 {
@@ -688,6 +699,7 @@ build_preferences_widget_fail:
 	gel_free_and_invalidate(parent, NULL, g_object_unref);
 	return NULL;
 }
+#endif
 
 static void
 update_sensitiviness(EinaPlayer *self)
@@ -925,6 +937,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 	}
 }
 
+#if 0
 static void
 preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self)
 {
@@ -943,6 +956,7 @@ preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self)
 	}
 
 }
+#endif
 
 static void
 volume_value_change_cb(GtkWidget *w, gdouble value, EinaPlayer *self)
@@ -1226,7 +1240,7 @@ build_cover_mask(GtkWidget *w)
 G_MODULE_EXPORT GelPlugin player_plugin = {
 	GEL_PLUGIN_SERIAL,
 
-	"player", PACKAGE_VERSION, /* "preferences" */ NULL,
+	"player", PACKAGE_VERSION, NULL /* "preferences" */,
 	NULL, NULL,
 
 	N_("Build-in player plugin"), NULL, NULL,
