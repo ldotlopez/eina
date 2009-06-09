@@ -19,5 +19,5 @@ liblastfm_la_SOURCES = lastfm.c lastfm.h submit.c submit.h artwork.c artwork.h
 #liblastfm_la_SOURCES += webview.c webview.h
 #endif
 
-EXTRA_DIST = lastfm.png lastfm.ui lastfmsubmitd
+EXTRA_DIST = lastfm.png lastfm.ui lastfmsubmitd logo.gif
 
