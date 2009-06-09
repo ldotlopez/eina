@@ -165,7 +165,8 @@ generate_yaml(LastFMSubmit *self, LomoPlayer *lomo, LomoStream *stream)
 		g_free(spoolfile);
 		return;
 	}
-	write(fd, str->str, str->len);
+	if (write(fd, str->str, str->len) != str->len)
+		gel_warn("File not completly writen");
 	close(fd);
 
 	g_string_free(str, TRUE);

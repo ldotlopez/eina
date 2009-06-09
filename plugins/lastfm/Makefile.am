@@ -1,6 +1,7 @@
 lastfmdir = $(pkglibdir)/lastfm
+SUBDIRS = lastfmsubmitd
 lastfm_LTLIBRARIES = liblastfm.la
-lastfm_DATA = lastfm.png lastfm.ui logo.gif
+lastfm_DATA = lastfm.png lastfm.ui logo.gif $(lastfmsubmitd_FILES)
 
 AM_CPPFLAGS = @PACKAGE_CFLAGS@ -I$(top_srcdir)/src -I$(top_srcdir)
 #if USE_LASTFM_WEBVIEW
@@ -15,9 +16,10 @@ liblastfm_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
 #endif
 
 liblastfm_la_SOURCES = lastfm.c lastfm.h submit.c submit.h artwork.c artwork.h
+
 #if USE_LASTFM_WEBVIEW
 #liblastfm_la_SOURCES += webview.c webview.h
 #endif
 
-EXTRA_DIST = lastfm.png lastfm.ui lastfmsubmitd logo.gif
+# EXTRA_DIST = lastfm.png lastfm.ui logo.gif
 

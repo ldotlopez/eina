@@ -216,6 +216,7 @@ plugins/coverplus/Makefile
 plugins/hooktest/Makefile
 plugins/notify/Makefile
 plugins/lastfm/Makefile
+plugins/lastfm/lastfmsubmitd/Makefile
 plugins/recently/Makefile
 plugins/Makefile
 po/Makefile.in
