@@ -84,8 +84,6 @@ settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 	
-	return FALSE;
-
 	gel_app_shared_unregister(app, "settings");
 	g_object_unref(conf);
 
