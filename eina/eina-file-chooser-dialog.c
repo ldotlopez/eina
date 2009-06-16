@@ -210,6 +210,7 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 
 	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
 	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
+	gtk_window_set_icon_name(GTK_WINDOW(self), GTK_STOCK_OPEN);
 
 	return self;
 }
@@ -375,7 +376,7 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 		gtk_dialog_add_button(GTK_DIALOG(self), EINA_STOCK_QUEUE, EINA_FILE_CHOOSER_RESPONSE_QUEUE);
 		gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 
-		gtk_window_set_title(GTK_WINDOW(self), _("Enqueue files"));
+		gtk_window_set_title(GTK_WINDOW(self), _("Add or queue files"));
 		break;
 
 	default:
