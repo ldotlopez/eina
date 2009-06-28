@@ -3,11 +3,11 @@ usr/lib/*.so.*
 usr/share
 usr/lib/eina/adb/libadb.so
 usr/lib/eina/coverplus/libcoverplus.so
-usr/lib/eina/lastfm/lastfm.png
 usr/lib/eina/lastfm/lastfmsubmitd
-usr/lib/eina/lastfm/lastfm.ui
 usr/lib/eina/lastfm/liblastfm.so
 usr/lib/eina/lastfm/logo.gif
+usr/lib/eina/lastfm/lastfm.ui
+usr/lib/eina/lastfm/lastfm.png
 usr/lib/eina/notify/libnotify.so
 usr/lib/eina/recently/dock.ui
 usr/lib/eina/recently/librecently.so

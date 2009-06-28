@@ -31,7 +31,12 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 	static gchar *uri = NULL;
 	if (!uri)
-		uri = g_filename_to_uri(g_get_user_special_dir(G_USER_DIRECTORY_MUSIC), NULL, NULL);
+	{
+		const gchar *music_userdir = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC);
+		if (!music_userdir)
+			music_userdir = g_get_home_dir();
+		uri = g_filename_to_uri(music_userdir, NULL, NULL);
+	}
 	gtk_file_chooser_set_current_folder_uri((GtkFileChooser *) picker, uri);
 
 	gboolean run = TRUE;

@@ -21,9 +21,11 @@ liblastfm_la_SOURCES = lastfm.c lastfm.h submit.c submit.h artwork.c artwork.h
 #liblastfm_la_SOURCES += webview.c webview.h
 #endif
 
-lastfmsubmitddir = $(lastfmdir)/lastfmsubmid
+lastfmsubmitddir = $(lastfmdir)/lastfmsubmitd
 lastfmsubmitd_DATA = \
-	lastfmsubmitd/lastfmsubmitd
+	lastfmsubmitd/lastfmsubmitd \
+	lastfmsubmitd/COPYRIGHT \
+	lastfmsubmitd/info.txt
 lastfmsubmitdlibdir = $(lastfmsubmitddir)/lastfm
 lastfmsubmitdlib_DATA = \
 	lastfmsubmitd/lastfm/__init__.py   \

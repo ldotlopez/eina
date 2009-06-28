@@ -1,3 +1,15 @@
+eina (0.8.0~rc2~ppa3) jaunty; urgency=low
+
+  * Fixed lastfmsubmitd paths
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Wed, 10 Jun 2009 20:44:52 +0200
+
+eina (0.8.0~rc2~ppa1) jaunty; urgency=low
+
+  * RC2
+
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Tue, 09 Jun 2009 17:42:12 +0200
+
 eina (0.8.0~rc1~ppa3) jaunty; urgency=low
 
   * Missing files

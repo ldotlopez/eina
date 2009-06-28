@@ -7,6 +7,12 @@ Logo:
 Website:
   Jacobo Tarragon Cros <tarragon@aditel.org>
 
+LastFMSubmitd (from lastfm plugin):
+  Lastfmsubmitd is written by Decklin Foster <decklin@red-bean.com>,
+  how holds any rights over it. Licence and other information can be
+  found at:
+  http://www.red-bean.com/decklin/lastfmsubmitd/
+
 Previous developers and contributors from eina pre0.4.0:
   Main developer: Daniel Ripolles <ripolles@aditel.org>
   Preliminar streaming support: Matthew Gregg <greggmc@musc.edu>

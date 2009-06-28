@@ -425,7 +425,8 @@ io_watch_cb(GIOChannel *io, GIOCondition cond, LastFMSubmit *self)
 			if (size > 0)
 			{
 				buff[size-1] = '\0';
-				// gel_warn("%s", buff);
+				if (io == self->io_err)
+					gel_error("%s", buff);
 				g_free(buff);
 				return TRUE;
 			}
