@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+cat <<EOF
+themedir = \$(pkgdatadir)/icons/hicolor
+
+EOF
+
+for S in 16x16 22x22 24x24 32x32 36x36 48x48 64x64 72x72 96x96 128x128 192x192 scalable
+do
+	for T in "actions" "apps"
+	do
+		[ -d "$S/$T" ] || continue
+		cat <<-EOF
+		t${S}${T}dir = \$(themedir)/$S/$T
+		t${S}${T}_DATA = $(find "$S/$T" -type f | tr '\n' ' ')
+
+		EOF
+		THEME_DATA="\$(t${S}${T}_DATA) $THEME_DATA"
+	done
+done
+
+cat <<EOF
+EXTRA_DIST = $THEME_DATA"
+
+EOF
+
