@@ -739,7 +739,7 @@ about_show(void)
 	}
 	g_object_unref(ui);
 
-	logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "logo.png");
+	logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg");
 	if ((pb = gdk_pixbuf_new_from_file(logo_path, &err)) == NULL)
 	{
 		gel_warn("Cannot find logo.png: '%s'", err->message);

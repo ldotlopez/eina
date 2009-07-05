@@ -297,7 +297,7 @@ eina_file_chooser_dialog_run_user_cancel:
 		update_sensitiviness(self, FALSE);
 
 		// Loading image
-		gchar *loading_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "file-chooser-loading.gif");
+		gchar *loading_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "loading-spin-16x16.gif");
 		GtkImage *loading = (GtkImage *) gtk_image_new_from_file(loading_path);
 		g_free(loading_path);
 
