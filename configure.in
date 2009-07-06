@@ -56,11 +56,13 @@ fi
 GLIB_VERSION="2.16"
 GTK_VERSION="2.14"
 GSTREAMER_VERSION="0.10"
+CLUTTER_VERSION="0.8.2"
 pkg_modules="\
 	glib-2.0 >= $GLIB_VERSION,      \
 	gmodule-2.0 >= $GLIB_VERSION,   \
 	gio-2.0 >= $GLIB_VERSION,       \
 	gtk+-2.0 >= $GTK_VERSION,       \
+	clutter-gtk-0.8 >= $CLUTTER_VERSION, \
 	gstreamer-0.10 >= $GSTREAMER_VERSION \
 	"
 PKG_CHECK_MODULES(PACKAGE, $pkg_modules)

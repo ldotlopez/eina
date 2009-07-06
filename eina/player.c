@@ -37,6 +37,7 @@
 // Widgets
 #include <eina/eina-seek.h>
 #include <eina/eina-volume.h>
+#include <eina/eina-clutty.h>
 
 struct _EinaPlayer {
 	EinaObj parent;
@@ -509,6 +510,17 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 			255);
 	}
 
+	static GtkWindow *w = NULL;
+	static EinaClutty *clutty;
+	if (!w)
+	{
+		gtk_clutter_init(NULL, NULL);
+		w      = (GtkWindow *)  gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		clutty = (EinaClutty *) eina_clutty_new();
+		gtk_container_add((GtkContainer*) w, (GtkWidget *) clutty);
+		gtk_widget_show_all((GtkWidget*) w);
+	}
+	eina_clutty_set_from_pixbuf(clutty, gdk_pixbuf_copy(pixbuf));
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
 }
 
