@@ -23,7 +23,7 @@
 #include <signal.h>
 #include <glib/gstdio.h>
 #include <lomo/lomo-util.h> // lomo_nanosecs_to_secs et al
-#include "lastfm.h"
+#include "submit.h"
 #define debug(...) ;
 
 #define ALLWAYS_GEN_YAML 0

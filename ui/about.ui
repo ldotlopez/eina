@@ -11,7 +11,7 @@
     <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <property name="program_name">Eina</property>
-    <property name="copyright" translatable="yes">Copyright &#xA9; 2003-2008 xuzo
+    <property name="copyright" translatable="yes">Copyright &#xA9; 2003-2009 xuzo
 Copyright &#xA9; 2003-2005 xuzo and eru</property>
     <property name="comments" translatable="yes">A classic player for the modern era</property>
     <property name="website">http://eina.sourceforge.net/</property>

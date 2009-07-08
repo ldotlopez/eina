@@ -8,7 +8,7 @@ CONFIGURE=configure.in
 : ${AUTOMAKE=automake}
 : ${ACLOCAL=aclocal}
 : ${INTLTOOLIZE=intltoolize}
-: ${LIBTOOLIZE=libtoolize}
+: ${LIBTOOLIZE=glibtoolize}
 #: ${GTKDOCIZE=gtkdocize}
 
 #

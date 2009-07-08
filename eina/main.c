@@ -78,6 +78,25 @@ open_uri_hook(GtkWidget *widget, const gchar *link_, gpointer user_data)
 	}
 }
 
+#ifdef DIAGNOSE_GDK_PIXBUF
+static void
+inspect_gdk_pixbuf_loaders(void)
+{
+	GSList *loaders = gdk_pixbuf_get_formats();
+	GSList *iter = loaders;
+	gel_warn("Detected %d Gdk-Pixbuf loaders", g_slist_length(loaders));
+	while (iter)
+	{
+		gel_warn("Gdk-Pixbuf loader found: %s%s",
+			gdk_pixbuf_format_get_name((GdkPixbufFormat *) iter->data),
+			gdk_pixbuf_format_is_disabled((GdkPixbufFormat *) iter->data) ? "(disabled)" : ""
+			);
+		iter = iter->next;
+	}
+	g_slist_free(loaders);
+}
+#endif
+
 // --
 // Callbacks
 // --
@@ -177,6 +196,11 @@ gint main
 
 	// Allow to read all files
 	g_setenv("G_BROKEN_FILENAMES", "1", TRUE);
+
+	// Checks
+	#ifdef DIAGNOSE_GDK_PIXBUF
+	inspect_gdk_pixbuf_loaders();
+	#endif
 
 	// Initialize stock icons stuff
 	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);

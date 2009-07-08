@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "artwork.h"
 #include <eina/curl-engine.h>
+#include "artwork.h"
 
 // ****************************
 // Store artwork-subplugin data

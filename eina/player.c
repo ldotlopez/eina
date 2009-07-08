@@ -740,9 +740,9 @@ about_show(void)
 	g_object_unref(ui);
 
 	logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg");
-	if ((pb = gdk_pixbuf_new_from_file(logo_path, &err)) == NULL)
+	if ((pb = gdk_pixbuf_new_from_file_at_size(logo_path, 128, 128, &err)) == NULL)
 	{
-		gel_warn("Cannot find logo.png: '%s'", err->message);
+		gel_warn(N_("Cannot locate '%s': '%s'"), "eina.svg", err->message);
 		g_error_free(err);
 	}
 	else

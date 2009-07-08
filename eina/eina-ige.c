@@ -49,17 +49,35 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	if (gel_app_get_plugin_by_name(app, "player") == NULL)
 	{
-		g_set_error(error, ige_quark(), EINA_IGE_PLAYER_NOT_LOADED, N_("player plugin not loaded"));
+		g_set_error(error, ige_quark(), EINA_IGE_PLAYER_NOT_LOADED, N_("%s plugin not loaded"), "player");
 		return FALSE;
 	}
 	EinaIge *self = g_new0(EinaIge, 1);
 
-	gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "icon-512.png");
+	// Build dock item
+	if ((self->dock = ige_mac_dock_new()) != NULL)
+	{
+		gchar     *path = NULL;
+		GdkPixbuf *pb   = NULL;
+		GError    *err  = NULL;
 
-	self->dock = ige_mac_dock_new();
-	ige_mac_dock_set_icon_from_pixbuf(self->dock, gdk_pixbuf_new_from_file(path, NULL));
-	g_free(path);
+		if ((path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg")) != NULL)
+			pb = gdk_pixbuf_new_from_file_at_size(path, 512, 512, &err);
+		
+		if (!path)
+			gel_warn(N_("Cannot locate %s"), "eina.svg");
+		else if (!pb)
+		{
+			gel_warn(N_("Cannot load %s: %s"), path, err->message);
+			g_error_free(err);
+		}
+		else
+			ige_mac_dock_set_icon_from_pixbuf(self->dock, pb);
 
+		gel_free_and_invalidate(path, NULL, g_free);
+	}
+
+	// Build menu
 	GtkUIManager *ui_mng = eina_player_get_ui_manager(GEL_APP_GET_PLAYER(app));
 	GtkWidget *main_menu_bar = gtk_ui_manager_get_widget(ui_mng, "/MainMenuBar");
 	gtk_widget_hide(main_menu_bar);

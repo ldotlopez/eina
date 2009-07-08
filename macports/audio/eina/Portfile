@@ -1,7 +1,7 @@
 PortSystem 1.0
 
 name			eina
-version			0.7.3.91
+version			0.8.0
 categories		audio
 platforms		darwin
 maintainers		xuzo@cuarentaydos.com
@@ -14,7 +14,7 @@ master_sites	sourceforge:eina
 checksums		md5 a8103013253da1647c07dfe73fdf7be0 \
 				sha1 0aa75978b63f976f9dba678fcdbaf521ba301cad
 
-depends_lib		port:gstreamer port:gst-plugins-base port:gst-plugins-good port:gst-plugins-ugly port:gtk2
+depends_lib		port:gstreamer port:gst-plugins-base port:gst-plugins-good port:gst-plugins-ugly port:gtk2 port:librsvg
 
 configure.args	--enable-release-build
 
