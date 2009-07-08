@@ -188,6 +188,21 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 static void
 eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 {
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+
+	#if defined(__APPLE__) || defined(__APPLE_CC_)
+	g_signal_connect(GTK_FILE_CHOOSER(self), "selection-changed", (GCallback) gtk_widget_queue_draw, NULL);
+	#endif
+
+	g_object_set(G_OBJECT(self), "local-only", FALSE, NULL);
+
+	priv->queue = g_queue_new();
+	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
+	gtk_widget_hide(GTK_WIDGET(priv->info_box));
+
+	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
+	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
+	gtk_window_set_icon_name(GTK_WINDOW(self), GTK_STOCK_OPEN);
 }
 
 EinaFileChooserDialog*
@@ -200,17 +215,7 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 	priv = GET_PRIVATE(self);
 	priv->action = action;
 
-	g_object_set(G_OBJECT(self), "local-only", FALSE, NULL);
 	set_action(self, action);
-
-	priv->queue = g_queue_new();
-
-	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
-	gtk_widget_hide(GTK_WIDGET(priv->info_box));
-
-	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
-	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
-	gtk_window_set_icon_name(GTK_WINDOW(self), GTK_STOCK_OPEN);
 
 	return self;
 }

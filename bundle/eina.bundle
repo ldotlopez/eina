@@ -90,6 +90,7 @@
   <data>${prefix}/lib/eina/lastfm/*.png</data>
   <data>${prefix}/lib/eina/lastfm/*.ui</data>
   <data>${prefix}/lib/eina/lastfm/*.gif</data>
+  <data>${prefix}/lib/eina/lastfm/lastfmsubmitd</data>
   <data>${prefix}/lib/eina/recently/*.ui</data>
 
   <data dest="${bundle}/Contents/Resources">

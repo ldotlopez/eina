@@ -28,6 +28,8 @@
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
 
+#define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
+
 struct _EinaVogon {
 	EinaObj        parent;
 
@@ -112,7 +114,7 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	};
 
 	// Systray is broken on OSX using Quartz backend
-	#if (defined(__APPLE__) || defined(__APPLE_CC__)) && defined __GDK_X11_H__
+	#if OSX_SYSTEM && defined __GDK_X11_H__
 	g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_OSX_QUARTZ,
 		N_("Gtk+ X11 backend is not supported"));
 	return FALSE;
@@ -133,8 +135,10 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
+	#if !OSX_SYSTEM
 	if (GEL_APP_GET_PLAYER(app))
 		eina_player_set_persistent(GEL_APP_GET_PLAYER(app), TRUE);
+	#endif
 
 	self->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON);
 	if (!self->icon)
@@ -177,7 +181,7 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(update_ui_manager), self);
 
 	// Done, just a warning before
-	#if defined(__APPLE__) || defined(__APPLE_CC__)
+	#if OSX_SYSTEM
 	gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
 	#endif
 
