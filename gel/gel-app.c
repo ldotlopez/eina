@@ -27,7 +27,7 @@
 #include <gmodule.h>
 #include <gel/gel-misc.h>
 #include <gel/gel-app.h>
-#include <gel/gel-app-marshal.h>
+#include <gel/gel-app-marshallers.h>
 
 G_DEFINE_TYPE (GelApp, gel_app, G_TYPE_OBJECT)
 

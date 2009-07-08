@@ -12,7 +12,7 @@ libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic
 libgel_1_0_la_LIBADD  = @PACKAGE_LIBS@
 
 NOINST_H_FILES = \
-	gel-app-marshal.h
+	gel-app-marshallers.h
 
 INST_H_FILES = \
 	gel.h                   \
@@ -35,7 +35,7 @@ libgel_1_0_la_SOURCES = \
 	gel-misc.c              \
 	gel-string.c            \
 	gel-str-parser.c        \
-	gel-app-marshal.c       \
+	gel-app-marshallers.c   \
 	gel-plugin.c            \
 	gel-app.c               \
 	gel-io-misc.c           \
@@ -47,16 +47,16 @@ libgel_1_0_la_SOURCES = \
 	$(INST_H_FILES)
 
 BUILT_SOURCES = \
-	gel-app-marshal.h \
-	gel-app-marshal.c
+	gel-app-marshallers.h \
+	gel-app-marshallers.c
 
 CLEANFILES = $(BUILT_SOURCES)
 
-gel-app-marshal.h: gel-app-marshal.list
+gel-app-marshallers.h: gel-app-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header > $@
 
-gel-app-marshal.c: gel-app-marshal.list
+gel-app-marshallers.c: gel-app-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header --body > $@
 
-EXTRA_DIST = gel-app-marshal.list
+EXTRA_DIST = gel-app-marshallers.list
 
