@@ -27,6 +27,7 @@ G_BEGIN_DECLS
 typedef struct _GelPlugin       GelPlugin;
 typedef struct _GelPluginExtend GelPluginExtend;
 #include <gel/gel-app.h>
+#include <gel/gel-misc.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
 #define GEL_PLUGIN_SERIAL 2009042401
@@ -89,7 +90,15 @@ GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
 const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
+
+GList * 
+gel_plugin_get_resource_list(GelPlugin *plugin, GelResourceType type, gchar *resource); 
+gchar * 
+gel_plugin_get_resource(GelPlugin *plugin, GelResourceType type, gchar *resource); 
+
+#if 0
 gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
+#endif
 gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 
 // Access to plugin's data if defined

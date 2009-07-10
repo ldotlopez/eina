@@ -45,12 +45,13 @@ enum {
 };
 
 typedef enum {
-	GEL_APP_RESOURCE_UI,    // ui/
-	GEL_APP_RESOURCE_IMAGE, // pixmaps/
-	GEL_APP_RESOURCE_LIB,   // lib/
+	GEL_RESOURCE_UI,     // ui/
+	GEL_RESOURCE_IMAGE,  // pixmaps/
+	GEL_RESOURCE_SHARED, // lib/
+	GEL_RESOURCE_OTHER,  // "./"
 
-	GEL_APP_RESOURCES
-} GelAppResourceType;
+	GEL_N_RESOURCES
+} GelResourceType;
 
 typedef enum GelFileLoadCode {
 	GEL_FILE_LOAD_CODE_OK,
@@ -117,15 +118,19 @@ gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func);
 // --
 // App resources functions
 // --
-GList *
-gel_app_resource_get_list(GelAppResourceType type, gchar *resource);
+const gchar *
+gel_resource_type_get_env(GelResourceType type);
+gchar *
+gel_resource_type_get_user_dir(GelResourceType type);
+gchar *
+gel_resource_type_get_system_dir(GelResourceType type);
 
 gchar *
-gel_app_resource_get_pathname(GelAppResourceType type, gchar *resource);
+gel_resource_locate(GelResourceType type, gchar *resource);
+
 
 gchar *
 gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_parents, gint mode);
-
 gchar *
 gel_app_build_config_filename(gchar *name, gboolean create_path, gint dir_mode, GError **error);
 

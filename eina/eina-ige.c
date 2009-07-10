@@ -35,6 +35,7 @@ enum {
 	EINA_IGE_PLAYER_NOT_LOADED
 };
 
+#if 0
 static GQuark
 ige_quark(void)
 {
@@ -43,15 +44,11 @@ ige_quark(void)
 		ret = g_quark_from_static_string("eina-ige");
 	return ret;
 }
+#endif
 
 static gboolean
 ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	if (gel_app_get_plugin_by_name(app, "player") == NULL)
-	{
-		g_set_error(error, ige_quark(), EINA_IGE_PLAYER_NOT_LOADED, N_("%s plugin not loaded"), "player");
-		return FALSE;
-	}
 	EinaIge *self = g_new0(EinaIge, 1);
 
 	// Build dock item
@@ -61,14 +58,14 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		GdkPixbuf *pb   = NULL;
 		GError    *err  = NULL;
 
-		if ((path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg")) != NULL)
+		if ((path = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, "eina.svg")) != NULL)
 			pb = gdk_pixbuf_new_from_file_at_size(path, 512, 512, &err);
 		
 		if (!path)
 			gel_warn(N_("Cannot locate %s"), "eina.svg");
 		else if (!pb)
 		{
-			gel_warn(N_("Cannot load %s: %s"), path, err->message);
+			gel_warn(N_("Cannot load '%s': '%s'"), path, err->message);
 			g_error_free(err);
 		}
 		else
@@ -113,7 +110,7 @@ ige_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin ige_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"ige", PACKAGE_VERSION, NULL,
+	"ige", PACKAGE_VERSION, "player",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
 	N_("OSX integration"), NULL, NULL,

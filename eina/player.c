@@ -270,7 +270,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		{ "About", GTK_STOCK_ABOUT, N_("About"),
 		NULL, "About", G_CALLBACK(menu_activate_cb) }
 	};
-	gchar *ui_manager_file = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "player-menu.ui");
+
+	gchar *ui_manager_file = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-menu.ui");
 	if (ui_manager_file != NULL)
 	{
 		self->ui_manager = gtk_ui_manager_new();
@@ -475,7 +476,8 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 	if (pixbuf == NULL)
 	{
 		self->got_cover = FALSE;
-		gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+		// gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+		gchar *path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-default.png");
 		pixbuf = gdk_pixbuf_new_from_file_at_scale(path,
 			GTK_WIDGET(self->cover)->allocation.width,
 			GTK_WIDGET(self->cover)->allocation.height,
@@ -541,7 +543,8 @@ update_cover_query(EinaPlayer *self, LomoStream *stream)
 		self->art_search = NULL;
 	}
 
-	gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	// gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	gchar *path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-loading.png");
 	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(path,
 		GTK_WIDGET(self->cover)->allocation.height,
 		GTK_WIDGET(self->cover)->allocation.height,
@@ -739,7 +742,8 @@ about_show(void)
 	}
 	g_object_unref(ui);
 
-	logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg");
+	// logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg");
+	logo_path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "eina.svg");
 	if ((pb = gdk_pixbuf_new_from_file_at_size(logo_path, 128, 128, &err)) == NULL)
 	{
 		gel_warn(N_("Cannot locate '%s': '%s'"), "eina.svg", err->message);
@@ -1186,7 +1190,8 @@ void setup_dnd(EinaPlayer *self)
 static GdkPixbuf*
 build_cover_mask(GtkWidget *w)
 {
-	gchar *maskpath = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
+	// gchar *maskpath = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
+	gchar *maskpath = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-mask.png");
 	g_return_val_if_fail(maskpath != NULL, NULL);
 
 	GError *error  = NULL;

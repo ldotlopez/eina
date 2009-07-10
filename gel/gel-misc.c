@@ -181,89 +181,98 @@ gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func)
 // --
 // App resources functions
 // --
-GList *
-gel_app_resource_get_list(GelAppResourceType type, gchar *resource)
+const gchar *
+gel_resource_type_get_env(GelResourceType type)
 {
-	GList  *ret = NULL;
-	gchar  *tmp;
-	gchar  *envvar;
-	gchar  *env_uppercase;
-	gchar  *package_uppercase;
-	gchar  *dot_packagename;
-	gchar  *map_table[GEL_APP_RESOURCES] = { "ui", "pixmaps", "lib" };
+	const gchar *map_table[GEL_N_RESOURCES] = { "UI", "PIXMAP", "LIB", NULL };
+	if (!map_table[type])
+		return NULL;
 
-    /* Create a list with some posible paths */
-	/*
-	 * 1. Add path from env variable
-	 * 2. Add from user's dir (~/.PACKAGE/filetype/filename)
-	 * 3. Use system dir (_g_ext_package_data_dir/filetype/filename)
-	 */
+	gchar *upper_prgname = g_ascii_strup((const gchar*) g_get_prgname(), -1);
 
-	/* Create the filename from envvar:
-	 * uppercase the filetype -> get the envvar -> build filename
-	 * add fullpath to the list
-	 * free temporal data
-	 */
-	env_uppercase      = g_ascii_strup(map_table[type], -1);
-	package_uppercase  = g_ascii_strup(_gel_package_name, -1);
-	envvar    = g_strconcat(package_uppercase, "_", env_uppercase, "_DIR", NULL);
-	if (g_getenv(envvar) != NULL ) {
-		ret = g_list_append(ret,  g_build_filename(g_getenv(envvar), resource, NULL));
-	}
-	g_free(envvar);
-	g_free(env_uppercase);
-	g_free(package_uppercase);
+	gchar *env_name = g_strconcat(upper_prgname, "_", map_table[type], "_", "PATH", NULL);
+	g_free(upper_prgname);
+	const gchar *ret = g_getenv(env_name);
+	g_free(env_name);
 
-	/* Create the filename from user's dir */
-	dot_packagename = g_strconcat(".", _gel_package_name, NULL);
-	tmp = g_build_filename(g_get_home_dir(), dot_packagename, map_table[type], resource, NULL);
-	g_free(dot_packagename);
-	ret = g_list_append(ret, tmp);
-
-	/* Build the system dir */
-	tmp = g_build_filename(_gel_package_data_dir, map_table[type], resource, NULL);
-	ret = g_list_append(ret, tmp);
 	return ret;
 }
 
 gchar *
-gel_app_resource_get_pathname(GelAppResourceType type, gchar *resource)
+gel_resource_type_get_user_dir(GelResourceType type)
 {
-	GList *candidates, *iter;
-	gchar *ret = NULL;
+	const gchar *map_table[GEL_N_RESOURCES] = { "ui", "pixmaps", "lib" , "." };
 
-	iter = candidates = gel_app_resource_get_list(type, resource);
-
-	while (iter)
-	{
-		/* XXX: Follow symlinks?? */
-		if(g_file_test((gchar *) iter->data, G_FILE_TEST_IS_REGULAR | G_FILE_TEST_EXISTS)) {
-			ret = (gchar *) iter->data;
-			break;
-		}
-		iter = iter->next;
-	}
-
-	/* Free the list and elements except for found element */
-	iter = candidates ;
-	while (iter)
-	{
-		if (iter->data != ret)
-			g_free(iter->data);
-		iter = iter->next;
-	}
-	g_list_free(candidates);
-
-	if (!g_path_is_absolute(ret))
-	{
-		gchar *cwd = g_get_current_dir();
-		gchar *tmp = g_build_filename(cwd, ret, NULL);
-		g_free(cwd);
-		g_free(ret);
-		ret = tmp;
-	}
+	gchar *ret;
+	const gchar *datadir = g_get_user_data_dir();
+	if (datadir)
+		ret = g_strconcat(datadir, G_DIR_SEPARATOR_S, g_get_prgname(), G_DIR_SEPARATOR_S, map_table[type], NULL);
+	else
+		ret = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".", g_get_prgname(), G_DIR_SEPARATOR_S, map_table[type], NULL);
 
 	return ret;
+}
+
+#define g_strdup_safe(x) (x ? g_strdup(x) : NULL)
+gchar *
+gel_resource_type_get_system_dir(GelResourceType type)
+{
+	gchar *prgupper = g_ascii_strup(g_get_prgname(), -1);
+	gchar *path_key = g_strconcat(prgupper, "_PATH", NULL);
+	gchar *data_key = g_strconcat(prgupper, "_DATA_PREFIX", NULL);
+	gchar *lib_key  = g_strconcat(prgupper, "_LIB_PREFIX",  NULL);
+
+	gchar *path_val = g_strdup_safe(g_getenv(path_key));
+	gchar *data_val = g_strdup_safe(g_getenv(data_key));
+	gchar *lib_val  = g_strdup_safe(g_getenv(lib_key));
+
+	g_free(path_key);
+	g_free(data_key);
+	g_free(lib_key);
+
+	if (!path_val)
+		path_val = g_strdup(PACKAGE_PREFIX);
+
+	if (path_val && !data_val)
+		data_val = g_build_filename(path_val, "share", NULL);
+	if (path_val && !lib_val)
+		lib_val  = g_build_filename(path_val, "lib", NULL);
+
+	gchar *ret = NULL;
+	switch (type)
+	{
+	case GEL_RESOURCE_IMAGE:
+		if (data_val)
+			ret = g_build_filename(data_val, "image", NULL);
+		break;
+		
+	case GEL_RESOURCE_UI:
+		if (data_val)
+			ret = g_build_filename(data_val, "ui", NULL);
+		break;
+
+	case GEL_RESOURCE_SHARED:
+		if (lib_val)
+			ret = g_strdup(lib_val);
+		break;
+
+	case GEL_RESOURCE_OTHER:
+		break;
+
+	default:
+		break;
+	}
+
+	g_free(path_val);
+	g_free(data_val);
+	g_free(lib_val);
+	return ret;
+}
+
+gchar *
+gel_resource_locate(GelResourceType type, gchar *resource)
+{
+	return gel_plugin_get_resource((GelPlugin *) 0x1, type, resource);
 }
 
 gchar *

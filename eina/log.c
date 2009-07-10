@@ -187,7 +187,8 @@ build_player(EinaLog *self)
 {
 	g_return_val_if_fail((self->flags & FLAG_PLAYER_INIT) == 0, FALSE);
 
-	gchar *xml_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "log.ui");
+	// gchar *xml_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, "log.ui");
+	gchar *xml_path = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, "log.ui");
 	GtkBuilder *xml_ui = gtk_builder_new();
 	GError *error = NULL;
 	if (gtk_builder_add_from_file(xml_ui, xml_path, &error) == 0)

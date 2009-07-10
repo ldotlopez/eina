@@ -1,0 +1,10 @@
+====== Coding style ======
+Eina uses a Gtk-like style, replacing space-indenting with a tab-indent.
+
+====== Common formats for display strings ======
+
+- Cannot locate a resource (gel resource-related funcions):
+  gel_warn(N_("Cannot locate '%s'), "resource.ext");
+
+- Cannot load contents (load text, image, ui…) from a filename:
+  gel_warn(N_("Cannot load '%s': '%s'), pathname, error->message);

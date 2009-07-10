@@ -19,12 +19,16 @@
 
 #define GEL_DOMAIN "Gel"
 #include "gel-ui.h"
+#include <glib/gi18n.h>
 
-// static GQuark gel_ui_quark = g_quark_from_static_string((const gchar *) "GelUI");
-
-enum {
-	GEL_UI_ERROR_RESOURCE_NOT_FOUND = 1
-};
+static GQuark
+gel_ui_quark(void)
+{
+	GQuark ret = 0;
+	if (!ret)
+		ret = g_quark_from_static_string("gel-ui");
+	return ret;
+}
 
 /*
  * UI creation
@@ -37,15 +41,16 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 	gchar *tmp;
 
 	tmp = g_strconcat(ui_filename, ".ui", NULL);
-	ui_pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_UI, tmp);
-	g_free(tmp);
+	ui_pathname = gel_resource_locate(GEL_RESOURCE_UI, tmp);
 
-	if (ui_pathname == NULL) {
-		*error = g_error_new(
-			g_quark_from_static_string( "GelUI"), GEL_UI_ERROR_RESOURCE_NOT_FOUND,
-			"Cannot load UI resource, resource '%s' not found", ui_filename);
+	if (ui_pathname == NULL)
+	{
+		g_set_error(error, gel_ui_quark(), GEL_UI_ERROR_RESOURCE_NOT_FOUND,
+			N_("Cannot locate resource '%s'"), tmp);
+		g_free(tmp);
 		return NULL;
 	}
+	g_free(tmp);
 
 	ret = gtk_builder_new();
 	if (gtk_builder_add_from_file(ret, ui_pathname, error) == 0) {
@@ -105,7 +110,8 @@ gel_ui_load_pixbuf_from_imagedef(GelUIImageDef def, GError **error)
 {
 	GdkPixbuf *ret;
 
-	gchar *pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, def.image);
+	// gchar *pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, def.image);
+	gchar *pathname = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, def.image);
 	if (pathname == NULL)
 	{
 		// Handle error

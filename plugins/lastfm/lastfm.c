@@ -141,7 +141,8 @@ lastfm_prefs_new(LastFM *self)
 
 	GError *error = NULL;
 
-	gchar *uipath = gel_plugin_build_resource_path(self->plugin, "lastfm.ui");
+	// gchar *uipath = gel_plugin_build_resource_path(self->plugin, "lastfm.ui");
+	gchar *uipath = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, "lastfm.ui");
 	g_return_val_if_fail(uipath != NULL, NULL);
 
 	self->priv->prefs_ui = gtk_builder_new();

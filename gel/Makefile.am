@@ -1,6 +1,7 @@
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DGEL_COMPILATION \
+	-DPACKAGE_PREFIX=\""$(prefix)"\" \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \

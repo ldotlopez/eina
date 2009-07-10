@@ -19,6 +19,7 @@
 
 #define GEL_DOMAIN "Gel::Plugin"
 #include <gmodule.h>
+#include <glib/gprintf.h>
 #include <glib/gi18n.h>
 #include <gel/gel-misc.h>
 #include <gel/gel-plugin.h>
@@ -238,6 +239,7 @@ gel_plugin_get_pathname(GelPlugin *self)
 	return self->priv->pathname;
 }
 
+#if 0
 gchar *
 gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path)
 {
@@ -253,6 +255,96 @@ gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path)
 	else
 		ret = g_build_filename(gel_get_package_name(), resource_path, NULL);
 
+	return ret;
+}
+#endif
+
+GList *
+gel_plugin_get_resource_list(GelPlugin *plugin, GelResourceType type, gchar *resource)
+{
+	// Print warn if usage is incorrect
+	if (plugin == NULL)
+	{
+		g_printf(N_("You call %s with plugin == NULL, its OK but:\n"
+			"- %s is meant for use with plugin def\n"
+			"- For general, non-plugin dependand version of %s use the wrapper gel_resource_locate\n"
+			"- If none of previous points fits your needs, pass a plugin variable to this function\n"
+			"Set breakpoint on '%s if plugin == 0' to find the caller for this invocation\n"),
+			__FUNCTION__, __FUNCTION__, __FUNCTION__, __FUNCTION__
+			);
+	}
+	if (plugin == (GelPlugin*) 0x1)
+		plugin = NULL;
+
+	// Search precedence
+	// 1. Enviroment variables
+	// If enviroment variable is NULL:
+	//   2.1. User's dir based on GelPluginResourceType
+	//   2.2. System or plugin dir based on GelPluginResourceType
+	if (!plugin || !gel_plugin_get_pathname(plugin))
+	{
+		const gchar *searchpath = gel_resource_type_get_env(type);
+		if (searchpath)
+		{
+			gchar **searchpaths = g_strsplit(searchpath, G_SEARCHPATH_SEPARATOR_S, -1);
+		
+			GList *ret = NULL;
+			gint i = 0;
+			while (searchpaths[i] && searchpaths[i][0])
+			{
+				ret = g_list_append(ret, g_strconcat(searchpaths[i], G_DIR_SEPARATOR_S, resource, NULL));
+				i++;
+			}
+			g_strfreev(searchpaths);
+			return ret;
+		}
+	}
+
+	GList *ret = NULL;
+	gchar *userdir = gel_resource_type_get_user_dir(type);
+	if (userdir)
+	{
+		ret = g_list_prepend(ret, g_build_filename(userdir, resource, NULL));
+		g_free(userdir);
+	}
+
+	if ((plugin == NULL) || (gel_plugin_get_pathname(plugin) == NULL))
+	{
+		gchar *systemdir = gel_resource_type_get_system_dir(type);
+		if (systemdir)
+		{
+			ret = g_list_prepend(ret, g_build_filename(systemdir, resource, NULL));
+			g_free(systemdir);
+		}
+	}
+	else
+	{
+		gchar *plugindir = g_path_get_dirname(gel_plugin_get_pathname(plugin));
+		const gchar *map_table[GEL_N_RESOURCES] = { "ui", "pixmaps", "lib", "." };
+		ret = g_list_prepend(ret, g_build_filename(plugindir, resource, NULL));
+		ret = g_list_prepend(ret, g_build_filename(plugindir, map_table[type], resource, NULL));
+		g_free(plugindir);
+	}
+
+	return g_list_reverse(ret);
+}
+
+gchar *
+gel_plugin_get_resource(GelPlugin *plugin, GelResourceType type, gchar *resource)
+{
+	GList *candidates = gel_plugin_get_resource_list(plugin, type, resource);
+	GList *iter = candidates;
+	gchar *ret = NULL;
+	while (iter)
+	{
+		if (g_file_test((gchar *) iter->data, G_FILE_TEST_IS_REGULAR))
+		{
+			ret = g_strdup((gchar *) iter->data);
+			break;
+		}
+		iter = iter->next;
+	}
+	gel_list_deep_free(candidates, g_free);
 	return ret;
 }
 

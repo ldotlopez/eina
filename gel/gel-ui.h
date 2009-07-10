@@ -44,6 +44,11 @@ typedef struct GelUIImageDef
 GelUIImageDef;
 #define GEL_UI_IMAGE_DEF_NONE { NULL, NULL, -1, -1 }
 
+enum {
+	GEL_UI_ERROR_NO_ERROR = 0,
+    GEL_UI_ERROR_RESOURCE_NOT_FOUND 
+};
+
 /*
  * UI creation
  */

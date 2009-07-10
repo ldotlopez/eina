@@ -186,7 +186,7 @@ lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	for ( i = 0; i < G_N_ELEMENTS(signals); i++)
 		g_signal_connect(lomo, signals[i].signal, signals[i].callback, self);
 
-	self->daemonpath = gel_plugin_build_resource_path(plugin, "lastfmsubmitd/lastfmsubmitd");
+	self->daemonpath = gel_plugin_get_resource(plugin, GEL_RESOURCE_OTHER, "lastfmsubmitd/lastfmsubmitd");
 
 	EINA_PLUGIN_DATA(plugin)->submit = self;
 

@@ -224,7 +224,8 @@ list_store_set_cover(GtkListStore *model, gint column, GtkTreeIter *iter, GdkPix
 
 	if (pixbuf == NULL)
 	{
-		gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+		// gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
+		gchar *path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-default.png");
 		if (!path)
 		{
 			gel_error(N_("Cannot get resource cover-default.png"));
@@ -296,7 +297,8 @@ static GtkWidget *
 dock_create(Recently *self)
 {
 	// Get GtkBuilder interface
-	gchar *xml_path = gel_plugin_build_resource_path(self->plugin, "dock.ui");
+	// gchar *xml_path = gel_plugin_build_resource_path(self->plugin, "dock.ui");
+	gchar *xml_path = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, "dock.ui");
 	GtkBuilder *xml_ui = gtk_builder_new();
 
 	GError *err = NULL;
