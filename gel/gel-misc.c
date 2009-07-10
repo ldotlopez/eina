@@ -243,17 +243,17 @@ gel_resource_type_get_system_dir(GelResourceType type)
 	{
 	case GEL_RESOURCE_IMAGE:
 		if (data_val)
-			ret = g_build_filename(data_val, "image", NULL);
+			ret = g_build_filename(data_val, g_get_prgname(), "pixmaps", NULL);
 		break;
 		
 	case GEL_RESOURCE_UI:
 		if (data_val)
-			ret = g_build_filename(data_val, "ui", NULL);
+			ret = g_build_filename(data_val, g_get_prgname(), "ui", NULL);
 		break;
 
 	case GEL_RESOURCE_SHARED:
 		if (lib_val)
-			ret = g_strdup(lib_val);
+			ret = g_build_filename(lib_val, g_get_prgname(), NULL);
 		break;
 
 	case GEL_RESOURCE_OTHER:
