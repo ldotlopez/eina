@@ -36,8 +36,9 @@ export GTK_IM_MODULE_FILE="$bundle_etc/gtk-2.0/gtk.immodules"
 export GTK2_RC_FILES="$bundle_etc/gtk-2.0/gtkrc"
 
 # Eina env
-export EINA_UI_DIR="$bundle_data/eina/ui"
-export EINA_PIXMAPS_DIR="$bundle_data/eina/pixmaps"
+export EINA_UI_PATH="$bundle_data/eina/ui"
+export EINA_PIXMAP_PATH="$bundle_data/eina/pixmaps"
+export EINA_LIB_PATH="$bundle_lib/eina"
+
 export EINA_THEME_DIR="$bundle_data/eina/icons"
-export EINA_PLUGINS_PATH="$bundle_lib/eina"
 

@@ -725,38 +725,31 @@ build_paths(void)
 {
 	GList *ret = NULL;
 
-	const gchar *libdir = gel_get_package_lib_dir();
-	if (libdir)
-		ret = g_list_prepend(ret, g_strdup(libdir));
+	// 1. Add multiple ${PRGNAME}_PLUGINS_PATH
+	// 2. If not enviroment variable
+	//   2.1 Add user's dir
+	//   2.2 Add system dir
 
-#ifdef PACKAGE_NAME
-	// Add users dir
-	gchar *home = (gchar *) g_getenv ("HOME");
-	if (!home)
-		home = (gchar *) g_get_home_dir();
-	if (home)
-		ret = g_list_prepend(ret, g_build_filename(home, "." PACKAGE_NAME, "plugins", NULL));
-#endif
-
-#ifdef PACKAGE_NAME
-	// Add enviroment variable
-	gchar *uc_package_name = g_utf8_strup(PACKAGE_NAME, -1);
-	gchar *envvar = g_strdup_printf("%s_PLUGINS_PATH", uc_package_name);
-	g_free(uc_package_name);
-	const gchar *envval = g_getenv(envvar);
-	g_free(envvar);
-
-	if (envval)
+	const gchar *envdir = gel_resource_type_get_env(GEL_RESOURCE_SHARED);
+	if (envdir)
 	{
+		gchar **paths = g_strsplit(envdir, ":", -1);
 		gint i;
-		gchar **paths = g_strsplit(envval, ":", 0);
-		for (i = 0; paths[i]; i++)
+		for (i = 0; paths[i] != NULL; i++)
 			if (paths[i][0])
-				ret = g_list_prepend(ret, paths[i]); // Reuse value
-		g_free(paths); // _not_ g_strfreev, we reuse values
-	}
-#endif
+				ret = g_list_prepend(ret, g_strdup(paths[i]));
 
-	return ret;
+		g_strfreev(paths);
+		return g_list_reverse(ret);
+	}
+
+	gchar *userdir = gel_resource_type_get_user_dir(GEL_RESOURCE_SHARED);
+	if (userdir)
+		ret = g_list_prepend(ret, userdir);
+	gchar *systemdir = gel_resource_type_get_system_dir(GEL_RESOURCE_SHARED);
+	if (systemdir)
+		ret = g_list_prepend(ret, systemdir);
+
+	return g_list_reverse(ret);
 }
 
