@@ -33,7 +33,6 @@
 
 typedef struct {
 	EinaObj         parent;
-	GelPlugin      *plugin;
 	EinaConf       *conf;
 	GtkWidget      *window;
 	GtkTreeView    *treeview;
@@ -101,9 +100,8 @@ static gboolean
 plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlugins *self =  g_new0(EinaPlugins, 1);
-	self->plugin = plugin;
 
-	if (!eina_obj_init(EINA_OBJ(self), app, "plugins", EINA_OBJ_GTK_UI, error))
+	if (!eina_obj_init(EINA_OBJ(self), plugin, "plugins", EINA_OBJ_GTK_UI, error))
 	{
 		g_free(self);
 		return FALSE;
@@ -351,7 +349,7 @@ plugins_unload_plugins(EinaPlugins *self)
 	self->visible_plugins = NULL;
 
 	// Purge
-	gel_app_purge(gel_plugin_get_app(self->plugin));
+	gel_app_purge(eina_obj_get_app(self));
 }
 
 static void

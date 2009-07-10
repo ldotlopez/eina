@@ -53,11 +53,9 @@ gboolean
 lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFM *self = g_new0(LastFM, 1);
-	if (!eina_obj_init(EINA_OBJ(self), app, "lastfm", EINA_OBJ_NONE, error))
+	if (!eina_obj_init(EINA_OBJ(self), plugin, "lastfm", EINA_OBJ_NONE, error))
 		return FALSE;
 	self->priv = g_new0(LastFMPriv, 1);
-
-	self->plugin = plugin;
 
 	GtkWidget *panel = lastfm_prefs_new(self);
 	if (panel)
@@ -141,8 +139,7 @@ lastfm_prefs_new(LastFM *self)
 
 	GError *error = NULL;
 
-	// gchar *uipath = gel_plugin_build_resource_path(self->plugin, "lastfm.ui");
-	gchar *uipath = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, "lastfm.ui");
+	gchar *uipath = gel_plugin_get_resource(eina_obj_get_plugin(self), GEL_RESOURCE_UI, "lastfm.ui");
 	g_return_val_if_fail(uipath != NULL, NULL);
 
 	self->priv->prefs_ui = gtk_builder_new();

@@ -36,7 +36,6 @@ G_BEGIN_DECLS
 typedef struct _LastFMPriv LastFMPriv;
 typedef struct {
 	EinaObj base;
-	GelPlugin *plugin;
 
 	// Subplugins
 	struct _LastFMPrefs   *prefs;

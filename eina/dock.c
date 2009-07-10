@@ -54,7 +54,7 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaDock *self;
 
 	self = g_new0(EinaDock, 1);
-	if (!eina_obj_init(EINA_OBJ(self), app, "dock", EINA_OBJ_GTK_UI, error))
+	if (!eina_obj_init(EINA_OBJ(self), plugin, "dock", EINA_OBJ_GTK_UI, error))
 		return FALSE;
 
 	self->widget = eina_obj_get_widget(self, "dock-expander");

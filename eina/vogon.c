@@ -124,14 +124,14 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Getting other modules
 	//
 	EinaVogon *self = g_new0(EinaVogon, 1);
-	if (!eina_obj_init(EINA_OBJ(self), app, "vogon", EINA_OBJ_NONE, error))
+	if (!eina_obj_init(EINA_OBJ(self), plugin, "vogon", EINA_OBJ_NONE, error))
 		return FALSE;
 
 	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
 	{
 		eina_obj_fini(EINA_OBJ(self));
 		g_set_error(error, vogon_quark(), EINA_VOGON_ERROR_NO_SETTINGS_OBJECT,
-			N_("Object 'settings' not found"));
+			N_("Cannot get object '%s'"), "settings");
 		return FALSE;
 	}
 

@@ -24,14 +24,14 @@
 #include <eina/eina-obj.h>
 
 gboolean eina_obj_init
-(EinaObj *self, GelApp *app, gchar *name, EinaObjFlag flags, GError **error)
+(EinaObj *self, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error)
 {
-	if (!gel_app_shared_set(app, name, (gpointer) self))
+	if (!gel_app_shared_set(gel_plugin_get_app(plugin), name, (gpointer) self))
 		return FALSE;
 
-	self->name = g_strdup(name);
-	self->app  = app;
-	self->lomo = GEL_APP_GET_LOMO(app);
+	self->plugin = plugin;
+	self->name   = g_strdup(name);
+	self->lomo   = GEL_APP_GET_LOMO(gel_plugin_get_app(plugin));
 
 	if (flags & EINA_OBJ_GTK_UI)
 	{
@@ -54,7 +54,7 @@ void eina_obj_fini(EinaObj *self)
 		return;
 	}
 		
-	gel_app_shared_unregister(self->app, self->name);
+	gel_app_shared_unregister(eina_obj_get_app(self), self->name);
 	gel_free_and_invalidate(self->ui,    NULL, g_object_unref);
 	gel_free_and_invalidate(self->name,  NULL, g_free);
 	gel_free_and_invalidate(self,        NULL, g_free);

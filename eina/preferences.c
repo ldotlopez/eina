@@ -54,7 +54,7 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 	EinaPreferences       *self;
 
 	self = g_new0(EinaPreferences, 1);
-	if (!eina_obj_init((EinaObj*) self, app, "preferences", EINA_OBJ_NONE, error))
+	if (!eina_obj_init((EinaObj*) self, plugin, "preferences", EINA_OBJ_NONE, error))
 	{
 		g_free(self);
 		return FALSE;

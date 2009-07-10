@@ -30,10 +30,10 @@
 G_BEGIN_DECLS
 
 typedef struct EinaObj {
-	gchar       *name;
-	GelApp      *app;
-	LomoPlayer  *lomo;
-	GtkBuilder  *ui;
+	GelPlugin  *plugin;
+	gchar      *name;
+	LomoPlayer *lomo;
+	GtkBuilder *ui;
 } EinaObj;
 
 typedef enum {
@@ -41,14 +41,21 @@ typedef enum {
 	EINA_OBJ_GTK_UI
 } EinaObjFlag;
 
-gboolean eina_obj_init(EinaObj *self, GelApp *hub, gchar *name, EinaObjFlag flags, GError **error);
+/*
+#define eina_obj_new(type,plugin,name,flags,error) \
+	((type *) eina_obj_new_real(sizeof(type),plugin,name,flags,error))
+gpointer eina_obj_new_real(size_t size, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error);
+*/
+
+gboolean eina_obj_init(EinaObj *self, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error);
 void     eina_obj_fini(EinaObj *self);
 
 // Prefered way of access internals
 #define EINA_OBJ(s)    ((EinaObj *)s)
-#define eina_obj_get_app(self)  EINA_OBJ(self)->app
-#define eina_obj_get_lomo(self) EINA_OBJ(self)->lomo
-#define eina_obj_get_ui(self)   EINA_OBJ(self)->ui
+#define eina_obj_get_app(self)    gel_plugin_get_app(eina_obj_get_plugin(self))
+#define eina_obj_get_plugin(self) EINA_OBJ(self)->plugin
+#define eina_obj_get_lomo(self)   EINA_OBJ(self)->lomo
+#define eina_obj_get_ui(self)     EINA_OBJ(self)->ui
 
 #define eina_obj_get_object(self,name)     gtk_builder_get_object(eina_obj_get_ui(self),name)
 #define eina_obj_get_typed(self,type,name) type(eina_obj_get_object(self,name))

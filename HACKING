@@ -8,3 +8,9 @@ Eina uses a Gtk-like style, replacing space-indenting with a tab-indent.
 
 - Cannot load contents (load text, image, ui…) from a filename:
   gel_warn(N_("Cannot load resource '%s': '%s'), pathname, error->message);
+
+- Requested object is not found on the GtkBuilder object:
+  gel_warn(N_("Cannot get object '%s' from interface %s", "object", "file.ui");
+
+- Internal data cannot be found:
+  gel_warn(N_("Cannot get object '%s'", "object");

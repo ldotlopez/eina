@@ -195,7 +195,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	gboolean random, repeat;
 
 	self = g_new0(EinaPlaylist, 1);
-	if (!eina_obj_init(EINA_OBJ(self), app, "playlist", EINA_OBJ_GTK_UI, error))
+	if (!eina_obj_init(EINA_OBJ(self), plugin, "playlist", EINA_OBJ_GTK_UI, error))
 	{
 		g_free(self);
 		return FALSE;

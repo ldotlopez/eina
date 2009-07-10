@@ -118,7 +118,7 @@ build_preferences_widget(EinaPlayer *self);
 static void
 update_sensitiviness(EinaPlayer *self);
 static void
-about_show(void);
+about_show(EinaPlayer *self);
 static void
 setup_dnd(EinaPlayer *self);
 static GdkPixbuf*
@@ -165,7 +165,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Initialize base class
 	self = g_new0(EinaPlayer, 1);
-	if (!eina_obj_init((EinaObj *) self, app, "player", EINA_OBJ_GTK_UI, error))
+	if (!eina_obj_init((EinaObj *) self, plugin, "player", EINA_OBJ_GTK_UI, error))
 	{
 		g_free(self);
 		return FALSE;
@@ -716,55 +716,56 @@ update_sensitiviness(EinaPlayer *self)
 }
 
 static void
-about_show(void)
+about_show(EinaPlayer *self)
 {
-	GtkBuilder     *ui;
-	GtkAboutDialog *about;
-
-	gchar *logo_path;
-	GdkPixbuf  *pb;
-
 	static gchar *release_name = "Hostile Negotiations";
-	gchar *tmp;
 
-	GError *err = NULL;
-
-	if ((ui = gel_ui_load_resource("about", &err)) == NULL)
+	gchar *ui_path = gel_plugin_get_resource(eina_obj_get_plugin(self), GEL_RESOURCE_UI, "about.ui");
+	if (!ui_path)
 	{
-		gel_error("Cannot load ui for about: '%s'", err->message);
-		g_error_free(err);
+		gel_warn(N_("Cannot locate resource '%s'"), "about.ui");
 		return;
 	}
+
+	GtkBuilder *ui  = gtk_builder_new();
+	GError     *err = NULL;
+	if (gtk_builder_add_from_file(ui, ui_path, &err) == 0)
+	{
+		gel_warn(N_("Cannot load resource '%s': '%s'"), ui_path, err->message);
+		g_error_free(err);
+		g_free(ui_path);
+		g_object_unref(ui);
+		return;
+	}
+	g_free(ui_path);
+
+	GtkAboutDialog *about;
 	if ((about = GTK_ABOUT_DIALOG(gtk_builder_get_object(ui, "about-window"))) == NULL)
 	{
-		gel_error("Interface definition doesnt have a about-window widget");
+		gel_warn(N_("Cannot get object '%s' from interface '%s'"), "about-window", "about.ui");
+		g_object_unref(ui);
 		return;
 	}
-	g_object_unref(ui);
 
-	// logo_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "eina.svg");
-	logo_path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "eina.svg");
+	GdkPixbuf *pb;
+	gchar *logo_path = gel_plugin_get_resource(eina_obj_get_plugin(self), GEL_RESOURCE_IMAGE, "eina.svg");
 	if ((pb = gdk_pixbuf_new_from_file_at_size(logo_path, 128, 128, &err)) == NULL)
 	{
-		gel_warn(N_("Cannot locate '%s': '%s'"), "eina.svg", err->message);
+		gel_warn(N_("Cannot locate resource '%s': '%s'"), "eina.svg", err->message);
 		g_error_free(err);
 	}
 	else
-	{
 		g_object_set(G_OBJECT(about), "logo", pb, NULL);
-	}
+
 	gel_free_and_invalidate(logo_path, NULL, g_free);
 
 	g_object_set(G_OBJECT(about), "version", PACKAGE_VERSION, NULL);
 
-	tmp = g_strconcat("(", release_name, ")\n\n",
-		gtk_about_dialog_get_comments(about), NULL);
+	gchar *tmp = g_strconcat("(", release_name, ")\n\n", gtk_about_dialog_get_comments(about), NULL);
 	gtk_about_dialog_set_comments(about, tmp);
 	g_free(tmp);
 
-	g_signal_connect(about, "response",
-	(GCallback) gtk_widget_destroy, NULL);
-
+	g_signal_connect(about, "response", (GCallback) gtk_widget_destroy, NULL);
 	gtk_widget_show(GTK_WIDGET(about));
 }
 
@@ -929,7 +930,7 @@ menu_activate_cb(GtkAction *action, EinaPlayer *self)
 	}
 	else if (g_str_equal(name, "About"))
 	{
-		about_show();
+		about_show(self);
 	}
 	else if (g_str_equal(name, "Quit"))
 	{

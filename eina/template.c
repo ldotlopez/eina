@@ -44,7 +44,7 @@ template_init (GelApp *app, EinaPlugin *plugin, GError **error)
 
 	// Initialize ourself and automagically register into app using EinaObj
 	self = g_new0(EinaTemplate, 1);
-	if (!eina_obj_init(EINA_OBJ(self), app, "template", EINA_OBJ_NONE, error))
+	if (!eina_obj_init(EINA_OBJ(self), plugin, "template", EINA_OBJ_NONE, error))
 	{	
 		g_free(self);
 		return FALSE;
