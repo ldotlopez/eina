@@ -42,6 +42,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
 		return FALSE;
 	}
+	lomo_player_set_auto_parse(engine, TRUE);
 
 	if (!gel_app_shared_set(gel_plugin_get_app(plugin), "lomo", engine))
 	{

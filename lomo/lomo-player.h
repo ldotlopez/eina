@@ -120,6 +120,9 @@ typedef struct {
 
 LomoPlayer       *lomo_player_new(const gchar *option_name, ...);
 
+gboolean lomo_player_get_auto_parse(LomoPlayer *self);
+void     lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse);
+
 gboolean    lomo_player_reset(LomoPlayer *self, GError **error); // API Changed
 LomoStream *lomo_player_get_stream(LomoPlayer *self);
 
@@ -135,13 +138,13 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 LomoState lomo_player_get_state(LomoPlayer *self);
 
 // Seek/Query
-gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format);
+gint64  lomo_player_tell(LomoPlayer *self, LomoFormat format);
 #define lomo_player_tell_time(p)    lomo_player_tell(p,LOMO_FORMAT_TIME)
 #define lomo_player_tell_percent(p) lomo_player_tell(p,LOMO_FORMAT_PERCENT)
 
 gboolean lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val);
-#define lomo_player_seek_time(c,t)    lomo_player_seek(c,LOMO_FORMAT_TIME,t)
-#define lomo_player_seek_percent(c,p) lomo_player_seek(c,LOMO_FORMAT_PERCENT,p) // Br0ken
+#define  lomo_player_seek_time(c,t)    lomo_player_seek(c,LOMO_FORMAT_TIME,t)
+#define  lomo_player_seek_percent(c,p) lomo_player_seek(c,LOMO_FORMAT_PERCENT,p) // Br0ken
 
 gint64 lomo_player_length(LomoPlayer *self, LomoFormat format);
 #define lomo_player_length_time(c)    lomo_player_length(c,LOMO_FORMAT_TIME)

@@ -30,6 +30,8 @@ struct _LomoPlayerPrivate {
 	LomoPlayerVTable  vtable;
 	GHashTable       *options;
 
+	gboolean            auto_parse;
+
 	GstElement         *pipeline;
 	LomoPlaylist       *pl;
 	LomoMetadataParser *meta;
@@ -37,6 +39,10 @@ struct _LomoPlayerPrivate {
 
 	gint          volume;
 	gboolean      mute;
+};
+
+enum {
+	LOMO_PLAYER_PROPERTY_AUTO_PARSE = 1
 };
 
 G_DEFINE_TYPE(LomoPlayer, lomo_player, G_TYPE_OBJECT)
@@ -105,8 +111,39 @@ lomo_quark(void)
 {
 	static GQuark ret = 0;
 	if (ret == 0)
-		ret = g_quark_from_static_string("lomo-quark");
+		ret = g_quark_from_static_string("lomo-player");
 	return ret;
+}
+
+static void
+lomo_player_get_property (GObject *object, guint property_id,
+	GValue *value, GParamSpec *pspec)
+{
+	LomoPlayer *self = LOMO_PLAYER(object);
+	switch (property_id)
+	{
+	case LOMO_PLAYER_PROPERTY_AUTO_PARSE:
+		g_value_set_boolean(value, lomo_player_get_auto_parse(self));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
+}
+
+static void
+lomo_player_set_property(GObject *object, guint property_id,
+	const GValue *value, GParamSpec *pspec)
+{
+	LomoPlayer *self = LOMO_PLAYER(object);
+
+	switch (property_id)
+	{
+	case LOMO_PLAYER_PROPERTY_AUTO_PARSE:
+		lomo_player_set_auto_parse(self, g_value_get_boolean(value));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
 }
 
 static void
@@ -152,6 +189,8 @@ lomo_player_class_init (LomoPlayerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+    object_class->get_property = lomo_player_get_property;
+	object_class->set_property = lomo_player_set_property;
 	object_class->dispose = lomo_player_dispose;
 
 	// core signals
@@ -330,6 +369,10 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    1,
 				G_TYPE_POINTER);
 
+	g_object_class_install_property(object_class, LOMO_PLAYER_PROPERTY_AUTO_PARSE,
+		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
+		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+
 	g_type_class_add_private (klass, sizeof (LomoPlayerPrivate));
 }
 
@@ -395,6 +438,18 @@ lomo_player_new(const gchar *option_name, ...)
 	return self;
 }
 
+gboolean
+lomo_player_get_auto_parse(LomoPlayer *self)
+{
+	return GET_PRIVATE(self)->auto_parse;
+}
+
+void
+lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse)
+{
+	GET_PRIVATE(self)->auto_parse = auto_parse;
+}
+
 // --
 // Quick play functions, simple shortcuts.
 // --
@@ -441,7 +496,7 @@ gboolean lomo_player_reset(LomoPlayer *self, GError **error)
 
 	// Sometimes stream tag's hasnt been parsed, in this case we move stream to
 	// inmediate queue on LomoMetadataParser object to get them ASAP
-	if (!lomo_stream_get_all_tags_flag(self->priv->stream))
+	if (!lomo_stream_get_all_tags_flag(self->priv->stream) && self->priv->auto_parse)
 		lomo_metadata_parser_parse(self->priv->meta, self->priv->stream, LOMO_METADATA_PARSER_PRIO_INMEDIATE);
 
 	// Now, create pipeline
@@ -737,7 +792,8 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 	{
 		stream = (LomoStream *) l->data;
 
-		lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
+		if (self->priv->auto_parse)
+			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[INSERT], 0, stream, pos);
 	
 		// Emit change if its first stream
