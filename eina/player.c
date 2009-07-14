@@ -718,7 +718,7 @@ update_sensitiviness(EinaPlayer *self)
 static void
 about_show(EinaPlayer *self)
 {
-	static gchar *release_name = "Hostile Negotiations";
+	static gchar *release_name = "They dont' believe";
 
 	gchar *ui_path = gel_plugin_get_resource(eina_obj_get_plugin(self), GEL_RESOURCE_UI, "about.ui");
 	if (!ui_path)

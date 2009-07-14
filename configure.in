@@ -1,5 +1,5 @@
-AC_INIT([eina], 0.8.0, xuzo@cuarentaydos.com)
-AM_INIT_AUTOMAKE([eina], [0.8.0])
+AC_INIT([eina], 0.9.0, xuzo@cuarentaydos.com)
+AM_INIT_AUTOMAKE([eina], [0.9.0])
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -13,9 +13,9 @@ AC_PROG_INTLTOOL
 AM_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
 
-EINA_API_VERSION="0.8"
+EINA_API_VERSION="0.9"
 EINA_VERSION="$EINA_API_VERSION.0"
-EINA_VERSION_CODENAME="Hostile Negotiations"
+EINA_VERSION_CODENAME="They don't believe"
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_VERSION_CODENAME)
 AC_SUBST(EINA_API_VERSION)
@@ -208,7 +208,7 @@ gel/Makefile
 lomo/Makefile
 Makefile
 misc/eina.desktop
-misc/eina-0.8.pc
+misc/eina-0.9.pc
 misc/Makefile
 pixmaps/Makefile
 plugins/adb/Makefile
