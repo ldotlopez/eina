@@ -73,7 +73,7 @@ plugins_hide(EinaPlugins *self);
 static void
 plugins_load_plugins(EinaPlugins *self);
 static void
-plugins_unload_plugins(EinaPlugins *self);
+plugins_unload_plugins(EinaPlugins *self, gboolean all);
 static void
 plugins_build_treeview(EinaPlugins *self);
 
@@ -248,27 +248,8 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlugins *self = EINA_PLUGIN_DATA(plugin);
 
-	GList *plugins = gel_app_get_plugins(app);
-	GList *iter = plugins;
-	while (iter)
-	{
-		GelPlugin *plugin = (GelPlugin *) iter->data;
-		if (
-			(gel_plugin_get_pathname(plugin) == NULL) ||
-			(gel_plugin_get_usage(plugin) > 0)        ||
-			(gel_plugin_is_in_use(plugin) == TRUE)
-			)
-		{
-			iter = iter->next;
-			continue;
-		}
-
-		gel_app_unload_plugin(app, plugin, NULL);
-
-		iter = iter->next;
-	}
-
-	plugins_unload_plugins(self);
+	// Unload plugins
+	plugins_unload_plugins(self, TRUE);
 	
 	// Unmerge menu
 	GtkUIManager *ui_mng;
@@ -293,14 +274,9 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 static void
 plugins_load_plugins(EinaPlugins *self)
 {
-	/*
-	if (self->all_plugins)
-		plugins_unload_plugins(self);
-	*/
-
 	GList *plugins, *iter;
 	iter = plugins = gel_app_query_plugins(eina_obj_get_app(self));
-	gel_warn("App is aware of %d plugins", g_list_length(plugins));
+	// gel_warn("App is aware of %d plugins", g_list_length(plugins));
 	while (iter)
 	{
 		GelPlugin *plugin = (GelPlugin *) iter->data;
@@ -314,8 +290,8 @@ plugins_load_plugins(EinaPlugins *self)
 		self->visible_plugins = g_list_prepend(self->visible_plugins, plugin);
 		gel_plugin_add_lock(plugin);
 
-		gel_warn("Got visible plugin: %s", gel_plugin_stringify(plugin));
-		gel_warn("Added lock on %s", gel_plugin_stringify(plugin));
+		// gel_warn("Got visible plugin: %s", gel_plugin_stringify(plugin));
+		// gel_warn("Added lock on %s", gel_plugin_stringify(plugin));
 
 		iter = iter->next;
 	}
@@ -323,30 +299,40 @@ plugins_load_plugins(EinaPlugins *self)
 	g_list_free(plugins);
 }
 
-static void
-plugins_unload_plugins(EinaPlugins *self)
+static gint
+plugin_usage_cmp(GelPlugin *a, GelPlugin *b)
 {
-	GString *dump_str = g_string_new(NULL);
-	GList *iter = self->visible_plugins;
-	while (iter)
-	{
-		GelPlugin *plugin = (GelPlugin*) iter->data;
-		if (gel_plugin_is_enabled(plugin))
-		{
-			if (dump_str->str != NULL)
-				dump_str = g_string_append_c(dump_str, ',');
-			dump_str = g_string_append(dump_str, gel_plugin_get_pathname(plugin));
-		}
-		iter = iter->next;
-	}
+	return gel_plugin_get_usage(a) - gel_plugin_get_usage(b);
+}
 
-	eina_conf_set_str(self->conf, "/plugins/enabled", dump_str->str);
-	g_string_free(dump_str, TRUE);
-
+static void
+plugins_unload_plugins(EinaPlugins *self, gboolean all)
+{
 	// Remove locks on visible plugins
 	g_list_foreach(self->visible_plugins, (GFunc) gel_plugin_remove_lock, NULL);
 	g_list_free(self->visible_plugins);
 	self->visible_plugins = NULL;
+
+	GString *str = g_string_new(NULL);
+	GList *plugins = g_list_sort(gel_app_query_plugins(eina_obj_get_app(self)), (GCompareFunc) plugin_usage_cmp);
+	GList *iter = plugins; // self->visible_plugins;
+	while (iter)
+	{
+		GelPlugin *plugin = (GelPlugin*) iter->data;
+
+		if (gel_plugin_get_pathname(plugin) && gel_plugin_is_enabled(plugin))
+			g_string_append_printf(str, "%s,", gel_plugin_get_pathname(plugin));
+		if (all)
+			gel_app_unload_plugin(eina_obj_get_app(self), plugin, NULL);
+		
+		iter = iter->next;
+	}
+	if (str->len > 1 )
+	{
+		str->str[str->len - 1] = '\0';
+		eina_conf_set_str(self->conf, "/plugins/enabled", str->str);
+	}
+	g_string_free(str, TRUE);
 
 	// Purge
 	gel_app_purge(eina_obj_get_app(self));
@@ -396,7 +382,7 @@ static void
 plugins_hide(EinaPlugins *self)
 {
 	gtk_list_store_clear(GTK_LIST_STORE(gtk_tree_view_get_model(self->treeview)));
-	plugins_unload_plugins(self);
+	plugins_unload_plugins(self, FALSE);
 
 	g_signal_handlers_disconnect_by_func(eina_obj_get_app(EINA_OBJ(self)),
 		 app_init_plugin_cb, self);
