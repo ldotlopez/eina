@@ -59,7 +59,8 @@ typedef enum {
 
 GType lomo_metadata_parser_get_type (void);
 
-LomoMetadataParser* lomo_metadata_parser_new (void);
+LomoMetadataParser* lomo_metadata_parser_new(void);
+LomoMetadataParser* lomo_metadata_parser_get_default(void);
 void                lomo_metadata_parser_parse(LomoMetadataParser *meta, LomoStream *stream, LomoMetadataParserPrio prio);
 void                lomo_metadata_parser_clear(LomoMetadataParser *meta);
 

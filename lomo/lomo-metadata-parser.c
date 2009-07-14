@@ -116,6 +116,15 @@ lomo_metadata_parser_new (void)
 	return g_object_new (LOMO_TYPE_METADATA_PARSER, NULL);
 }
 
+LomoMetadataParser*
+lomo_metadata_parser_get_default(void)
+{
+	static LomoMetadataParser *self = NULL;
+	if (!self)
+		self = lomo_metadata_parser_new();
+	return self;
+}
+
 void
 lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMetadataParserPrio prio)
 {
