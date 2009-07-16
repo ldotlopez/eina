@@ -55,10 +55,13 @@ enum {
 	SEEK,
 	VOLUME,
 	MUTE,
+
 	INSERT,
-	// ADD,
 	REMOVE,
-	// DEL,
+
+	QUEUE,
+	DEQUEUE,
+
 	PRE_CHANGE,
 	CHANGE,
 	CLEAR,
@@ -276,6 +279,30 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
+
+	lomo_player_signals[QUEUE] =
+		g_signal_new ("queue",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, queue),
+			    NULL, NULL,
+			    lomo_marshal_VOID__POINTER_INT,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_POINTER,
+				G_TYPE_INT);
+	lomo_player_signals[DEQUEUE] =
+		g_signal_new ("dequeue",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, dequeue),
+			    NULL, NULL,
+			    lomo_marshal_VOID__POINTER_INT,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_POINTER,
+				G_TYPE_INT);
+
 	lomo_player_signals[PRE_CHANGE] =
 		g_signal_new ("pre-change",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -847,6 +874,31 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 	}
 
 	return TRUE;
+}
+
+gint lomo_player_queue(LomoPlayer *self, gint pos)
+{
+	g_return_val_if_fail(-1, pos >= 0);
+
+	gint ret = lomo_playlist_queue(self->priv->pl, pos);
+	if (ret >= 0)
+		g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE], 0, lomo_playlist_go_nth(self->priv->pl, pos), ret);
+	return ret;
+}
+
+gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
+{
+	LomoStream *stream = lomo_playlist_nth_stream(self->priv->pl, queue_pos);
+	gboolean ret       = lomo_playlist_dequeue(self->priv->pl, queue_pos);
+
+	if (ret)
+		g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0, stream, queue_pos);
+	return ret;
+}
+
+gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)
+{
+	return lomo_playlist_queue_index(self->priv->pl, stream);
 }
 
 GList *lomo_player_get_playlist(LomoPlayer *self)

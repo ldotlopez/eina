@@ -30,6 +30,7 @@
 struct _LomoPlaylist {
     GList *list;
     GList *random_list;
+	GList *queue;
 
     gboolean repeat;
     gboolean random;
@@ -391,14 +392,6 @@ void lomo_playlist_del
 	l->random_list = g_list_remove(l->random_list, data);
 	l->total--;
 
-	// Decrement active element number if the deleted was te active one or previous to it
-	// XXX: BUG: 
-#ifdef OLD_BEHAVIOUR
-	if ( pos <= l->current ) {
-			l->current--;
-	}
-#else
-
 	// Check if movement affects current index: 
 	// item was the active one or previous to it
 	if ( pos <= l->current) {
@@ -414,7 +407,29 @@ void lomo_playlist_del
 		else
 			l->current--;
 	}
-#endif
+}
+
+gint
+lomo_playlist_queue(LomoPlaylist *l, guint pos)
+{
+	g_return_val_if_fail(-1, pos < g_list_length(l->list));
+	l->queue = g_list_append(l->queue, g_list_nth_data(l->list, pos));
+
+	return g_list_length(l->queue) - 1;
+}
+
+gboolean
+lomo_playlist_dequeue(LomoPlaylist *l, guint queue_index)
+{
+	g_return_val_if_fail(FALSE, (queue_index >= 0) && (queue_index < g_list_length(l->queue)));
+	lomo_playlist_dequeue_stream(l, g_list_nth_data(l->queue, queue_index));
+	return TRUE;
+}
+
+gint
+lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream)
+{
+	return g_list_index(l->list, stream);
 }
 
 void lomo_playlist_clear
@@ -479,7 +494,14 @@ gint lomo_playlist_get_next
 { BACKTRACE
 	gint pos;
 	gint total, normalpos, randompos;
-	
+
+	if (l->queue)
+	{
+		gint index = g_list_index(l->list, l->queue->data);
+		if ((index >= 0) && (index < g_list_length(l->list)))
+			return index;
+	}
+
 	total     = l->total;
 	normalpos = l->current;
 	randompos = lomo_playlist_normal_to_random(l, l->current);
@@ -578,13 +600,12 @@ gboolean lomo_playlist_go_next
 gboolean lomo_playlist_go_nth
 (LomoPlaylist *l, gint pos)
 { BACKTRACE
-	if ( pos < 0 ) {
-		return FALSE;
-	}
-	else {
-		lomo_playlist_set_current(l, pos);
-		return TRUE;
-	}
+	g_return_val_if_fail(FALSE, pos >= 0);
+
+	lomo_playlist_set_current(l, pos);
+	if (l->queue && (g_list_nth_data(l->list, pos) == l->queue->data))
+		l->queue = g_list_remove(l->queue, l->queue->data);
+	return TRUE;
 }
 
 /* Re-build random list */

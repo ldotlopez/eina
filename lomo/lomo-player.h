@@ -82,6 +82,8 @@ typedef struct
 	void (*mute)       (LomoPlayer *self, gboolean mute);
 	void (*insert)     (LomoPlayer *self, LomoStream *stream, gint pos);
 	void (*remove)     (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*queue)      (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*dequeue)    (LomoPlayer *self, LomoStream *stream, gint pos);
 	void (*pre_change) (LomoPlayer *self);
 	void (*change)     (LomoPlayer *self, gint from, gint to);
 	void (*clear)      (LomoPlayer *self);
@@ -170,6 +172,14 @@ void    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos);
 #define lomo_player_append_uri_multi(p,l) lomo_player_insert_uri_multi(p,l,-1)
 
 gboolean lomo_player_del(LomoPlayer *self, gint pos);
+
+#define lomo_player_queue_stream(self,stream) lomo_player_queue(self,lomo_player_index(self,stream))
+gint    lomo_player_queue       (LomoPlayer *self, gint pos);
+
+#define  lomo_player_dequeue_stream(self,stream) lomo_player_queue_index(self,stream)
+gboolean lomo_player_dequeue       (LomoPlayer *self, gint queue_pos);
+
+gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream);
 
 GList *lomo_player_get_playlist(LomoPlayer *self);
 

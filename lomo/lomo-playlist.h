@@ -62,6 +62,16 @@ void lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
 void
 lomo_playlist_del(LomoPlaylist * l, guint pos);
 
+
+gint     lomo_playlist_queue(LomoPlaylist *l, guint pos);
+gboolean lomo_playlist_dequeue(LomoPlaylist *l, guint queue_index);
+
+gint     lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream);
+void     lomo_playlist_queue_clear(LomoPlaylist *l);
+
+#define  lomo_playlist_queue_stream(l,stream)   lomo_playlist_queue(l,lomo_playlist_index(l,stream))
+#define  lomo_playlist_dequeue_stream(l,stream) lomo_playlist_dequeue(l,lomo_playlist_queue_index(l,stream))
+
 /*
  * @lomo_playlist_clear
  * @ Deletes all streams from playlist, this is not a deep free, LomoStream
@@ -223,17 +233,6 @@ gboolean lomo_playlist_swap(LomoPlaylist *l, guint a, guint b);
  */
 void lomo_playlist_randomize(LomoPlaylist *l);
 
-#if 0
-/* 
- * @lomo_playlist_find
- * @Finds the position in playlist of one stream
- * @Returns -1 if the stream is not found inside playlist
- *  LomoPlaylist* l: [self]
- *  LomoStream* stream: LomoStream to find
- *  gint ret: Position of the stream in playlist or -1 if not found
- */
-gint lomo_playlist_find(LomoPlaylist *l, LomoStream *stream);
-#endif
 
 /*
  * @lomo_playlist_print
