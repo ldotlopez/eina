@@ -432,6 +432,13 @@ lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream)
 	return g_list_index(l->list, stream);
 }
 
+void
+lomo_playlist_queue_clear(LomoPlaylist *l)
+{
+	g_list_free(l->queue);
+	l->queue = NULL;
+}
+
 void lomo_playlist_clear
 (LomoPlaylist *l)
 { BACKTRACE

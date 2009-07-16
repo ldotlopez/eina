@@ -61,6 +61,7 @@ enum {
 
 	QUEUE,
 	DEQUEUE,
+	QUEUE_CLEAR,
 
 	PRE_CHANGE,
 	CHANGE,
@@ -302,7 +303,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
-
+	lomo_player_signals[QUEUE_CLEAR] =
+		g_signal_new ("queue-clear",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, queue_clear),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 	lomo_player_signals[PRE_CHANGE] =
 		g_signal_new ("pre-change",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -894,6 +903,12 @@ gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 	if (ret)
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0, stream, queue_pos);
 	return ret;
+}
+
+void lomo_player_queue_clear(LomoPlayer *self)
+{
+	lomo_playlist_clear(self->priv->pl);
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0);
 }
 
 gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)

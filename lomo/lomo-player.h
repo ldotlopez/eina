@@ -74,25 +74,26 @@ typedef struct
 {
 	GObjectClass parent_class;
 
-	void (*play)       (LomoPlayer *self);
-	void (*pause)      (LomoPlayer *self);
-	void (*stop)       (LomoPlayer *self);
-	void (*seek)       (LomoPlayer *self, gint64 old, gint64 new);
-	void (*volume)     (LomoPlayer *self, gint volume);
-	void (*mute)       (LomoPlayer *self, gboolean mute);
-	void (*insert)     (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*remove)     (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*queue)      (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*dequeue)    (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*pre_change) (LomoPlayer *self);
-	void (*change)     (LomoPlayer *self, gint from, gint to);
-	void (*clear)      (LomoPlayer *self);
-	void (*repeat)     (LomoPlayer *self, gboolean val);
-	void (*random)     (LomoPlayer *self, gboolean val);
-	void (*eos)        (LomoPlayer *self);
-	void (*error)      (LomoPlayer *self, GError *error);
-	void (*tag)        (LomoPlayer *self, LomoStream *stream, LomoTag tag);
-	void (*all_tags)   (LomoPlayer *self, LomoStream *stream);
+	void (*play)        (LomoPlayer *self);
+	void (*pause)       (LomoPlayer *self);
+	void (*stop)        (LomoPlayer *self);
+	void (*seek)        (LomoPlayer *self, gint64 old, gint64 new);
+	void (*volume)      (LomoPlayer *self, gint volume);
+	void (*mute)        (LomoPlayer *self, gboolean mute);
+	void (*insert)      (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*remove)      (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*queue)       (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*dequeue)     (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*queue_clear) (LomoPlayer *self);
+	void (*pre_change)  (LomoPlayer *self);
+	void (*change)      (LomoPlayer *self, gint from, gint to);
+	void (*clear)       (LomoPlayer *self);
+	void (*repeat)      (LomoPlayer *self, gboolean val);
+	void (*random)      (LomoPlayer *self, gboolean val);
+	void (*eos)         (LomoPlayer *self);
+	void (*error)       (LomoPlayer *self, GError *error);
+	void (*tag)         (LomoPlayer *self, LomoStream *stream, LomoTag tag);
+	void (*all_tags)    (LomoPlayer *self, LomoStream *stream);
 } LomoPlayerClass;
 GType lomo_player_get_type(void);
 
@@ -180,6 +181,7 @@ gint    lomo_player_queue       (LomoPlayer *self, gint pos);
 gboolean lomo_player_dequeue       (LomoPlayer *self, gint queue_pos);
 
 gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream);
+void lomo_player_queue_clear(LomoPlayer *self);
 
 GList *lomo_player_get_playlist(LomoPlayer *self);
 
