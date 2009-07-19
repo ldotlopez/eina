@@ -20,6 +20,7 @@ eina_LDADD = @PACKAGE_LIBS@ -lgel-1.0 -llomo-1.0
 NOINST_H_FILES = \
 	dock.h                     \
 	eina-file-chooser-dialog.h \
+	eina-clutty.h              \
 	eina-seek.h                \
 	eina-volume.h              \
 	player.h                   \
@@ -47,6 +48,7 @@ header_DATA = $(INST_H_FILES)
 eina_SOURCES = \
 	art.c \
 	eina-obj.c                 \
+	eina-clutty.c              \
 	eina-conf-file.c           \
 	curl-engine.c              \
 	dock.c                     \

@@ -58,8 +58,12 @@ typedef struct {
 GType eina_clutty_get_type (void);
 
 EinaClutty* eina_clutty_new (void);
-void eina_clutty_set_from_pixbuf  (EinaClutty *self, GdkPixbuf *pixbuf);
-#define eina_clutty_set_from_file(self,file) eina_clutty_set_from_pixbuf(self, gdk_pixbuf_new_from_file(file,NULL))
+
+void  eina_clutty_set_duration(EinaClutty *self, guint duration);
+guint eina_clutty_get_duration(EinaClutty *self);
+
+void       eina_clutty_set_pixbuf(EinaClutty *self, GdkPixbuf *pixbuf);
+GdkPixbuf *eina_clutty_get_pixbuf(EinaClutty *self);
 
 G_END_DECLS
 
