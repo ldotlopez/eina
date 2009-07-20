@@ -1,0 +1,3 @@
+[submodule "macports"]
+	path = macports
+	url = git://github.com/xuzo/macports.git
