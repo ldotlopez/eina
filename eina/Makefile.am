@@ -47,6 +47,7 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	art.c \
+	cover.c \
 	eina-obj.c                 \
 	eina-clutty.c              \
 	eina-conf-file.c           \

@@ -37,7 +37,7 @@
 // Widgets
 #include <eina/eina-seek.h>
 #include <eina/eina-volume.h>
-#include <eina/eina-clutty.h>
+// #include <eina/eina-clutty.h>
 
 struct _EinaPlayer {
 	EinaObj parent;
@@ -46,10 +46,12 @@ struct _EinaPlayer {
 
 	GtkWindow  *main_window;
 	gboolean    persistent;
+	/*
 	GtkImage *cover;
 	GdkPixbuf *cover_mask;
 	gboolean  got_cover;
 	ArtSearch *art_search;
+	*/
 	EinaSeek   *seek;
 	EinaVolume *volume;
 
@@ -122,12 +124,16 @@ static void
 about_show(void);
 static void
 setup_dnd(EinaPlayer *self);
+#if 0
 static GdkPixbuf*
 build_cover_mask(GtkWidget *w);
+#endif
 
 // UI callbacks
+#if 0
 static gboolean
 update_cover_idle(EinaPlayer *self);
+#endif
 static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 static gboolean
@@ -230,6 +236,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_widget_show(GTK_WIDGET(self->seek));
 
 	// Artwork
+	#if 0
 	self->cover = (GtkImage *) gtk_image_new();
 	self->got_cover = FALSE;
 	gtk_widget_set_size_request(GTK_WIDGET(self->cover),
@@ -244,6 +251,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_widget_show_all((GtkWidget *) self->cover);
 
 	self->cover_mask = build_cover_mask((GtkWidget *) self->cover);
+	#endif
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -384,6 +392,12 @@ eina_player_get_main_window(EinaPlayer *self)
 	return self->main_window;
 }
 
+GtkContainer *
+eina_player_get_cover_container(EinaPlayer* self)
+{
+	return eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container");
+}
+
 void
 eina_player_add_widget(EinaPlayer* self, GtkWidget *widget)
 {
@@ -470,6 +484,7 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	g_free(title);
 }
 
+#if 0
 static void
 update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 {
@@ -514,13 +529,12 @@ update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 	static EinaClutty *clutty;
 	if (!w)
 	{
-		gtk_clutter_init(NULL, NULL);
 		w      = (GtkWindow *)  gtk_window_new(GTK_WINDOW_TOPLEVEL);
 		clutty = (EinaClutty *) eina_clutty_new();
 		gtk_container_add((GtkContainer*) w, (GtkWidget *) clutty);
 		gtk_widget_show_all((GtkWidget*) w);
 	}
-	eina_clutty_set_from_pixbuf(clutty, gdk_pixbuf_copy(pixbuf));
+	eina_clutty_set_pixbuf(clutty, gdk_pixbuf_copy(pixbuf));
 	gtk_image_set_from_pixbuf(self->cover, pixbuf);
 }
 
@@ -563,6 +577,7 @@ update_cover_query(EinaPlayer *self, LomoStream *stream)
 
 	self->art_search = art_search(art, stream, (ArtFunc) update_cover_result_cb, self);
 }
+#endif
 /*
 static gchar*
 parse_example_str_cb(gchar key, gpointer data)
@@ -776,12 +791,14 @@ about_show(void)
 	gtk_widget_show(GTK_WIDGET(about));
 }
 
+#if 0
 static gboolean
 update_cover_idle(EinaPlayer *self)
 {
 	update_cover_query(self, lomo_player_get_current_stream(eina_obj_get_lomo(self)));
 	return FALSE;
 }
+#endif
 
 static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
@@ -999,13 +1016,14 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlayer *self)
 {
 	update_sensitiviness(self);
 	set_info(self, lomo_player_nth_stream(lomo, to));
-	update_cover_query(self, lomo_player_nth_stream(lomo, to));
+	// update_cover_query(self, lomo_player_nth_stream(lomo, to));
 }
 
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self) 
 {
 	set_info(self, NULL);
+	#if 0
 	if (self->art_search)
 	{
 		Art *art = EINA_OBJ_GET_ART(self);
@@ -1013,8 +1031,9 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 			art_cancel(art, self->art_search);
 		self->art_search = NULL;
 	}
+	#endif
 	update_sensitiviness(self);
-	update_cover(self, NULL);
+	// update_cover(self, NULL);
 }
 
 static void
@@ -1023,8 +1042,10 @@ lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 	if (stream == lomo_player_get_stream(lomo))
 	{
 		set_info(self, stream);
+		#if 0
 		if (!self->got_cover)
 		 	update_cover_query(self, stream);
+		#endif
 	}
 }
 
@@ -1194,7 +1215,7 @@ void setup_dnd(EinaPlayer *self)
 		G_CALLBACK (drag_drop_handl), NULL);
 */
 }
-
+#if 0
 static GdkPixbuf*
 build_cover_mask(GtkWidget *w)
 {
@@ -1245,7 +1266,7 @@ build_cover_mask(GtkWidget *w)
 		}
 	return mask;
 }
-
+#endif
 // --
 // Connector 
 // --

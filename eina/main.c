@@ -101,7 +101,7 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "settings", "lomo", "art", "player", "dock", "playlist", "plugins", "vogon", "dbus",
+	gchar          *modules[] = { "settings", "lomo", "art", "player", "cover", "dock", "playlist", "plugins", "vogon", "dbus",
 #if HAVE_IGE
 		"ige",
 #endif

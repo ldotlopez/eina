@@ -31,7 +31,7 @@ struct _EinaCluttyPrivate {
 	ClutterActor *actor;
 	ClutterTimeline *timeline;
 	GdkPixbuf *old, *new;
-
+	guint duration;
 	gboolean done;
 };
 
@@ -109,7 +109,6 @@ eina_clutty_dispose (GObject *object)
 static void
 eina_clutty_class_init (EinaCluttyClass *klass)
 {
-	gtk_clutter_init(NULL, NULL);
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (EinaCluttyPrivate));
@@ -137,7 +136,7 @@ eina_clutty_init (EinaClutty *self)
 	priv->old      = NULL;
 	priv->new      = NULL;
 	priv->actor    = clutter_texture_new();
-	priv->timeline = clutter_timeline_new_for_duration(2000);
+	priv->timeline = clutter_timeline_new_for_duration(priv->duration);
 
 	clutter_container_add_actor((ClutterContainer*) gtk_clutter_embed_get_stage(GTK_CLUTTER_EMBED(self)), priv->actor);
 	clutter_timeline_set_loop(priv->timeline, FALSE); 
@@ -153,16 +152,17 @@ eina_clutty_new (void)
 
 void eina_clutty_set_duration(EinaClutty *self, guint duration)
 {
-	g_return_if_fail(duration == 0);
+	g_return_if_fail(duration >= 0);
 
 	EinaCluttyPrivate *priv = CLUTTY_PRIVATE(self);
+	priv->duration = duration;
 	clutter_timeline_set_duration(priv->timeline, duration);
 }
 
 guint eina_clutty_get_duration(EinaClutty *self)
 {
 	EinaCluttyPrivate *priv = CLUTTY_PRIVATE(self);
-	return clutter_timeline_get_duration(priv->timeline);
+	return priv->duration;
 }
 
 void
@@ -171,15 +171,10 @@ eina_clutty_set_pixbuf(EinaClutty *self, GdkPixbuf *pixbuf)
 	EinaCluttyPrivate *priv  = CLUTTY_PRIVATE(self);
 	ClutterActor      *stage = gtk_clutter_embed_get_stage((GtkClutterEmbed *) self);
 
-	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pixbuf,
-		clutter_actor_get_width(stage), clutter_actor_get_height(stage),
-		GDK_INTERP_BILINEAR);
-	g_object_unref(pixbuf);
-
 	// Set directly on stage
 	if (!priv->old)
 	{
-		priv->old = scaled;
+		priv->old = pixbuf;
 		gtk_clutter_texture_set_from_pixbuf((ClutterTexture*) priv->actor, priv->old);
 		clutter_actor_set_anchor_point(priv->actor,
 			clutter_actor_get_width(priv->actor) / 2,
@@ -191,9 +186,9 @@ eina_clutty_set_pixbuf(EinaClutty *self, GdkPixbuf *pixbuf)
 	}
 
 	// Drop old new if any, hold new, start pipeline
-	if (priv->new)
-		g_object_unref(priv->new);
-	priv->new = scaled;
+	// if (priv->new)
+	// 	g_object_unref(priv->new);
+	priv->new = pixbuf;
 
 	timeline_start(self);
 }
@@ -254,11 +249,13 @@ timeline_new_frame_cb (ClutterTimeline *timeline, gint frame_num, EinaClutty *se
 		}
 	}
 
-	gdouble zoom = (ABS(180 - degrees) - 90) / 90; // [0-1]
-
+	gdouble zoom = CLAMP((ABS(180 - degrees) - 90) / 90, 0.5, 1);
+	ClutterActor *stage = (ClutterActor *) gtk_clutter_embed_get_stage((GtkClutterEmbed *) self);
+	gint w = clutter_actor_get_width(stage);
+	gint h = clutter_actor_get_height(stage);
 	
-	g_printf("Zoom: %f\n", zoom);
-	clutter_actor_set_scale(priv->actor, zoom, zoom);
+	clutter_actor_set_size(priv->actor, w * zoom, h * zoom);
+	clutter_actor_set_anchor_point(priv->actor, w * zoom / 2, h * zoom / 2);
 	
 	clutter_actor_set_rotation(priv->actor, CLUTTER_Y_AXIS, degrees, 0, 0, 0);
 	

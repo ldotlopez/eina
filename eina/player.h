@@ -34,6 +34,7 @@ typedef struct _EinaPlayer EinaPlayer;
 
 GtkUIManager* eina_player_get_ui_manager (EinaPlayer* self);
 GtkWindow*    eina_player_get_main_window(EinaPlayer* self);
+GtkContainer* eina_player_get_cover_container(EinaPlayer* self);
 void          eina_player_add_widget     (EinaPlayer* self, GtkWidget *widget);
 void          eina_player_remove_widget  (EinaPlayer* self, GtkWidget *widget);
 void          eina_player_set_persistent (EinaPlayer* self, gboolean value);
