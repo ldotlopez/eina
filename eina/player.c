@@ -45,10 +45,6 @@ struct _EinaPlayer {
 
 	GtkWindow  *main_window;
 	gboolean    persistent;
-	GtkImage *cover;
-	GdkPixbuf *cover_mask;
-	gboolean  got_cover;
-	ArtSearch *art_search;
 	EinaSeek   *seek;
 	EinaVolume *volume;
 
@@ -110,10 +106,6 @@ static void
 switch_state(EinaPlayer *self, EinaPlayerMode mode);
 static void
 set_info(EinaPlayer *self, LomoStream *stream);
-#if 0
-static GtkWidget*
-build_preferences_widget(EinaPlayer *self);
-#endif
 
 static void
 update_sensitiviness(EinaPlayer *self);
@@ -121,12 +113,8 @@ static void
 about_show(EinaPlayer *self);
 static void
 setup_dnd(EinaPlayer *self);
-static GdkPixbuf*
-build_cover_mask(GtkWidget *w);
 
 // UI callbacks
-static gboolean
-update_cover_idle(EinaPlayer *self);
 static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 static gboolean
@@ -137,10 +125,6 @@ static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
-#if 0
-static void
-preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self);
-#endif
 static void
 volume_value_change_cb(GtkWidget *w, gdouble value, EinaPlayer *self);
 
@@ -227,22 +211,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		eina_obj_get_typed(self, GTK_CONTAINER, "seek-hscale-container"),
 		GTK_WIDGET(self->seek));
 	gtk_widget_show(GTK_WIDGET(self->seek));
-
-	// Artwork
-	self->cover = (GtkImage *) gtk_image_new();
-	self->got_cover = FALSE;
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover),
-		eina_obj_get_widget(self, "cover-image-container")->allocation.height,
-		eina_obj_get_widget(self, "cover-image-container")->allocation.height);
-	g_idle_add((GSourceFunc) update_cover_idle, self);
-
-	gel_ui_container_replace_children(
-		eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container"),
-		GTK_WIDGET(self->cover));
-	gtk_widget_realize((GtkWidget *) self->cover);
-	gtk_widget_show_all((GtkWidget *) self->cover);
-
-	self->cover_mask = build_cover_mask((GtkWidget *) self->cover);
 
 	// Initialize UI Manager
 	GError *err = NULL;
@@ -384,6 +352,12 @@ eina_player_get_main_window(EinaPlayer *self)
 	return self->main_window;
 }
 
+GtkContainer *
+eina_player_get_cover_container(EinaPlayer* self)
+{
+	return eina_obj_get_typed(self, GTK_CONTAINER, "cover-image-container");
+}
+
 void
 eina_player_add_widget(EinaPlayer* self, GtkWidget *widget)
 {
@@ -470,6 +444,7 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	g_free(title);
 }
 
+<<<<<<< HEAD:eina/player.c
 static void
 update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
 {
@@ -554,6 +529,8 @@ update_cover_query(EinaPlayer *self, LomoStream *stream)
 
 	self->art_search = art_search(art, stream, (ArtFunc) update_cover_result_cb, self);
 }
+=======
+>>>>>>> clutty:eina/player.c
 /*
 static gchar*
 parse_example_str_cb(gchar key, gpointer data)
@@ -770,13 +747,6 @@ about_show(EinaPlayer *self)
 }
 
 static gboolean
-update_cover_idle(EinaPlayer *self)
-{
-	update_cover_query(self, lomo_player_get_current_stream(eina_obj_get_lomo(self)));
-	return FALSE;
-}
-
-static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 {
     gint x, y, width, height;
@@ -818,7 +788,6 @@ main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 	{
 	case GDK_Insert:
 		eina_fs_file_chooser_load_files(eina_obj_get_lomo(self));
-		// file_chooser_load_files(self);
 		break;
 	case GDK_z:
 	case GDK_Page_Up:
@@ -992,33 +961,22 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaPlayer *self)
 {
 	update_sensitiviness(self);
 	set_info(self, lomo_player_nth_stream(lomo, to));
-	update_cover_query(self, lomo_player_nth_stream(lomo, to));
 }
 
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self) 
 {
 	set_info(self, NULL);
-	if (self->art_search)
-	{
-		Art *art = EINA_OBJ_GET_ART(self);
-		if (art)
-			art_cancel(art, self->art_search);
-		self->art_search = NULL;
-	}
 	update_sensitiviness(self);
-	update_cover(self, NULL);
 }
 
 static void
 lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self) 
 {
-	if (stream == lomo_player_get_stream(lomo))
-	{
-		set_info(self, stream);
-		if (!self->got_cover)
-		 	update_cover_query(self, stream);
-	}
+	if (stream != lomo_player_get_stream(lomo))
+		return;
+
+	set_info(self, stream);
 }
 
 // stream_info_parser_cb: Helps to format stream info for display
@@ -1186,58 +1144,6 @@ void setup_dnd(EinaPlayer *self)
 	g_signal_connect (well_dest, "drag-drop",
 		G_CALLBACK (drag_drop_handl), NULL);
 */
-}
-
-static GdkPixbuf*
-build_cover_mask(GtkWidget *w)
-{
-	// gchar *maskpath = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
-	gchar *maskpath = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-mask.png");
-	g_return_val_if_fail(maskpath != NULL, NULL);
-
-	GError *error  = NULL;
-	GdkPixbuf *mask = gdk_pixbuf_new_from_file(maskpath, 
-			/*
-			GTK_WIDGET(w)->allocation.width,
-			GTK_WIDGET(w)->allocation.height,
-			TRUE, */ &error);
-	g_free(maskpath);
-
-	if (!mask)
-	{
-		gel_warn("Unable to load cover mask: %s", error->message);
-		g_error_free(error);
-		return NULL;
-	}
-
-	int width, height, rowstride, n_channels, i, j;
-	guchar *pixels, *p;
-	n_channels = gdk_pixbuf_get_n_channels(mask);
-	if ((gdk_pixbuf_get_colorspace (mask) != GDK_COLORSPACE_RGB) ||
-		(gdk_pixbuf_get_bits_per_sample (mask) != 8)             ||
-		(!gdk_pixbuf_get_has_alpha (mask))                       ||
-		(n_channels != 4))
-	{
-		g_object_unref(mask);
-		g_warning(N_("Invalid cover mask"));
-		return NULL;
-	}
-
-	width = gdk_pixbuf_get_width (mask);
-	height = gdk_pixbuf_get_height (mask);
-	rowstride = gdk_pixbuf_get_rowstride (mask);
-	pixels = gdk_pixbuf_get_pixels (mask);
-
-	GdkColor *color = gtk_widget_get_style(w)->bg;
-	for ( i = 0; i < width; i++)
-		for (j = 0; j < height; j++)
-		{
-			p = pixels + j * rowstride + i * n_channels;
-			p[0] = color->red;
-			p[1] = color->green;
-			p[2] = color->blue;
-		}
-	return mask;
 }
 
 // --

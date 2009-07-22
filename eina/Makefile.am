@@ -46,6 +46,7 @@ header_DATA = $(INST_H_FILES)
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
 	art.c \
+	cover.c \
 	eina-obj.c                 \
 	eina-conf-file.c           \
 	curl-engine.c              \
@@ -80,6 +81,11 @@ dbus-marshallers.h: dbus-marshallers.list
 dbus-marshallers.c: dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
 
+if USE_CLUTTER
+eina_SOURCES += eina-clutty.c
+NOINST_H_FILES += eina-clutty.h
+endif
+
 if USE_DBUS_GLIB
 eina_SOURCES += dbus.c dbus-marshallers.c
 NOINST_H_FILES += dbus-marshallers.h
@@ -87,7 +93,5 @@ endif
 
 if USE_IGE
 eina_SOURCES += eina-ige.c
-eina_LDADD += @IGE_LIBS@
-AM_CPPFLAGS += @IGE_CFLAGS@
 endif
 
