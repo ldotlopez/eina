@@ -370,6 +370,7 @@ eina_player_remove_widget(EinaPlayer* self, GtkWidget *widget)
 {
 	 gtk_container_remove(eina_obj_get_typed(self, GTK_CONTAINER, "widgets-box"), widget);
 }
+
 void
 eina_player_set_persistent (EinaPlayer* self, gboolean value)
 {
@@ -444,93 +445,6 @@ set_info(EinaPlayer *self, LomoStream *stream)
 	g_free(title);
 }
 
-<<<<<<< HEAD:eina/player.c
-static void
-update_cover(EinaPlayer *self, GdkPixbuf *pixbuf)
-{
-	if (pixbuf == NULL)
-	{
-		self->got_cover = FALSE;
-		// gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-		gchar *path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-default.png");
-		pixbuf = gdk_pixbuf_new_from_file_at_scale(path,
-			GTK_WIDGET(self->cover)->allocation.width,
-			GTK_WIDGET(self->cover)->allocation.height,
-			TRUE, NULL);
-	
-		g_free(path);
-	}
-	else
-	{
-		self->got_cover = TRUE;
-		GdkPixbuf *old_pb = pixbuf;
-		pixbuf = gdk_pixbuf_scale_simple(old_pb, 
-			GTK_WIDGET(self->cover)->allocation.width,
-			GTK_WIDGET(self->cover)->allocation.height,
-			GDK_INTERP_BILINEAR);
-		g_object_unref(old_pb);
-	}
-
-	gtk_window_set_icon(self->main_window, pixbuf);
-	if (self->cover_mask && eina_conf_get_bool(self->conf, "/player/cover_mask_effect", TRUE))
-	{
-		
-		gdk_pixbuf_composite(self->cover_mask, pixbuf,
-			0, 0,
-			GTK_WIDGET(self->cover)->allocation.width,
-			GTK_WIDGET(self->cover)->allocation.height,
-			0, 0,
-			gdk_pixbuf_get_width(pixbuf) / (double) gdk_pixbuf_get_width(self->cover_mask),
-			gdk_pixbuf_get_height(pixbuf) / (double) gdk_pixbuf_get_height(self->cover_mask), 
-			GDK_INTERP_BILINEAR,
-			255);
-	}
-
-	gtk_image_set_from_pixbuf(self->cover, pixbuf);
-}
-
-static void
-update_cover_result_cb(Art *art, ArtSearch *search, EinaPlayer *self)
-{
-	self->art_search = NULL; // Search is finalized
-	update_cover(self, (GdkPixbuf *) art_search_get_result(search));
-}
-
-static void
-update_cover_query(EinaPlayer *self, LomoStream *stream)
-{
-	Art *art = EINA_OBJ_GET_ART(self);
-	if (stream == NULL)
-	{
-		update_cover(self, NULL);
-		return;
-	}
-
-	if (!art)
-	{
-		update_cover(self, NULL);
-		return;
-	}
-
-	if (self->art_search)
-	{
-		art_cancel(art, self->art_search);
-		self->art_search = NULL;
-	}
-
-	// gchar *path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
-	gchar *path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "cover-loading.png");
-	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(path,
-		GTK_WIDGET(self->cover)->allocation.height,
-		GTK_WIDGET(self->cover)->allocation.height,
-		TRUE, NULL);
-	update_cover(self, pb);
-	g_free(path);
-
-	self->art_search = art_search(art, stream, (ArtFunc) update_cover_result_cb, self);
-}
-=======
->>>>>>> clutty:eina/player.c
 /*
 static gchar*
 parse_example_str_cb(gchar key, gpointer data)
