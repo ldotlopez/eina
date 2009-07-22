@@ -85,7 +85,7 @@ ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaNtfy *self;
 
 	self = g_new0(EinaNtfy, 1);
-	if(!eina_obj_init(EINA_OBJ(self), app, "notify", EINA_OBJ_NONE, error))
+	if(!eina_obj_init(EINA_OBJ(self), plugin, "notify", EINA_OBJ_NONE, error))
 	{
 		gel_error("Cannot create component");
 		return FALSE;
@@ -151,7 +151,7 @@ ntfy_sync(EinaNtfy *self)
 	}
 
 	gchar *path = NULL;
-	if ((!self->nullcover) && (path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png")))
+	if ((!self->nullcover) && gel_plugin_get_resource(eina_obj_get_plugin(EINA_OBJ(self)), GEL_RESOURCE_IMAGE, "cover-default.png"))
 	{
 		self->nullcover = gdk_pixbuf_new_from_file_at_scale(path, 64, 64, TRUE, NULL);
 		g_free(path);
