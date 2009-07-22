@@ -84,8 +84,6 @@ dbus-marshallers.c: dbus-marshallers.list
 if USE_CLUTTER
 eina_SOURCES += eina-clutty.c
 NOINST_H_FILES += eina-clutty.h
-eina_LDADD += @CLUTTER_LIBS@
-AM_CPPFLAGS += @CLUTTER_FLAGS@
 endif
 
 if USE_DBUS_GLIB
@@ -95,7 +93,5 @@ endif
 
 if USE_IGE
 eina_SOURCES += eina-ige.c
-eina_LDADD += @IGE_LIBS@
-AM_CPPFLAGS += @IGE_CFLAGS@
 endif
 
