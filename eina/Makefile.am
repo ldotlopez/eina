@@ -20,7 +20,6 @@ eina_LDADD = @PACKAGE_LIBS@ -lgel-1.0 -llomo-1.0
 NOINST_H_FILES = \
 	dock.h                     \
 	eina-file-chooser-dialog.h \
-	eina-clutty.h              \
 	eina-seek.h                \
 	eina-volume.h              \
 	player.h                   \
@@ -49,7 +48,6 @@ eina_SOURCES = \
 	art.c \
 	cover.c \
 	eina-obj.c                 \
-	eina-clutty.c              \
 	eina-conf-file.c           \
 	curl-engine.c              \
 	dock.c                     \
@@ -82,6 +80,13 @@ dbus-marshallers.h: dbus-marshallers.list
 
 dbus-marshallers.c: dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
+
+if USE_CLUTTER
+eina_SOURCES += eina-clutty.c
+NOINST_H_FILES += eina-clutty.h
+eina_LDADD += @CLUTTER_LIBS@
+AM_CPPFLAGS += @CLUTTER_FLAGS@
+endif
 
 if USE_DBUS_GLIB
 eina_SOURCES += dbus.c dbus-marshallers.c
