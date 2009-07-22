@@ -52,6 +52,20 @@
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) EINA_PLUGIN(p)->data)
 #endif
 
+#define EINA_PLUGIN_SPEC(name,version,deps,author,url,short_desc,long_desc,icon,init,fini) \
+	G_MODULE_EXPORT GelPlugin name ## _plugin = { \
+		GEL_PLUGIN_SERIAL,                            \
+		G_STRINGIFY(name),                            \
+		version ? version : PACKAGE_VERSION,          \
+		deps,                                         \
+		author ? author : EINA_PLUGIN_GENERIC_AUTHOR, \
+		url    ? url    : EINA_PLUGIN_GENERIC_URL,    \
+		short_desc, long_desc, icon,                  \
+		init, fini,                                   \
+		NULL, NULL, NULL                              \
+	}
+
+
 // --
 // Access to internal values
 // --

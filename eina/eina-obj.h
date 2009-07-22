@@ -61,6 +61,8 @@ void     eina_obj_fini(EinaObj *self);
 #define eina_obj_get_typed(self,type,name) type(eina_obj_get_object(self,name))
 #define eina_obj_get_widget(self,name)     eina_obj_get_typed(self,GTK_WIDGET,name)
 
+#define eina_obj_get_resource(self,type,resource) gel_plugin_get_resource(eina_obj_get_plugin(EINA_OBJ(self)), type, resource)
+
 G_END_DECLS
 
 #endif

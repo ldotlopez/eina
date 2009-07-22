@@ -25,7 +25,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <gmodule.h>
-#include <glib/gprintf.h>
 
 // Modules
 #include <eina/eina-plugin.h>
@@ -54,8 +53,6 @@
 
 typedef struct _EinaCover {
 	EinaObj    parent;
-	GelPlugin *plugin;
-	EinaConf  *conf;
 
 	GtkWidget *cover;
 	GdkPixbuf *cover_default;
@@ -96,12 +93,11 @@ cover_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Initialize base class
 	self = g_new0(EinaCover, 1);
-	if (!eina_obj_init((EinaObj *) self, app, "cover", EINA_OBJ_NONE, error))
+	if (!eina_obj_init((EinaObj *) self, plugin, "cover", EINA_OBJ_NONE, error))
 	{
 		g_free(self);
 		return FALSE;
 	}
-	self->plugin = plugin;
 
 	#if HAVE_CLUTTER
 	if (clutty_enabled(self))
@@ -115,7 +111,6 @@ cover_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self->cover        = gtk_image_new();
 	#endif
 
-	self->conf         = EINA_OBJ_GET_SETTINGS(self);
 	self->got_cover    = FALSE;
 	self->loading      = FALSE;
 
@@ -139,8 +134,8 @@ cover_fini(GelApp *app, GelPlugin *plugin, GError **error)
 static gboolean
 cover_reload_resources(EinaCover *self)
 {
-	gchar *cover_default = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-default.png");
-	gchar *cover_loading = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-loading.png");
+	gchar *cover_default = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-default.png");
+	gchar *cover_loading = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-loading.png");
 	if (!cover_default || ! cover_loading)
 	{
 		gel_warn("Cannot locate resource '%s'", cover_default ? "cover-loading.png" : "cover-default.png");
@@ -249,7 +244,7 @@ cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 	if ((pixbuf != self->cover_default) &&
 		(pixbuf != self->cover_loading) &&
 		self->cover_mask                &&
-		eina_conf_get_bool(self->conf, "/player/cover_mask_effect", TRUE))
+		eina_conf_get_bool(EINA_OBJ_GET_SETTINGS(self), "/cover/mask_effect", TRUE))
 	{
 		gdk_pixbuf_composite(self->cover_mask, pixbuf,
 			0, 0,
@@ -327,7 +322,7 @@ lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaCover *self)
 static GdkPixbuf*
 build_cover_mask(EinaCover *self)
 {
-	gchar *maskpath = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "cover-mask.png");
+	gchar *maskpath = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-mask.png");
 	if (!maskpath)
 	{
 		gel_warn(N_("Cannot locate resource '%s'"), "cover-mask.png");
