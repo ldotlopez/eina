@@ -1,5 +1,5 @@
 /*
- * eina/curl-engine.h
+ * eina/ext/curl-engine.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -34,7 +34,8 @@ typedef enum {
 	CURL_ENGINE_GENERAL_ERROR
 } CurlEngineError;
 
-CurlEngine* curl_engine_new();
+CurlEngine* curl_engine_new(void);
+CurlEngine* curl_engine_get_default(void);
 void        curl_engine_free(CurlEngine *self);
 
 CurlQuery*  curl_engine_query(CurlEngine *self, gchar *uri, CurlEngineFinishFunc finish, gpointer data);

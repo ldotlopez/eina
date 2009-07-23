@@ -1,5 +1,5 @@
 /*
- * eina/eina-preferences-dialog.h
+ * eina/ext/eina-preferences-dialog.h
  *
  * Copyright (C) 2004-2009 Eina
  *

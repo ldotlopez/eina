@@ -218,6 +218,7 @@ dnl webkit (LastfmInfo) delayed post 0.8.0
 dnl Keep in alphabetical order
 AC_OUTPUT([
 eina/Makefile
+eina/ext/Makefile
 icons/Makefile
 icons/hicolor/Makefile
 gel/Makefile

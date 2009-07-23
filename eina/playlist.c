@@ -46,7 +46,6 @@
 #include <eina/dock.h>
 
 // Widgets and utils
-#include <eina/eina-file-chooser-dialog.h>
 #include <eina/fs.h>
 
 struct _EinaPlaylist

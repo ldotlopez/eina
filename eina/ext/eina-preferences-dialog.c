@@ -1,5 +1,5 @@
 /*
- * eina/eina-preferences-dialog.c
+ * eina/ext/eina-preferences-dialog.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -18,7 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::EinaPreferencesDialog"
-#include "eina-preferences-dialog.h"
+#include <eina/ext/eina-preferences-dialog.h>
 #include <gel/gel.h>
 
 #define EINA_HIG_BOX_SPACING 5

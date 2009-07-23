@@ -1,5 +1,5 @@
 /*
- * eina/eina-settings.h
+ * eina/lomo.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,28 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SETTINGS_H
-#define _SETTINGS_H
+#ifndef _EINA_LOMO_H
+#define _EINA_LOMO_H
 
 #include <gel/gel.h>
-#include <eina/eina-obj.h>
-// Included for direct access to eina_conf_*, but this could be in
-// eina-plugin.h
-#include <eina/eina-conf.h>
+#include <lomo/lomo-player.h>
 
 G_BEGIN_DECLS
 
-#define EINA_SETTINGS(p)           ((EinaConf *) p)
-#define GEL_APP_GET_SETTINGS(app)  EINA_SETTINGS(gel_app_shared_get(app,"settings"))
-#define EINA_OBJ_GET_SETTINGS(obj) GEL_APP_GET_SETTINGS(eina_obj_get_app(obj))
+typedef enum { 
+	EINA_LOMO_NO_ERROR = 0, 
+	EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE, 
+	EINA_LOMO_ERROR_CANNOT_SET_SHARED, 
+	EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE 
+} EinaLomoError; 
 
-typedef enum {
-	EINA_SETTINGS_NO_ERROR,
-	EINA_SETTINGS_CANNOT_CREATE_CONFIG_DIR,
-	EINA_SETTINGS_CONF_OBJECT_NOT_FOUND
-} EinaSettingsError;
+#define EINA_BASE_GET_LOMO(base) GEL_HUB_GET_LOMO(((EinaBase *)base)->hub)
+#define GEL_APP_GET_LOMO(app)    ((LomoPlayer *) gel_app_shared_get(app,"lomo"))
+#define EINA_OBJ_GET_LOMO(obj)   GEL_APP_GET_LOMO(eina_obj_get_app(obj))
 
 G_END_DECLS
 
-#endif
+#endif // _EINA_LOMO_H
 

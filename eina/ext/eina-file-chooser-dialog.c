@@ -1,5 +1,5 @@
 /*
- * eina/eina-file-chooser-dialog.c
+ * eina/ext/eina-file-chooser-dialog.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -25,8 +25,7 @@
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
 #include <eina/eina-stock.h>
-#include <eina/eina-file-chooser-dialog.h>
-#include <glib/gprintf.h>
+#include <eina/ext/eina-file-chooser-dialog.h>
 
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
 
@@ -139,14 +138,6 @@ eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectCon
 		parent_class = G_OBJECT_CLASS(g_type_class_peek_parent(klass));
 		obj = parent_class->constructor (gtype, n_properties, properties);
 	}
-#if 0
-	e_info("%d properties:", n_properties);
-	for (i = 0 ; i < n_properties; i++)
-	{
-		e_info("[%s]  %s: %s",
-			G_VALUE_TYPE_NAME(properties[i].value), properties[i].pspec->name, g_strdup_value_contents(properties[i].value));
-	}
-#endif
 
 	return obj;
 }
@@ -302,7 +293,6 @@ eina_file_chooser_dialog_run_user_cancel:
 		update_sensitiviness(self, FALSE);
 
 		// Loading image
-		// gchar *loading_path = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, "loading-spin-16x16.gif");
 		gchar *loading_path = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, "loading-spin-16x16.gif");
 		GtkImage *loading = (GtkImage *) gtk_image_new_from_file(loading_path);
 		g_free(loading_path);
@@ -386,7 +376,7 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 		break;
 
 	default:
-		gel_error("EinaFileChooserDialog unknow action %d", action);
+		g_warning("EinaFileChooserDialog unknow action %d", action);
 	}
 }
 
@@ -464,7 +454,7 @@ run_queue(EinaFileChooserDialog *self)
 	{
 		if (!g_cancellable_is_cancelled(priv->cancellable))
 		{
-			gel_warn("run_queue called but GCancellable is not cancelled");
+			g_warning("run_queue called but GCancellable is not cancelled");
 			g_cancellable_cancel(priv->cancellable);
 		}
 		g_object_unref(priv->cancellable);
@@ -500,7 +490,7 @@ file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
 	{
 		gchar *uri = g_file_get_uri(file);
 		g_object_unref(source);
-		gel_warn("Cannot fetch info for '%s': %s", uri, err->message);
+		g_warning("Cannot fetch info for '%s': %s", uri, err->message);
 		g_free(uri);
 		g_error_free(err);
 	}
@@ -541,7 +531,7 @@ static void
 recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
 {
 	gchar *uri = g_file_get_uri(f);
-	gel_error("Error reading '%s': %s", uri, error->message);
+	g_warning("Error reading '%s': %s", uri, error->message);
 	g_free(uri);
 
 	// gel_io_op_unref(op); <-- not sure

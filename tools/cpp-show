@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gcc -E `pkg-config --cflags gtk+-2.0 gstreamer-0.10 clutter-0.8` -I$(dirname "$0")/../ "$1"

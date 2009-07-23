@@ -35,8 +35,8 @@
 #include <eina/player.h>
 
 // Widgets
-#include <eina/eina-seek.h>
-#include <eina/eina-volume.h>
+#include <eina/ext/eina-seek.h>
+#include <eina/ext/eina-volume.h>
 
 struct _EinaPlayer {
 	EinaObj parent;

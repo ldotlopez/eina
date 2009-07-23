@@ -1,5 +1,5 @@
 /*
- * eina/eina-clutty.c
+ * eina/ext/eina-clutty.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "eina-clutty.h"
+#include <eina/ext/eina-clutty.h>
 #include <glib/gprintf.h>
 
 G_DEFINE_TYPE (EinaClutty, eina_clutty, GTK_TYPE_CLUTTER_EMBED)

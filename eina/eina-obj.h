@@ -25,7 +25,7 @@
 #include <gtk/gtk.h>
 #include <lomo/lomo-player.h>
 #include <gel/gel.h>
-#include <eina/eina-lomo.h>
+#include <eina/lomo.h>
 
 G_BEGIN_DECLS
 
@@ -40,12 +40,6 @@ typedef enum {
 	EINA_OBJ_NONE,
 	EINA_OBJ_GTK_UI
 } EinaObjFlag;
-
-/*
-#define eina_obj_new(type,plugin,name,flags,error) \
-	((type *) eina_obj_new_real(sizeof(type),plugin,name,flags,error))
-gpointer eina_obj_new_real(size_t size, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error);
-*/
 
 gboolean eina_obj_init(EinaObj *self, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error);
 void     eina_obj_fini(EinaObj *self);

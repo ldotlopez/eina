@@ -21,9 +21,9 @@
 
 #include <glib/gi18n.h>
 #include <gel/gel.h>
-#include <eina/eina-file-chooser-dialog.h>
+#include <eina/ext/eina-file-chooser-dialog.h>
 #include <lomo/lomo-util.h>
-#include "fs.h"
+#include <eina/fs.h>
 
 void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo)

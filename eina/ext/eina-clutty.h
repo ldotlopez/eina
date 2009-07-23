@@ -1,5 +1,5 @@
 /*
- * eina/eina-clutty.h
+ * eina/ext/eina-clutty.h
  *
  * Copyright (C) 2004-2009 Eina
  *

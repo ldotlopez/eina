@@ -1,5 +1,5 @@
 /*
- * eina/eina-file-chooser-dialog.h
+ * eina/ext/eina-file-chooser-dialog.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* eina-file-chooser-dialog.h */
 
 #ifndef _EINA_FILE_CHOOSER_DIALOG
 #define _EINA_FILE_CHOOSER_DIALOG

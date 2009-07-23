@@ -33,12 +33,16 @@
 #include <gel/gel-ui.h>
 
 // Modules availables: lomo, settings, art, fs (utility functions)
-#include <eina/eina-lomo.h>
+#include <eina/lomo.h>
 #include <eina/preferences.h>
-#include <eina/eina-settings.h>
 #include <eina/art.h>
 #include <eina/fs.h>
 #include <eina/eina-stock.h>
+#include <eina/settings.h>
+
+#include <eina/ext/curl-engine.h>
+#include <eina/ext/eina-file-chooser-dialog.h>
+#include <eina/ext/eina-preferences-dialog.h>
 
 // Redefine some types and enums
 #define EinaPlugin GelPlugin

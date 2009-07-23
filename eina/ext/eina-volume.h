@@ -1,5 +1,5 @@
 /*
- * eina/eina-volume.h
+ * eina/ext/eina-volume.h
  *
  * Copyright (C) 2004-2009 Eina
  *

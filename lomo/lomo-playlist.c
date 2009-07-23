@@ -607,7 +607,7 @@ gboolean lomo_playlist_go_next
 gboolean lomo_playlist_go_nth
 (LomoPlaylist *l, gint pos)
 { BACKTRACE
-	g_return_val_if_fail(FALSE, pos >= 0);
+	g_return_val_if_fail(pos >= 0, FALSE);
 
 	lomo_playlist_set_current(l, pos);
 	if (l->queue && (g_list_nth_data(l->list, pos) == l->queue->data))
