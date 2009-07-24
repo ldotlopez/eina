@@ -76,5 +76,7 @@ endif
 
 if USE_IGE
 eina_SOURCES += eina-ige.c
+AM_CPPFLAGS += @IGE_CFLAGS@
+eina_LDADD += @IGE_LIBS@
 endif
 

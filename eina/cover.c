@@ -30,8 +30,6 @@
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
 
-#define HAVE_CLUTTER 1
-
 #if HAVE_CLUTTER
 #include <eina/ext/eina-clutty.h>
 #define clutty_enabled(self) (TRUE)

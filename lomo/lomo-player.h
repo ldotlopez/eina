@@ -180,7 +180,6 @@ gint    lomo_player_queue       (LomoPlayer *self, gint pos);
 #define  lomo_player_dequeue_stream(self,stream) lomo_player_queue_index(self,stream)
 gboolean lomo_player_dequeue       (LomoPlayer *self, gint queue_pos);
 
-gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream);
 void lomo_player_queue_clear(LomoPlayer *self);
 
 GList *lomo_player_get_playlist(LomoPlayer *self);
