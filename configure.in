@@ -119,8 +119,7 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 		AC_SUBST(NOTIFY_CFLAGS)
 		AC_SUBST(NOTIFY_LIBS)
 		HAVE_NOTIFY=yes
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS $NOTIFY_CFLAGS -DHAVE_NOTIFY=1"
-		PACKAGE_LIBS="$PACKAGE_LIBS $NOTIFY_LIBS"
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_NOTIFY=1"
 	],
 	[
 		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_NOTIFY=0"
@@ -231,7 +230,7 @@ pixmaps/Makefile
 plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/hooktest/Makefile
-plugins/notify/Makefile
+plugins/ntfy/Makefile
 plugins/lastfm/Makefile
 plugins/recently/Makefile
 plugins/Makefile

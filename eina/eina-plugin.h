@@ -20,6 +20,8 @@
 #ifndef _EINA_PLUGIN
 #define _EINA_PLUGIN
 
+#include <config.h>
+
 // system libs
 #include <glib.h>
 #include <glib/gi18n.h>

@@ -1,5 +1,5 @@
 /*
- * plugins/notify/ntfy.h
+ * plugins/ntfy/ntfy.h
  *
  * Copyright (C) 2004-2009 Eina
  *
