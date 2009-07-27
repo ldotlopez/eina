@@ -54,6 +54,11 @@ typedef enum {
 } EinaPluginsError;
 
 enum {
+	PLUGINS_TAB_NO_PLUGINS = 0,
+	PLUGINS_TAB_PLUGINS
+};
+
+enum {
 	PLUGINS_COLUMN_ENABLED,
 	PLUGINS_COLUMN_NAME,
 
@@ -342,6 +347,9 @@ static void
 plugins_build_treeview(EinaPlugins *self)
 {
 	GList *l = self->visible_plugins;
+	gtk_notebook_set_current_page(eina_obj_get_typed(self, GTK_NOTEBOOK, "notebook"),
+		(l && l->data) ? PLUGINS_TAB_PLUGINS : PLUGINS_TAB_NO_PLUGINS );
+
 	while (l)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(l->data);
