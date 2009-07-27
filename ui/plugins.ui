@@ -77,16 +77,16 @@ There are no plugins instaled on your system</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="scrolledwindow1">
+                      <object class="GtkAlignment" id="alignment2">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="border_width">5</property>
-                        <property name="hscrollbar_policy">never</property>
-                        <property name="vscrollbar_policy">automatic</property>
+                        <property name="left_padding">12</property>
                         <child>
-                          <object class="GtkAlignment" id="alignment3">
+                          <object class="GtkScrolledWindow" id="scrolledwindow1">
                             <property name="visible">True</property>
-                            <property name="left_padding">12</property>
+                            <property name="can_focus">True</property>
+                            <property name="border_width">5</property>
+                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
                             <child>
                               <object class="GtkTreeView" id="treeview">
                                 <property name="width_request">150</property>
