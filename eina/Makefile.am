@@ -12,10 +12,10 @@ bin_PROGRAMS = eina
 
 eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	-L$(top_srcdir)/gel/.libs \
-	-L$(top_srcdir)/lomo/.libs \
-	-static $(top_builddir)/eina/ext/libeinaext.la
+	-L$(top_srcdir)/lomo/.libs
 
-eina_LDADD = @PACKAGE_LIBS@ -lgel-1.0 -llomo-1.0
+eina_LDADD = @PACKAGE_LIBS@ $(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.0 -llomo-1.0
+
 
 NOINST_H_FILES = \
 	dock.h                     \
