@@ -35,6 +35,11 @@ G_BEGIN_DECLS
 
 enum {
     LOMO_PLAYER_NO_ERROR = 0,
+	LOMO_PLAYER_ERROR_MISSING_METHOD,
+	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
+	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
+	LOMO_PLAYER_ERROR_SET_STATE,
+
 	LOMO_PLAYER_ERROR_UNKNOW_STATE,
 	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
 	LOMO_PLAYER_ERROR_NO_STREAM
@@ -126,7 +131,6 @@ LomoPlayer       *lomo_player_new(const gchar *option_name, ...);
 gboolean lomo_player_get_auto_parse(LomoPlayer *self);
 void     lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse);
 
-gboolean    lomo_player_reset(LomoPlayer *self, GError **error); // API Changed
 LomoStream *lomo_player_get_stream(LomoPlayer *self);
 
 // Quick play functions, simple shortcuts.
