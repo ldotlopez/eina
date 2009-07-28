@@ -62,6 +62,16 @@ typedef enum GelFileLoadCode {
 typedef gchar*   (*GelListPrintfFunc)(const gpointer data);
 typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 
+// #define GEL_AUTO_QUARK_FUNC(name) GEL_AUTO_QUARK_FUNC_REAL(name, G_STRINGIFY(name))
+#define GEL_AUTO_QUARK_FUNC(name) \
+	static GQuark name ## _quark(void) \
+	{ \
+		GQuark ret = 0; \
+		if (ret == 0) \
+			ret = g_quark_from_static_string(G_STRINGIFY(name)); \
+		return ret; \
+	}
+
 // --
 // Initialization and finilization functions
 // --

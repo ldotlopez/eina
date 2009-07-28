@@ -1,5 +1,5 @@
 /*
- * plugins/notify/ntfy.c
+ * plugins/ntfy/ntfy.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,12 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Plugin::Notify"
+#define GEL_DOMAIN "Eina::Plugin::Ntfy"
 #define GEL_PLUGIN_DATA_TYPE EinaNtfy
 #include <libnotify/notify.h>
 #include <eina/eina-plugin.h>
 #include <eina/vogon.h>
-#include <plugins/notify/ntfy.h>
+#include <plugins/ntfy/ntfy.h>
 
 #define SETTINGS_PATH "/plugins/notify"
 #define ACTION_NAME   "Notifications"
@@ -70,14 +70,8 @@ art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self);
 static void
 action_activate_cb(GtkAction *action, EinaNtfy *self);
 
-static GQuark
-ntfy_quark(void)
-{
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("eina-ntfy");
-	return ret;
-}
+
+GEL_AUTO_QUARK_FUNC(ntfy)
 
 G_MODULE_EXPORT gboolean
 ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -85,7 +79,7 @@ ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaNtfy *self;
 
 	self = g_new0(EinaNtfy, 1);
-	if(!eina_obj_init(EINA_OBJ(self), plugin, "notify", EINA_OBJ_NONE, error))
+	if(!eina_obj_init(EINA_OBJ(self), plugin, "ntfy", EINA_OBJ_NONE, error))
 	{
 		gel_error("Cannot create component");
 		return FALSE;
@@ -389,13 +383,18 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 	}
 }
 
-G_MODULE_EXPORT EinaPlugin
-notify_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"notify", "0.0.1", "lomo",
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
-	N_("Notifications plugin"), NULL, NULL,
-	ntfy_init, ntfy_fini,
-	NULL, NULL, NULL
-};
+EINA_PLUGIN_SPEC(ntfy,
+	"0.0.1",
+	"lomo",
+
+	NULL,
+	NULL,
+
+	N_("Notifications plugin"),
+	NULL,
+	NULL,
+
+	ntfy_init,
+	ntfy_fini
+);
 

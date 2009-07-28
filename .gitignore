@@ -9,6 +9,7 @@ Makefile.in
 *.a
 *.lo
 *.la
+*.pyc
 .libs
 .deps
 

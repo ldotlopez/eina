@@ -1,5 +1,5 @@
 /*
- * eina/eina-volume.c
+ * eina/ext/eina-volume.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,10 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Volume"
-
-#include "eina-volume.h"
-#include <gel/gel-ui.h>
+#include <gel/gel.h>
+#include <eina/ext/eina-volume.h>
 
 G_DEFINE_TYPE (EinaVolume, eina_volume, GTK_TYPE_VOLUME_BUTTON)
 

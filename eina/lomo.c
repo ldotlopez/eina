@@ -1,5 +1,5 @@
 /*
- * eina/eina-lomo.c
+ * eina/lomo.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -20,17 +20,10 @@
 #define GEL_DOMAIN "Eina::Lomo"
 
 #include <config.h>
-#include <glib/gi18n.h>
-#include <eina/eina-lomo.h>
+#include <eina/eina-plugin.h>
+#include <eina/lomo.h>
 
-static GQuark
-lomo_quark(void)
-{
-	GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("eina-lomo");
-	return ret;
-}
+GEL_AUTO_QUARK_FUNC(lomo)
 
 gboolean
 lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -42,7 +35,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
 		return FALSE;
 	}
-	lomo_player_set_auto_parse(engine, TRUE);
+	// lomo_player_set_auto_parse(engine, TRUE);
 
 	if (!gel_app_shared_set(gel_plugin_get_app(plugin), "lomo", engine))
 	{
@@ -68,16 +61,17 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT GelPlugin lomo_plugin = 
-{
-	GEL_PLUGIN_SERIAL,
-	"lomo", PACKAGE_VERSION, NULL,
-	NULL, NULL,
+EINA_PLUGIN_SPEC(lomo,
+	PACKAGE_VERSION,			// version
+	NULL,						// deps
+	NULL,						// author
+	NULL,						// url
 
-	N_("Build-in lomo plugin"), N_("Build-in lomo plugin"), NULL,
+	N_("Build-in lomo plugin"),	// short
+	NULL,						// long
+	NULL,						// icon
 
-	lomo_plugin_init, lomo_plugin_fini,
-
-	NULL, NULL, NULL
-};
+	lomo_plugin_init,			// init
+	lomo_plugin_fini			// fini
+);
 

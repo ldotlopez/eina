@@ -1,5 +1,5 @@
 /*
- * eina/eina-settings.c
+ * eina/settings.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -21,16 +21,9 @@
 #define GEL_PLUGIN_DATA_TYPE EinaConf
 
 #include <config.h>
-#include <eina/eina-settings.h>
+#include <eina/settings.h>
 
-static GQuark
-settings_quark(void)
-{
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("eina-settings");
-	return ret;
-}
+GEL_AUTO_QUARK_FUNC(settings);
 
 static gboolean
 settings_init(GelApp *app, GelPlugin *plugin, GError **error)

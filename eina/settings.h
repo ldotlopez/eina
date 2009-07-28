@@ -1,5 +1,5 @@
 /*
- * plugins/notify/ntfy.h
+ * eina/settings.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -16,16 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _EINA_PLUGIN_NTFY_H
-#define _EINA_PLUGIN_NTFY_H
 
-typedef struct _EinaNtfy EinaNtfy;
+#ifndef _SETTINGS_H
+#define _SETTINGS_H
 
-enum {
-	EINA_NTFY_NO_ERROR = 0,
-	EINA_NTFY_LIBRARY_ERROR,
-	EINA_NTFY_SETTINGS_ERROR
-} EinaNtfyError;
+#include <gel/gel.h>
+#include <eina/eina-obj.h>
+// Included for direct access to eina_conf_*, but this could be in
+// eina-plugin.h
+#include <eina/ext/eina-conf.h>
+
+G_BEGIN_DECLS
+
+#define EINA_SETTINGS(p)           ((EinaConf *) p)
+#define GEL_APP_GET_SETTINGS(app)  EINA_SETTINGS(gel_app_shared_get(app,"settings"))
+#define EINA_OBJ_GET_SETTINGS(obj) GEL_APP_GET_SETTINGS(eina_obj_get_app(obj))
+
+typedef enum {
+	EINA_SETTINGS_NO_ERROR,
+	EINA_SETTINGS_CANNOT_CREATE_CONFIG_DIR,
+	EINA_SETTINGS_CONF_OBJECT_NOT_FOUND
+} EinaSettingsError;
+
+G_END_DECLS
 
 #endif
 

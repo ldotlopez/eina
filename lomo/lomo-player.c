@@ -531,7 +531,6 @@ lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 	lomo_player_clear(self);
 	lomo_player_append(self, stream);
 
-	// return (lomo_player_reset(self, error) && lomo_player_play(self, error));
 	return (lomo_player_create_pipeline(self, stream, error) && lomo_player_play(self, error));
 }
 
@@ -913,7 +912,6 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		if (emit_change)
 		{
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, -1, 0);
-			// lomo_player_reset(self, NULL);
 			GError *err = NULL;
 			if (!lomo_player_create_pipeline(self, stream, &err))
 			{
@@ -1060,7 +1058,6 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	if (!lomo_player_create_pipeline(self, (LomoStream *) stream, error))
 		return FALSE;
 
-	// lomo_player_reset(self, NULL);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, prev, pos);
 
 	// Restore state
@@ -1090,7 +1087,6 @@ void lomo_player_clear(LomoPlayer *self)
 		lomo_player_stop(self, NULL);
 		lomo_playlist_clear(self->priv->pl);
 		lomo_metadata_parser_clear(self->priv->meta);
-		// lomo_player_reset(self, NULL);
 		lomo_player_destroy_pipeline(self, NULL);
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
 	}

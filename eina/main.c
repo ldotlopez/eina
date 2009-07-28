@@ -413,6 +413,7 @@ app_dispose_cb(GelApp *app, gpointer data)
 void
 xxx_ugly_hack(void)
 {
+	curl_engine_new();
 	gel_list_join(" ", NULL);
 	gel_io_file_get_child_for_file_info(NULL, NULL);
 	gel_io_recurse_tree_new();

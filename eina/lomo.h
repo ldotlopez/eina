@@ -1,5 +1,5 @@
 /*
- * eina/eina-lomo.h
+ * eina/lomo.h
  *
  * Copyright (C) 2004-2009 Eina
  *

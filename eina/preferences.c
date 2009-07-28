@@ -20,9 +20,9 @@
 #define GEL_DOMAIN "Eina::Preferences"
 
 #include <config.h>
+#include <eina/ext/eina-preferences-dialog.h>
+#include <eina/eina-plugin.h>
 #include <eina/player.h>
-#include <eina/eina-preferences-dialog.h>
-#include <eina/preferences.h>
 
 struct  _EinaPreferences {
 	EinaObj parent;
@@ -183,15 +183,14 @@ menu_activate_cb(GtkAction *action, EinaPreferences *self)
 	}
 }
 
-G_MODULE_EXPORT GelPlugin preferences_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"preferences", PACKAGE_VERSION, NULL,
-	NULL, NULL,
-
-	N_("Build-in preferences plugin"), NULL, NULL,
-
-	preferences_init, preferences_fini,
-
-	NULL, NULL, NULL
-};
+EINA_PLUGIN_SPEC(preferences,
+	PACKAGE_VERSION,
+	NULL,
+	NULL,
+	NULL,
+	N_("Build-in preferences plugin"),
+	NULL,
+	NULL,
+	preferences_init, preferences_fini
+);
 

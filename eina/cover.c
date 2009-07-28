@@ -31,7 +31,7 @@
 #include <eina/player.h>
 
 #if HAVE_CLUTTER
-#include <eina/eina-clutty.h>
+#include <eina/ext/eina-clutty.h>
 #define clutty_enabled(self) (TRUE)
 #else
 #define clutty_enabled(self) (FALSE)

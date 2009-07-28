@@ -1,5 +1,5 @@
 /*
- * eina/eina-conf-file.c
+ * eina/ext/eina-conf-file.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -28,7 +28,7 @@
 #include <glib-object.h>
 #include <glib/gstdio.h>
 #include <gel/gel.h>
-#include <eina/eina-conf.h>
+#include <eina/ext/eina-conf.h>
 
 // --
 // Internal EinaConfValue
@@ -199,6 +199,15 @@ EinaConf*
 eina_conf_new (void)
 {
 	return g_object_new (EINA_TYPE_CONF, NULL);
+}
+
+EinaConf*
+eina_conf_get_default(void)
+{
+	static EinaConf *self = NULL;
+	if (!self)
+		self = eina_conf_new();
+	return self;
 }
 
 void

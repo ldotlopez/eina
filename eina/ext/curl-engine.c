@@ -1,5 +1,5 @@
 /*
- * eina/curl-engine.c
+ * eina/ext/curl-engine.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/curl-engine.h>
+#include <eina/ext/curl-engine.h>
 #include <glib/gi18n.h>
 
 #define ENABLE_DEBUG 0
@@ -73,6 +73,15 @@ curl_engine_new(void)
 	CurlEngine *self = g_new0(CurlEngine, 1);
 	self->curlm = curl_multi_init();
 
+	return self;
+}
+
+CurlEngine*
+curl_engine_get_default(void)
+{
+	static CurlEngine *self = NULL;
+	if (!self)
+		self = curl_engine_new();
 	return self;
 }
 

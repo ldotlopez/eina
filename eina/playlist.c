@@ -46,7 +46,6 @@
 #include <eina/dock.h>
 
 // Widgets and utils
-#include <eina/eina-file-chooser-dialog.h>
 #include <eina/fs.h>
 
 struct _EinaPlaylist
@@ -417,7 +416,7 @@ queue_selected(EinaPlaylist *self)
 	gint *indices = get_selected_indices(self);
 	gint i = 0;
 	for (i = 0; indices[i] != -1; i++)
-		lomo_player_queue(eina_obj_get_lomo(self), indices[i]);
+		; // lomo_player_queue(eina_obj_get_lomo(self), indices[i]);
 	g_free(indices);
 }
 

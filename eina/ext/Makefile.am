@@ -1,0 +1,30 @@
+lib_LTLIBRARIES = libeinaext.la
+
+AM_CPPFLAGS          = @PACKAGE_CFLAGS@
+libeinaext_la_LIBADD = @PACKAGE_LIBS@ 
+
+INST_H_FILES = \
+	curl-engine.h              \
+	eina-conf.h                \
+	eina-file-chooser-dialog.h \
+	eina-preferences-dialog.h  \
+	eina-seek.h                \
+	eina-volume.h
+
+headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina/ext
+header_DATA = $(INST_H_FILES)
+
+libeinaext_la_SOURCES = \
+	curl-engine.c              \
+	eina-conf-file.c           \
+	eina-file-chooser-dialog.c \
+	eina-preferences-dialog.c  \
+	eina-seek.c                \
+	eina-volume.c              \
+	$(INST_H_FILES)
+
+if USE_CLUTTER
+libeinaext_la_SOURCES += eina-clutty.c
+INST_H_FILES += eina-clutty.h
+endif
+

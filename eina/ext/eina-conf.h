@@ -1,5 +1,5 @@
 /*
- * eina/eina-conf.h
+ * eina/ext/eina-conf.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -53,6 +53,7 @@ typedef struct {
 GType eina_conf_get_type (void);
 
 EinaConf* eina_conf_new (void);
+EinaConf* eina_conf_get_default(void);
 
 void         eina_conf_set_source(EinaConf *self, gchar *source);
 const gchar *eina_conf_get_source(EinaConf *self);
