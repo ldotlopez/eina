@@ -18,53 +18,49 @@ eina_LDADD = @PACKAGE_LIBS@ $(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.
 
 
 NOINST_H_FILES = \
-	dock.h                     \
-	player.h                   \
-	playlist.h                 \
-	template.h                 \
+	dock.h     \
+	player.h   \
+	playlist.h \
+	template.h \
 	vogon.h 
 
 INST_H_FILES = \
-	art.h \
-	lomo.h                     \
-	eina-obj.h                 \
-	eina-plugin.h              \
-	eina-stock.h               \
-	eina-window.h              \
-	window.h                   \
-	fs.h                       \
-	preferences.h              \
-	settings.h
+	art.h         \
+	eina-obj.h    \
+	eina-plugin.h \
+	eina-stock.h  \
+	eina-window.h \
+	fs.h          \
+	lomo.h        \
+	preferences.h \
+	settings.h    \
+	window.h
 
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina
 header_DATA = $(INST_H_FILES)
 
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
-	art.c                      \
-	cover.c                    \
-	dock.c                     \
-	eina-file-chooser-dialog.c \
-	eina-obj.c                 \
-	eina-plugin.c              \
-	eina-preferences-dialog.c  \
-	eina-seek.c                \
-	eina-stock.c               \
-	eina-volume.c              \
-	eina-window.c              \
-	fs.c                       \
-	log.c                      \
-	lomo.c                     \
-	main.c                     \
-	player.c                   \
-	playlist.c                 \
-	plugins.c                  \
-	preferences.c              \
-	settings.c                 \
-	template.c                 \
-	vogon.c                    \
-	window.c                   \
-	$(NOINST_H_FILES)          \
+	art.c              \
+	cover.c            \
+	dock.c             \
+	eina-obj.c         \
+	eina-plugin.c      \
+	eina-stock.c       \
+	eina-window.c      \
+	fs.c               \
+	log.c              \
+	lomo.c             \
+	main.c             \
+	player.c           \
+	playlist.c         \
+	plugins.c          \
+	preferences.c      \
+	settings.c         \
+	template.c         \
+	vogon.c            \
+	window.c           \
+	$(NOINST_H_FILES)  \
 	$(INST_H_FILES)
 
 BUILT_SOURCES = dbus-marshallers.c dbus-marshallers.h
