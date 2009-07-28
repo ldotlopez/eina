@@ -1,3 +1,5 @@
+#include <gdk/gdkkeysyms.h>
+#include <gel/gel.h>
 #include <eina/eina-window.h>
 
 G_DEFINE_TYPE (EinaWindow, eina_window, GTK_TYPE_WINDOW)
@@ -7,19 +9,36 @@ G_DEFINE_TYPE (EinaWindow, eina_window, GTK_TYPE_WINDOW)
 
 typedef struct _EinaWindowPrivate EinaWindowPrivate;
 
+typedef struct {
+	EinaWindowKeyBind bind;
+	gpointer          data;
+} EinaWindowKeyBindPriv;
+
 struct _EinaWindowPrivate {
 	gboolean      persistant;
 	GtkBox       *container;
 	GtkUIManager *ui_manager;
-	int dummy;
+	GList        *keybinds;
+	gboolean      keybindings_enabled;
 };
 
 gboolean
-window_delete_event_cb(EinaWindow *self);
+window_key_press_event_cb(GtkWidget *self, GdkEvent *ev, gpointer data);
 
 static void
 eina_window_dispose (GObject *object)
 {
+	EinaWindow *self = (EinaWindow *) object;
+	EinaWindowPrivate *priv = GET_PRIVATE(self);
+
+	gel_free_and_invalidate(priv->container,  NULL, g_object_unref);
+	gel_free_and_invalidate(priv->ui_manager, NULL, g_object_unref);
+	if (priv->keybinds)
+	{
+		gel_list_deep_free(priv->keybinds, g_free);
+		priv->keybinds = NULL;
+	}
+
 	G_OBJECT_CLASS (eina_window_parent_class)->dispose (object);
 }
 
@@ -49,7 +68,7 @@ eina_window_init (EinaWindow *self)
 	gtk_widget_show_all((GtkWidget *) priv->container);
 
 	gtk_container_add((GtkContainer *) self, (GtkWidget *) priv->container);
-	g_signal_connect(self, "delete-event", (GCallback) window_delete_event_cb, NULL);
+	g_signal_connect(self, "key-press-event", (GCallback) window_key_press_event_cb, NULL);
 }
 
 EinaWindow*
@@ -62,13 +81,33 @@ eina_window_new (void)
 void
 eina_window_set_persistant(EinaWindow *self, gboolean persistant)
 {
-	GET_PRIVATE(self)->persistant = persistant;
+	EinaWindowPrivate *priv = GET_PRIVATE(self);
+	if (priv->persistant == persistant)
+		return;
+
+	priv->persistant = persistant;
+	if (persistant)
+		g_signal_connect(self, "delete-event", (GCallback) gtk_widget_hide_on_delete, NULL);
+	else
+		g_signal_handlers_disconnect_by_func(self, gtk_widget_hide_on_delete, NULL);
 }
 
 gboolean
 eina_window_get_persistant(EinaWindow *self)
 {
 	return GET_PRIVATE(self)->persistant;
+}
+
+gboolean
+eina_window_key_bindings_get_enabled(EinaWindow *self)
+{
+	return GET_PRIVATE(self)->keybindings_enabled;
+}
+
+void
+eina_window_key_bindings_set_enabled(EinaWindow *self, gboolean enabled)
+{
+	GET_PRIVATE(self)->keybindings_enabled = enabled;
 }
 
 void
@@ -89,8 +128,78 @@ eina_window_get_ui_manager(EinaWindow *self)
 	return GET_PRIVATE(self)->ui_manager;
 }
 
-gboolean
-window_delete_event_cb(EinaWindow *self)
+void
+eina_window_register_key_bindings(EinaWindow *self, guint n, EinaWindowKeyBind bind[], gpointer data)
 {
-	return !GET_PRIVATE(self)->persistant;
+	EinaWindowPrivate *priv = GET_PRIVATE(self);
+
+	EinaWindowKeyBindPriv *kbps = g_new0(EinaWindowKeyBindPriv, n);
+	guint i;
+	GList *tmp = NULL;
+	for (i = 0; i < n; i++)
+	{
+		kbps[i].bind = bind[i];
+		kbps[i].data = data;
+		tmp = g_list_prepend(tmp, (gpointer) &kbps[i]);
+	}
+	priv->keybinds = g_list_concat(priv->keybinds, g_list_reverse(tmp));
+}
+
+void
+eina_window_unregister_key_bindings(EinaWindow *self, guint n, EinaWindowKeyBind bind[], gpointer data)
+{
+	EinaWindowPrivate *priv = GET_PRIVATE(self);
+
+	gint i;
+	for (i = 0; i < n; i++)
+	{
+		// Try to find a matching bind
+		GList *iter = priv->keybinds;
+		while (iter)
+		{
+			EinaWindowKeyBindPriv *kbp = (EinaWindowKeyBindPriv *) iter->data;
+
+			if ((kbp->bind.keyval  == bind[i].keyval ) &&
+				(kbp->bind.handler == bind[i].handler) &&
+				(kbp->data         == data))
+				break;
+			iter = iter->next;
+		}
+
+		// If not found, warn and continue
+		if (!iter)
+		{
+			g_warning("Bind %d,%p not found", bind[i].keyval, bind[i].handler);
+			continue;
+		}
+
+		priv->keybinds = g_list_remove_link(priv->keybinds, iter);
+		g_free(iter->data);
+		g_list_free(iter);
+	}
+}
+
+gboolean
+window_key_press_event_cb(GtkWidget *self, GdkEvent *ev, gpointer data)
+{
+	EinaWindowPrivate *priv = GET_PRIVATE(self);
+	if (!priv->keybindings_enabled)
+		return FALSE;
+
+	GList *iter = priv->keybinds;
+	while (iter)
+	{
+		EinaWindowKeyBindPriv *kbp = (EinaWindowKeyBindPriv *) iter->data;
+		if ((kbp->bind.keyval != GDK_VoidSymbol) && (kbp->bind.keyval != ev->key.keyval))
+		{
+			iter = iter->next;
+			continue;
+		}
+
+		gboolean ret = kbp->bind.handler(ev, kbp->data);
+		if (ret == TRUE)
+			return ret;
+		iter = iter->next;
+	}
+	return FALSE;
 }

@@ -47,17 +47,17 @@
 
 // Widgets and utils
 #include <eina/fs.h>
+#include <eina/window.h>
 
 struct _EinaPlaylist
 {
 	EinaObj       parent;
 
-	EinaConf     *conf;
-
 	GtkWidget    *dock;
 	GtkTreeView  *tv;
 	GtkTreeModel *model; // Model, tv has a filter attached
-	gchar  *stream_fmt;
+
+	gchar        *stream_fmt;
 };
 
 typedef enum
@@ -125,6 +125,12 @@ static void lomo_error_cb
 static void lomo_all_tags_cb
 (LomoPlayer *lomo, LomoStream *stream, EinaPlaylist *self);
 
+// Handle focus events
+static gboolean
+widget_focus_in_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self);
+static gboolean
+widget_focus_out_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self);
+
 // UI callbacks
 void dock_row_activated_cb
 (GtkWidget *w,
@@ -141,6 +147,11 @@ void random_button_toggled_cb
 (GtkWidget *w, EinaPlaylist *self);
 void repeat_button_toggled_cb
 (GtkWidget *w, EinaPlaylist *self);
+
+static gboolean
+widget_focus_in_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self);
+static gboolean
+widget_focus_out_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self);
 
 static void search_entry_changed_cb
 (GtkWidget *w, EinaPlaylist *self);
@@ -188,6 +199,12 @@ GelUISignalDef _playlist_signals[] = {
 	G_CALLBACK(search_entry_changed_cb) },
 	{ "playlist-search-entry", "icon-press",
 	G_CALLBACK(search_entry_icon_press_cb) },
+	{ "playlist-search-entry", "activate",
+	G_CALLBACK(gtk_widget_grab_focus) },
+	{ "playlist-search-entry", "focus-in-event",
+	G_CALLBACK(widget_focus_in_event_cb) },
+	{ "playlist-search-entry", "focus-out-event",
+	G_CALLBACK(widget_focus_out_event_cb) },
 
 	{ "playlist-treeview",   "drag-data-received",
 	G_CALLBACK(drag_data_received_cb) },
@@ -196,6 +213,14 @@ GelUISignalDef _playlist_signals[] = {
 	
 	GEL_UI_SIGNAL_DEF_NONE
 };
+
+/*
+// Keybindings
+static EinaWindowKeyBind keybindings[] = {
+	{ GDK_Control_L | GDK_f, (EinaWindowKeyBindHandler) window_keybind_handler },
+	{ GDK_Control_R | GDK_f, (EinaWindowKeyBindHandler) window_keybind_handler } 
+};
+*/
 
 static gboolean
 playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
@@ -210,26 +235,21 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	// Load settings module
-	if ((self->conf = GEL_APP_GET_SETTINGS(app)) == NULL)
-	{
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
-	g_signal_connect(self->conf, "change", G_CALLBACK(on_pl_settings_change), self);
-
-	// Setup internal values from settings
-	repeat = eina_conf_get_bool(self->conf, "/core/repeat", FALSE);
-	random = eina_conf_get_bool(self->conf, "/core/random", FALSE);
+	// Configure settings
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+	g_signal_connect(conf, "change", G_CALLBACK(on_pl_settings_change), self);
+	repeat = eina_conf_get_bool(conf, "/core/repeat", FALSE);
+	random = eina_conf_get_bool(conf, "/core/random", FALSE);
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(eina_obj_get_widget(self, "playlist-repeat-button")), repeat);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(eina_obj_get_widget(self, "playlist-random-button")), random);
+
 	lomo_player_set_repeat(eina_obj_get_lomo(self), repeat);
 	lomo_player_set_random(eina_obj_get_lomo(self), random);
 
-	self->stream_fmt = (gchar *) eina_conf_get_str(self->conf, "/ui/playlist/fmt", "{%a - }%t");
+	self->stream_fmt = (gchar *) eina_conf_get_str(conf, "/ui/playlist/fmt", "{%a - }%t");
 
-	/* Setup stock icons */
+	// Set icons
 	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "playlist-random-image"), EINA_STOCK_RANDOM, GTK_ICON_SIZE_BUTTON);
 	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "playlist-repeat-image"), EINA_STOCK_REPEAT, GTK_ICON_SIZE_BUTTON);
 
@@ -239,42 +259,28 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	/* Connect some UI signals */
-	gel_ui_signal_connect_from_def_multiple(
-		eina_obj_get_ui(self),
-		_playlist_signals,
-		self,
-		NULL);
+	// Connect some UI signals
+	gel_ui_signal_connect_from_def_multiple(eina_obj_get_ui(self), _playlist_signals, self, NULL);
 
-	/* Connect lomo signals */
-	g_signal_connect(eina_obj_get_lomo(self), "insert",   G_CALLBACK(lomo_insert_cb),      self);
-	g_signal_connect(eina_obj_get_lomo(self), "remove",   G_CALLBACK(lomo_remove_cb),      self);
-	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb),   self);
-	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb),    self);
+	// Lomo signals
+	g_signal_connect(eina_obj_get_lomo(self), "insert",   G_CALLBACK(lomo_insert_cb),       self);
+	g_signal_connect(eina_obj_get_lomo(self), "remove",   G_CALLBACK(lomo_remove_cb),       self);
+	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb),       self);
+	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb),        self);
 	g_signal_connect(eina_obj_get_lomo(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "random",   G_CALLBACK(lomo_random_cb),   self);
-	g_signal_connect(eina_obj_get_lomo(self), "eos",      G_CALLBACK(lomo_eos_cb),      self);
-	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "error",    G_CALLBACK(lomo_error_cb),    self);
+	g_signal_connect(eina_obj_get_lomo(self), "random",   G_CALLBACK(lomo_random_cb),       self);
+	g_signal_connect(eina_obj_get_lomo(self), "eos",      G_CALLBACK(lomo_eos_cb),          self);
+	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb),     self);
+	g_signal_connect(eina_obj_get_lomo(self), "error",    G_CALLBACK(lomo_error_cb),        self);
 
-	/* Load playlist and go to last session's current */
-	/*
-	tmp = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "playlist", NULL);
-	if (g_file_get_contents(tmp, &buff, NULL, NULL))
-	{
-		uris = g_uri_list_extract_uris((const gchar *) buff);
-		lomo_player_append_uri_strv(eina_obj_get_lomo(self), uris);
-		g_strfreev(uris);
-	}
-	g_free(tmp);
-	g_free(buff);
-	lomo_player_go_nth(
-		eina_obj_get_lomo(self), 
-		eina_conf_get_int(self->conf, "/playlist/last_current", 0),
-		NULL);
-	*/
+	// Accelerators
+	GtkAccelGroup *accel_group = gtk_accel_group_new();
+	gtk_window_add_accel_group(GTK_WINDOW(EINA_OBJ_GET_WINDOW(self)), accel_group);
+	gtk_widget_add_accelerator(eina_obj_get_typed(self, GTK_WIDGET, "playlist-search-entry"), "activate", accel_group,
+		GDK_f, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
 	setup_dnd(self);
 
 	gtk_widget_show(self->dock);
@@ -320,7 +326,7 @@ playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	i = lomo_player_get_current(eina_obj_get_lomo(self));
-	eina_conf_set_int(self->conf, "/playlist/last_current", i);
+	eina_conf_set_int(EINA_OBJ_GET_SETTINGS(self), "/playlist/last_current", i);
 	eina_dock_remove_widget(EINA_OBJ_GET_DOCK(self), "playlist");
 
 	eina_obj_fini(EINA_OBJ(self));
@@ -708,7 +714,7 @@ random_button_toggled_cb(GtkWidget *w, EinaPlaylist *self)
 		eina_obj_get_lomo(self),
 		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
 	eina_conf_set_bool(
-		self->conf,
+		EINA_OBJ_GET_SETTINGS(self),
 		"/core/random",
 		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
 }
@@ -720,7 +726,7 @@ repeat_button_toggled_cb(GtkWidget *w, EinaPlaylist *self)
 		eina_obj_get_lomo(self),
 		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
 	eina_conf_set_bool(
-		self->conf,
+		EINA_OBJ_GET_SETTINGS(self),
 		"/core/repeat",
 		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
 }
@@ -935,6 +941,20 @@ static void lomo_error_cb
 
 	lomo_player_go_next(lomo, NULL);
 	lomo_player_play(lomo, NULL);
+}
+
+static gboolean
+widget_focus_in_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self)
+{
+	eina_window_key_bindings_set_enabled(EINA_OBJ_GET_WINDOW(self), FALSE);
+	return FALSE;
+}
+
+static gboolean
+widget_focus_out_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self)
+{
+	eina_window_key_bindings_set_enabled(EINA_OBJ_GET_WINDOW(self), TRUE);
+	return FALSE;
 }
 
 static void lomo_all_tags_cb
@@ -1247,7 +1267,7 @@ void setup_dnd(EinaPlaylist *self)
  */
 G_MODULE_EXPORT GelPlugin playlist_plugin = {
 	GEL_PLUGIN_SERIAL,
-	"playlist", PACKAGE_VERSION, "dock",
+	"playlist", PACKAGE_VERSION, "window,dock,settings",
 	NULL, NULL,
 
 	N_("Build-in playlist plugin"), NULL, NULL,

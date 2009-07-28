@@ -63,6 +63,7 @@ typedef enum {
 	EINA_PLAYER_MODE_PAUSE
 } EinaPlayerMode;
 
+
 #if 0
 static gchar *preferences_fmt_values[][2] = {
 	{ // Title - Artist
@@ -117,14 +118,14 @@ static gboolean
 main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 static gboolean
 main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, EinaPlayer *self);
-static gboolean
-main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self);
 static void
 button_clicked_cb(GtkWidget *w, EinaPlayer *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPlayer *self);
 static void
 volume_value_change_cb(GtkWidget *w, gdouble value, EinaPlayer *self);
+static gboolean
+window_keybind_handler(GdkEvent *ev, EinaPlayer *self);
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -139,6 +140,26 @@ static void lomo_all_tags_cb
 // Callback for parse stream info string
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
+
+static EinaWindowKeyBind keybindings[] = {
+	// Add
+	{ GDK_Insert,    (EinaWindowKeyBindHandler) window_keybind_handler },
+	// Prev
+	{ GDK_z,         (EinaWindowKeyBindHandler) window_keybind_handler },
+	{ GDK_Page_Up,   (EinaWindowKeyBindHandler) window_keybind_handler },
+	// Next
+	{ GDK_v,         (EinaWindowKeyBindHandler) window_keybind_handler },
+	{ GDK_Page_Down, (EinaWindowKeyBindHandler) window_keybind_handler },
+	// Pause
+	{ GDK_x,         (EinaWindowKeyBindHandler) window_keybind_handler },
+	{ GDK_space,     (EinaWindowKeyBindHandler) window_keybind_handler },
+	// Stop
+	{ GDK_c,         (EinaWindowKeyBindHandler) window_keybind_handler },
+	// Seek
+	{ GDK_KP_Left,   (EinaWindowKeyBindHandler) window_keybind_handler },
+	{ GDK_KP_Right,  (EinaWindowKeyBindHandler) window_keybind_handler }
+};
+
 
 static gboolean
 player_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -271,7 +292,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	GelUISignalDef ui_signals[] = {
 		{ "main-window",       "delete-event",       G_CALLBACK(main_window_delete_event_cb) },
 		{ "main-window",       "window-state-event", G_CALLBACK(main_window_window_state_event_cb) },
-		{ "main-window",       "key-press-event",    G_CALLBACK(main_box_key_press_event_cb) },
+		// { "main-window",       "key-press-event",    G_CALLBACK(main_box_key_press_event_cb) },
 		{ "prev-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "next-button",       "clicked", G_CALLBACK(button_clicked_cb) },
 		{ "play-pause-button", "clicked", G_CALLBACK(button_clicked_cb) },
@@ -317,6 +338,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_container_remove((GtkContainer *)  gtk_widget_get_parent(widget), widget);
 	gtk_widget_show(widget);
 	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), widget, FALSE, TRUE, 0);
+	eina_window_register_key_bindings(EINA_OBJ_GET_WINDOW(self), G_N_ELEMENTS(keybindings), keybindings, (gpointer) self);
+
 	// gtk_widget_show(GTK_WIDGET(self->main_window));
 
 	// Due some bug on OSX main window needs to be resizable on creation, but
@@ -335,6 +358,7 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	if (!self)
 		return FALSE;
 
+	eina_window_unregister_key_bindings(EINA_OBJ_GET_WINDOW(self), G_N_ELEMENTS(keybindings), keybindings, self);
 	g_free(self->stream_info_fmt);
 
 	eina_obj_fini(EINA_OBJ(self));
@@ -694,7 +718,7 @@ main_window_window_state_event_cb(GtkWidget *w, GdkEventWindowState *event, Eina
 }
 
 static gboolean
-main_box_key_press_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
+window_keybind_handler(GdkEvent *ev, EinaPlayer *self)
 {
 	GError *err = NULL;
 	if (ev->type != GDK_KEY_PRESS)
