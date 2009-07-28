@@ -25,7 +25,7 @@ NOINST_H_FILES = \
 	player.h                   \
 	playlist.h                 \
 	template.h                 \
-	vogon.h
+	vogon.h 
 
 INST_H_FILES = \
 	art.h \
@@ -36,6 +36,8 @@ INST_H_FILES = \
 	eina-preferences-dialog.h  \
 	eina-plugin.h              \
 	eina-stock.h               \
+	eina-window.h              \
+	window.h                   \
 	fs.h                       \
 	preferences.h              \
 	eina-settings.h
@@ -55,6 +57,7 @@ eina_SOURCES = \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
 	eina-volume.c              \
+	eina-window.c              \
 	fs.c                       \
 	log.c                      \
 	eina-lomo.c                \
@@ -67,6 +70,7 @@ eina_SOURCES = \
 	eina-stock.c               \
 	template.c                 \
 	vogon.c                    \
+	window.c                   \
 	plugins.c                  \
 	$(NOINST_H_FILES)          \
 	$(INST_H_FILES)

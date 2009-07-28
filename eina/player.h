@@ -31,7 +31,6 @@ G_BEGIN_DECLS
 #define EINA_OBJ_GET_PLAYER(obj) GEL_APP_GET_PLAYER(eina_obj_get_app(obj))
 
 typedef struct _EinaPlayer EinaPlayer;
-
 GtkUIManager* eina_player_get_ui_manager (EinaPlayer* self);
 GtkWindow*    eina_player_get_main_window(EinaPlayer* self);
 GtkContainer* eina_player_get_cover_container(EinaPlayer* self);

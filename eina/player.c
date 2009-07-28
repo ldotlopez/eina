@@ -43,8 +43,6 @@ struct _EinaPlayer {
 
 	EinaConf  *conf;
 
-	GtkWindow  *main_window;
-	gboolean    persistent;
 	EinaSeek   *seek;
 	EinaVolume *volume;
 
@@ -171,7 +169,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 			"<span size=\"x-large\" weight=\"bold\">%t</span>"
 			"<span size=\"x-large\" weight=\"normal\">{%a}</span>");
 
-	self->main_window = eina_obj_get_typed(self, GTK_WINDOW, "main-window");
 	self->prev = eina_obj_get_typed(self, GTK_BUTTON, "prev-button");
 	self->next = eina_obj_get_typed(self, GTK_BUTTON, "next-button");
 	self->open = eina_obj_get_typed(self, GTK_BUTTON, "open-button");
@@ -184,8 +181,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		switch_state(self, EINA_PLAYER_MODE_PAUSE);
 
 	set_info(self, lomo_player_get_stream(eina_obj_get_lomo(self)));
-
-	gtk_widget_realize(GTK_WIDGET(self->main_window));
 
 	// Initialize volume
 	self->volume = eina_volume_new();
@@ -267,7 +262,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		}
 		g_free(ui_manager_file);
 		gtk_window_add_accel_group(
-			self->main_window,
+			(GtkWindow *) EINA_OBJ_GET_WINDOW(self),
+			// self->main_window,
 			gtk_ui_manager_get_accel_group(self->ui_manager));
 	}
 
@@ -315,12 +311,18 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	setup_dnd(self);
 
 	// Show it
-	gtk_widget_show(GTK_WIDGET(self->main_window));
+	// 
+	GtkWidget *widget = eina_obj_get_typed(self, GTK_WIDGET, "main-box");
+	g_object_ref(widget);
+	gtk_container_remove((GtkContainer *)  gtk_widget_get_parent(widget), widget);
+	gtk_widget_show(widget);
+	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), widget, FALSE, TRUE, 0);
+	// gtk_widget_show(GTK_WIDGET(self->main_window));
 
 	// Due some bug on OSX main window needs to be resizable on creation, but
 	// without dock or other attached widgets to main window it must not be
 	// resizable.
-	gtk_window_set_resizable(self->main_window, FALSE);
+	// gtk_window_set_resizable(self->main_window, FALSE);
 
 	return TRUE;
 }
@@ -343,13 +345,13 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 GtkUIManager *
 eina_player_get_ui_manager(EinaPlayer *self)
 {
-	return self->ui_manager;
+	return eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 }
 
 GtkWindow *
 eina_player_get_main_window(EinaPlayer *self)
 {
-	return self->main_window;
+	return (GtkWindow *) EINA_OBJ_GET_WINDOW(self);
 }
 
 GtkContainer *
@@ -361,26 +363,25 @@ eina_player_get_cover_container(EinaPlayer* self)
 void
 eina_player_add_widget(EinaPlayer* self, GtkWidget *widget)
 {
-	gtk_box_pack_start(eina_obj_get_typed(self, GTK_BOX, "widgets-box"), widget,
-		TRUE, TRUE, 0);
+	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), widget, TRUE, TRUE, 0);
 }
 
 void
 eina_player_remove_widget(EinaPlayer* self, GtkWidget *widget)
 {
-	 gtk_container_remove(eina_obj_get_typed(self, GTK_CONTAINER, "widgets-box"), widget);
+	eina_window_remove_widget(EINA_OBJ_GET_WINDOW(self), widget);
 }
 
 void
 eina_player_set_persistent (EinaPlayer* self, gboolean value)
 {
-	self->persistent = value;
+	eina_window_set_persistant(EINA_OBJ_GET_WINDOW(self), value);
 }
 
 gboolean
 eina_player_get_persistent (EinaPlayer *self)
 {
-	return self->persistent;
+	return eina_window_get_persistant(EINA_OBJ_GET_WINDOW(self));
 }
 
 static void
@@ -441,7 +442,8 @@ set_info(EinaPlayer *self, LomoStream *stream)
 		g_free(tmp);
 	}
 
-	gtk_window_set_title(self->main_window, title);
+	// gtk_window_set_title(self->main_window, title);
+	gtk_window_set_title((GtkWindow *) EINA_OBJ_GET_WINDOW(self), title);
 	g_free(title);
 }
 
@@ -665,15 +667,15 @@ main_window_delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPlayer *self)
 {
     gint x, y, width, height;
 
-	if (self->persistent)
+	if (eina_player_get_persistent(self))
 	{
 		gtk_widget_hide((GtkWidget *) w);
 		return TRUE;
 	}
 	else
 	{
-		gtk_window_get_position(self->main_window, &x, &y);
-		gtk_window_get_size(self->main_window, &width, &height);
+		gtk_window_get_position((GtkWindow *)  w, &x, &y);
+		gtk_window_get_size((GtkWindow *) w, &width, &height);
 
 		eina_conf_set_int(self->conf, "/ui/pos_x", x);
 		eina_conf_set_int(self->conf, "/ui/pos_y", y);
@@ -1066,7 +1068,7 @@ void setup_dnd(EinaPlayer *self)
 G_MODULE_EXPORT GelPlugin player_plugin = {
 	GEL_PLUGIN_SERIAL,
 
-	"player", PACKAGE_VERSION, NULL /* "preferences" */,
+	"player", PACKAGE_VERSION, "window" /* "preferences" */,
 	NULL, NULL,
 
 	N_("Build-in player plugin"), NULL, NULL,
