@@ -215,7 +215,7 @@ build_player(EinaLog *self)
 	}
 	g_object_unref(xml_ui);
 
-	GtkUIManager *uimng = eina_player_get_ui_manager(GEL_APP_GET_PLAYER(self->app));
+	GtkUIManager *uimng = eina_window_get_ui_manager(GEL_APP_GET_WINDOW(self->app));
 	self->merge_id = gtk_ui_manager_add_ui_from_string(uimng,
 		"<ui>"
 		"<menubar name=\"MainMenuBar\">"

@@ -55,8 +55,18 @@ void eina_obj_fini(EinaObj *self)
 	}
 		
 	gel_app_shared_unregister(eina_obj_get_app(self), self->name);
-	gel_free_and_invalidate(self->ui,    NULL, g_object_unref);
+	eina_obj_strip(self, EINA_OBJ_ALL);
 	gel_free_and_invalidate(self->name,  NULL, g_free);
 	gel_free_and_invalidate(self,        NULL, g_free);
 }
 
+
+void
+eina_obj_strip(EinaObj *self, EinaObjFlag flags)
+{
+	if ((flags & EINA_OBJ_GTK_UI) && self->ui)
+	{
+		g_object_unref(eina_obj_get_ui(self));
+		self->ui = NULL;
+	}
+}

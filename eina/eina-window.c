@@ -62,7 +62,7 @@ eina_window_init (EinaWindow *self)
 	priv->ui_manager = gtk_ui_manager_new();
 
 	gtk_box_pack_start(priv->container,
-		gtk_ui_manager_get_widget(priv->ui_manager, NULL),
+		gtk_ui_manager_get_widget(priv->ui_manager, "/"),
 		FALSE, TRUE, 0
 		);
 	gtk_widget_show_all((GtkWidget *) priv->container);
@@ -133,14 +133,14 @@ eina_window_register_key_bindings(EinaWindow *self, guint n, EinaWindowKeyBind b
 {
 	EinaWindowPrivate *priv = GET_PRIVATE(self);
 
-	EinaWindowKeyBindPriv *kbps = g_new0(EinaWindowKeyBindPriv, n);
 	guint i;
 	GList *tmp = NULL;
 	for (i = 0; i < n; i++)
 	{
-		kbps[i].bind = bind[i];
-		kbps[i].data = data;
-		tmp = g_list_prepend(tmp, (gpointer) &kbps[i]);
+		EinaWindowKeyBindPriv *kbp = g_new0(EinaWindowKeyBindPriv, 1);
+		kbp->bind = bind[i];
+		kbp->data = data;
+		tmp = g_list_prepend(tmp, (gpointer) kbp);
 	}
 	priv->keybinds = g_list_concat(priv->keybinds, g_list_reverse(tmp));
 }

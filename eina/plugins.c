@@ -23,7 +23,7 @@
 #include <gmodule.h>
 #include <config.h>
 #include <eina/eina-plugin.h>
-#include <eina/player.h>
+#include <eina/window.h>
 
 #if 1
 #define debug(...) gel_warn(__VA_ARGS__)
@@ -116,16 +116,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	// Get player
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		g_set_error(error, plugins_quark(), EINA_PLUGINS_ERROR_NO_PLAYER,
-			N_("Cannot get player object"));
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
-	
 	// Build the GtkTreeView
 	GtkTreeViewColumn *tv_col_enabled, *tv_col_name;
 	GtkCellRenderer *enabled_render, *name_render;
@@ -176,8 +166,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(enabled_render, "toggled",
 	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
-
-	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
 		"<ui>"
 		"<menubar name=\"MainMenuBar\">"
@@ -253,7 +242,7 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	
 	// Unmerge menu
 	GtkUIManager *ui_mng;
-	if ((ui_mng = eina_player_get_ui_manager(EINA_OBJ_GET_PLAYER(self))) != NULL)
+	if ((ui_mng = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self))) != NULL)
 	{
 		gtk_ui_manager_remove_action_group(ui_mng,
 			self->ui_mng_ag);

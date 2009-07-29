@@ -22,7 +22,7 @@
 
 #include <config.h>
 #include <eina/eina-plugin.h>
-#include <eina/player.h>
+#include <eina/window.h>
 #include <igemacintegration/ige-mac-integration.h>
 
 typedef struct {
@@ -34,17 +34,6 @@ enum {
 	EINA_IGE_NO_ERROR = 0,
 	EINA_IGE_PLAYER_NOT_LOADED
 };
-
-#if 0
-static GQuark
-ige_quark(void)
-{
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("eina-ige");
-	return ret;
-}
-#endif
 
 static gboolean
 ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
@@ -75,7 +64,7 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	}
 
 	// Build menu
-	GtkUIManager *ui_mng = eina_player_get_ui_manager(GEL_APP_GET_PLAYER(app));
+	GtkUIManager *ui_mng = eina_window_get_ui_manager(GEL_APP_GET_WINDOW(app));
 	GtkWidget *main_menu_bar = gtk_ui_manager_get_widget(ui_mng, "/MainMenuBar");
 	gtk_widget_hide(main_menu_bar);
 

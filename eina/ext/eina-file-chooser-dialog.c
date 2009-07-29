@@ -185,8 +185,6 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 	g_signal_connect(GTK_FILE_CHOOSER(self), "selection-changed", (GCallback) gtk_widget_queue_draw, NULL);
 	#endif
 
-	g_object_set(G_OBJECT(self), "local-only", FALSE, NULL);
-
 	priv->queue = g_queue_new();
 	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
@@ -202,7 +200,7 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 	EinaFileChooserDialog *self;
 	EinaFileChooserDialogPrivate *priv;
 
-	self = g_object_new (EINA_TYPE_FILE_CHOOSER_DIALOG, NULL);
+	self = g_object_new (EINA_TYPE_FILE_CHOOSER_DIALOG, "local-only", FALSE, NULL);
 	priv = GET_PRIVATE(self);
 	priv->action = action;
 

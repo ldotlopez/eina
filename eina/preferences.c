@@ -124,14 +124,8 @@ attach_menu(EinaPreferences *self)
 		"</menu>"
 		"</menubar>"
 		"</ui>";
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		gel_error("Cannot get player reference, unable to attach preferences menu");
-		return;
-	}
 
-	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	if (ui_manager == NULL)
 	{
 		gel_error("Cannot get GtkUIManager for main menu, unable to attach preferences menu");
@@ -154,14 +148,7 @@ attach_menu(EinaPreferences *self)
 static void
 deattach_menu(EinaPreferences *self)
 {
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		gel_error("Cannot get player reference, unable to deattach preferences menu");
-		return;
-	}
-
-	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	if (ui_manager == NULL)
 	{
 		gel_error("Cannot get GtkUIManager for main menu, unable to deattach preferences menu");
