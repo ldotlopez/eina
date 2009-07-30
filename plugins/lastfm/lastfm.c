@@ -231,17 +231,14 @@ checkbutton_toggle_cb(GtkToggleButton *w, LastFM *self)
 // --
 // Export plugin
 // --
-G_MODULE_EXPORT EinaPlugin lastfm_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"lastfm", PACKAGE_VERSION, "preferences",
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+EINA_PLUGIN_SPEC(lastfm,
+	NULL, NULL,
+	NULL, NULL,
 
 	N_("Lastfm integration"),
 	N_("Lastfm integration:\n"
 	"· Query Last.fm for covers"),
 	"lastfm.png",
 	
-	lastfm_init, lastfm_fini,
-
-	NULL, NULL, NULL
-};
+	lastfm_init, lastfm_fini
+);
