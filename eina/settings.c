@@ -22,6 +22,7 @@
 
 #include <config.h>
 #include <eina/settings.h>
+#include <eina/eina-plugin.h>
 
 GEL_AUTO_QUARK_FUNC(settings);
 
@@ -83,15 +84,15 @@ settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT GelPlugin settings_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"settings", PACKAGE_VERSION, NULL,
-	NULL, NULL,
-
-	N_("Build-in settings plugin"), NULL, NULL,
-
-	settings_init, settings_fini,
-
-	NULL, NULL, NULL
-};
+EINA_PLUGIN_SPEC(settings,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	N_("Build-in settings plugin"),
+	NULL,
+	NULL,
+	settings_init,
+	settings_fini
+);
 

@@ -66,11 +66,11 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_object_set((GObject*) self->dialog,
 		"title", N_("Preferences"),
 		"window-position", GTK_WIN_POS_CENTER_ON_PARENT,
-		"width-request", 600,
+		"width-request",  600,
 		"height-request", 400,
 		NULL);
 
-	g_signal_connect(G_OBJECT(self->dialog), "response", G_CALLBACK(gtk_widget_hide), self->dialog);
+	g_signal_connect(G_OBJECT(self->dialog), "response",     G_CALLBACK(gtk_widget_hide), self->dialog);
 	g_signal_connect(G_OBJECT(self->dialog), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), self->dialog);
 
 	return TRUE;
@@ -171,13 +171,14 @@ menu_activate_cb(GtkAction *action, EinaPreferences *self)
 }
 
 EINA_PLUGIN_SPEC(preferences,
-	PACKAGE_VERSION,
 	NULL,
+	"settings,window",
 	NULL,
 	NULL,
 	N_("Build-in preferences plugin"),
 	NULL,
 	NULL,
-	preferences_init, preferences_fini
+	preferences_init,
+	preferences_fini
 );
 

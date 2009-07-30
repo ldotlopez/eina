@@ -549,15 +549,17 @@ plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self)
 	}
 }
 
-G_MODULE_EXPORT GelPlugin plugins_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"plugins", PACKAGE_VERSION, NULL,
-	NULL, NULL,
+EINA_PLUGIN_SPEC(plugins,
+	NULL,
+	NULL,
 
-	N_("Build-in plugin manager plugin"), NULL, NULL,
+	NULL,
+	NULL,
 
-	plugins_init, plugins_fini,
+	N_("Build-in plugin manager plugin"),
+	NULL,
+	NULL,
 
-	NULL, NULL, NULL
-};
+	plugins_init, plugins_fini
+);
 

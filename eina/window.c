@@ -23,14 +23,7 @@
 #include <eina/eina-plugin.h>
 #include <eina/window.h>
 
-static GQuark
-window_quark()
-{
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("window");
-	return ret;
-}
+GEL_AUTO_QUARK_FUNC(window)
 
 static gboolean
 window_init(GelApp *app, GelPlugin *plugin, GError **error)

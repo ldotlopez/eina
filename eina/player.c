@@ -1045,7 +1045,7 @@ preferences_combo_box_changed_cb(GtkWidget *w, EinaPlayer *self)
 // --
 EINA_PLUGIN_SPEC (player,
 	PACKAGE_VERSION,
-	"window" /* "preferences" */,
+	NULL,
 	NULL,
 	NULL,
 

@@ -373,14 +373,14 @@ build_cover_mask(EinaCover *self)
 // --
 // Connector 
 // --
-G_MODULE_EXPORT GelPlugin cover_plugin = {
-	GEL_PLUGIN_SERIAL,
+EINA_PLUGIN_SPEC(cover,
+	NULL,	// version
+	"player",	// deps
+	NULL,		// author
+	NULL,		// url
+	N_("Cover plugin"),
+	NULL,		
+	NULL,
 
-	"cover", PACKAGE_VERSION, "player,settings",
-	NULL, NULL,
-
-	N_("Cover plugin"), NULL, NULL,
-
-	cover_init, cover_fini,
-	NULL, NULL, NULL
-};
+	cover_init, cover_fini
+);

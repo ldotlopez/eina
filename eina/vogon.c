@@ -378,16 +378,18 @@ settings_change_cb (EinaConf *conf, const gchar *key, EinaVogon *self)
 			GTK_CHECK_MENU_ITEM(gtk_ui_manager_get_widget(self->ui_mng, "/MainMenu/Shuffle")),
 			eina_conf_get_bool(conf, "/core/random", TRUE));
 }
-	
-G_MODULE_EXPORT GelPlugin vogon_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"vogon", PACKAGE_VERSION, "lomo,settings,art",
-	NULL, NULL,
 
-	N_("Build-in systray and notification plugin"), NULL, NULL,
+EINA_PLUGIN_SPEC(vogon,
+	NULL,
+	NULL,
+				
+	NULL,
+	NULL,
 
-	vogon_init, vogon_fini,
+	N_("Build-in systray and notification plugin"),
+	NULL,
+	NULL,
 
-	NULL, NULL, NULL
-};
+	vogon_init, vogon_fini
+);
 

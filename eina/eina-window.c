@@ -61,7 +61,7 @@ eina_window_init (EinaWindow *self)
 	priv->container = (GtkBox *) gtk_vbox_new(FALSE, 0);
 	priv->ui_manager = gtk_ui_manager_new();
 
-	gtk_box_pack_start(priv->container,
+	gtk_box_pack_end(priv->container,
 		gtk_ui_manager_get_widget(priv->ui_manager, "/"),
 		FALSE, TRUE, 0
 		);
@@ -113,7 +113,7 @@ eina_window_key_bindings_set_enabled(EinaWindow *self, gboolean enabled)
 void
 eina_window_add_widget(EinaWindow *self, GtkWidget *child, gboolean expand, gboolean fill, gint spacing)
 {
-	gtk_box_pack_start(GET_PRIVATE(self)->container, child, expand, fill, spacing);
+	gtk_box_pack_end(GET_PRIVATE(self)->container, child, expand, fill, spacing);
 }
 
 void

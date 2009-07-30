@@ -297,15 +297,15 @@ expander_activate_cb(GtkExpander *w, EinaDock *self)
 	}
 }
 
-G_MODULE_EXPORT GelPlugin dock_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"dock", PACKAGE_VERSION, "player",
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
-
-	N_("Build-in dock plugin"), N_("Build-in dock plugin"), NULL,
-
-	dock_init, dock_fini,
-
-	NULL, NULL, NULL
-};
+EINA_PLUGIN_SPEC(dock,
+	NULL,						// version
+	"settings,window",			// deps
+	NULL,						// author
+	NULL,						// url
+	N_("Build-in dock plugin"), // short
+	NULL,						// long
+	NULL,						// icon
+	dock_init,					// init
+	dock_fini					// fini
+);
 

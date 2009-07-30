@@ -34,7 +34,6 @@
 #include <gdk/gdkkeysyms.h>
 
 // Lomo
-#include <lomo/lomo-util.h>
 
 // Gel
 #include <gel/gel-io.h>
@@ -43,7 +42,6 @@
 // Modules
 #include <eina/eina-plugin.h>
 #include <eina/playlist.h>
-#include <eina/dock.h>
 
 // Widgets and utils
 #include <eina/fs.h>
@@ -1265,14 +1263,15 @@ void setup_dnd(EinaPlaylist *self)
 /*
  * Connector
  */
-G_MODULE_EXPORT GelPlugin playlist_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"playlist", PACKAGE_VERSION, "window,dock,settings",
-	NULL, NULL,
-
-	N_("Build-in playlist plugin"), NULL, NULL,
-
-	playlist_init, playlist_fini,
-	NULL, NULL, NULL
-};
+EINA_PLUGIN_SPEC(playlist,
+	NULL,                           // version
+	NULL,							// deps
+	NULL,                           // author
+	NULL,                           // url
+	N_("Build-in playlist plugin"), // short
+	NULL,                           // long
+	NULL,                           // icon
+	playlist_init,                  // init
+	playlist_fini                   // fini
+);
 
