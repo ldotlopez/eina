@@ -23,7 +23,7 @@
 #include <gmodule.h>
 #include <config.h>
 #include <eina/eina-plugin.h>
-#include <eina/player.h>
+#include <eina/window.h>
 
 #if 1
 #define debug(...) gel_warn(__VA_ARGS__)
@@ -121,16 +121,6 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	// Get player
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		g_set_error(error, plugins_quark(), EINA_PLUGINS_ERROR_NO_PLAYER,
-			N_("Cannot get player object"));
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
-	
 	// Build the GtkTreeView
 	GtkTreeViewColumn *tv_col_enabled, *tv_col_name;
 	GtkCellRenderer *enabled_render, *name_render;
@@ -181,8 +171,7 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(enabled_render, "toggled",
 	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
 
-
-	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
 		"<ui>"
 		"<menubar name=\"MainMenuBar\">"
@@ -258,7 +247,7 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	
 	// Unmerge menu
 	GtkUIManager *ui_mng;
-	if ((ui_mng = eina_player_get_ui_manager(EINA_OBJ_GET_PLAYER(self))) != NULL)
+	if ((ui_mng = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self))) != NULL)
 	{
 		gtk_ui_manager_remove_action_group(ui_mng,
 			self->ui_mng_ag);
@@ -432,15 +421,22 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
 	gel_free_and_invalidate(tmp, NULL, g_free);
 
-	// tmp = gel_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
 	tmp = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, (gchar*) plugin->icon);
 	if ((tmp == NULL) || !g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
 		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 	else
+	{
+		GError *err = NULL;
+		GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(tmp, 64, 64, TRUE, &err);
+		if (!pb)
+		{
+			gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
+			gel_error("Cannot load resource '%s': '%s'", tmp, err->message);
+			g_error_free(err);
+		}
 		gtk_image_set_from_file(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), tmp);
+	}
 	gel_free_and_invalidate(tmp, NULL, g_free);
-
-	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 }
 
 static void
@@ -568,15 +564,17 @@ plugins_menu_activate_cb(GtkAction *action, EinaPlugins *self)
 	}
 }
 
-G_MODULE_EXPORT GelPlugin plugins_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"plugins", PACKAGE_VERSION, NULL,
-	NULL, NULL,
+EINA_PLUGIN_SPEC(plugins,
+	NULL,
+	NULL,
 
-	N_("Build-in plugin manager plugin"), NULL, NULL,
+	NULL,
+	NULL,
 
-	plugins_init, plugins_fini,
+	N_("Build-in plugin manager plugin"),
+	NULL,
+	NULL,
 
-	NULL, NULL, NULL
-};
+	plugins_init, plugins_fini
+);
 

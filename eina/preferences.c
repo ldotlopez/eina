@@ -66,11 +66,11 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_object_set((GObject*) self->dialog,
 		"title", N_("Preferences"),
 		"window-position", GTK_WIN_POS_CENTER_ON_PARENT,
-		"width-request", 600,
+		"width-request",  600,
 		"height-request", 400,
 		NULL);
 
-	g_signal_connect(G_OBJECT(self->dialog), "response", G_CALLBACK(gtk_widget_hide), self->dialog);
+	g_signal_connect(G_OBJECT(self->dialog), "response",     G_CALLBACK(gtk_widget_hide), self->dialog);
 	g_signal_connect(G_OBJECT(self->dialog), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), self->dialog);
 
 	return TRUE;
@@ -124,14 +124,8 @@ attach_menu(EinaPreferences *self)
 		"</menu>"
 		"</menubar>"
 		"</ui>";
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		gel_error("Cannot get player reference, unable to attach preferences menu");
-		return;
-	}
 
-	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	if (ui_manager == NULL)
 	{
 		gel_error("Cannot get GtkUIManager for main menu, unable to attach preferences menu");
@@ -154,14 +148,7 @@ attach_menu(EinaPreferences *self)
 static void
 deattach_menu(EinaPreferences *self)
 {
-	EinaPlayer *player = EINA_OBJ_GET_PLAYER(self);
-	if (player == NULL)
-	{
-		gel_error("Cannot get player reference, unable to deattach preferences menu");
-		return;
-	}
-
-	GtkUIManager *ui_manager = eina_player_get_ui_manager(player);
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	if (ui_manager == NULL)
 	{
 		gel_error("Cannot get GtkUIManager for main menu, unable to deattach preferences menu");
@@ -184,13 +171,14 @@ menu_activate_cb(GtkAction *action, EinaPreferences *self)
 }
 
 EINA_PLUGIN_SPEC(preferences,
-	PACKAGE_VERSION,
 	NULL,
+	"settings,window",
 	NULL,
 	NULL,
 	N_("Build-in preferences plugin"),
 	NULL,
 	NULL,
-	preferences_init, preferences_fini
+	preferences_init,
+	preferences_fini
 );
 

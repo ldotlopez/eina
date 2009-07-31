@@ -74,7 +74,6 @@ key_pressed
 	}
 }
 
-
 static gboolean
 dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
@@ -147,14 +146,14 @@ dbus_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPlugin dbus_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"dbus", PACKAGE_VERSION, NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL, 
+EINA_PLUGIN_SPEC(dbus,
+	NULL,	// version
+	NULL,	// deps
+	NULL,	// author
+	NULL,	// url
+	N_("DBus interface for Eina"),
+	NULL,
+	NULL,
+	dbus_init, 
+	dbus_fini);
 
-	N_("DBus interface for Eina"), NULL, NULL,
-
-	dbus_init, dbus_fini,
-
-	NULL, NULL, NULL
-};

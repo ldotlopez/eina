@@ -279,4 +279,47 @@
       </object>
     </child>
   </object>
+  <object class="GtkMenu" id="popup-menu">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkImageMenuItem" id="add-menuitem">
+        <property name="visible">True</property>
+        <property name="related_action">add-action</property>
+        <property name="use_action_appearance">True</property>
+        <property name="use_stock">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkImageMenuItem" id="remove-menuitem">
+        <property name="visible">True</property>
+        <property name="related_action">remove-action</property>
+        <property name="use_action_appearance">True</property>
+        <property name="use_stock">True</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkAction" id="add-action">
+    <property name="label">Add</property>
+    <property name="short_label">Add</property>
+    <property name="tooltip">Add streams</property>
+    <property name="stock_id">gtk-add</property>
+  </object>
+  <object class="GtkAction" id="remove-action">
+    <property name="label">Remove</property>
+    <property name="short_label">Remove</property>
+    <property name="tooltip">Remove streams</property>
+    <property name="stock_id">gtk-remove</property>
+  </object>
+  <object class="GtkAction" id="add-action2">
+    <property name="label">Add</property>
+    <property name="short_label">Add</property>
+    <property name="tooltip">Add streams</property>
+    <property name="stock_id">gtk-add</property>
+  </object>
+  <object class="GtkAction" id="add-action3">
+    <property name="label">Add</property>
+    <property name="short_label">Add</property>
+    <property name="tooltip">Add streams</property>
+    <property name="stock_id">gtk-add</property>
+  </object>
 </interface>

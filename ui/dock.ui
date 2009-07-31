@@ -8,6 +8,7 @@
         <property name="width_request">400</property>
         <property name="visible">True</property>
         <property name="can_focus">True</property>
+        <property name="border_width">5</property>
         <child>
           <object class="GtkNotebook" id="dock-notebook">
             <property name="visible">True</property>

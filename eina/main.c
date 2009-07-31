@@ -120,11 +120,18 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { "settings", "lomo", "art", "player", "cover", "dock", "playlist", "plugins", "vogon", "dbus",
+	gchar          *modules[] = { 
+	// Modules loaded by default, keep in sync with eina-plugin.h include
+	// headers
+	"art", "dock", "lomo", "preferences", "settings", "window",
 #if HAVE_IGE
-		"ige",
+	"ige",
 #endif
-		NULL};
+
+	// "Top-level" plugins loaded by default
+	"dbus", "cover", "player", "playlist", "plugins", "vogon",
+
+	NULL };
 
 	GOptionContext *opt_ctx;
 	GError *err = NULL;

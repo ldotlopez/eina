@@ -22,7 +22,7 @@
 
 #include <config.h>
 #include <eina/eina-plugin.h>
-#include "adb.h"
+#include <plugins/adb/adb.h>
 
 static gboolean
 adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
@@ -59,15 +59,12 @@ adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPlugin adb_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"adb", PACKAGE_VERSION, NULL,
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+EINA_PLUGIN_SPEC(adb,
+	PACKAGE_VERSION, NULL,
+	NULL, NULL,
 
-	N_("Audio database"), NULL, NULL,
+	N_("Audio database"), NULL, "adb.png",
 
-	adb_plugin_init, adb_plugin_exit,
-
-	NULL, NULL, NULL
-};
+	adb_plugin_init, adb_plugin_exit
+);
 

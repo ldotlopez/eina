@@ -1,5 +1,5 @@
 /*
- * eina/player.h
+ * eina/window.h
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -17,22 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PLAYER_H
-#define _PLAYER_H
+#ifndef _WINDOW_H
+#define _WINDOW_H
 
-#include <gtk/gtk.h>
-#include <gel/gel.h>
-#include <eina/eina-obj.h>
+#include <eina/eina-window.h>
 
 G_BEGIN_DECLS
 
-#define EINA_PLAYER(p)           ((EinaPlayer *) p)
-#define GEL_APP_GET_PLAYER(app)  EINA_PLAYER(gel_app_shared_get(app, "player"))
-#define EINA_OBJ_GET_PLAYER(obj) GEL_APP_GET_PLAYER(eina_obj_get_app(obj))
+#define GEL_APP_GET_WINDOW(app)  EINA_WINDOW(gel_app_shared_get(app, "window"))
+#define EINA_OBJ_GET_WINDOW(obj) GEL_APP_GET_WINDOW(eina_obj_get_app(obj))
 
-typedef struct _EinaPlayer EinaPlayer;
-GtkContainer* eina_player_get_cover_container(EinaPlayer* self);
+enum {
+	EINA_WINDOW_NO_ERROR = 0,
+	EINA_WINDOW_ERROR_REGISTER,
+	EINA_WINDOW_ERROR_NOT_FOUND
+};
 
 G_END_DECLS
 
-#endif // _PLAYER_H
+#endif

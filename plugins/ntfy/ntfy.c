@@ -392,7 +392,7 @@ EINA_PLUGIN_SPEC(ntfy,
 
 	N_("Notifications plugin"),
 	NULL,
-	NULL,
+	"ntfy.png",
 
 	ntfy_init,
 	ntfy_fini

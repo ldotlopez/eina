@@ -16,7 +16,7 @@
                 <property name="visible">True</property>
                 <property name="spacing">5</property>
                 <child>
-                  <object class="GtkHBox" id="cover-image-container">
+                  <object class="GtkHBox" id="cover-container">
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImage" id="cover-image">
