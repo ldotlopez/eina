@@ -64,6 +64,9 @@ struct _EinaPlayer {
 	GtkWidget *widgets[WIDGET_N_ELEMENTS];
 	gchar     *stream_info_fmt;
 
+	guint           ui_mng_id;
+	GtkActionGroup *ui_mng_ag;
+
 	// Preferences widgets and data
 	GtkWidget *prefs_widget;
 	GtkBox    *prefs_custom_box, *prefs_tips_box;
@@ -253,12 +256,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		"remaining-label", eina_obj_get_typed(self, GTK_LABEL, "time-remaining-label"),
 		"total-label",     eina_obj_get_typed(self, GTK_LABEL, "time-total-label"),
 		NULL);
-	/*
-	eina_seek_set_lomo_player(seek, eina_obj_get_lomo(self));
-	eina_seek_set_current_label  (seek, eina_obj_get_typed(self, GTK_LABEL, "time-current-label"));
-	eina_seek_set_remaining_label(seek, eina_obj_get_typed(self, GTK_LABEL, "time-remaining-label"));
-	eina_seek_set_total_label    (seek, eina_obj_get_typed(self, GTK_LABEL, "time-total-label"));
-	*/
+
 	gel_ui_container_replace_children(
 		eina_obj_get_typed(self, GTK_CONTAINER, "seek-hscale-container"),
 		GTK_WIDGET(seek));
@@ -266,38 +264,27 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Initialize UI Manager
 	GError *err = NULL;
-	GtkActionGroup *ag;
 
 	gchar *ui_manager_file = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-menu.ui");
 	if (ui_manager_file != NULL)
 	{
 		GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
-		if (gtk_ui_manager_add_ui_from_file(ui_manager, ui_manager_file, &err) == 0)
+		self->ui_mng_id = gtk_ui_manager_add_ui_from_file(ui_manager, ui_manager_file, &err);
+		if (self->ui_mng_id == 0)
 		{
 			gel_warn("Error adding UI to UI Manager: '%s'", err->message);
 			g_error_free(err);
 		}
 		else
 		{
-			ag = gtk_action_group_new("default");
-			gtk_action_group_add_actions(ag, ui_actions, G_N_ELEMENTS(ui_actions), self);
-			gtk_ui_manager_insert_action_group(ui_manager, ag, 0);
+			self->ui_mng_ag = gtk_action_group_new("player");
+			gtk_action_group_add_actions(self->ui_mng_ag, ui_actions, G_N_ELEMENTS(ui_actions), self);
+			gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 0);
 			gtk_ui_manager_ensure_update(ui_manager);
-			gtk_box_pack_start(
-				eina_obj_get_typed(self, GTK_BOX, "main-box"),
-				gtk_ui_manager_get_widget(ui_manager, "/MainMenuBar"),
-				FALSE,FALSE, 0);
-			gtk_box_reorder_child(
-				eina_obj_get_typed(self, GTK_BOX, "main-box"),
-				gtk_ui_manager_get_widget(ui_manager, "/MainMenuBar"),
-				0);
-
-			gtk_widget_show_all(gtk_ui_manager_get_widget(ui_manager, "/MainMenuBar"));
 		}
 		g_free(ui_manager_file);
 		gtk_window_add_accel_group(
 			(GtkWindow *) EINA_OBJ_GET_WINDOW(self),
-			// self->main_window,
 			gtk_ui_manager_get_accel_group(ui_manager));
 	}
 

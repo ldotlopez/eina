@@ -413,15 +413,22 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
 	gel_free_and_invalidate(tmp, NULL, g_free);
 
-	// tmp = gel_plugin_build_resource_path(plugin, (gchar*) plugin->icon);
 	tmp = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, (gchar*) plugin->icon);
 	if ((tmp == NULL) || !g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
 		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 	else
+	{
+		GError *err = NULL;
+		GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(tmp, 64, 64, TRUE, &err);
+		if (!pb)
+		{
+			gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
+			gel_error("Cannot load resource '%s': '%s'", tmp, err->message);
+			g_error_free(err);
+		}
 		gtk_image_set_from_file(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), tmp);
+	}
 	gel_free_and_invalidate(tmp, NULL, g_free);
-
-	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 }
 
 static void

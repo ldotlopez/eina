@@ -52,9 +52,12 @@
                     <property name="spacing">5</property>
                     <child>
                       <object class="GtkImage" id="icon-image">
+                        <property name="width_request">64</property>
+                        <property name="height_request">64</property>
                         <property name="visible">True</property>
                         <property name="yalign">0</property>
                         <property name="stock">gtk-info</property>
+                        <property name="icon-size">6</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -263,7 +266,7 @@
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="button1">
-                <property name="label" translatable="yes">gtk-close</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

@@ -63,7 +63,7 @@ EINA_PLUGIN_SPEC(adb,
 	PACKAGE_VERSION, NULL,
 	NULL, NULL,
 
-	N_("Audio database"), NULL, NULL,
+	N_("Audio database"), NULL, "adb.png",
 
 	adb_plugin_init, adb_plugin_exit
 );

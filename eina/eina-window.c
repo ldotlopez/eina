@@ -25,6 +25,11 @@ struct _EinaWindowPrivate {
 gboolean
 window_key_press_event_cb(GtkWidget *self, GdkEvent *ev, gpointer data);
 
+static gchar *ui_mng_str =
+"<ui>"
+"  <menubar name='MainMenuBar' />"
+"</ui>";
+
 static void
 eina_window_dispose (GObject *object)
 {
@@ -61,13 +66,14 @@ eina_window_init (EinaWindow *self)
 	priv->container = (GtkBox *) gtk_vbox_new(FALSE, 0);
 	priv->ui_manager = gtk_ui_manager_new();
 
+	gtk_ui_manager_add_ui_from_string(priv->ui_manager, ui_mng_str, -1, NULL);
 	gtk_box_pack_end(priv->container,
-		gtk_ui_manager_get_widget(priv->ui_manager, "/"),
+		gtk_ui_manager_get_widget(priv->ui_manager, "/MainMenuBar"),
 		FALSE, TRUE, 0
 		);
 	gtk_widget_show_all((GtkWidget *) priv->container);
-
 	gtk_container_add((GtkContainer *) self, (GtkWidget *) priv->container);
+
 	g_signal_connect(self, "key-press-event", (GCallback) window_key_press_event_cb, NULL);
 }
 
