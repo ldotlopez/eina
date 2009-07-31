@@ -63,7 +63,7 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 		return NULL;
 	}
 
-	if ((mod = g_module_open(pathname, G_MODULE_BIND_LAZY)) == NULL)
+	if ((mod = g_module_open(pathname, G_MODULE_BIND_LOCAL)) == NULL)
 	{
 		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
 			N_("%s is not loadable"), pathname);
