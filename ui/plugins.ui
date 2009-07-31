@@ -33,7 +33,7 @@
                     <property name="visible">True</property>
                     <property name="spacing">5</property>
                     <child>
-                      <object class="GtkImage" id="icon-image">
+                      <object class="GtkImage" id="image1">
                         <property name="width_request">64</property>
                         <property name="height_request">64</property>
                         <property name="visible">True</property>
@@ -310,19 +310,11 @@ There are no plugins instaled on your system</property>
                             <property name="visible">True</property>
                             <property name="left_padding">12</property>
                             <child>
-                              <object class="GtkScrolledWindow" id="scrolledwindow2">
+                              <object class="GtkLabel" id="long-desc-label">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="hscrollbar_policy">automatic</property>
-                                <property name="vscrollbar_policy">automatic</property>
-                                <child>
-                                  <object class="GtkLabel" id="long-desc-label">
-                                    <property name="visible">True</property>
-                                    <property name="xalign">0</property>
-                                    <property name="yalign">0</property>
-                                    <property name="label" translatable="yes">Long description</property>
-                                  </object>
-                                </child>
+                                <property name="xalign">0</property>
+                                <property name="yalign">0</property>
+                                <property name="label" translatable="yes">Long description</property>
                               </object>
                             </child>
                           </object>

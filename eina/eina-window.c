@@ -67,7 +67,7 @@ eina_window_init (EinaWindow *self)
 	priv->ui_manager = gtk_ui_manager_new();
 
 	gtk_ui_manager_add_ui_from_string(priv->ui_manager, ui_mng_str, -1, NULL);
-	gtk_box_pack_end(priv->container,
+	gtk_box_pack_start(priv->container,
 		gtk_ui_manager_get_widget(priv->ui_manager, "/MainMenuBar"),
 		FALSE, TRUE, 0
 		);

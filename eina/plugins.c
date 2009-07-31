@@ -421,22 +421,22 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "website-label"), tmp);
 	gel_free_and_invalidate(tmp, NULL, g_free);
 
+	GError *err = NULL;
+	GdkPixbuf *pb = NULL;
 	tmp = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, (gchar*) plugin->icon);
-	if ((tmp == NULL) || !g_file_test(tmp, G_FILE_TEST_IS_REGULAR))
-		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
-	else
+	if ((tmp == NULL) ||
+		!g_file_test(tmp, G_FILE_TEST_IS_REGULAR) ||
+		((pb = gdk_pixbuf_new_from_file_at_scale(tmp, 64, 64, TRUE, &err)) == NULL))
 	{
-		GError *err = NULL;
-		GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(tmp, 64, 64, TRUE, &err);
-		if (!pb)
+		if (err)
 		{
-			gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 			gel_error("Cannot load resource '%s': '%s'", tmp, err->message);
 			g_error_free(err);
 		}
-		gtk_image_set_from_file(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), tmp);
+		gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), "gtk-info", GTK_ICON_SIZE_MENU);
 	}
-	gel_free_and_invalidate(tmp, NULL, g_free);
+	else
+		gtk_image_set_from_pixbuf(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), pb);
 }
 
 static void

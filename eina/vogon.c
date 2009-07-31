@@ -136,8 +136,8 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	#if !OSX_SYSTEM
-	if (GEL_APP_GET_PLAYER(app))
-		eina_player_set_persistent(GEL_APP_GET_PLAYER(app), TRUE);
+	if (GEL_APP_GET_WINDOW(app))
+		eina_window_set_persistant(GEL_APP_GET_WINDOW(app), TRUE);
 	#endif
 
 	self->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON);
@@ -335,13 +335,9 @@ static gboolean
 status_icon_activate_cb
 (GtkWidget *w, EinaVogon *self)
 {
-	EinaPlayer *player;
-	GtkWindow  *window;
-	if (!gel_app_get_plugin_by_name(eina_obj_get_app(self), "player"))
+	GtkWindow *window = (GtkWindow *) EINA_OBJ_GET_WINDOW(self);
+	if (!window)
 		return FALSE;
-
-	player = GEL_APP_GET_PLAYER(eina_obj_get_app(self));
-	window = GTK_WINDOW(eina_obj_get_widget(player, "main-window"));
 
 	if (GTK_WIDGET_VISIBLE(window))
 	{

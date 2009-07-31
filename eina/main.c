@@ -242,7 +242,7 @@ gint main
 	gel_app_set_dispose_callback(app, app_dispose_cb, (gpointer) modules);
 
 #if HAVE_UNIQUE
-	unique_app_watch_window(unique, eina_player_get_main_window(GEL_APP_GET_PLAYER(app)));
+	unique_app_watch_window(unique, (GtkWindow *) GEL_APP_GET_WINDOW(app));
 	g_signal_connect (unique, "message-received", G_CALLBACK (unique_message_received_cb), app);
 #endif
 
