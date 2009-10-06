@@ -9,7 +9,8 @@ INST_H_FILES = \
 	eina-file-chooser-dialog.h \
 	eina-preferences-dialog.h  \
 	eina-seek.h                \
-	eina-volume.h
+	eina-volume.h              \
+	eina-window.h
 
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina/ext
 header_DATA = $(INST_H_FILES)
@@ -21,6 +22,7 @@ libeinaext_la_SOURCES = \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
 	eina-volume.c              \
+	eina-window.c              \
 	$(INST_H_FILES)
 
 if USE_CLUTTER
