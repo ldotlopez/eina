@@ -74,6 +74,9 @@ cover_update_from_stream(EinaCover *self, LomoStream *stream);
 static void
 art_search_cb(Art *art, ArtSearch *search, EinaCover *self);
 
+static gboolean
+cover_expose_event_idle_cb(EinaCover *self);
+
 gboolean cover_expose_event_cb
 (GtkWidget *w, GdkEventExpose *ev, EinaCover *self);
 static void lomo_change_cb
@@ -113,6 +116,7 @@ cover_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self->loading      = FALSE;
 
 	GtkContainer *cover_container = eina_player_get_cover_container(EINA_OBJ_GET_PLAYER(self));
+
 	g_signal_connect(cover_container, "expose-event", G_CALLBACK(cover_expose_event_cb), self);
 
 	return TRUE;
@@ -172,14 +176,14 @@ cover_reload_resources(EinaCover *self)
 	return TRUE;
 }
 
-gboolean cover_expose_event_cb
-(GtkWidget *w, GdkEventExpose *ev, EinaCover *self)
+static gboolean
+cover_expose_event_idle_cb(EinaCover *self)
 {
-	GtkContainer *cover_container = eina_player_get_cover_container(EINA_OBJ_GET_PLAYER(self));
-	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_hide, NULL);
+	GtkContainer *w = eina_player_get_cover_container(EINA_OBJ_GET_PLAYER(self));
+	gtk_container_foreach(w, (GtkCallback) gtk_widget_hide, NULL);
 
-	gtk_container_add(cover_container, (GtkWidget *) self->cover);
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover), w->allocation.height, w->allocation.height);
+	gtk_container_add(w, (GtkWidget *) self->cover);
+	gtk_widget_set_size_request(GTK_WIDGET(self->cover), ((GtkWidget *) w)->allocation.height, ((GtkWidget *) w)->allocation.height);
 	#if HAVE_CLUTTER
 	if (clutty_enabled(self))
 		clutter_actor_set_size(CLUTTER_ACTOR(gtk_clutter_embed_get_stage(GTK_CLUTTER_EMBED(self->cover))), w->allocation.height, w->allocation.height);
@@ -189,12 +193,19 @@ gboolean cover_expose_event_cb
 	cover_reload_resources(self);
 
 	cover_update_from_stream(self, lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(self)));
-	g_signal_handlers_disconnect_by_func(w, cover_expose_event_cb, self);
 
 	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
 
+	return FALSE;
+}
+
+gboolean cover_expose_event_cb
+(GtkWidget *w, GdkEventExpose *ev, EinaCover *self) 
+{
+	g_signal_handlers_disconnect_by_func(w, cover_expose_event_cb, self);
+	g_idle_add((GSourceFunc) cover_expose_event_idle_cb, self);
 	return FALSE;
 }
 
