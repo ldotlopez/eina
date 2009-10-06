@@ -29,7 +29,6 @@ INST_H_FILES = \
 	eina-obj.h    \
 	eina-plugin.h \
 	eina-stock.h  \
-	eina-window.h \
 	fs.h          \
 	lomo.h        \
 	preferences.h \
@@ -47,7 +46,6 @@ eina_SOURCES = \
 	eina-obj.c         \
 	eina-plugin.c      \
 	eina-stock.c       \
-	eina-window.c      \
 	fs.c               \
 	log.c              \
 	lomo.c             \

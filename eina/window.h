@@ -20,7 +20,7 @@
 #ifndef _WINDOW_H
 #define _WINDOW_H
 
-#include <eina/eina-window.h>
+#include <eina/ext/eina-window.h>
 
 G_BEGIN_DECLS
 

@@ -1,6 +1,6 @@
 #include <gdk/gdkkeysyms.h>
 #include <gel/gel.h>
-#include <eina/eina-window.h>
+#include <eina/ext/eina-window.h>
 
 G_DEFINE_TYPE (EinaWindow, eina_window, GTK_TYPE_WINDOW)
 
