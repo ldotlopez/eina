@@ -473,7 +473,7 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	// plugins cannot have the same name, warn about this.
 	if (fuzzy_plugin && gel_plugin_is_enabled(fuzzy_plugin))
 	{
-		gel_warn("Returning fuzzy plugin");
+		gel_warn("Returning fuzzy plugin %s", gel_plugin_stringify(fuzzy_plugin));
 		return fuzzy_plugin;
 	}
 

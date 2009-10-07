@@ -273,6 +273,7 @@ cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 	#else
 	gtk_image_set_from_pixbuf((GtkImage *) self->cover, pixbuf);
 	#endif
+	gtk_window_set_icon((GtkWindow *) EINA_OBJ_GET_WINDOW(self), gdk_pixbuf_copy(pixbuf));
 }
 
 static void

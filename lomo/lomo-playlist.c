@@ -28,9 +28,9 @@
 #endif
 
 struct _LomoPlaylist {
-    GList *list;
-    GList *random_list;
-	GList *queue;
+    GList  *list;
+    GList  *random_list;
+	GQueue *queue;
 
     gboolean repeat;
     gboolean random;
@@ -89,6 +89,7 @@ lomo_playlist_new (void)
 	self = g_new0(LomoPlaylist, 1);
 	self->list        = NULL;
 	self->random_list = NULL;
+	self->queue       = g_queue_new();
 
 	lomo_playlist_set_repeat(self, FALSE);
 	lomo_playlist_set_random(self, FALSE);
@@ -136,6 +137,7 @@ lomo_playlist_unref (LomoPlaylist * l)
 	g_list_free(l->list);
 	g_list_free(l->random_list);
 #endif
+	g_queue_free(l->queue);
 	lomo_playlist_clear(l);
 	g_free(l);
 }
@@ -413,30 +415,36 @@ gint
 lomo_playlist_queue(LomoPlaylist *l, guint pos)
 {
 	g_return_val_if_fail(-1, pos < g_list_length(l->list));
-	l->queue = g_list_append(l->queue, g_list_nth_data(l->list, pos));
 
-	return g_list_length(l->queue) - 1;
+	g_queue_push_tail(l->queue, g_list_nth_data(l->list, pos));
+	return g_queue_get_length(l->queue) - 1;
 }
 
 gboolean
 lomo_playlist_dequeue(LomoPlaylist *l, guint queue_index)
 {
-	g_return_val_if_fail(FALSE, (queue_index >= 0) && (queue_index < g_list_length(l->queue)));
-	lomo_playlist_dequeue_stream(l, g_list_nth_data(l->queue, queue_index));
+	g_return_val_if_fail(FALSE, queue_index >= 0);
+	g_return_val_if_fail(FALSE, queue_index < g_queue_get_length(l->queue));
+
+	GList *nth_link = g_queue_peek_nth_link(l->queue, queue_index);
+	g_return_val_if_fail(FALSE, nth_link != NULL);
+
+	g_queue_delete_link(l->queue, nth_link);
 	return TRUE;
 }
 
 gint
 lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream)
 {
-	return g_list_index(l->list, stream);
+	g_return_val_if_fail(-1, stream != NULL);
+	
+	return g_queue_index(l->queue, stream);
 }
 
 void
 lomo_playlist_queue_clear(LomoPlaylist *l)
 {
-	g_list_free(l->queue);
-	l->queue = NULL;
+	g_queue_clear(l->queue);
 }
 
 void lomo_playlist_clear
@@ -502,12 +510,8 @@ gint lomo_playlist_get_next
 	gint pos;
 	gint total, normalpos, randompos;
 
-	if (l->queue)
-	{
-		gint index = g_list_index(l->list, l->queue->data);
-		if ((index >= 0) && (index < g_list_length(l->list)))
-			return index;
-	}
+	if (!g_queue_is_empty(l->queue))
+		return g_list_index(l->list, g_queue_pop_head(l->queue));
 
 	total     = l->total;
 	normalpos = l->current;
@@ -610,8 +614,10 @@ gboolean lomo_playlist_go_nth
 	g_return_val_if_fail(pos >= 0, FALSE);
 
 	lomo_playlist_set_current(l, pos);
-	if (l->queue && (g_list_nth_data(l->list, pos) == l->queue->data))
-		l->queue = g_list_remove(l->queue, l->queue->data);
+
+	if (!g_queue_is_empty(l->queue)
+		&& (g_queue_peek_head(l->queue) == g_list_nth_data(l->list, pos)))
+		g_queue_pop_head(l->queue);
 	return TRUE;
 }
 

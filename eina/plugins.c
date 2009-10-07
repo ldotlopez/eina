@@ -59,8 +59,14 @@ enum {
 };
 
 enum {
+	RESPONSE_CLOSE = GTK_RESPONSE_CLOSE,
+	RESPONSE_INFO  = 1
+};
+
+enum {
 	PLUGINS_COLUMN_ENABLED,
-	PLUGINS_COLUMN_NAME,
+	PLUGINS_COLUMN_ICON,
+	PLUGINS_COLUMN_MARKUP,
 
 	PLUGINS_N_COLUMNS
 };
@@ -82,6 +88,8 @@ plugins_unload_plugins(EinaPlugins *self, gboolean all);
 static void
 plugins_build_treeview(EinaPlugins *self);
 
+static void
+plugins_window_response_cb (GtkDialog *dialog, gint response_id, EinaPlugins *self);   
 static void
 plugins_treeview_cursor_changed_cb(GtkWidget *w, EinaPlugins *self);
 static void
@@ -121,55 +129,19 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	// Build the GtkTreeView
-	GtkTreeViewColumn *tv_col_enabled, *tv_col_name;
-	GtkCellRenderer *enabled_render, *name_render;
-
-	self->treeview = eina_obj_get_typed(self, GTK_TREE_VIEW, "treeview");
-	self->model = gtk_list_store_new(PLUGINS_N_COLUMNS,
-		G_TYPE_BOOLEAN,
-		G_TYPE_STRING);
-	gtk_tree_view_set_model(self->treeview, GTK_TREE_MODEL(self->model));
-
-	enabled_render = gtk_cell_renderer_toggle_new();
-	tv_col_enabled = gtk_tree_view_column_new_with_attributes(_("Enabled"),
-		enabled_render, "active", PLUGINS_COLUMN_ENABLED,
-		NULL);
-	name_render = gtk_cell_renderer_text_new();
-	tv_col_name    = gtk_tree_view_column_new_with_attributes(_("Plugin"),
-		name_render, "markup", PLUGINS_COLUMN_NAME,
-		NULL);
-
-	gtk_tree_view_append_column(self->treeview, tv_col_enabled);
-	gtk_tree_view_append_column(self->treeview, tv_col_name);
-
-    g_object_set(G_OBJECT(name_render),
-		"ellipsize-set", TRUE,
-		"ellipsize", PANGO_ELLIPSIZE_MIDDLE,
-		NULL);
-	g_object_set(G_OBJECT(tv_col_enabled),
-		"visible",   TRUE,
-		"resizable", FALSE,
-		NULL);
-	g_object_set(G_OBJECT(tv_col_name),
-		"visible",   TRUE,
-		"resizable", FALSE,
-		NULL);
-
 	// Setup signals
 	self->window = eina_obj_get_widget(self, "main-window");
+	self->treeview = eina_obj_get_typed(self, GTK_TREE_VIEW, "treeview");
+	self->model  = eina_obj_get_typed(self, GTK_LIST_STORE, "liststore");
 
-	g_signal_connect_swapped(self->window, "delete-event",
-	G_CALLBACK(plugins_hide), self);
+	g_signal_connect_swapped(self->window, "delete-event", (GCallback) plugins_hide, self);
 
 	g_signal_connect_swapped(self->window, "response",
 	G_CALLBACK(plugins_hide), self);
 
-	g_signal_connect(self->treeview, "cursor-changed",
-	G_CALLBACK(plugins_treeview_cursor_changed_cb), self);
-
-	g_signal_connect(enabled_render, "toggled",
-	G_CALLBACK(plugins_cell_renderer_toggle_toggled_cb), self);
+	g_signal_connect(self->window, "response", (GCallback) plugins_window_response_cb, self);
+	g_signal_connect(self->treeview, "cursor-changed", (GCallback) plugins_treeview_cursor_changed_cb, self);
+	g_signal_connect(eina_obj_get_object(self, "toggle-renderer"), "toggled", (GCallback) plugins_cell_renderer_toggle_toggled_cb, self);
 
 	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
@@ -336,8 +308,13 @@ static void
 plugins_build_treeview(EinaPlugins *self)
 {
 	GList *l = self->visible_plugins;
-	gtk_notebook_set_current_page(eina_obj_get_typed(self, GTK_NOTEBOOK, "notebook"),
+	gtk_notebook_set_current_page(eina_obj_get_typed(self, GTK_NOTEBOOK, "tabs"),
 		(l && l->data) ? PLUGINS_TAB_PLUGINS : PLUGINS_TAB_NO_PLUGINS );
+	gtk_notebook_set_show_tabs (eina_obj_get_typed(self, GTK_NOTEBOOK, "tabs"), FALSE);
+	if (!l || !l->data)
+		gtk_widget_hide(eina_obj_get_typed(self, GTK_WIDGET, "plugin-info-button"));
+	else
+		gtk_widget_show(eina_obj_get_typed(self, GTK_WIDGET, "plugin-info-button"));
 
 	while (l)
 	{
@@ -346,17 +323,33 @@ plugins_build_treeview(EinaPlugins *self)
 		GtkTreeIter iter;
 		gtk_list_store_append(self->model, &iter);
 
-		gchar *escape = g_markup_escape_text(gel_plugin_stringify(plugin), -1);
-		gchar *markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
-			plugin->name, plugin->short_desc, escape);
+		// gchar *escape = g_markup_escape_text(gel_plugin_stringify(plugin), -1);
+		// gchar *markup = g_strdup_printf("<b>%s</b>\n%s\n<span foreground=\"grey\" size=\"small\">%s</span>",
+		gchar *markup = g_strdup_printf("<big><b>%s</b></big>\n%s",
+			plugin->name, plugin->short_desc);
+
+		GError *err = NULL;
+		GdkPixbuf *pb = NULL;
+		gchar *tmp = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, (gchar*) plugin->icon);
+		if (!tmp)
+		{
+			gel_error(N_("Cannot locate resource '%s'"), plugin->icon);
+		}
+		else if ((pb = gdk_pixbuf_new_from_file_at_scale(tmp, 64, 64, TRUE, &err)) == NULL)
+		{
+			gel_error(N_("Cannot load resource '%s': '%s'"), tmp, err->message);
+			g_error_free(err);
+		}
+		gel_free_and_invalidate(tmp, NULL, g_free);
 
 		gtk_list_store_set(self->model, &iter,
 			PLUGINS_COLUMN_ENABLED, gel_plugin_is_enabled(plugin),
-			PLUGINS_COLUMN_NAME, markup,
+			PLUGINS_COLUMN_ICON, pb,
+			PLUGINS_COLUMN_MARKUP, markup,
 			-1);
-
+		
 		g_free(markup);
-		g_free(escape);
+		// g_free(escape);
 
 		l = l->next;
 	}
@@ -372,7 +365,7 @@ plugins_show(EinaPlugins *self)
 		(GCallback) app_init_plugin_cb, self);
 	g_signal_connect(eina_obj_get_app(EINA_OBJ(self)), "plugin-fini",
 		(GCallback) app_fini_plugin_cb, self);
-	gtk_widget_show(self->window);
+	gtk_dialog_run((GtkDialog *) self->window);
 }
 
 static void
@@ -388,11 +381,36 @@ plugins_hide(EinaPlugins *self)
 	gtk_widget_hide(self->window);
 }
 
+static GelPlugin*
+plugins_get_active_plugin(EinaPlugins *self)
+{
+	GtkTreeIter iter;
+	GtkTreePath *path;
+	gint *indices;
+
+	GtkTreeSelection *sel = gtk_tree_view_get_selection(self->treeview);
+	if (!gtk_tree_selection_get_selected(sel, (GtkTreeModel **) &(self->model), &iter))
+	{
+		if (!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(self->model), &iter))
+			return NULL;
+	}
+
+	if ((path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->model), &iter)) == NULL)
+	{
+		gel_warn("Cannot get treepath from selection");
+		plugins_hide(self);
+		return NULL;
+	}
+
+	indices = gtk_tree_path_get_indices(path);
+	return (self->active_plugin = (GelPlugin *) g_list_nth_data(self->visible_plugins, indices[0]));
+}
+
 static void
 plugins_update_plugin_properties(EinaPlugins *self)
 {
 	GelPlugin *plugin;
-	gchar *tmp;
+	// gchar *tmp;
 
 	if (self->active_plugin == NULL)
 	{
@@ -400,7 +418,7 @@ plugins_update_plugin_properties(EinaPlugins *self)
 		return;
 	}
 	plugin = self->active_plugin;
-	
+	#if 0
 	tmp = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", plugin->name);
 	gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "name-label"), tmp);
 	g_free(tmp);
@@ -437,6 +455,7 @@ plugins_update_plugin_properties(EinaPlugins *self)
 	}
 	else
 		gtk_image_set_from_pixbuf(eina_obj_get_typed(self, GTK_IMAGE, "icon-image"), pb);
+	#endif
 }
 
 static void
@@ -471,6 +490,14 @@ static void
 app_fini_plugin_cb(GelApp *app, GelPlugin *plugin, EinaPlugins *self)
 {
 	update_enabled(self, plugin);
+}
+
+static void
+plugins_window_response_cb
+(GtkDialog *dialog, gint response_id, EinaPlugins *self)
+{
+	GelPlugin *plugin = plugins_get_active_plugin(self);
+	gel_warn("%p", plugin);
 }
 
 static void
