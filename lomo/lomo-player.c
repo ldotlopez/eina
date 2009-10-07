@@ -972,18 +972,20 @@ gint lomo_player_queue(LomoPlayer *self, gint pos)
 	g_return_val_if_fail(-1, pos >= 0);
 
 	gint ret = lomo_playlist_queue(self->priv->pl, pos);
-	if (ret >= 0)
-		g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE], 0, lomo_playlist_go_nth(self->priv->pl, pos), ret);
+	g_return_val_if_fail(-1, ret >= 0);
+
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE], 0, lomo_playlist_go_nth(self->priv->pl, pos), ret);
 	return ret;
 }
 
 gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 {
-	LomoStream *stream = lomo_playlist_nth_stream(self->priv->pl, queue_pos);
 	gboolean ret       = lomo_playlist_dequeue(self->priv->pl, queue_pos);
+	g_return_val_if_fail(FALSE, ret == TRUE);
 
-	if (ret)
-		g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0, stream, queue_pos);
+	LomoStream *stream = lomo_playlist_nth_stream(self->priv->pl, queue_pos);
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0, stream, queue_pos);
+
 	return ret;
 }
 
