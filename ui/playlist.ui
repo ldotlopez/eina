@@ -14,6 +14,8 @@
       <column type="gchararray"/>
       <!-- column-name index -->
       <column type="guint"/>
+      <!-- column-name queue -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkWindow" id="playlist-main-window">
@@ -67,6 +69,17 @@
                               <object class="GtkCellRendererText" id="title-renderer"/>
                               <attributes>
                                 <attribute name="markup">3</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="queue-column">
+                            <property name="sizing">fixed</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="queue-renderer"/>
+                              <attributes>
+                                <attribute name="text">5</attribute>
                               </attributes>
                             </child>
                           </object>
@@ -278,5 +291,33 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkMenu" id="popup-menu">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkMenuItem" id="queue-menu-item">
+        <property name="visible">True</property>
+        <property name="use_action_appearance">True</property>
+        <property name="related_action">queue-action</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="dequeue-menu-item">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Dequeue</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="clear-menu-item">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Clear</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkAction" id="queue-action">
+    <property name="label">Queue</property>
+    <property name="stock_id">gtk-jump-to</property>
   </object>
 </interface>

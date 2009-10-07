@@ -65,6 +65,7 @@ typedef enum
 	PLAYLIST_COLUMN_TEXT,
 	PLAYLIST_COLUMN_MARKUP,
 	PLAYLIST_COLUMN_INDEX,
+	PLAYLIST_COLUMN_QUEUE,
 
 	PLAYLIST_N_COLUMNS
 } EinaPlaylistColumn;
@@ -102,6 +103,8 @@ void
 random_button_toggled_cb(GtkWidget *w, EinaPlaylist *self);
 void
 repeat_button_toggled_cb(GtkWidget *w, EinaPlaylist *self);
+gboolean
+treeview_button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaPlaylist *self);
 
 // Lomo callbacks
 static void lomo_state_change_cb
@@ -204,9 +207,11 @@ GelUISignalDef _playlist_signals[] = {
 	{ "playlist-search-entry", "focus-out-event",
 	G_CALLBACK(widget_focus_out_event_cb) },
 
-	{ "playlist-treeview",   "drag-data-received",
+	{ "playlist-treeview", "button-press-event",
+	G_CALLBACK(treeview_button_press_event_cb) },
+	{ "playlist-treeview", "drag-data-received",
 	G_CALLBACK(drag_data_received_cb) },
-	{ "playlist-treeview",   "drag-data-get",
+	{ "playlist-treeview", "drag-data-get",
 	G_CALLBACK(drag_data_get_cb) },
 	
 	GEL_UI_SIGNAL_DEF_NONE
@@ -989,6 +994,21 @@ static void lomo_all_tags_cb
 		-1);
 	g_free(v);
 	gel_free_and_invalidate(m, NULL, g_free);
+}
+
+gboolean treeview_button_press_event_cb
+(GtkWidget *w, GdkEventButton *ev, EinaPlaylist *self)
+{
+	if (ev->button != GDK_3BUTTON_PRESS)
+		return FALSE;
+
+	GtkMenu *menu = eina_obj_get_typed(self, GTK_MENU, "popup-menu");
+	g_return_val_if_fail(menu != NULL, FALSE);
+	
+	gtk_widget_show(GTK_WIDGET(menu));
+	gtk_menu_popup(menu, NULL, NULL, NULL, NULL, ev->button, ev->time);
+
+	return TRUE;
 }
 
 #if 0
