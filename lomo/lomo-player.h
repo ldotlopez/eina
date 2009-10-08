@@ -39,7 +39,7 @@ enum {
 	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
 	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
 	LOMO_PLAYER_ERROR_SET_STATE,
-
+	LOMO_PLAYER_ERROR_CANNOT_DEQUEUE,
 	LOMO_PLAYER_ERROR_UNKNOW_STATE,
 	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
 	LOMO_PLAYER_ERROR_NO_STREAM
@@ -123,6 +123,43 @@ typedef struct {
 	gboolean (*get_mute) (GstElement *pipeline);
 } LomoPlayerVTable;
 
+typedef enum {
+	LOMO_PLAYER_HOOK_PLAY,
+	LOMO_PLAYER_HOOK_PAUSE,
+	LOMO_PLAYER_HOOK_STOP,
+	LOMO_PLAYER_HOOK_SEEK,
+	LOMO_PLAYER_HOOK_VOLUME,
+	LOMO_PLAYER_HOOK_MUTE,
+	LOMO_PLAYER_HOOK_INSERT,
+	LOMO_PLAYER_HOOK_REMOVE,
+	LOMO_PLAYER_HOOK_QUEUE,
+	LOMO_PLAYER_HOOK_DEQUEUE,
+	LOMO_PLAYER_HOOK_QUEUE_CLEAR,
+	LOMO_PLAYER_HOOK_CHANGE,
+	LOMO_PLAYER_HOOK_CLEAR,
+	LOMO_PLAYER_HOOK_REPEAT,
+	LOMO_PLAYER_HOOK_RANDOM,
+	LOMO_PLAYER_HOOK_EOS,
+	LOMO_PLAYER_HOOK_ERROR,
+	LOMO_PLAYER_HOOK_TAG,
+	LOMO_PLAYER_HOOK_ALL_TAGS
+} LomoPlayerHookType;
+
+typedef struct {
+	LomoPlayerHookType type;
+	gint old, new;      // seek
+	gint volume;        // volume
+	LomoStream *stream; // insert, remove, queue, dequeue, tag, all_tags
+	gint pos;           // insert, remove
+	gint queue_pos;     // queue, dequeue
+	gint from, to;      // change
+	LomoTag tag;        // tag
+	gboolean value;     // random, repeat, mute
+	GError *error;      // error
+} LomoPlayerHookEvent;
+
+typedef gboolean(*LomoPlayerHook)(LomoPlayer *self, LomoPlayerHookEvent event, gpointer ret, gpointer data);
+
 #define lomo_init(argc,argv)    gst_init(argc,argv)
 #define lomo_get_option_group() gst_init_get_option_group()
 
@@ -130,6 +167,9 @@ LomoPlayer       *lomo_player_new(const gchar *option_name, ...);
 
 gboolean lomo_player_get_auto_parse(LomoPlayer *self);
 void     lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse);
+
+void lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data);
+void lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func);
 
 LomoStream *lomo_player_get_stream(LomoPlayer *self);
 
@@ -178,6 +218,8 @@ void    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos);
 
 gboolean lomo_player_del(LomoPlayer *self, gint pos);
 
+GList *lomo_player_get_playlist(LomoPlayer *self);
+
 #define lomo_player_queue_stream(self,stream) lomo_player_queue(self,lomo_player_index(self,stream))
 gint    lomo_player_queue       (LomoPlayer *self, gint pos);
 
@@ -186,14 +228,8 @@ gboolean lomo_player_dequeue       (LomoPlayer *self, gint queue_pos);
 
 gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream);
 LomoStream *lomo_player_queue_nth(LomoPlayer *self, guint queue_pos);
-/*
-#define lomo_player_queue_index_stream(self,stream) lomo_player_queue_translate(self,lomo_player_index(self,stream))
-gint    lomo_player_queue_translate(LomoPlayer *self, gint index);
-*/
 
 void lomo_player_queue_clear(LomoPlayer *self);
-
-GList *lomo_player_get_playlist(LomoPlayer *self);
 
 gint lomo_player_get_prev(LomoPlayer *self);
 gint lomo_player_get_next(LomoPlayer *self);
@@ -201,12 +237,11 @@ gint lomo_player_get_next(LomoPlayer *self);
 LomoStream *lomo_player_nth_stream(LomoPlayer *self, gint pos);
 gint        lomo_player_index(LomoPlayer *self, LomoStream *stream);
 
-gboolean          lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error);
-#define           lomo_player_go_prev(p,e) lomo_player_go_nth(p,lomo_player_get_prev(p),e)
-#define           lomo_player_go_next(p,e) lomo_player_go_nth(p,lomo_player_get_next(p),e)
-
-gint              lomo_player_get_current(LomoPlayer *self);
-#define lomo_player_get_current_stream(p) lomo_player_nth_stream(p, lomo_player_get_current(p))
+gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error);
+#define  lomo_player_go_prev(p,e) lomo_player_go_nth(p,lomo_player_get_prev(p),e)
+#define  lomo_player_go_next(p,e) lomo_player_go_nth(p,lomo_player_get_next(p),e)
+gint     lomo_player_get_current(LomoPlayer *self);
+#define  lomo_player_get_current_stream(p) lomo_player_nth_stream(p, lomo_player_get_current(p))
 
 guint lomo_player_get_total(LomoPlayer *self);
 
