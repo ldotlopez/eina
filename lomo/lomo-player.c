@@ -34,6 +34,7 @@ struct _LomoPlayerPrivate {
 
 	GstElement         *pipeline;
 	LomoPlaylist       *pl;
+	GQueue             *queue;
 	LomoMetadataParser *meta;
 	LomoStream         *stream;
 
@@ -202,6 +203,12 @@ lomo_player_dispose(GObject *object)
 	{
 		lomo_playlist_unref(self->priv->pl);
 		self->priv->pl = NULL;
+	}
+
+	if (self->priv->queue)
+	{
+		g_queue_free(self->priv->queue);
+		self->priv->queue = NULL;
 	}
 
 	if (self->priv->meta)
@@ -466,6 +473,7 @@ static void lomo_player_init (LomoPlayer *self)
 	self->priv->mute    = FALSE;
 	self->priv->pl      = lomo_playlist_new();
 	self->priv->meta    = lomo_metadata_parser_new();
+	self->priv->queue   = g_queue_new();
 	g_signal_connect(self->priv->meta, "tag", (GCallback) tag_cb, self);
 	g_signal_connect(self->priv->meta, "all-tags", (GCallback) all_tags_cb, self);
 }
@@ -490,7 +498,6 @@ lomo_player_new(const gchar *option_name, ...)
 	}
 	va_end(args);
 
-	// Transitional code
 	if (g_hash_table_lookup(self->priv->options, "audio-output") == NULL)
 	{
 		g_warning("audio-output option is mandatory while using lomo_player_new_with_opts\n");
@@ -969,40 +976,40 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 
 gint lomo_player_queue(LomoPlayer *self, gint pos)
 {
-	g_return_val_if_fail(-1, pos >= 0);
+	g_return_val_if_fail(pos >= 0, -1);
 
-	gint ret = lomo_playlist_queue(self->priv->pl, pos);
-	g_return_val_if_fail(-1, ret >= 0);
+	LomoStream *stream = lomo_playlist_nth_stream(self->priv->pl, pos);
+	g_return_val_if_fail(stream != NULL, -1);
 
-	g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE], 0, lomo_playlist_nth_stream(self->priv->pl, pos), ret);
-	return ret;
+	g_queue_push_tail(self->priv->queue, stream);
+
+	gint queue_pos = g_queue_get_length(self->priv->queue) - 1;
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE], 0, stream, queue_pos);
+	return queue_pos;
 }
 
 gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 {
-	LomoStream *stream = lomo_playlist_queue_nth(self->priv->pl, queue_pos);
-	gboolean ret       = lomo_playlist_dequeue(self->priv->pl, queue_pos);
-	g_return_val_if_fail(ret == TRUE, FALSE);
+	LomoStream *stream = g_queue_pop_nth(self->priv->queue, queue_pos);
+	g_return_val_if_fail(stream != NULL, FALSE);
 
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0, stream, queue_pos);
-
-	return ret;
+	return TRUE;
 }
 
 gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)
 {
-	return lomo_playlist_queue_index(self->priv->pl, stream);
+	return g_queue_index(self->priv->queue, stream);
 }
 
 LomoStream *lomo_player_queue_nth(LomoPlayer *self, guint queue_pos)
 {
-	return lomo_playlist_queue_nth(self->priv->pl, queue_pos);
+	return g_queue_peek_nth(self->priv->queue, queue_pos);
 }
-
 
 void lomo_player_queue_clear(LomoPlayer *self)
 {
-	lomo_playlist_clear(self->priv->pl);
+	g_queue_clear(self->priv->queue);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0);
 }
 
@@ -1030,7 +1037,11 @@ gint lomo_player_get_prev(LomoPlayer *self)
 
 gint lomo_player_get_next(LomoPlayer *self)
 {
-	return lomo_playlist_get_next(self->priv->pl);
+	LomoStream *stream = g_queue_peek_head(self->priv->queue);
+	if (stream)
+		return lomo_playlist_index(self->priv->pl, stream);
+	else
+		return lomo_playlist_get_next(self->priv->pl);
 }
 
 gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
@@ -1046,6 +1057,11 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_NO_STREAM, "No stream at position %d", pos);
 		return FALSE;
 	}
+
+	// Check if stream is in queue
+	gint queue_idx = g_queue_index(self->priv->queue, stream);
+	if (queue_idx >= 0)
+		lomo_player_dequeue(self, queue_idx);
 
 	// Get state for later restore it
 	state = lomo_player_get_state(self);

@@ -62,16 +62,6 @@ void lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
 void
 lomo_playlist_del(LomoPlaylist * l, guint pos);
 
-gint     lomo_playlist_queue  (LomoPlaylist *l, guint pos);
-gboolean lomo_playlist_dequeue(LomoPlaylist *l, guint queue_index);
-#define  lomo_playlist_queue_stream(l,stream)   lomo_playlist_queue(l,lomo_playlist_index(l,stream))
-#define  lomo_playlist_dequeue_stream(l,stream) lomo_playlist_dequeue(l,lomo_playlist_queue_index(l,stream))
-
-LomoStream *lomo_playlist_queue_nth  (LomoPlaylist *l, guint queue_pos);
-gint        lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream);
-
-void     lomo_playlist_queue_clear(LomoPlaylist *l);
-
 /*
  * @lomo_playlist_clear
  * @ Deletes all streams from playlist, this is not a deep free, LomoStream

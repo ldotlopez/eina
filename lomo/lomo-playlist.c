@@ -30,7 +30,6 @@
 struct _LomoPlaylist {
     GList  *list;
     GList  *random_list;
-	GQueue *queue;
 
     gboolean repeat;
     gboolean random;
@@ -89,7 +88,6 @@ lomo_playlist_new (void)
 	self = g_new0(LomoPlaylist, 1);
 	self->list        = NULL;
 	self->random_list = NULL;
-	self->queue       = g_queue_new();
 
 	lomo_playlist_set_repeat(self, FALSE);
 	lomo_playlist_set_random(self, FALSE);
@@ -126,18 +124,6 @@ lomo_playlist_unref (LomoPlaylist * l)
 	if ( l->ref_count > 0 )
 		return;
 
-#if 0
-	// XXX:  Review this, but I think that next comment has some to say about this
-	g_list_foreach(l->list, (GFunc) g_object_unref, NULL);
-
-	/* 
-	 * Dont do a deep free in playlist.
-	 * «We cannot free() what we didn't malloc()»
-	 */
-	g_list_free(l->list);
-	g_list_free(l->random_list);
-#endif
-	g_queue_free(l->queue);
 	lomo_playlist_clear(l);
 	g_free(l);
 }
@@ -411,49 +397,6 @@ void lomo_playlist_del
 	}
 }
 
-gint
-lomo_playlist_queue(LomoPlaylist *l, guint pos)
-{
-	g_return_val_if_fail(-1, pos < g_list_length(l->list));
-
-	g_queue_push_tail(l->queue, g_list_nth_data(l->list, pos));
-	return g_queue_get_length(l->queue) - 1;
-}
-
-gboolean
-lomo_playlist_dequeue(LomoPlaylist *l, guint queue_index)
-{
-	g_return_val_if_fail(queue_index >= 0, FALSE);
-	g_return_val_if_fail(queue_index < g_queue_get_length(l->queue), FALSE);
-
-	GList *nth_link = g_queue_peek_nth_link(l->queue, queue_index);
-	g_return_val_if_fail(nth_link != NULL, FALSE);
-
-	g_queue_delete_link(l->queue, nth_link);
-	return TRUE;
-}
-
-gint
-lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream)
-{
-	g_return_val_if_fail(-1, stream != NULL);
-	
-	return g_queue_index(l->queue, stream);
-}
-
-
-LomoStream *
-lomo_playlist_queue_nth(LomoPlaylist *l, guint queue_pos)
-{
-	return g_queue_peek_nth(l->queue, queue_pos);
-}
-
-void
-lomo_playlist_queue_clear(LomoPlaylist *l)
-{
-	g_queue_clear(l->queue);
-}
-
 void lomo_playlist_clear
 (LomoPlaylist *l)
 { BACKTRACE
@@ -516,9 +459,6 @@ gint lomo_playlist_get_next
 { BACKTRACE
 	gint pos;
 	gint total, normalpos, randompos;
-
-	if (!g_queue_is_empty(l->queue))
-		return g_list_index(l->list, g_queue_pop_head(l->queue));
 
 	total     = l->total;
 	normalpos = l->current;
@@ -622,9 +562,6 @@ gboolean lomo_playlist_go_nth
 
 	lomo_playlist_set_current(l, pos);
 
-	if (!g_queue_is_empty(l->queue)
-		&& (g_queue_peek_head(l->queue) == g_list_nth_data(l->list, pos)))
-		g_queue_pop_head(l->queue);
 	return TRUE;
 }
 
