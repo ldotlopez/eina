@@ -423,11 +423,11 @@ lomo_playlist_queue(LomoPlaylist *l, guint pos)
 gboolean
 lomo_playlist_dequeue(LomoPlaylist *l, guint queue_index)
 {
-	g_return_val_if_fail(FALSE, queue_index >= 0);
-	g_return_val_if_fail(FALSE, queue_index < g_queue_get_length(l->queue));
+	g_return_val_if_fail(queue_index >= 0, FALSE);
+	g_return_val_if_fail(queue_index < g_queue_get_length(l->queue), FALSE);
 
 	GList *nth_link = g_queue_peek_nth_link(l->queue, queue_index);
-	g_return_val_if_fail(FALSE, nth_link != NULL);
+	g_return_val_if_fail(nth_link != NULL, FALSE);
 
 	g_queue_delete_link(l->queue, nth_link);
 	return TRUE;
@@ -439,6 +439,13 @@ lomo_playlist_queue_index(LomoPlaylist *l, LomoStream *stream)
 	g_return_val_if_fail(-1, stream != NULL);
 	
 	return g_queue_index(l->queue, stream);
+}
+
+
+LomoStream *
+lomo_playlist_queue_nth(LomoPlaylist *l, guint queue_pos)
+{
+	return g_queue_peek_nth(l->queue, queue_pos);
 }
 
 void

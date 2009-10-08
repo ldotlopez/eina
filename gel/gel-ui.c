@@ -68,17 +68,17 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 gboolean
 gel_ui_signal_connect_from_def(GelUI *ui, GelUISignalDef def, gpointer data, GError **error)
 {
-	GtkWidget *widget;
+	GObject *object;
 
-	widget = (GtkWidget*) gtk_builder_get_object(ui, def.widget);
+	object = (GObject *) gtk_builder_get_object(ui, def.widget);
 
-	if ((widget == NULL) || !GTK_WIDGET(widget))
+	if ((object == NULL) || !G_OBJECT(object))
 	{ 
-		gel_warn("Can not find widget '%s' at GelUI %p", def.widget, ui);
+		gel_warn("Can not find object '%s' at GelUI %p", def.widget, ui);
 		return FALSE;
 	}
 
-	g_signal_connect(widget, def.signal, def.callback, data);
+	g_signal_connect(object, def.signal, def.callback, data);
 	return TRUE;
 }
 
