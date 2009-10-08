@@ -1054,8 +1054,8 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[INSERT], 0, stream, pos);
 	
-		// Emit change if its first stream
-		if (emit_change)
+		// Emit change if its first stream and hooks dont catch change
+		if (emit_change && !lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
 		{
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, -1, 0);
 			GError *err = NULL;
