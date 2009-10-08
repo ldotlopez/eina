@@ -71,10 +71,6 @@ typedef enum
 } EinaPlaylistColumn;
 
 // API
-#if 0
-static void
-playlist_set_valist(EinaPlaylist *self, guint row, ...);
-#endif
 static void
 playlist_set_valist_from_stream(EinaPlaylist *self, LomoStream *stream, ...);
 gboolean
@@ -993,8 +989,15 @@ static void lomo_queue_cb
 static void lomo_dequeue_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
-	gel_warn("Got deque on q#%d: %s", pos, lomo_stream_get_tag(stream, LOMO_TAG_URI));
 	playlist_set_valist_from_stream(self, stream, PLAYLIST_COLUMN_QUEUE_STR, NULL, -1);
+
+	while ((stream = lomo_player_queue_nth(lomo, pos)) != NULL)
+	{
+		gchar *str = g_strdup_printf("<b>%d</b>", pos + 1);
+		playlist_set_valist_from_stream(self, stream, PLAYLIST_COLUMN_QUEUE_STR, str, -1);
+		g_free(str);
+		pos++;
+	}
 }
 
 static void lomo_change_cb
