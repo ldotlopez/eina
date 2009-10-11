@@ -1,5 +1,5 @@
-SUBDIRS = coverplus lastfm
-DIST_SUBDIRS = adb coverplus hooktest lastfm ntfy recently
+SUBDIRS = coverplus fieshta lastfm
+DIST_SUBDIRS = adb coverplus fieshta hooktest lastfm ntfy recently
 
 if USE_ADB
 SUBDIRS += adb recently

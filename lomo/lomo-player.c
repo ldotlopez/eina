@@ -1034,7 +1034,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 	// Add streams to playlist
 	if ((pos <= 0) || (pos >  lomo_player_get_total(self)))
 		pos = lomo_player_get_total(self);
-	lomo_playlist_insert_multi(self->priv->pl, streams, pos);
+	// lomo_playlist_insert_multi(self->priv->pl, streams, pos);
 
 	// For each one parse metadata and emit signals 
 	l = streams;
@@ -1050,6 +1050,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		}
 
 		// Exec action
+		lomo_playlist_insert(self->priv->pl, stream, pos);
 		if (self->priv->auto_parse)
 			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[INSERT], 0, stream, pos);
@@ -1248,7 +1249,10 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	// Call hook
 	gboolean ret = FALSE;
 	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, prev, pos))
+	{
+		g_set_error(error, lomo_quark(), LOMO_PLAYER_HOOK_BLOCK, N_("Action blocked by hook"));
 		return ret;
+	}
 
 	// Exec action
 	if (!lomo_player_stop(self, error))
