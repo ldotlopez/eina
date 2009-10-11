@@ -104,8 +104,14 @@ fieshta_stage_set_nth(FieshtaStage* self, guint index, ClutterActor* actor)
 	g_return_if_fail(index < priv->slots);
 
 	if (priv->actors[index])
+	{
 		clutter_container_remove_actor((ClutterContainer *) self, priv->actors[index]);
- 
+		priv->actors[index] = NULL;
+ 	}
+
+ 	if (!actor)
+		return;
+
  	gint slot = ((int) (priv->slots / 2)) - index;
 	priv->actors[index] = actor;
 
