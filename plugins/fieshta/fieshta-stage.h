@@ -36,11 +36,14 @@ GType fieshta_stage_get_type (void);
 FieshtaStage* fieshta_stage_new (void);
 
 void fieshta_stage_set_slots(FieshtaStage* self, guint slots);
-
+/*
 ClutterActor *
 fieshta_stage_get_nth(FieshtaStage* self, guint slot);
 void
 fieshta_stage_set_nth(FieshtaStage* self, guint slot, ClutterActor *actor);
+*/
+void
+fieshta_stage_push(FieshtaStage* self, ClutterActor *actor);
 
 G_END_DECLS
 
