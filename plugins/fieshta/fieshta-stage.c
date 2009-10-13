@@ -12,14 +12,15 @@ typedef struct _FieshtaStagePrivate FieshtaStagePrivate;
 struct _FieshtaStagePrivate {
 	gint slots;
 	gint w, h;
-	// ClutterActor **actors;
 	GList  *actors;
 	gfloat *scales;
 	gint   *sizes;
 	gint   *positions;
 };
+
 void
 set_apparent_size(ClutterActor *actor, gint w, gint h);
+#define fieshta_stage_get_scale_for_slot(self,actor,slot) GET_PRIVATE(self)->scales[slot] * GET_PRIVATE(self)->h / clutter_actor_get_height(actor)
 
 static void
 fieshta_stage_dispose (GObject *object)
@@ -46,6 +47,21 @@ FieshtaStage*
 fieshta_stage_new (void)
 {
 	return g_object_new (FIESTA_STAGE_TYPE_STAGE, NULL);
+}
+
+ClutterActor *
+fieshta_stage_get_nth(FieshtaStage* self, guint slot)
+{
+	FieshtaStagePrivate *priv = GET_PRIVATE(self);
+	GList *l = g_list_last(priv->actors);
+	gint i = priv->slots - 1;
+	while (l && (i != slot))
+	{
+		l = l->prev;
+		i--;
+	}
+	g_return_val_if_fail(l != NULL, NULL);
+	return (ClutterActor *) l->data;
 }
 
 void
@@ -78,8 +94,6 @@ fieshta_stage_set_slots(FieshtaStage *self, guint n)
 
 		priv->sizes[sa] = (gint)(priv->scales[sa] * priv->h);
 		priv->sizes[sb] = priv->sizes[sa];
-		g_printf("Scale for %d and %d: %f\n", sa, sb, priv->scales[sa]);
-		g_printf("Sizes for %d and %d: %d\n", sa, sb, priv->sizes[sa]);
 	}
 
 	gint margin = 10;
@@ -94,172 +108,136 @@ fieshta_stage_set_slots(FieshtaStage *self, guint n)
 }
 
 static void
-fieshta_stage_position(FieshtaStage *self, ClutterActor *actor, gint i)
+fieshta_stage_translate(FieshtaStage *self, ClutterActor *actor, gint i)
+{
+	FieshtaStagePrivate *priv = GET_PRIVATE(self);
+	g_return_if_fail(g_list_find(priv->actors, actor));
+
+	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
+	
+	ClutterAlpha *alpha = clutter_alpha_new();
+	clutter_alpha_set_timeline(alpha, timeline);
+	clutter_alpha_set_func(alpha, CLUTTER_ALPHA_RAMP_INC, NULL, NULL);
+
+	ClutterKnot knots[2] = {
+		{ 1280/2, clutter_actor_get_y(actor) },
+	    { 1280/2, priv->positions[i]}
+	};
+	ClutterBehaviour *p = clutter_behaviour_path_new(alpha, knots, 2);
+	clutter_behaviour_apply(p, actor);
+
+	gdouble curr_sx, curr_sy;
+	clutter_actor_get_scale(actor, &curr_sx, &curr_sy);
+
+	gdouble scale = fieshta_stage_get_scale_for_slot(self, actor, i);
+	ClutterBehaviour *s = clutter_behaviour_scale_new(alpha, 
+		curr_sx, curr_sy,
+		scale, scale
+	);
+	clutter_behaviour_apply(s, actor);
+
+	clutter_timeline_start(timeline);
+}
+
+static void
+timeline_completed_cb(ClutterTimeline *t, FieshtaStage *self)
+{
+	ClutterActor *actor = (ClutterActor *) g_object_get_data((GObject *) t, "actor");
+	FieshtaStagePrivate *priv = GET_PRIVATE(self);
+	if (!g_list_find(priv->actors, actor))
+		clutter_container_remove_actor(
+			(ClutterContainer *) clutter_actor_get_parent(actor),
+			actor);
+	
+	g_object_unref((GObject *) g_object_get_data((GObject *) t, "behaviour"));
+	g_object_unref((GObject *) t);
+}
+
+static void
+fieshta_stage_add(FieshtaStage *self, ClutterActor *actor, guint pos)
 {
 	FieshtaStagePrivate *priv = GET_PRIVATE(self);
 
+	// Set position
 	gint x, y;
-	x = priv->w / 2;
-	y = priv->positions[i];
+	x = 1280 / 2;
+	y = priv->positions[pos];
+	clutter_actor_set_position(actor, x, y);
 
-	guint ow, oh;
-	clutter_actor_get_size(actor, &ow, &oh);
+	// Calculate scale
+	gdouble sy;
+	sy = priv->scales[pos] * priv->h / clutter_actor_get_height(actor);
 
-	gfloat nh, nw;
-	nh = priv->h * priv->scales[i];
-	nw = (gint) (ow * ((float) nh/oh));
-
-	if (g_list_find(priv->actors, actor))
-	{
-		ClutterTimeline *timeline = clutter_timeline_new_for_duration(1000);
+	// Create animation
+	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
+	g_signal_connect(timeline, "completed", (GCallback) timeline_completed_cb, self);
 	
-		ClutterAlpha *alpha = clutter_alpha_new();
-		clutter_alpha_set_timeline(alpha, timeline);
-		clutter_alpha_set_func(alpha, CLUTTER_ALPHA_RAMP_INC, NULL, NULL);
+	ClutterAlpha *alpha = clutter_alpha_new();
+	clutter_alpha_set_timeline(alpha, timeline);
+	clutter_alpha_set_func(alpha, CLUTTER_ALPHA_RAMP_INC, NULL, NULL);
 
-		ClutterKnot knots[2] = {
-			{ 1280/2, priv->positions[i-1]},
-		    { 1280/2, priv->positions[i]}
-		};
-		ClutterBehaviour *p = clutter_behaviour_path_new(alpha, knots, 2);
-		clutter_behaviour_apply(p, actor);
-
-
-		gdouble curr_sx, curr_sy;
-		clutter_actor_get_scale(actor, &curr_sx, &curr_sy);
-		ClutterBehaviour *s = clutter_behaviour_scale_new(alpha, 
-			curr_sx, curr_sy,
-			((gdouble)nw)/ow, ((gdouble)nh)/oh
+	ClutterBehaviour *s = clutter_behaviour_scale_new(alpha,
+		0.0, 0.0,
+		sy, sy
 		);
-		clutter_behaviour_apply(s, actor);
 
-		clutter_timeline_start(timeline);
-		g_printf("Animation required\n");
-	}
-	else
-	{
-		clutter_actor_set_position(actor, x, y);
-		clutter_actor_set_scale(actor, (float) nw / ow, (float) nh /oh);
-		g_printf("Actor %p is at (%d, %d) size %fx%f\n", actor, x, y, nh, nw);
-	}
+	clutter_actor_set_scale(actor, 0.0, 0.0);
+	clutter_container_add_actor((ClutterContainer *) self, actor);
+	clutter_actor_show(actor);
+
+	clutter_behaviour_apply(s, actor);
+	g_object_set_data((GObject *) timeline, "behaviour", s);
+	g_object_set_data((GObject *) timeline, "actor",     actor);
+	clutter_timeline_start(timeline);
+}
+
+static void
+fieshta_stage_remove(FieshtaStage *self, ClutterActor *actor)
+{
+	// Create animation
+	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
+	
+	ClutterAlpha *alpha = clutter_alpha_new();
+	clutter_alpha_set_timeline(alpha, timeline);
+	clutter_alpha_set_func(alpha, CLUTTER_ALPHA_RAMP_INC, NULL, NULL);
+
+	gdouble sx, sy;
+	clutter_actor_get_scale(actor, &sx, &sy);
+	ClutterBehaviour *s = clutter_behaviour_scale_new(alpha,
+		sx, sy,
+		0.0, 0.0
+		);
+	g_signal_connect(timeline, "completed", (GCallback) timeline_completed_cb, self);
+
+	clutter_behaviour_apply(s, actor);
+	g_object_set_data((GObject *) timeline, "behaviour", s);
+	g_object_set_data((GObject *) timeline, "actor",     actor);
+	clutter_timeline_start(timeline);
 }
 
 void
 fieshta_stage_push(FieshtaStage *self, ClutterActor *actor_)
 {
 	FieshtaStagePrivate *priv = GET_PRIVATE(self);
-	while (g_list_length(priv->actors) > priv->slots)
+
+	// Delete extra actors from head
+	while (g_list_length(priv->actors) >= priv->slots)
 	{
-		g_printf("Deleting actor\n");
-		GList *l = g_list_last(priv->actors);
-		clutter_container_remove_actor((ClutterContainer *) self, (ClutterActor *) l->data);
-		priv->actors = g_list_delete_link(priv->actors, l);
-	}
- 
- 	gint i;
-	for (i = 0; i < g_list_length(priv->actors); i++)
-	{
-		g_printf("Move %d to %d\n", i, i + 1);
-		fieshta_stage_position(self, g_list_nth_data(priv->actors, i), i+1);
+		fieshta_stage_remove(self, (ClutterActor *) priv->actors->data);
+		priv->actors = g_list_delete_link(priv->actors, priv->actors);
 	}
 
-	clutter_container_add_actor((ClutterContainer *) self, actor_);
-	fieshta_stage_position(self, actor_, 0);
-	priv->actors = g_list_prepend(priv->actors, actor_);
-	clutter_actor_show(actor_);
-}
-
-
-#if 0
-void
-fieshta_stage_set_slots(FieshtaStage *self, guint slots)
-{
-	g_return_if_fail(slots > 0);
-	g_return_if_fail((slots % 2) == 1);
-
-	gint i;
-	FieshtaStagePrivate *priv = GET_PRIVATE(self);
-	priv->slots = slots;
-	
-	priv->actors = g_new0(ClutterActor*, slots);
-
-	if (priv->scales)
-		g_free(priv->scales);
-	if (priv->sizes)
-		g_free(priv->sizes);
-	if (priv->positions)
-		g_free(priv->positions);
-
-	priv->scales    = g_new0(gfloat, slots);
-	priv->sizes     = g_new0(gint,   slots);
-	priv->positions = g_new0(gint,   slots);
-
-	for (i = 0; i <= (slots / 2); i++)
+	// Move actors from i to i-1
+	gint i = priv->slots - 1;
+	GList *tmp = g_list_last(priv->actors);
+	while (tmp && (i > 0))
 	{
-		priv->scales[i] = (gfloat) 1 / pow(2, i+2);
-		priv->sizes[i]  = (gint) (priv->scales[i] * clutter_actor_get_height((ClutterActor *) self));
-		g_printf("# Scale for %d: %f\n", i,  priv->scales[i]);
-		g_printf("# Size for %d: %d\n", i, priv->sizes[i]);
+		fieshta_stage_translate(self, tmp->data, --i);
+		tmp = tmp->prev;
 	}
 
-	gint margin = 10;
-	priv->positions[0] = 0;
-	for (i = 1; i <= slots / 2; i++)
-	{
-		priv->positions[i] = priv->positions[i-1] + priv->sizes[i-1] / 2 + priv->sizes[i] / 2  + margin;
-		g_printf("# Position for %d: %d\n", i, priv->positions[i]);
-	}
-}
-ClutterActor *
-fieshta_stage_get_nth(FieshtaStage* self, guint slot)
-{
-	FieshtaStagePrivate *priv = GET_PRIVATE(self);
-
-	g_return_val_if_fail(slot >= 0, NULL);
-	g_return_val_if_fail(slot < priv->slots, NULL);
-	return priv->actors[slot];
+	// Add new actor
+	fieshta_stage_add(self, actor_, priv->slots - 1);
+	priv->actors = g_list_append(priv->actors, actor_);
 }
 
-void
-fieshta_stage_set_nth(FieshtaStage* self, guint index, ClutterActor* actor)
-{
-	FieshtaStagePrivate *priv = GET_PRIVATE(self);
-	g_return_if_fail(index >= 0);
-	g_return_if_fail(index < priv->slots);
-
-	if (priv->actors[index])
-	{
-		clutter_container_remove_actor((ClutterContainer *) self, priv->actors[index]);
-		priv->actors[index] = NULL;
- 	}
-
- 	if (!actor)
-		return;
-
- 	gint slot = ((int) (priv->slots / 2)) - index;
-	priv->actors[index] = actor;
-
-	// Set apparent size
-	gfloat scale = priv->sizes[ABS(slot)] / (gfloat) clutter_actor_get_height(actor);
-	set_apparent_size(actor, clutter_actor_get_width(actor) * scale, priv->sizes[ABS(slot)]);
-
-	// Put in corrent position
-	gint pad = priv->positions[ABS(slot)];
-	if (slot < 0)
-		pad = -pad;
-	clutter_actor_set_position(actor,
-		clutter_actor_get_width((ClutterActor *) self) / 2,
-		clutter_actor_get_height((ClutterActor *) self) / 2 + pad);
-	clutter_container_add_actor((ClutterContainer *) self, actor);
-	clutter_actor_show(actor);
-}
-
-void
-set_apparent_size(ClutterActor *actor, gint w, gint h)
-{
-	guint w_, h_;
-	
-	clutter_actor_get_size(actor, &w_, &h_);
-	clutter_actor_set_scale(actor, w / (gfloat) w_, h / (gfloat) h_);
-}
-#endif

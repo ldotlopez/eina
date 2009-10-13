@@ -59,6 +59,8 @@ static gchar *fieshta_ui_xml =
 	"</ui>";
 
 static void
+fieshta_ui_push_index(EinaFieshta *self, gint index);
+static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaFieshta *self);
 static void
 lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaFieshta *self);
@@ -131,27 +133,6 @@ eina_fieshta_set_mode(EinaFieshta *self, gboolean mode)
 
 		// Build GTK
 		fieshta_ui_init(self);
-		/*
-		gtk_clutter_init(NULL, NULL);
-
-		ClutterColor black = {0, 0, 0, 0};
-	
-		self->embed = gtk_clutter_embed_new();
-		ClutterActor *s = gtk_clutter_embed_get_stage((GtkClutterEmbed *) self->embed);
-		clutter_actor_set_size(s, 1280, 768);
-		clutter_stage_set_color((ClutterStage *) s, &black);
-
-		self->stage = fieshta_stage_new();
-		clutter_actor_set_size((ClutterActor *) self->stage,  1280, 768);
-		fieshta_stage_set_slots(self->stage, 5);
-
-		clutter_container_add_actor((ClutterContainer *) s, (ClutterActor *)self->stage);
-		clutter_actor_show_all((ClutterActor *) s);
-
-		GtkWidget *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		gtk_container_add((GtkContainer *) w, (GtkWidget *) self->embed);
-		gtk_widget_show_all(w);
-		*/
 	}
 	else
 	{
@@ -184,35 +165,56 @@ fieshta_ui_init(EinaFieshta *self)
 	clutter_container_add_actor((ClutterContainer *) s, (ClutterActor *)self->stage);
 	clutter_actor_show_all((ClutterActor *) s);
 
-#if 0
-	// Insert streams
+	// Push SLOT / 2 + 1 from current to
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
-	gint curr = lomo_player_get_current(lomo);
-
-	// prev streams
 	gint i;
-	gint slot = -1;
-	for (i = curr - (SLOTS/2); i <= curr + (SLOTS/2); i++)
-	{
-		slot++;
-		if (i < 0)
-			continue;
-		if (i > lomo_player_get_total(lomo) - 1)
-			break;
+	gint curr_index = lomo_player_get_current(lomo);
+	gint total      = lomo_player_get_total(lomo);
+	for (i = 0; i <= (SLOTS / 2); i++)
+		fieshta_ui_push_index(self, (curr_index + i) % total);
 
-		LomoStream *stream = lomo_player_nth_stream(lomo, i);
-
-		gchar *path = gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png");
-		GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(path, 256, 256, TRUE, NULL);
-		FieshtaStream *s = fieshta_stream_new(pb, lomo_stream_get_tag(stream, LOMO_TAG_TITLE), lomo_stream_get_tag(stream, LOMO_TAG_ARTIST));
-		fieshta_stage_set_nth(self->stage, slot, (ClutterActor*) s);
-		g_free(path);
-		g_object_unref(pb);
-	}
-#endif
+	// Add widget
 	GtkWidget *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_add((GtkContainer *) w, (GtkWidget *) self->embed);
 	gtk_widget_show_all(w);
+}
+
+static void
+art_search_cb(Art *art, ArtSearch *search, EinaFieshta *self)
+{
+	gpointer res = art_search_get_result(search);
+	if (res == NULL)
+		return;
+
+	LomoPlayer *lomo   = eina_obj_get_lomo(self);
+	LomoStream *stream = art_search_get_stream(search);
+	gint index = lomo_player_index(lomo, stream);
+	g_return_if_fail(index >= 0);
+
+	gint slot = (SLOTS/2)+ (index - lomo_player_get_current(lomo));
+	if ((slot < 0) || (slot >= SLOTS))
+		return;
+	FieshtaStream *s = (FieshtaStream *) fieshta_stage_get_nth(self->stage, slot);
+	// gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) s->cover, (GdkPixbuf*) res);
+	fieshta_stream_set_cover_from_pixbuf(s, (GdkPixbuf*) res);
+}
+
+static void
+fieshta_ui_push_index(EinaFieshta *self, gint index)
+{
+	LomoPlayer *lomo   = eina_obj_get_lomo(self);
+	LomoStream *stream = lomo_player_nth_stream(lomo, index);
+	g_return_if_fail(stream);
+
+	gchar *path = gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png");
+	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(path, 256, 256, TRUE, NULL);
+	FieshtaStream *s = fieshta_stream_new(pb, lomo_stream_get_tag(stream, LOMO_TAG_TITLE), lomo_stream_get_tag(stream, LOMO_TAG_ARTIST));
+
+	art_search(EINA_OBJ_GET_ART(self), stream, (ArtFunc) art_search_cb, self);
+
+	fieshta_stage_push(self->stage, (ClutterActor *) s);
+	g_free(path);
+	g_object_unref(pb);
 }
 
 static void
@@ -223,28 +225,7 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaFieshta *self)
 		gel_warn("Loop done");
 		self->loop_done = TRUE;
 	}
-#if 0
-	// Move other slots
-	gint i = 0;
-	for (i = 0; i < SLOTS - 1; i++)
-	{
-		ClutterActor *p = fieshta_stage_get_nth(self->stage, i + 1);
-		if (!p)
-			continue;
-		g_object_ref(p);
-		fieshta_stage_set_nth(self->stage, i + 1, NULL);
-		fieshta_stage_set_nth(self->stage, i , p);
-		g_object_unref(p);
-	}
-#endif
-	LomoStream *stream = lomo_player_nth_stream(lomo, (to + (SLOTS/2)) % lomo_player_get_total(lomo));
-	gchar *path = gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png");
-	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(path, 256, 256, TRUE, NULL);
-	FieshtaStream *s = fieshta_stream_new(pb, lomo_stream_get_tag(stream, LOMO_TAG_TITLE), lomo_stream_get_tag(stream, LOMO_TAG_ARTIST));
-	// fieshta_stage_set_nth(self->stage, SLOTS - 1, (ClutterActor *) s);
-	g_printf("Pushing %s\n", (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
-	fieshta_stage_push(self->stage, (ClutterActor *) s);
-	g_free(path);
+	fieshta_ui_push_index(self, (to + (SLOTS/2)) % lomo_player_get_total(lomo));
 }
 
 static void
@@ -253,7 +234,6 @@ lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaFieshta *self
 	if (!self->loop_done)
 		return;
 
-	gel_warn("Add with loop_done, we must jump!");
 	lomo_player_hook_remove(lomo, (LomoPlayerHook) fieshta_hook);
 	lomo_player_go_nth(lomo, pos, NULL);
 	lomo_player_hook_add(lomo, (LomoPlayerHook) fieshta_hook, self);

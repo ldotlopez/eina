@@ -36,6 +36,7 @@ typedef struct {
 GType fieshta_stream_get_type (void);
 
 FieshtaStream* fieshta_stream_new (GdkPixbuf *cover, gchar *title, gchar *artist);
+void           fieshta_stream_set_cover_from_pixbuf(FieshtaStream* self, GdkPixbuf *cover);
 
 G_END_DECLS
 
