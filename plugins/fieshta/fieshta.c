@@ -51,9 +51,9 @@ struct _EinaFieshta {
 
 static gchar *fieshta_ui_xml = 
 	"<ui>"
-	"  <menubar name=\"MainMenuBar\">"
-	"    <menu name=\"FieshtaMenu\" action=\"fiesta-menu-action\">"
-	"      <menuitem name=\"FieshtaMode\" action=\"fieshta-mode-toogle-action\"/>"
+	"  <menubar name=\"Main\">"
+	"    <menu name=\"Fieshta\" action=\"FieshtaMenu\">"
+	"      <menuitem name=\"FieshtaMode\" action=\"FieshtaModeAction\"/>"
 	"    </menu>"
 	"</menubar>"
 	"</ui>";
@@ -88,11 +88,11 @@ fieshta_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 
 	GtkActionEntry actions[] = {
-		{ "fiesta-menu-action", NULL, N_("Fieshta"),
+		{ "FieshtaMenu", NULL, N_("Fieshta"),
 		NULL, NULL, NULL },
 	};
 	GtkToggleActionEntry toggle_actions[] = {
-		{ "fieshta-mode-toogle-action", NULL, N_("Set fieshta mode"),
+		{ "FieshtaModeAction", NULL, N_("Set fieshta mode"),
 		NULL, NULL, G_CALLBACK(set_fieshta_mode_activated_cb) }
 	};
 	self->ag = gtk_action_group_new("fieshta");

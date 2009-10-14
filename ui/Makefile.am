@@ -3,7 +3,6 @@ ui_DATA = \
 	about.ui \
 	dock.ui \
 	log.ui \
-	player-menu.ui \
 	player-preferences.ui \
 	player.ui \
 	playlist.ui \

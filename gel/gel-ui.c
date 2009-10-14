@@ -133,6 +133,36 @@ gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
 //
 // TreeStore/ListStore helpers
 //
+gint *
+gel_ui_tree_view_get_selected_indices(GtkTreeView *tv)
+{
+
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(tv);
+	GtkTreeModel     *model     = gtk_tree_view_get_model(tv);
+
+	GList *l, *iter; // iter over selected treepaths
+	gint  *indices;  // hold treepath's indices
+	gint i = 0;      // index
+	l = iter = gtk_tree_selection_get_selected_rows(selection, &model);
+	gint *ret = g_new0(gint, g_list_length(l) + 1);
+	while (iter)
+	{
+		indices = gtk_tree_path_get_indices((GtkTreePath *) iter->data);
+		if (!indices || !indices[0] || !indices[1] || (indices[1] != -1))
+		{
+			g_warning(N_("Invalid GtkTreePath in selection, use %s only with ListModels"), __FUNCTION__);
+			continue;
+		}
+
+		ret[i++] = indices[0];
+		l = l->next;
+	}
+	g_list_foreach(l, (GFunc) gtk_tree_path_free, NULL);
+	g_list_free(l);
+
+	return ret;
+}
+
 gboolean
 gel_ui_list_model_get_iter_from_index(GtkListStore *model, GtkTreeIter *iter, gint index)
 {
@@ -175,5 +205,7 @@ gel_ui_list_store_remove_at_index(GtkListStore *model, gint index)
 
 	gtk_list_store_remove(model, &iter);
 }
+
+
 
 G_END_DECLS

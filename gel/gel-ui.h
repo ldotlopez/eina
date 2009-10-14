@@ -85,6 +85,9 @@ gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget);
 /*
  * Gtk List Model helpers
  */
+gint *
+gel_ui_tree_view_get_selected_indices(GtkTreeView *tv);
+
 gboolean
 gel_ui_list_model_get_iter_from_index(GtkListStore *model, GtkTreeIter *iter, gint index);
 

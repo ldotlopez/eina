@@ -375,44 +375,10 @@ playlist_get_iter_from_stream(EinaPlaylist *self, GtkTreeIter *iter, LomoStream 
 	g_return_val_if_fail(found == TRUE, FALSE);
 	return TRUE;
 }
-#if 0
-static void
-playlist_set_valist(EinaPlaylist *self, guint row, ...)
-{
-	va_list args;
-	va_start(args, row);
 
-	GtkListStore *model = (GtkListStore *) gtk_tree_view_get_model(self->tv);
-	GtkTreePath  *treepath = gtk_tree_path_new_from_indices(row, -1);
-	GtkTreeIter   iter;
-	gtk_tree_model_get_iter((GtkTreeModel *) model, &iter, treepath);
-
-	gtk_list_store_set_valist(model, &iter, args);
-	va_end(args);
-	gtk_tree_path_free(treepath);
-}
-#endif
 static void
 playlist_set_valist_from_stream(EinaPlaylist *self, LomoStream *stream, ...)
 {
-	/*
-	GtkTreeModel *model = gtk_tree_view_get_model(self->tv);
-	GtkTreeIter iter;
-	g_return_if_fail(gtk_tree_model_get_iter_first(model, &iter));
-
-	gboolean found = FALSE;
-	LomoStream *s = NULL;
-	do {
-		gtk_tree_model_get(model, &iter, PLAYLIST_COLUMN_STREAM, &s, -1);
-		if (stream == s)
-		{
-			found = TRUE;
-			break;
-		}
-	} while (gtk_tree_model_iter_next(model, &iter));
-
-	g_return_if_fail(found == TRUE);
-	*/
 	GtkTreeIter iter;
 	g_return_if_fail(playlist_get_iter_from_stream(self, &iter, stream));
 

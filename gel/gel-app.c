@@ -473,7 +473,7 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	// plugins cannot have the same name, warn about this.
 	if (fuzzy_plugin && gel_plugin_is_enabled(fuzzy_plugin))
 	{
-		gel_warn("Returning fuzzy plugin %s", gel_plugin_stringify(fuzzy_plugin));
+		gel_warn("[~] %s", gel_plugin_stringify(fuzzy_plugin));
 		return fuzzy_plugin;
 	}
 
@@ -699,7 +699,7 @@ gel_app_add_plugin(GelApp *self, GelPlugin *plugin)
 	g_return_if_fail(g_hash_table_lookup(self->priv->lookup, pstr) == NULL);
 
 	g_hash_table_insert(self->priv->lookup, g_strdup(pstr), plugin);
-	gel_warn("Added plugin %s", gel_plugin_stringify(plugin));
+	gel_warn("[+] %s", gel_plugin_stringify(plugin));
 	g_signal_emit(self, gel_app_signals[PLUGIN_LOAD], 0, plugin);
 }
 
@@ -713,7 +713,7 @@ gel_app_remove_plugin(GelApp *self, GelPlugin *plugin)
 	g_return_if_fail(gel_plugin_is_enabled(plugin) == FALSE);
 
 	g_hash_table_remove(self->priv->lookup, pstr);
-	gel_warn("Removed plugin %s", gel_plugin_stringify(plugin));
+	gel_warn("[-] %s", gel_plugin_stringify(plugin));
 	g_signal_emit(self, gel_app_signals[PLUGIN_UNLOAD], 0, plugin);
 }
 
