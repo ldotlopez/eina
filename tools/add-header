@@ -1,7 +1,7 @@
 #!/bin/bash
 
 D=$(basename -- "$PWD")
-if [ "$D" != 'trunk' ]; then
+if [ ! -d "$D/.git" ]; then
 	echo "Run from toplevel"
 	exit 1
 fi

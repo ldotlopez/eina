@@ -392,10 +392,14 @@ eina_seek_updater_stop(EinaSeek *self)
 		g_source_remove(priv->updater_id);
 }
 
-
-gboolean eina_seek_real_seek(EinaSeek *self) {
+gboolean eina_seek_real_seek(EinaSeek *self)
+{
 	EinaSeekPrivate *priv = GET_PRIVATE(self);
 	g_return_val_if_fail(LOMO_IS_PLAYER(priv->lomo), FALSE);
+
+	LomoState state = lomo_player_get_state(priv->lomo);
+	if ((state == LOMO_STATE_STOP) || (state == LOMO_STATE_INVALID))
+		lomo_player_set_state(priv->lomo, LOMO_STATE_PLAY, NULL);
 
 	lomo_player_seek_time(priv->lomo, priv->pos);
 	priv->pos = -1;

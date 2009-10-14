@@ -52,7 +52,7 @@ struct _EinaFieshta {
 static gchar *fieshta_ui_xml = 
 	"<ui>"
 	"  <menubar name=\"Main\">"
-	"    <menu name=\"Fieshta\" action=\"FieshtaMenu\">"
+	"    <menu name=\"Plugins\" action=\"PluginsMenu\">"
 	"      <menuitem name=\"FieshtaMode\" action=\"FieshtaModeAction\"/>"
 	"    </menu>"
 	"</menubar>"
