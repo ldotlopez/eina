@@ -24,8 +24,11 @@
 
 G_BEGIN_DECLS
 
-#define GEL_APP_GET_WINDOW(app)  EINA_WINDOW(gel_app_shared_get(app, "window"))
-#define EINA_OBJ_GET_WINDOW(obj) GEL_APP_GET_WINDOW(eina_obj_get_app(obj))
+#define gel_app_get_window(app)  EINA_WINDOW(gel_app_shared_get(app, "window"))
+#define eina_obj_get_window(obj) gel_app_get_window(eina_obj_get_app(obj))
+
+#define GEL_APP_GET_WINDOW(app)  gel_app_get_window(app)
+#define EINA_OBJ_GET_WINDOW(obj) eina_obj_get_window(obj)
 
 enum {
 	EINA_WINDOW_NO_ERROR = 0,

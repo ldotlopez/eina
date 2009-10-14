@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <interface>
-  <requires lib="gtk+" version="2.14"/>
+  <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="main-window">
     <child>
-      <object class="GtkVBox" id="main-box">
+      <object class="GtkVBox" id="main-widget">
         <property name="visible">True</property>
         <child>
           <object class="GtkVBox" id="widgets-box">
@@ -136,7 +136,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkHBox" id="seek-hscale-container">
+                      <object class="GtkHBox" id="seek-container">
                         <property name="visible">True</property>
                         <child>
                           <object class="GtkHScale" id="seek-placeholder-hscale">
@@ -165,6 +165,7 @@
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="tooltip_text" translatable="yes">Previous song</property>
+                            <property name="related_action">prev-action</property>
                             <child>
                               <object class="GtkImage" id="image2">
                                 <property name="visible">True</property>
@@ -183,6 +184,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
+                            <property name="related_action">play-action</property>
                             <child>
                               <object class="GtkImage" id="play-pause-image">
                                 <property name="visible">True</property>
@@ -202,6 +204,7 @@
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="tooltip_text" translatable="yes">Next song</property>
+                            <property name="related_action">next-action</property>
                             <child>
                               <object class="GtkImage" id="image4">
                                 <property name="visible">True</property>
@@ -221,6 +224,7 @@
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="tooltip_text" translatable="yes">Browse</property>
+                            <property name="related_action">open-action</property>
                             <child>
                               <object class="GtkImage" id="image5">
                                 <property name="visible">True</property>
@@ -261,5 +265,29 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAction" id="prev-action">
+    <property name="label">Previous stream</property>
+    <property name="short_label">Previous</property>
+    <property name="stock_id">gtk-media-previous</property>
+  </object>
+  <object class="GtkAction" id="play-action">
+    <property name="label">Play stream</property>
+    <property name="short_label">Play</property>
+  </object>
+  <object class="GtkAction" id="next-action">
+    <property name="label">Next stream</property>
+    <property name="short_label">Next</property>
+    <property name="stock_id">gtk-media-next</property>
+  </object>
+  <object class="GtkAction" id="open-action">
+    <property name="label">Play or queue more streams</property>
+    <property name="short_label">Open</property>
+    <property name="stock_id">gtk-open</property>
+  </object>
+  <object class="GtkAction" id="pause-action">
+    <property name="label">Pause stream</property>
+    <property name="short_label">Pause</property>
+    <property name="stock_id">gtk-media-pause</property>
   </object>
 </interface>
