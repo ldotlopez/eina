@@ -556,12 +556,15 @@ remove_selected(EinaPlaylist *self)
 {
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
 	gint *indices = get_selected_indices(self);
-	guint i;
+	gint i;
 
 	for (i = 0; indices[i] != -1; i++);
 
-	for (;i >= 0; i--)
+	for (i = i - 1; i >= 0; i--)
+	{
+		gel_warn("Deleting #%d", indices[i]);
 		lomo_player_del(lomo, indices[i]);
+	}
 	g_free(indices);
 
 #if 0
@@ -951,31 +954,36 @@ static void lomo_insert_cb
 static void lomo_remove_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self)
 {
-	GtkTreeModel *model;
-	GtkTreeIter   iter;
-	gchar        *path_str;
-	gchar        *raw_title;
-	path_str = g_strdup_printf("%d", pos);
+	GtkTreeModel *model   = self->model;
+	GtkTreePath *treepath = gtk_tree_path_new_from_indices(pos, -1);
+	GtkTreeIter  iter;
 
-	model = self->model;
-	if (!gtk_tree_model_get_iter_from_string(model, &iter, (const gchar *) path_str))
+	// Get iter
+	if (!gtk_tree_model_get_iter(model, &iter, treepath))
 	{
-		gel_error("Cannot find iter corresponding to index %d", pos);
-		g_free(path_str);
+		gtk_tree_path_free(treepath);
+		gel_error("Cannot find iter corresponding to index #%d", pos);
 		return;
 	}
+	gtk_tree_path_free(treepath);
 
-	gtk_tree_model_get(model, &iter,
-		PLAYLIST_COLUMN_TEXT, &raw_title,
-		-1);
-	
-	if (!gtk_list_store_remove(GTK_LIST_STORE(model), &iter))
+	// Delete element
+	gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+
+	// Update indices from pos to bottom
+	guint i;
+	guint total = lomo_player_get_total(lomo);
+	treepath = gtk_tree_path_new_from_indices(pos, -1);
+	gtk_tree_model_get_iter(model, &iter, treepath);
+
+	for (i = pos; i < total; i++)
 	{
-		gel_error("Cannot remove iter");
-		return;
+		gtk_list_store_set(GTK_LIST_STORE(self->model), &iter,
+			PLAYLIST_COLUMN_INDEX, i,
+			-1);
+		  gtk_tree_model_iter_next(model, &iter);
 	}
-
-	g_free(path_str);
+	gtk_tree_path_free(treepath);
 }
 
 static void lomo_queue_cb

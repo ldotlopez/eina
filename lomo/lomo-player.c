@@ -1082,8 +1082,6 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 	if (lomo_player_get_total(self) <= pos )
 		return FALSE;
 
-	// XXX: Bug found? 
-	// LomoStream *stream = lomo_player_get_current_stream(self);
 	LomoStream *stream = lomo_player_nth_stream(self, pos);
 
 	// Call hooks
@@ -1092,11 +1090,11 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 		return ret;
 
 	// Exec action
+	g_object_ref(stream);
 	curr = lomo_player_get_current(self);
 	if (curr != pos)
 	{
 		// No problem, delete 
-		g_signal_emit(G_OBJECT(self), lomo_player_signals[REMOVE], 0, stream, pos);
 		lomo_playlist_del(self->priv->pl, pos);
 	}
 
@@ -1108,17 +1106,17 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 		{
 			// mmm, only one stream, go stop
 			lomo_player_stop(self, NULL);
-			g_signal_emit(G_OBJECT(self), lomo_player_signals[REMOVE], 0, stream, pos);
 			lomo_playlist_del(self->priv->pl, pos);
 		}
 		else
 		{
 			/* Delete and go next */
 			lomo_player_go_next(self, NULL);
-			g_signal_emit(G_OBJECT(self), lomo_player_signals[REMOVE], 0, stream, pos);
 			lomo_playlist_del(self->priv->pl, pos);
 		}
 	}
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[REMOVE], 0, stream, pos);
+	g_object_unref(stream);
 
 	return TRUE;
 }
