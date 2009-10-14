@@ -82,6 +82,20 @@ gel_ui_load_image_from_def_multiple(GelUI *ui, GelUIImageDef defs[], guint *coun
 void
 gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget);
 
-G_END_DECLS
+/*
+ * Gtk List Model helpers
+ */
+gboolean
+gel_ui_list_model_get_iter_from_index(GtkListStore *model, GtkTreeIter *iter, gint index);
 
+void
+gel_ui_list_store_insert_at_index(GtkListStore *model, gint index, ...);
+
+void
+gel_ui_list_store_set_valist_at_index(GtkListStore *model, gint index, ...);
+
+void
+gel_ui_list_store_remove_at_index(GtkListStore *model, gint index);
+
+G_END_DECLS
 #endif // _GEL_UI_H

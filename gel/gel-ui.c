@@ -130,4 +130,50 @@ gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
 	gtk_box_pack_start(GTK_BOX(container), widget, TRUE, TRUE, 0); 
 }
 
+//
+// TreeStore/ListStore helpers
+//
+gboolean
+gel_ui_list_model_get_iter_from_index(GtkListStore *model, GtkTreeIter *iter, gint index)
+{
+	GtkTreePath *treepath = gtk_tree_path_new_from_indices(index, -1);
+	gboolean ret = gtk_tree_model_get_iter(GTK_TREE_MODEL(model), iter, treepath);
+	gtk_tree_path_free(treepath);
+	return ret;
+}
+
+void
+gel_ui_list_store_insert_at_index(GtkListStore *model, gint index, ...)
+{
+	GtkTreeIter iter;
+	gtk_list_store_insert(model, &iter, index);
+
+	va_list args;
+	va_start(args, index);
+	gtk_list_store_set_valist(GTK_LIST_STORE(model), &iter, args);
+	va_end(args);
+}
+
+void
+gel_ui_list_store_set_valist_at_index(GtkListStore *model, gint index, ...)
+{
+	va_list args;
+
+	GtkTreeIter iter;
+	g_return_if_fail(gel_ui_list_model_get_iter_from_index(model, &iter, index));
+		
+	va_start(args, index);
+	gtk_list_store_set_valist(GTK_LIST_STORE(model), &iter, args);
+	va_end(args);
+}
+
+void
+gel_ui_list_store_remove_at_index(GtkListStore *model, gint index)
+{
+	GtkTreeIter iter;
+	g_return_if_fail(gel_ui_list_model_get_iter_from_index(model, &iter, index));
+
+	gtk_list_store_remove(model, &iter);
+}
+
 G_END_DECLS
