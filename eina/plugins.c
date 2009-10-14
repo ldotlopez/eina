@@ -143,10 +143,12 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(self->treeview, "cursor-changed", (GCallback) plugins_treeview_cursor_changed_cb, self);
 	g_signal_connect(eina_obj_get_object(self, "toggle-renderer"), "toggled", (GCallback) plugins_cell_renderer_toggle_toggled_cb, self);
 
+	plugin->data = self;
+
 	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
 		"<ui>"
-		"<menubar name=\"MainMenuBar\">"
+		"<menubar name=\"Main\">"
 		"<menu name=\"Edit\" action=\"EditMenu\" >"
 		"<menuitem name=\"Plugins\" action=\"Plugins\" />"
 		"</menu>"

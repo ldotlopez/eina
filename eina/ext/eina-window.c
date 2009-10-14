@@ -1,3 +1,4 @@
+#include <glib/gi18n.h>
 #include <gdk/gdkkeysyms.h>
 #include <gel/gel.h>
 #include <eina/ext/eina-window.h>
@@ -15,11 +16,12 @@ typedef struct {
 } EinaWindowKeyBindPriv;
 
 struct _EinaWindowPrivate {
-	gboolean      persistant;
-	GtkBox       *container;
-	GtkUIManager *ui_manager;
-	GList        *keybinds;
-	gboolean      keybindings_enabled;
+	gboolean        persistant;
+	GtkBox         *container;
+	GtkUIManager   *ui_manager;
+	GtkActionGroup *ag;
+	GList          *keybinds;
+	gboolean        keybindings_enabled;
 };
 
 gboolean
@@ -27,8 +29,20 @@ window_key_press_event_cb(GtkWidget *self, GdkEvent *ev, gpointer data);
 
 static gchar *ui_mng_str =
 "<ui>"
-"  <menubar name='MainMenuBar' />"
+"  <menubar name='Main' >"
+"    <menu name='File'    action='FileMenu'    />"
+"    <menu name='Edit'    action='EditMenu'    />"
+"    <menu name='Plugins' action='PluginsMenu' />"
+"    <menu name='Help'    action='HelpMenu'    />"
+"  </menubar>"
 "</ui>";
+
+static GtkActionEntry ui_mng_actions[] = {
+	{ "FileMenu",    NULL, N_("_File"),    "<alt>f", NULL, NULL},
+	{ "EditMenu",    NULL, N_("_Edit"),    "<alt>e", NULL, NULL},
+	{ "PluginsMenu", NULL, N_("_Add-ons"), "<alt>a", NULL, NULL},
+	{ "HelpMenu",    NULL, N_("_Help"),    "<alt>h", NULL, NULL},
+};
 
 static void
 eina_window_dispose (GObject *object)
@@ -42,6 +56,12 @@ eina_window_dispose (GObject *object)
 	{
 		gel_list_deep_free(priv->keybinds, g_free);
 		priv->keybinds = NULL;
+	}
+
+	if (priv->ag)
+	{
+		g_object_unref(priv->ag);
+		priv->ag = NULL;
 	}
 
 	G_OBJECT_CLASS (eina_window_parent_class)->dispose (object);
@@ -67,8 +87,14 @@ eina_window_init (EinaWindow *self)
 	priv->ui_manager = gtk_ui_manager_new();
 
 	gtk_ui_manager_add_ui_from_string(priv->ui_manager, ui_mng_str, -1, NULL);
+
+	priv->ag = gtk_action_group_new("_window");
+	gtk_action_group_add_actions(priv->ag, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions), NULL);
+	gtk_ui_manager_insert_action_group(priv->ui_manager, priv->ag, 0);
+	gtk_ui_manager_ensure_update(priv->ui_manager);
+
 	gtk_box_pack_start(priv->container,
-		gtk_ui_manager_get_widget(priv->ui_manager, "/MainMenuBar"),
+		gtk_ui_manager_get_widget(priv->ui_manager, "/Main"),
 		FALSE, TRUE, 0
 		);
 	gtk_widget_show_all((GtkWidget *) priv->container);

@@ -35,6 +35,9 @@ enum {
 	EINA_IGE_PLAYER_NOT_LOADED
 };
 
+static void
+ui_manager_actions_changed_cb(GtkUIManager *ui_mng, EinaIge *self);
+
 static gboolean
 ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
@@ -65,6 +68,8 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	// Build menu
 	GtkUIManager *ui_mng = eina_window_get_ui_manager(GEL_APP_GET_WINDOW(app));
+	g_signal_connect((GObject *) ui_mng, "actions-changed", (GCallback) ui_manager_actions_changed_cb, self);
+
 	GtkWidget *main_menu_bar = gtk_ui_manager_get_widget(ui_mng, "/MainMenuBar");
 	gtk_widget_hide(main_menu_bar);
 
@@ -83,6 +88,7 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		GTK_MENU_ITEM(gtk_ui_manager_get_widget(ui_mng, "/MainMenuBar/Edit/Preferences")),
 		NULL);
 
+	gel_warn(gtk_ui_manager_get_ui(ui_mng));
 	plugin->data = self;
 
 	return TRUE;
@@ -97,9 +103,33 @@ ige_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+static void
+ui_manager_actions_changed_cb(GtkUIManager *ui_mng, EinaIge *self)
+{
+/*
+	enum {
+		EINA_IGE_ABOUT_ITEM,
+		EINA_IGE_QUIT_ITEM,
+		EINA_IGE_PREFERENCES_ITEM
+	} EinaIgeItem; */
+	gchar *paths[]= {
+		"/MainMenuBar/Help/About",
+		"/MainMenuBar/File/Quit",
+		"/MainMenuBar/Edit/Preferences",
+	};
+
+	gint i;
+	for (i = 0; i < G_N_ELEMENTS(paths); i++)
+	{
+		GtkWidget *widget = gtk_ui_manager_get_widget(ui_mng, paths[i]);
+		if (widget)
+			gel_warn("Found %s", paths[i]);
+	}
+}
+
 G_MODULE_EXPORT EinaPlugin ige_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"ige", PACKAGE_VERSION, "player",
+	"ige", PACKAGE_VERSION, "window,player,preferences",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
 	N_("OSX integration"), NULL, NULL,

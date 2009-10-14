@@ -167,15 +167,22 @@ static EinaWindowKeyBind keybindings[] = {
 	{ GDK_KP_Right,  (EinaWindowKeyBindHandler) window_keybind_handler }
 };
 
-static GtkActionEntry ui_actions[] = {
-	// Menu
-	{ "FileMenu", NULL, N_("_File"),
-	"<alt>f", NULL, NULL},
-	{ "EditMenu", NULL, N_("_Edit"),
-	"<alt>e", NULL, NULL},
-	{ "HelpMenu", NULL, N_("_Help"),
-	"<alt>h", NULL, NULL},
+static gchar *ui_mng_xml = 
+"<ui>"
+"<menubar name=\"Main\">"
+"	<menu name=\"File\"  action=\"FileMenu\">"
+"		<menuitem name=\"Open\" action=\"Open\" />"
+"		<menuitem name=\"Quit\" action=\"Quit\" />"
+"	</menu>"
+"	<menu name=\"Help\" action=\"HelpMenu\">"
+"		<menuitem name=\"Help\" action=\"Help\" />"
+"		<menuitem name=\"Bug\" action=\"Bug\" />"
+"		<menuitem name=\"About\" action=\"About\" />"
+"	</menu>"
+"</menubar>"
+"</ui>";
 
+static GtkActionEntry ui_actions[] = {
 	// Menu item actions 
 	{ "Open", GTK_STOCK_OPEN, N_("Load"),
 	"<control>o", NULL, G_CALLBACK(menu_activate_cb) },
@@ -265,28 +272,23 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Initialize UI Manager
 	GError *err = NULL;
 
-	gchar *ui_manager_file = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-menu.ui");
-	if (ui_manager_file != NULL)
+	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
+	self->ui_mng_id = gtk_ui_manager_add_ui_from_string(ui_manager, ui_mng_xml, -1, &err);
+	if (self->ui_mng_id == 0)
 	{
-		GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
-		self->ui_mng_id = gtk_ui_manager_add_ui_from_file(ui_manager, ui_manager_file, &err);
-		if (self->ui_mng_id == 0)
-		{
-			gel_warn("Error adding UI to UI Manager: '%s'", err->message);
-			g_error_free(err);
-		}
-		else
-		{
-			self->ui_mng_ag = gtk_action_group_new("player");
-			gtk_action_group_add_actions(self->ui_mng_ag, ui_actions, G_N_ELEMENTS(ui_actions), self);
-			gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 0);
-			gtk_ui_manager_ensure_update(ui_manager);
-		}
-		g_free(ui_manager_file);
-		gtk_window_add_accel_group(
-			(GtkWindow *) EINA_OBJ_GET_WINDOW(self),
-			gtk_ui_manager_get_accel_group(ui_manager));
+		gel_warn("Error adding UI to UI Manager: '%s'", err->message);
+		g_error_free(err);
 	}
+	else
+	{
+		self->ui_mng_ag = gtk_action_group_new("player");
+		gtk_action_group_add_actions(self->ui_mng_ag, ui_actions, G_N_ELEMENTS(ui_actions), self);
+		gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 0);
+		gtk_ui_manager_ensure_update(ui_manager);
+	}
+	gtk_window_add_accel_group(
+		(GtkWindow *) EINA_OBJ_GET_WINDOW(self),
+		gtk_ui_manager_get_accel_group(ui_manager));
 
 	// Connect signals
 	GelUISignalDef ui_signals[] = {
