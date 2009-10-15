@@ -21,9 +21,13 @@
 #define GEL_PLUGIN_DATA_TYPE EinaFieshta
 #include <eina/eina-plugin.h>
 #include <plugins/fieshta/fieshta.h>
+
+#if HAVE_CLUTTER
 #include "fieshta-stage.h"
 #include "fieshta-stream.h"
 #include <clutter-gtk/gtk-clutter-embed.h>
+#endif
+
 #include <glib/gprintf.h>
 
 #define SLOTS 5
@@ -45,8 +49,10 @@ struct _EinaFieshta {
 	gboolean loop_done;
 	gboolean options[N_BLOCKS];
 
+	#if HAVE_CLUTTER
 	GtkWidget    *embed;
 	FieshtaStage *stage;
+	#endif
 };
 
 static gchar *fieshta_ui_xml = 
@@ -58,8 +64,13 @@ static gchar *fieshta_ui_xml =
 	"</menubar>"
 	"</ui>";
 
+#if HAVE_CLUTTER
+static void
+fieshta_ui_init(EinaFieshta *self);
 static void
 fieshta_ui_push_index(EinaFieshta *self, gint index);
+#endif
+
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaFieshta *self);
 static void
@@ -68,9 +79,6 @@ static gboolean
 fieshta_hook(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaFieshta *self);
 static void
 set_fieshta_mode_activated_cb(GtkAction *action, EinaFieshta *self);
-
-static void
-fieshta_ui_init(EinaFieshta *self);
 
 gboolean
 fieshta_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -132,7 +140,9 @@ eina_fieshta_set_mode(EinaFieshta *self, gboolean mode)
 		g_signal_connect(lomo, "insert",    (GCallback) lomo_insert_cb,    self);
 
 		// Build GTK
+		#if HAVE_CLUTTER
 		fieshta_ui_init(self);
+		#endif
 	}
 	else
 	{
@@ -141,11 +151,14 @@ eina_fieshta_set_mode(EinaFieshta *self, gboolean mode)
 		lomo_player_hook_remove(lomo, (LomoPlayerHook) fieshta_hook);
 		g_signal_handlers_disconnect_by_func(lomo, (GCallback ) lomo_change_cb, self);
 		g_signal_handlers_disconnect_by_func(lomo, (GCallback ) lomo_insert_cb,    self);
-
+	
+		#if HAVE_CLUTTER
 		g_object_unref(self->stage);
+		#endif
 	}
 }
 
+#if HAVE_CLUTTER
 static void
 fieshta_ui_init(EinaFieshta *self)
 {
@@ -216,6 +229,7 @@ fieshta_ui_push_index(EinaFieshta *self, gint index)
 	g_free(path);
 	g_object_unref(pb);
 }
+#endif
 
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaFieshta *self)
@@ -225,7 +239,9 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaFieshta *self)
 		gel_warn("Loop done");
 		self->loop_done = TRUE;
 	}
+	#if HAVE_CLUTTER
 	fieshta_ui_push_index(self, (to + (SLOTS/2)) % lomo_player_get_total(lomo));
+	#endif
 }
 
 static void
