@@ -290,4 +290,9 @@
     <property name="short_label">Pause</property>
     <property name="stock_id">gtk-media-pause</property>
   </object>
+  <object class="GtkAction" id="quit-action">
+    <property name="label">Quit Eina</property>
+    <property name="short_label">Quit</property>
+    <property name="stock_id">gtk-quit</property>
+  </object>
 </interface>

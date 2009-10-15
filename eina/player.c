@@ -33,6 +33,7 @@
 struct _EinaPlayer {
 	EinaObj parent;
 	GtkActionGroup *action_group;
+	guint merge_id;
 };
 
 static void
@@ -40,6 +41,17 @@ player_update_state(EinaPlayer *self);
 
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
+
+static gchar *ui_xml = 
+"<ui>"
+"<menubar name='Main'>"
+"  <menu name='File' action='FileMenu'>"
+"    <menuitem name='Open' action='open-action' />"
+"    <menuitem name='Quit' action='quit-action' />"
+"  </menu>"
+"</menubar>"
+"</ui>"
+;
 
 static gboolean
 player_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -81,14 +93,33 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		GTK_WIDGET(volume));
 		gtk_widget_show(GTK_WIDGET(volume));
 
-	// play/pause state
-	player_update_state(self);
-
 	// Enable actions
 	gint i;
-	const gchar *actions[] = { "play-action", "pause-action", "next-action", "prev-action", "open-action" };
+	self->action_group = gtk_action_group_new("player");
+	const gchar *actions[] = { "play-action", "pause-action", "next-action", "prev-action", "open-action", "quit-action" };
 	for (i = 0; i < G_N_ELEMENTS(actions); i++)
-		g_signal_connect((GObject *) eina_obj_get_object(self, actions[i]), "activate", (GCallback) action_activated_cb, self);
+	{
+		GtkAction *action = eina_obj_get_typed(self, GTK_ACTION, actions[i]);
+		gtk_action_group_add_action(self->action_group, action);
+		g_signal_connect((GObject *) action, "activate", (GCallback) action_activated_cb, self);
+	}
+
+	GtkUIManager *ui_mng = eina_window_get_ui_manager(eina_obj_get_window(self));
+	gtk_ui_manager_insert_action_group(ui_mng, self->action_group, G_MAXINT);
+
+	// UI Manager
+	GError *err = NULL;
+	if ((self->merge_id = gtk_ui_manager_add_ui_from_string(ui_mng, ui_xml, -1, &err)) == 0)
+	{
+		gel_warn(N_("Cannot merge with UI Manager: %s"), err->message);
+		g_error_free(err);
+		return FALSE;
+	}
+	else
+		gtk_ui_manager_ensure_update(ui_mng);
+
+	// play/pause state
+	player_update_state(self);
 
 	// Connect lomo signals
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
@@ -180,6 +211,9 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 
 	else if (g_str_equal(name, "prev-action"))
 		lomo_player_go_prev(lomo, &error);
+
+	else if (g_str_equal(name, "open-action"))
+		eina_fs_file_chooser_load_files(lomo);
 
 	else
 	{
