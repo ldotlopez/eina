@@ -119,6 +119,7 @@ eina_window_init (EinaWindow *self)
 	gtk_widget_show_all((GtkWidget *) priv->container);
 	gtk_container_add((GtkContainer *) self, (GtkWidget *) priv->container);
 
+	gtk_window_add_accel_group((GtkWindow *) self, gtk_ui_manager_get_accel_group(priv->ui_manager));
 	g_signal_connect(self, "key-press-event", (GCallback) window_key_press_event_cb, NULL);
 }
 

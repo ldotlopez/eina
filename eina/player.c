@@ -38,7 +38,16 @@ struct _EinaPlayer {
 
 static void
 player_update_state(EinaPlayer *self);
+static void
+player_update_information(EinaPlayer *self);
 
+static gchar *
+stream_info_parser_cb(gchar key, LomoStream *stream);
+
+static void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
+static void
+volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
 
@@ -48,6 +57,11 @@ static gchar *ui_xml =
 "  <menu name='File' action='FileMenu'>"
 "    <menuitem name='Open' action='open-action' />"
 "    <menuitem name='Quit' action='quit-action' />"
+"  </menu>"
+"  <menu name='Help' action='HelpMenu'>"
+"    <menuitem name='Help'  action='help-action'  />"
+"    <menuitem name='Bug'   action='bug-action'   />"
+"    <menuitem name='About' action='about-action' />"
 "  </menu>"
 "</menubar>"
 "</ui>"
@@ -96,11 +110,20 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Enable actions
 	gint i;
 	self->action_group = gtk_action_group_new("player");
-	const gchar *actions[] = { "play-action", "pause-action", "next-action", "prev-action", "open-action", "quit-action" };
+	const gchar *actions[] = {
+		"play-action", "pause-action",
+		"next-action", "prev-action",
+		"open-action", "quit-action",
+		"help-action", "bug-action", "about-action" };
+	const gchar *accels[] = {
+		"", "",
+		"Page_Down", "Page_Up",
+		"<Control>o", "<Control>q",
+		"F1", "", "" };
 	for (i = 0; i < G_N_ELEMENTS(actions); i++)
 	{
 		GtkAction *action = eina_obj_get_typed(self, GTK_ACTION, actions[i]);
-		gtk_action_group_add_action(self->action_group, action);
+		gtk_action_group_add_action_with_accel(self->action_group, action, accels[i]);
 		g_signal_connect((GObject *) action, "activate", (GCallback) action_activated_cb, self);
 	}
 
@@ -116,16 +139,25 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 	else
+	{
 		gtk_ui_manager_ensure_update(ui_mng);
+	}
 
 	// play/pause state
 	player_update_state(self);
 
+	// Information
+	player_update_information(self);
+
 	// Connect lomo signals
+	g_signal_connect(volume, "value-changed", (GCallback) volume_value_changed_cb, self);
+
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
-	g_signal_connect_swapped(lomo, "play",  (GCallback) player_update_state, self);
-	g_signal_connect_swapped(lomo, "pause", (GCallback) player_update_state, self);
-	g_signal_connect_swapped(lomo, "stop",  (GCallback) player_update_state, self);
+	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
+	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
+	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
+	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
+	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
 
 	// Add to main window
 	GtkWidget *main_widget = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
@@ -188,9 +220,86 @@ player_update_state(EinaPlayer *self)
 	gtk_image_set_from_stock(image, stock, GTK_ICON_SIZE_BUTTON);
 }
 
+static void
+player_update_information(EinaPlayer *self)
+{
+	gchar *info   = "<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n<span size=\"x-large\" weight=\"normal\">\u200B</span>";
+	gchar *markup = "<span size=\"x-large\" weight=\"bold\">%t</span>\n<span size=\"x-large\" weight=\"normal\">{%a}</span>";
+
+	GtkWidget *label = eina_obj_get_typed(self, GTK_WIDGET, "stream-info-label");
+
+	LomoPlayer *lomo;
+	LomoStream *stream;
+
+	if (!(lomo = eina_obj_get_lomo(self)) || !(stream = lomo_player_get_current_stream(lomo)))
+	{
+		g_object_set(label,
+			"selectable", FALSE,
+			"use-markup", TRUE,
+			"label", info,
+			NULL);
+		gtk_window_set_title((GtkWindow *) eina_obj_get_window(self), "Eina player");
+		return;
+	}
+
+	info = gel_str_parser(markup, (GelStrParserFunc) stream_info_parser_cb, stream);
+	g_object_set(label,
+		"selectable", TRUE,
+		"use-markup", TRUE,
+		"label", info,
+		NULL);
+	g_free(info);
+
+	gchar *title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
+	if (title == NULL)
+	{
+		gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+		title =  g_uri_unescape_string(tmp, NULL);
+		g_free(tmp);
+   }
+
+   gtk_window_set_title((GtkWindow *) eina_obj_get_window(self), title);
+   g_free(title);
+}
+
+static gchar *
+stream_info_parser_cb(gchar key, LomoStream *stream)
+{
+	gchar *ret = NULL;
+	gchar *tag_str = lomo_stream_get_tag_by_id(stream, key);
+
+	if (tag_str != NULL)
+	{
+		ret = g_markup_escape_text(tag_str, -1);
+		g_free(tag_str);
+	}
+
+	if ((key == 't') && (ret == NULL))
+	{
+		const gchar *tmp = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+		gchar *tmp2 = g_uri_unescape_string(tmp, NULL);
+		ret = g_path_get_basename(tmp2);
+		g_free(tmp2);
+	}
+	return ret;
+}
+
 // --
 // Signals
 // --
+static void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
+{
+	if (stream == lomo_player_get_current_stream(lomo))
+		player_update_information(self);
+}
+
+static void
+volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self)
+{
+	lomo_player_set_volume(eina_obj_get_lomo(self), (gint) (value * 100));
+}
+
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self)
 {
@@ -212,8 +321,26 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 	else if (g_str_equal(name, "prev-action"))
 		lomo_player_go_prev(lomo, &error);
 
+	else if (g_str_equal(name, "volume-action"))
+	{
+	}
+	
 	else if (g_str_equal(name, "open-action"))
 		eina_fs_file_chooser_load_files(lomo);
+
+	else if (g_str_equal(name, "quit-action"))
+		g_object_unref(eina_obj_get_app(self));
+
+	else if (g_str_equal(name, "help-action"))
+		gtk_show_uri(NULL, HELP_URI, GDK_CURRENT_TIME, &error);
+
+	else if (g_str_equal(name, "bug-action"))
+		gtk_show_uri(NULL, BUGS_URI, GDK_CURRENT_TIME, &error);
+
+	else if (g_str_equal(name, "about-action"))
+	{
+		gel_implement("About dialog is not anymore in EinaPlayer");
+	}
 
 	else
 	{
