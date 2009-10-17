@@ -125,8 +125,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		GtkAction *action = eina_obj_get_typed(self, GTK_ACTION, actions[i]);
 		gtk_action_group_add_action_with_accel(self->action_group, action, accels[i]);
 		g_signal_connect((GObject *) action, "activate", (GCallback) action_activated_cb, self);
+	
 	}
-
 	GtkUIManager *ui_mng = eina_window_get_ui_manager(eina_obj_get_window(self));
 	gtk_ui_manager_insert_action_group(ui_mng, self->action_group, G_MAXINT);
 
@@ -139,9 +139,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 	else
-	{
 		gtk_ui_manager_ensure_update(ui_mng);
-	}
 
 	// play/pause state
 	player_update_state(self);
