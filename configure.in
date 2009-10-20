@@ -111,8 +111,14 @@ PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 	HAVE_CLUTTER=no
 ])
 
-AM_CONDITIONAL(USE_CLUTTY,  test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
 AM_CONDITIONAL(USE_CLUTTER, test x"$HAVE_CLUTTER" = "xyes")
+
+if test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes"; then
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=1"
+else
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=0"
+fi
+AM_CONDITIONAL(USE_CLUTTY,  test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
 
 dnl notify
 NOTIFY_VERSION="0.4.0"

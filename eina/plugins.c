@@ -130,20 +130,21 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Setup signals
-	self->window = eina_obj_get_widget(self, "main-window");
+	self->window   = eina_obj_get_widget(self, "main-window");
 	self->treeview = eina_obj_get_typed(self, GTK_TREE_VIEW, "treeview");
-	self->model  = eina_obj_get_typed(self, GTK_LIST_STORE, "liststore");
-
-	g_signal_connect_swapped(self->window, "delete-event", (GCallback) plugins_hide, self);
-
-	g_signal_connect_swapped(self->window, "response",
-	G_CALLBACK(plugins_hide), self);
-
-	g_signal_connect(self->window, "response", (GCallback) plugins_window_response_cb, self);
-	g_signal_connect(self->treeview, "cursor-changed", (GCallback) plugins_treeview_cursor_changed_cb, self);
-	g_signal_connect(eina_obj_get_object(self, "toggle-renderer"), "toggled", (GCallback) plugins_cell_renderer_toggle_toggled_cb, self);
+	self->model    = eina_obj_get_typed(self, GTK_LIST_STORE, "liststore");
 
 	plugin->data = self;
+
+	// Setup UI
+
+	// Set size of dialog to more or less safe values w/4 x h/2, relative to
+	// the size of the screen
+	gtk_widget_realize(self->window);
+	GdkScreen *screen = gtk_window_get_screen((GtkWindow *) self->window);
+	gint w = gdk_screen_get_width(screen)  / 4;
+	gint h = gdk_screen_get_height(screen) / 2;
+	gtk_window_resize((GtkWindow *) self->window, w, h);
 
 	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	self->ui_mng_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager,
@@ -172,6 +173,16 @@ plugins_init (GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_action_group_add_actions(self->ui_mng_ag, action_entries, G_N_ELEMENTS(action_entries), self);
 	gtk_ui_manager_insert_action_group(ui_manager, self->ui_mng_ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
+
+	// Setup signals
+	g_signal_connect_swapped(self->window, "delete-event", (GCallback) plugins_hide, self);
+	g_signal_connect_swapped(self->window, "response",     (GCallback) plugins_hide, self);
+
+	g_signal_connect(self->window,   "response",       (GCallback) plugins_window_response_cb, self);
+	g_signal_connect(self->treeview, "cursor-changed", (GCallback) plugins_treeview_cursor_changed_cb, self);
+	g_signal_connect(eina_obj_get_object(self, "toggle-renderer"), "toggled",
+		(GCallback) plugins_cell_renderer_toggle_toggled_cb, self);
+
 
 	// Load plugins
 	const gchar *plugins_str = eina_conf_get_str(self->conf, "/plugins/enabled", NULL);

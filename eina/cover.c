@@ -30,7 +30,7 @@
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
 
-#if HAVE_CLUTTER
+#if (defined HAVE_CLUTTY) && (HAVE_CLUTTY == 1)
 #include <eina/ext/eina-clutty.h>
 #define clutty_enabled(self) (TRUE)
 #else
@@ -100,7 +100,7 @@ cover_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	#if HAVE_CLUTTER
+	#if HAVE_CLUTTY
 	if (clutty_enabled(self))
 	{
 		gtk_clutter_init(NULL, NULL);
@@ -184,9 +184,10 @@ cover_expose_event_idle_cb(EinaCover *self)
 
 	gtk_container_add(w, (GtkWidget *) self->cover);
 	gtk_widget_set_size_request(GTK_WIDGET(self->cover), ((GtkWidget *) w)->allocation.height, ((GtkWidget *) w)->allocation.height);
-	#if HAVE_CLUTTER
+	#if HAVE_CLUTTY
 	if (clutty_enabled(self))
-		clutter_actor_set_size(CLUTTER_ACTOR(gtk_clutter_embed_get_stage(GTK_CLUTTER_EMBED(self->cover))), w->allocation.height, w->allocation.height);
+		clutter_actor_set_size(CLUTTER_ACTOR(gtk_clutter_embed_get_stage(GTK_CLUTTER_EMBED(self->cover))),
+		GTK_WIDGET(w)->allocation.height, GTK_WIDGET(w)->allocation.height);
 	#endif
 	gtk_widget_show((GtkWidget *) self->cover);
 
@@ -265,7 +266,7 @@ cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 			255);
 	}
 
-	#if HAVE_CLUTTER
+	#if HAVE_CLUTTY
 	if (clutty_enabled(self))
 		eina_clutty_set_pixbuf((EinaClutty *) self->cover, pixbuf);
 	else
