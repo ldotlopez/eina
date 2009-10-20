@@ -40,6 +40,8 @@ static void
 player_update_state(EinaPlayer *self);
 static void
 player_update_information(EinaPlayer *self);
+static void
+player_dnd_setup(EinaPlayer *self);
 
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
@@ -156,6 +158,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
+
+	player_dnd_setup(self);
 
 	// Add to main window
 	GtkWidget *main_widget = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
@@ -352,7 +356,163 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		g_error_free(error);
 	}
 }
-		
+
+// ---
+// DnD
+// ---
+enum {
+	DND_TARGET_STRING
+};
+
+static GtkTargetEntry dnd_target_list[] = {
+	{ "STRING",     0, DND_TARGET_STRING },
+	{ "text/plain", 0, DND_TARGET_STRING }
+};
+
+static guint dnd_n_targets = G_N_ELEMENTS(dnd_target_list);
+
+/******************************************************************************/
+/* Signal receivable by destination */
+
+/* Emitted when the data has been received from the source. It should check
+ * the GtkSelectionData sent by the source, and do something with it. Finally
+ * it needs to finish the operation by calling gtk_drag_finish, which will emit
+ * the "data-delete" signal if told to. */
+static void
+drag_data_received_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+        GtkSelectionData *selection_data, guint target_type, guint time,
+	gpointer data)
+{
+	gchar   *_sdata;
+
+	gboolean dnd_success = FALSE;
+	gboolean delete_selection_data = FALSE;
+
+	/* Deal with what we are given from source */
+	if((selection_data != NULL) && (selection_data-> length >= 0))
+	{
+		if (context-> action == GDK_ACTION_ASK)
+		{
+			/* Ask the user to move or copy, then set the context action. */
+		}
+
+		if (context-> action == GDK_ACTION_MOVE)
+			delete_selection_data = TRUE;
+
+		/* Check that we got the format we can use */
+		switch (target_type)
+		{
+			case DND_TARGET_STRING:
+				_sdata = (gchar*) selection_data-> data;
+				dnd_success = TRUE;
+				break;
+
+			default:
+				gel_warn("Unknow DnD type");
+		}
+
+		g_print (".\n");
+	}
+
+	if (dnd_success == FALSE)
+	{
+		g_print ("DnD data transfer failed!\n");
+	}
+	else
+	{
+		gchar **uris = g_uri_list_extract_uris(_sdata);
+		gint i;
+		for (i = 0; uris[i] && uris[i][0] ; i++)
+			gel_warn("[+] %s", uris[i]);
+		g_strfreev(uris);
+	}
+
+	gtk_drag_finish (context, dnd_success, delete_selection_data, time);
+}
+
+/* Emitted when a drag is over the destination */
+static gboolean
+drag_motion_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint t,
+	gpointer user_data)
+{
+	// Fancy stuff here. This signal spams the console something horrible.
+	//const gchar *name = gtk_widget_get_name (widget);
+	//g_print ("%s: drag_motion_cb\n", name);
+	return  FALSE;
+}
+
+/* Emitted when a drag leaves the destination */
+static void
+drag_leave_cb
+(GtkWidget *widget, GdkDragContext *context, guint time, gpointer user_data)
+{
+}
+
+/* Emitted when the user releases (drops) the selection. It should check that
+ * the drop is over a valid part of the widget (if its a complex widget), and
+ * itself to return true if the operation should continue. Next choose the
+ * target type it wishes to ask the source for. Finally call gtk_drag_get_data
+ * which will emit "drag-data-get" on the source. */
+static gboolean
+drag_drop_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
+	gpointer user_data)
+{
+	gboolean        is_valid_drop_site;
+	GdkAtom         target_type;
+
+	/* Check to see if (x,y) is a valid drop site within widget */
+	is_valid_drop_site = TRUE;
+
+	/* If the source offers a target */
+	if (context-> targets)
+	{
+		/* Choose the best target type */
+		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (context->targets, DND_TARGET_STRING));
+
+		/* Request the data from the source. */
+		gtk_drag_get_data
+		(
+			widget,         /* will receive 'drag-data-received' signal */
+			context,        /* represents the current state of the DnD */
+			target_type,    /* the target type we want */
+			time            /* time stamp */
+		);
+	}
+
+	/* No target offered by source => error */
+	else
+	{
+		is_valid_drop_site = FALSE;
+	}
+
+	return  is_valid_drop_site;
+}
+
+static void
+player_dnd_setup(EinaPlayer *self)
+{
+	GtkWidget *dest = eina_obj_get_widget((EinaObj*) self, "main-widget");
+	gtk_drag_dest_set
+	(
+		dest,                        /* widget that will accept a drop */
+		GTK_DEST_DEFAULT_DROP        /* default actions for dest on DnD */
+		| GTK_DEST_DEFAULT_MOTION 
+		| GTK_DEST_DEFAULT_HIGHLIGHT,
+		dnd_target_list,             /* lists of target to support */
+		dnd_n_targets,               /* size of list */
+		GDK_ACTION_COPY              /* what to do with data after dropped */
+	);
+
+	/* All possible destination signals */
+	g_signal_connect (dest, "drag-data-received", G_CALLBACK(drag_data_received_cb), self);
+	g_signal_connect (dest, "drag-leave",         G_CALLBACK (drag_leave_cb),        self);
+	g_signal_connect (dest, "drag-motion",        G_CALLBACK (drag_motion_cb),       self);
+	g_signal_connect (dest, "drag-drop",          G_CALLBACK (drag_drop_cb),         self);
+}
+
 // --
 // Connector 
 // --
@@ -368,3 +528,5 @@ EINA_PLUGIN_SPEC (player,
 
 	player_init, player_fini
 );
+
+
