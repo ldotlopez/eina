@@ -25,6 +25,7 @@
 #include <eina/ext/eina-seek.h>
 #include <eina/ext/eina-volume.h>
 #include <eina/player.h>
+#include <gel/gel-beef.h>
 
 #define CODENAME "They don't believe"
 #define HELP_URI "http://answers.launchpad.net/eina"
@@ -412,19 +413,22 @@ drag_data_received_cb
 				gel_warn("Unknow DnD type");
 		}
 
-		g_print (".\n");
 	}
 
 	if (dnd_success == FALSE)
 	{
-		g_print ("DnD data transfer failed!\n");
+		gel_error("DnD data transfer failed!\n");
 	}
 	else
 	{
 		gchar **uris = g_uri_list_extract_uris(_sdata);
 		gint i;
 		for (i = 0; uris[i] && uris[i][0] ; i++)
+		{
 			gel_warn("[+] %s", uris[i]);
+			gel_beef_list(g_file_new_for_uri(uris[i]), "standard::*", TRUE, NULL, NULL, NULL);
+		}
+		
 		g_strfreev(uris);
 	}
 

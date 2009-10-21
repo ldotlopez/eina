@@ -206,6 +206,4 @@ gel_ui_list_store_remove_at_index(GtkListStore *model, gint index)
 	gtk_list_store_remove(model, &iter);
 }
 
-
-
 G_END_DECLS

@@ -16,6 +16,7 @@ NOINST_H_FILES = \
 	gel-app-marshallers.h
 
 INST_H_FILES = \
+	gel-beef.h \
 	gel.h                   \
 	gel-misc.h              \
 	gel-string.h            \
@@ -33,6 +34,7 @@ headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/gel
 header_DATA = $(INST_H_FILES)
 
 libgel_1_0_la_SOURCES = \
+	gel-beef.c \
 	gel-misc.c              \
 	gel-string.c            \
 	gel-str-parser.c        \
