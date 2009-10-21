@@ -76,9 +76,9 @@ playlist_set_valist_from_stream(EinaPlaylist *self, LomoStream *stream, ...);
 gboolean
 eina_playlist_dock_init(EinaPlaylist *self);
 static void
-queue_selected(EinaPlaylist *self);
+playlist_queue_selected(EinaPlaylist *self);
 static void
-remove_selected(EinaPlaylist *self);
+playlist_remove_selected(EinaPlaylist *self);
 static void
 setup_dnd(EinaPlaylist *self);
 static gchar *
@@ -94,20 +94,8 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 // UI Callbacks
 void
 dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self);
-static void
-add_button_clicked_cb
-(GtkWidget *w, EinaPlaylist *self);
-void
-remove_button_clicked_cb(GtkWidget *w, EinaPlaylist *self);
-void // for swapped
-clear_button_clicked_cb (GtkWidget *w, EinaPlaylist *self);
-void
-random_button_toggled_cb(GtkWidget *w, EinaPlaylist *self);
-void
-repeat_button_toggled_cb(GtkWidget *w, EinaPlaylist *self);
 gboolean
 treeview_button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaPlaylist *self);
-
 void
 action_activate_cb(GtkAction *action, EinaPlaylist *self);
 
@@ -126,6 +114,8 @@ static void lomo_change_cb
 (LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self);
 static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
+static void lomo_repeat_cb
+(LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
 static void lomo_random_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
 static void lomo_eos_cb
@@ -147,16 +137,6 @@ void dock_row_activated_cb
  	GtkTreePath *path,
 	GtkTreeViewColumn *column,
 	EinaPlaylist *self);
-void add_button_clicked_cb
-(GtkWidget *w, EinaPlaylist *self);
-void clear_button_clicked_cb
-(GtkWidget *w, EinaPlaylist *self);
-void remove_button_clicked_cb
-(GtkWidget *w, EinaPlaylist *self);
-void random_button_toggled_cb
-(GtkWidget *w, EinaPlaylist *self);
-void repeat_button_toggled_cb
-(GtkWidget *w, EinaPlaylist *self);
 
 static gboolean
 widget_focus_in_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self);
@@ -193,18 +173,6 @@ GelUISignalDef _playlist_signals[] = {
 	{ "playlist-treeview",   "row-activated",
 	G_CALLBACK(dock_row_activated_cb) },
 
-	{ "playlist-repeat-button", "toggled",
-	G_CALLBACK(repeat_button_toggled_cb) },
-	{ "playlist-random-button", "toggled",
-	G_CALLBACK(random_button_toggled_cb) },
-	
-	{ "playlist-add-button",  "clicked",
-	G_CALLBACK(add_button_clicked_cb) },
-	{ "playlist-clear-button",  "clicked",
-	G_CALLBACK(clear_button_clicked_cb) },
-	{ "playlist-remove-button", "clicked",
-	G_CALLBACK(remove_button_clicked_cb) },
-	
 	{ "playlist-search-entry", "changed",
 	G_CALLBACK(search_entry_changed_cb) },
 	{ "playlist-search-entry", "icon-press",
@@ -218,12 +186,6 @@ GelUISignalDef _playlist_signals[] = {
 
 	{ "playlist-treeview", "button-press-event",
 	G_CALLBACK(treeview_button_press_event_cb) },
-	{ "queue-action", "activate",
-	G_CALLBACK(action_activate_cb) },
-	{ "dequeue-action", "activate",
-	G_CALLBACK(action_activate_cb) },
-	{ "clear-action", "activate",
-	G_CALLBACK(action_activate_cb) },
 
 	{ "playlist-treeview", "drag-data-received",
 	G_CALLBACK(drag_data_received_cb) },
@@ -268,10 +230,6 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 
 	self->stream_fmt = (gchar *) eina_conf_get_str(conf, "/ui/playlist/fmt", "{%a - }%t");
 
-	// Set icons
-	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "playlist-random-image"), EINA_STOCK_RANDOM, GTK_ICON_SIZE_BUTTON);
-	gtk_image_set_from_stock(eina_obj_get_typed(self, GTK_IMAGE, "playlist-repeat-image"), EINA_STOCK_REPEAT, GTK_ICON_SIZE_BUTTON);
-
 	if (!eina_playlist_dock_init(self))
 	{
 		gel_error(N_("Cannot init dock widget"));
@@ -280,6 +238,20 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Connect some UI signals
 	gel_ui_signal_connect_from_def_multiple(eina_obj_get_ui(self), _playlist_signals, self, NULL);
+
+	// Actions
+	gint i;
+	const gchar *actions[] = { "add-action", "remove-action", "clear-action", "queue-action", "dequeue-action", "random-action", "repeat-action" };
+	for (i = 0; i < G_N_ELEMENTS(actions); i++)
+	{
+		GObject *action = eina_obj_get_object(self, actions[i]);
+		if (action == NULL)
+		{
+			gel_warn(N_("Missing action: %s"), actions[i]);
+			continue;
+		}
+		g_signal_connect(action, "activate", (GCallback) action_activate_cb, self);
+	}
 
 	// Lomo signals
 	g_signal_connect(eina_obj_get_lomo(self), "insert",   G_CALLBACK(lomo_insert_cb),       self);
@@ -292,6 +264,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(eina_obj_get_lomo(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "random",   G_CALLBACK(lomo_random_cb),       self);
+	g_signal_connect(eina_obj_get_lomo(self), "repeat",   G_CALLBACK(lomo_repeat_cb),       self);
 	g_signal_connect(eina_obj_get_lomo(self), "eos",      G_CALLBACK(lomo_eos_cb),          self);
 	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb),     self);
 	g_signal_connect(eina_obj_get_lomo(self), "error",    G_CALLBACK(lomo_error_cb),        self);
@@ -398,11 +371,11 @@ dock_key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self)
 	switch (event->key.keyval)
 	{
 	case GDK_q:
-		queue_selected(self);
+		playlist_queue_selected(self);
 		break;
 
 	case GDK_Delete:
-		remove_selected(self);
+		playlist_remove_selected(self);
 		break;
 
 	default:
@@ -454,9 +427,6 @@ get_selected_indices(EinaPlaylist *self)
 		gtk_tree_model_get(model, &iter,
 			PLAYLIST_COLUMN_INDEX, &index,
 			-1);
-		// path_str = gtk_tree_path_to_string((GtkTreePath*  )(l->data));
-		// const gint *indices = gtk_tree_path_get_indices((GtkTreePath *) (l->data));
-		// ret[i] = indices[0];
 		ret[i] = index;
 
 		i++;
@@ -472,7 +442,7 @@ get_selected_indices(EinaPlaylist *self)
 }
 
 static void
-queue_selected(EinaPlaylist *self)
+playlist_queue_selected(EinaPlaylist *self)
 {
 	gint *indices = get_selected_indices(self);
 	gint i = 0;
@@ -482,7 +452,7 @@ queue_selected(EinaPlaylist *self)
 }
 
 static void
-dequeue_selected(EinaPlaylist *self)
+playlist_dequeue_selected(EinaPlaylist *self)
 {
 	gint *indices = get_selected_indices(self);
 
@@ -518,7 +488,7 @@ dequeue_selected(EinaPlaylist *self)
 }
 
 static void
-remove_selected(EinaPlaylist *self)
+playlist_remove_selected(EinaPlaylist *self)
 {
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
 	gint *indices = get_selected_indices(self);
@@ -532,41 +502,6 @@ remove_selected(EinaPlaylist *self)
 		lomo_player_del(lomo, indices[i]);
 	}
 	g_free(indices);
-
-#if 0
-	GtkTreeSelection *selection;
-	GtkTreeModel     *model = NULL;
-	gchar *path_str;
-	GList *rows, *l, *sorted, *to_sort = NULL;
-
-	// Get selected
-	selection = gtk_tree_view_get_selection(self->tv);
-	l = rows = gtk_tree_selection_get_selected_rows(selection, &model);
-
-	// Create an integer list
-	while (l)
-	{
-		path_str = gtk_tree_path_to_string((GtkTreePath*  )(l->data));
-		gint index = (gint) (atol(path_str) / 1);
-
-		to_sort = g_list_prepend(to_sort, GINT_TO_POINTER(index));
-
-		g_free(path_str);
-		l = l->next;
-	}
-
-	// Free results
-	g_list_foreach(rows, (GFunc) gtk_tree_path_free, NULL);
-	g_list_free(rows);
-
-	// Sort list and delete
-	l = sorted = g_list_sort(to_sort, sort_int_desc);
-	while (l) {
-		lomo_player_del(eina_obj_get_lomo(self), GPOINTER_TO_INT(l->data));
-		l = l->next;
-	}
-	g_list_free(sorted);
-#endif
 }
 
 void
@@ -608,7 +543,6 @@ __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint it
 			return;
 
 	gel_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_state, new_state);
-	// gtk_list_store_set((GtkListStore *) self->model, iter,
 	gtk_list_store_set((GtkListStore *) self->model, iter,
 		PLAYLIST_COLUMN_STATE, new_state,
 		-1);
@@ -629,7 +563,6 @@ __eina_playlist_update_item_title(EinaPlaylist *self, GtkTreeIter *iter, gint it
 	if (!g_str_equal(current_title, markup))
 	{
 		gel_debug("Updating item %d(cur %d): %s => %s", item, current_item, current_title, markup);
-		// gtk_list_store_set((GtkListStore *) self->model, iter,
 		gtk_list_store_set((GtkListStore *) self->model, iter,
 			PLAYLIST_COLUMN_MARKUP, markup,
 			-1);
@@ -721,9 +654,9 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 	g_free(raw_title);
 }
 
-/*
- * UI Callbacks
- */
+// ------------
+// UI Callbacks
+// ------------
 void
 dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self)
 {
@@ -756,13 +689,6 @@ dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column
 	}
 }
 
-static void
-add_button_clicked_cb
-(GtkWidget *w, EinaPlaylist *self)
-{
-	eina_fs_file_chooser_load_files(eina_obj_get_lomo(self));
-}
-
 static gchar *
 format_stream(LomoStream *stream, gchar *fmt)
 {
@@ -789,44 +715,8 @@ format_stream_cb(gchar key, LomoStream *stream)
 	return tag;
 }
 
-void
-remove_button_clicked_cb(GtkWidget *w, EinaPlaylist *self)
-{
-	remove_selected(self);
-}
-
-void
-clear_button_clicked_cb (GtkWidget *w, EinaPlaylist *self)
-{
-	lomo_player_clear(eina_obj_get_lomo(self));
-}
-
-void
-random_button_toggled_cb(GtkWidget *w, EinaPlaylist *self)
-{
-	lomo_player_set_random(
-		eina_obj_get_lomo(self),
-		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
-	eina_conf_set_bool(
-		EINA_OBJ_GET_SETTINGS(self),
-		"/core/random",
-		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
-}
-
-void
-repeat_button_toggled_cb(GtkWidget *w, EinaPlaylist *self)
-{
-	lomo_player_set_repeat(
-		eina_obj_get_lomo(self),
-		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
-	eina_conf_set_bool(
-		EINA_OBJ_GET_SETTINGS(self),
-		"/core/repeat",
-		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)));
-}
-
 static gboolean
-tree_model_filtel_func_cb(GtkTreeModel *model, GtkTreeIter *iter, const gchar *query)
+tree_model_filter_func_cb(GtkTreeModel *model, GtkTreeIter *iter, const gchar *query)
 {
 	gchar *title = NULL, *title_lc, *key_lc;
 	gboolean ret = FALSE;
@@ -866,7 +756,7 @@ static void search_entry_changed_cb
 	{
 		GtkTreeModel *filter = gtk_tree_model_filter_new(self->model, NULL);
 		gtk_tree_view_set_model(self->tv, filter);
-		gtk_tree_model_filter_set_visible_func((GtkTreeModelFilter *) filter, (GtkTreeModelFilterVisibleFunc) tree_model_filtel_func_cb, (gpointer) query, NULL);
+		gtk_tree_model_filter_set_visible_func((GtkTreeModelFilter *) filter, (GtkTreeModelFilterVisibleFunc) tree_model_filter_func_cb, (gpointer) query, NULL);
 	}
 
 	if (got_query)
@@ -1009,6 +899,15 @@ static void lomo_clear_cb
 static void lomo_random_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
 {
+	gtk_toggle_action_set_active(eina_obj_get_typed(self, GTK_TOGGLE_ACTION, "random-action"), val);
+	eina_conf_set_bool(eina_obj_get_settings(self), "/core/random", val);
+}
+
+static void lomo_repeat_cb
+(LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
+{
+	gtk_toggle_action_set_active(eina_obj_get_typed(self, GTK_TOGGLE_ACTION, "repeat-action"), val);
+	eina_conf_set_bool(eina_obj_get_settings(self), "/core/repeat", val);
 	if (val)
 		lomo_player_randomize(lomo);
 }
@@ -1016,7 +915,8 @@ static void lomo_random_cb
 static gboolean
 lomo_eos_cb_helper(LomoPlayer *lomo)
 {
-	if (lomo_player_get_next(lomo) != -1) {
+	if (lomo_player_get_next(lomo) != -1)
+	{
 		lomo_player_go_next(lomo, NULL);
 		lomo_player_play(lomo, NULL); //XXX: Handle GError
 	}
@@ -1132,12 +1032,25 @@ void action_activate_cb
 (GtkAction *action, EinaPlaylist *self)
 {
 	const gchar *name = gtk_action_get_name(action);
-	gel_warn("Action activated: %s", name);
 
-	if (g_str_equal("queue-action", name))
-		queue_selected(self);
+	if (g_str_equal("add-action", name))
+		eina_fs_file_chooser_load_files(eina_obj_get_lomo(self));
+
+	else if (g_str_equal("remove-action", name))
+		playlist_remove_selected(self);
+	
+	else if (g_str_equal("clear-action", name))
+		lomo_player_clear(eina_obj_get_lomo(self));
+
+	else if (g_str_equal("queue-action", name))
+		playlist_queue_selected(self);
+
 	else if (g_str_equal("dequeue-action", name))
-		dequeue_selected(self);
+		playlist_dequeue_selected(self);
+
+	else if (g_str_equal("random-action", name))
+		lomo_player_set_random(eina_obj_get_lomo(self), gtk_toggle_action_get_active((GtkToggleAction *) action));
+
 	else
 		gel_warn("Unknow action %s", name);
 }

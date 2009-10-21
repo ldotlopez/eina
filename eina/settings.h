@@ -32,6 +32,9 @@ G_BEGIN_DECLS
 #define GEL_APP_GET_SETTINGS(app)  EINA_SETTINGS(gel_app_shared_get(app,"settings"))
 #define EINA_OBJ_GET_SETTINGS(obj) GEL_APP_GET_SETTINGS(eina_obj_get_app(obj))
 
+#define gel_app_get_settings(app)  EINA_SETTINGS(gel_app_shared_get(app,"settings"))
+#define eina_obj_get_settings(obj) GEL_APP_GET_SETTINGS(eina_obj_get_app(obj))
+
 typedef enum {
 	EINA_SETTINGS_NO_ERROR,
 	EINA_SETTINGS_CANNOT_CREATE_CONFIG_DIR,

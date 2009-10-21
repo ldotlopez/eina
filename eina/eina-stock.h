@@ -21,8 +21,8 @@
 #define _EINA_STOCK_H
 
 #define EINA_STOCK_STATUS_ICON "status-icon"
-#define EINA_STOCK_RANDOM      "random"
-#define EINA_STOCK_REPEAT      "repeat"
+#define EINA_STOCK_RANDOM      "eina-random"
+#define EINA_STOCK_REPEAT      "eina-repeat"
 #define EINA_STOCK_QUEUE       "queue"
 #define EINA_STOCK_BUG         "bug"
 
