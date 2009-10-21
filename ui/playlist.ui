@@ -142,10 +142,11 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="related_action">random-action</property>
                     <child>
-                      <object class="GtkImage" id="playlist-random-image">
+                      <object class="GtkImage" id="image5">
                         <property name="visible">True</property>
-                        <property name="stock">gtk-missing-image</property>
+                        <property name="stock">eina-random</property>
                       </object>
                     </child>
                   </object>
@@ -159,9 +160,9 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <child>
-                      <object class="GtkImage" id="playlist-repeat-image">
+                      <object class="GtkImage" id="image6">
                         <property name="visible">True</property>
-                        <property name="stock">gtk-missing-image</property>
+                        <property name="stock">eina-repeat</property>
                       </object>
                     </child>
                   </object>
@@ -205,6 +206,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="related_action">add-action</property>
                         <child>
                           <object class="GtkImage" id="image3">
                             <property name="visible">True</property>
@@ -223,6 +225,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="related_action">remove-action</property>
                         <child>
                           <object class="GtkImage" id="image4">
                             <property name="visible">True</property>
@@ -260,6 +263,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="related_action">clear-action</property>
                     <child>
                       <object class="GtkImage" id="image1">
                         <property name="visible">True</property>
@@ -295,8 +299,8 @@
     <child>
       <object class="GtkMenuItem" id="queue-menu-item">
         <property name="visible">True</property>
-        <property name="use_action_appearance">True</property>
         <property name="related_action">queue-action</property>
+        <property name="use_action_appearance">True</property>
       </object>
     </child>
     <child>
@@ -326,5 +330,25 @@
     <property name="label">Clear playlist</property>
     <property name="short_label">Clear</property>
     <property name="stock_id">gtk-clear</property>
+  </object>
+  <object class="GtkAction" id="add-action">
+    <property name="label">Add or queue files</property>
+    <property name="short_label">Add</property>
+    <property name="stock_id">gtk-add</property>
+  </object>
+  <object class="GtkAction" id="remove-action">
+    <property name="label">Remove files</property>
+    <property name="short_label">Remove</property>
+    <property name="stock_id">gtk-remove</property>
+  </object>
+  <object class="GtkToggleAction" id="random-action">
+    <property name="label">Random mode</property>
+    <property name="short_label">Random mode</property>
+    <property name="stock_id">eina-random</property>
+  </object>
+  <object class="GtkToggleAction" id="repeat-action">
+    <property name="label">Repeat mode</property>
+    <property name="short_label">Repeat mode</property>
+    <property name="stock_id">eina-repeat</property>
   </object>
 </interface>
