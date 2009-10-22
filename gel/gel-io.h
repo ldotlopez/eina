@@ -21,6 +21,7 @@
 #define _GEL_IO
 
 #include <gel/gel-io-misc.h>
+#include <gel/gel-io-tree.h>
 #include <gel/gel-io-ops.h>
 #include <gel/gel-io-recurse-tree.h>
 

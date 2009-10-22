@@ -24,6 +24,34 @@
 #include <eina/ext/eina-file-chooser-dialog.h>
 #include <lomo/lomo-util.h>
 #include <eina/fs.h>
+#include <gel/gel-io.h>
+
+static void
+eina_fs_load_files_from_uri_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, LomoPlayer *lomo)
+{
+	gel_warn("Got results");
+	g_object_unref(op);
+	g_object_unref(source);
+}
+
+static void
+eina_fs_load_files_from_uri_error_cb(GelIOOp *op, GFile *source, GError *error, LomoPlayer *lomo)
+{
+	gchar *uri = g_file_get_uri(source);
+	gel_error("Cannot read '%s' error: %s", uri, error->message);
+	g_free(uri);
+	g_object_unref(error);
+	g_object_unref(source);
+}
+
+void
+eina_fs_load_files_from_uri(LomoPlayer *lomo, gchar *uri)
+{
+	GFile *f = g_file_new_for_uri(uri);
+	gel_io_recurse_dir(f, "standard::*",
+		(GelIOOpSuccessFunc) eina_fs_load_files_from_uri_success_cb, (GelIOOpErrorFunc) eina_fs_load_files_from_uri_error_cb,
+		lomo);
+}
 
 void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo)

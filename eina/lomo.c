@@ -37,12 +37,14 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	// lomo_player_set_auto_parse(engine, TRUE);
 
+
 	if (!gel_app_shared_set(gel_plugin_get_app(plugin), "lomo", engine))
 	{
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_SET_SHARED, N_("Cannot share engine"));
 		return FALSE;
 	}
 
+	gel_implement("Set volume, random, shuffle,...");
 	return TRUE;
 }
 

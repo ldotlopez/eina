@@ -23,6 +23,7 @@ INST_H_FILES = \
 	gel-plugin.h            \
 	gel-app.h               \
 	gel-io-misc.h           \
+	gel-io-tree.h           \
 	gel-io-op-result.h      \
 	gel-io-ops.h            \
 	gel-io-recurse-tree.h   \
@@ -40,6 +41,7 @@ libgel_1_0_la_SOURCES = \
 	gel-plugin.c            \
 	gel-app.c               \
 	gel-io-misc.c           \
+	gel-io-tree.c           \
 	gel-io-op-result.c      \
 	gel-io-ops.c            \
 	gel-io-recurse-tree.c   \

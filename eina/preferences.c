@@ -70,7 +70,6 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 		"height-request", 400,
 		NULL);
 
-	attach_menu(self);
 	g_signal_connect(G_OBJECT(self->dialog), "response",     G_CALLBACK(gtk_widget_hide), self->dialog);
 	g_signal_connect(G_OBJECT(self->dialog), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), self->dialog);
 
@@ -96,9 +95,9 @@ eina_preferences_add_tab(EinaPreferences *self, GtkImage *icon, GtkLabel *label,
 {
 	eina_preferences_dialog_add_tab(self->dialog, icon, label, tab);
 	self->n_widgets++;
-	/*
+
 	if (self->n_widgets == 1)
-		attach_menu(self); */
+		attach_menu(self); 
 }
 
 void
@@ -106,9 +105,9 @@ eina_preferences_remove_tab(EinaPreferences *self, GtkWidget *tab)
 {
 	eina_preferences_dialog_remove_tab(self->dialog, tab);
 	self->n_widgets--;
-	/*
+
 	if (self->n_widgets == 0)
-		deattach_menu(self); */
+		deattach_menu(self); 
 }
 
 static void
