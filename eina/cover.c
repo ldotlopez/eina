@@ -176,6 +176,23 @@ cover_reload_resources(EinaCover *self)
 	return TRUE;
 }
 
+static void
+size_allocate_cb(GtkWidget *w, GtkAllocation *allocation, EinaCover *self)
+{
+	gel_warn("Got new size: %dx%d", allocation->width, allocation->height);
+
+	if ((allocation->width != allocation->height) && (allocation->height != 0))
+	{
+		gel_warn("Restore aspect ratio");
+		gtk_widget_set_size_request(w, allocation->height, allocation->height);
+	}
+	if ((allocation->width == allocation->height) && (allocation->height != 0))
+	{
+		cover_reload_resources(self);
+		cover_update_from_stream(self, lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(self)));
+	}
+}
+
 static gboolean
 cover_expose_event_idle_cb(EinaCover *self)
 {
@@ -190,6 +207,16 @@ cover_expose_event_idle_cb(EinaCover *self)
 		GTK_WIDGET(w)->allocation.height, GTK_WIDGET(w)->allocation.height);
 	#endif
 	gtk_widget_show((GtkWidget *) self->cover);
+	g_signal_connect(self->cover, "size-allocate", (GCallback) size_allocate_cb, self);
+
+	cover_update_from_stream(self, lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(self)));
+
+	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
+	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
+	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
+	
+	return FALSE;
+
 
 	cover_reload_resources(self);
 
@@ -198,7 +225,7 @@ cover_expose_event_idle_cb(EinaCover *self)
 	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-
+	
 	return FALSE;
 }
 
@@ -251,6 +278,9 @@ cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 	}
 
 	// Composite over new cover
+	GtkAllocation alloc = ((GtkWidget *) self->cover)->allocation;
+	gel_warn("New pixbuf size: %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
+	gel_warn("Widget size: %dx%d",	alloc.width, alloc.height);
 	if ((pixbuf != self->cover_default) &&
 		(pixbuf != self->cover_loading) &&
 		self->cover_mask                &&
@@ -333,6 +363,10 @@ lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaCover *self)
 static GdkPixbuf*
 build_cover_mask(EinaCover *self)
 {
+
+	gchar *xx= eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-mask.png");
+	return  gdk_pixbuf_new_from_file_at_scale(xx, cover_height(self), cover_height(self), FALSE, NULL);
+
 	gchar *maskpath = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-mask.png");
 	if (!maskpath)
 	{
@@ -371,7 +405,7 @@ build_cover_mask(EinaCover *self)
 	rowstride = gdk_pixbuf_get_rowstride (mask);
 	pixels    = gdk_pixbuf_get_pixels    (mask);
 
-	GdkColor *color = gtk_widget_get_style((GtkWidget *) self->cover)->bg;
+	GdkColor *color = gtk_widget_get_style(((GtkWidget *) self->cover)->parent)->bg;
 	for ( i = 0; i < width; i++)
 		for (j = 0; j < height; j++)
 		{
