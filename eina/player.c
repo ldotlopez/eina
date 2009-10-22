@@ -20,12 +20,13 @@
 #define GEL_DOMAIN "Eina::Player"
 #define EINA_PLUGIN_DATA_TYPE EinaPlayer
 
+#include <gel/gel-io.h>
+
 // Modules
 #include <eina/eina-plugin.h>
 #include <eina/ext/eina-seek.h>
 #include <eina/ext/eina-volume.h>
 #include <eina/player.h>
-#include <gel/gel-beef.h>
 
 #define CODENAME "They don't believe"
 #define HELP_URI "http://answers.launchpad.net/eina"
@@ -35,6 +36,9 @@ struct _EinaPlayer {
 	EinaObj parent;
 	GtkActionGroup *action_group;
 	guint merge_id;
+
+	GQueue *io_tree_files;
+	GelIOTreeOp *io_op;
 };
 
 static void
@@ -50,14 +54,16 @@ stream_info_parser_cb(gchar key, LomoStream *stream);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
 static void
+lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
+static void
 volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
 
 static void
-beef_read_success_cb(GelBeefOp *op, const GFile *source, const GNode *result, gpointer data);
+io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlayer *self);
 static void
-beef_read_error_cb(GelBeefOp *op, const GFile *source, const GError *error, gpointer data);
+io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error, gpointer data);
 
 static gchar *ui_xml = 
 "<ui>"
@@ -87,6 +93,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(self);
 		return FALSE;
 	}
+	self->io_tree_files = g_queue_new();
 	plugin->data = self;
 
 	//
@@ -163,6 +170,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
+	g_signal_connect(lomo, "clear",    (GCallback) lomo_clear_cb, self);
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
 
 	player_dnd_setup(self);
@@ -186,6 +194,10 @@ static gboolean
 player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlayer *self = EINA_PLUGIN_DATA(plugin);
+
+	gel_free_and_invalidate(self->io_op, NULL, gel_io_tree_op_close);
+	g_queue_foreach(self->io_tree_files, (GFunc) g_object_unref, NULL);
+	g_queue_clear(self->io_tree_files);
 
 	eina_window_remove_widget(eina_obj_get_window(self), eina_obj_get_typed(self, GTK_WIDGET, "main-widget"));
 	eina_obj_fini(EINA_OBJ(plugin->data));
@@ -303,6 +315,16 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 }
 
 static void
+lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
+{
+	gel_free_and_invalidate(self->io_op, NULL, gel_io_tree_op_close);
+	g_queue_foreach(self->io_tree_files, (GFunc) g_object_unref, NULL);
+	g_queue_clear(self->io_tree_files);
+
+	player_update_information(self);
+}
+
+static void
 volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self)
 {
 	lomo_player_set_volume(eina_obj_get_lomo(self), (gint) (value * 100));
@@ -388,7 +410,7 @@ static void
 drag_data_received_cb
 (GtkWidget *widget, GdkDragContext *context, gint x, gint y,
         GtkSelectionData *selection_data, guint target_type, guint time,
-	gpointer data)
+	EinaPlayer *self)
 {
 	gchar   *_sdata;
 
@@ -426,18 +448,28 @@ drag_data_received_cb
 	}
 	else
 	{
+		lomo_player_clear(eina_obj_get_lomo(self));
 		gchar **uris = g_uri_list_extract_uris(_sdata);
 		gint i;
 		for (i = 0; uris[i] && uris[i][0] ; i++)
-		{
-			gel_warn("[+] %s", uris[i]);
-			gel_beef_walk(g_file_new_for_uri(uris[i]), "standard::*", TRUE, beef_read_success_cb, beef_read_error_cb, NULL);
-		}
+			g_queue_push_tail(self->io_tree_files, g_file_new_for_uri(uris[i]));
 		
 		g_strfreev(uris);
 	}
 
 	gtk_drag_finish (context, dnd_success, delete_selection_data, time);
+
+	if (g_queue_is_empty(self->io_tree_files))
+		return;
+
+	if (self->io_op)
+	{
+		gel_io_tree_op_close(self->io_op);
+		self->io_op = NULL;
+	}
+	
+	self->io_op = gel_io_tree_walk(g_queue_pop_head(self->io_tree_files), "standard::*", TRUE,
+		(GelIOTreeSuccessFunc) io_tree_read_success_cb, io_tree_read_error_cb, self);
 }
 
 /* Emitted when a drag is over the destination */
@@ -523,37 +555,39 @@ player_dnd_setup(EinaPlayer *self)
 }
 
 static void
-print_tree(GNode *node, gint indent)
-{
-	GFileInfo *info = g_object_get_data((GObject *) node->data, "gfileinfo");
-	gel_warn("%*s" "%s", indent, " ", g_file_info_get_name(info));
-
-	node = node->children;
-	while (node)
-	{
-		print_tree(node, indent+1);
-		node = node->next;
-	}
-}
-
-static void
-beef_read_success_cb(GelBeefOp *op, const GFile *source, const GNode *result, gpointer data)
+io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlayer *self)
 {
 	gel_warn("Read successful");
-	GList *l = gel_beef_result_flatten(result);
+	GList *l = gel_io_tree_result_flatten(result);
 	GList *i = l;
 	while (i)
 	{
+		GFile     *file = G_FILE(i->data);
 		GFileInfo *info = g_object_get_data((GObject *) i->data, "gfileinfo");
-		gel_warn("%s", g_file_info_get_name(info));
+		if ((eina_fs_is_supported_file(file)) && (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR))
+		{
+			gchar *uri = g_file_get_uri((GFile *) i->data);
+			lomo_player_append_uri(eina_obj_get_lomo(self), uri);
+			g_free(uri);
+		}
 		i = i->next;
 	}
-	print_tree((GNode *) result, 1);
-	gel_beef_close(op);
+
+	gel_io_tree_op_close(op);
+	g_list_free(l);
+
+	if (g_queue_is_empty(self->io_tree_files))
+	{
+		self->io_op = NULL;
+		return;
+	}
+
+	self->io_op = gel_io_tree_walk(g_queue_pop_head(self->io_tree_files), "standard::*", TRUE,
+		(GelIOTreeSuccessFunc) io_tree_read_success_cb, io_tree_read_error_cb, self);
 }
 
 static void
-beef_read_error_cb(GelBeefOp *op, const GFile *source, const GError *error, gpointer data)
+io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error, gpointer data)
 {
 	gchar *uri = g_file_get_uri((GFile *) source);
 	gel_warn(N_("Error on file %s: %s"), uri, error->message);
