@@ -4,20 +4,18 @@
 #include <gio/gio.h>
 
 typedef struct _GelBeefOp     GelBeefOp;
-typedef GNode GelBeefResult;
 
-// Which parameters should be const to avoid user-unref?
-typedef void (*GelBeefSuccessFunc) (GelBeefOp *op, const GFile *source, const GelBeefResult *result, gpointer data);
-typedef void (*GelBeefErrorFunc)   (GelBeefOp *op, const GFile *source, const GError *error,         gpointer data);
+typedef void (*GelBeefSuccessFunc) (GelBeefOp *op, const GFile *source, const GNode  *result, gpointer data);
+typedef void (*GelBeefErrorFunc)   (GelBeefOp *op, const GFile *source, const GError *error,  gpointer data);
 
 GelBeefOp *
-gel_beef_list(GFile *file, const gchar *attributes, gboolean recurse,
+gel_beef_walk(GFile *file, const gchar *attributes, gboolean recurse,
   GelBeefSuccessFunc success_cb, GelBeefErrorFunc error_cb, gpointer data);
 
 void
-gel_beef_cancel(GelBeefOp *op);
+gel_beef_close(GelBeefOp *op);
 
-void
-gel_beef_free  (GelBeefOp *op);
+GList *
+gel_beef_result_flatten(const GNode *result);
 
 #endif

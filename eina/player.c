@@ -54,6 +54,11 @@ volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
 
+static void
+beef_read_success_cb(GelBeefOp *op, const GFile *source, const GNode *result, gpointer data);
+static void
+beef_read_error_cb(GelBeefOp *op, const GFile *source, const GError *error, gpointer data);
+
 static gchar *ui_xml = 
 "<ui>"
 "<menubar name='Main'>"
@@ -426,7 +431,7 @@ drag_data_received_cb
 		for (i = 0; uris[i] && uris[i][0] ; i++)
 		{
 			gel_warn("[+] %s", uris[i]);
-			gel_beef_list(g_file_new_for_uri(uris[i]), "standard::*", TRUE, NULL, NULL, NULL);
+			gel_beef_walk(g_file_new_for_uri(uris[i]), "standard::*", TRUE, beef_read_success_cb, beef_read_error_cb, NULL);
 		}
 		
 		g_strfreev(uris);
@@ -517,6 +522,44 @@ player_dnd_setup(EinaPlayer *self)
 	g_signal_connect (dest, "drag-drop",          G_CALLBACK (drag_drop_cb),         self);
 }
 
+static void
+print_tree(GNode *node, gint indent)
+{
+	GFileInfo *info = g_object_get_data((GObject *) node->data, "gfileinfo");
+	gel_warn("%*s" "%s", indent, " ", g_file_info_get_name(info));
+
+	node = node->children;
+	while (node)
+	{
+		print_tree(node, indent+1);
+		node = node->next;
+	}
+}
+
+static void
+beef_read_success_cb(GelBeefOp *op, const GFile *source, const GNode *result, gpointer data)
+{
+	gel_warn("Read successful");
+	GList *l = gel_beef_result_flatten(result);
+	GList *i = l;
+	while (i)
+	{
+		GFileInfo *info = g_object_get_data((GObject *) i->data, "gfileinfo");
+		gel_warn("%s", g_file_info_get_name(info));
+		i = i->next;
+	}
+	print_tree((GNode *) result, 1);
+	gel_beef_close(op);
+}
+
+static void
+beef_read_error_cb(GelBeefOp *op, const GFile *source, const GError *error, gpointer data)
+{
+	gchar *uri = g_file_get_uri((GFile *) source);
+	gel_warn(N_("Error on file %s: %s"), uri, error->message);
+	g_free(uri);
+}
+
 // --
 // Connector 
 // --
@@ -532,5 +575,4 @@ EINA_PLUGIN_SPEC (player,
 
 	player_init, player_fini
 );
-
 
