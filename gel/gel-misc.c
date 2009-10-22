@@ -355,6 +355,54 @@ gel_file_strings(gchar *pathname)
 }
 
 // --
+// Timeout functions
+// --
+typedef struct {
+	GSourceFunc    callback;
+	gpointer       data;
+	GDestroyNotify destroy;
+} GelRunOnce;
+
+static gboolean
+gel_run_once_callback_helper(gpointer data)
+{
+	GelRunOnce *ro = (GelRunOnce *)  data;
+	ro->callback(ro->data);
+	return FALSE;
+}
+
+static void 
+gel_run_once_destroy_helper(gpointer data)
+{
+	GelRunOnce *ro = (GelRunOnce *) data;
+	if (ro->destroy)
+		ro->destroy(ro->data);
+	g_free(ro);
+}
+
+guint
+gel_run_once_on_idle(GSourceFunc callback, gpointer data, GDestroyNotify destroy)
+{
+	GelRunOnce *ro = g_new0(GelRunOnce, 1);
+	ro->callback = callback;
+	ro->data     = data;
+	ro->destroy  = destroy;
+	return g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, gel_run_once_callback_helper, ro, gel_run_once_destroy_helper);
+}
+
+guint
+gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDestroyNotify destroy)
+{
+	GelRunOnce *ro = g_new0(GelRunOnce, 1);
+	ro->callback = callback;
+	ro->data     = data;
+	ro->destroy  = destroy;
+
+	return g_timeout_add_full(interval, G_PRIORITY_DEFAULT_IDLE, gel_run_once_callback_helper, ro, gel_run_once_destroy_helper);
+}
+
+
+// --
 // Debug functions
 // --
 GelDebugLevel

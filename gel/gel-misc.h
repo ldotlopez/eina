@@ -153,6 +153,16 @@ gchar **
 gel_file_strings(gchar *pathname);
 
 // --
+// Timeout functions
+// --
+guint
+gel_run_once_on_idle(GSourceFunc callback, gpointer data, GDestroyNotify destroy);
+
+guint
+gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDestroyNotify destroy);
+
+
+// --
 // Pointers safe free functions
 // --
 #define gel_free_and_invalidate(obj,value,func) \
