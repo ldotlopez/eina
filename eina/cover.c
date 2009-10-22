@@ -47,7 +47,7 @@
 		}                                                     \
 	} G_STMT_END
 
-#define cover_height(self) (((GtkWidget *)self->cover)->parent->allocation.height)
+#define cover_height(self) (((GtkWidget *)self->cover)->allocation.height)
 
 typedef struct _EinaCover {
 	EinaObj    parent;
@@ -67,15 +67,24 @@ static GdkPixbuf*
 build_cover_mask(EinaCover *self);
 
 static void
+cover_update_from_current(EinaCover *self);
+static void
 cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf);
 static void
 cover_update_from_stream(EinaCover *self, LomoStream *stream);
 
+static gboolean
+cover_reload_resources(EinaCover *self);
+
 static void
 art_search_cb(Art *art, ArtSearch *search, EinaCover *self);
 
+#if 0
 static gboolean
 cover_expose_event_idle_cb(EinaCover *self);
+#endif
+static void 
+size_allocate_cb(GtkWidget *w, GtkAllocation *allocation, EinaCover *self);
 
 gboolean cover_expose_event_cb
 (GtkWidget *w, GdkEventExpose *ev, EinaCover *self);
@@ -85,6 +94,7 @@ static void lomo_clear_cb
 (LomoPlayer *lomo, EinaCover *self);
 static void lomo_all_tags_cb
 (LomoPlayer *lomo, LomoStream *stream, EinaCover *self);
+
 
 
 static gboolean
@@ -115,9 +125,24 @@ cover_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self->got_cover    = FALSE;
 	self->loading      = FALSE;
 
+	// Get container and replace children by me
 	GtkContainer *cover_container = eina_player_get_cover_container(EINA_OBJ_GET_PLAYER(self));
+	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_hide, NULL);
+	gtk_box_pack_end((GtkBox *) cover_container, self->cover, TRUE, TRUE, 0);
 
-	g_signal_connect(cover_container, "expose-event", G_CALLBACK(cover_expose_event_cb), self);
+	// Ensure container and me are realized before load resources
+	gtk_widget_realize((GtkWidget*) cover_container);
+	gtk_widget_realize(self->cover);
+	cover_reload_resources(self);
+
+	// Add a callback for future resizements
+	g_signal_connect((GObject *) cover_container, "size-allocate", G_CALLBACK(size_allocate_cb), self);
+
+	gtk_widget_show(self->cover);
+
+	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
+	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
+	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
 
 	return TRUE;
 }
@@ -136,6 +161,9 @@ cover_fini(GelApp *app, GelPlugin *plugin, GError **error)
 static gboolean
 cover_reload_resources(EinaCover *self)
 {
+	if (cover_height(self) <= 1)
+		return TRUE;
+
 	gchar *cover_default = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-default.png");
 	gchar *cover_loading = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-loading.png");
 	if (!cover_default || ! cover_loading)
@@ -179,67 +207,28 @@ cover_reload_resources(EinaCover *self)
 static void
 size_allocate_cb(GtkWidget *w, GtkAllocation *allocation, EinaCover *self)
 {
-	gel_warn("Got new size: %dx%d", allocation->width, allocation->height);
+	static gint prev_size = -1;
 
-	if ((allocation->width != allocation->height) && (allocation->height != 0))
+	if (prev_size != allocation->height)
 	{
-		gel_warn("Restore aspect ratio");
-		gtk_widget_set_size_request(w, allocation->height, allocation->height);
-	}
-	if ((allocation->width == allocation->height) && (allocation->height != 0))
-	{
+		prev_size = allocation->height;
 		cover_reload_resources(self);
-		cover_update_from_stream(self, lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(self)));
+		cover_update_from_current(self);
 	}
 }
 
-static gboolean
-cover_expose_event_idle_cb(EinaCover *self)
+static void
+cover_update_from_current(EinaCover *self)
 {
-	GtkContainer *w = eina_player_get_cover_container(EINA_OBJ_GET_PLAYER(self));
-	gtk_container_foreach(w, (GtkCallback) gtk_widget_hide, NULL);
-
-	gtk_container_add(w, (GtkWidget *) self->cover);
-	gtk_widget_set_size_request(GTK_WIDGET(self->cover), ((GtkWidget *) w)->allocation.height, ((GtkWidget *) w)->allocation.height);
-	#if HAVE_CLUTTY
-	if (clutty_enabled(self))
-		clutter_actor_set_size(CLUTTER_ACTOR(gtk_clutter_embed_get_stage(GTK_CLUTTER_EMBED(self->cover))),
-		GTK_WIDGET(w)->allocation.height, GTK_WIDGET(w)->allocation.height);
-	#endif
-	gtk_widget_show((GtkWidget *) self->cover);
-	g_signal_connect(self->cover, "size-allocate", (GCallback) size_allocate_cb, self);
-
-	cover_update_from_stream(self, lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(self)));
-
-	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-	
-	return FALSE;
-
-
-	cover_reload_resources(self);
-
-	cover_update_from_stream(self, lomo_player_get_current_stream(EINA_OBJ_GET_LOMO(self)));
-
-	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb), self);
-	
-	return FALSE;
-}
-
-gboolean cover_expose_event_cb
-(GtkWidget *w, GdkEventExpose *ev, EinaCover *self) 
-{
-	g_signal_handlers_disconnect_by_func(w, cover_expose_event_cb, self);
-	g_idle_add((GSourceFunc) cover_expose_event_idle_cb, self);
-	return FALSE;
+	cover_update_from_stream(self, lomo_player_get_current_stream(eina_obj_get_lomo(self)));
 }
 
 static void
 cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 {
+	if (cover_height(self) <= 1)
+		return;
+
 	self->got_cover = (pixbuf != NULL);
 	if (!self->got_cover)
 		pixbuf = self->cover_default;
@@ -278,9 +267,6 @@ cover_update_from_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 	}
 
 	// Composite over new cover
-	GtkAllocation alloc = ((GtkWidget *) self->cover)->allocation;
-	gel_warn("New pixbuf size: %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
-	gel_warn("Widget size: %dx%d",	alloc.width, alloc.height);
 	if ((pixbuf != self->cover_default) &&
 		(pixbuf != self->cover_loading) &&
 		self->cover_mask                &&
@@ -363,10 +349,6 @@ lomo_all_tags_cb (LomoPlayer *lomo, LomoStream *stream, EinaCover *self)
 static GdkPixbuf*
 build_cover_mask(EinaCover *self)
 {
-
-	gchar *xx= eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-mask.png");
-	return  gdk_pixbuf_new_from_file_at_scale(xx, cover_height(self), cover_height(self), FALSE, NULL);
-
 	gchar *maskpath = eina_obj_get_resource(self, GEL_RESOURCE_IMAGE, "cover-mask.png");
 	if (!maskpath)
 	{
@@ -405,14 +387,14 @@ build_cover_mask(EinaCover *self)
 	rowstride = gdk_pixbuf_get_rowstride (mask);
 	pixels    = gdk_pixbuf_get_pixels    (mask);
 
-	GdkColor *color = gtk_widget_get_style(((GtkWidget *) self->cover)->parent)->bg;
+	GdkColor color = gtk_widget_get_style(((GtkWidget *) self->cover)->parent)->bg[GTK_STATE_NORMAL];
 	for ( i = 0; i < width; i++)
 		for (j = 0; j < height; j++)
 		{
 			p = pixels + j * rowstride + i * n_channels;
-			p[0] = color->red;
-			p[1] = color->green;
-			p[2] = color->blue;
+			p[0] = color.red;
+			p[1] = color.green;
+			p[2] = color.blue;
 		}
 	return mask;
 }
