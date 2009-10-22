@@ -1,13 +1,13 @@
-#include <gel/gel-beef.h>
+#include <gel/gel-io-tree.h>
 #include <glib/gprintf.h>
 #include <string.h>
 
-struct _GelBeefOp {
+struct _GelIOTreeOp {
 	GCancellable *cancellable;
 	GQueue *queue;
 
-	GelBeefSuccessFunc success_cb;
-	GelBeefErrorFunc   error_cb;
+	GelIOTreeSuccessFunc success_cb;
+	GelIOTreeErrorFunc   error_cb;
 
 	GNode *result;
 	GFile *root;
@@ -19,27 +19,27 @@ struct _GelBeefOp {
 };
 
 static void
-_gel_beef_run_queue(GelBeefOp *self);
+_gel_io_tree_run_queue(GelIOTreeOp *self);
 static void
-_gel_beef_run_success(GelBeefOp *self);
+_gel_io_tree_run_success(GelIOTreeOp *self);
 static void
-_gel_beef_run_error(GelBeefOp *self, GFile *source, GError *error);
+_gel_io_tree_run_error(GelIOTreeOp *self, GFile *source, GError *error);
 
 // --
 // Querying info
 // --
 static void
-query_info_cb(GFile *source, GAsyncResult *res, GelBeefOp *self);
+query_info_cb(GFile *source, GAsyncResult *res, GelIOTreeOp *self);
 
 // --
 // Enumerating children
 // --
 static void
-enumerate_children_cb(GFile *source, GAsyncResult *res, GelBeefOp *self);
+enumerate_children_cb(GFile *source, GAsyncResult *res, GelIOTreeOp *self);
 static void
-enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelBeefOp *self);
+enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelIOTreeOp *self);
 #if 0
-enumerator_close_cb(GFileEnumerator *e, GAsyncResult *res, GelBeefOp *self);
+enumerator_close_cb(GFileEnumerator *e, GAsyncResult *res, GelIOTreeOp *self);
 #endif
 
 // --
@@ -50,11 +50,11 @@ sort_children(GNode *parent);
 static gint
 compare_node_cb(GNode *a, GNode *b);
 
-GelBeefOp *
-gel_beef_walk(GFile *file, const gchar *attributes, gboolean recurse, 
-  GelBeefSuccessFunc success_cb, GelBeefErrorFunc error_cb, gpointer data)
+GelIOTreeOp *
+gel_io_tree_walk(GFile *file, const gchar *attributes, gboolean recurse, 
+  GelIOTreeSuccessFunc success_cb, GelIOTreeErrorFunc error_cb, gpointer data)
 {
-	GelBeefOp *self = g_new0(GelBeefOp, 1);
+	GelIOTreeOp *self = g_new0(GelIOTreeOp, 1);
 	self->cancellable = g_cancellable_new();
 	self->queue = g_queue_new();
 	self->attributes = attributes;
@@ -70,7 +70,7 @@ gel_beef_walk(GFile *file, const gchar *attributes, gboolean recurse,
 	g_object_set_data((GObject *) file, "gnode",  self->result);
 	g_queue_push_tail(self->queue, file);
 
-	_gel_beef_run_queue(self);
+	_gel_io_tree_run_queue(self);
 
 	return self;
 }
@@ -88,7 +88,7 @@ disassociate_node_data(GNode *node, gpointer data)
 }
 
 void
-gel_beef_close(GelBeefOp *self)
+gel_io_tree_op_close(GelIOTreeOp *self)
 {
 	if (self->cancellable)
 	{
@@ -111,11 +111,11 @@ gel_beef_close(GelBeefOp *self)
 }
 
 static void
-_gel_beef_run_queue(GelBeefOp *self)
+_gel_io_tree_run_queue(GelIOTreeOp *self)
 {
 	if (g_queue_is_empty(self->queue))
 	{
-		_gel_beef_run_success(self);
+		_gel_io_tree_run_success(self);
 		return;
 	}
 	g_cancellable_reset(self->cancellable);
@@ -132,43 +132,43 @@ _gel_beef_run_queue(GelBeefOp *self)
 			g_file_enumerate_children_async(file, self->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
 				self->cancellable, (GAsyncReadyCallback) enumerate_children_cb, self);
 		else if (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR)
-			_gel_beef_run_queue(self);
+			_gel_io_tree_run_queue(self);
 		else 
 		{
 			g_warning("Unknow file type");
-			_gel_beef_run_queue(self);
+			_gel_io_tree_run_queue(self);
 		}
 	}
 }
 
 static void
-_gel_beef_run_success(GelBeefOp *self)
+_gel_io_tree_run_success(GelIOTreeOp *self)
 {
 	if (self->success_cb)
 		self->success_cb(self, self->root, self->result, self->data);
 }
 
 static void
-_gel_beef_run_error(GelBeefOp *self, GFile *source, GError *error)
+_gel_io_tree_run_error(GelIOTreeOp *self, GFile *source, GError *error)
 {
 	if (self->error_cb)
 		self->error_cb(self, source, error, self->data);
 	g_object_unref(source);
 	g_error_free(error);
-	_gel_beef_run_queue(self);
+	_gel_io_tree_run_queue(self);
 }
 
 // --
 // Querying info
 // --
 static void
-query_info_cb(GFile *source, GAsyncResult *res, GelBeefOp *self)
+query_info_cb(GFile *source, GAsyncResult *res, GelIOTreeOp *self)
 {
 	GError *error = NULL;
 	GFileInfo *info = g_file_query_info_finish((GFile *) source, res, &error);
 	if (info == NULL)
 	{
-		_gel_beef_run_error(self, source, error);
+		_gel_io_tree_run_error(self, source, error);
 		return;
 	}
 	g_object_set_data((GObject *) source, "gfileinfo", info);
@@ -181,13 +181,13 @@ query_info_cb(GFile *source, GAsyncResult *res, GelBeefOp *self)
 	}
 	else if (type == G_FILE_TYPE_REGULAR)
 	{
-		_gel_beef_run_queue(self);
+		_gel_io_tree_run_queue(self);
 	}
 	else
 	{
 		g_printf("Unknow file type\n");
 		g_object_unref(info);
-		_gel_beef_run_queue(self);
+		_gel_io_tree_run_queue(self);
 	}
 }
 
@@ -195,13 +195,13 @@ query_info_cb(GFile *source, GAsyncResult *res, GelBeefOp *self)
 // Enumerating children
 // --
 static void
-enumerate_children_cb(GFile *source, GAsyncResult *res, GelBeefOp *self)
+enumerate_children_cb(GFile *source, GAsyncResult *res, GelIOTreeOp *self)
 {
 	GError *error = NULL;
 	GFileEnumerator *e = g_file_enumerate_children_finish(source, res, &error);
 	if (e == NULL)
 	{
-		_gel_beef_run_error(self, source, error);
+		_gel_io_tree_run_error(self, source, error);
 		return;
 	}
 
@@ -209,7 +209,7 @@ enumerate_children_cb(GFile *source, GAsyncResult *res, GelBeefOp *self)
 }
 
 static void
-enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelBeefOp *self)
+enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelIOTreeOp *self)
 {
 	GError *error = NULL;
 	GList *children = g_file_enumerator_next_files_finish(e, res, &error);
@@ -217,14 +217,14 @@ enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelBeefOp *self)
 	if (error)
 	{
 		g_file_enumerator_close(e, NULL, NULL);
-		_gel_beef_run_error(self, parent, error);
+		_gel_io_tree_run_error(self, parent, error);
 		return;
 	}
 
 	if (children == NULL)
 	{
 		g_file_enumerator_close(e, NULL, NULL);
-		_gel_beef_run_queue(self);
+		_gel_io_tree_run_queue(self);
 		return;
 	}
 
@@ -320,7 +320,7 @@ node_traverse_cb(GNode *node, GList **list)
 }
 
 GList *
-gel_beef_result_flatten(const GNode *result)
+gel_io_tree_result_flatten(const GNode *result)
 {
 	GList *ret = NULL;
 	g_node_traverse((GNode *) result, G_PRE_ORDER, G_TRAVERSE_ALL, -1, (GNodeTraverseFunc) node_traverse_cb, &ret);
