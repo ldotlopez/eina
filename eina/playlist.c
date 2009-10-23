@@ -706,7 +706,9 @@ format_stream_cb(gchar key, LomoStream *stream)
 	gchar *tag = lomo_stream_get_tag_by_id(stream, key);
 	if ((tag == NULL) && (key == 't'))
 	{
-		tag = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+		gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+		tag = g_uri_unescape_string(tmp, NULL);
+		g_free(tmp);
 	}
 
 	return tag;
