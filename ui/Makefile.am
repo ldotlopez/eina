@@ -1,6 +1,5 @@
 uidir = $(pkgdatadir)/ui
 ui_DATA = \
-	about.ui \
 	dock.ui \
 	log.ui \
 	player-preferences.ui \

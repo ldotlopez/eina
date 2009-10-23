@@ -29,7 +29,6 @@
 #include <eina/about.h>
 #include <eina/player.h>
 
-#define CODENAME "They don't believe"
 #define HELP_URI "http://answers.launchpad.net/eina"
 #define BUGS_URI "https://bugs.launchpad.net/eina/+filebug"
 
