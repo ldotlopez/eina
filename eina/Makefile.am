@@ -8,14 +8,17 @@ AM_CPPFLAGS = \
 	-DEINA_COMPILATION \
 	@PACKAGE_CFLAGS@
 
-bin_PROGRAMS = eina
+bin_PROGRAMS = eina vogon
 
 eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	-L$(top_srcdir)/gel/.libs \
 	-L$(top_srcdir)/lomo/.libs
+vogon_LDFLAGS = -export-dynamic  -module -avoid-version \
+	-L$(top_srcdir)/gel/.libs \
+	-L$(top_srcdir)/lomo/.libs
 
 eina_LDADD = @PACKAGE_LIBS@ $(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.0 -llomo-1.0
-
+vogon_LDADD = @PACKAGE_LIBS@ $(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.0 -llomo-1.0
 
 NOINST_H_FILES = \
 	about.h    \
@@ -62,6 +65,16 @@ eina_SOURCES = \
 	window.c           \
 	$(NOINST_H_FILES)  \
 	$(INST_H_FILES)
+
+vogon_SOURCES = \
+	eina-obj.c   \
+	about.c      \
+	lomo.c       \
+	eina-stock.c \
+	fs.c         \
+	settings.c   \
+	vogon.c      \
+	vogon-app.c
 
 BUILT_SOURCES = dbus-marshallers.c dbus-marshallers.h
 CLEAN_FILES = dbus-marshallers.c dbus-marshallers.h

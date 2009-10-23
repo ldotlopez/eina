@@ -61,7 +61,6 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(engine, "repeat", (GCallback) lomo_repeat_cb, conf);
 	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, conf);
 
-	gel_implement("Set volume, random, shuffle,...");
 	return TRUE;
 }
 
