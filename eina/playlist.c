@@ -1051,6 +1051,9 @@ void action_activate_cb
 	else if (g_str_equal("random-action", name))
 		lomo_player_set_random(eina_obj_get_lomo(self), gtk_toggle_action_get_active((GtkToggleAction *) action));
 
+	else if (g_str_equal("repeat-action", name))
+		lomo_player_set_repeat(eina_obj_get_lomo(self), gtk_toggle_action_get_active((GtkToggleAction *) action));
+
 	else
 		gel_warn("Unknow action %s", name);
 }
