@@ -26,6 +26,7 @@
 #include <eina/eina-plugin.h>
 #include <eina/ext/eina-seek.h>
 #include <eina/ext/eina-volume.h>
+#include <eina/about.h>
 #include <eina/player.h>
 
 #define CODENAME "They don't believe"
@@ -369,7 +370,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 
 	else if (g_str_equal(name, "about-action"))
 	{
-		gel_implement("About dialog is not anymore in EinaPlayer");
+		eina_about_show(eina_obj_get_about((EinaObj *) self));
 	}
 
 	else
@@ -599,9 +600,9 @@ io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,
 // --
 EINA_PLUGIN_SPEC (player,
 	PACKAGE_VERSION,
+	"about",
 	NULL,
 	NULL,
-	"window",
 
 	N_("Build-in player plugin"),
 	NULL,

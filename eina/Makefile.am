@@ -18,6 +18,7 @@ eina_LDADD = @PACKAGE_LIBS@ $(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.
 
 
 NOINST_H_FILES = \
+	about.h    \
 	dock.h     \
 	player.h   \
 	playlist.h \
@@ -40,6 +41,7 @@ header_DATA = $(INST_H_FILES)
 
 # template.{c,h} are template files to create Eina components
 eina_SOURCES = \
+	about.c            \
 	art.c              \
 	cover.c            \
 	dock.c             \
