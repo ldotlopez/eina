@@ -655,7 +655,8 @@ lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error
 			N_("Cannot create pipeline for stream %s"), (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		return FALSE;
 	}
-	lomo_player_set_volume(self, -1); // Restore pipeline volume
+	lomo_player_set_volume(self, -1);               // Restore pipeline volume
+	lomo_player_set_mute  (self, self->priv->mute); // Restore pipeline mute 
 	gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(self->priv->pipeline)), (GstBusFunc) bus_watcher, self);
 
 	return TRUE;
@@ -917,22 +918,30 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 		return FALSE;
 	}
 
-	if (self->priv->pipeline == NULL)
-	{
-		g_warning("Cannot set mute on a NULL pipeline");
-		return FALSE;
-	}
-
 	// Run hooks
 	gboolean ret = FALSE;
 	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_MUTE, &ret, mute))
 		return ret;
 
+	if (self->priv->pipeline == NULL)
+	{
+		self->priv->mute = mute;
+		return TRUE;
+	}
+
 	// Exec action
-	if (self->priv->vtable.set_mute)
-		ret = self->priv->vtable.set_mute(self->priv->pipeline, mute);
+	if (self->priv->pipeline == NULL)
+	{
+		self->priv->mute = mute;
+		ret = TRUE;
+	}
 	else
-		ret = self->priv->vtable.set_volume(self->priv->pipeline, mute ? 0 : self->priv->volume);
+	{
+		if (self->priv->vtable.set_mute)
+			ret = self->priv->vtable.set_mute(self->priv->pipeline, mute);
+		else
+			ret = self->priv->vtable.set_volume(self->priv->pipeline, mute ? 0 : self->priv->volume);
+	}
 
 	if (!ret)
 	{
