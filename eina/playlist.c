@@ -207,7 +207,6 @@ static gboolean
 playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlaylist *self;
-	gboolean random, repeat;
 
 	self = g_new0(EinaPlaylist, 1);
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "playlist", EINA_OBJ_GTK_UI, error))
@@ -217,18 +216,16 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Configure settings
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-	g_signal_connect(conf, "change", G_CALLBACK(on_pl_settings_change), self);
-	repeat = eina_conf_get_bool(conf, "/core/repeat", FALSE);
-	random = eina_conf_get_bool(conf, "/core/random", FALSE);
 
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(eina_obj_get_widget(self, "playlist-repeat-button")), repeat);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(eina_obj_get_widget(self, "playlist-random-button")), random);
+	LomoPlayer *lomo = eina_obj_get_lomo((EinaObj *) self);
+	g_object_set(eina_obj_get_typed(self, GTK_TOGGLE_BUTTON, "playlist-repeat-button"),
+		"active", lomo_player_get_repeat(lomo),
+		NULL);
+	g_object_set(eina_obj_get_typed(self, GTK_TOGGLE_BUTTON, "playlist-random-button"),
+		"active", lomo_player_get_random(lomo),
+		NULL);
 
-	lomo_player_set_repeat(eina_obj_get_lomo(self), repeat);
-	lomo_player_set_random(eina_obj_get_lomo(self), random);
-
-	self->stream_fmt = (gchar *) eina_conf_get_str(conf, "/ui/playlist/fmt", "{%a - }%t");
+	self->stream_fmt = (gchar *) eina_conf_get_str(eina_obj_get_settings((EinaObj *) self), "/ui/playlist/fmt", "{%a - }%t");
 
 	if (!eina_playlist_dock_init(self))
 	{
@@ -900,16 +897,12 @@ static void lomo_random_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
 {
 	gtk_toggle_action_set_active(eina_obj_get_typed(self, GTK_TOGGLE_ACTION, "random-action"), val);
-	eina_conf_set_bool(eina_obj_get_settings(self), "/core/random", val);
 }
 
 static void lomo_repeat_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
 {
 	gtk_toggle_action_set_active(eina_obj_get_typed(self, GTK_TOGGLE_ACTION, "repeat-action"), val);
-	eina_conf_set_bool(eina_obj_get_settings(self), "/core/repeat", val);
-	if (val)
-		lomo_player_randomize(lomo);
 }
 
 static gboolean
@@ -1170,20 +1163,7 @@ void drag_data_get_cb(GtkWidget *w,
 #endif
 }
 
-void on_pl_settings_change(EinaConf *conf, const gchar *key, gpointer data) {
-	EinaPlaylist *self = (EinaPlaylist *) data;
-	if (g_str_equal(key, "/core/repeat")) {
-		gtk_toggle_button_set_active(
-			GTK_TOGGLE_BUTTON(eina_obj_get_widget(self, "playlist-repeat-button")),
-			eina_conf_get_bool(conf, "/core/repeat", TRUE));
-	}
 
-	else if (g_str_equal(key, "/core/random")) {
-		gtk_toggle_button_set_active(
-			GTK_TOGGLE_BUTTON(eina_obj_get_widget(self, "playlist-random-button")),
-			eina_conf_get_bool(conf, "/core/random", TRUE));
-	}
-}
 
 // --
 // DnD code

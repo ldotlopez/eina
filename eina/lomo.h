@@ -32,9 +32,10 @@ typedef enum {
 	EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE 
 } EinaLomoError; 
 
-#define EINA_BASE_GET_LOMO(base) GEL_HUB_GET_LOMO(((EinaBase *)base)->hub)
 #define GEL_APP_GET_LOMO(app)    ((LomoPlayer *) gel_app_shared_get(app,"lomo"))
 #define EINA_OBJ_GET_LOMO(obj)   GEL_APP_GET_LOMO(eina_obj_get_app(obj))
+
+#define gel_app_get_lomo(app)  LOMO_PLAYER(gel_app_shared_get(app,"lomo"))
 
 G_END_DECLS
 

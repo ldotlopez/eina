@@ -23,6 +23,13 @@
 #include <eina/eina-plugin.h>
 #include <eina/lomo.h>
 
+static void
+lomo_mute_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
+static void
+lomo_repeat_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
+static void
+lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
+
 GEL_AUTO_QUARK_FUNC(lomo)
 
 gboolean
@@ -44,6 +51,16 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
+	EinaConf *conf = gel_app_get_settings(app);
+	lomo_player_set_volume(engine, eina_conf_get_int (conf, "/core/volume", 50   ));
+	lomo_player_set_mute  (engine, eina_conf_get_bool(conf, "/core/mute",   FALSE));
+	lomo_player_set_repeat(engine, eina_conf_get_bool(conf, "/core/repeat", FALSE));
+	lomo_player_set_repeat(engine, eina_conf_get_bool(conf, "/core/repeat", FALSE));
+
+	g_signal_connect(engine, "mute",   (GCallback) lomo_mute_cb,   conf);
+	g_signal_connect(engine, "repeat", (GCallback) lomo_repeat_cb, conf);
+	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, conf);
+
 	gel_implement("Set volume, random, shuffle,...");
 	return TRUE;
 }
@@ -51,21 +68,44 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 gboolean
 lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	LomoPlayer *engine = LOMO_PLAYER(gel_app_shared_get(app, "lomo"));
+	LomoPlayer *engine = gel_app_get_lomo(app);
 
 	if ((engine == NULL) || !gel_app_shared_unregister(app, "lomo"))
 	{
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
+
+	EinaConf *conf = gel_app_get_settings(app);
+	eina_conf_set_int(conf, "/core/volume", lomo_player_get_volume(engine));
 	g_object_unref(G_OBJECT(engine));
 
 	return TRUE;
 }
 
+static void
+lomo_mute_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
+{
+	eina_conf_set_bool(conf, "/core/mute", value);
+}
+
+static void
+lomo_repeat_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
+{
+	eina_conf_set_bool(conf, "/core/repeat", value);
+}
+
+static void
+lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
+{
+	eina_conf_set_bool(conf, "/core/random", value);
+	if (value)
+		lomo_player_randomize(lomo);
+}
+
 EINA_PLUGIN_SPEC(lomo,
 	PACKAGE_VERSION,			// version
-	NULL,						// deps
+	"settings",		            // deps
 	NULL,						// author
 	NULL,						// url
 
