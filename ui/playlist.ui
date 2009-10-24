@@ -34,7 +34,7 @@
                 <property name="visible">True</property>
                 <property name="left_padding">12</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow1">
+                  <object class="GtkScrolledWindow" id="playlist-scrolledwindow">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">automatic</property>
@@ -300,8 +300,8 @@
     <child>
       <object class="GtkMenuItem" id="queue-menu-item">
         <property name="visible">True</property>
-        <property name="related_action">queue-action</property>
         <property name="use_action_appearance">True</property>
+        <property name="related_action">queue-action</property>
       </object>
     </child>
     <child>
