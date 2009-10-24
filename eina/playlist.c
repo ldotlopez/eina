@@ -56,6 +56,8 @@ struct _EinaPlaylist
 	GtkTreeModel *model; // Model, tv has a filter attached
 
 	gchar        *stream_fmt;
+	GQueue       *io_tree_files;
+	GelIOTreeOp  *io_op;
 };
 
 typedef enum
@@ -82,7 +84,7 @@ playlist_queue_selected(EinaPlaylist *self);
 static void
 playlist_remove_selected(EinaPlaylist *self);
 static void
-setup_dnd(EinaPlaylist *self);
+playlist_dnd_setup(EinaPlaylist *self);
 static gchar *
 format_stream(LomoStream *stream, gchar *fmt);
 static gchar*
@@ -152,22 +154,10 @@ static void search_entry_changed_cb
 static void search_entry_icon_press_cb
 (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, EinaPlaylist *self);
 
-static void drag_data_received_cb
-(GtkWidget *widget,
-	GdkDragContext   *drag_context,
-	gint              x,
-	gint              y,
-	GtkSelectionData *data,
-	guint             info,
-	guint             time,
-	EinaPlaylist     *self);
-void drag_data_get_cb
-(GtkWidget *w,
-	GdkDragContext   *drag_context,
-	GtkSelectionData *data,
-	guint             info,
-	guint             time,
-	EinaPlaylist     *self);
+static void
+io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error, gpointer data);
+static void
+io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlaylist *self);
 
 /* Signal definitions */
 GelUISignalDef _playlist_signals[] = {
@@ -190,11 +180,6 @@ GelUISignalDef _playlist_signals[] = {
 	{ "playlist-treeview", "button-press-event",
 	G_CALLBACK(treeview_button_press_event_cb) },
 
-	{ "playlist-treeview", "drag-data-received",
-	G_CALLBACK(drag_data_received_cb) },
-	{ "playlist-treeview", "drag-data-get",
-	G_CALLBACK(drag_data_get_cb) },
-	
 	GEL_UI_SIGNAL_DEF_NONE
 };
 
@@ -234,6 +219,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 		gel_error(N_("Cannot init dock widget"));
 		return FALSE;
 	}
+	self->io_tree_files = g_queue_new();
 
 	// Connect some UI signals
 	gel_ui_signal_connect_from_def_multiple(eina_obj_get_ui(self), _playlist_signals, self, NULL);
@@ -274,7 +260,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_widget_add_accelerator(eina_obj_get_typed(self, GTK_WIDGET, "playlist-search-entry"), "activate", accel_group,
 		GDK_f, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
-	setup_dnd(self);
+	playlist_dnd_setup(self);
 
 	gtk_widget_show(self->dock);
 	return eina_dock_add_widget(GEL_APP_GET_DOCK(app), "playlist",
@@ -288,6 +274,10 @@ playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	gchar *file;
 	gint i = 0;
 	gint fd;
+
+	gel_free_and_invalidate(self->io_op, NULL, gel_io_tree_op_close);
+	g_queue_foreach(self->io_tree_files, (GFunc) g_object_unref, NULL);
+	g_queue_clear(self->io_tree_files);
 
 	GList *pl    = lomo_player_get_playlist(eina_obj_get_lomo(self));
 	GList *iter  = pl;
@@ -466,9 +456,17 @@ static void
 playlist_queue_selected(EinaPlaylist *self)
 {
 	gint *indices = get_selected_indices(self);
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
 	gint i = 0;
 	for (i = 0; indices[i] != -1; i++)
-		lomo_player_queue(eina_obj_get_lomo(self), indices[i]);
+	{
+		LomoStream *stream = lomo_player_nth_stream(lomo, indices[i]);
+		gint queue_index = lomo_player_queue_index(lomo, stream);
+		if (queue_index == -1)
+			lomo_player_queue_stream(lomo, stream);
+		else
+			lomo_player_dequeue(lomo, queue_index);
+	}
 	g_free(indices);
 }
 
@@ -500,10 +498,7 @@ playlist_dequeue_selected(EinaPlaylist *self)
 		if (idx == -1)
 			gel_warn("Stream not in queue");
 		else
-		{
 			lomo_player_dequeue(EINA_OBJ_GET_LOMO(self), idx);
-			gel_warn("Dequeue stream #%d %s", indices[i], lomo_stream_get_tag(stream, LOMO_TAG_URI));
-		}
 	}
 	g_free(indices);
 }
@@ -1086,6 +1081,183 @@ void action_activate_cb
 		gel_warn("Unknow action %s", name);
 }
 
+static void
+io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlaylist *self)
+{
+	GList *l = gel_io_tree_result_flatten(result);
+	GList *i = l;
+	while (i)
+	{
+		GFile     *file = G_FILE(i->data);
+		GFileInfo *info = g_object_get_data((GObject *) i->data, "gfileinfo");
+		if ((eina_fs_is_supported_file(file)) && (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR))
+		{
+			gchar *uri = g_file_get_uri((GFile *) i->data);
+			lomo_player_append_uri(eina_obj_get_lomo(self), uri);
+			g_free(uri);
+		}
+		i = i->next;
+	}
+
+	gel_io_tree_op_close(op);
+	g_list_free(l);
+
+	if (g_queue_is_empty(self->io_tree_files))
+	{
+		self->io_op = NULL;
+		return;
+	}
+
+	self->io_op = gel_io_tree_walk(g_queue_pop_head(self->io_tree_files), "standard::*", TRUE,
+		(GelIOTreeSuccessFunc) io_tree_read_success_cb, io_tree_read_error_cb, self);
+}
+
+static void
+io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error, gpointer data)
+{
+	gchar *uri = g_file_get_uri((GFile *) source);
+	gel_warn(N_("Error on file %s: %s"), uri, error->message);
+	g_free(uri);
+}
+
+// ---
+// DnD
+// ---
+enum {
+	DND_TARGET_STRING
+};
+
+static GtkTargetEntry dnd_target_list[] = {
+	{ "STRING",     0, DND_TARGET_STRING },
+	{ "text/plain", 0, DND_TARGET_STRING }
+};
+
+static guint dnd_n_targets = G_N_ELEMENTS(dnd_target_list);
+
+static void
+drag_data_received_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+        GtkSelectionData *selection_data, guint target_type, guint time,
+	EinaPlaylist *self)
+{
+	gchar   *_sdata;
+
+	gboolean dnd_success = FALSE;
+
+	if((selection_data != NULL) && (selection_data-> length >= 0))
+	{
+		if (target_type == DND_TARGET_STRING)
+		{
+			_sdata = (gchar*) selection_data-> data;
+			dnd_success = TRUE;
+		}
+		else
+				gel_warn("Unknow DnD type");
+	}
+
+	if (dnd_success == FALSE)
+		gel_error("DnD data transfer failed!\n");
+	else
+	{
+		gchar **uris = g_uri_list_extract_uris(_sdata);
+		gint i;
+		for (i = 0; uris[i] && uris[i][0] ; i++)
+			g_queue_push_tail(self->io_tree_files, g_file_new_for_uri(uris[i]));
+		
+		g_strfreev(uris);
+	}
+
+	gtk_drag_finish (context, dnd_success, FALSE, time);
+
+	if (g_queue_is_empty(self->io_tree_files))
+		return;
+
+	if (self->io_op)
+	{
+		gel_io_tree_op_close(self->io_op);
+		self->io_op = NULL;
+	}
+	
+	self->io_op = gel_io_tree_walk(g_queue_pop_head(self->io_tree_files), "standard::*", TRUE,
+		(GelIOTreeSuccessFunc) io_tree_read_success_cb, io_tree_read_error_cb, self);
+}
+
+/* Emitted when a drag is over the destination */
+static gboolean
+drag_motion_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint t,
+	gpointer user_data)
+{
+	return  FALSE;
+}
+
+/* Emitted when a drag leaves the destination */
+static void
+drag_leave_cb
+(GtkWidget *widget, GdkDragContext *context, guint time, gpointer user_data)
+{
+}
+
+static gboolean
+drag_drop_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
+	gpointer user_data)
+{
+	gboolean        is_valid_drop_site;
+	GdkAtom         target_type;
+
+	/* Check to see if (x,y) is a valid drop site within widget */
+	is_valid_drop_site = TRUE;
+
+	/* If the source offers a target */
+	if (context-> targets)
+	{
+		/* Choose the best target type */
+		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (context->targets, DND_TARGET_STRING));
+
+		/* Request the data from the source. */
+		gtk_drag_get_data
+		(
+			widget,         /* will receive 'drag-data-received' signal */
+			context,        /* represents the current state of the DnD */
+			target_type,    /* the target type we want */
+			time            /* time stamp */
+		);
+	}
+
+	/* No target offered by source => error */
+	else
+	{
+		is_valid_drop_site = FALSE;
+	}
+
+	return  is_valid_drop_site;
+}
+
+static void
+playlist_dnd_setup(EinaPlaylist *self)
+{
+	GtkWidget *dest = eina_obj_get_widget((EinaObj*) self, "playlist-treeview");
+	gtk_drag_dest_set
+	(
+		dest,                        /* widget that will accept a drop */
+		GTK_DEST_DEFAULT_DROP        /* default actions for dest on DnD */
+		| GTK_DEST_DEFAULT_MOTION 
+		| GTK_DEST_DEFAULT_HIGHLIGHT,
+		dnd_target_list,             /* lists of target to support */
+		dnd_n_targets,               /* size of list */
+		GDK_ACTION_COPY              /* what to do with data after dropped */
+	);
+
+	/* All possible destination signals */
+	g_signal_connect (dest, "drag-data-received", G_CALLBACK(drag_data_received_cb), self);
+	g_signal_connect (dest, "drag-leave",         G_CALLBACK (drag_leave_cb),        self);
+	g_signal_connect (dest, "drag-motion",        G_CALLBACK (drag_motion_cb),       self);
+	g_signal_connect (dest, "drag-drop",          G_CALLBACK (drag_drop_cb),         self);
+}
+
+
+#if 0
 #if 0
 
 void drag_data_received_cb(GtkWidget *widget,
@@ -1341,6 +1513,7 @@ void setup_dnd(EinaPlaylist *self)
 		G_CALLBACK (drag_drop_handl), NULL);
 */
 }
+#endif
 
 /*
  * Connector

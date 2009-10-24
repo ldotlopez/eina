@@ -557,7 +557,6 @@ player_dnd_setup(EinaPlayer *self)
 static void
 io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlayer *self)
 {
-	gel_warn("Read successful");
 	GList *l = gel_io_tree_result_flatten(result);
 	GList *i = l;
 	while (i)
