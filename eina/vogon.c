@@ -71,6 +71,7 @@ static const gchar ui_def[] =
 "		<separator />"
 "		<menuitem name='Next'     action='next-action'  />"
 "		<menuitem name='Previous' action='prev-action'  />"
+"		<separator />"
 "		<menuitem name='Add'   action='open-action'/>"
 "		<menuitem name='Clear' action='clear-action'/>"
 "		<separator />"
