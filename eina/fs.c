@@ -129,7 +129,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 gboolean
 eina_fs_is_supported_extension(gchar *uri)
 {
-	static const gchar *suffixes[] = {".mp3", ".ogg", ".wma", ".aac", ".flac", ".m4a", NULL };
+	static const gchar *suffixes[] = {".mp3", ".ogg", "wav", ".wma", ".aac", ".flac", ".m4a", NULL };
 	gchar *lc_name;
 	gint i;
 	gboolean ret = FALSE;
