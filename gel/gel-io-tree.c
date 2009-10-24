@@ -75,6 +75,12 @@ gel_io_tree_walk(GFile *file, const gchar *attributes, gboolean recurse,
 	return self;
 }
 
+GCancellable*
+gel_io_tree_op_get_cancellable(GelIOTreeOp *op)
+{
+	return op->cancellable;
+}
+
 static gboolean
 disassociate_node_data(GNode *node, gpointer data)
 {

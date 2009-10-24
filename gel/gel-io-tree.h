@@ -8,9 +8,14 @@ typedef struct _GelIOTreeOp     GelIOTreeOp;
 typedef void (*GelIOTreeSuccessFunc) (GelIOTreeOp *op, const GFile *source, const GNode  *result, gpointer data);
 typedef void (*GelIOTreeErrorFunc)   (GelIOTreeOp *op, const GFile *source, const GError *error,  gpointer data);
 
+#define gel_file_get_file_info(file) G_FILE_INFO(g_object_get_data((GObject *) file, "gfileinfo"))
+
 GelIOTreeOp *
 gel_io_tree_walk(GFile *file, const gchar *attributes, gboolean recurse,
   GelIOTreeSuccessFunc success_cb, GelIOTreeErrorFunc error_cb, gpointer data);
+
+GCancellable*
+gel_io_tree_op_get_cancellable(GelIOTreeOp *op);
 
 void
 gel_io_tree_op_close(GelIOTreeOp *op);
