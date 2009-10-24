@@ -75,6 +75,8 @@ static void
 playlist_set_valist_from_stream(EinaPlaylist *self, LomoStream *stream, ...);
 gboolean
 eina_playlist_dock_init(EinaPlaylist *self);
+static gboolean
+playlist_resize_columns(EinaPlaylist *self);
 static void
 playlist_queue_selected(EinaPlaylist *self);
 static void
@@ -132,6 +134,8 @@ static gboolean
 widget_focus_out_event_cb(GtkWidget *w, GdkEventFocus *ev, EinaPlaylist *self);
 
 // UI callbacks
+static void
+playlist_treeview_size_allocate_cb(GtkWidget *w, GtkAllocation *a, EinaPlaylist *self);
 void dock_row_activated_cb
 (GtkWidget *w,
  	GtkTreePath *path,
@@ -165,13 +169,12 @@ void drag_data_get_cb
 	guint             time,
 	EinaPlaylist     *self);
 
-void on_pl_settings_change
-(EinaConf *conf, const gchar *key, gpointer data);
-
 /* Signal definitions */
 GelUISignalDef _playlist_signals[] = {
 	{ "playlist-treeview",   "row-activated",
 	G_CALLBACK(dock_row_activated_cb) },
+	{ "playlist-treeview",   "size-allocate",
+	G_CALLBACK(playlist_treeview_size_allocate_cb) },
 
 	{ "playlist-search-entry", "changed",
 	G_CALLBACK(search_entry_changed_cb) },
@@ -216,7 +219,6 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Configure settings
-
 	LomoPlayer *lomo = eina_obj_get_lomo((EinaObj *) self);
 	g_object_set(eina_obj_get_typed(self, GTK_TOGGLE_BUTTON, "playlist-repeat-button"),
 		"active", lomo_player_get_repeat(lomo),
@@ -389,7 +391,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 
 	g_object_set(eina_obj_get_object(self, "title-renderer"),
 		"ellipsize-set", TRUE,
-		"ellipsize", PANGO_ELLIPSIZE_NONE,
+		"ellipsize", PANGO_ELLIPSIZE_END,
 		NULL);
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(self->tv), GTK_SELECTION_MULTIPLE);
 
@@ -400,6 +402,28 @@ eina_playlist_dock_init(EinaPlaylist *self)
 
 	g_signal_connect(self->dock, "key-press-event", G_CALLBACK(dock_key_press_event_cb), self);
 	return TRUE;
+}
+
+static gboolean
+playlist_resize_columns(EinaPlaylist *self)
+{
+	static gint l[] = {-1, -1, -1};
+	gint tv = GTK_WIDGET(self->tv)->allocation.width;
+	gint sc = gtk_tree_view_column_get_width(eina_obj_get_typed((EinaObj *) self, GTK_TREE_VIEW_COLUMN, "state-column"));
+	gint qc = gtk_tree_view_column_get_width(eina_obj_get_typed((EinaObj *) self, GTK_TREE_VIEW_COLUMN, "queue-column"));
+
+	if ((l[0] == tv) && (l[1] == sc) && (l[2] == qc))
+		return FALSE;
+	l[0] = tv;
+	l[1] = sc;
+	l[2] = qc;
+
+	gint out = tv - sc - qc - 4;
+	gtk_cell_renderer_set_fixed_size(eina_obj_get_typed((EinaObj *) self, GTK_CELL_RENDERER, "title-renderer"), out, -1);
+	gtk_tree_view_column_set_fixed_width(eina_obj_get_typed((EinaObj *) self, GTK_TREE_VIEW_COLUMN, "title-column"), out );
+
+	gtk_tree_view_column_queue_resize(eina_obj_get_typed((EinaObj *) self, GTK_TREE_VIEW_COLUMN, "title-column"));
+	return FALSE;
 }
 
 gint *
@@ -654,6 +678,15 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 // ------------
 // UI Callbacks
 // ------------
+static void
+playlist_treeview_size_allocate_cb(GtkWidget *w, GtkAllocation *a, EinaPlaylist *self)
+{
+	static guint id = 0;
+	if (id > 0)
+		g_source_remove(id);
+	id = g_idle_add((GSourceFunc) playlist_resize_columns, self);
+}
+
 void
 dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaPlaylist *self)
 {
