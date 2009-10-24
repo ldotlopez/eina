@@ -327,7 +327,8 @@ art_search_cb(Art *art, ArtSearch *search, EinaCover *self)
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 {
-	cover_update_from_stream(self, lomo_player_nth_stream(lomo, to));
+	if (from != to)
+		cover_update_from_stream(self, lomo_player_nth_stream(lomo, to));
 }
 
 static void
