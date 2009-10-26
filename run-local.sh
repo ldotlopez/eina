@@ -17,6 +17,7 @@ for PLUGIN_DIR in $(find "`dirname $0`/plugins" -maxdepth 1 -type d 2>/dev/null 
 do
 	D="$(dirname -- $0)/tools/plugins"
 	B="$(basename -- $PLUGIN_DIR)"
+	[ -e "$PLUGIN_DIR/.libs/lib$B.so" ] || continue
 	mkdir -p "$D/$B"
 	for SO in $(find $PLUGIN_DIR/.libs -type f -name '*.so' 2>/dev/null)
 	do
