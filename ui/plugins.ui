@@ -2,16 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkListStore" id="liststore">
-    <columns>
-      <!-- column-name gboolean1 -->
-      <column type="gboolean"/>
-      <!-- column-name GdkPixbuf1 -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name gchararray1 -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkDialog" id="main-window">
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Eina plugins</property>
@@ -59,56 +49,75 @@ There are no plugins instaled on your system</property>
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow1">
+              <object class="GtkVBox" id="vbox2">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">automatic</property>
-                <property name="vscrollbar_policy">automatic</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkTreeView" id="treeview">
+                  <object class="GtkScrolledWindow" id="scrolledwindow1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="model">liststore</property>
-                    <property name="headers_visible">False</property>
-                    <property name="headers_clickable">False</property>
-                    <property name="enable_search">False</property>
-                    <property name="search_column">0</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                        <property name="title">column</property>
+                      <object class="GtkTreeView" id="treeview">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">liststore</property>
+                        <property name="headers_visible">False</property>
+                        <property name="headers_clickable">False</property>
                         <child>
-                          <object class="GtkCellRendererToggle" id="toggle-renderer"/>
-                          <attributes>
-                            <attribute name="active">0</attribute>
-                            <attribute name="inconsistent">0</attribute>
-                          </attributes>
+                          <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                            <property name="title">column</property>
+                            <child>
+                              <object class="GtkCellRendererToggle" id="enabled-renderer"/>
+                              <attributes>
+                                <attribute name="active">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
                         </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn2">
-                        <property name="title">column</property>
                         <child>
-                          <object class="GtkCellRendererPixbuf" id="pixbuf-renderer"/>
-                          <attributes>
-                            <attribute name="sensitive">0</attribute>
-                            <attribute name="pixbuf">1</attribute>
-                          </attributes>
+                          <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                            <property name="title">column</property>
+                            <child>
+                              <object class="GtkCellRendererPixbuf" id="pixbuf-renderer"/>
+                              <attributes>
+                                <attribute name="sensitive">0</attribute>
+                                <attribute name="pixbuf">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
                         </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn3">
-                        <property name="title">column</property>
                         <child>
-                          <object class="GtkCellRendererText" id="markup-renderer"/>
-                          <attributes>
-                            <attribute name="markup">2</attribute>
-                          </attributes>
+                          <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                            <property name="title">column</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="markup-renderer"/>
+                              <attributes>
+                                <attribute name="markup">2</attribute>
+                              </attributes>
+                            </child>
+                          </object>
                         </child>
                       </object>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="internal-plugins-checkbutton">
+                    <property name="label" translatable="yes">Show internal plugins</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="draw_indicator">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -122,19 +131,6 @@ There are no plugins instaled on your system</property>
               </object>
               <packing>
                 <property name="position">1</property>
-                <property name="tab_fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="label3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 3</property>
-              </object>
-              <packing>
-                <property name="position">2</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>
@@ -189,7 +185,6 @@ There are no plugins instaled on your system</property>
       <action-widget response="-7">close-button</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkActionGroup" id="actiongroup1"/>
   <object class="GtkDialog" id="info-window">
     <property name="border_width">5</property>
     <property name="type_hint">normal</property>
@@ -371,5 +366,23 @@ There are no plugins instaled on your system</property>
     <action-widgets>
       <action-widget response="0">button1</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkAction" id="plugins-action">
+    <property name="label">Plugins</property>
+    <property name="short_label">Plugins</property>
+    <property name="tooltip">Select plugins</property>
+    <property name="icon_name">eina-plugin</property>
+  </object>
+  <object class="GtkListStore" id="liststore">
+    <columns>
+      <!-- column-name gboolean1 -->
+      <column type="gboolean"/>
+      <!-- column-name GdkPixbuf1 -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name gchararray1 -->
+      <column type="gchararray"/>
+      <!-- column-name gpointer1 -->
+      <column type="gpointer"/>
+    </columns>
   </object>
 </interface>
