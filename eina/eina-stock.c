@@ -37,6 +37,7 @@ static const  struct {
 	{ EINA_STOCK_REPEAT,      "repeat"      },
 	{ EINA_STOCK_QUEUE ,      "queue"       },
 	{ EINA_STOCK_BUG,         "bug"         },
+	{ EINA_STOCK_PLUGIN,      "plugin"      }
 };
 
 static const GtkStockItem stock_items [] = {
@@ -45,6 +46,7 @@ static const GtkStockItem stock_items [] = {
 	{ EINA_STOCK_REPEAT,      N_("_Shuffle"),     0, 0, GETTEXT_PACKAGE },
 	{ EINA_STOCK_QUEUE,       N_("_Queue"),       0, 0, GETTEXT_PACKAGE },
 	{ EINA_STOCK_BUG,         N_("Report a bug"), 0, 0, GETTEXT_PACKAGE },
+	{ EINA_STOCK_PLUGIN,      NULL,               0, 0, GETTEXT_PACKAGE }
 };
 
 void

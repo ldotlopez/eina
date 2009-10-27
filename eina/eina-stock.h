@@ -25,6 +25,7 @@
 #define EINA_STOCK_REPEAT      "eina-repeat"
 #define EINA_STOCK_QUEUE       "queue"
 #define EINA_STOCK_BUG         "bug"
+#define EINA_STOCK_PLUGIN      "eina-plugin"
 
 void
 eina_stock_init(void);
