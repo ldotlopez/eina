@@ -37,8 +37,8 @@ typedef struct EinaObj {
 } EinaObj;
 
 typedef enum {
-	EINA_OBJ_NONE   = 0x0000000,
-	EINA_OBJ_GTK_UI = 0x0000001,
+	EINA_OBJ_NONE   = 0,
+	EINA_OBJ_GTK_UI = 1,
 	EINA_OBJ_ALL    = EINA_OBJ_GTK_UI
 } EinaObjFlag;
 
@@ -48,10 +48,18 @@ typedef struct {
 	GType  type;
 } EinaObjObject;
 
-gboolean eina_obj_init(EinaObj *self, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error);
-void     eina_obj_fini(EinaObj *self);
+gboolean
+eina_obj_init(EinaObj *self, GelPlugin *plugin, gchar *name, EinaObjFlag flags, GError **error);
+void
+eina_obj_fini(EinaObj *self);
 
-void     eina_obj_strip(EinaObj *self, EinaObjFlag flags);
+gboolean
+eina_obj_load_default_ui(EinaObj *self, GError **error);
+gboolean
+eina_obj_load_ui(EinaObj *self, gchar *resource, GError **error);
+
+void
+eina_obj_strip(EinaObj *self, EinaObjFlag flags);
 
 // Prefered way of access internals
 #define EINA_OBJ(s)    ((EinaObj *)s)

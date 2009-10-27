@@ -60,6 +60,35 @@ void eina_obj_fini(EinaObj *self)
 	gel_free_and_invalidate(self,        NULL, g_free);
 }
 
+gboolean
+eina_obj_load_default_ui(EinaObj *self, GError **error)
+{
+	gchar *res = g_strconcat(self->name, ".ui", NULL);
+	gboolean ret = eina_obj_load_ui(self, res, error);
+	g_free(res);
+	return ret;
+}
+
+gboolean
+eina_obj_load_ui(EinaObj *self, gchar *resource, GError **error)
+{
+	g_return_val_if_fail(self->plugin != NULL, FALSE);
+
+	gchar *pathname = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, resource);
+	g_return_val_if_fail(pathname != NULL, FALSE);
+
+	gel_free_and_invalidate(self->ui, NULL, g_object_unref);
+	self->ui = gtk_builder_new();
+
+	GError *err = NULL;
+	if (!gtk_builder_add_from_file(self->ui, pathname, &err))
+	{
+		g_free(pathname);
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 void
 eina_obj_strip(EinaObj *self, EinaObjFlag flags)
