@@ -24,6 +24,7 @@
 #include <config.h>
 #include <eina/eina-plugin.h>
 #include <eina/window.h>
+#include <eina/ext/eina-plugin-properties.h>
 
 #if 1
 #define debug(...) gel_warn(__VA_ARGS__)
@@ -56,6 +57,10 @@ typedef struct {
 	guint           ui_mng_merge_id;
 #endif
 } EinaPlugins;
+
+enum {
+	PLUGINS_RESPONSE_PROPERTIES = 1
+};
 
 enum {
 	PLUGINS_COLUMN_ENABLED,
@@ -345,11 +350,29 @@ action_activated_cb(GtkAction *action, EinaPlugins *self)
 static void
 window_response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 {
+	GtkTreeSelection *tvsel;
+	GtkTreeModel *model;
+	GtkTreeIter   iter;
+	GelPlugin    *plugin;
+
 	switch (response)
 	{
-	case 1:
-		gel_implement("Show plugin inspector");
+	case PLUGINS_RESPONSE_PROPERTIES:
+		tvsel = gtk_tree_view_get_selection(eina_obj_get_typed(EINA_OBJ(self), GTK_TREE_VIEW, "treeview"));
+		if (!gtk_tree_selection_get_selected(tvsel, &model, &iter))
+		{
+			gel_warn(N_("Error getting selection info"));
+			return;
+		}
+
+		gtk_tree_model_get(model, &iter, PLUGINS_COLUMN_PLUGIN, &plugin, -1);
+
+		EinaPluginProperties *pp = eina_plugin_properties_new(plugin);
+		g_signal_connect(pp, "response", (GCallback) gtk_widget_destroy, NULL);
+		gtk_widget_show((GtkWidget *) pp);
+
 		break;
+
 	default:
 		plugins_cleanup_dialog(self);
 		gtk_widget_destroy(w);
