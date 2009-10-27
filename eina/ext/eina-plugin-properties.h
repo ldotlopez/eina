@@ -1,6 +1,7 @@
 #ifndef _EINA_PLUGIN_PROPERTIES
 #define _EINA_PLUGIN_PROPERTIES
 
+#include <gel/gel.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
@@ -24,16 +25,19 @@ G_BEGIN_DECLS
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PLUGIN_PROPERTIES, EinaPluginPropertiesClass))
 
 typedef struct {
-	GtkVBox parent;
+	GtkDialog parent;
 } EinaPluginProperties;
 
 typedef struct {
-	GtkVBoxClass parent_class;
+	GtkDialogClass parent_class;
 } EinaPluginPropertiesClass;
 
 GType eina_plugin_properties_get_type (void);
 
-EinaPluginProperties* eina_plugin_properties_new (void);
+EinaPluginProperties* eina_plugin_properties_new (GelPlugin *);
+
+void
+eina_plugin_properties_set_plugin(EinaPluginProperties *self, GelPlugin *plugin);
 
 G_END_DECLS
 

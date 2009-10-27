@@ -3,7 +3,7 @@
 #include "eina-plugin-properties.h"
 #include "eina-plugin-properties-ui.h"
 
-G_DEFINE_TYPE (EinaPluginProperties, eina_plugin_properties, GTK_TYPE_VBOX)
+G_DEFINE_TYPE (EinaPluginProperties, eina_plugin_properties, GTK_TYPE_DIALOG)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_PLUGIN_PROPERTIES, EinaPluginPropertiesPrivate))
@@ -11,7 +11,9 @@ G_DEFINE_TYPE (EinaPluginProperties, eina_plugin_properties, GTK_TYPE_VBOX)
 typedef struct _EinaPluginPropertiesPrivate EinaPluginPropertiesPrivate;
 
 struct _EinaPluginPropertiesPrivate {
-		int dummy;
+	GtkImage *icon;
+	GtkLabel *name, *short_desc, *long_desc;
+	GtkLabel *pathname, *deps, *rdeps;
 };
 
 static void
@@ -55,35 +57,35 @@ eina_plugin_properties_class_init (EinaPluginPropertiesClass *klass)
 static void
 eina_plugin_properties_init (EinaPluginProperties *self)
 {
-	GError *err = NULL;
+	
 	gchar *objs[] = { "main-widget", NULL };
+	GError *error = NULL;
 	GtkBuilder *builder = gtk_builder_new();
-	gtk_builder_add_objects_from_string(builder, ui_xml, -1, objs, &err);
-	if (err)
+	if (gtk_builder_add_objects_from_string(builder, ui_xml, -1, objs, &error) == 0)
 	{
-		g_warning("%s", err->message);
-		g_error_free(err);
+		g_warning("%s", error->message);
+		g_error_free(error);
+		return;
 	}
-	else
-	{
-		GtkContainer *box = (GtkContainer *) gtk_builder_get_object(builder, "main-widget");
-		GList *children = gtk_container_get_children(box);
-		GList *l = children;
-		while (l)
-		{
-			g_object_ref(G_OBJECT(l->data));
-			gtk_widget_unparent(GTK_WIDGET(l->data));
 
-			gtk_box_pack_end(GTK_BOX(self), GTK_WIDGET(l->data), FALSE, FALSE, 5);
-			g_object_unref(G_OBJECT(l->data));
-		}
-	}
+	gtk_container_add(
+		(GtkContainer *) gtk_dialog_get_content_area((GtkDialog *) self),
+		(GtkWidget    *)  gtk_builder_get_object(builder, "main-widget"));
+	gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 	g_object_unref(builder);
 }
 
 EinaPluginProperties*
-eina_plugin_properties_new (void)
+eina_plugin_properties_new (GelPlugin *plugin)
 {
-	return g_object_new (EINA_TYPE_PLUGIN_PROPERTIES, NULL);
+	EinaPluginProperties *self = g_object_new (EINA_TYPE_PLUGIN_PROPERTIES, NULL);
+	eina_plugin_properties_set_plugin(self, plugin);
+	return self;
+}
+
+void
+eina_plugin_properties_set_plugin(EinaPluginProperties *self, GelPlugin *plugin)
+{
+	// EinaPluginPropertiesPrivate *priv = GET_PRIVATE(self);
 }
 
