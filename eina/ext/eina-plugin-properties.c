@@ -55,6 +55,30 @@ eina_plugin_properties_class_init (EinaPluginPropertiesClass *klass)
 static void
 eina_plugin_properties_init (EinaPluginProperties *self)
 {
+	GError *err = NULL;
+	gchar *objs[] = { "main-widget", NULL };
+	GtkBuilder *builder = gtk_builder_new();
+	gtk_builder_add_objects_from_string(builder, ui_xml, -1, objs, &err);
+	if (err)
+	{
+		g_warning("%s", err->message);
+		g_error_free(err);
+	}
+	else
+	{
+		GtkContainer *box = (GtkContainer *) gtk_builder_get_object(builder, "main-widget");
+		GList *children = gtk_container_get_children(box);
+		GList *l = children;
+		while (l)
+		{
+			g_object_ref(G_OBJECT(l->data));
+			gtk_widget_unparent(GTK_WIDGET(l->data));
+
+			gtk_box_pack_end(GTK_BOX(self), GTK_WIDGET(l->data), FALSE, FALSE, 5);
+			g_object_unref(G_OBJECT(l->data));
+		}
+	}
+	g_object_unref(builder);
 }
 
 EinaPluginProperties*
