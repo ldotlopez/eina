@@ -33,6 +33,7 @@ aclocal.m4
 autom4te.cache/
 bundle/Eina-*
 eina/eina
+eina/vogon
 m4/
 misc/eina-0.9.pc
 misc/eina.desktop
@@ -41,3 +42,5 @@ po/POTFILES
 po/stamp-it
 stamp-h1
 tools/plugins/
+
+eina/ext/*-ui.h

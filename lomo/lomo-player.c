@@ -704,8 +704,8 @@ LomoStream*
 lomo_player_get_stream(LomoPlayer *self)
 {
 	// Hold this for a while to watch the DPP bug
-	if (lomo_playlist_nth_stream(self->priv->pl, lomo_playlist_get_current(self->priv->pl)) != self->priv->stream)
-		g_printf("[liblomo (%s:%d)] DPP (desyncronized playlist and player) bug found\n", __FILE__, __LINE__);
+	// if (lomo_playlist_nth_stream(self->priv->pl, lomo_playlist_get_current(self->priv->pl)) != self->priv->stream)
+	// 	g_printf("[liblomo (%s:%d)] DPP (desyncronized playlist and player) bug found\n", __FILE__, __LINE__);
 	return self->priv->stream;
 }
 
