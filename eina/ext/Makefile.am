@@ -32,11 +32,11 @@ libeinaext_la_SOURCES = \
 	$(INST_H_FILES)
 
 BUILT_SOURCES = \
-	eina-plugin-dialog-ui.h     \
+	eina-plugin-dialog-ui.h             \
 	eina-plugin-properties-ui.h
 
 CLEAN_FILES   = \
-	eina-plugin-dialog-ui.h     \
+	eina-plugin-dialog-ui.h             \
 	eina-plugin-properties-ui.h
 
 EXTRA_DIST    = \

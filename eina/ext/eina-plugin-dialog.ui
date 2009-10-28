@@ -14,375 +14,110 @@
       <column type="gpointer"/>
     </columns>
   </object>
-  <object class="GtkDialog" id="main-window">
-    <property name="border_width">5</property>
-    <property name="title" translatable="yes">Eina plugins</property>
-    <property name="icon_name">system-run</property>
-    <property name="type_hint">normal</property>
-    <child internal-child="vbox">
-      <object class="GtkVBox" id="main-widget">
+  <object class="GtkWindow" id="main-window">
+    <child>
+      <object class="GtkNotebook" id="tabs">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
+        <property name="can_focus">True</property>
+        <property name="border_width">5</property>
+        <property name="show_border">False</property>
         <child>
-          <object class="GtkNotebook" id="tabs">
+          <object class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="show_border">False</property>
-            <child>
-              <object class="GtkHBox" id="hbox1">
-                <property name="visible">True</property>
-                <property name="border_width">5</property>
-                <property name="spacing">5</property>
-                <child>
-                  <object class="GtkLabel" id="label4">
-                    <property name="visible">True</property>
-                    <property name="xalign">0</property>
-                    <property name="yalign">0</property>
-                    <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;No plugins available&lt;/b&gt;&lt;/big&gt;
-
-There are no plugins instaled on your system</property>
-                    <property name="use_markup">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="label1">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 1</property>
-              </object>
-              <packing>
-                <property name="tab_fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkVBox" id="vbox2">
-                <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <child>
-                      <object class="GtkTreeView" id="treeview">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="model">liststore</property>
-                        <property name="headers_visible">False</property>
-                        <property name="headers_clickable">False</property>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                            <property name="title">column</property>
-                            <child>
-                              <object class="GtkCellRendererToggle" id="enabled-renderer"/>
-                              <attributes>
-                                <attribute name="active">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumn2">
-                            <property name="title">column</property>
-                            <child>
-                              <object class="GtkCellRendererPixbuf" id="pixbuf-renderer"/>
-                              <attributes>
-                                <attribute name="sensitive">0</attribute>
-                                <attribute name="pixbuf">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumn3">
-                            <property name="title">column</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="markup-renderer"/>
-                              <attributes>
-                                <attribute name="markup">2</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkCheckButton" id="internal-plugins-checkbutton">
-                    <property name="label" translatable="yes">Show internal plugins</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
-                    <property name="draw_indicator">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="label2">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">page 2</property>
-              </object>
-              <packing>
-                <property name="position">1</property>
-                <property name="tab_fill">False</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area1">
-            <property name="visible">True</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="plugin-info-button">
-                <property name="label">gtk-info</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="close-button">
-                <property name="label">gtk-close</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="1">plugin-info-button</action-widget>
-      <action-widget response="-7">close-button</action-widget>
-    </action-widgets>
-  </object>
-  <object class="GtkDialog" id="info-window">
-    <property name="border_width">5</property>
-    <property name="type_hint">normal</property>
-    <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox2">
-        <property name="visible">True</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child>
-          <object class="GtkVBox" id="vbox1">
-            <property name="visible">True</property>
-            <property name="orientation">vertical</property>
+            <property name="border_width">5</property>
             <property name="spacing">5</property>
             <child>
-              <object class="GtkHBox" id="hbox2">
+              <object class="GtkLabel" id="label4">
                 <property name="visible">True</property>
-                <property name="spacing">5</property>
-                <child>
-                  <object class="GtkImage" id="plugin-icon-image">
-                    <property name="visible">True</property>
-                    <property name="yalign">0</property>
-                    <property name="pixel_size">64</property>
-                    <property name="icon_name">system-run</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="plugin-markup-label">
-                    <property name="visible">True</property>
-                    <property name="xalign">0</property>
-                    <property name="yalign">0</property>
-                    <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;%s&lt;/b&gt;&lt;/big&gt;
-%s</property>
-                    <property name="use_markup">True</property>
-                  </object>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkFrame" id="frame1">
-                <property name="visible">True</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
-                <child>
-                  <object class="GtkAlignment" id="alignment2">
-                    <property name="visible">True</property>
-                    <property name="left_padding">12</property>
-                    <child>
-                      <object class="GtkLabel" id="plugin-filename-label">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes">%s</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child type="label">
-                  <object class="GtkLabel" id="label5">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Filename&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
-                  </object>
-                </child>
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;No plugins available&lt;/b&gt;&lt;/big&gt;
+
+There are no plugins instaled on your system</property>
+                <property name="use_markup">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
+          </object>
+        </child>
+        <child type="tab">
+          <object class="GtkLabel" id="label1">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">page 1</property>
+          </object>
+          <packing>
+            <property name="tab_fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolledwindow1">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
             <child>
-              <object class="GtkFrame" id="long-description-frame">
+              <object class="GtkTreeView" id="treeview">
                 <property name="visible">True</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
+                <property name="can_focus">True</property>
+                <property name="model">liststore</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
+                <property name="search_column">0</property>
                 <child>
-                  <object class="GtkAlignment" id="alignment1">
-                    <property name="visible">True</property>
-                    <property name="left_padding">12</property>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="title">column</property>
                     <child>
-                      <object class="GtkLabel" id="long-description-label">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="yalign">0</property>
-                        <property name="label" translatable="yes">label</property>
-                      </object>
+                      <object class="GtkCellRendererToggle" id="enabled-renderer"/>
+                      <attributes>
+                        <attribute name="active">0</attribute>
+                      </attributes>
                     </child>
                   </object>
                 </child>
-                <child type="label">
-                  <object class="GtkLabel" id="label6">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Description&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                    <property name="title">column</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="pixbuf-renderer"/>
+                      <attributes>
+                        <attribute name="sensitive">0</attribute>
+                        <attribute name="pixbuf">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                    <property name="title">column</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="markup-renderer"/>
+                      <attributes>
+                        <attribute name="markup">2</attribute>
+                      </attributes>
+                    </child>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkHBox" id="hbox3">
-                <property name="visible">True</property>
-                <property name="spacing">5</property>
-                <property name="homogeneous">True</property>
-                <child>
-                  <object class="GtkLinkButton" id="plugin-url-linkbutton">
-                    <property name="label" translatable="yes">Website</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                  </object>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLinkButton" id="plugin-main-linkbutton">
-                    <property name="label" translatable="yes">Contact</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="relief">none</property>
-                  </object>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">3</property>
-              </packing>
             </child>
           </object>
           <packing>
             <property name="position">1</property>
           </packing>
         </child>
-        <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area2">
+        <child type="tab">
+          <object class="GtkLabel" id="label2">
             <property name="visible">True</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="button1">
-                <property name="label">gtk-close</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
+            <property name="label" translatable="yes">page 2</property>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
+            <property name="position">1</property>
+            <property name="tab_fill">False</property>
           </packing>
         </child>
       </object>
     </child>
-    <action-widgets>
-      <action-widget response="0">button1</action-widget>
-    </action-widgets>
-  </object>
-  <object class="GtkAction" id="plugins-action">
-    <property name="label">Plugins</property>
-    <property name="short_label">Plugins</property>
-    <property name="tooltip">Select plugins</property>
-    <property name="icon_name">eina-plugin</property>
   </object>
 </interface>

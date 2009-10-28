@@ -1,3 +1,22 @@
+/*
+ * eina/ext/eina-plugin-properties.c
+ *
+ * Copyright (C) 2004-2009 Eina
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <glib/gi18n.h>
 #include <eina/ext/eina-stock.h>
 #include <eina/ext/eina-plugin-properties.h>
@@ -145,7 +164,8 @@ set_plugin(EinaPluginProperties *self, GelPlugin *plugin)
 
 	gchar *tmp = gel_plugin_stringify_dependants(plugin);
 	gtk_label_set_markup(priv->rdeps, gel_str_or_text(tmp, N_("No reverse dependencies")));
-	g_free(tmp);
+	if (tmp)
+		g_free(tmp);
 }
 
 const GelPlugin*
