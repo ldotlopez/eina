@@ -32,7 +32,6 @@ INST_H_FILES = \
 	art.h         \
 	eina-obj.h    \
 	eina-plugin.h \
-	eina-stock.h  \
 	fs.h          \
 	lomo.h        \
 	preferences.h \
@@ -50,7 +49,6 @@ eina_SOURCES = \
 	dock.c             \
 	eina-obj.c         \
 	eina-plugin.c      \
-	eina-stock.c       \
 	fs.c               \
 	log.c              \
 	lomo.c             \
@@ -70,7 +68,6 @@ vogon_SOURCES = \
 	eina-obj.c   \
 	about.c      \
 	lomo.c       \
-	eina-stock.c \
 	fs.c         \
 	settings.c   \
 	vogon.c      \

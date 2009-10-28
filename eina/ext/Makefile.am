@@ -10,6 +10,7 @@ INST_H_FILES = \
 	eina-plugin-properties.h   \
 	eina-preferences-dialog.h  \
 	eina-seek.h                \
+	eina-stock.h               \
 	eina-volume.h              \
 	eina-window.h
 
@@ -23,6 +24,7 @@ libeinaext_la_SOURCES = \
 	eina-plugin-properties.c   \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
+	eina-stock.c               \
 	eina-volume.c              \
 	eina-window.c              \
 	$(INST_H_FILES)

@@ -37,7 +37,6 @@
 // Modules availables: lomo, settings, art, fs (utility functions)
 #include <eina/art.h>
 #include <eina/dock.h>
-#include <eina/eina-stock.h>
 #include <eina/fs.h>
 #include <eina/lomo.h>
 #include <eina/preferences.h>
@@ -46,6 +45,7 @@
 #include <eina/ext/curl-engine.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 #include <eina/ext/eina-preferences-dialog.h>
+#include <eina/ext/eina-stock.h>
 
 // Redefine some types and enums
 #define EinaPlugin GelPlugin
