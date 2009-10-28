@@ -131,6 +131,7 @@
                     <child>
                       <object class="GtkLabel" id="plugin-deps">
                         <property name="visible">True</property>
+                        <property name="xalign">0</property>
                         <property name="label" translatable="yes">label</property>
                       </object>
                       <packing>
@@ -177,6 +178,7 @@
                     <child>
                       <object class="GtkLabel" id="plugin-rdeps">
                         <property name="visible">True</property>
+                        <property name="xalign">0</property>
                         <property name="label" translatable="yes">label</property>
                       </object>
                       <packing>
@@ -191,6 +193,7 @@
                     <child>
                       <object class="GtkLabel" id="plugin-pathname">
                         <property name="visible">True</property>
+                        <property name="xalign">0</property>
                         <property name="label" translatable="yes">label</property>
                       </object>
                       <packing>
