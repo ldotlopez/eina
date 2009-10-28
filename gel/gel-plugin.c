@@ -63,7 +63,7 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 		return NULL;
 	}
 
-	if ((mod = g_module_open(pathname, G_MODULE_BIND_LOCAL)) == NULL)
+	if ((mod = g_module_open(pathname, G_MODULE_BIND_LAZY)) == NULL)
 	{
 		g_set_error(error, gel_plugin_quark(), GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
 			N_("%s is not loadable"), pathname);
@@ -435,6 +435,9 @@ gel_plugin_stringify_dependants(GelPlugin *plugin)
 {
 	GList *strs = NULL;
 	GList *iter = plugin->priv->dependants;
+	if (iter == NULL)
+		return NULL;
+
 	while (iter)
 	{
 		strs = g_list_prepend(strs, (gpointer) gel_plugin_stringify(GEL_PLUGIN(iter->data)));

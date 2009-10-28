@@ -293,7 +293,7 @@ gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 
 GelPlugin *
 gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
-{	
+{
 	if (!self || !pathname)
 	{
 		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_GENERIC, N_("Invalid arguments"));
