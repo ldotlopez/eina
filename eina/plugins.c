@@ -95,7 +95,7 @@ static gchar *ui_mng_xml =
 "  </menubar>"
 "</ui>";
 static GtkActionEntry ui_mng_action_entries[] = {
-	{ "plugins-action", NULL , N_("Plugins"),
+	{ "plugins-action", EINA_STOCK_PLUGIN, N_("Plugins"),
 	"<Control>u", N_("Select plugins"), (GCallback) action_activated_cb }
 };
 
