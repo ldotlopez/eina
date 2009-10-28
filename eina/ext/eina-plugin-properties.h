@@ -36,8 +36,8 @@ GType eina_plugin_properties_get_type (void);
 
 EinaPluginProperties* eina_plugin_properties_new (GelPlugin *);
 
-void
-eina_plugin_properties_set_plugin(EinaPluginProperties *self, GelPlugin *plugin);
+const GelPlugin*
+eina_plugin_properties_get_plugin(EinaPluginProperties *self);
 
 G_END_DECLS
 

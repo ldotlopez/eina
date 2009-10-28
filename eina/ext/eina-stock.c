@@ -1,5 +1,5 @@
 /*
- * eina/eina-stock.c
+ * eina/ext/eina-stock.c
  *
  * Copyright (C) 2004-2009 Eina
  *
@@ -20,7 +20,7 @@
 #include <config.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <eina/eina-stock.h>
+#include <eina/ext/eina-stock.h>
 
 static gboolean done = FALSE;
 

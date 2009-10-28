@@ -1,5 +1,5 @@
 /*
- * eina/eina-stock.h
+ * eina/ext/eina-stock.h
  *
  * Copyright (C) 2004-2009 Eina
  *

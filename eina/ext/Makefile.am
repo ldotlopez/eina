@@ -7,9 +7,11 @@ INST_H_FILES = \
 	curl-engine.h              \
 	eina-conf.h                \
 	eina-file-chooser-dialog.h \
+	eina-plugin-dialog.h       \
 	eina-plugin-properties.h   \
 	eina-preferences-dialog.h  \
 	eina-seek.h                \
+	eina-stock.h               \
 	eina-volume.h              \
 	eina-window.h
 
@@ -20,16 +22,29 @@ libeinaext_la_SOURCES = \
 	curl-engine.c              \
 	eina-conf-file.c           \
 	eina-file-chooser-dialog.c \
+	eina-plugin-dialog.c       \
 	eina-plugin-properties.c   \
 	eina-preferences-dialog.c  \
 	eina-seek.c                \
+	eina-stock.c               \
 	eina-volume.c              \
 	eina-window.c              \
 	$(INST_H_FILES)
 
-BUILT_SOURCES = eina-plugin-properties-ui.h
-CLEAN_FILES   = eina-plugin-properties-ui.h
-EXTRA_DIST    =  eina-plugin-properties.ui
+BUILT_SOURCES = \
+	eina-plugin-dialog-ui.h     \
+	eina-plugin-properties-ui.h
+
+CLEAN_FILES   = \
+	eina-plugin-dialog-ui.h     \
+	eina-plugin-properties-ui.h
+
+EXTRA_DIST    = \
+	eina-plugin-dialog.ui     \
+	eina-plugin-properties.ui 
+
+eina-plugin-dialog-ui.h: eina-plugin-dialog.ui
+	../../tools/ui2h eina-plugin-dialog.ui ui_xml > eina-plugin-dialog-ui.h
 
 eina-plugin-properties-ui.h: eina-plugin-properties.ui
 	../../tools/ui2h eina-plugin-properties.ui ui_xml > eina-plugin-properties-ui.h

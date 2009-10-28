@@ -24,7 +24,7 @@
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include <eina/eina-stock.h>
+#include <eina/ext/eina-stock.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)

@@ -182,6 +182,12 @@ gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDe
 		} \
 	} while(0)
 
+
+// --
+// Totally misc functions
+// --
+#define gel_str_or_text(str, text) (str ? str : text)
+
 // --
 // Debug functions
 // --
