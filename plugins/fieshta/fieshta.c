@@ -117,9 +117,31 @@ fieshta_init(GelApp *app, GelPlugin *plugin, GError **error)
 }
 
 gboolean
-fieshta_fini(GelApp *app, GelPlugin *self, GError **error)
+fieshta_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	gel_warn("Fieshta ended");
+	EinaFieshta *self = (EinaFieshta *) plugin->data;
+	GtkUIManager *ui_mng = eina_window_get_ui_manager(eina_obj_get_window(EINA_OBJ(self)));
+	if (self->ui_merge)
+	{
+		gtk_ui_manager_remove_ui(ui_mng, self->ui_merge);
+		self->ui_merge = 0;
+	}
+	if (self->ag)
+	{
+		gtk_ui_manager_remove_action_group(ui_mng, self->ag);
+		g_object_unref(self->ag);
+		self->ag = NULL;
+	}
+
+	#if HAVE_CLUTTER
+	if (self->embed)
+	{
+		gtk_widget_destroy(self->embed);
+		self->embed = NULL;
+	}
+	#endif
+
+	eina_obj_fini((EinaObj *) self);
 	return TRUE;
 }
 
