@@ -105,7 +105,6 @@ eina_about_show(EinaAbout *self)
 		"version", PACKAGE_VERSION,
 		"wrap-license", TRUE,
 		"logo", logo_pb,
-		"icon", logo_pb,
 		"title", N_("About Eina"),
 		NULL);
 	g_free(comments);

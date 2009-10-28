@@ -121,6 +121,16 @@ eina_window_init (EinaWindow *self)
 
 	gtk_window_add_accel_group((GtkWindow *) self, gtk_ui_manager_get_accel_group(priv->ui_manager));
 	g_signal_connect(self, "key-press-event", (GCallback) window_key_press_event_cb, NULL);
+
+    gchar *icon_path = NULL;
+	GdkPixbuf *icon_pb = NULL; 
+	if ((icon_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg")) != NULL)
+	{
+		icon_pb = gdk_pixbuf_new_from_file_at_size(icon_path, 64, 64, NULL);
+		gtk_window_set_default_icon(icon_pb);
+		g_object_unref(icon_pb);
+	}
+	gel_free_and_invalidate(icon_path, NULL, g_free);			    
 }
 
 EinaWindow*
