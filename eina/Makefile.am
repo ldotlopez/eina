@@ -84,7 +84,7 @@ dbus-marshallers.c: dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
 
 if USE_DBUS_GLIB
-eina_SOURCES += dbus.c dbus-marshallers.c
+eina_SOURCES += dbus.c ../data/eina-dbus-glue.h dbus-marshallers.c
 NOINST_H_FILES += dbus-marshallers.h
 endif
 

@@ -237,10 +237,8 @@ icons/hicolor/Makefile
 gel/Makefile
 lomo/Makefile
 Makefile
-misc/eina.desktop
-misc/eina-0.9.pc
-misc/Makefile
-pixmaps/Makefile
+data/eina.desktop
+data/eina-0.9.pc
 plugins/adb/Makefile
 plugins/coverplus/Makefile
 plugins/fieshta/Makefile

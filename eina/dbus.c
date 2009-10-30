@@ -107,7 +107,7 @@ dbus_register_server(GelApp *app, DBusGConnection *conn, GError **error)
 	LomoPlayer *lomo = gel_app_get_lomo(app);
 	dbus_g_object_type_install_info(G_OBJECT_TYPE(lomo), &dbus_glib_lomo_player_object_info);
 	dbus_g_connection_register_g_object (conn, "/net/sourceforge/Eina", (GObject*) lomo);
-
+	g_object_unref(proxy);
 	return TRUE;
 }
 
