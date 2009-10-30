@@ -107,6 +107,9 @@ gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 #endif
 
 // Utils
+gint    gel_plugin_compare_by_name (GelPlugin *a, GelPlugin *b);
+gint    gel_plugin_compare_by_usage(GelPlugin *a, GelPlugin *b);
+
 gchar*  gel_plugin_util_symbol_from_pathname(gchar *pathname);
 #define gel_plugin_util_symbol_from_name(name) g_strconcat((name?name:""), "_plugin", NULL)
 gchar*  gel_plugin_util_symbol_from_pathname(gchar *pathname);

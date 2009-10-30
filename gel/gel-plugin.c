@@ -202,9 +202,8 @@ gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 	self->priv->dependants = g_list_prepend(self->priv->dependants, dependant);
 
 	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
-	gel_debug(N_("Reference added on %s from %s"), gel_plugin_stringify(self), gel_plugin_stringify(dependant));
-	gel_debug(N_("Current refs: %s"), refs);
-	g_free(refs);
+	gel_warn(N_("[.] %s (%s)"), gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
+	gel_free_and_invalidate(refs, NULL, g_free);
 }
 
 void
@@ -447,6 +446,26 @@ gel_plugin_stringify_dependants(GelPlugin *plugin)
 	g_list_free(strs);
 
 	return ret;
+}
+
+gint
+gel_plugin_compare_by_name (GelPlugin *a, GelPlugin *b)
+{
+	const gchar *pa, *pb;
+	pa = gel_plugin_get_pathname(a);
+	pb = gel_plugin_get_pathname(b);
+
+	if (pa && !pb)
+		return 1;
+	if (!pa && pb)
+		return -1;
+	return strcmp(a->name, b->name);
+}
+
+gint
+gel_plugin_compare_by_usage(GelPlugin *a, GelPlugin *b)
+{
+	return gel_plugin_get_usage(b) - gel_plugin_get_usage(a);
 }
 
 gchar*

@@ -356,14 +356,13 @@ gel_app_query_plugins(GelApp *self)
 	while (iter)
 	{
 		GList *child, *children;
-		gel_warn("Inspecting %s", iter->data);
+		gel_warn("[?] %s", iter->data);
 		child = children = gel_dir_read(iter->data, TRUE, NULL);
 		while (child)
 		{
 			gchar *plugin_name = g_path_get_basename(child->data);
 			gchar *module_path = g_module_build_path(child->data, plugin_name);
 			g_free(plugin_name);
-			gel_warn("Querying for plugin %s", module_path);
 
 			GError *err = NULL;
 			GelPlugin *plugin = gel_app_query_plugin_by_pathname(self, module_path, &err);
@@ -372,7 +371,7 @@ gel_app_query_plugins(GelApp *self)
 				ret = g_list_prepend(ret, plugin);
 			else
 			{
-				gel_error("Cannot load %s: %s", module_path, err->message);
+				gel_error(N_("Cannot load %s: %s"), module_path, err->message);
 				g_error_free(err);
 			}
 			g_free(module_path);
@@ -624,7 +623,7 @@ gel_app_purge(GelApp *app)
 		gchar *pstr = g_strdup(gel_plugin_stringify(plugin));
 		if (!gel_plugin_free(plugin, &err))
 		{
-			gel_error("Cannot free plugin %s: %s", gel_plugin_stringify(plugin), err->message);
+			gel_error(N_("Cannot free plugin %s: %s"), gel_plugin_stringify(plugin), err->message);
 			g_error_free(err);
 		}
 		else
