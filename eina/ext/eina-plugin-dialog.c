@@ -60,10 +60,6 @@ static void
 update_plugin(EinaPluginDialog *self, GelPlugin *plugin);
 static gboolean
 get_iter_from_plugin(EinaPluginDialog *self, GtkTreeIter *iter, GelPlugin *plugin);
-static gint
-gel_plugin_cmp_by_name(GelPlugin *a, GelPlugin *b);
-static gint
-gel_plugin_cmp_by_usage(GelPlugin *a, GelPlugin *b);
 static void
 enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPluginDialog *self);
 static void
@@ -121,7 +117,7 @@ eina_plugin_dialog_dispose (GObject *object)
 	{
 		g_list_foreach(priv->plugins, (GFunc) gel_plugin_remove_lock, NULL);
 	
-		GList *tmp = g_list_sort(priv->plugins, (GCompareFunc) gel_plugin_cmp_by_usage);
+		GList *tmp = g_list_sort(priv->plugins, (GCompareFunc) gel_plugin_compare_by_usage);
 		GList *l = tmp;
 		while (l)
 		{
@@ -181,6 +177,7 @@ eina_plugin_dialog_init (EinaPluginDialog *self)
 	priv->tabs = GTK_NOTEBOOK(gtk_builder_get_object(builder, "tabs"));
 
 	g_signal_connect(gtk_builder_get_object(builder, "enabled-renderer"), "toggled", (GCallback) enabled_renderer_toggled_cb, self);
+	g_object_set(self, "title", N_("Select plugins"), NULL);
 
 	g_object_unref(builder);
 
@@ -210,7 +207,7 @@ set_app(EinaPluginDialog *self, GelApp *app)
 	priv->app = app;
 
 	// Get plugins, lock and count
-	GList *l = priv->plugins = g_list_sort(gel_app_query_plugins(priv->app), (GCompareFunc) gel_plugin_cmp_by_name);
+	GList *l = priv->plugins = g_list_sort(gel_app_query_plugins(priv->app), (GCompareFunc) gel_plugin_compare_by_name);
 	while (l)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(l->data);
@@ -340,27 +337,6 @@ update_plugin(EinaPluginDialog *self, GelPlugin *plugin)
 
 	GtkListStore *model = GTK_LIST_STORE(gtk_tree_view_get_model(priv->tv));
 	gtk_list_store_set(model, &iter, COLUMN_ENABLED, gel_plugin_is_enabled(plugin), -1);
-}
-
-
-static gint
-gel_plugin_cmp_by_name(GelPlugin *a, GelPlugin *b)
-{
-	const gchar *pa, *pb;
-	pa = gel_plugin_get_pathname(a);
-	pb = gel_plugin_get_pathname(b);
-
-	if (pa && !pb)
-		return 1;
-	if (!pa && pb)
-		return -1;
-	return strcmp(a->name, b->name);
-}
-
-static gint
-gel_plugin_cmp_by_usage(GelPlugin *a, GelPlugin *b)
-{
-	return gel_plugin_get_usage(b) - gel_plugin_get_usage(a);
 }
 
 static void
