@@ -21,11 +21,12 @@
 #include <gst/gst.h>
 #include <lomo/lomo-stream.h>
 #include <lomo/lomo-util.h>
+#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (LomoStream, lomo_stream, G_TYPE_OBJECT)
 
 #define GET_PRIVATE(o) \
-  (G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_STREAM, LomoStreamPrivate))
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_STREAM, LomoStreamPrivate))
 
 typedef struct _LomoStreamPrivate LomoStreamPrivate;
 
@@ -53,26 +54,28 @@ struct _LomoStreamPrivate {
 static void
 lomo_stream_dispose (GObject *object)
 {
-  struct _LomoStreamPrivate *priv = GET_PRIVATE(LOMO_STREAM(object));
-  if (priv->tags)
-  {
-  	g_list_foreach(priv->tags, (GFunc) g_free, NULL);
-	g_list_free(priv->tags);
-	priv->tags = NULL;
-  }
+	struct _LomoStreamPrivate *priv = GET_PRIVATE(LOMO_STREAM(object));
 
-  if (G_OBJECT_CLASS (lomo_stream_parent_class)->dispose)
-    G_OBJECT_CLASS (lomo_stream_parent_class)->dispose (object);
+	if (priv->tags)
+	{
+		g_list_foreach(priv->tags, (GFunc) g_free, NULL);
+		g_list_free(priv->tags);
+		priv->tags = NULL;
+		// g_printf("[-] Disposing stream '%p' ('%s')\n", object, (gchar *) lomo_stream_get_tag((LomoStream *) object, LOMO_TAG_URI));
+	}
+
+	if (G_OBJECT_CLASS (lomo_stream_parent_class)->dispose)
+		G_OBJECT_CLASS (lomo_stream_parent_class)->dispose (object);
 }
 
 static void
 lomo_stream_class_init (LomoStreamClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (LomoStreamPrivate));
+	g_type_class_add_private (klass, sizeof (LomoStreamPrivate));
 
-  object_class->dispose = lomo_stream_dispose;
+	object_class->dispose = lomo_stream_dispose;
 }
 
 static void
@@ -80,6 +83,7 @@ lomo_stream_init (LomoStream *self)
 {
 	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
 	priv->all_tags = FALSE;
+	priv->tags     = NULL;
 }
 
 /**

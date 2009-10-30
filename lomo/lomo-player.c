@@ -193,6 +193,13 @@ lomo_player_dispose(GObject *object)
 		self->priv->options = NULL;
 	}
 
+	if (self->priv->hooks)
+	{
+		g_list_free(self->priv->hooks);
+		g_list_free(self->priv->hooks_data);
+		self->priv->hooks = self->priv->hooks_data = NULL;
+	}
+
 	if (self->priv->pipeline)
 	{
 		if (lomo_player_get_state(self) != LOMO_STATE_STOP)
@@ -681,8 +688,9 @@ lomo_player_destroy_pipeline(LomoPlayer *self, GError **error)
 void
 lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data)
 {
-	GET_PRIVATE(self)->hooks      = g_list_prepend(GET_PRIVATE(self)->hooks, func);
-	GET_PRIVATE(self)->hooks_data = g_list_prepend(GET_PRIVATE(self)->hooks_data, data);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	priv->hooks      = g_list_prepend(priv->hooks, func);
+	priv->hooks_data = g_list_prepend(priv->hooks_data, data);
 }
 
 void
@@ -703,9 +711,6 @@ lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func)
 LomoStream*
 lomo_player_get_stream(LomoPlayer *self)
 {
-	// Hold this for a while to watch the DPP bug
-	// if (lomo_playlist_nth_stream(self->priv->pl, lomo_playlist_get_current(self->priv->pl)) != self->priv->stream)
-	// 	g_printf("[liblomo (%s:%d)] DPP (desyncronized playlist and player) bug found\n", __FILE__, __LINE__);
 	return self->priv->stream;
 }
 
@@ -866,8 +871,6 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 
 	if (self->priv->pipeline == NULL)
 	{
-		// g_warning(N_("Cannot set volume on a NULL pipeline"));
-		// return FALSE;
 		self->priv->volume = val;
 		return TRUE;
 	}
@@ -893,8 +896,6 @@ gint lomo_player_get_volume(LomoPlayer *self)
 {
 	if (self->priv->pipeline == NULL)
 	{
-		// g_warning(N_("Cannot get volume form a NULL pipeline"));
-		// return -1;
 		return self->priv->volume;
 	}
 
@@ -969,9 +970,7 @@ gboolean lomo_player_get_mute(LomoPlayer *self)
 void
 lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
 {
-	GList *tmp = NULL;
-
-	tmp = g_list_prepend(tmp, stream);
+	GList *tmp = g_list_prepend(NULL, stream);
 	lomo_player_insert_multi(self, tmp, pos);
 	g_list_free(tmp);
 }
@@ -983,7 +982,8 @@ lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos)
 	LomoStream *stream = NULL;
 
 	l = uris;
-	while (l) {
+	while (l)
+	{
 		if ((stream = lomo_stream_new((gchar *) l->data)) != NULL)
 			streams = g_list_prepend(streams, stream);
 		l = l->next;
@@ -1006,20 +1006,26 @@ lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 	
 	for (i = 0; uris[i] != NULL; i++)
 	{
-		if ((tmp = g_uri_parse_scheme(uris[i])) == NULL)
+		if ((tmp =  g_uri_parse_scheme(uris[i])) != NULL)
 		{
-			if ((tmp = g_filename_to_uri(uris[i], NULL, NULL)) != NULL)
-				l = g_list_prepend(l, tmp);
+			// It's an URI, ok
+			g_free(tmp);
+			l = g_list_prepend(l, g_strdup(uris[i]));
 		}
 		else
 		{
-			g_free(tmp);
-			l = g_list_prepend(l, uris[i]);
+			// Try to create an URI
+			tmp = g_filename_to_uri(uris[i], NULL, NULL);
+			if (tmp)
+			{
+				l = g_list_prepend(l, tmp);
+			}
 		}
 	}
 
 	l = g_list_reverse(l);
 	lomo_player_insert_uri_multi(self, l, pos);
+	g_list_foreach(l, (GFunc) g_free, NULL);
 	g_list_free(l);
 }
 

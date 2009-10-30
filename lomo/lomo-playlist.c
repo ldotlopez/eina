@@ -21,12 +21,6 @@
 #include <lomo/lomo-playlist.h>
 #include <lomo/lomo-util.h>
 
-#ifdef LOMO_DEBUG
-#define BACKTRACE g_printf("[LomoPlaylist Backtrace] %s %d\n", __FUNCTION__, __LINE__);
-#else
-#define BACKTRACE ((void)(0));
-#endif
-
 struct _LomoPlaylist {
     GList  *list;
     GList  *random_list;
@@ -53,7 +47,7 @@ gint lomo_playlist_random_to_normal
  */
 gint
 lomo_playlist_normal_to_random (LomoPlaylist *l, gint pos)
-{ BACKTRACE
+{
 	gpointer data = g_list_nth_data(l->list, pos);
 	return g_list_index(l->random_list, data);
 }
@@ -64,7 +58,7 @@ lomo_playlist_normal_to_random (LomoPlaylist *l, gint pos)
   */
 gint
 lomo_playlist_random_to_normal (LomoPlaylist *l, gint pos)
-{ BACKTRACE
+{
 	gpointer data = g_list_nth_data(l->random_list, pos);
 	return g_list_index(l->list, data);
 }
@@ -82,7 +76,7 @@ lomo_playlist_random_to_normal (LomoPlaylist *l, gint pos)
  */
 LomoPlaylist*
 lomo_playlist_new (void) 
-{ BACKTRACE
+{
 	LomoPlaylist *self;
 
 	self = g_new0(LomoPlaylist, 1);
@@ -107,7 +101,7 @@ lomo_playlist_new (void)
  */
 void
 lomo_playlist_ref (LomoPlaylist *l)
-{ BACKTRACE
+{
 	l->ref_count++;
 }
 
@@ -119,7 +113,7 @@ lomo_playlist_ref (LomoPlaylist *l)
  */
 void
 lomo_playlist_unref (LomoPlaylist * l)
-{ BACKTRACE
+{
 	l->ref_count--;
 	if ( l->ref_count > 0 )
 		return;
@@ -139,7 +133,7 @@ lomo_playlist_unref (LomoPlaylist * l)
  */
 GList*
 lomo_playlist_get_playlist (LomoPlaylist *l) 
-{ BACKTRACE
+{
 	return g_list_copy(l->list);
 }
 /**
@@ -153,7 +147,7 @@ lomo_playlist_get_playlist (LomoPlaylist *l)
  */
 GList*
 lomo_playlist_get_random_playlist (LomoPlaylist *l) 
-{ BACKTRACE
+{
 	return g_list_copy(l->random_list);
 }
 
@@ -167,7 +161,7 @@ lomo_playlist_get_random_playlist (LomoPlaylist *l)
  */
 gint
 lomo_playlist_get_total (LomoPlaylist *l)
-{ BACKTRACE
+{
 	return l->total;
 }
 
@@ -182,7 +176,7 @@ lomo_playlist_get_total (LomoPlaylist *l)
  */
 gint
 lomo_playlist_get_current (LomoPlaylist *l)
-{ BACKTRACE
+{
 	return l->current;
 }
 
@@ -197,7 +191,7 @@ lomo_playlist_get_current (LomoPlaylist *l)
  */
 gboolean
 lomo_playlist_set_current (LomoPlaylist* l, gint pos)
-{ BACKTRACE
+{
 	g_return_val_if_fail(pos <= (lomo_playlist_get_total(l) - 1), FALSE);
 	l->current = pos;
 
@@ -214,7 +208,7 @@ lomo_playlist_set_current (LomoPlaylist* l, gint pos)
  */
 gboolean
 lomo_playlist_get_random (LomoPlaylist *l)
-{ BACKTRACE
+{
 	return l->random;
 }
 
@@ -227,7 +221,7 @@ lomo_playlist_get_random (LomoPlaylist *l)
  */
 void
 lomo_playlist_set_random (LomoPlaylist *l, gboolean val)
-{ BACKTRACE
+{
 	l->random = val;
 }
 
@@ -241,7 +235,7 @@ lomo_playlist_set_random (LomoPlaylist *l, gboolean val)
  */
 gboolean
 lomo_playlist_get_repeat (LomoPlaylist *l)
-{ BACKTRACE
+{
 	return l->repeat;
 }
 
@@ -254,7 +248,7 @@ lomo_playlist_get_repeat (LomoPlaylist *l)
  */
 void
 lomo_playlist_set_repeat (LomoPlaylist *l, gboolean val)
-{ BACKTRACE
+{
 	l->repeat = val;
 }
 
@@ -270,7 +264,7 @@ lomo_playlist_set_repeat (LomoPlaylist *l, gboolean val)
  */
 LomoStream*
 lomo_playlist_nth_stream(LomoPlaylist *l, guint pos)
-{ BACKTRACE
+{
 	g_return_val_if_fail(pos <= (l->total - 1), NULL);
 	return g_list_nth_data(l->list, pos);
 }
@@ -304,7 +298,7 @@ lomo_playlist_index(LomoPlaylist *l, LomoStream *stream)
  */
 void
 lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
-{ BACKTRACE
+{
 	GList *tmp = NULL;
 
 	tmp = g_list_prepend(tmp, stream);
@@ -325,13 +319,10 @@ lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
  */
 void lomo_playlist_insert_multi
 (LomoPlaylist *l, GList *streams, gint pos)
-{ BACKTRACE
+{
 	GList *iter;
 	LomoStream *stream;
 	guint randompos;
-
-	/* Own streams */
-	// g_list_foreach(streams, (GFunc) g_object_ref, NULL);
 
 	// pos == -1 means at the end
 	if (pos == -1)
@@ -369,27 +360,30 @@ void lomo_playlist_insert_multi
  */
 void lomo_playlist_del
 (LomoPlaylist *l, guint pos)
-{ BACKTRACE
-	gpointer data;
+{
+	
+	LomoStream *stream = (LomoStream *) g_list_nth_data(l->list, pos);
+	g_return_if_fail(stream != NULL);
 
-	data = g_list_nth_data(l->list, pos);
-	g_return_if_fail(data != NULL);
+	g_object_unref(stream);
 
-	g_object_unref((LomoStream *) data);
-	l->list        = g_list_remove(l->list,        data);
-	l->random_list = g_list_remove(l->random_list, data);
+	l->list        = g_list_remove(l->list,        stream);
+	l->random_list = g_list_remove(l->random_list, stream);
 	l->total--;
 
 	// Check if movement affects current index: 
 	// item was the active one or previous to it
-	if ( pos <= l->current) {
+	if ( pos <= l->current)
+	{
 		// Ups, deleted one was the only element in the list, set active to -1
 		if (l->total == 0)
 			l->current = -1;
+
 		// a bit less complicated, deleted one was the first element, increment
 		// active
 		else if (pos == 0)
 			l->current++;
+
 		// the simpliest case, not 1-element list, and not the firts, decrement
 		// active
 		else
@@ -399,8 +393,9 @@ void lomo_playlist_del
 
 void lomo_playlist_clear
 (LomoPlaylist *l)
-{ BACKTRACE
-	if ((l->list != NULL) && (l->list->data != NULL)) {
+{
+	if ((l->list != NULL) && (l->list->data != NULL))
+	{
 		g_list_foreach(l->list, (GFunc) g_object_unref, NULL);
 
 		g_list_free(l->list);
@@ -416,7 +411,7 @@ void lomo_playlist_clear
 
 gboolean lomo_playlist_swap
 (LomoPlaylist *l, guint a, guint b)
-{ BACKTRACE
+{
 	gpointer data_a, data_b;
 	gint tmp;
 	guint total;
@@ -456,7 +451,7 @@ gboolean lomo_playlist_swap
  */
 gint lomo_playlist_get_next
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	gint pos;
 	gint total, normalpos, randompos;
 
@@ -496,7 +491,7 @@ gint lomo_playlist_get_next
  */
 gint lomo_playlist_get_prev
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	gint pos;
 	gint total, normalpos, randompos;
 	
@@ -535,7 +530,7 @@ gint lomo_playlist_get_prev
  */
 gboolean lomo_playlist_go_prev
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	gint prev = lomo_playlist_get_prev(l);
 	return lomo_playlist_go_nth(l, prev);
 }
@@ -546,7 +541,7 @@ gboolean lomo_playlist_go_prev
  */
 gboolean lomo_playlist_go_next
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	gint next = lomo_playlist_get_next(l);
 	return lomo_playlist_go_nth(l, next);
 }
@@ -557,7 +552,7 @@ gboolean lomo_playlist_go_next
  */
 gboolean lomo_playlist_go_nth
 (LomoPlaylist *l, gint pos)
-{ BACKTRACE
+{
 	g_return_val_if_fail(pos >= 0, FALSE);
 
 	lomo_playlist_set_current(l, pos);
@@ -568,7 +563,7 @@ gboolean lomo_playlist_go_nth
 /* Re-build random list */
 void lomo_playlist_randomize
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	GList *copy = NULL;
 	GList *res  = NULL;
 	gpointer data;
@@ -589,11 +584,12 @@ void lomo_playlist_randomize
 
 void lomo_playlist_print
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	GList *list;
 
 	list = l->list;
-	while ( list ) {
+	while (list)
+	{
 		g_printf("[liblomo] %s\n", (gchar *) g_object_get_data(G_OBJECT(list->data), "uri"));
 		list = list->next;
 	}
@@ -601,11 +597,12 @@ void lomo_playlist_print
 
 void lomo_playlist_print_random
 (LomoPlaylist *l)
-{ BACKTRACE
+{
 	GList *list;
 
 	list = l->random_list;
-	while ( list ) {
+	while (list)
+	{
 		g_printf("[liblomo] %s\n", (gchar *) g_object_get_data(G_OBJECT(list->data), "uri"));
 		list = list->next;
 	}

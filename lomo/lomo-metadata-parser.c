@@ -47,7 +47,7 @@ run_queue(LomoMetadataParser *self);
 
 struct _LomoMetadataParserPrivate {
 	GstElement *pipeline; // Our processing pipeline
-	GList      *queue;    // Stream queue
+	GQueue     *queue;    // Stream queue
 	LomoStream *stream;   // Current stream
 
 	// Indicators
@@ -63,6 +63,19 @@ struct _LomoMetadataParserPrivate {
 static void
 lomo_metadata_parser_dispose (GObject *object)
 {
+	LomoMetadataParserPrivate *priv = GET_PRIVATE(object);
+
+	if (priv->pipeline)
+	{
+		g_object_unref(priv->pipeline);
+		priv->pipeline = NULL;
+	}
+	if (priv->queue)
+	{
+		g_queue_foreach(priv->queue, (GFunc) g_object_unref, NULL);
+		g_queue_free(priv->queue);
+		priv->queue = NULL;
+	}
 	if (G_OBJECT_CLASS (lomo_metadata_parser_parent_class)->dispose)
 		G_OBJECT_CLASS (lomo_metadata_parser_parent_class)->dispose(object);
 }
@@ -105,7 +118,7 @@ lomo_metadata_parser_init (LomoMetadataParser *self)
 	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
 
 	priv->pipeline = NULL;
-	priv->queue    = NULL;
+	priv->queue    = g_queue_new();
 	priv->stream   = NULL;
 	priv->failure  = priv->got_state_signal = priv->got_new_clock_signal = FALSE;
 }
@@ -129,24 +142,22 @@ void
 lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMetadataParserPrio prio)
 {
 	LomoMetadataParserPrivate *priv = priv = GET_PRIVATE(self);
-	g_object_ref(stream);
 	switch (prio)
 	{
 		case LOMO_METADATA_PARSER_PRIO_INMEDIATE:
-			priv->queue = g_list_prepend(priv->queue, stream);
+			g_queue_push_head(priv->queue, stream);
 			break;
 		case LOMO_METADATA_PARSER_PRIO_DEFAULT:
-			priv->queue = g_list_append(priv->queue, stream);
+			g_queue_push_tail(priv->queue, stream);
 			break;
 		default:
 			g_warning("Invalid priority %d\n", prio);
 			return;
 	}
+	g_object_ref(stream);
 
 	if (priv->idle_id == 0)
-	{
 		priv->idle_id = g_idle_add((GSourceFunc) run_queue, self);
-	}
 }
 
 void
@@ -177,11 +188,10 @@ lomo_metadata_parser_clear(LomoMetadataParser *self)
 	}
 
 	// Clear queue
-	if (priv->queue)
+	if (!g_queue_is_empty(priv->queue))
 	{
-		g_list_foreach(priv->queue, (GFunc) g_object_unref, NULL);
-		g_list_free(priv->queue);
-		priv->queue = NULL;
+		g_queue_foreach(priv->queue, (GFunc) g_object_unref, NULL);
+		g_queue_clear(priv->queue);
 	}
 
 	// Reset flags and pointers
@@ -286,7 +296,7 @@ disconnect:
 	g_object_unref(priv->stream);
 
 	// If there are more streams to parse schudele ourselves
-	if (priv->queue != NULL)
+	if (!g_queue_is_empty(priv->queue))
 		priv->idle_id = g_idle_add((GSourceFunc) run_queue, self);
 
 	return FALSE;
@@ -371,11 +381,10 @@ run_queue(LomoMetadataParser *self)
 {
 	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
 	
-	if (priv->queue != NULL)
+	if (!g_queue_is_empty(priv->queue))
 	{
 		lomo_metadata_parser_reset(self);
-		priv->stream = (LomoStream *) priv->queue->data;
-		priv->queue = priv->queue->next;
+		priv->stream = g_queue_pop_head(priv->queue);
 		g_object_set(
 			G_OBJECT(priv->pipeline), "uri",
 			g_object_get_data(G_OBJECT(priv->stream), LOMO_TAG_URI), NULL);

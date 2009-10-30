@@ -59,6 +59,7 @@ LomoStream* lomo_stream_new (gchar *uri);
 void lomo_stream_set_all_tags_flag(LomoStream *self, gboolean val);
 void lomo_stream_set_failed_flag  (LomoStream *self, gboolean val);
 #endif
+
 gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
 
