@@ -330,7 +330,7 @@ set_fieshta_mode_activated_cb(GtkAction *action, EinaFieshta *self)
 
 EINA_PLUGIN_SPEC(fieshta,
 	"0.0.1",
-	"player",
+	"window",
 
 	NULL,
 	NULL,
