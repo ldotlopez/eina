@@ -3,6 +3,7 @@
 AUTOMAKE_OPTIONS = 1.10
 
 SUBDIRS = \
+	data    \
 	gel     \
 	lomo    \
 	eina    \

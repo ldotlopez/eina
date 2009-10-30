@@ -24,8 +24,12 @@ AC_SUBST(EINA_API_VERSION)
 # /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
+
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 AC_SUBST(GLIB_GENMARSHAL)
+
+AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
+AC_SUBST(DBUS_BINDING_TOOL)
 
 #*******************************************************************************
 # Internationalization
@@ -225,6 +229,7 @@ dnl webkit (LastfmInfo) delayed post 0.8.0
 
 dnl Keep in alphabetical order
 AC_OUTPUT([
+data/Makefile
 eina/Makefile
 eina/ext/Makefile
 icons/Makefile
