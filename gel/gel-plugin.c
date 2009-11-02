@@ -202,7 +202,7 @@ gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 	self->priv->dependants = g_list_prepend(self->priv->dependants, dependant);
 
 	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
-	gel_warn(N_("[.] %s (%s)"), gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
+	gel_warn("[^] %s (%s)", gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
 	gel_free_and_invalidate(refs, NULL, g_free);
 }
 
@@ -221,8 +221,7 @@ gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 	g_list_free(p);
 
 	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
-	gel_debug(N_("Reference added on %s from %s"), gel_plugin_stringify(self), gel_plugin_stringify(dependant));
-	gel_debug(N_("Current refs: %s"), refs);
+	gel_warn("[v] %s (%s)", gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
 	g_free(refs);
 }
 

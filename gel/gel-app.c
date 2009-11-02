@@ -562,27 +562,27 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	}
 
 	// Disable in case it was enabled
+	gboolean was_enabled = gel_plugin_is_enabled(plugin);
 	if (gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, &err))
 	{
-		gel_warn("Cannot finalize plugin %s: %s", gel_plugin_stringify(plugin), err->message);
+		gel_warn(N_("Cannot finalize plugin %s: %s"), gel_plugin_stringify(plugin), err->message);
 		g_propagate_error(error, err);
 		return FALSE;
 	}
 
-	// Remove deps from dependencies
-	if (plugin->depends)
+	// Remove deps from dependencies if plugin is active
+	if (plugin->depends && was_enabled)
 	{
 		gint i;
 		gchar **deps = g_strsplit(plugin->depends, ",", 0);
-		for (i = 0; deps[i] != NULL; i++)
+		for (i = 0; deps && (deps[i] != NULL); i++)
 		{
 			GelPlugin *p = gel_app_get_plugin_by_name(self, deps[i]);
 			if (p == NULL)
 			{
-				gel_warn("Dependency %s for plugin %s not found", deps[i], gel_plugin_stringify(plugin));
+				gel_warn(N_("Dependency %s for plugin %s not found"), deps[i], gel_plugin_stringify(plugin));
 				continue;
 			}
-			gel_warn("Removed dep %s", deps[i]);
 			gel_plugin_remove_reference(p, plugin);
 		}
 	}
@@ -592,7 +592,7 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 
 	if (!gel_plugin_free(plugin, &err))
 	{
-		gel_warn("Cannot free plugin after all: %s", err->message);
+		gel_warn(N_("Cannot free plugin after all: %s"), err->message);
 		g_propagate_error(error, err);
 		return FALSE;
 	}
@@ -609,6 +609,7 @@ gel_app_purge(GelApp *app)
 {
 	GList *plugins, *iter;
 	plugins = iter = gel_app_get_plugins(app);
+	gel_warn("[·] Purge");
 	while (iter)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(iter->data);
@@ -626,8 +627,6 @@ gel_app_purge(GelApp *app)
 			gel_error(N_("Cannot free plugin %s: %s"), gel_plugin_stringify(plugin), err->message);
 			g_error_free(err);
 		}
-		else
-			gel_warn("PURGE %s", pstr);
 
 		g_free(pstr);
 
