@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libeinaext.la
+noinst_LTLIBRARIES = libeinaext.la
 
 AM_CPPFLAGS          = @PACKAGE_CFLAGS@
 libeinaext_la_LIBADD = @PACKAGE_LIBS@ 

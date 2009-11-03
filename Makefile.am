@@ -8,6 +8,7 @@ SUBDIRS = \
 	lomo    \
 	eina    \
 	icons   \
+	tools   \
 	pixmaps \
 	plugins \
 	po      \

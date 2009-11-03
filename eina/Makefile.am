@@ -30,6 +30,7 @@ NOINST_H_FILES = \
 
 INST_H_FILES = \
 	art.h         \
+	dbus.h        \
 	eina-obj.h    \
 	eina-plugin.h \
 	fs.h          \
@@ -84,7 +85,7 @@ dbus-marshallers.c: dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
 
 if USE_DBUS_GLIB
-eina_SOURCES += dbus.c ../data/eina-dbus-glue.h dbus-marshallers.c
+eina_SOURCES += dbus.c ../data/lomo-player-glue.h dbus-marshallers.c
 NOINST_H_FILES += dbus-marshallers.h
 endif
 

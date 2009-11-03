@@ -1,0 +1,16 @@
+plugins/coverplus/infolder-async.c
+plugins/hooktest/hook-test.c
+plugins/lastfm/artwork.c
+plugins/lastfm/lastfm.c
+plugins/lastfm/submit.c
+tools/plugins/adb/adb.c
+tools/plugins/adb/iface.c
+tools/plugins/coverplus/iface.c
+tools/plugins/fieshta/fieshta.c
+tools/plugins/lastfm/artwork.c
+tools/plugins/lastfm/lastfm.c
+tools/plugins/lastfm/lastfm.ui
+tools/plugins/lastfm/submit.c
+tools/plugins/ntfy/ntfy.c
+tools/plugins/recently/dock.ui
+tools/plugins/recently/recently.c

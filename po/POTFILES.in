@@ -1,4 +1,36 @@
 [encoding: UTF-8]
+gel/gel-app.c
+gel/gel-io-misc.c
+gel/gel-io-op-result.c
+gel/gel-io-ops.c
+gel/gel-io-recurse-tree.c
+gel/gel-io-tree.c
+gel/gel-misc.c
+gel/gel-plugin.c
+gel/gel-string.c
+gel/gel-str-parser.c
+gel/gel-ui.c
+
+lomo/lomo-metadata-parser.c
+lomo/lomo-player.c
+lomo/lomo-playlist.c
+lomo/lomo-stream.c
+lomo/lomo-util.c
+
+eina/ext/curl-engine.c
+eina/ext/eina-clutty.c
+eina/ext/eina-conf-file.c
+eina/ext/eina-file-chooser-dialog.c
+eina/ext/eina-plugin-dialog.c
+eina/ext/eina-plugin-dialog.ui
+eina/ext/eina-plugin-properties.c
+eina/ext/eina-plugin-properties.ui
+eina/ext/eina-preferences-dialog.c
+eina/ext/eina-seek.c
+eina/ext/eina-stock.c
+eina/ext/eina-volume.c
+eina/ext/eina-window.c
+
 eina/about.c
 eina/art.c
 eina/cover.c
@@ -7,15 +39,6 @@ eina/dock.c
 eina/eina-ige.c
 eina/eina-obj.c
 eina/eina-plugin.c
-eina/eina-stock.c
-eina/ext/curl-engine.c
-eina/ext/eina-clutty.c
-eina/ext/eina-conf-file.c
-eina/ext/eina-file-chooser-dialog.c
-eina/ext/eina-preferences-dialog.c
-eina/ext/eina-seek.c
-eina/ext/eina-volume.c
-eina/ext/eina-window.c
 eina/fs.c
 eina/log.c
 eina/lomo.c
@@ -29,44 +52,26 @@ eina/template.c
 eina/vogon-app.c
 eina/vogon.c
 eina/window.c
-gel/gel-app.c
-gel/gel-io-misc.c
-gel/gel-io-op-result.c
-gel/gel-io-ops.c
-gel/gel-io-recurse-tree.c
-gel/gel-io-tree.c
-gel/gel-misc.c
-gel/gel-plugin.c
-gel/gel-string.c
-gel/gel-str-parser.c
-gel/gel-ui.c
-lomo/lomo-metadata-parser.c
-lomo/lomo-player.c
-lomo/lomo-playlist.c
-lomo/lomo-stream.c
-lomo/lomo-util.c
+
 plugins/adb/adb.c
 plugins/adb/iface.c
 plugins/adb/register.c
 plugins/coverplus/banshee.c
 plugins/coverplus/iface.c
-plugins/coverplus/infolder-async.c
 plugins/coverplus/infolder-sync.c
 plugins/fieshta/fieshta.c
 plugins/fieshta/fieshta-stage.c
 plugins/fieshta/fieshta-stream.c
-plugins/lastfm/artwork.c
-plugins/lastfminfo/lastfm-info.c
-plugins/lastfm/lastfm.c
-[type: gettext/glade]plugins/lastfm/lastfm.ui
-plugins/lastfm/submit.c
-plugins/lastfm/webview.c
 plugins/ntfy/ntfy.c
-[type: gettext/glade]plugins/recently/dock.ui
 plugins/recently/recently.c
+
 [type: gettext/glade]ui/dock.ui
 [type: gettext/glade]ui/log.ui
 [type: gettext/glade]ui/player-preferences.ui
 [type: gettext/glade]ui/player.ui
 [type: gettext/glade]ui/playlist.ui
 [type: gettext/glade]ui/plugins.ui
+
+[type: gettext/glade]plugins/lastfm/lastfm.ui
+[type: gettext/glade]plugins/recently/dock.ui
+

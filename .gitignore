@@ -1,20 +1,25 @@
 .DS_Store
 COPYING
 .*.swp
-Makefile
-Makefile.in
-*-marshallers.c
-*-marshallers.h
+
+# Build procress
 *.o
 *.a
 *.lo
 *.la
-*.pyc
 .libs
 .deps
 
-*.gmo
+# Python stuff
+*.pyc
 
+# i18n generated stuff
+*.gmo
+po/eina.pot
+
+# Autotools stuff
+Makefile
+Makefile.in
 config.guess
 config.h
 config.h.in
@@ -28,19 +33,40 @@ intltool-*.in
 libtool
 ltmain.sh
 missing
-
 aclocal.m4
 autom4te.cache/
-bundle/Eina-*
-eina/eina
-eina/vogon
-m4/
-misc/eina-0.9.pc
-misc/eina.desktop
 po/Makefile.in.in
 po/POTFILES
 po/stamp-it
 stamp-h1
+
+# Eina bundle for OSX
+bundle/Eina-*
+eina/eina
+eina/vogon
+m4/
+
+# Generated marshallers
+*-marshallers.c
+*-marshallers.h
+
+# Generated header files
+eina/ext/*-ui.h
+
+bindings/
+
+# Output data
+data/eina-0.9.pc
+data/eina.desktop
+data/lomo-player-glue.h
+
 tools/plugins/
 
-eina/ext/*-ui.h
+# Debian files
+debian/tmp
+debian/files
+debian/eina.substvars
+debian/*.log
+debian/*.debhelper
+debian/eina-dev/
+debian/eina/
