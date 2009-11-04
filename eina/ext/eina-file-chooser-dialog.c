@@ -41,8 +41,7 @@ struct _EinaFileChooserDialogPrivate {
 	gboolean      user_cancel;
 	GtkBox       *info_box;    // Info widgets
 	GQueue       *queue;       // Queue previous to query operation
-	GCancellable *cancellable; // Current GIO operation to query info or NULL
-	GelIOOp      *op;          // Current GelIO operation or NULL
+	GelIOTreeOp  *op;          // RecurseTree operation in progress
 };
 
 void
@@ -55,50 +54,41 @@ clear_message(EinaFileChooserDialog *self);
 static void
 run_queue(EinaFileChooserDialog *self);
 
-// Async ops
-static void
-file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data);
-static void
-recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data);
-static void
-recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data);
-static void
-recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaFileChooserDialog *self);
-
-static void
-close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
 static void
 cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
+
+// Async ops
+static void
+tree_op_success_cb(GelIOTreeOp *op, const GFile *source, const GNode  *result, gpointer data);
+static void
+tree_op_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,  gpointer data);
+
+// Comparables
+static gint
+g_node_cmp_rev(GNode *a, GNode *b);
 
 static void
 reset_resources(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+
+	if (priv->op)
+	{
+		gel_io_tree_op_close(priv->op);
+		priv->op = NULL;
+	}
+
 	if (priv->queue && !g_queue_is_empty(priv->queue))
 	{
 		g_queue_foreach(priv->queue, (GFunc) g_free, NULL);
 		g_queue_clear(priv->queue);
 	}
+
 	if (priv->uris)
 	{
 		g_slist_foreach(priv->uris, (GFunc) g_free, NULL);
 		g_slist_free(priv->uris);
 		priv->uris = NULL;
-	}
-
-	if (priv->cancellable)
-	{
-		if (!g_cancellable_is_cancelled(priv->cancellable))
-			g_cancellable_cancel(priv->cancellable);
-		g_object_unref(priv->cancellable);
-		priv->cancellable = NULL;
-	}
-
-	if (priv->op)
-	{
-		gel_io_op_cancel(priv->op);
-		gel_io_op_unref(priv->op);
-		priv->op = NULL;
 	}
 }
 
@@ -107,13 +97,12 @@ free_resources(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 	reset_resources(self);
+
 	if (priv->queue)
 	{
 		g_queue_free(priv->queue);
 		priv->queue = NULL;
 	}
-	if (priv->cancellable)
-		gel_free_and_invalidate(priv->cancellable, NULL, g_object_unref);
 }
 
 #if !GTK_CHECK_VERSION(2,14,0)
@@ -167,9 +156,9 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	g_type_class_add_private (klass, sizeof (EinaFileChooserDialogPrivate));
 
-#if !GTK_CHECK_VERSION(2,14,0)
+	#if !GTK_CHECK_VERSION(2,14,0)
 	object_class->constructor = eina_file_chooser_dialog_constructor;
-#endif
+	#endif
 	object_class->dispose = eina_file_chooser_dialog_dispose;
 	object_class->finalize = eina_file_chooser_dialog_finalize;
 
@@ -186,7 +175,7 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 	#endif
 
 	priv->queue = g_queue_new();
-	priv->info_box   = (GtkBox   *) gtk_hbox_new(FALSE, 5);
+	priv->info_box = (GtkBox   *) gtk_hbox_new(FALSE, 5);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
 
 	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
@@ -252,8 +241,7 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	button = (GtkButton *) gtk_button_new();
 	gtk_button_set_relief(button, GTK_RELIEF_NONE);
 	gtk_container_add(GTK_CONTAINER(button), gtk_image_new_from_stock("gtk-close", GTK_ICON_SIZE_MENU));
-	g_signal_connect(button, "clicked",
-	G_CALLBACK(close_button_clicked_cb), self);
+	g_signal_connect_swapped(button, "clicked", (GCallback) clear_message, self);
 
 	eina_file_chooser_dialog_set_custom_msg(self,
 		(GtkImage *) gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU),
@@ -262,84 +250,65 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 		);
 }
 
-gint
-eina_file_chooser_dialog_run(EinaFileChooserDialog *self)
-{
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-	gint response;
-	GSList *uris;
-
-	reset_resources(self);
-
-	if (priv->action != EINA_FILE_CHOOSER_DIALOG_LOAD_FILES)
-	{
-		gel_warn("EinaFileChooserDialog dont know how to run in mode %d", priv->action);
-		return GTK_RESPONSE_NONE;
-	}
-
-eina_file_chooser_dialog_run_user_cancel:
-	priv->user_cancel = FALSE;
-	switch (response = gtk_dialog_run(GTK_DIALOG(self)))
-	{
-	case EINA_FILE_CHOOSER_RESPONSE_PLAY:
-	case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
-		uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self));
-		if (uris == NULL)
-			break;
-
-		// Lock UI
-		update_sensitiviness(self, FALSE);
-
-		// Loading image
-		gchar *loading_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "loading-spin-16x16.gif");
-		GtkImage *loading = (GtkImage *) gtk_image_new_from_file(loading_path);
-		g_free(loading_path);
-
-		// The 'cancel' button
-		GtkButton *cancel = (GtkButton *) gtk_button_new();
-		gtk_button_set_relief(cancel, GTK_RELIEF_NONE);
-		gtk_container_add(GTK_CONTAINER(cancel), gtk_image_new_from_stock(GTK_STOCK_STOP, GTK_ICON_SIZE_MENU));
-		g_signal_connect(cancel, "clicked", G_CALLBACK(cancel_button_clicked_cb), self);
-		
-		// Show busy UI
-		eina_file_chooser_dialog_set_custom_msg(self,
-			loading,
-			(GtkLabel *) gtk_label_new(_("Loading files...")),
-			GTK_WIDGET(cancel));
-
-		// Start processing
-		GSList *sorted = g_slist_sort(uris, (GCompareFunc) strcmp);
-		GSList *iter = sorted;
-		while (iter)
-		{
-			g_queue_push_tail(priv->queue, iter->data);
-			iter = iter->next;
-		}
-		g_slist_free(sorted);
-
-		run_queue(self);
-		gtk_main();
-
-		update_sensitiviness(self, TRUE);
-		clear_message(self);
-
-		// If user cancel the op, rerun
-		if (priv->user_cancel)
-			goto eina_file_chooser_dialog_run_user_cancel;
-
-		break;
-	default:
-		break;
-	}
-
-	return response;
-}
-
 GSList *
 eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-	return g_slist_copy(priv->uris);
+
+	reset_resources(self);
+
+	GSList *selected = g_slist_sort(gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self)), (GCompareFunc) strcmp);
+
+	// Build a queue with URIs
+	GSList *iter  = selected;
+	while (iter)
+	{
+		g_queue_push_tail(priv->queue, iter->data);
+		iter = iter->next;
+	}
+	g_slist_free(selected);
+
+	// Put UI in busy state
+	update_sensitiviness(self, FALSE);
+
+	// Loading image
+	gchar *loading_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "loading-spin-16x16.gif");
+	GtkImage *loading = (GtkImage *) gtk_image_new_from_file(loading_path);
+	g_free(loading_path);
+
+	// The 'cancel' button
+	GtkButton *cancel = (GtkButton *) gtk_button_new();
+	gtk_button_set_relief(cancel, GTK_RELIEF_NONE);
+	gtk_container_add(GTK_CONTAINER(cancel), gtk_image_new_from_stock(GTK_STOCK_STOP, GTK_ICON_SIZE_MENU));
+	g_signal_connect(cancel, "clicked", (GCallback) cancel_button_clicked_cb, self);
+
+	// Show busy UI
+	eina_file_chooser_dialog_set_custom_msg(self,
+		loading,
+		(GtkLabel *) gtk_label_new(_("Loading files...")),
+		GTK_WIDGET(cancel));
+
+	run_queue(self);
+	gtk_main();
+
+	update_sensitiviness(self, TRUE);
+
+	if (priv->user_cancel)
+	{
+		clear_message(self);
+		priv->user_cancel = FALSE;
+		reset_resources(self);
+		return NULL;
+	}
+
+	GSList *ret = NULL;
+	iter = priv->uris;
+	while (iter)
+	{
+		ret = g_slist_prepend(ret, g_strdup((gchar *) iter->data));
+		iter = iter->next;
+	}
+	return g_slist_reverse(ret);
 }
 
 // --
@@ -397,22 +366,22 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 	if (value == TRUE)
 	{
 		gdk_window_set_cursor(
-#if GTK_CHECK_VERSION(2,14,0)
+			#if GTK_CHECK_VERSION(2,14,0)
 			gtk_widget_get_window(GTK_WIDGET(self)),
-#else
+			#else
 			GTK_WIDGET(self)->window,
-#endif
+			#endif
 			NULL);
 		g_signal_handlers_disconnect_by_func(self, gtk_true, self);
 	}
 	else
 	{
 		GtkWidget *w = GTK_WIDGET(self);
-#if GTK_CHECK_VERSION(2,14,0)
+		#if GTK_CHECK_VERSION(2,14,0)
 		GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(self));
-#else
+		#else
 		GdkWindow *win = GTK_WIDGET(self)->window;
-#endif
+		#endif
 		GdkDisplay *display = gtk_widget_get_display(w);
 		gdk_window_set_cursor(win, gdk_cursor_new_for_display(display, GDK_WATCH));
 		g_signal_connect(self, "delete-event", G_CALLBACK(gtk_true), self);
@@ -441,142 +410,27 @@ run_queue(EinaFileChooserDialog *self)
 	// Exit nested main loop
 	if (g_queue_is_empty(priv->queue) && (gtk_main_level() > 1))
 	{
+		gint len = g_slist_length(priv->uris);
+		gchar *msg = g_strdup_printf(N_("Found %d streams"), len);
+		eina_file_chooser_dialog_set_msg(self,  EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
+		g_free(msg);
+		
 		gtk_main_quit();
 		return;
 	}
 
 	// Process next element
 	gchar *uri = g_queue_pop_head(priv->queue);
-
-	if (priv->cancellable)
+	if (priv->op)
 	{
-		if (!g_cancellable_is_cancelled(priv->cancellable))
-		{
-			g_warning("run_queue called but GCancellable is not cancelled");
-			g_cancellable_cancel(priv->cancellable);
-		}
-		g_object_unref(priv->cancellable);
+		g_warning("Operation in progress on run_queue call");
+		gel_io_tree_op_close(priv->op);
 	}
 	
-	priv->cancellable = g_cancellable_new();
-	g_file_query_info_async(g_file_new_for_uri(uri), "standard::*",
-		0, G_PRIORITY_DEFAULT, priv->cancellable,
-		file_chooser_query_info_cb, self);
+	priv->op = gel_io_tree_walk(g_file_new_for_uri(uri), "standard::*", TRUE,
+		tree_op_success_cb, tree_op_error_cb, self);
 
 	g_free(uri);
-}
-
-// --
-// Handle async reads
-// --
-
-// Query GFileInfo for URI and add or recurse over dir
-static void
-file_chooser_query_info_cb(GObject *source, GAsyncResult *res, gpointer data)
-{
-	EinaFileChooserDialog *self = EINA_FILE_CHOOSER_DIALOG(data);
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-
-	GFile *file = G_FILE(source);
-	GError *err = NULL;
-
-	// Finish operation
-	GFileInfo *info = g_file_query_info_finish(file, res, &err);
-	gel_free_and_invalidate(priv->cancellable, NULL, g_object_unref);
-
-	if (err != NULL)
-	{
-		gchar *uri = g_file_get_uri(file);
-		g_object_unref(source);
-		g_warning("Cannot fetch info for '%s': %s", uri, err->message);
-		g_free(uri);
-		g_error_free(err);
-	}
-
-	if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
-		priv->op = gel_io_recurse_dir(file, "standard::*",
-			recurse_read_success_cb, recurse_read_error_cb, self);
-	else
-	{
-		priv->uris = g_slist_append(priv->uris, g_file_get_uri(file)); // Share memory
-		run_queue(self);
-	}
-
-	g_object_unref(source);
-	g_object_unref(info);
-}
-
-// Walk over GelIORecurseTree and add files
-static void
-recurse_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *result, gpointer data)
-{
-	EinaFileChooserDialog *self = EINA_FILE_CHOOSER_DIALOG(data);
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-
-	// Get and parse result
-	GelIORecurseTree *tree = gel_io_op_result_get_recurse_tree(result);
-	recurse_tree_parse(tree, gel_io_recurse_tree_get_root(tree), EINA_FILE_CHOOSER_DIALOG(data));
-
-	// Close this operation and go to next element in queue
-	gel_io_op_unref(op);
-	priv->op = NULL;
-
-	run_queue(self);
-}
-
-// Show errors from GelIOOp and update UI to reflect them
-static void
-recurse_read_error_cb(GelIOOp *op, GFile *f, GError *error, gpointer data)
-{
-	gchar *uri = g_file_get_uri(f);
-	g_warning("Error reading '%s': %s", uri, error->message);
-	g_free(uri);
-
-	// gel_io_op_unref(op); <-- not sure
-	// run_queue(self);
-}
-
-static gint
-g_file_cmp(GFileInfo *a, GFileInfo *b)
-{
-	return strcmp(g_file_info_get_name(a), g_file_info_get_name(b));
-}
-
-// Walk over RecurseTree
-static void
-recurse_tree_parse(GelIORecurseTree *tree, GFile *f, EinaFileChooserDialog *self)
-{
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-
-	if (f == NULL)
-		return;
-
-	GList *children = gel_io_recurse_tree_get_children(tree, f);
-	GList *iter = g_list_sort(children, (GCompareFunc) g_file_cmp);
-
-	while (iter)
-	{
-		GFileInfo *info = G_FILE_INFO(iter->data);
-		GFile *child = gel_io_file_get_child_for_file_info(f, info);
-
-		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
-			recurse_tree_parse(tree, child, self);
-		else
-		{
-			priv->uris = g_slist_append(priv->uris, g_file_get_uri(child)); // Shared
-		}
-		g_object_unref(child);
-		iter = iter->next;
-	}
-
-	g_list_free(children);
-}
-
-static void
-close_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
-{
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-	gtk_widget_hide(GTK_WIDGET(priv->info_box));
 }
 
 static void
@@ -588,4 +442,111 @@ cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 	clear_message(self);
 	update_sensitiviness(self, TRUE);
 }
+
+// --
+// Handle async reads
+// --
+static void
+parse_tree(EinaFileChooserDialog *self, GNode *result)
+{
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+
+	gchar *uri = g_file_get_uri(G_FILE(result->data));
+
+	GFileInfo *info = gel_file_get_file_info(G_FILE(result->data));
+	g_return_if_fail(info);
+
+	GFileType  type = g_file_info_get_file_type(info);
+
+	// Input is regular, nothing to recurse, just prepend to results
+	if (type == G_FILE_TYPE_REGULAR)
+	{
+		priv->uris = g_slist_prepend(priv->uris, uri);
+		g_free(uri);
+		return;
+	}
+
+	g_free(uri); // Useless since we have a directory
+	g_return_if_fail(type == G_FILE_TYPE_DIRECTORY);
+
+	// Generate a list with sorted children
+	GList *children = NULL;
+	GNode *n = result->children;
+	while (n)
+	{
+		children = g_list_prepend(children, n);
+		n = n->next;
+	}
+	children = g_list_sort(children, (GCompareFunc) g_node_cmp_rev);
+
+	// Foreach children check type
+	GList *iter = children;
+	while (iter)
+	{
+		GNode *node      = (GNode *) iter->data;
+		GFile *file      = G_FILE(node->data);
+		GFileInfo *info  = gel_file_get_file_info(file);
+		GFileType type   = g_file_info_get_file_type(info);
+
+		if (type == G_FILE_TYPE_REGULAR)
+			priv->uris = g_slist_prepend(priv->uris, g_file_get_uri(file));
+
+		if (type == G_FILE_TYPE_DIRECTORY)
+			parse_tree(self, node);
+		iter = iter->next;
+	}
+	g_list_free(children);
+}
+
+// Walk over GelIORecurseTree and add files
+static void
+tree_op_success_cb(GelIOTreeOp *op, const GFile *source, const GNode  *result, gpointer data)
+{
+	EinaFileChooserDialog *self = EINA_FILE_CHOOSER_DIALOG(data);
+	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+
+	// Get and parse result
+	parse_tree(EINA_FILE_CHOOSER_DIALOG(data), (GNode *) result);
+
+	// Close this operation and go to next element in queue
+	gel_io_tree_op_close(op);
+	priv->op = NULL;
+
+	run_queue(self);
+}
+
+// Show errors from GelIOOp and update UI to reflect them
+static void
+tree_op_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,  gpointer data)
+{
+	gchar *uri = g_file_get_uri((GFile *) source);
+	g_warning("Error reading '%s': %s", uri, error->message);
+	g_free(uri);
+}
+
+// GCompareFunc for GNodes in reverse order
+static gint
+g_node_cmp_rev(GNode *a, GNode *b)
+{
+	GFile *fa = (GFile *) a->data;
+	GFile *fb = (GFile *) b->data;
+	g_return_val_if_fail(fa != NULL,  1);
+	g_return_val_if_fail(fb != NULL, -1);
+
+	GFileInfo *fia = gel_file_get_file_info(fa);
+	GFileInfo *fib = gel_file_get_file_info(fb);
+	g_return_val_if_fail(fia != NULL,  1);
+	g_return_val_if_fail(fib != NULL, -1);
+
+	GFileType fta = g_file_info_get_file_type(fia);
+	GFileType ftb = g_file_info_get_file_type(fib);
+
+	if ((fta == G_FILE_TYPE_DIRECTORY) && (ftb != G_FILE_TYPE_DIRECTORY))
+		return  1;
+	if ((ftb == G_FILE_TYPE_DIRECTORY) && (fta != G_FILE_TYPE_DIRECTORY))
+		return -1;
+
+	return strcmp(g_file_info_get_name(fib),  g_file_info_get_name(fia));
+}
+
 

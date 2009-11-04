@@ -55,7 +55,7 @@ typedef enum {
 } EinaFileChooserDialogAction;
 
 typedef enum {
-	EINA_FILE_CHOOSER_RESPONSE_QUEUE,
+	EINA_FILE_CHOOSER_RESPONSE_QUEUE = 1,
 	EINA_FILE_CHOOSER_RESPONSE_PLAY
 } EinaFileChooserDialogResponse;
 
@@ -72,7 +72,6 @@ EinaFileChooserDialog* eina_file_chooser_dialog_new (EinaFileChooserDialogAction
 void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	EinaFileChooserDialogMsgType type, gchar *msg);
 
-gint eina_file_chooser_dialog_run(EinaFileChooserDialog *self);
 GSList *eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self);
 
 

@@ -24,6 +24,7 @@
 #include <glib/gstdio.h>
 #include <glib/gprintf.h>
 #include <gel/gel-io.h>
+#include <gel/gel-io-ops.h>
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
@@ -387,6 +388,28 @@ list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
 static void
 app_dispose_cb(GelApp *app, gpointer data)
 {
+	GList *plugins = g_list_sort(gel_app_get_plugins(app), (GCompareFunc) gel_plugin_compare_by_usage);
+	GList *l = plugins;
+	while (l)
+	{
+		GelPlugin *plugin = GEL_PLUGIN(l->data);
+
+		if (gel_plugin_is_locked(plugin))
+			gel_plugin_remove_lock(plugin);
+
+		GError *error = NULL;
+		if (!gel_app_unload_plugin(app, plugin, &error))
+		{
+			gel_error(N_("Cannot fini plugin %s: %s"), gel_plugin_stringify(plugin), error->message);
+			g_error_free(error);
+			l = l->next;
+			continue;
+		}
+		l = l->next;
+	}
+
+	g_list_free(plugins);
+/*
 	gchar **modules = (gchar **) data;
 	gint i = 0;
 	while (modules[i]) i++; i--; // Count how many modules
@@ -409,6 +432,7 @@ app_dispose_cb(GelApp *app, gpointer data)
 			continue;
 		}
 	}
+*/
 	gel_app_purge(app);
 
 	gtk_main_quit();

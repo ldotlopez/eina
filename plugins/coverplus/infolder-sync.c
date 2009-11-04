@@ -32,7 +32,6 @@ static gchar *coverplus_infolder_regex_str[] = {
 
 struct _CoverPlusInfolder {
 	GRegex       *regexes[4]; // Keep in sync with size of coverplus_infolder_regex_str
-	GelIOOp      *async_op;
 	GCancellable *cancellable;
 	gint          score;
 };

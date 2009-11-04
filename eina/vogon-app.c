@@ -24,6 +24,7 @@
 #include <glib/gstdio.h>
 #include <glib/gprintf.h>
 #include <gel/gel-io.h>
+#include <gel/gel-io-ops.h>
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>

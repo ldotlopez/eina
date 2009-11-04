@@ -25,7 +25,9 @@
 #include <lomo/lomo-util.h>
 #include <eina/fs.h>
 #include <gel/gel-io.h>
+#include <eina/ext/eina-stock.h>
 
+#if 0
 static void
 eina_fs_load_files_from_uri_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, LomoPlayer *lomo)
 {
@@ -52,10 +54,56 @@ eina_fs_load_files_from_uri(LomoPlayer *lomo, gchar *uri)
 		(GelIOOpSuccessFunc) eina_fs_load_files_from_uri_success_cb, (GelIOOpErrorFunc) eina_fs_load_files_from_uri_error_cb,
 		lomo);
 }
+#endif
 
 void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 {
+#if 1
+	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
+	g_object_set((GObject *) picker,
+		"title", N_("Add or queue files"),
+		NULL);
+
+	gboolean run = TRUE;
+	while (run)
+	{
+		gint response = gtk_dialog_run((GtkDialog *) picker);
+		if ((response != EINA_FILE_CHOOSER_RESPONSE_PLAY) && (response != EINA_FILE_CHOOSER_RESPONSE_QUEUE))
+		{
+			run = FALSE;
+			break;
+		}
+
+		GSList *uris = eina_file_chooser_dialog_get_uris(picker);
+		if (uris == NULL)
+			continue;
+
+		GSList *supported = gel_slist_filter(uris, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
+		if (!supported)
+		{
+			g_slist_foreach(uris, (GFunc) g_free, NULL);
+			g_slist_free(uris);
+			continue;
+		}
+
+		if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
+		{
+			run = FALSE;
+			lomo_player_clear(lomo);
+		}
+
+		gboolean do_play = (lomo_player_get_total(lomo) == 0);
+		lomo_player_append_uri_multi(lomo, (GList *) supported);
+		g_slist_foreach(uris, (GFunc) g_free, NULL);
+		g_slist_free(uris);
+		g_slist_free(supported);
+		if (do_play)
+			lomo_player_play(lomo, NULL);
+	}
+	gtk_widget_destroy((GtkWidget *) picker);
+
+#else
 	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 	static gchar *uri = NULL;
 	if (!uri)
@@ -124,6 +172,7 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 	uri = gtk_file_chooser_get_current_folder_uri((GtkFileChooser *) picker);
 
 	gtk_widget_destroy(GTK_WIDGET(picker));
+#endif
 }
 
 gboolean
