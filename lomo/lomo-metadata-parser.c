@@ -315,7 +315,7 @@ foreach_tag_cb(const GstTagList *list, const gchar *tag, LomoMetadataParser *sel
 	gboolean bool_tag;
 	gpointer pointer;
 
-	type = lomo_tag_get_type(tag);
+	type = lomo_tag_get_g_type(tag);
 
 	switch (type)
 	{

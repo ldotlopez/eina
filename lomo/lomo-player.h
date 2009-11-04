@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOMO_PLAYER_H
-#define __LOMO_PLAYER_H
+#ifndef _LOMO_PLAYER
+#define _LOMO_PLAYER
 
 #include <glib-object.h>
 #include <gst/gst.h>
@@ -26,58 +26,29 @@
 
 G_BEGIN_DECLS
 
-#define LOMO_TYPE_PLAYER         (lomo_player_get_type ())
-#define LOMO_PLAYER(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), LOMO_TYPE_PLAYER, LomoPlayer))
-#define LOMO_PLAYER_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), LOMO_TYPE_PLAYER, LomoPlayerClass))
-#define LOMO_IS_PLAYER(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), LOMO_TYPE_PLAYER))
-#define LOMO_IS_PLAYER_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), LOMO_TYPE_PLAYER))
-#define LOMO_PLAYER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), LOMO_TYPE_PLAYER, LomoPlayerClass))
+#define LOMO_TYPE_PLAYER lomo_player_get_type()
 
-enum {
-    LOMO_PLAYER_NO_ERROR = 0,
-	LOMO_PLAYER_ERROR_MISSING_METHOD,
-	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
-	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
-	LOMO_PLAYER_ERROR_SET_STATE,
-	LOMO_PLAYER_ERROR_CANNOT_DEQUEUE,
-	LOMO_PLAYER_ERROR_UNKNOW_STATE,
-	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
-	LOMO_PLAYER_ERROR_NO_STREAM,
-	LOMO_PLAYER_HOOK_BLOCK
-};
+#define LOMO_PLAYER(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_PLAYER, LomoPlayer))
 
-typedef enum {
-	LOMO_STATE_CHANGE_SUCCESS     = GST_STATE_CHANGE_SUCCESS,
-	LOMO_STATE_CHANGE_ASYNC       = GST_STATE_CHANGE_ASYNC,
-	LOMO_STATE_CHANGE_NO_PREROLL  = GST_STATE_CHANGE_NO_PREROLL,
-	LOMO_STATE_CHANGE_FAILURE     = GST_STATE_CHANGE_FAILURE,
-} LomoStateChangeReturn;
+#define LOMO_PLAYER_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST ((klass), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
-typedef enum {
-	LOMO_STATE_INVALID = -1,
-	LOMO_STATE_STOP    = 0,
-	LOMO_STATE_PLAY    = 1,
-	LOMO_STATE_PAUSE   = 2,
-} LomoState;
+#define LOMO_IS_PLAYER(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_PLAYER))
 
-typedef enum {
-	LOMO_FORMAT_INVALID = -1,
-	LOMO_FORMAT_TIME    = 0,
-	LOMO_FORMAT_PERCENT = 1,
+#define LOMO_IS_PLAYER_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE ((klass), LOMO_TYPE_PLAYER))
 
-	LOMO_FORMATS
-} LomoFormat;
+#define LOMO_PLAYER_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
-typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
-typedef struct
-{
+/* LomoPlayer object and class */
+typedef struct {
 	GObject parent;
-
-	LomoPlayerPrivate *priv;
 } LomoPlayer;
 
-typedef struct
-{
+typedef struct {
 	GObjectClass parent_class;
 
 	void (*play)        (LomoPlayer *self);
@@ -101,8 +72,8 @@ typedef struct
 	void (*tag)         (LomoPlayer *self, LomoStream *stream, LomoTag tag);
 	void (*all_tags)    (LomoPlayer *self, LomoStream *stream);
 } LomoPlayerClass;
-GType lomo_player_get_type(void);
 
+/* Lomo VTable */
 typedef struct {
 	GstElement* (*create_pipeline)  (const gchar *uri, GHashTable *opts);
 	void        (*destroy_pipeline) (GstElement *pipeline);
@@ -124,6 +95,21 @@ typedef struct {
 	gboolean (*get_mute) (GstElement *pipeline);
 } LomoPlayerVTable;
 
+/* LomoPlayer errors */
+enum {
+	LOMO_PLAYER_NO_ERROR = 0,
+	LOMO_PLAYER_ERROR_MISSING_METHOD,
+	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
+	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
+	LOMO_PLAYER_ERROR_SET_STATE,
+	LOMO_PLAYER_ERROR_CANNOT_DEQUEUE,
+	LOMO_PLAYER_ERROR_UNKNOW_STATE,
+	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
+	LOMO_PLAYER_ERROR_NO_STREAM,
+	LOMO_PLAYER_HOOK_BLOCK
+};
+
+/* LomoPlayer hook-type and hook-event */
 typedef enum {
 	LOMO_PLAYER_HOOK_PLAY,
 	LOMO_PLAYER_HOOK_PAUSE,
@@ -161,10 +147,37 @@ typedef struct {
 
 typedef gboolean(*LomoPlayerHook)(LomoPlayer *self, LomoPlayerHookEvent event, gpointer ret, gpointer data);
 
+/* LomoPlayer state-change-return */
+typedef enum {
+	LOMO_STATE_CHANGE_SUCCESS     = GST_STATE_CHANGE_SUCCESS,
+	LOMO_STATE_CHANGE_ASYNC       = GST_STATE_CHANGE_ASYNC,
+	LOMO_STATE_CHANGE_NO_PREROLL  = GST_STATE_CHANGE_NO_PREROLL,
+	LOMO_STATE_CHANGE_FAILURE     = GST_STATE_CHANGE_FAILURE,
+} LomoStateChangeReturn;
+
+/* Lomo state */
+typedef enum {
+	LOMO_STATE_INVALID = -1,
+	LOMO_STATE_STOP    = 0,
+	LOMO_STATE_PLAY    = 1,
+	LOMO_STATE_PAUSE   = 2,
+} LomoState;
+
+/* lomo-format */
+typedef enum {
+	LOMO_FORMAT_INVALID = -1,
+	LOMO_FORMAT_TIME    = 0,
+	LOMO_FORMAT_PERCENT = 1,
+
+	LOMO_FORMATS
+} LomoFormat;
+
+GType lomo_player_get_type (void);
+
 #define lomo_init(argc,argv)    gst_init(argc,argv)
 #define lomo_get_option_group() gst_init_get_option_group()
 
-LomoPlayer       *lomo_player_new(const gchar *option_name, ...);
+LomoPlayer* lomo_player_new (gchar *option_name, ...);
 
 gboolean lomo_player_get_auto_parse(LomoPlayer *self);
 void     lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse);
@@ -261,4 +274,4 @@ void lomo_player_print_random_pl(LomoPlayer *self);
 
 G_END_DECLS
 
-#endif // __LOMO_PLAYER_H
+#endif /* _LOMO_PLAYER */

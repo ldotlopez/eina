@@ -294,7 +294,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
 	while (iter)
 	{
 		gchar *tag = iter->data;
-		if (lomo_tag_get_type(tag) != G_TYPE_STRING)
+		if (lomo_tag_get_g_type(tag) != G_TYPE_STRING)
 		{
 			iter = iter->next;
 			continue;

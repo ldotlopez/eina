@@ -2,6 +2,7 @@
 
 AUTOMAKE_OPTIONS = 1.10
 
+# po and docs are processed at the end
 SUBDIRS = \
 	data    \
 	gel     \
@@ -11,8 +12,9 @@ SUBDIRS = \
 	tools   \
 	pixmaps \
 	plugins \
+	ui      \
 	po      \
-	ui
+	docs
 
 EXTRA_DIST = \
 	intltool-extract.in \

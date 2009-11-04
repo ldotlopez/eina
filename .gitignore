@@ -62,6 +62,15 @@ data/lomo-player-glue.h
 
 tools/plugins/
 
+# Doc files
+docs/gtk-doc.make
+docs/*.stamp
+docs/*.txt
+docs/*.sgml
+docs/html/
+docs/xml
+docs/lomo.*
+
 # Debian files
 debian/tmp
 debian/files

@@ -31,6 +31,8 @@ AC_SUBST(GLIB_GENMARSHAL)
 AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 AC_SUBST(DBUS_BINDING_TOOL)
 
+GTK_DOC_CHECK(1.9)
+
 #*******************************************************************************
 # Internationalization
 #*******************************************************************************
@@ -230,6 +232,7 @@ dnl webkit (LastfmInfo) delayed post 0.8.0
 dnl Keep in alphabetical order
 AC_OUTPUT([
 data/Makefile
+docs/Makefile
 eina/Makefile
 eina/ext/Makefile
 icons/Makefile

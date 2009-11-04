@@ -256,7 +256,7 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
  * Returns: the #GType for tag
  */
 GType
-lomo_tag_get_type(LomoTag tag)
+lomo_tag_get_g_type(LomoTag tag)
 {
 	if (g_str_equal(tag, "uri")) 
 		return G_TYPE_STRING;

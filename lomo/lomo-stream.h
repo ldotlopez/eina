@@ -68,7 +68,7 @@ gchar*  lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
 void    lomo_stream_set_tag      (LomoStream *self, LomoTag tag, gpointer value);
 GList*  lomo_stream_get_tags     (LomoStream *self);
 
-GType   lomo_tag_get_type(LomoTag tag);
+GType   lomo_tag_get_g_type(LomoTag tag);
 
 /* 
  * To (re-)generate this list, run:

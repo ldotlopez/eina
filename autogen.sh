@@ -9,7 +9,7 @@ CONFIGURE=configure.in
 : ${ACLOCAL=aclocal}
 : ${INTLTOOLIZE=intltoolize}
 : ${LIBTOOLIZE=libtoolize}
-#: ${GTKDOCIZE=gtkdocize}
+: ${GTKDOCIZE=gtkdocize}
 
 #
 # Nothing should need changing below.
@@ -42,31 +42,31 @@ DIE=0
 }
 
 # Check if gtk-doc is explicitly disabled.
-#for option in $AUTOGEN_CONFIGURE_ARGS $@
-#do
-#  case $option in
-#    -disable-gtk-doc | --disable-gtk-doc)
-#    enable_gtk_doc=no
-#  ;;
-#  esac
-#done
-#
-#if test x$enable_gtk_doc != xno; then
-#  echo "Checking for gtkdocize ... "
-#  if grep "^GTK_DOC_CHECK" $CONFIGURE > /dev/null; then
-#    if !($GTKDOCIZE --version) < /dev/null > /dev/null 2>&1; then
-#      echo
-#      echo "  You must have gtk-doc installed to compile this project."
-#      echo "  Install the appropriate package for your distribution,"
-#      echo "  or get the source tarball at"
-#      echo "  http://ftp.gnome.org/pub/GNOME/sources/gtk-doc/"
-#      echo "  You can also use the option --disable-gtk-doc to skip"
-#      echo "  this test but then you will not be able to generate a"
-#      echo "  configure script that can build the API documentation."
-#      DIE=1
-#    fi
-#  fi
-#fi
+for option in $AUTOGEN_CONFIGURE_ARGS $@
+do
+  case $option in
+    -disable-gtk-doc | --disable-gtk-doc)
+    enable_gtk_doc=no
+  ;;
+  esac
+done
+
+if test x$enable_gtk_doc != xno; then
+  echo "Checking for gtkdocize ... "
+  if grep "^GTK_DOC_CHECK" $CONFIGURE > /dev/null; then
+    if !($GTKDOCIZE --version) < /dev/null > /dev/null 2>&1; then
+      echo
+      echo "  You must have gtk-doc installed to compile this project."
+      echo "  Install the appropriate package for your distribution,"
+      echo "  or get the source tarball at"
+      echo "  http://ftp.gnome.org/pub/GNOME/sources/gtk-doc/"
+      echo "  You can also use the option --disable-gtk-doc to skip"
+      echo "  this test but then you will not be able to generate a"
+      echo "  configure script that can build the API documentation."
+      DIE=1
+    fi
+  fi
+fi
 
 ($AUTOMAKE --version) < /dev/null > /dev/null 2>&1 || {
   echo
@@ -138,7 +138,7 @@ if grep "^GTK_DOC_CHECK" $CONFIGURE > /dev/null; then
     echo "         documentation and 'make dist' will not work."
     echo
   else
-    do_cmd $GTKDOCIZE --copy --flavour no-tmpl --docdir build
+    do_cmd $GTKDOCIZE --copy --flavour no-tmpl --docdir docs
   fi
 fi
 

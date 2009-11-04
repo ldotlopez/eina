@@ -17,17 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gprintf.h>
 #include <glib/gi18n.h>
-#include <gst/gst.h>
-#include <lomo/lomo-player.h>
-#include <lomo/lomo-playlist.h>
-#include <lomo/lomo-metadata-parser.h>
-#include <lomo/lomo-marshallers.h>
-#include <lomo/lomo-util.h>
+#include "lomo-marshallers.h"
+#include "lomo-player.h"
+#include "lomo-playlist.h"
+#include "lomo-metadata-parser.h"
+#include "lomo-stream.h"
+#include "lomo-util.h"
+
+G_DEFINE_TYPE (LomoPlayer, lomo_player, G_TYPE_OBJECT)
+
+#define GET_PRIVATE(o) \
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_PLAYER, LomoPlayerPrivate))
+
+typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
 
 struct _LomoPlayerPrivate {
-	LomoPlayerVTable  vtable;
+ 	LomoPlayerVTable  vtable;
 	GHashTable       *options;
 
 	GList *hooks, *hooks_data;
@@ -45,33 +51,8 @@ struct _LomoPlayerPrivate {
 };
 
 enum {
-	LOMO_PLAYER_PROPERTY_AUTO_PARSE = 1
+	PROPERTY_AUTO_PARSE = 1
 };
-
-#define check_method_or_return(self,method)                             \
-	G_STMT_START {                                                      \
-		if (self->priv->vtable.method == NULL)                          \
-		{                                                               \
-			g_warning(N_("Missing method %s"), G_STRINGIFY(method));    \
-			return;                                                     \
-		}                                                               \
-	} G_STMT_END
-
-#define check_method_or_return_val(self,method,val,error)                \
-	G_STMT_START {                                                       \
-		if (self->priv->vtable.method == NULL)                           \
-		{                                                                \
-			error != NULL ?                                              \
-				g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_MISSING_METHOD, \
-					N_("Missing method %s"), G_STRINGIFY(method))        \
-				:                                                        \
-				g_warning(N_("Missing method %s"), G_STRINGIFY(method)); \
-			return val;                                                  \
-		}                                                                \
-	} G_STMT_END
-
-G_DEFINE_TYPE(LomoPlayer, lomo_player, G_TYPE_OBJECT)
-#define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_PLAYER, LomoPlayerPrivate))
 
 enum {
 	PLAY,
@@ -101,6 +82,28 @@ enum {
 	LAST_SIGNAL
 };
 guint lomo_player_signals[LAST_SIGNAL] = { 0 };
+
+#define check_method_or_return(self,method)                             \
+	G_STMT_START {                                                      \
+		if (GET_PRIVATE(self)->vtable.method == NULL)                   \
+		{                                                               \
+			g_warning(N_("Missing method %s"), G_STRINGIFY(method));    \
+			return;                                                     \
+		}                                                               \
+	} G_STMT_END
+
+#define check_method_or_return_val(self,method,val,error)                \
+	G_STMT_START {                                                       \
+		if (GET_PRIVATE(self)->vtable.method == NULL)                    \
+		{                                                                \
+			error != NULL ?                                              \
+				g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_MISSING_METHOD, \
+					N_("Missing method %s"), G_STRINGIFY(method))        \
+				:                                                        \
+				g_warning(N_("Missing method %s"), G_STRINGIFY(method)); \
+			return val;                                                  \
+		}                                                                \
+	} G_STMT_END
 
 // --
 // Callbacks
@@ -132,31 +135,28 @@ get_length(GstElement *pipeline, GstFormat *format, gint64 *duration);
 static gboolean
 set_volume(GstElement *pipeline, gint volume);
 
-gboolean
+static gboolean
 lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error);
-gboolean
+static  gboolean
 lomo_player_destroy_pipeline(LomoPlayer *self, GError **error);
 
-// --
-// LomoPlayer
-// --
 static GQuark
 lomo_quark(void)
 {
 	static GQuark ret = 0;
 	if (ret == 0)
-		ret = g_quark_from_static_string("lomo-player");
+		ret = g_quark_from_static_string("lomo");
 	return ret;
 }
 
 static void
 lomo_player_get_property (GObject *object, guint property_id,
-	GValue *value, GParamSpec *pspec)
+		                          GValue *value, GParamSpec *pspec)
 {
 	LomoPlayer *self = LOMO_PLAYER(object);
 	switch (property_id)
 	{
-	case LOMO_PLAYER_PROPERTY_AUTO_PARSE:
+	case PROPERTY_AUTO_PARSE:
 		g_value_set_boolean(value, lomo_player_get_auto_parse(self));
 		break;
 	default:
@@ -165,14 +165,14 @@ lomo_player_get_property (GObject *object, guint property_id,
 }
 
 static void
-lomo_player_set_property(GObject *object, guint property_id,
-	const GValue *value, GParamSpec *pspec)
+lomo_player_set_property (GObject *object, guint property_id,
+		                          const GValue *value, GParamSpec *pspec)
 {
 	LomoPlayer *self = LOMO_PLAYER(object);
 
 	switch (property_id)
 	{
-	case LOMO_PLAYER_PROPERTY_AUTO_PARSE:
+	case PROPERTY_AUTO_PARSE:
 		lomo_player_set_auto_parse(self, g_value_get_boolean(value));
 		break;
 	default:
@@ -181,52 +181,51 @@ lomo_player_set_property(GObject *object, guint property_id,
 }
 
 static void
-lomo_player_dispose(GObject *object)
+lomo_player_dispose (GObject *object)
 {
-	LomoPlayer *self;
+	LomoPlayer *self = LOMO_PLAYER (object);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	self = LOMO_PLAYER (object);
-
-	if (self->priv->options)
+	if (priv->options)
 	{
-		g_hash_table_unref(self->priv->options);
-		self->priv->options = NULL;
+		g_hash_table_unref(priv->options);
+		priv->options = NULL;
 	}
 
-	if (self->priv->hooks)
+	if (priv->hooks)
 	{
-		g_list_free(self->priv->hooks);
-		g_list_free(self->priv->hooks_data);
-		self->priv->hooks = self->priv->hooks_data = NULL;
+		g_list_free(priv->hooks);
+		g_list_free(priv->hooks_data);
+		priv->hooks = priv->hooks_data = NULL;
 	}
 
-	if (self->priv->pipeline)
+	if (priv->pipeline)
 	{
 		if (lomo_player_get_state(self) != LOMO_STATE_STOP)
 			lomo_player_stop(self, NULL);
-		self->priv->vtable.destroy_pipeline(self->priv->pipeline);
-		self->priv->pipeline = NULL;
+		priv->vtable.destroy_pipeline(priv->pipeline);
+		priv->pipeline = NULL;
 	}
 
-	if (self->priv->pl)
+	if (priv->pl)
 	{
-		lomo_playlist_unref(self->priv->pl);
-		self->priv->pl = NULL;
+		lomo_playlist_unref(priv->pl);
+		priv->pl = NULL;
 	}
 
-	if (self->priv->queue)
+	if (priv->queue)
 	{
-		g_queue_free(self->priv->queue);
-		self->priv->queue = NULL;
+		g_queue_free(priv->queue);
+		priv->queue = NULL;
 	}
 
-	if (self->priv->meta)
+	if (priv->meta)
 	{
-		g_object_unref(self->priv->meta);
-		self->priv->meta = NULL;
+		g_object_unref(priv->meta);
+		priv->meta = NULL;
 	}
 
-	self->priv->stream = NULL;
+	priv->stream = NULL;
 
 	G_OBJECT_CLASS (lomo_player_parent_class)->dispose (object);
 }
@@ -236,11 +235,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-    object_class->get_property = lomo_player_get_property;
+	g_type_class_add_private (klass, sizeof (LomoPlayerPrivate));
+
+	object_class->get_property = lomo_player_get_property;
 	object_class->set_property = lomo_player_set_property;
 	object_class->dispose = lomo_player_dispose;
 
-	// core signals
 	lomo_player_signals[PLAY] =
 		g_signal_new ("play",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -300,7 +300,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    1,
 				G_TYPE_BOOLEAN);
 
-	// playlist signals
 	lomo_player_signals[INSERT] =
 		g_signal_new ("insert",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -405,7 +404,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    1,
 				G_TYPE_BOOLEAN);
 	
-	// bus signals
 	lomo_player_signals[EOS] =
 		g_signal_new ("eos",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -448,15 +446,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    1,
 				G_TYPE_POINTER);
 
-	g_object_class_install_property(object_class, LOMO_PLAYER_PROPERTY_AUTO_PARSE,
+	g_object_class_install_property(object_class, PROPERTY_AUTO_PARSE,
 		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
 		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-
-	g_type_class_add_private (klass, sizeof (LomoPlayerPrivate));
 }
 
-static void lomo_player_init (LomoPlayer *self)
+static void
+lomo_player_init (LomoPlayer *self)
 {
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 	LomoPlayerVTable vtable = {
 		create_pipeline,
 		destroy_pipeline,
@@ -475,39 +473,36 @@ static void lomo_player_init (LomoPlayer *self)
 		NULL  // get mute
 	};
 
-	self->priv = GET_PRIVATE(self);
-	self->priv->vtable  = vtable;
-	self->priv->options = g_hash_table_new(g_str_hash, g_str_equal);
-	self->priv->volume  = 50;
-	self->priv->mute    = FALSE;
-	self->priv->pl      = lomo_playlist_new();
-	self->priv->meta    = lomo_metadata_parser_new();
-	self->priv->queue   = g_queue_new();
-	g_signal_connect(self->priv->meta, "tag", (GCallback) tag_cb, self);
-	g_signal_connect(self->priv->meta, "all-tags", (GCallback) all_tags_cb, self);
+	priv->vtable  = vtable;
+	priv->options = g_hash_table_new(g_str_hash, g_str_equal);
+	priv->volume  = 50;
+	priv->mute    = FALSE;
+	priv->pl      = lomo_playlist_new();
+	priv->meta    = lomo_metadata_parser_new();
+	priv->queue   = g_queue_new();
+	g_signal_connect(priv->meta, "tag", (GCallback) tag_cb, self);
+	g_signal_connect(priv->meta, "all-tags", (GCallback) all_tags_cb, self);
 }
 
-// --
-// Core functions
-// --
 LomoPlayer*
-lomo_player_new(const gchar *option_name, ...)
+lomo_player_new (gchar *option_name, ...)
 {
 	LomoPlayer *self = g_object_new (LOMO_TYPE_PLAYER, NULL);
-	va_list args;
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
+	va_list args;
 	va_start(args, option_name);
 
 	while (option_name != NULL)
 	{
 		gchar *value = va_arg(args, gchar*);
-		g_hash_table_replace(self->priv->options, (gpointer) option_name, (gpointer) value);
+		g_hash_table_replace(priv->options, (gpointer) option_name, (gpointer) value);
 
 		option_name = va_arg(args, gchar*);
 	}
 	va_end(args);
 
-	if (g_hash_table_lookup(self->priv->options, "audio-output") == NULL)
+	if (g_hash_table_lookup(priv->options, "audio-output") == NULL)
 	{
 		g_warning("audio-output option is mandatory while using lomo_player_new_with_opts\n");
 		g_object_unref(self);
@@ -532,8 +527,10 @@ lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse)
 gboolean
 lomo_player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
 {
-	GList *iter = self->priv->hooks;
-	GList *iter2 = self->priv->hooks_data;
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	
+	GList *iter = priv->hooks;
+	GList *iter2 = priv->hooks_data;
 
 	if (iter == NULL)
 		return FALSE;
@@ -639,14 +636,15 @@ lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 	return (lomo_player_create_pipeline(self, stream, error) && lomo_player_play(self, error));
 }
 
-gboolean
+static gboolean
 lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error)
 {
 	check_method_or_return_val(self, create_pipeline,  FALSE, error);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
 	if (!lomo_player_destroy_pipeline(self, error))
 		return FALSE;
-	self->priv->pipeline = NULL;
+	priv->pipeline = NULL;
 
 	if (stream == NULL)
 	{
@@ -655,33 +653,34 @@ lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error
 		return FALSE;
 	}
 
-	self->priv->pipeline = self->priv->vtable.create_pipeline(lomo_stream_get_tag(stream, LOMO_TAG_URI), self->priv->options);
-	if (self->priv->pipeline == NULL)
+	priv->pipeline = priv->vtable.create_pipeline(lomo_stream_get_tag(stream, LOMO_TAG_URI), priv->options);
+	if (priv->pipeline == NULL)
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CREATE_PIPELINE,
 			N_("Cannot create pipeline for stream %s"), (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		return FALSE;
 	}
 	lomo_player_set_volume(self, -1);               // Restore pipeline volume
-	lomo_player_set_mute  (self, self->priv->mute); // Restore pipeline mute 
-	gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(self->priv->pipeline)), (GstBusFunc) bus_watcher, self);
+	lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute 
+	gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(priv->pipeline)), (GstBusFunc) bus_watcher, self);
 
 	return TRUE;
 }
 
-gboolean
+static gboolean
 lomo_player_destroy_pipeline(LomoPlayer *self, GError **error)
 {
 	check_method_or_return_val(self, destroy_pipeline, FALSE, error);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if (self->priv->pipeline == NULL)
+	if (priv->pipeline == NULL)
 		return TRUE;
 
 	if (!lomo_player_set_state(self, LOMO_STATE_STOP, error))
 		return FALSE;
 
-	self->priv->vtable.destroy_pipeline(self->priv->pipeline);
-	self->priv->pipeline = NULL;
+	priv->vtable.destroy_pipeline(priv->pipeline);
+	priv->pipeline = NULL;
 	return TRUE;
 }
 
@@ -711,7 +710,7 @@ lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func)
 LomoStream*
 lomo_player_get_stream(LomoPlayer *self)
 {
-	return self->priv->stream;
+	return GET_PRIVATE(self)->stream;
 }
 
 // --
@@ -721,8 +720,9 @@ LomoStateChangeReturn
 lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 {
 	check_method_or_return_val(self, set_state, LOMO_STATE_CHANGE_FAILURE, error);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if (self->priv->pipeline == NULL)
+	if (priv->pipeline == NULL)
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_MISSING_PIPELINE,
 			N_("Cannot set state: missing pipeline"));
@@ -738,7 +738,7 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 	}
 
 
-	GstStateChangeReturn ret = self->priv->vtable.set_state(self->priv->pipeline, gst_state);
+	GstStateChangeReturn ret = priv->vtable.set_state(priv->pipeline, gst_state);
 	if (ret == GST_STATE_CHANGE_FAILURE)
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_SET_STATE,
@@ -752,11 +752,12 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 LomoState lomo_player_get_state(LomoPlayer *self)
 {
 	check_method_or_return_val(self, get_state, LOMO_STATE_INVALID, NULL);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if (!self->priv->pipeline || !self->priv->stream)
+	if (!priv->pipeline || !priv->stream)
 		return LOMO_STATE_STOP;
 	
-	GstState gst_state = self->priv->vtable.get_state(self->priv->pipeline);
+	GstState gst_state = priv->vtable.get_state(priv->pipeline);
 
 	LomoState state;
 	if (!lomo_state_from_gst(gst_state, &state))
@@ -772,8 +773,9 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format)
 {
 	check_method_or_return_val(self, get_position, LOMO_STATE_INVALID, NULL);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if (!self->priv->pipeline || !self->priv->stream)
+	if (!priv->pipeline || !priv->stream)
 		return -1;
 
 	GstFormat gst_format;
@@ -781,7 +783,7 @@ gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format)
 		return -1;
 
 	gint64 ret;
-	if (!self->priv->vtable.get_position(self->priv->pipeline, &gst_format, &ret))
+	if (!priv->vtable.get_position(priv->pipeline, &gst_format, &ret))
 		return -1;
 
 	return ret;
@@ -791,8 +793,9 @@ gboolean
 lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
 {
 	check_method_or_return_val(self, set_position, FALSE, NULL);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if ((self->priv->pipeline == NULL) || (self->priv->stream == NULL))
+	if ((priv->pipeline == NULL) || (priv->stream == NULL))
 	{
 		g_warning(N_("Player not seekable"));
 		return FALSE;
@@ -816,7 +819,7 @@ lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
 		return ret;
 
 	// Exec action
-	ret = self->priv->vtable.set_position(self->priv->pipeline, gst_format, val);
+	ret = priv->vtable.set_position(priv->pipeline, gst_format, val);
 	if (ret)
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[SEEK], 0, old_pos, val);
 	else
@@ -829,8 +832,9 @@ gint64
 lomo_player_length(LomoPlayer *self, LomoFormat format)
 {
 	check_method_or_return_val(self, get_length, -1, NULL);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if ((self->priv->pipeline == NULL) || (self->priv->stream == NULL))
+	if ((priv->pipeline == NULL) || (priv->stream == NULL))
 	{
 		// g_warning(N_("Cannot get length of NULL stream"));
 		// XXX On -1 set seek controls insensitive
@@ -847,7 +851,7 @@ lomo_player_length(LomoPlayer *self, LomoFormat format)
 
 	// Length
 	gint64 ret;
-	if (!self->priv->vtable.get_length(self->priv->pipeline, &gst_format, &ret))
+	if (!priv->vtable.get_length(priv->pipeline, &gst_format, &ret))
 	{
 		// g_warning(N_("Error getting length"));
 		// Maybe pipeline is in his first microsecs of life with no ide of
@@ -864,14 +868,15 @@ lomo_player_length(LomoPlayer *self, LomoFormat format)
 gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 {
 	check_method_or_return_val(self, set_volume, FALSE, NULL);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 	
 	if (val == -1)
-		val = self->priv->volume;
+		val = priv->volume;
 	val = CLAMP(val, 0, 100);
 
-	if (self->priv->pipeline == NULL)
+	if (priv->pipeline == NULL)
 	{
-		self->priv->volume = val;
+		priv->volume = val;
 		return TRUE;
 	}
 
@@ -881,28 +886,29 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 		return ret;
 
 	// Exec action
-	if (!self->priv->vtable.set_volume(self->priv->pipeline, val))
+	if (!priv->vtable.set_volume(priv->pipeline, val))
 	{
 		g_warning(N_("Error setting volume"));
 		return FALSE;
 	}
 
-	self->priv->volume = val;
+	priv->volume = val;
 	g_signal_emit(self, lomo_player_signals[VOLUME], 0, val);
 	return TRUE;
 }
 
 gint lomo_player_get_volume(LomoPlayer *self)
 {
-	if (self->priv->pipeline == NULL)
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	if (priv->pipeline == NULL)
 	{
-		return self->priv->volume;
+		return priv->volume;
 	}
 
-	if (self->priv->vtable.get_volume == NULL)
-		return self->priv->volume;
+	if (priv->vtable.get_volume == NULL)
+		return priv->volume;
 	
-	gint ret = self->priv->vtable.get_volume(self->priv->pipeline);
+	gint ret = priv->vtable.get_volume(priv->pipeline);
 	if (ret == -1)
 		g_warning(N_("Error getting volume"));
 	return ret;
@@ -913,7 +919,8 @@ gint lomo_player_get_volume(LomoPlayer *self)
 // --
 gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 {
-	if ((self->priv->vtable.set_mute == NULL) && (self->priv->vtable.set_volume == NULL))
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	if ((priv->vtable.set_mute == NULL) && (priv->vtable.set_volume == NULL))
 	{
 		g_warning(N_("Missing set_mute and set_volume methods, cannot mute"));
 		return FALSE;
@@ -924,24 +931,24 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_MUTE, &ret, mute))
 		return ret;
 
-	if (self->priv->pipeline == NULL)
+	if (priv->pipeline == NULL)
 	{
-		self->priv->mute = mute;
+		priv->mute = mute;
 		return TRUE;
 	}
 
 	// Exec action
-	if (self->priv->pipeline == NULL)
+	if (priv->pipeline == NULL)
 	{
-		self->priv->mute = mute;
+		priv->mute = mute;
 		ret = TRUE;
 	}
 	else
 	{
-		if (self->priv->vtable.set_mute)
-			ret = self->priv->vtable.set_mute(self->priv->pipeline, mute);
+		if (priv->vtable.set_mute)
+			ret = priv->vtable.set_mute(priv->pipeline, mute);
 		else
-			ret = self->priv->vtable.set_volume(self->priv->pipeline, mute ? 0 : self->priv->volume);
+			ret = priv->vtable.set_volume(priv->pipeline, mute ? 0 : priv->volume);
 	}
 
 	if (!ret)
@@ -950,7 +957,7 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 		return ret;
 	}
 
-	self->priv->mute = mute;
+	priv->mute = mute;
 	g_signal_emit(self, lomo_player_signals[MUTE], 0 , mute);
 
 	return ret;
@@ -958,10 +965,11 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 
 gboolean lomo_player_get_mute(LomoPlayer *self)
 {
-	if (self->priv->vtable.get_mute)
-		return self->priv->vtable.get_mute(self->priv->pipeline);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	if (priv->vtable.get_mute)
+		return priv->vtable.get_mute(priv->pipeline);
 	else
-		return self->priv->mute;
+		return priv->mute;
 }
 
 // --
@@ -1033,6 +1041,8 @@ lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 void
 lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 {
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+
 	GList *l;
 	LomoStream *stream = NULL;
 	gboolean emit_change;
@@ -1049,7 +1059,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 	// Add streams to playlist
 	if ((pos <= 0) || (pos >  lomo_player_get_total(self)))
 		pos = lomo_player_get_total(self);
-	// lomo_playlist_insert_multi(self->priv->pl, streams, pos);
+	// lomo_playlist_insert_multi(priv->pl, streams, pos);
 
 	// For each one parse metadata and emit signals 
 	l = streams;
@@ -1065,9 +1075,9 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		}
 
 		// Exec action
-		lomo_playlist_insert(self->priv->pl, stream, pos);
-		if (self->priv->auto_parse)
-			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
+		lomo_playlist_insert(priv->pl, stream, pos);
+		if (priv->auto_parse)
+			lomo_metadata_parser_parse(priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[INSERT], 0, stream, pos);
 	
 		// Emit change if its first stream and hooks dont catch change
@@ -1092,6 +1102,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 
 gboolean lomo_player_del(LomoPlayer *self, gint pos)
 {
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 	gint curr, next;
 
 	if (lomo_player_get_total(self) <= pos )
@@ -1110,7 +1121,7 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 	if (curr != pos)
 	{
 		// No problem, delete 
-		lomo_playlist_del(self->priv->pl, pos);
+		lomo_playlist_del(priv->pl, pos);
 	}
 
 	else
@@ -1121,13 +1132,13 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 		{
 			// mmm, only one stream, go stop
 			lomo_player_stop(self, NULL);
-			lomo_playlist_del(self->priv->pl, pos);
+			lomo_playlist_del(priv->pl, pos);
 		}
 		else
 		{
 			/* Delete and go next */
 			lomo_player_go_next(self, NULL);
-			lomo_playlist_del(self->priv->pl, pos);
+			lomo_playlist_del(priv->pl, pos);
 		}
 	}
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[REMOVE], 0, stream, pos);
@@ -1139,18 +1150,19 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 gint lomo_player_queue(LomoPlayer *self, gint pos)
 {
 	g_return_val_if_fail(pos >= 0, -1);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	LomoStream *stream = lomo_playlist_nth_stream(self->priv->pl, pos);
+	LomoStream *stream = lomo_playlist_nth_stream(priv->pl, pos);
 	g_return_val_if_fail(stream != NULL, -1);
 
 	// Run hooks
 	gint ret = -1;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_QUEUE, &ret, stream, g_queue_get_length(self->priv->queue)))
+	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_QUEUE, &ret, stream, g_queue_get_length(priv->queue)))
 		return ret;
 
 	// Exec action
-	g_queue_push_tail(self->priv->queue, stream);
-	gint queue_pos = g_queue_get_length(self->priv->queue) - 1;
+	g_queue_push_tail(priv->queue, stream);
+	gint queue_pos = g_queue_get_length(priv->queue) - 1;
 
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE], 0, stream, queue_pos);
 	return queue_pos;
@@ -1158,7 +1170,8 @@ gint lomo_player_queue(LomoPlayer *self, gint pos)
 
 gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 {
-	LomoStream *stream = g_queue_peek_nth(self->priv->queue, queue_pos);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	LomoStream *stream = g_queue_peek_nth(priv->queue, queue_pos);
 	g_return_val_if_fail(stream != NULL, FALSE);
 
 	// Run hooks
@@ -1167,7 +1180,7 @@ gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 		return ret;
 
 	// Exec action
-	if (g_queue_pop_nth(self->priv->queue, queue_pos) == NULL)
+	if (g_queue_pop_nth(priv->queue, queue_pos) == NULL)
 		return FALSE;
 
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[DEQUEUE], 0, stream, queue_pos);
@@ -1176,12 +1189,12 @@ gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 
 gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)
 {
-	return g_queue_index(self->priv->queue, stream);
+	return g_queue_index(GET_PRIVATE(self)->queue, stream);
 }
 
 LomoStream *lomo_player_queue_nth(LomoPlayer *self, guint queue_pos)
 {
-	return g_queue_peek_nth(self->priv->queue, queue_pos);
+	return g_queue_peek_nth(GET_PRIVATE(self)->queue, queue_pos);
 }
 
 void lomo_player_queue_clear(LomoPlayer *self)
@@ -1191,49 +1204,50 @@ void lomo_player_queue_clear(LomoPlayer *self)
 		return;
 
 	// Exec action
-	g_queue_clear(self->priv->queue);
+	g_queue_clear(GET_PRIVATE(self)->queue);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE_CLEAR], 0);
 }
 
 GList *lomo_player_get_playlist(LomoPlayer *self)
 {
-	return lomo_playlist_get_playlist(self->priv->pl);
+	return lomo_playlist_get_playlist(GET_PRIVATE(self)->pl);
 }
 
 LomoStream *lomo_player_nth_stream(LomoPlayer *self, gint pos)
 {
-	return lomo_playlist_nth_stream(self->priv->pl, pos);
+	return lomo_playlist_nth_stream(GET_PRIVATE(self)->pl, pos);
 }
 
 gint
 lomo_player_index(LomoPlayer *self, LomoStream *stream)
 {
-	return lomo_playlist_index(self->priv->pl, stream);
-	return lomo_playlist_index(self->priv->pl, stream);
+	return lomo_playlist_index(GET_PRIVATE(self)->pl, stream);
 }
 
 gint lomo_player_get_prev(LomoPlayer *self)
 {
-	return lomo_playlist_get_prev(self->priv->pl);
+	return lomo_playlist_get_prev(GET_PRIVATE(self)->pl);
 }
 
 gint lomo_player_get_next(LomoPlayer *self)
 {
-	LomoStream *stream = g_queue_peek_head(self->priv->queue);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	LomoStream *stream = g_queue_peek_head(priv->queue);
 	if (stream)
-		return lomo_playlist_index(self->priv->pl, stream);
+		return lomo_playlist_index(priv->pl, stream);
 	else
-		return lomo_playlist_get_next(self->priv->pl);
+		return lomo_playlist_get_next(priv->pl);
 }
 
 gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 {
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 	const LomoStream *stream;
 	LomoState state;
 	gint prev = -1;
 
 	// Cannot go to that position
-	stream = lomo_playlist_nth_stream(self->priv->pl, pos);
+	stream = lomo_playlist_nth_stream(priv->pl, pos);
 	if (stream == NULL)
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_NO_STREAM, "No stream at position %d", pos);
@@ -1241,7 +1255,7 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	}
 
 	// Check if stream is in queue and dequeue it
-	gint queue_idx = g_queue_index(self->priv->queue, stream);
+	gint queue_idx = g_queue_index(priv->queue, stream);
 	if ((queue_idx >= 0) && !lomo_player_dequeue(self, queue_idx))
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CANNOT_DEQUEUE, N_("Cannot change stream, it's in queue but can't dequeue it"));
@@ -1271,8 +1285,8 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	if (!lomo_player_stop(self, error))
 		return FALSE;
 
-	lomo_playlist_go_nth(self->priv->pl, pos);
-	self->priv->stream = (LomoStream *) stream;
+	lomo_playlist_go_nth(priv->pl, pos);
+	priv->stream = (LomoStream *) stream;
 
 	if (!lomo_player_create_pipeline(self, (LomoStream *) stream, error))
 		return FALSE;
@@ -1291,16 +1305,18 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 
 gint lomo_player_get_current(LomoPlayer *self)
 {
-	return lomo_playlist_get_current(self->priv->pl);
+	return lomo_playlist_get_current(GET_PRIVATE(self)->pl);
 }
 
 guint lomo_player_get_total(LomoPlayer *self)
 {
-	return lomo_playlist_get_total(self->priv->pl);
+	return lomo_playlist_get_total(GET_PRIVATE(self)->pl);
 }
 
 void lomo_player_clear(LomoPlayer *self)
 {
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+
 	// Only clear if needed
 	if (lomo_player_get_playlist(self) == NULL)
 		return;
@@ -1311,8 +1327,8 @@ void lomo_player_clear(LomoPlayer *self)
 
 	// Exec action
 	lomo_player_stop(self, NULL);
-	lomo_playlist_clear(self->priv->pl);
-	lomo_metadata_parser_clear(self->priv->meta);
+	lomo_playlist_clear(priv->pl);
+	lomo_metadata_parser_clear(priv->meta);
 	lomo_player_destroy_pipeline(self, NULL);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
 }
@@ -1324,13 +1340,13 @@ void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 		return;
 
 	// Exec action
-	lomo_playlist_set_repeat(self->priv->pl, val);
+	lomo_playlist_set_repeat(GET_PRIVATE(self)->pl, val);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[REPEAT], 0, val);
 }
 
 gboolean lomo_player_get_repeat(LomoPlayer *self)
 {
-	return lomo_playlist_get_repeat(self->priv->pl);
+	return lomo_playlist_get_repeat(GET_PRIVATE(self)->pl);
 }
 
 void lomo_player_set_random(LomoPlayer *self, gboolean val)
@@ -1340,30 +1356,30 @@ void lomo_player_set_random(LomoPlayer *self, gboolean val)
 		return;
 
 	// Exec action
-	lomo_playlist_set_random(self->priv->pl, val);
+	lomo_playlist_set_random(GET_PRIVATE(self)->pl, val);
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[RANDOM], 0, val);
 }
 
 gboolean lomo_player_get_random(LomoPlayer *self)
 {
-	return lomo_playlist_get_random(self->priv->pl);
+	return lomo_playlist_get_random(GET_PRIVATE(self)->pl);
 }
 
 void lomo_player_randomize(LomoPlayer *self)
 {
-	lomo_playlist_randomize(self->priv->pl);
+	lomo_playlist_randomize(GET_PRIVATE(self)->pl);
 }
 
 void
 lomo_player_print_pl(LomoPlayer *self)
 {
-	lomo_playlist_print(self->priv->pl);
+	lomo_playlist_print(GET_PRIVATE(self)->pl);
 }
 
 void
 lomo_player_print_random_pl(LomoPlayer *self)
 {
-	lomo_playlist_print_random(self->priv->pl);
+	lomo_playlist_print_random(GET_PRIVATE(self)->pl);
 }
 
 // --
@@ -1469,7 +1485,7 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 				hook   = LOMO_PLAYER_HOOK_PLAY;
 				break;
 			default:
-				g_printf("ERROR: Unknow state transition: %s\n", gst_state_to_str(newstate));
+				g_warning("ERROR: Unknow state transition: %s\n", gst_state_to_str(newstate));
 				return TRUE;
 			}
 
