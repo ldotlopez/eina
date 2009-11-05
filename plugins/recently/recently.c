@@ -1243,16 +1243,14 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPlugin recently_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"recently", PACKAGE_VERSION, "adb",
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
+EINA_PLUGIN_SPEC(recently,
+	PACKAGE_VERSION, "adb",
+	NULL, NULL,
 
 	N_("Stores your recent playlists"),
-	N_("Recently plugin. ADB based version"), // long desc
-	NULL, // icon
+	N_("Recently plugin. ADB based version"),
+	"adb.png",
 
-	recently_plugin_init, recently_plugin_fini,
+	recently_plugin_init, recently_plugin_fini
+	);
 
-	NULL, NULL, NULL
-};
