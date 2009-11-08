@@ -59,7 +59,6 @@ eina_fs_load_files_from_uri(LomoPlayer *lomo, gchar *uri)
 void
 eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 {
-#if 1
 	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
@@ -102,77 +101,6 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 			lomo_player_play(lomo, NULL);
 	}
 	gtk_widget_destroy((GtkWidget *) picker);
-
-#else
-	EinaFileChooserDialog *picker = eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
-	static gchar *uri = NULL;
-	if (!uri)
-	{
-		const gchar *music_userdir = g_get_user_special_dir(G_USER_DIRECTORY_MUSIC);
-		if (!music_userdir)
-			music_userdir = g_get_home_dir();
-		uri = g_filename_to_uri(music_userdir, NULL, NULL);
-	}
-	gtk_file_chooser_set_current_folder_uri((GtkFileChooser *) picker, uri);
-
-	gboolean run = TRUE;
-	GSList *uris, *hold;
-
-	do
-	{
-		run = FALSE;
-		gint response = eina_file_chooser_dialog_run(picker);
-		switch (response)
-		{
-		case EINA_FILE_CHOOSER_RESPONSE_PLAY:
-			uris = eina_file_chooser_dialog_get_uris(picker);
-			hold = gel_slist_filter(uris, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
-			hold = g_slist_sort(hold, (GCompareFunc) strcmp);
-			g_slist_free(uris);
-
-			if (hold == NULL) 
-			{
-				run = TRUE; // Keep alive
-				break;
-			}
-			lomo_player_clear(lomo);
-			lomo_player_append_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
-			lomo_player_play(lomo, NULL);
-			run = FALSE; // Destroy
-		break;
-
-		case EINA_FILE_CHOOSER_RESPONSE_QUEUE:
-			uris = eina_file_chooser_dialog_get_uris(picker);
-			hold = gel_slist_filter(uris, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
-			hold = g_slist_sort(hold, (GCompareFunc) strcmp);
-			g_slist_free(uris);
-
-			if (hold == NULL)
-			{
-				run = TRUE; // Keep alive
-				break;
-			}	
-			gchar *msg = g_strdup_printf(_("Loaded %d streams"), g_slist_length(hold));
-			eina_file_chooser_dialog_set_msg(picker, EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO, msg);
-			g_free(msg);
-
-			lomo_player_append_uri_multi(lomo, (GList *) hold); g_slist_free(hold);
-
-			run = TRUE; // Keep alive
-			break;
-
-		default:
-			run = FALSE; // Destroy
-			break;
-		}
-	} while (run);
-
-	if (uri)
-		g_free(uri);
-	uri = gtk_file_chooser_get_current_folder_uri((GtkFileChooser *) picker);
-
-	gtk_widget_destroy(GTK_WIDGET(picker));
-#endif
 }
 
 gboolean
