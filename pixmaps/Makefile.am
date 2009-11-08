@@ -5,7 +5,8 @@ pixmaps_DATA = \
 	cover-loading.png      \
 	cover-mask.png         \
 	eina.svg               \
-	loading-spin-16x16.gif
+	loading-spin-16x16.gif \
+	plugin.png
 
 EXTRA_DIST = \
 	cover-mask.xcf         \

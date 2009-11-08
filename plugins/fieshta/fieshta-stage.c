@@ -132,11 +132,19 @@ fieshta_stage_translate(FieshtaStage *self, ClutterActor *actor, gint i)
 	FieshtaStagePrivate *priv = GET_PRIVATE(self);
 	g_return_if_fail(g_list_find(priv->actors, actor));
 
-	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
+	gdouble scale = fieshta_stage_get_scale_for_slot(self, actor, i);
+	clutter_actor_animate(actor, CLUTTER_LINEAR, 500,
+		"x", 1280/2,
+		"y", priv->positions[i],
+		"scale-x", scale,
+		"scale-y", scale,
+		NULL);
+/*
+	ClutterTimeline *timeline = clutter_timeline_new(500);
 	
 	ClutterAlpha *alpha = clutter_alpha_new();
 	clutter_alpha_set_timeline(alpha, timeline);
-	clutter_alpha_set_func(alpha, CLUTTER_ALPHA_RAMP_INC, NULL, NULL);
+	clutter_alpha_set_func(alpha, CLUTTER_LINEAR, NULL, NULL);
 
 	ClutterKnot knots[2] = {
 		{ 1280/2, clutter_actor_get_y(actor) },
@@ -156,8 +164,10 @@ fieshta_stage_translate(FieshtaStage *self, ClutterActor *actor, gint i)
 	clutter_behaviour_apply(s, actor);
 
 	clutter_timeline_start(timeline);
+	*/
 }
 
+#if 0
 static void
 timeline_completed_cb(ClutterTimeline *t, FieshtaStage *self)
 {
@@ -171,6 +181,7 @@ timeline_completed_cb(ClutterTimeline *t, FieshtaStage *self)
 	g_object_unref((GObject *) g_object_get_data((GObject *) t, "behaviour"));
 	g_object_unref((GObject *) t);
 }
+#endif
 
 static void
 fieshta_stage_add(FieshtaStage *self, ClutterActor *actor, guint pos)
@@ -188,6 +199,11 @@ fieshta_stage_add(FieshtaStage *self, ClutterActor *actor, guint pos)
 	sy = priv->scales[pos] * priv->h / clutter_actor_get_height(actor);
 
 	// Create animation
+	clutter_actor_animate(actor, CLUTTER_LINEAR, 500,
+		"scale-x", sy, 
+		"scale-y", sy,
+		NULL);
+	/*
 	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
 	g_signal_connect(timeline, "completed", (GCallback) timeline_completed_cb, self);
 	
@@ -208,12 +224,18 @@ fieshta_stage_add(FieshtaStage *self, ClutterActor *actor, guint pos)
 	g_object_set_data((GObject *) timeline, "behaviour", s);
 	g_object_set_data((GObject *) timeline, "actor",     actor);
 	clutter_timeline_start(timeline);
+	*/
 }
 
 static void
 fieshta_stage_remove(FieshtaStage *self, ClutterActor *actor)
 {
 	// Create animation
+	clutter_actor_animate(actor, CLUTTER_LINEAR, 500,
+		"scale-x", 0.0,
+		"scale-y", 0.0,
+		NULL);
+	/*
 	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
 	
 	ClutterAlpha *alpha = clutter_alpha_new();
@@ -232,6 +254,7 @@ fieshta_stage_remove(FieshtaStage *self, ClutterActor *actor)
 	g_object_set_data((GObject *) timeline, "behaviour", s);
 	g_object_set_data((GObject *) timeline, "actor",     actor);
 	clutter_timeline_start(timeline);
+	*/
 }
 
 void

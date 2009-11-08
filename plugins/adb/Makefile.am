@@ -1,6 +1,9 @@
 adbdir = $(pkglibdir)/adb
 adb_LTLIBRARIES = libadb.la
 
+adb_DATA = adb.png
+EXTRA_DIST = $(adb_DATA) adb.svg
+
 INST_H_FILES = adb.h
 NOINST_H_FILES = register.h
 

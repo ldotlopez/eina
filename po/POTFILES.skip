@@ -14,3 +14,4 @@ tools/plugins/lastfm/submit.c
 tools/plugins/ntfy/ntfy.c
 tools/plugins/recently/dock.ui
 tools/plugins/recently/recently.c
+data/eina.desktop.in

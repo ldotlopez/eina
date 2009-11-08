@@ -20,7 +20,7 @@
 #include <eina/ext/eina-clutty.h>
 #include <glib/gprintf.h>
 
-G_DEFINE_TYPE (EinaClutty, eina_clutty, GTK_TYPE_CLUTTER_EMBED)
+G_DEFINE_TYPE (EinaClutty, eina_clutty, GTK_CLUTTER_TYPE_EMBED)
 
 #define CLUTTY_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_CLUTTY, EinaCluttyPrivate))
@@ -136,7 +136,7 @@ eina_clutty_init (EinaClutty *self)
 	priv->old      = NULL;
 	priv->new      = NULL;
 	priv->actor    = clutter_texture_new();
-	priv->timeline = clutter_timeline_new_for_duration(priv->duration);
+	priv->timeline = clutter_timeline_new(priv->duration);
 
 	clutter_container_add_actor((ClutterContainer*) gtk_clutter_embed_get_stage(GTK_CLUTTER_EMBED(self)), priv->actor);
 	clutter_timeline_set_loop(priv->timeline, FALSE); 
@@ -175,7 +175,7 @@ eina_clutty_set_pixbuf(EinaClutty *self, GdkPixbuf *pixbuf)
 	if (!priv->old)
 	{
 		priv->old = pixbuf;
-		gtk_clutter_texture_set_from_pixbuf((ClutterTexture*) priv->actor, priv->old);
+		gtk_clutter_texture_set_from_pixbuf((ClutterTexture*) priv->actor, priv->old, NULL);
 		clutter_actor_set_anchor_point(priv->actor,
 			clutter_actor_get_width(priv->actor) / 2,
 			clutter_actor_get_height(priv->actor) / 2);
@@ -233,16 +233,15 @@ timeline_new_frame_cb (ClutterTimeline *timeline, gint frame_num, EinaClutty *se
 	EinaCluttyPrivate *priv = CLUTTY_PRIVATE(self);
 	gdouble degrees = ((gdouble) 180) / 
 		// Total frames
-		(gint) ((clutter_timeline_get_duration(timeline) * clutter_timeline_get_speed(timeline)) / (gdouble) 1000) *
+		(gint) ((clutter_timeline_get_duration(timeline)) / (gdouble) 1000) *
 		frame_num;
-	
 
 	if (degrees >= 90)
 	{
 		degrees += 180;
 		if (priv->new && !priv->done)
 		{
-			gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) priv->actor, priv->new);
+			gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) priv->actor, priv->new, NULL);
 			priv->old = priv->new;
 			priv->new = NULL;
 			priv->done = TRUE;

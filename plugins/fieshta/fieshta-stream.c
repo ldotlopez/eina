@@ -19,7 +19,7 @@
 
 #include "fieshta-stream.h"
 #include <glib/gprintf.h>
-#include <clutter-gtk/gtk-clutter-util.h>
+#include <clutter-gtk/clutter-gtk.h>
 G_DEFINE_TYPE (FieshtaStream, fieshta_stream, CLUTTER_TYPE_GROUP)
 
 #define GET_PRIVATE(o) \
@@ -29,7 +29,6 @@ typedef struct _FieshtaStreamPrivate FieshtaStreamPrivate;
 
 struct _FieshtaStreamPrivate {
 	GdkPixbuf *new;
-    int dummy;
 };
 
 static void
@@ -64,15 +63,15 @@ fieshta_stream_new (GdkPixbuf *cover, gchar *title, gchar *artist)
 	clutter_actor_set_size(self->cover, 256, 256);
 	clutter_actor_set_position(self->cover, 128, 128);
 
-	self->title = clutter_label_new_with_text("Sans Bold 70", title);
+	self->title = clutter_text_new_with_text("Sans Bold 70", title);
 	clutter_actor_set_position(self->title, 256, 0);
-	clutter_label_set_color((ClutterLabel *) self->title, &white);
-	clutter_label_set_ellipsize((ClutterLabel *) self->title, TRUE);
+	clutter_text_set_color((ClutterText *) self->title, &white);
+	clutter_text_set_ellipsize((ClutterText *) self->title, TRUE);
 
-	self->artist = clutter_label_new_with_text("Sans Bold 70", artist);
+	self->artist = clutter_text_new_with_text("Sans Bold 70", artist);
 	clutter_actor_set_position(self->artist, 256, clutter_actor_get_height(self->title));
-	clutter_label_set_color((ClutterLabel *) self->artist, &white);
-	clutter_label_set_ellipsize((ClutterLabel *) self->artist, TRUE);
+	clutter_text_set_color((ClutterText *) self->artist, &white);
+	clutter_text_set_ellipsize((ClutterText *) self->artist, TRUE);
 
 	clutter_container_add((ClutterContainer *) self, self->cover, self->title, self->artist, NULL);
  	clutter_actor_set_anchor_point((ClutterActor*) self, 256, 128);
@@ -86,7 +85,7 @@ timeline_marker_reached(ClutterTimeline *timeline, gchar *marker_name, gint  fra
 	FieshtaStreamPrivate *priv = GET_PRIVATE(self);
 	if (!priv->new)
 		return;
-	gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) self->cover, priv->new);
+	gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) self->cover, priv->new, NULL);
 	g_object_unref(priv->new);
 	priv->new = NULL;
 }
@@ -99,10 +98,12 @@ fieshta_stream_set_cover_from_pixbuf(FieshtaStream* self, GdkPixbuf *cover)
 		g_object_unref(priv->new);
 	priv->new = gdk_pixbuf_flip(cover, TRUE);
 
-	ClutterTimeline *timeline = clutter_timeline_new_for_duration(500);
+	ClutterTimeline *timeline = clutter_timeline_new(500);
 	clutter_timeline_add_marker_at_time(timeline, "half", 250);
 	g_signal_connect((GObject *) timeline, "marker-reached", (GCallback) timeline_marker_reached, self);
 
+	clutter_actor_animate_with_timeline(self->cover, CLUTTER_LINEAR, timeline, NULL, NULL);
+	/*
 	ClutterAlpha *alpha = clutter_alpha_new();
 	clutter_alpha_set_timeline(alpha, timeline);
 	clutter_alpha_set_func(alpha, CLUTTER_ALPHA_RAMP_INC, NULL, NULL);
@@ -111,5 +112,5 @@ fieshta_stream_set_cover_from_pixbuf(FieshtaStream* self, GdkPixbuf *cover)
 	clutter_behaviour_apply(r, self->cover);
 	
 	clutter_timeline_start(timeline);
-
+	*/
 }

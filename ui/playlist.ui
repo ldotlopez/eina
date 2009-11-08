@@ -25,97 +25,135 @@
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkFrame" id="frame1">
+          <object class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
-            <property name="label_xalign">0</property>
-            <property name="shadow_type">none</property>
+            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkAlignment" id="alignment1">
-                <property name="visible">True</property>
-                <property name="left_padding">12</property>
-                <child>
-                  <object class="GtkScrolledWindow" id="playlist-scrolledwindow">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <child>
-                      <object class="GtkTreeView" id="playlist-treeview">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="model">playlist-model</property>
-                        <property name="headers_visible">False</property>
-                        <property name="headers_clickable">False</property>
-                        <property name="enable_search">False</property>
-                        <property name="tooltip_column">2</property>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="state-column">
-                            <property name="sizing">autosize</property>
-                            <child>
-                              <object class="GtkCellRendererPixbuf" id="state-renderer"/>
-                              <attributes>
-                                <attribute name="icon-name">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="title-column">
-                            <property name="sizing">autosize</property>
-                            <property name="title">Title</property>
-                            <property name="expand">True</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="title-renderer"/>
-                              <attributes>
-                                <attribute name="markup">3</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="queue-column">
-                            <property name="sizing">autosize</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="queue-renderer"/>
-                              <attributes>
-                                <attribute name="markup">5</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child type="label">
               <object class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkImage" id="image2">
                     <property name="visible">True</property>
-                    <property name="stock">gtk-index</property>
+                    <property name="stock">gtk-find</property>
                   </object>
                   <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Playlist&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
+                    <property name="label" translatable="yes">Filter</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                    </attributes>
                   </object>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="position">1</property>
                   </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkAlignment" id="alignment2">
+                <property name="visible">True</property>
+                <property name="left_padding">12</property>
+                <child>
+                  <object class="GtkEntry" id="playlist-search-entry">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="secondary_icon_stock">gtk-clear</property>
+                    <property name="secondary_icon_activatable">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">5</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHSeparator" id="hseparator2">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">5</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="playlist-scrolledwindow">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
+            <child>
+              <object class="GtkTreeView" id="playlist-treeview">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">playlist-model</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
+                <property name="enable_search">False</property>
+                <property name="search_column">1</property>
+                <property name="tooltip_column">2</property>
+                <child>
+                  <object class="GtkTreeViewColumn" id="state-column">
+                    <property name="sizing">autosize</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="state-renderer"/>
+                      <attributes>
+                        <attribute name="icon-name">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="title-column">
+                    <property name="sizing">autosize</property>
+                    <property name="title">Title</property>
+                    <property name="expand">True</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="title-renderer"/>
+                      <attributes>
+                        <attribute name="markup">3</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="queue-column">
+                    <property name="sizing">autosize</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="queue-renderer"/>
+                      <attributes>
+                        <attribute name="markup">5</attribute>
+                      </attributes>
+                    </child>
+                  </object>
                 </child>
               </object>
             </child>
           </object>
           <packing>
-            <property name="position">0</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -125,7 +163,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="padding">5</property>
-            <property name="position">1</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -179,20 +217,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="playlist-search-entry">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x25CF;</property>
-                <property name="primary_icon_stock">gtk-find</property>
-                <property name="secondary_icon_stock">gtk-clear</property>
-                <property name="primary_icon_activatable">True</property>
-                <property name="secondary_icon_activatable">True</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
-              </object>
-              <packing>
-                <property name="position">2</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
               <object class="GtkHBox" id="hbox4">
@@ -290,7 +315,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">2</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>

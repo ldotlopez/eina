@@ -21,7 +21,7 @@
 #define _EINA_CLUTTY_H
 
 #include <glib-object.h>
-#include <clutter-gtk/gtk-clutter-embed.h>
+#include <clutter-gtk/clutter-gtk.h>
 
 G_BEGIN_DECLS
 

@@ -1,8 +1,9 @@
-eina (0.9.0~ppa1) jaunty; urgency=low
+eina (0.9.0+git20091107~ppa1) karmic; urgency=low
 
   * Update to 0.9.0
+  * Move to karmic
 
- -- Luis Lopez <xuzo@cuarentaydos.com.>  Mon, 02 Nov 2009 20:46:19 +0100
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Sat, 07 Nov 2009 13:17:17 +0100
 
 eina (0.8.0~rc2~ppa3) jaunty; urgency=low
 

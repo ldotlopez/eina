@@ -1,8 +1,8 @@
 [Desktop Entry]
-_Name=Eina Music Player
-_GenericName=Music Player
-_Comment=Play songs
-_X-GNOME-FullName=Eina Music Player
+Name=Eina Music Player
+GenericName=Music Player
+Comment=Play songs
+X-GNOME-FullName=Eina Music Player
 Exec=eina %U
 Icon=@prefix@/share/eina/pixmaps/eina.svg
 Terminal=false

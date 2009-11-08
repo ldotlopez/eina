@@ -102,8 +102,12 @@ AC_SUBST(PACKAGE_RELEASE_DATE)
 dnl
 dnl Plugins
 dnl
-CLUTTER_VERSION="0.8.2"
-clutter_modules="clutter-gtk-0.8 >= $CLUTTER_VERSION"
+
+#********
+# Clutter (WARN: clutter is disabled until 1.0.0 update is completed)
+#********
+CLUTTER_VERSION="99.10.0"
+clutter_modules="clutter-gtk-0.10 >= $CLUTTER_VERSION"
 PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 [
 	AC_SUBST(CLUTTER_CFLAGS)

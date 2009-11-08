@@ -26,7 +26,7 @@
 
 #define SETTINGS_PATH "/plugins/notify"
 #define ACTION_NAME   "Notifications"
-#define ACTION_PATH   "/MainMenu/PluginsPlaceholder/Notifications"
+#define ACTION_PATH   "/Main/PluginsPlaceholder/Notifications"
 
 struct _EinaNtfy {
 	EinaObj  parent;
@@ -69,7 +69,6 @@ static void
 art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self);
 static void
 action_activate_cb(GtkAction *action, EinaNtfy *self);
-
 
 GEL_AUTO_QUARK_FUNC(ntfy)
 
