@@ -73,8 +73,7 @@ typedef struct {
 	void (*all_tags)    (LomoPlayer *self, LomoStream *stream);
 } LomoPlayerClass;
 
-/* Lomo VTable */
-typedef struct {
+typedef struct _LomoPlayerVTable {
 	GstElement* (*create_pipeline)  (const gchar *uri, GHashTable *opts);
 	void        (*destroy_pipeline) (GstElement *pipeline);
 

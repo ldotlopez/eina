@@ -50,6 +50,24 @@ struct _LomoPlayerPrivate {
 	gboolean      mute;
 };
 
+/**
+ * LomoPlayerVTable:
+ * @create_pipeline: Function for create a new pipeline. 
+ * @destroy_pipeline: Function for destroy a pipeline.
+ * @set_state: Function for set state to current pipeline
+ * @get_state: Function for get state from current pipeline
+ * @set_position: Function for set position on current pipeline
+ * @get_position: Function for get position from current pipeline
+ * @get_length: Function for get length for the stream currently in the pipeline
+ * @set_volume: Function for set volume on current pipeline
+ * @get_volume: Function for get volume from current pipeline
+ * @set_mute: Function for set mute on current pipeline
+ * @get_mute: Function for get mute from current pipeline
+ *
+ * LomoPlayerVTable is used to override default functions of #LomoPlayer. You
+ * can left any of them empty (NULL) in which case default function is used.
+ */
+
 enum {
 	PROPERTY_AUTO_PARSE = 1
 };
@@ -241,6 +259,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	object_class->set_property = lomo_player_set_property;
 	object_class->dispose = lomo_player_dispose;
 
+	/**
+	 * LomoPlayer::play:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state to %LOMO_STATE_PLAY
+	 */
 	lomo_player_signals[PLAY] =
 		g_signal_new ("play",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -250,6 +274,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::pause:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state to %LOMO_STATE_PAUSE
+	 */
 	lomo_player_signals[PAUSE] =
 		g_signal_new ("pause",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -259,6 +289,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::stop:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state to %LOMO_STATE_STOP
+	 */
 	lomo_player_signals[STOP] =
 		g_signal_new ("stop",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -268,6 +304,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::seek:
+	 * @lomo: the object that received the signal
+	 * @from: Position before the seek
+	 * @to: Position after the seek
+	 *
+	 * Emitted when #LomoPlayer seeks in a stream
+	 */
 	lomo_player_signals[SEEK] =
 		g_signal_new ("seek",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -279,6 +323,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_INT64,
 				G_TYPE_INT64);
+	/**
+	 * LomoPlayer::volume:
+	 * @lomo: the object that received the signal
+	 * @volume: New value of volume (between 0 and 100)
+	 *
+	 * Emitted when #LomoPlayer changes his volume
+	 */
 	lomo_player_signals[VOLUME] =
 		g_signal_new ("volume",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -289,6 +340,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_TYPE_NONE,
 			    1,
 				G_TYPE_INT);
+	/**
+	 * LomoPlayer::mute:
+	 * @lomo: the object that received the signal
+	 * @mute: Current value state of mute
+	 *
+	 * Emitted when #LomoPlayer mutes or unmutes
+	 */
 	lomo_player_signals[MUTE] =
 		g_signal_new ("mute",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -299,7 +357,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_TYPE_NONE,
 			    1,
 				G_TYPE_BOOLEAN);
-
+	/**
+	 * LomoPlayer::insert:
+	 * @lomo: the object that received the signal
+	 * @stream: #LomoStream object that was added
+	 * @position: position of the stream in the playlist
+	 *
+	 * Emitted when a #LomoStream is inserted into #LomoPlayer
+	 */
 	lomo_player_signals[INSERT] =
 		g_signal_new ("insert",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -311,6 +376,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
+	/**
+	 * LomoPlayer::remove:
+	 * @lomo: the object that received the signal
+	 * @stream: #LomoStream object that was removed 
+	 * @position: last position of the stream in the playlist
+	 *
+	 * Emitted when a #LomoStream is remove from #LomoPlayer
+	 */
 	lomo_player_signals[REMOVE] =
 		g_signal_new ("remove",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -322,7 +395,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
-
+	/**
+	 * LomoPlayer::queue:
+	 * @lomo: the object that received the signal
+	 * @stream: #LomoStream object that was queued 
+	 * @position: position of the stream in the queue 
+	 *
+	 * Emitted when a #LomoStream is queued inside a #LomoPlayer
+	 */
 	lomo_player_signals[QUEUE] =
 		g_signal_new ("queue",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -334,6 +414,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
+	/**
+	 * LomoPlayer::dequeue:
+	 * @lomo: the object that received the signal
+	 * @stream: #LomoStream object that was removed 
+	 * @position: last position of the stream in the queue 
+	 *
+	 * Emitted when a #LomoStream is dequeue inside a #LomoPlayer
+	 */
 	lomo_player_signals[DEQUEUE] =
 		g_signal_new ("dequeue",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -345,6 +433,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
+	/**
+	 * LomoPlayer::queue-clear:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when the queue of a #LomoStream is cleared
+	 */
 	lomo_player_signals[QUEUE_CLEAR] =
 		g_signal_new ("queue-clear",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -354,6 +448,17 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::pre-change:
+	 * @lomo: the object that received the signal
+	 * @from: active stream at the current instant
+	 * @to: active stream after the change will be completed
+	 *
+	 * Emitted before an change event
+	 * <note><para>
+	 * This signal is deprecated, use #LomoPlayerHook as a replacement
+	 * </para></note>
+	 */
 	lomo_player_signals[PRE_CHANGE] =
 		g_signal_new ("pre-change",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -363,6 +468,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::change:
+	 * @lomo: the object that received the signal
+	 * @from: Active element before the change
+	 * @to: Active element after the change
+	 *
+	 * Emitted when the active element in the internal playlist changes
+	 */
 	lomo_player_signals[CHANGE] =
 		g_signal_new ("change",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -374,6 +487,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_INT,
 				G_TYPE_INT);
+	/**
+	 * LomoPlayer::clear:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when the internal playlist is cleared
+	 */
 	lomo_player_signals[CLEAR] =
 		g_signal_new ("clear",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -383,6 +502,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::repeat:
+	 * @lomo: the object that received the signal
+	 * @repeat: value of repeat behaviour
+	 *
+	 * Emitted when value of the repeat behaviour changes
+	 */
 	lomo_player_signals[REPEAT] =
 		g_signal_new ("repeat",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -393,6 +519,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_TYPE_NONE,
 			    1,
 				G_TYPE_BOOLEAN);
+	/**
+	 * LomoPlayer::random:
+	 * @lomo: the object that received the signal
+	 * @repeat: value of random behaviour
+	 *
+	 * Emitted when value of the random behaviour changes
+	 */
 	lomo_player_signals[RANDOM] =
 		g_signal_new ("random",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -403,7 +536,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_TYPE_NONE,
 			    1,
 				G_TYPE_BOOLEAN);
-	
+	/**
+	 * LomoPlayer::eos:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when current stream reaches end of stream, think about end of
+	 * file for file descriptors.
+	 */
 	lomo_player_signals[EOS] =
 		g_signal_new ("eos",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -413,6 +552,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+	/**
+	 * LomoPlayer::error:
+	 * @lomo: the object that received the signal
+	 * @error: error ocurred
+	 *
+	 * Emitted when some error was ocurred.
+	 */
 	lomo_player_signals[ERROR] =
 		g_signal_new ("error",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -424,6 +570,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 			    G_TYPE_POINTER,
 				G_TYPE_POINTER);
+	/**
+	 * LomoPlayer::tag:
+	 * @lomo: the object that received the signal
+	 * @stream: #LomoStream that gives a new tag
+	 * @tag: Discoved tag
+	 *
+	 * Emitted when some tag is found in a stream.
+	 */
 	lomo_player_signals[TAG] =
 		g_signal_new ("tag",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -435,6 +589,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_POINTER,
 				G_TYPE_INT);
+	/**
+	 * LomoPlayer::all-tags:
+	 * @lomo: the object that received the signal
+	 * @stream: #LomoStream which discoved all his tags
+	 *
+	 * Emitted when all (or no more to be discoverd) tag are found for a
+	 * #LomoStream
+	 */
 	lomo_player_signals[ALL_TAGS] =
 		g_signal_new ("all-tags",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -446,6 +608,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    1,
 				G_TYPE_POINTER);
 
+	/**
+	 * LomoPlayer:auto-parse:
+	 *
+	 * Control if #LomoPlayer must parse automatically all inserted streams
+	 */
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PARSE,
 		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
 		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
@@ -484,6 +651,15 @@ lomo_player_init (LomoPlayer *self)
 	g_signal_connect(priv->meta, "all-tags", (GCallback) all_tags_cb, self);
 }
 
+/**
+ * lomo_player_new:
+ * @option_name: First option name
+ * @Varargs: A NULL-terminated pairs of option-name,option-value
+ *
+ * Creates a new #LomoPlayer with options
+ *
+ * Returns: the new created #LomoPlayer
+ */
 LomoPlayer*
 lomo_player_new (gchar *option_name, ...)
 {
@@ -512,19 +688,33 @@ lomo_player_new (gchar *option_name, ...)
 	return self;
 }
 
+/**
+ * lomo_player_get_auto_parse:
+ * @lomo: a #LomoPlayer
+ *
+ * Gets the auto-parse property value.
+ *
+ * Returns: The auto-parse property value.
+ */
 gboolean
 lomo_player_get_auto_parse(LomoPlayer *self)
 {
 	return GET_PRIVATE(self)->auto_parse;
 }
-
+/**
+ * lomo_player_set_auto_parse:
+ * @lomo: a #LomoPlayer
+ * @auto_parse: new value for auto-parse property
+ *
+ * Sets the auto-parse property value.
+ */
 void
 lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse)
 {
 	GET_PRIVATE(self)->auto_parse = auto_parse;
 }
 
-gboolean
+static gboolean
 lomo_player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -615,9 +805,16 @@ lomo_player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, .
 	return stop;
 }
 
-// --
-// Quick play functions, simple shortcuts.
-// --
+/**
+ * lomo_player_play_uri
+ * @self: a #LomoPlayer
+ * @uri: URI to play
+ * @error: Return location for an error
+ *
+ * Play an URI clearing any previous playlist.
+ *
+ * Returns: %TRUE if successful, %FALSE if an error is ocurred.
+ */
 gboolean
 lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error)
 {
@@ -625,6 +822,16 @@ lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error)
 	return lomo_player_play_stream(self, lomo_stream_new(uri), error);
 }
 
+/**
+ * lomo_player_play_stream
+ * @self: a #LomoPlayer
+ * @uri: #LomoStream to play
+ * @error: Return location for an error
+ *
+ * Play a #LomoStream clearing any previous playlist.
+ *
+ * Returns: %TRUE if successful, %FALSE if an error is ocurred.
+ */
 gboolean
 lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error)
 {
@@ -684,6 +891,14 @@ lomo_player_destroy_pipeline(LomoPlayer *self, GError **error)
 	return TRUE;
 }
 
+/**
+ * lomo_player_hook_add:
+ * @self: a #LomoPlayer
+ * @func: a #LomoPlayerHook function
+ * @data: data to pass to @func or NULL to ignore
+ *
+ * Add a hook to the hook system
+ */
 void
 lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data)
 {
@@ -692,6 +907,13 @@ lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data)
 	priv->hooks_data = g_list_prepend(priv->hooks_data, data);
 }
 
+/**
+ * lomo_player_hook_remove:
+ * @self: a #LomoPlayer
+ * @func: a #LomoPlayerHook function
+ *
+ * Remove a hook from the hook system
+ */
 void
 lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func)
 {
@@ -707,15 +929,31 @@ lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func)
 	priv->hooks_data = g_list_delete_link(priv->hooks_data, p);
 }
 
+/**
+ * lomo_player_get_stream:
+ * @self: a #LomoPlayer
+ *
+ * Gets active stream
+ *
+ * Returns: the active #LomoStream
+ */
 LomoStream*
 lomo_player_get_stream(LomoPlayer *self)
 {
 	return GET_PRIVATE(self)->stream;
 }
 
-// --
-// get/set state (using vfuncs)
-// --
+/**
+ * lomo_player_set_state:
+ * @self: a #LomoPlayer
+ * @state: the #LomoState to set
+ * @error: location for an error
+ *
+ * Changes the current state of @self to @state
+ *
+ * Returns: a #LomoStateChangeReturn representing success, failure or async
+ * change
+ */
 LomoStateChangeReturn
 lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 {
@@ -749,6 +987,14 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 	return LOMO_STATE_CHANGE_SUCCESS; // Or async, or preroll...
 }
 
+/**
+ * lomo_player_get_state:
+ * @self: a #LomoPlayer
+ *
+ * Gets the current state
+ *
+ * Returns: the current #LomoState
+ */
 LomoState lomo_player_get_state(LomoPlayer *self)
 {
 	check_method_or_return_val(self, get_state, LOMO_STATE_INVALID, NULL);
@@ -766,11 +1012,18 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 	return state;
 }
 
-// --
-// get/set position (using vfuncs)
-// get lenght (using vfuncs)
-// --
-gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format)
+/**
+ * lomo_player_tell:
+ * @self: a #LomoPlayer
+ * @format: the #LomoFormat to use, currently only %LOMO_FORMAT_TIME is
+ * supported
+ *
+ * Gets current position of the active #LomoStream 
+ *
+ * Returns: the position expresed in format @format
+ */
+gint64
+lomo_player_tell(LomoPlayer *self, LomoFormat format)
 {
 	check_method_or_return_val(self, get_position, LOMO_STATE_INVALID, NULL);
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -789,6 +1042,16 @@ gint64 lomo_player_tell(LomoPlayer *self, LomoFormat format)
 	return ret;
 }
 
+/**
+ * lomo_player_seek:
+ * @self: a #LomoPlayer
+ * @format: the #LomoFormat to use, currently only %LOMO_FORMAT_TIME is
+ * @val: Position to seek expresed in @format
+ *
+ * Sets the position of the active #LomoStream 
+ *
+ * Returns: %TRUE if success, %FALSE if an error ocurred
+ */
 gboolean
 lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
 {
@@ -828,6 +1091,15 @@ lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
 	return ret;
 }
 
+/**
+ * lomo_player_length:
+ * @self: a #LomoPlayer
+ * @format: the #LomoFormat to use, currently only %LOMO_FORMAT_TIME is
+ *
+ * Gets length of the active #LomoStream
+ *
+ * Returns: length expresed in format @format
+ */
 gint64
 lomo_player_length(LomoPlayer *self, LomoFormat format)
 {
@@ -862,9 +1134,15 @@ lomo_player_length(LomoPlayer *self, LomoFormat format)
 	return ret;
 }
 
-// --
-// get/set volume (uses vfuncs)
-//--
+/**
+ * lomo_player_set_volume:
+ * @self: a #LomoPlayer
+ * @val: new value for volume
+ *
+ * Sets volume, val must be between 0 and 100
+ *
+ * Returns: %TRUE on success, %FALSE if an error ocurred
+ */
 gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 {
 	check_method_or_return_val(self, set_volume, FALSE, NULL);
@@ -897,6 +1175,14 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 	return TRUE;
 }
 
+/**
+ * lomo_player_get_volume:
+ * @self: a #LomoPlayer
+ *
+ * Gets current volume (between 0 and 100)
+ *
+ * Returns: current volume
+ */
 gint lomo_player_get_volume(LomoPlayer *self)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -914,9 +1200,15 @@ gint lomo_player_get_volume(LomoPlayer *self)
 	return ret;
 }
 
-// --
-// get/set mute (uses vfuncs)
-// --
+/**
+ * lomo_player_set_mute:
+ * @self: a #LomoPlayer
+ * @val: new value for mute 
+ *
+ * Sets mute
+ *
+ * Returns: %TRUE on success, %FALSE if an error ocurred
+ */
 gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -963,6 +1255,14 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 	return ret;
 }
 
+/**
+ * lomo_player_get_mute:
+ * @self: a #LomoPlayer
+ *
+ * Gets current mute value
+ *
+ * Returns: current mute value
+ */
 gboolean lomo_player_get_mute(LomoPlayer *self)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -972,9 +1272,16 @@ gboolean lomo_player_get_mute(LomoPlayer *self)
 		return priv->mute;
 }
 
-// --
-// Playlist functions
-// --
+/**
+ * lomo_player_insert:
+ * @self: a #LomoPlayer
+ * @stream: a #LomoStream which will be owner by @self
+ * @pos: position to insert the element, If this is negative, or is larger than
+ * the number of elements in the list, the new element is added on to the end
+ * of the list.
+ *
+ * Inserts a #LomoStream in the internal playlist
+ */
 void
 lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
 {
@@ -983,6 +1290,16 @@ lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
 	g_list_free(tmp);
 }
 
+/**
+ * lomo_player_insert_uri_multi:
+ * @self: a #LomoPlayer
+ * @uris: a #GList of gchar*
+ * @pos: position to insert the elements, If this is negative, or is larger than
+ * the number of elements in the list, the new elements are added on to the end
+ * of the list.
+ *
+ * Inserts multiple URIs in the internal playlist
+ */
 void
 lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos)
 {
@@ -1002,6 +1319,16 @@ lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos)
 	g_list_free(streams);
 }
 
+/**
+ * lomo_player_insert_uri_strv:
+ * @self: a #LomoPlayer
+ * @uris: a NULL-terminated array of URIs
+ * @pos: position to insert the elements, If this is negative, or is larger
+ * than the number of elements in the list, the new elements are added on to the
+ * end of the list.
+ *
+ * Inserts multiple URIs in the internal playlist
+ */
 void
 lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 {
@@ -1037,7 +1364,16 @@ lomo_player_insert_uri_strv(LomoPlayer *self, gchar **uris, gint pos)
 	g_list_free(l);
 }
 
-// XXX: Add hook calls
+/**
+ * lomo_player_insert_multi:
+ * @self: a #LomoPlayer
+ * @streams: a #GList of #LomoStream which will be owned by @self
+ * @pos: position to insert the elements, If this is negative, or is larger
+ * than the number of elements in the list, the new elements are added on to the
+ * end of the list.
+ *
+ * Inserts multiple streams in the internal playlist
+ */
 void
 lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 {
@@ -1100,6 +1436,16 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 	}
 }
 
+/**
+ * lomo_player_del:
+ * @self: a #LomoPlayer
+ * @position: position of the #LomoStream to remove
+ *
+ * Removes a #LomoStream from the internal playlist using and index
+ * This also implies a reference decrease on the element
+ *
+ * Returns: %TRUE is @position was remove, %FALSE otherwise
+ */
 gboolean lomo_player_del(LomoPlayer *self, gint pos)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -1147,6 +1493,15 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 	return TRUE;
 }
 
+/**
+ * lomo_player_queue:
+ * @self: a #LomoPlayer
+ * @pos: position of the element to queue
+ *
+ * Queues the element for inmediate play after active element
+ *
+ * Returns: index of the elemement in the queue
+ */
 gint lomo_player_queue(LomoPlayer *self, gint pos)
 {
 	g_return_val_if_fail(pos >= 0, -1);
@@ -1168,6 +1523,15 @@ gint lomo_player_queue(LomoPlayer *self, gint pos)
 	return queue_pos;
 }
 
+/**
+ * lomo_player_dequeue:
+ * @self: a #LomoPlayer
+ * @queue_pos: Index of the queue to dequeue
+ *
+ * Removes the element indicated by @queue_pos from the queue
+ *
+ * Returns: %TRUE if element was dequeue, %FALSE if @queue_pos was invalid
+ */
 gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -1187,16 +1551,44 @@ gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 	return TRUE;
 }
 
-gint lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)
+/**
+ * lomo_player_queue_index:
+ * @self: a #LomoPlayer
+ * @stream: a #LomoStream to find in queue
+ *
+ * Gets the position of the #LomoStream in the queue (starting from 0).
+ *
+ * Returns: the index of the #LomoStream in the queue, or -1 if the #LomoStream
+ * is not found in the queue
+ */
+gint
+lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)
 {
 	return g_queue_index(GET_PRIVATE(self)->queue, stream);
 }
 
-LomoStream *lomo_player_queue_nth(LomoPlayer *self, guint queue_pos)
+/**
+ * lomo_player_queue_nth:
+ * @self: a #LomoPlayer
+ * @queue_pos: The queue index of the element, starting from 0
+ *
+ * Gets the #LomoStream at the given position in the queue
+ *
+ * Returns: the #LomoStream, or %NULL if the position is off the end of the
+ * queue
+ */
+LomoStream *
+lomo_player_queue_nth(LomoPlayer *self, guint queue_pos)
 {
 	return g_queue_peek_nth(GET_PRIVATE(self)->queue, queue_pos);
 }
 
+/**
+ * lomo_player_queue_clear:
+ * @self: a #LomoPlayer
+ *
+ * Removes all #LomoStream queued
+ */
 void lomo_player_queue_clear(LomoPlayer *self)
 {
 	// Run hooks
@@ -1208,27 +1600,72 @@ void lomo_player_queue_clear(LomoPlayer *self)
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[QUEUE_CLEAR], 0);
 }
 
+/**
+ * lomo_player_get_playlist:
+ * @self: a #LomoPlayer
+ *
+ * Gets current playlist
+ *
+ * Returns: a new #GList of #LomoStream. Should be freed with #g_list_free when
+ * no longer needed.
+ */
 GList *lomo_player_get_playlist(LomoPlayer *self)
 {
 	return lomo_playlist_get_playlist(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_nth_stream:
+ * @self: a #LomoPlayer
+ * @pos: the position of the #LomoStream, starting from 0
+ *
+ * Gets the #LomoStream at the given position
+ *
+ * Returns: the #LomoStream, or %NULL if @pos is off the list
+ */
 LomoStream *lomo_player_nth_stream(LomoPlayer *self, gint pos)
 {
 	return lomo_playlist_nth_stream(GET_PRIVATE(self)->pl, pos);
 }
 
+/**
+ * lomo_player_index:
+ * @self: a #LomoPlayer
+ * @stream: the #LomoStream to find
+ *
+ * Gets the position of the #LomoStream in the playlist
+ *
+ * Returns: the position of the #LomoStream, or -1 if not found
+ */
 gint
 lomo_player_index(LomoPlayer *self, LomoStream *stream)
 {
 	return lomo_playlist_index(GET_PRIVATE(self)->pl, stream);
 }
 
+/**
+ * lomo_player_get_prev:
+ * @self: a #LomoPlayer
+ *
+ * Gets the position of the previous stream in the playlist following
+ * random and repeat behaviours
+ *
+ * Returns: the position of the previous stream, or -1 if none
+ */
 gint lomo_player_get_prev(LomoPlayer *self)
 {
 	return lomo_playlist_get_prev(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_get_next:
+ * @self: a #LomoPlayer
+ *
+ * Gets the position of the next stream in the playlist following
+ * random and repeat behaviours
+ *
+ * Returns: the position of the next stream, or -1 if none
+ */
 gint lomo_player_get_next(LomoPlayer *self)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -1239,6 +1676,17 @@ gint lomo_player_get_next(LomoPlayer *self)
 		return lomo_playlist_get_next(priv->pl);
 }
 
+/**
+ * lomo_player_go_nth:
+ * @self: a #LomoPlayer
+ * @pos: position for the new active #LomoStream
+ * @error: location for an error
+ *
+ * Changes the active #LomoStream from the playlist for the #LomoStream
+ * respecting current volume, mute and state of the #LomoPlayer
+ *
+ * Returns: %TRUE if success, %FALSE if an error ocurred
+ */
 gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -1303,16 +1751,41 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	return TRUE;
 }
 
-gint lomo_player_get_current(LomoPlayer *self)
+/**
+ * lomo_player_get_current:
+ * @self: a #LomoPlayer
+ *
+ * Gets the active #LomoStream
+ *
+ * Returns: position of the active #LomoStream, or -1 if none
+ */
+gint
+lomo_player_get_current(LomoPlayer *self)
 {
 	return lomo_playlist_get_current(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_get_total:
+ * @self: a #LomoPlayer
+ *
+ * Gets the number of #LomoStream elements which currently handles
+ * @self
+ *
+ * Returns: number of #LomoStream elements.
+ */
 guint lomo_player_get_total(LomoPlayer *self)
 {
 	return lomo_playlist_get_total(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_clear:
+ * @self: a #LomoPlayer
+ *
+ * Clear internal playlist. This also implies a reference decrease on each
+ * element.
+ */
 void lomo_player_clear(LomoPlayer *self)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
@@ -1333,6 +1806,13 @@ void lomo_player_clear(LomoPlayer *self)
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[CLEAR], 0);
 }
 
+/**
+ * lomo_player_set_repeat:
+ * @self: a #LomoPlayer
+ * @val: Value for repeat behaviour
+ *
+ * Sets the value of the repeat behaviour
+ */
 void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 {
 	// Run hook
@@ -1344,11 +1824,29 @@ void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[REPEAT], 0, val);
 }
 
+/**
+ * lomo_player_get_repeat:
+ * @self: a #LomoPlayer
+ * 
+ * Gets current value of the repeat behaviour
+ *
+ * Returns: %TRUE if repeat is applied, %FALSE otherwise
+ */
 gboolean lomo_player_get_repeat(LomoPlayer *self)
 {
 	return lomo_playlist_get_repeat(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_set_random:
+ * @self: a #LomoPlayer
+ * @val: Value for random behaviour
+ *
+ * Sets the value of the random behaviour, if @value is %TRUE playlist will be
+ * randomized
+ * <note><para>No signal is emitted in this process. You must re-query it to be
+ * up-to-date</para></note>
+ */
 void lomo_player_set_random(LomoPlayer *self, gboolean val)
 {
 	// Run hook
@@ -1360,22 +1858,50 @@ void lomo_player_set_random(LomoPlayer *self, gboolean val)
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[RANDOM], 0, val);
 }
 
+/**
+ * lomo_player_get_random:
+ * @self: a #LomoPlayer
+ * 
+ * Gets current value of the random behaviour
+ *
+ * Returns: %TRUE if repeat is applied, %FALSE otherwise
+ */
 gboolean lomo_player_get_random(LomoPlayer *self)
 {
 	return lomo_playlist_get_random(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_randomize:
+ * @self: a #LomoPlayer
+ *
+ * Randomizes internal playlist.
+ * <note><para>No signal is emitted in this process. You must re-query it to be
+ * up-to-date</para></note>
+ */
 void lomo_player_randomize(LomoPlayer *self)
 {
 	lomo_playlist_randomize(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_print_pl:
+ * @self: a #LomoPlayer
+ *
+ * Prints to stdout current playlist
+ */
 void
 lomo_player_print_pl(LomoPlayer *self)
 {
 	lomo_playlist_print(GET_PRIVATE(self)->pl);
 }
 
+/**
+ * lomo_player_print_random_pl:
+ * @self: a #LomoPlayer
+ *
+ * Prints to stdout current playlist (using randomized order)
+ */
 void
 lomo_player_print_random_pl(LomoPlayer *self)
 {
