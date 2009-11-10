@@ -58,6 +58,13 @@ eina_obj_load_default_ui(EinaObj *self, GError **error);
 gboolean
 eina_obj_load_ui(EinaObj *self, gchar *resource, GError **error);
 
+gboolean
+eina_obj_load_objects_from_file(EinaObj *self, gchar *filename, gchar **objects, GError **error);
+gboolean
+eina_obj_load_objects_from_resource(EinaObj *self, gchar *resource, gchar **objects, GError **error);
+gboolean
+eina_obj_load_objects_from_string(EinaObj *self, gchar *string, gint len, gchar **objects, GError **error);
+
 void
 eina_obj_strip(EinaObj *self, EinaObjFlag flags);
 

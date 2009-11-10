@@ -90,6 +90,37 @@ eina_obj_load_ui(EinaObj *self, gchar *resource, GError **error)
 	return TRUE;
 }
 
+gboolean
+eina_obj_load_objects_from_file(EinaObj *self, gchar *filename, gchar **objects, GError **error)
+{
+	if (self->ui == NULL)
+		self->ui = gtk_builder_new();
+	return (gtk_builder_add_objects_from_file(self->ui, filename, objects, error) != 0);
+}
+
+gboolean
+eina_obj_load_objects_from_resource(EinaObj *self, gchar *resource, gchar **objects, GError **error)
+{
+	gchar *filename = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, resource);
+	if (filename == NULL)
+	{
+		g_set_error(error, g_quark_from_static_string("eina-obj"), 1, N_("Resource not found: %s"), resource);
+		return FALSE;
+	}
+	gboolean ret = eina_obj_load_objects_from_file(self, filename, objects, error);
+	g_free(filename);
+	return ret;
+}
+
+gboolean
+eina_obj_load_objects_from_string(EinaObj *self, gchar *string, gint len, gchar **objects, GError **error)
+{
+	if (self->ui == NULL)
+		self->ui = gtk_builder_new();
+	return (gtk_builder_add_objects_from_string(self->ui, string, len, objects, error) != 0);
+}
+
+
 void
 eina_obj_strip(EinaObj *self, EinaObjFlag flags)
 {
