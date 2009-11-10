@@ -88,11 +88,29 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Initialize base class
 	self = g_new0(EINA_PLUGIN_DATA_TYPE, 1);
-	if (!eina_obj_init((EinaObj *) self, plugin, "player", EINA_OBJ_GTK_UI, error))
+	if (!eina_obj_init((EinaObj *) self, plugin, "player", EINA_OBJ_NONE, error))
 	{
 		g_free(self);
 		return FALSE;
 	}
+
+	gchar *objs[] = {"main-widget",
+		"prev-action",
+		"play-action",
+		"next-action",
+		"open-action",
+		"pause-action",
+		"quit-action",
+		"help-action",
+		"about-action",
+		"bug-action",
+		NULL };
+	if (!eina_obj_load_objects_from_resource((EinaObj *) self, "player.ui", objs, error))
+	{
+		eina_obj_fini((EinaObj *) self);
+		return FALSE;
+	}
+
 	self->io_tree_files = g_queue_new();
 	plugin->data = self;
 
@@ -177,15 +195,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Add to main window
 	GtkWidget *main_widget = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
-	GtkWidget *main_window = eina_obj_get_typed(self, GTK_WIDGET, "main-window");
-
-	g_object_ref(main_widget);
-	gtk_widget_unparent(main_widget);
-	g_object_unref(main_window);
-
 	eina_window_add_widget(eina_obj_get_window(self), main_widget, FALSE, TRUE, 0);
 	gtk_widget_show(main_widget);
-	g_object_unref(main_widget);
 
 	return TRUE;
 }
@@ -598,7 +609,7 @@ io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,
 // --
 EINA_PLUGIN_SPEC (player,
 	PACKAGE_VERSION,
-	"about",
+	"about,lomo,window",
 	NULL,
 	NULL,
 
