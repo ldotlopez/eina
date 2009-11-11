@@ -16,6 +16,7 @@ COPYING
 # i18n generated stuff
 *.gmo
 po/eina.pot
+po/*.po
 
 # Autotools stuff
 Makefile
