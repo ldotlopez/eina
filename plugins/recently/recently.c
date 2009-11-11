@@ -1244,7 +1244,7 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 EINA_PLUGIN_SPEC(recently,
-	PACKAGE_VERSION, "adb",
+	PACKAGE_VERSION, "dock,adb",
 	NULL, NULL,
 
 	N_("Stores your recent playlists"),

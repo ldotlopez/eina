@@ -174,7 +174,7 @@ menu_activate_cb(GtkAction *action, EinaPreferences *self)
 
 EINA_PLUGIN_SPEC(preferences,
 	NULL,
-	"settings,window",
+	"window",
 	NULL,
 	NULL,
 	N_("Build-in preferences plugin"),

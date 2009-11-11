@@ -58,16 +58,15 @@ window_fini(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	gel_app_shared_unregister(app, "window");
-	eina_window_set_persistant(window, FALSE);
 	gtk_widget_destroy((GtkWidget *) window);
+	gel_app_shared_unregister(app, "window");
 
 	return TRUE;
 }
 
 EINA_PLUGIN_SPEC(window,
-	PACKAGE_VERSION,
 	NULL,
+	GEL_PLUGIN_NO_DEPS,
 	NULL,
 	NULL,
 	N_("Main window plugin"),

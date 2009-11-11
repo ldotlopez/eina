@@ -124,7 +124,7 @@ about_response_cb(GtkWidget *w, gint response, EinaAbout *self)
 
 EINA_PLUGIN_SPEC(about,
 	PACKAGE_VERSION,
-	NULL,
+	GEL_PLUGIN_NO_DEPS,
 	NULL,
 	NULL,
 	N_("About window plugin"),

@@ -69,25 +69,6 @@ enum {
 };
 static guint gel_app_signals[LAST_SIGNAL] = { 0 };
 
-static gchar *
-list_loaded_plugins(GelApp *self)
-{
-	GList *l = NULL;
-	GList *plugins = g_hash_table_get_values(self->priv->lookup);
-	GList *iter = plugins;
-	while (iter)
-	{
-		l = g_list_prepend(l, (gpointer) gel_plugin_stringify((GelPlugin *) iter->data));
-		iter = iter->next;
-	}
-	g_list_free(plugins);
-
-	gchar *ret = gel_list_join("\n", l);
-	g_list_free(l);
-
-	return ret;
-}
-
 static void
 gel_app_dispose (GObject *object)
 {
@@ -102,18 +83,43 @@ gel_app_dispose (GObject *object)
 			self->priv->dispose_func = NULL;
 		}
 
-		// Unload all plugins in reverse order
-		GList *plugins = g_hash_table_get_values(self->priv->lookup);
-		if (plugins)
+		// Unload plugins
+		GList *plugins = gel_app_get_plugins(self);
+		GList *l = plugins;
+
+		g_list_foreach(plugins, (GFunc)  gel_plugin_remove_lock, NULL);
+		while (l)
 		{
-			g_warning(N_("%d plugins still loadeds, will be leaked. Use a dispose func (gel_app_set_dispose_func) to unload them at exit"),
-				g_list_length(plugins));
-			gchar *tmp = list_loaded_plugins(self);
-			g_warning("%s", tmp);
-			g_free(tmp);
-			g_list_free(plugins);
-			g_hash_table_destroy(self->priv->lookup);
+			GelPlugin *plugin = GEL_PLUGIN(l->data);
+
+			if (!gel_plugin_is_in_use(plugin))
+			{
+				l = plugins = g_list_remove(plugins, plugin);
+				gel_app_unload_plugin(self, plugin, NULL);
+			}
+			else
+				l = l->next;
 		}
+		g_list_free(plugins);
+
+		plugins = gel_app_get_plugins(self);
+		if (plugins)
+			gel_warn(N_("%d plugins are enabled at exit. Use a dispose func to unload them."), g_list_length(plugins));
+		GList *iter = plugins;
+		while (iter)
+		{
+			GelPlugin *plugin = GEL_PLUGIN(iter->data);
+			gchar *rdeps_str = gel_plugin_stringify_dependants(plugin);
+			gel_warn(N_("  %s (usage:%d enabled:%d locked:%d %s)"),
+				gel_plugin_stringify(plugin),
+				gel_plugin_get_usage(plugin),
+				gel_plugin_is_enabled(plugin),
+				gel_plugin_is_locked(plugin),
+				rdeps_str);
+			g_free(rdeps_str);
+			iter = iter->next;
+		}
+		g_list_free(plugins);
 
 		// Clear paths
 		if (self->priv->paths)

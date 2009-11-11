@@ -192,7 +192,7 @@ dbus_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 
 EINA_PLUGIN_SPEC(dbus,
 	NULL,	// version
-	NULL,	// deps
+	"lomo",	// deps
 	NULL,	// author
 	NULL,	// url
 	N_("DBus interface for Eina"),

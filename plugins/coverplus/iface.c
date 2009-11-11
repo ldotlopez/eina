@@ -112,7 +112,7 @@ coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 EINA_PLUGIN_SPEC(coverplus,
-	PACKAGE_VERSION, NULL,
+	PACKAGE_VERSION, "art",
 	NULL, NULL,
 
 	N_("Enhace your covers"),

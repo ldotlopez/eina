@@ -60,7 +60,7 @@ adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 EINA_PLUGIN_SPEC(adb,
-	PACKAGE_VERSION, NULL,
+	PACKAGE_VERSION, "lomo",
 	NULL, NULL,
 
 	N_("Audio database"), NULL, "adb.png",

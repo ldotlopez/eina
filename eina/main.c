@@ -105,8 +105,6 @@ static void
 list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
 static void
 list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
-static void
-app_dispose_cb(GelApp *app, gpointer data);
 
 // --
 // XXX ugly hack
@@ -121,10 +119,7 @@ gint main
 	UniqueApp      *unique = NULL;
 #endif
 	gint            i = 0;
-	gchar          *modules[] = { 
-	// Modules loaded by default, keep in sync with eina-plugin.h include
-	// headers
-	"art", "dock", "lomo", "preferences", "settings", "window",
+	gchar          *modules[] = {
 #if HAVE_IGE
 	"ige",
 #endif
@@ -240,7 +235,7 @@ gint main
 	// --
 	// Set some signals
 	// --
-	gel_app_set_dispose_callback(app, app_dispose_cb, (gpointer) modules);
+	gel_app_set_dispose_callback(app, (GelAppDisposeFunc) gtk_main_quit, NULL);
 
 #if HAVE_UNIQUE
 	unique_app_watch_window(unique, (GtkWindow *) GEL_APP_GET_WINDOW(app));
@@ -383,59 +378,6 @@ list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
 	gchar *uri = g_file_get_uri(source);
 	gel_error("Error while getting info for '%s': %s", uri, error->message);
 	g_free(uri);
-}
-
-static void
-app_dispose_cb(GelApp *app, gpointer data)
-{
-	GList *plugins = g_list_sort(gel_app_get_plugins(app), (GCompareFunc) gel_plugin_compare_by_usage);
-	GList *l = plugins;
-	while (l)
-	{
-		GelPlugin *plugin = GEL_PLUGIN(l->data);
-
-		if (gel_plugin_is_locked(plugin))
-			gel_plugin_remove_lock(plugin);
-
-		GError *error = NULL;
-		if (!gel_app_unload_plugin(app, plugin, &error))
-		{
-			gel_error(N_("Cannot fini plugin %s: %s"), gel_plugin_stringify(plugin), error->message);
-			g_error_free(error);
-			l = l->next;
-			continue;
-		}
-		l = l->next;
-	}
-
-	g_list_free(plugins);
-/*
-	gchar **modules = (gchar **) data;
-	gint i = 0;
-	while (modules[i]) i++; i--; // Count how many modules
-
-	for (;i >= 0; i--)
-	{
-		GError *error = NULL;
-		GelPlugin *plugin = gel_app_get_plugin_by_name(app, modules[i]);
-		if (plugin == NULL)
-		{
-			gel_error(N_("Cannot find loaded plugin %s"), modules[i]);
-			continue;
-		}
-	
-		gel_plugin_remove_lock(plugin);
-		if (!gel_app_unload_plugin(app, plugin, &error))
-		{
-			gel_error(N_("Cannot fini plugin %s: %s"), gel_plugin_stringify(plugin), error->message);
-			g_error_free(error);
-			continue;
-		}
-	}
-*/
-	gel_app_purge(app);
-
-	gtk_main_quit();
 }
 
 // --

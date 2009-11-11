@@ -95,6 +95,10 @@ gel_plugin_new(GelApp *app, gchar *pathname, gchar *symbol, GError **error)
 	self->priv->module   = mod;
 	self->priv->app      = app;
 
+	if ((self->depends == NULL) || g_str_equal(self->depends, ""))
+		gel_warn(N_("%s plugin has no deps, are you sure? if you are sure use GEL_PLUGIN_NO_DEPS"), gel_plugin_stringify(self));
+	if (self->depends && g_str_equal(self->depends, GEL_PLUGIN_NO_DEPS))
+		self->depends = NULL;
 #if 0
 	gel_warn("== Plugin: %s", self->priv->pathname);
 	gel_warn("Name: %s (%s), depends on: %s", self->name, self->version, self->depends);
@@ -201,9 +205,11 @@ gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 	}
 	self->priv->dependants = g_list_prepend(self->priv->dependants, dependant);
 
+	/*
 	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
 	gel_warn("[^] %s (%s)", gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
 	gel_free_and_invalidate(refs, NULL, g_free);
+	*/
 }
 
 void
@@ -220,9 +226,11 @@ gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 	self->priv->dependants = g_list_remove_link(self->priv->dependants, p);
 	g_list_free(p);
 
+	/*
 	gchar *refs = gel_plugin_util_join_list(", ", self->priv->dependants);
 	gel_warn("[v] %s (%s)", gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
 	g_free(refs);
+	*/
 }
 
 GelApp *
@@ -426,6 +434,12 @@ gel_plugin_fini(GelPlugin *self, GError **error)
 	gel_debug(N_("Plugin %s finalized"), gel_plugin_stringify(self));
 	gel_app_emit_fini(self->priv->app, self);
 	return TRUE;
+}
+
+const GList*
+gel_plugin_get_dependants(GelPlugin *plugin)
+{
+	return (const GList *) plugin->priv->dependants;
 }
 
 gchar*

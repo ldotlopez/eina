@@ -69,8 +69,6 @@ eina_window_dispose (GObject *object)
 	EinaWindow *self = (EinaWindow *) object;
 	EinaWindowPrivate *priv = GET_PRIVATE(self);
 
-	gel_free_and_invalidate(priv->container,  NULL, g_object_unref);
-	gel_free_and_invalidate(priv->ui_manager, NULL, g_object_unref);
 	if (priv->keybinds)
 	{
 		gel_list_deep_free(priv->keybinds, g_free);
@@ -175,7 +173,7 @@ eina_window_key_bindings_set_enabled(EinaWindow *self, gboolean enabled)
 void
 eina_window_add_widget(EinaWindow *self, GtkWidget *child, gboolean expand, gboolean fill, gint spacing)
 {
-	gtk_box_pack_end(GET_PRIVATE(self)->container, child, expand, fill, spacing);
+	gtk_box_pack_start(GET_PRIVATE(self)->container, child, expand, fill, spacing);
 }
 
 void

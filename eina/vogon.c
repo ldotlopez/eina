@@ -357,7 +357,7 @@ status_icon_activate_cb
 
 EINA_PLUGIN_SPEC(vogon,
 	NULL,
-	NULL,
+	"lomo,window",
 				
 	NULL,
 	NULL,

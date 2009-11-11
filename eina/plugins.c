@@ -150,7 +150,7 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 
 EINA_PLUGIN_SPEC(plugins,
 	NULL,
-	NULL,
+	"window",
 
 	NULL,
 	NULL,

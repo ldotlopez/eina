@@ -405,7 +405,7 @@ build_cover_mask(EinaCover *self)
 // --
 EINA_PLUGIN_SPEC(cover,
 	NULL,	// version
-	"player",	// deps
+	"art,lomo,player,settings,window",	// deps
 	NULL,		// author
 	NULL,		// url
 	N_("Cover plugin"),

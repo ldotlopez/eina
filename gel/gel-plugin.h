@@ -31,7 +31,7 @@ typedef struct _GelPluginExtend GelPluginExtend;
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
 #define GEL_PLUGIN_SERIAL 2009042401
-
+#define GEL_PLUGIN_NO_DEPS "\1"
 typedef enum {
 	GEL_PLUGIN_NO_ERROR = 0,
 	GEL_PLUGIN_ERROR_NOT_SUPPORTED,
@@ -99,6 +99,7 @@ gel_plugin_get_resource(GelPlugin *plugin, GelResourceType type, gchar *resource
 #if 0
 gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
 #endif
+const GList* gel_plugin_get_dependants(GelPlugin *plugin);
 gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 
 // Access to plugin's data if defined

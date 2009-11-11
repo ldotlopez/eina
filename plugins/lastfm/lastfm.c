@@ -232,7 +232,7 @@ checkbutton_toggle_cb(GtkToggleButton *w, LastFM *self)
 // Export plugin
 // --
 EINA_PLUGIN_SPEC(lastfm,
-	NULL, NULL,
+	NULL, "lomo,settings",
 	NULL, NULL,
 
 	N_("Lastfm integration"),

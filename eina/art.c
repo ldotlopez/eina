@@ -730,7 +730,7 @@ plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 G_MODULE_EXPORT EinaPlugin art_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"art", PACKAGE_VERSION, NULL,
+	"art", PACKAGE_VERSION, GEL_PLUGIN_NO_DEPS,
 
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 	N_("Art"), N_("Art framework"), NULL,

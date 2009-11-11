@@ -86,7 +86,7 @@ settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 EINA_PLUGIN_SPEC(settings,
 	NULL,
-	NULL,
+	GEL_PLUGIN_NO_DEPS,
 	NULL,
 	NULL,
 	N_("Build-in settings plugin"),
