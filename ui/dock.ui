@@ -27,7 +27,7 @@
           </object>
         </child>
         <child type="label">
-          <object class="GtkLabel" id="label6">
+          <object class="GtkLabel" id="dock-label">
             <property name="visible">True</property>
             <property name="label" translatable="yes">Dock</property>
           </object>

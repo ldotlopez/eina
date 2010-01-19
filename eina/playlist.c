@@ -263,7 +263,7 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 	playlist_dnd_setup(self);
 
 	gtk_widget_show(self->dock);
-	return eina_dock_add_widget(GEL_APP_GET_DOCK(app), "playlist",
+	return eina_dock_add_widget(GEL_APP_GET_DOCK(app), "Playlist",
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), self->dock);
 }
 
