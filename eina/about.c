@@ -1,7 +1,7 @@
 /*
  * eina/window.c
  *
- * Copyright (C) 2004-2009 Eina
+ * Copyright (C) 2004-2010 Eina
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ eina_about_show(EinaAbout *self)
 		"artists", artists,
 		"authors", authors,
 		"program-name", "Eina",
-		"copyright", "Copyright © 2003-2009 xuzo\nCopyright © 2003-2005 xuzo and eru",
+		"copyright", "Copyright © 2003-2010 xuzo\nCopyright © 2003-2005 xuzo and eru",
 		"comments", comments,
 		"website", EINA_PLUGIN_GENERIC_URL,
 		"license", license,
