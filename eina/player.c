@@ -29,6 +29,8 @@
 #include <eina/about.h>
 #include <eina/player.h>
 
+#define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
+#define OSX_OPEN_PATH "/usr/bin/open"
 #define HELP_URI "http://answers.launchpad.net/eina"
 #define BUGS_URI "https://bugs.launchpad.net/eina/+filebug"
 
@@ -363,9 +365,8 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		lomo_player_go_prev(lomo, &error);
 
 	else if (g_str_equal(name, "volume-action"))
-	{
-	}
-	
+		;
+
 	else if (g_str_equal(name, "open-action"))
 		eina_fs_file_chooser_load_files(lomo);
 
@@ -373,15 +374,21 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		g_object_unref(eina_obj_get_app(self));
 
 	else if (g_str_equal(name, "help-action"))
+#if OSX_SYSTEM
+		g_spawn_command_line_async(OSX_OPEN_PATH " " HELP_URI, &error);
+#else
 		gtk_show_uri(NULL, HELP_URI, GDK_CURRENT_TIME, &error);
+#endif
 
 	else if (g_str_equal(name, "bug-action"))
+#if OSX_SYSTEM
+		g_spawn_command_line_async(OSX_OPEN_PATH " " BUGS_URI, &error);
+#else
 		gtk_show_uri(NULL, BUGS_URI, GDK_CURRENT_TIME, &error);
+#endif
 
 	else if (g_str_equal(name, "about-action"))
-	{
 		eina_about_show(eina_obj_get_about((EinaObj *) self));
-	}
 
 	else
 	{
