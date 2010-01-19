@@ -63,14 +63,21 @@ build_uuid(gchar *seed, GError **error)
 }
 
 static void
-query_finished(CurlEngine *self, CurlQuery *query, gpointer data)
+cleanup(GelPlugin *plugin)
 {
-	CurlEngine *engine = (CurlEngine * ) ((GelPlugin *) data)->data;
+	CurlEngine *engine = (CurlEngine * ) plugin->data;
 	if (engine)
 	{
 		gel_run_once_on_idle((GSourceFunc) curl_engine_free, (gpointer) engine, NULL);
-		((GelPlugin *) data)->data = NULL;
+		plugin->data = NULL;
 	}
+
+}
+
+static void
+query_finished(CurlEngine *self, CurlQuery *query, gpointer data)
+{
+	cleanup((GelPlugin *) data);
 }
 
 // --
@@ -108,6 +115,13 @@ callhome_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+gboolean
+callhome_fini(GelApp *app, EinaPlugin *plugin, GError **error)
+{
+	cleanup(plugin);
+	return TRUE;
+}
+
 EINA_PLUGIN_SPEC(callhome,
 	PACKAGE_VERSION, GEL_PLUGIN_NO_DEPS,
 	NULL, NULL,
@@ -119,6 +133,6 @@ EINA_PLUGIN_SPEC(callhome,
 	   "No personal data is transmitted or stored."),
 	NULL,
 
-	callhome_init, NULL
+	callhome_init, callhome_fini 
 );
 
