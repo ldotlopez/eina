@@ -245,7 +245,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHSeparator" id="hseparator2">
+          <object class="GtkHSeparator" id="search-separator">
             <property name="visible">True</property>
           </object>
           <packing>
@@ -255,7 +255,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="frame1">
+          <object class="GtkFrame" id="search-frame">
             <property name="visible">True</property>
             <property name="label_xalign">0</property>
             <property name="shadow_type">none</property>

@@ -391,6 +391,15 @@ eina_playlist_dock_init(EinaPlaylist *self)
 		gtk_widget_unparent(self->dock);
 
 	g_signal_connect(self->dock, "key-press-event", G_CALLBACK(dock_key_press_event_cb), self);
+
+#if ENABLE_EXPERIMENTAL
+	gtk_widget_show(eina_obj_get_widget(self, "search-separator"));
+	gtk_widget_show(eina_obj_get_widget(self, "search-frame"));
+#else
+	gtk_widget_hide(eina_obj_get_widget(self, "search-separator"));
+	gtk_widget_hide(eina_obj_get_widget(self, "search-frame"));
+#endif
+
 	return TRUE;
 }
 
