@@ -30,7 +30,7 @@
 #include <eina/eina-plugin.h>
 #include <eina/player.h>
 
-#if (defined HAVE_CLUTTY) && (HAVE_CLUTTY == 1)
+#if (defined HAVE_CLUTTY) && (HAVE_CLUTTY == 1) && ENABLE_EXPERIMENTAL
 #include <eina/ext/eina-clutty.h>
 #define clutty_enabled(self) (TRUE)
 #else
