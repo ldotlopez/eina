@@ -29,7 +29,8 @@
         <child type="label">
           <object class="GtkLabel" id="dock-label">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Dock</property>
+            <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;Dock&lt;/b&gt;&lt;/big&gt;</property>
+            <property name="use_markup">True</property>
           </object>
         </child>
       </object>
