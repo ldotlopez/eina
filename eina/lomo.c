@@ -55,7 +55,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	lomo_player_set_volume(engine, eina_conf_get_int (conf, "/core/volume", 50   ));
 	lomo_player_set_mute  (engine, eina_conf_get_bool(conf, "/core/mute",   FALSE));
 	lomo_player_set_repeat(engine, eina_conf_get_bool(conf, "/core/repeat", FALSE));
-	lomo_player_set_repeat(engine, eina_conf_get_bool(conf, "/core/repeat", FALSE));
+	lomo_player_set_random(engine, eina_conf_get_bool(conf, "/core/random", FALSE));
 
 	g_signal_connect(engine, "mute",   (GCallback) lomo_mute_cb,   conf);
 	g_signal_connect(engine, "repeat", (GCallback) lomo_repeat_cb, conf);
