@@ -71,8 +71,11 @@ else
 	CFLAGS="$CFLAGS -DENABLE_EXPERIMENTAL=0"
 	HAVE_EXPERIMENTAL=no
 fi
-AC_SUBST(HAVE_EXPERIMENTAL)
-AM_CONDITIONAL(USE_EXPERIMENTAL, test x"$HAVE_EXPERIMENTAL" = "xyes")
+AM_CONDITIONAL(BUILD_EXPERIMENTAL, test x"$HAVE_EXPERIMENTAL" = "xyes")
+
+dnl
+dnl core configuration
+dnl
 
 GLIB_VERSION="2.16"
 GTK_VERSION="2.14"
@@ -113,12 +116,12 @@ PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
 dnl
-dnl Plugins
+dnl Optional deps: clutter, notify, ige-mac-integration, dbus-glib, sqlite3, unique, uuid
 dnl
 
-#********
-# Clutter (WARN: clutter is disabled until 1.0.0 update is completed)
-#********
+dnl
+dnl Clutter (core, fieshta)
+dnl
 CLUTTER_VERSION="99.10.0"
 clutter_modules="clutter-gtk-0.10 >= $CLUTTER_VERSION"
 PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
@@ -133,7 +136,6 @@ PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER=0"
 	HAVE_CLUTTER=no
 ])
-
 AM_CONDITIONAL(USE_CLUTTER, test x"$HAVE_CLUTTER" = "xyes")
 
 if test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes"; then
@@ -141,9 +143,10 @@ if test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes"; then
 else
 	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=0"
 fi
-AM_CONDITIONAL(USE_CLUTTY,  test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
 
-dnl notify
+dnl
+dnl notify (ntfy)
+dnl
 NOTIFY_VERSION="0.4.0"
 notify_modules="libnotify >= $NOTIFY_VERSION"
 PKG_CHECK_MODULES(NOTIFY, $notify_modules,
@@ -158,10 +161,9 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 		HAVE_NOTIFY=no
 	]
 	)
-AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
 
 dnl
-dnl ige-mac-integracion aka ige (core)
+dnl ige-mac-integracion (ige)
 dnl
 IGE_VERSION="0.8.0"
 ige_modules="ige-mac-integration >= $IGE_VERSION"
@@ -182,10 +184,9 @@ else
 		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_IGE=0"
 		HAVE_IGE=no
 fi
-AM_CONDITIONAL(USE_IGE, test x"$HAVE_IGE" = "xyes")
 
 dnl
-dnl dbus-glib (core)
+dnl dbus-glib (dbus)
 dnl
 DBUS_GLIB_VERSION="0.80"
 dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
@@ -194,20 +195,19 @@ PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
 		AC_SUBST(DBUS_GLIB_CFLAGS)
 		AC_SUBST(DBUS_GLIB_LIBS)
 		HAVE_DBUS_GLIB=yes
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS $DBUS_GLIB_CFLAGS -DHAVE_DBUS_GLIB=1"
-		PACKAGE_LIBS="$PACKAGE_LIBS $DBUS_GLIB_LIBS"
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_DBUS_GLIB=1"
 	],
 	[
 		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_DBUS_GLIB=0"
 		HAVE_DBUS_GLIB=no
 	]
 	)
-AM_CONDITIONAL(USE_DBUS_GLIB, test x"$HAVE_DBUS_GLIB" = "xyes")
 
 dnl
 dnl sqlite3 (!core, adb)
 dnl
-sqlite3_modules="sqlite3 >= 3.2"
+SQLITE3_VERSION="3.2"
+sqlite3_modules="sqlite3 >= $SQLITE_VERSION"
 PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 	[
 		AC_SUBST(SQLITE3_CFLAGS)
@@ -218,7 +218,11 @@ PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 		AC_CHECK_HEADER(sqlite3.h, [HAVE_SQLITE3=yes], [HAVE_SQLITE3=no])
 	]
 	)
-AM_CONDITIONAL(USE_ADB, test x"$HAVE_SQLITE3" = "xyes")
+if test x"$HAVE_SQLITE3" = "xyes"; then
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_SQLITE3=1"
+else
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_SQLITE3=0"
+fi
 
 dnl
 dnl unique (core)
@@ -238,12 +242,12 @@ PKG_CHECK_MODULES(UNIQUE, $unique_modules,
 		HAVE_UNIQUE=no
 	]
 	)
-AM_CONDITIONAL(USE_UNIQUE, test x"$HAVE_UNIQUE" = "xyes")
 
 dnl
 dnl uuid (!core, callhome)
 dnl
-uuid_modules="uuid >= 1.6.0"
+UUID_VERSION="1.6.0"
+uuid_modules="uuid >= $UUID_VERSION" 
 PKG_CHECK_MODULES(UUID, $uuid_modules,
 	[
 		AC_SUBST(UUID_CFLAGS)
@@ -253,24 +257,20 @@ PKG_CHECK_MODULES(UUID, $uuid_modules,
 	],
 	[
 		HAVE_UUID=no
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=0"
 	]
 	)
-AM_CONDITIONAL(USE_CALLHOME, test x"$HAVE_UUID" = "xyes")
 
-
-dnl webkit (LastfmInfo) delayed post 0.8.0
-#webkitgtk_modules="webkit-1.0 >= 1.0.1"
-#PKG_CHECK_MODULES(WEBKITGTK, $webkitgtk_modules,
-#[
-#	AC_SUBST(WEBKITGTK_CFLAGS)
-#	AC_SUBST(WEBKITGTK_LIBS)
-#	HAVE_WEBKITGTK=yes
-#],
-#[
-#	HAVE_WEBKITGTK=no
-#]
-#)
-#AM_CONDITIONAL(USE_LASTFM_WEBVIEW, test x"$HAVE_WEBKITGTK" = "xyes")
+dnl
+dnl Conditionals
+dnl
+AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"   = "xyes")
+AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"      = "xyes")
+AM_CONDITIONAL(USE_CLUTTY,     test x"$enable_clutty"  = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
+AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB" = "xyes")
+AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"       = "xyes")
+AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"    = "xyes")
+AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"    = "xyes")
 
 dnl Keep in alphabetical order
 AC_OUTPUT([
@@ -299,10 +299,4 @@ po/Makefile.in
 tools/Makefile
 ui/Makefile
 ])
-
-dnl Buggy plugins
-#plugins/lastfminfo/Makefile
-#plugins/lastfmcover/Makefile
-#plugins/notify/Makefile
-#plugins/recently/Makefile
 

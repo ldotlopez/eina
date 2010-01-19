@@ -84,12 +84,14 @@ dbus-marshallers.h: dbus-marshallers.list
 dbus-marshallers.c: dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
 
-if USE_DBUS_GLIB
+if BUILD_DBUS 
 eina_SOURCES += dbus.c ../data/lomo-player-glue.h dbus-marshallers.c
 NOINST_H_FILES += dbus-marshallers.h
+AM_CPPFLAGS += @DBUS_GLIB_CFLAGS@
+eina_LDADD += @DBUS_GLIB_LIBS@
 endif
 
-if USE_IGE
+if BUILD_IGE
 eina_SOURCES += eina-ige.c
 AM_CPPFLAGS += @IGE_CFLAGS@
 eina_LDADD += @IGE_LIBS@
