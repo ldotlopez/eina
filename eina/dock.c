@@ -146,12 +146,12 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 
 	if (gtk_notebook_get_n_pages(self->dock) > 1)
 	{
-		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "dock-label"), N_("<b>Dock</b>"));
+		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "dock-label"), N_("<big><b>Dock</b></big>"));
 		gtk_notebook_set_show_tabs(self->dock, TRUE);
 	}
 	else
 	{
-		gchar *markup = g_strconcat("<b>", id, "</b>", NULL);
+		gchar *markup = g_strconcat("<big><b>", id, "</b></big>", NULL);
 		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "dock-label"), markup);
 		g_free(markup);
 	}
@@ -180,7 +180,7 @@ eina_dock_remove_widget(EinaDock *self, gchar *id)
 		break;
 	case 1:
 		ids = g_hash_table_get_keys(self->dock_items);
-		markup = g_strconcat("<b>", (gchar *) ids->data, "</b>", NULL);
+		markup = g_strconcat("<big><b>", (gchar *) ids->data, "</b></big>", NULL);
 		gtk_label_set_markup(eina_obj_get_typed(self, GTK_LABEL, "dock-label"), markup);
 		g_list_free(ids);
 		g_free(markup);
