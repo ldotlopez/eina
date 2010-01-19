@@ -160,7 +160,9 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 	)
 AM_CONDITIONAL(USE_NOTIFY, test x"$HAVE_NOTIFY" = "xyes")
 
-dnl ige-mac-integracion aka ige
+dnl
+dnl ige-mac-integracion aka ige (core)
+dnl
 IGE_VERSION="0.8.0"
 ige_modules="ige-mac-integration >= $IGE_VERSION"
 if test `pkg-config --variable target gtk+-2.0` = "quartz"; then
@@ -182,7 +184,9 @@ else
 fi
 AM_CONDITIONAL(USE_IGE, test x"$HAVE_IGE" = "xyes")
 
-dnl dbus-glib
+dnl
+dnl dbus-glib (core)
+dnl
 DBUS_GLIB_VERSION="0.80"
 dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
 PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
@@ -200,7 +204,25 @@ PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
 	)
 AM_CONDITIONAL(USE_DBUS_GLIB, test x"$HAVE_DBUS_GLIB" = "xyes")
 
-dnl unique
+dnl
+dnl sqlite3 (!core, adb)
+dnl
+sqlite3_modules="sqlite3 >= 3.2"
+PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
+	[
+		AC_SUBST(SQLITE3_CFLAGS)
+		AC_SUBST(SQLITE3_LIBS)
+		HAVE_SQLITE3=yes
+	],
+	[
+		AC_CHECK_HEADER(sqlite3.h, [HAVE_SQLITE3=yes], [HAVE_SQLITE3=no])
+	]
+	)
+AM_CONDITIONAL(USE_ADB, test x"$HAVE_SQLITE3" = "xyes")
+
+dnl
+dnl unique (core)
+dnl
 UNIQUE_VERSION="1.0"
 unique_modules="unique-1.0 >= $UNIQUE_VERSION"
 PKG_CHECK_MODULES(UNIQUE, $unique_modules,
@@ -218,19 +240,23 @@ PKG_CHECK_MODULES(UNIQUE, $unique_modules,
 	)
 AM_CONDITIONAL(USE_UNIQUE, test x"$HAVE_UNIQUE" = "xyes")
 
-dnl sqlite3 (adb)
-sqlite3_modules="sqlite3 >= 3.2"
-PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
+dnl
+dnl uuid (!core, callhome)
+dnl
+uuid_modules="uuid >= 1.6.0"
+PKG_CHECK_MODULES(UUID, $uuid_modules,
 	[
-		AC_SUBST(SQLITE3_CFLAGS)
-		AC_SUBST(SQLITE3_LIBS)
-		HAVE_SQLITE3=yes
+		AC_SUBST(UUID_CFLAGS)
+		AC_SUBST(UUID_LIBS)
+		HAVE_UUID=yes
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=1"
 	],
 	[
-		AC_CHECK_HEADER(sqlite3.h, [HAVE_SQLITE3=yes], [HAVE_SQLITE3=no])
+		HAVE_UUID=no
 	]
 	)
-AM_CONDITIONAL(USE_ADB, test x"$HAVE_SQLITE3" = "xyes")
+AM_CONDITIONAL(USE_CALLHOME, test x"$HAVE_UUID" = "xyes")
+
 
 dnl webkit (LastfmInfo) delayed post 0.8.0
 #webkitgtk_modules="webkit-1.0 >= 1.0.1"
@@ -261,6 +287,7 @@ data/eina.desktop
 data/eina-0.9.pc
 pixmaps/Makefile
 plugins/adb/Makefile
+plugins/callhome/Makefile
 plugins/coverplus/Makefile
 plugins/fieshta/Makefile
 plugins/hooktest/Makefile
