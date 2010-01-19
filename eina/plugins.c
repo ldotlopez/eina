@@ -34,6 +34,7 @@ typedef struct {
 	guint           ui_mng_merge;
 
 	EinaPluginDialog *widget;
+	gboolean watching;
 } EinaPlugins;
 
 static void
@@ -85,6 +86,26 @@ plugins_init(GelApp *app, GelPlugin *plugin, GError **error)
 		gtk_ui_manager_ensure_update(ui_mng);
 	}
 
+	// Now load all plugins
+	self->watching = FALSE;
+	EinaConf *conf = eina_obj_get_settings(self);
+	eina_conf_delete_key(conf, "/plugins/enabled");
+	const gchar *tmp = eina_conf_get_str(conf, "/core/plugins", NULL);
+	if (!tmp)
+		return TRUE;
+
+	gint i = 0;
+	gchar **plugins = g_strsplit(tmp, ",", 0);
+	for (i = 0; plugins[i] && plugins[i][0]; i++)
+	{
+		GError *error = NULL;
+		if (!gel_app_load_plugin_by_pathname(app, plugins[i], &error))
+		{
+			gel_error(N_("Cannot load %s: %s"), plugins[i], error->message);
+			g_error_free(error);
+		}
+	}
+
 	return TRUE;
 }
 
@@ -98,6 +119,8 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_ui_manager_remove_action_group(ui_mng, self->action_group);
 	g_object_unref(self->action_group);
 
+	disable_watch(self);
+
 	if (self->widget)
 	{
 		gtk_widget_destroy((GtkWidget *) self->widget);
@@ -109,6 +132,53 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 }
 
 static void
+update_plugins_list(EinaPlugins *self)
+{
+	GelApp *app = eina_obj_get_app(self);
+	GList *list = NULL;
+
+	GList *plugins = gel_app_get_plugins(app);
+	GList *l = plugins;
+	while (l)
+	{
+		GelPlugin *plugin = GEL_PLUGIN(l->data);
+		const gchar *pathname = gel_plugin_get_pathname(plugin);
+		if (pathname && gel_plugin_is_enabled(plugin))
+			list = g_list_prepend(list, g_strdup(pathname));
+		l = l->next;
+	}
+	g_list_free(plugins);
+
+	gchar *list_str = gel_list_join(",", list);
+	gel_list_deep_free(list, g_free);
+	eina_conf_set_str(eina_obj_get_settings(self), "/core/plugins", list_str);
+	g_free(list_str);
+
+}
+
+static void
+enable_watch(EinaPlugins *self)
+{
+	if (!self->watching)
+	{
+		self->watching = TRUE;
+		g_signal_connect_swapped(eina_obj_get_app(self), "plugin-init", (GCallback) update_plugins_list, self);
+		g_signal_connect_swapped(eina_obj_get_app(self), "plugin-fini", (GCallback) update_plugins_list, self);
+	}
+}
+
+static void
+disable_watch(EinaPlugins *self)
+{
+	if (self->watching)
+	{
+		self->watching = FALSE;
+		g_signal_handlers_disconnect_by_func(eina_obj_get_app(self), update_plugins_list, self);
+		g_signal_handlers_disconnect_by_func(eina_obj_get_app(self), update_plugins_list, self);
+	}
+}
+
+static void
 action_activated_cb(GtkAction *action, EinaPlugins *self)
 {
 	const gchar *name = gtk_action_get_name(action);
@@ -117,6 +187,7 @@ action_activated_cb(GtkAction *action, EinaPlugins *self)
 	{
 		self->widget = eina_plugin_dialog_new(eina_obj_get_app(EINA_OBJ(self)));
 		gtk_widget_show((GtkWidget *) self->widget);
+		enable_watch(self);
 		g_signal_connect(self->widget, "response", (GCallback) response_cb, self);
 	}
 	else
@@ -143,6 +214,7 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 
 	default:
 		self->widget = NULL;
+		disable_watch(self);
 		gtk_widget_destroy(w);
 		break;
 	}
@@ -150,7 +222,7 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 
 EINA_PLUGIN_SPEC(plugins,
 	NULL,
-	"window",
+	"settings,window",
 
 	NULL,
 	NULL,
