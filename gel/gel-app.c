@@ -498,7 +498,19 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	// Call init hook
 	if (!gel_plugin_init(exact_plugin, error))
 	{
-		// gel_warn("Cannot init %s: %s (unload deps)", gel_plugin_stringify(plugin), (*error)->message);
+		if (gel_plugin_is_locked(exact_plugin))
+		{
+			gel_error(N_("Failed plugin '%s' is locked, unload aborted. Problemas ahead."), gel_plugin_stringify(exact_plugin));
+			return NULL;
+		}
+
+		GError *err2 = NULL;
+		if (!gel_app_unload_plugin(self, exact_plugin, &err2))
+		{
+			gel_error(N_("Error unloading failed plugin '%s': %s. Problems ahead"), gel_plugin_stringify(exact_plugin), err2->message);
+			g_error_free(err2);
+			return NULL;
+		}
 		return NULL;
 	}
 
@@ -568,7 +580,7 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	}
 
 	// Disable in case it was enabled
-	gboolean was_enabled = gel_plugin_is_enabled(plugin);
+	// gboolean was_enabled = gel_plugin_is_enabled(plugin);
 	if (gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, &err))
 	{
 		gel_warn(N_("Cannot finalize plugin %s: %s"), gel_plugin_stringify(plugin), err->message);
@@ -577,7 +589,13 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	}
 
 	// Remove deps from dependencies if plugin is active
-	if (plugin->depends && was_enabled)
+	// if ((plugin->depends && was_enabled))
+
+	// Note: 2010-01-20
+	// references are loaded before plugin was initialized, so we have to
+	// remove them whatever it has enabled or not. This change hasn't be
+	// sufficient tested, so I leave this comment here (xuzo@cuarentaydos.com)
+	if (plugin->depends)
 	{
 		gint i;
 		gchar **deps = g_strsplit(plugin->depends, ",", 0);
