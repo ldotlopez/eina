@@ -74,9 +74,9 @@
   <binary>${prefix}/lib/gstreamer-0.10/libgstvolume.so</binary>
 
   <binary>${prefix}/lib/eina/adb/*.so</binary>
+  <binary>${prefix}/lib/eina/callhome/*.so</binary>
   <binary>${prefix}/lib/eina/coverplus/*.so</binary>
   <binary>${prefix}/lib/eina/lastfm/*.so</binary>
-  <binary>${prefix}/lib/eina/recently/*.so</binary>
 
   <!-- Data to copy in, usually Glade/UI files, images, sounds files
        etc. The destination inside the bundle can be specified if the
@@ -91,7 +91,6 @@
   <data>${prefix}/lib/eina/lastfm/*.ui</data>
   <data>${prefix}/lib/eina/lastfm/*.gif</data>
   <data>${prefix}/lib/eina/lastfm/lastfmsubmitd</data>
-  <data>${prefix}/lib/eina/recently/*.ui</data>
 
   <data dest="${bundle}/Contents/Resources">
     ${project}/Eina.icns
