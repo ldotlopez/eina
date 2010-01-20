@@ -38,7 +38,15 @@ typedef struct {
 } EinaPlugins;
 
 static void
+enable_watch(EinaPlugins *self);
+static void
+disable_watch(EinaPlugins *self);
+static void
+update_plugins_list(EinaPlugins *self);
+static void
 action_activated_cb(GtkAction *action, EinaPlugins *self);
+static void
+response_cb(GtkWidget *w, gint response, EinaPlugins *self);
 
 static gchar *ui_mng_xml =
 "<ui>"
@@ -132,6 +140,28 @@ plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
 }
 
 static void
+enable_watch(EinaPlugins *self)
+{
+	if (!self->watching)
+	{
+		self->watching = TRUE;
+		g_signal_connect_swapped(eina_obj_get_app(self), "plugin-init", (GCallback) update_plugins_list, self);
+		g_signal_connect_swapped(eina_obj_get_app(self), "plugin-fini", (GCallback) update_plugins_list, self);
+	}
+}
+
+static void
+disable_watch(EinaPlugins *self)
+{
+	if (self->watching)
+	{
+		self->watching = FALSE;
+		g_signal_handlers_disconnect_by_func(eina_obj_get_app(self), update_plugins_list, self);
+		g_signal_handlers_disconnect_by_func(eina_obj_get_app(self), update_plugins_list, self);
+	}
+}
+
+static void
 update_plugins_list(EinaPlugins *self)
 {
 	GelApp *app = eina_obj_get_app(self);
@@ -154,28 +184,6 @@ update_plugins_list(EinaPlugins *self)
 	eina_conf_set_str(eina_obj_get_settings(self), "/core/plugins", list_str);
 	g_free(list_str);
 
-}
-
-static void
-enable_watch(EinaPlugins *self)
-{
-	if (!self->watching)
-	{
-		self->watching = TRUE;
-		g_signal_connect_swapped(eina_obj_get_app(self), "plugin-init", (GCallback) update_plugins_list, self);
-		g_signal_connect_swapped(eina_obj_get_app(self), "plugin-fini", (GCallback) update_plugins_list, self);
-	}
-}
-
-static void
-disable_watch(EinaPlugins *self)
-{
-	if (self->watching)
-	{
-		self->watching = FALSE;
-		g_signal_handlers_disconnect_by_func(eina_obj_get_app(self), update_plugins_list, self);
-		g_signal_handlers_disconnect_by_func(eina_obj_get_app(self), update_plugins_list, self);
-	}
 }
 
 static void
