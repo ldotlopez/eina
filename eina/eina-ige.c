@@ -96,8 +96,6 @@ ige_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaIge *self = EINA_PLUGIN_DATA(plugin);
 	// g_object_unref(self->dock);
-	g_object_unref(self->about_gr);
-	g_object_unref(self->prefs_gr);
 	eina_obj_fini((EinaObj *) self);
 	return TRUE;
 }
@@ -142,7 +140,7 @@ ige_sync_menu(EinaIge *self, GtkUIManager *ui_mng)
 
 G_MODULE_EXPORT EinaPlugin ige_plugin = {
 	EINA_PLUGIN_SERIAL,
-	"ige", PACKAGE_VERSION, "window,player,preferences",
+	"ige", PACKAGE_VERSION, "window",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
 	N_("OSX integration"), NULL, NULL,
