@@ -206,20 +206,25 @@ PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
 dnl
 dnl sqlite3 (!core, adb)
 dnl
-SQLITE3_VERSION="3.2"
-sqlite3_modules="sqlite3 >= $SQLITE_VERSION"
+SQLITE3_VERSION="3.2.0"
+sqlite3_modules="sqlite3 >= $SQLITE3_VERSION"
 PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 	[
-		AC_SUBST(SQLITE3_CFLAGS)
-		AC_SUBST(SQLITE3_LIBS)
 		HAVE_SQLITE3=yes
 	],
 	[
+		dnl On MacOS X sqlite3 is installed by default but is unreachable by
+		dnl pkg-config. We need to check if sqlite3.h is present and asume some things
 		AC_CHECK_HEADER(sqlite3.h, [HAVE_SQLITE3=yes], [HAVE_SQLITE3=no])
+		if test x"$HAVE_SQLITE3" = "xyes"; then
+			SQLITE3_LIBS="-lsqlite3"
+		fi
 	]
 	)
 if test x"$HAVE_SQLITE3" = "xyes"; then
 	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_SQLITE3=1"
+	AC_SUBST(SQLITE3_CFLAGS)
+	AC_SUBST(SQLITE3_LIBS)
 else
 	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_SQLITE3=0"
 fi
@@ -247,19 +252,36 @@ dnl
 dnl uuid (!core, callhome)
 dnl
 UUID_VERSION="1.6.0"
-uuid_modules="uuid >= $UUID_VERSION" 
+uuid_modules="ossp-uuid >= $UUID_VERSION" 
 PKG_CHECK_MODULES(UUID, $uuid_modules,
 	[
-		AC_SUBST(UUID_CFLAGS)
-		AC_SUBST(UUID_LIBS)
 		HAVE_UUID=yes
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=1"
 	],
 	[
 		HAVE_UUID=no
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=0"
 	]
 	)
+
+# On Mac OS X ossp-uuid is named as uuid
+if test x"$HAVE_UUID" = "xno"; then
+	uuid_modules="uuid >= $UUID_VERSION" 
+	PKG_CHECK_MODULES(UUID, $uuid_modules,
+		[
+			HAVE_UUID=yes
+		],
+		[
+			HAVE_UUID=no
+		]
+		)
+fi
+
+if test x"$HAVE_UUID" = "xyes"; then
+	AC_SUBST(UUID_CFLAGS)
+	AC_SUBST(UUID_LIBS)
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=1"
+else
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=0"
+fi
 
 dnl
 dnl Conditionals
