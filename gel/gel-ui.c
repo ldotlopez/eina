@@ -130,6 +130,34 @@ gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
 	gtk_box_pack_start(GTK_BOX(container), widget, TRUE, TRUE, 0); 
 }
 
+
+GtkWidget *
+gel_ui_container_find_widget(GtkContainer *container, gchar *name)
+{
+	GtkWidget *ret = NULL;
+
+	if (!GTK_IS_CONTAINER(container))
+		return NULL;
+
+	GList *children = gtk_container_get_children(container);
+	GList *iter = children;
+	while (iter && (ret == NULL))
+	{
+		GtkWidget *child = (GtkWidget *) iter->data;
+		const gchar *c_name = gtk_widget_get_name(child);
+
+		if (g_str_equal(c_name, name))
+			ret = child;
+
+		else if (GTK_IS_CONTAINER(child))
+			ret = gel_ui_container_find_widget((GtkContainer *) child, (gchar *) name);
+
+		iter = iter->next;
+	}
+
+	return ret;
+}
+
 //
 // TreeStore/ListStore helpers
 //

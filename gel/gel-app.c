@@ -498,9 +498,10 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 	// Call init hook
 	if (!gel_plugin_init(exact_plugin, error))
 	{
+		gel_error(N_("Init for '%s' failed: %s"), gel_plugin_stringify(exact_plugin), error ? (*error)->message : N_("No error"));
 		if (gel_plugin_is_locked(exact_plugin))
 		{
-			gel_error(N_("Failed plugin '%s' is locked, unload aborted. Problemas ahead."), gel_plugin_stringify(exact_plugin));
+			gel_error(N_("Failed plugin '%s' is locked, unload aborted."), gel_plugin_stringify(exact_plugin));
 			return NULL;
 		}
 

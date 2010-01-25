@@ -82,6 +82,9 @@ gel_ui_load_image_from_def_multiple(GelUI *ui, GelUIImageDef defs[], guint *coun
 void
 gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget);
 
+GtkWidget *
+gel_ui_container_find_widget(GtkContainer *container, gchar *name);
+
 /*
  * Gtk List Model helpers
  */
