@@ -87,6 +87,7 @@
   <data>
     ${prefix}/share/eina
   </data>
+  <data>${prefix}/lib/eina/adb/*.png</data>
   <data>${prefix}/lib/eina/lastfm/*.png</data>
   <data>${prefix}/lib/eina/lastfm/*.ui</data>
   <data>${prefix}/lib/eina/lastfm/*.gif</data>
