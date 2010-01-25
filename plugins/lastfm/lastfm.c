@@ -23,7 +23,7 @@
 #include "artwork.h"
 
 #define ENABLE_WEBVIEW 0
-#define SETTINGS_PATH "/plugins/lastfm"
+#define SETTINGS_PATH "/lastfm"
 
 struct _LastFMPriv {
 	GtkBuilder *prefs_ui;
