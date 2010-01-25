@@ -15,6 +15,9 @@ INST_H_FILES = \
 	eina-volume.h              \
 	eina-window.h
 
+NO_INST_H_FILES = \
+	eina-preferences-dialog-marshallers.h
+
 headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina/ext
 header_DATA = $(INST_H_FILES)
 
@@ -25,23 +28,35 @@ libeinaext_la_SOURCES = \
 	eina-plugin-dialog.c       \
 	eina-plugin-properties.c   \
 	eina-preferences-dialog.c  \
+	eina-preferences-dialog-marshallers.c  \
 	eina-seek.c                \
 	eina-stock.c               \
 	eina-volume.c              \
 	eina-window.c              \
-	$(INST_H_FILES)
+	$(INST_H_FILES)            \
+	$(NO_INST_H_FILES)
 
 BUILT_SOURCES = \
 	eina-plugin-dialog-ui.h             \
-	eina-plugin-properties-ui.h
+	eina-plugin-properties-ui.h         \
+	eina-preferences-dialog-marshallers.c eina-preferences-dialog-marshallers.h
 
 CLEAN_FILES   = \
 	eina-plugin-dialog-ui.h             \
-	eina-plugin-properties-ui.h
+	eina-plugin-properties-ui.h         \
+	eina-preferences-dialog-marshallers.c eina-preferences-dialog-marshallers.h
 
 EXTRA_DIST    = \
 	eina-plugin-dialog.ui     \
-	eina-plugin-properties.ui 
+	eina-plugin-properties.ui \
+	eina-preferences-dialog-marshallers.list
+
+eina-preferences-dialog-marshallers.h: eina-preferences-dialog-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header > $@
+
+eina-preferences-dialog-marshallers.c: eina-preferences-dialog-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header --body > $@
+
 
 eina-plugin-dialog-ui.h: eina-plugin-dialog.ui
 	../../tools/ui2h eina-plugin-dialog.ui ui_xml > eina-plugin-dialog-ui.h

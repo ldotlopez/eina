@@ -22,20 +22,20 @@
 
 #include <gel/gel.h>
 #include <eina/eina-obj.h>
+#include <eina/ext/eina-preferences-dialog.h>
 
 G_BEGIN_DECLS
 
 #define EINA_PREFERENCES(p)           ((EinaPreferences *) p)
-#define GEL_APP_GET_PREFERENCES(app)  ((EinaPreferences *) gel_app_shared_get(app, "preferences"))
-#define EINA_OBJ_GET_PREFERENCES(obj) GEL_APP_GET_PREFERENCES(eina_obj_get_app(obj))
+
+#define gel_app_get_preferences(app)  ((EinaPreferences *) gel_app_shared_get(app, "preferences"))
+#define eina_obj_get_preferences(obj) gel_app_get_preferences(eina_obj_get_app(obj))
 
 typedef struct _EinaPreferences EinaPreferences;
 
 void
-eina_preferences_add_tab(EinaPreferences *self, GtkImage *icon, GtkLabel *label, GtkWidget *tab);
-
-void
-eina_preferences_remove_tab(EinaPreferences *self, GtkWidget *widget);
+eina_preferences_add_tab_full(EinaPreferences *self, gchar *group, gchar *xml, gchar *root, gchar **objects, guint n,
+    GtkImage *icon, GtkLabel *label);
 
 G_END_DECLS
 
