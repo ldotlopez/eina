@@ -138,34 +138,7 @@ eina_plugin_switch_dock_widget(EinaPlugin *self, gchar *id)
 // --
 // Settings management
 // --
-static EinaPreferences *
-eina_plugin_get_preferences(EinaPlugin *self)
-{
-	GelApp *app = gel_plugin_get_app(self);
-	g_return_val_if_fail(app != NULL, NULL);
 
-	return GEL_APP_GET_PREFERENCES(app);
-}
-
-gboolean eina_plugin_add_configuration_widget
-(EinaPlugin *plugin, GtkImage *icon, GtkLabel *label, GtkWidget *widget)
-{
-	EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
-	g_return_val_if_fail(prefs != NULL, FALSE);
-
-	eina_preferences_add_tab(prefs, icon, label, widget);
-	return TRUE;
-}
-
-gboolean eina_plugin_remove_configuration_widget
-(EinaPlugin *plugin,  GtkWidget *widget)
-{
-	EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
-	g_return_val_if_fail(prefs != NULL, FALSE);
-
-	eina_preferences_remove_tab(prefs, widget);
-	return TRUE;
-}
 
 // --
 // Art handling

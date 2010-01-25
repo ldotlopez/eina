@@ -96,7 +96,8 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	gchar *objs[] = {"main-widget",
+	gchar *objs[] = {
+		"main-widget",
 		"prev-action",
 		"play-action",
 		"next-action",
@@ -107,6 +108,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		"about-action",
 		"bug-action",
 		NULL };
+
 	if (!eina_obj_load_objects_from_resource((EinaObj *) self, "player.ui", objs, error))
 	{
 		eina_obj_fini((EinaObj *) self);
@@ -176,12 +178,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	else
 		gtk_ui_manager_ensure_update(ui_mng);
 
-	// play/pause state
-	player_update_state(self);
-
-	// Information
-	player_update_information(self);
-
 	// Connect lomo signals
 	g_signal_connect(volume, "value-changed", (GCallback) volume_value_changed_cb, self);
 
@@ -192,6 +188,39 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
 	g_signal_connect(lomo, "clear",    (GCallback) lomo_clear_cb, self);
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
+
+
+	// Preferences
+	GError *err2 = NULL;
+	gchar *ui_path = NULL;
+	gchar *ui_str  = NULL;
+	gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui");
+	if ((ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui")) &&
+	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
+	{
+		gchar *objects[] = {"/core/repeat", "/core/random", "/core/auto-play", "/player/show-artwork", "/core/add-mode"};
+
+		eina_preferences_add_tab_full(gel_app_get_preferences(app),
+			"player", ui_str, "main-widget", objects, G_N_ELEMENTS(objects),
+			(GtkImage*) gtk_image_new_from_stock(GTK_STOCK_EXECUTE, GTK_ICON_SIZE_SMALL_TOOLBAR), (GtkLabel *) gtk_label_new(N_("Player")));
+		g_free(ui_path);
+		g_free(ui_str);
+	}
+	else
+	{
+		if (!ui_path)
+			gel_warn(N_("Cannot locate resource '%s'"), "player-preferences.ui");
+		if (ui_path && !ui_str && err2)
+			gel_warn(N_("Cannot load resource '%s': '%s'"), ui_path, err2->message);
+		if (err2)
+			g_error_free(err2);
+	}
+
+	// play/pause state
+	player_update_state(self);
+
+	// Information
+	player_update_information(self);
 
 	player_dnd_setup(self);
 
@@ -616,7 +645,11 @@ io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,
 // --
 EINA_PLUGIN_SPEC (player,
 	PACKAGE_VERSION,
+#if ENABLE_EXPERIMENTAL
+	"about,lomo,window,preferences",
+#else
 	"about,lomo,window",
+#endif
 	NULL,
 	NULL,
 

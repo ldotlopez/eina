@@ -1,142 +1,130 @@
 <?xml version="1.0"?>
 <interface>
-  <requires lib="gtk+" version="2.14"/>
-  <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkTextBuffer" id="textbuffer1">
-    <property name="text">
-</property>
-  </object>
-  <object class="GtkWindow" id="window1">
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="main-window">
     <child>
-      <object class="GtkFrame" id="main-widget">
+      <object class="GtkTable" id="main-widget">
         <property name="visible">True</property>
-        <property name="label_xalign">0</property>
-        <property name="shadow_type">none</property>
+        <property name="border_width">5</property>
+        <property name="n_rows">5</property>
+        <property name="n_columns">2</property>
+        <property name="column_spacing">5</property>
+        <property name="row_spacing">5</property>
         <child>
-          <object class="GtkAlignment" id="alignment1">
-            <property name="visible">True</property>
-            <property name="left_padding">12</property>
+          <object class="GtkCheckButton" id="/core/auto-play">
+            <property name="label" translatable="yes">Start playback automatically</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+          </object>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="/player/show-artwork">
+            <property name="label" translatable="yes">Show artwork</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+          </object>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label6">
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">By default new files</property>
+            <attributes>
+              <attribute name="weight" value="normal"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="/core/add-mode">
+            <property name="model">liststore1</property>
+            <property name="active">0</property>
             <child>
-              <object class="GtkVBox" id="vbox1">
-                <property name="visible">True</property>
-                <property name="spacing">5</property>
-                <child>
-                  <object class="GtkComboBox" id="preset-format-combo">
-                    <property name="visible">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHBox" id="custom-format-box">
-                    <property name="visible">True</property>
-                    <property name="spacing">5</property>
-                    <child>
-                      <object class="GtkLabel" id="label2">
-                        <property name="visible">True</property>
-                        <property name="yalign">0</property>
-                        <property name="label" translatable="yes">Custom format:</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkTextView" id="custom-format-text">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="buffer">textbuffer1</property>
-                      </object>
-                      <packing>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHBox" id="tips-box">
-                    <property name="visible">True</property>
-                    <child>
-                      <object class="GtkImage" id="image1">
-                        <property name="visible">True</property>
-                        <property name="yalign">0</property>
-                        <property name="stock">gtk-dialog-info</property>
-                        <property name="icon-size">6</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkVBox" id="vbox2">
-                        <property name="visible">True</property>
-                        <child>
-                          <object class="GtkLabel" id="label3">
-                            <property name="visible">True</property>
-                            <property name="xalign">0</property>
-                            <property name="label" translatable="yes">This format uses the pango markup, follow next link to learn about it.
-
-The following 'tags' can be used: %a for artist, %b for album, %t for title and %n for track number.
-
-Embracing any text with curly brackets makes it optional, disapearing if no matches for its content is found.
-</property>
-                            <property name="justify">fill</property>
-                            <property name="wrap">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLinkButton" id="link-button">
-                            <property name="label" translatable="yes">More info about Pango markup language</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="has_tooltip">True</property>
-                            <property name="relief">none</property>
-                            <property name="xalign">0</property>
-                            <property name="uri">http://library.gnome.org/devel/pango/stable/PangoMarkupFormat.html</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-              </object>
+              <object class="GtkCellRendererText" id="cellrenderertext1"/>
+              <attributes>
+                <attribute name="text">1</attribute>
+              </attributes>
             </child>
           </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
         </child>
-        <child type="label">
-          <object class="GtkLabel" id="label1">
+        <child>
+          <object class="GtkCheckButton" id="/core/repeat">
+            <property name="label" translatable="yes">Enable repeat mode</property>
             <property name="visible">True</property>
-            <property name="label" translatable="yes">&lt;b&gt;Information format&lt;/b&gt;</property>
-            <property name="use_markup">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
           </object>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="/core/random">
+            <property name="label" translatable="yes">Enable shuffle mode</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+          </object>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <!-- column-name add-mode -->
+      <column type="guint"/>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">0</col>
+        <col id="1" translatable="yes">replace the current playlist</col>
+      </row>
+      <row>
+        <col id="0">1</col>
+        <col id="1" translatable="yes">are queued at the end of the playlist</col>
+      </row>
+    </data>
   </object>
 </interface>
