@@ -647,6 +647,7 @@ lomo_player_init (LomoPlayer *self)
 	priv->pl      = lomo_playlist_new();
 	priv->meta    = lomo_metadata_parser_new();
 	priv->queue   = g_queue_new();
+
 	g_signal_connect(priv->meta, "tag", (GCallback) tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) all_tags_cb, self);
 }
@@ -1002,7 +1003,7 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 
 	if (!priv->pipeline || !priv->stream)
 		return LOMO_STATE_STOP;
-	
+
 	GstState gst_state = priv->vtable.get_state(priv->pipeline);
 
 	LomoState state;
@@ -1421,6 +1422,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		{
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, -1, 0);
 			GError *err = NULL;
+			priv->stream = stream;
 			if (!lomo_player_create_pipeline(self, stream, &err))
 			{
 				g_warning(N_("Error creating pipeline: %s"), err->message);
