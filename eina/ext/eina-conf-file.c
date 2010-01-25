@@ -31,27 +31,13 @@
 #include <eina/ext/eina-conf.h>
 
 // --
-// Internal EinaConfValue
+// Internal GValue
 // --
-typedef struct EinaConfValue
-{
-	GType type;
-	union {
-		gboolean  _bool;
-		gint      _int;
-		gfloat    _float;
-		gchar    *_str;
-	} value;
-} EinaConfValue;
-
 static void
-eina_conf_value_free(gpointer value)
+free_gvalue(GValue *value)
 {
-	EinaConfValue *val = (EinaConfValue *) value;
-
-	if (val->type == G_TYPE_STRING)
-		g_free(val->value._str);
-	g_free(val);
+	g_value_unset(value);
+	g_free(value);
 }
 
 // --
@@ -190,7 +176,7 @@ eina_conf_init (EinaConf *self)
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	priv->values = g_hash_table_new_full(
 		g_str_hash, g_str_equal,
-		g_free, eina_conf_value_free);
+		g_free, (GDestroyNotify) free_gvalue);
 	priv->timeout = 5000;
 	priv->filename = NULL;
 }
@@ -242,30 +228,36 @@ dump_forearch_cb(gpointer _key, gpointer _value, gpointer data)
 	EinaConf *self        = (EinaConf *) data;
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	gchar *key            = (gchar *) _key;
-	EinaConfValue *value  = (EinaConfValue *) _value;
+	GValue *value         = (GValue *) _value;
 	gchar *buff = NULL;
 
-	switch (value->type)
+	gchar *type_prefix = NULL;
+	switch (G_VALUE_TYPE(value))
 	{
-		case G_TYPE_BOOLEAN:
-			buff = g_strdup_printf("bool:%s=%d\n", key, value->value._bool);
-			break;
+	case G_TYPE_BOOLEAN:
+		type_prefix="boolean";
+		break;
 
-		case G_TYPE_INT:
-			buff = g_strdup_printf("int:%s=%d\n", key, value->value._int);
-			break;
+	case G_TYPE_INT:
+		type_prefix="int";
+		break;
 
-		case G_TYPE_FLOAT:
-			buff = g_strdup_printf("float:%s=%f\n", key, value->value._float);
-			break;
+	case G_TYPE_FLOAT:
+		type_prefix="float";
+		break;
 
-		case G_TYPE_STRING:
-			buff = g_strdup_printf("str:%s=%s\n", key, value->value._str);
-			break;
-			
-		default:
-			gel_warn("unknow key type '%s'\n", key);
+	case G_TYPE_STRING:
+		type_prefix="string";
+		break;
+
+	default:
+		return;
+		gel_warn("unknow key type '%s'\n", key);
 	}
+
+	gchar *tmp = ((G_VALUE_TYPE(value) == G_TYPE_STRING) ? g_strdup(g_value_get_string(value)) : g_strdup_value_contents(value));
+	buff = g_strdup_printf("%s:%s=%s\n", type_prefix, key, tmp);
+	g_free(tmp);
 
 	if (buff != NULL)
 	{
@@ -324,8 +316,9 @@ void eina_conf_load(EinaConf *self) {
 			continue;
 		}
 
-		if (g_str_equal(parts[0], "bool")) {
-			eina_conf_set_bool(self, parts[1], (strtol(parts[2], NULL, 0) /1));
+		if (g_str_equal(parts[0], "boolean") ||
+			g_str_equal(parts[0], "bool")) {
+			eina_conf_set_bool(self, parts[1], g_str_equal(parts[2], "TRUE") ? TRUE : FALSE);
 		}
 		else if (g_str_equal(parts[0], "int")) {
 			eina_conf_set_int(self, parts[1], (strtol(parts[2], NULL, 0) / 1));
@@ -333,7 +326,8 @@ void eina_conf_load(EinaConf *self) {
 		else if (g_str_equal(parts[0], "float")) {
 			eina_conf_set_float(self, parts[1], strtol(parts[2], NULL, 0));
 		}
-		else if (g_str_equal(parts[0], "str")) {
+		else if (g_str_equal(parts[0], "string") ||
+		         g_str_equal(parts[0], "str")) {
 			eina_conf_set_str(self, parts[1], parts[2]);
 		}
 
@@ -343,7 +337,7 @@ void eina_conf_load(EinaConf *self) {
 	g_strfreev(lines);
 }
 
-void eina_conf_set(EinaConf *self, gchar *key, EinaConfValue *val) {
+void eina_conf_set(EinaConf *self, gchar *key, GValue *val) {
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	g_hash_table_replace(priv->values, g_strdup(key), val);
 
@@ -354,81 +348,97 @@ void eina_conf_set(EinaConf *self, gchar *key, EinaConfValue *val) {
 	g_signal_emit(G_OBJECT(self), eina_conf_signals[CHANGE], 0, key);
 }
 
-void eina_conf_set_bool(EinaConf *self, gchar *key, gboolean val) {
-	EinaConfValue *_val = g_new0(EinaConfValue, 1);
-	_val->type = G_TYPE_BOOLEAN;
-	_val->value._bool = val;
+void eina_conf_set_boolean(EinaConf *self, gchar *key, gboolean val) {
+	GValue *_val = g_new0(GValue, 1);
+	g_value_init(_val, G_TYPE_BOOLEAN);
+	g_value_set_boolean(_val, val);
 
 	eina_conf_set(self, key, _val);
 }
 
 void eina_conf_set_int(EinaConf *self, gchar *key, gint val) {
-	EinaConfValue *_val = g_new0(EinaConfValue, 1);
-	_val->type = G_TYPE_INT;
-	_val->value._int = val;
+	GValue *_val = g_new0(GValue, 1);
+	g_value_init(_val, G_TYPE_INT);
+	g_value_set_int(_val, val);
 
 	eina_conf_set(self, key, _val);
 }
 
 void eina_conf_set_float(EinaConf *self, gchar *key, gfloat val) {
-	EinaConfValue *_val = g_new0(EinaConfValue, 1);
-	_val->type = G_TYPE_FLOAT;
-	_val->value._float = val;
+	GValue *_val = g_new0(GValue, 1);
+	g_value_init(_val, G_TYPE_FLOAT);
+	g_value_set_float(_val, val);
 
 	eina_conf_set(self, key, _val);
 }
 
-void eina_conf_set_str(EinaConf *self, gchar *key, gchar *val) {
-	EinaConfValue *_val = g_new0(EinaConfValue, 1);
-	_val->type = G_TYPE_STRING;
-	_val->value._str = g_strdup(val);
+void eina_conf_set_string(EinaConf *self, gchar *key, gchar *val) {
+	GValue *_val = g_new0(GValue, 1);
+	g_value_init(_val, G_TYPE_STRING);
+	g_value_set_string(_val, val);
 
 	eina_conf_set(self, key, _val);
 }
 
-EinaConfValue *eina_conf_get(EinaConf *self, gchar *key) {
+GValue *eina_conf_get(EinaConf *self, gchar *key)
+{
 	EinaConfPrivate *priv = GET_PRIVATE(self);
 	return g_hash_table_lookup(priv->values, key);
 }
 
-gboolean eina_conf_get_bool(EinaConf *self, gchar *key, gboolean def) {
-	EinaConfValue *val;
+gboolean eina_conf_get_boolean(EinaConf *self, gchar *key, gboolean def) {
+	GValue *val;
    
 	if ((val = eina_conf_get(self, key)) == NULL)
 		return def;
-	if (val->type != G_TYPE_BOOLEAN)
+	if (G_VALUE_TYPE(val) != G_TYPE_BOOLEAN)
 		return def;
-	return val->value._bool;
+	return g_value_get_boolean(val);
 }
 
 gint eina_conf_get_int(EinaConf *self, gchar *key, gint def) {
-	EinaConfValue *val;
+	GValue *val;
    
 	if ((val = eina_conf_get(self, key)) == NULL)
 		return def;
-	if (val->type != G_TYPE_INT)
+	if (G_VALUE_TYPE(val) != G_TYPE_INT)
 		return def;
-	return val->value._int;
+	return g_value_get_int(val);
 }
 
 gfloat eina_conf_get_float(EinaConf *self, gchar *key, gfloat def) {
-	EinaConfValue *val;
+	GValue *val;
    
 	if ((val = eina_conf_get(self, key)) == NULL)
 		return def;
-	if (val->type != G_TYPE_FLOAT)
+	if (G_VALUE_TYPE(val) != G_TYPE_FLOAT)
 		return def;
-	return val->value._float;
+	return g_value_get_float(val);
 }
 
-const gchar *eina_conf_get_str(EinaConf *self, gchar *key, const gchar *def) {
-	EinaConfValue *val;
+const gchar *eina_conf_get_string(EinaConf *self, gchar *key, const gchar *def) {
+	GValue *val;
    
 	if ((val = eina_conf_get(self, key)) == NULL)
 		return def;
-	if (val->type != G_TYPE_STRING)
+	if (G_VALUE_TYPE(val) != G_TYPE_STRING)
 		return def;
-	return val->value._str;
+	return g_value_get_string(val);
+}
+
+GList*
+eina_conf_get_keys(EinaConf *self)
+{
+	return g_hash_table_get_keys(GET_PRIVATE(self)->values);
+}
+
+GType eina_conf_get_key_type(EinaConf *self, gchar *key)
+{
+	GValue *val = eina_conf_get(self, key);
+	if (!val)
+		return G_TYPE_INVALID;
+	else
+		return G_VALUE_TYPE(val);
 }
 
 gboolean

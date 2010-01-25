@@ -63,15 +63,25 @@ guint eina_conf_get_timeout(EinaConf *self);
 
 void eina_conf_load(EinaConf *self);
 
-void eina_conf_set_bool (EinaConf *self, gchar *key, gboolean val);
-void eina_conf_set_int  (EinaConf *self, gchar *key, gint val);
-void eina_conf_set_float(EinaConf *self, gchar *key, gfloat val);
-void eina_conf_set_str  (EinaConf *self, gchar *key, gchar *val);
+void eina_conf_set_boolean(EinaConf *self, gchar *key, gboolean val);
+void eina_conf_set_int    (EinaConf *self, gchar *key, gint val);
+void eina_conf_set_float  (EinaConf *self, gchar *key, gfloat val);
+void eina_conf_set_string (EinaConf *self, gchar *key, gchar *val);
 
-gboolean     eina_conf_get_bool (EinaConf *self, gchar *key, gboolean def);
-gint         eina_conf_get_int  (EinaConf *self, gchar *key, gint def);
-gfloat       eina_conf_get_float(EinaConf *self, gchar *key, gfloat def);
-const gchar *eina_conf_get_str  (EinaConf *self, gchar *key, const gchar *def);
+#define eina_conf_set_bool(s,k,v) eina_conf_set_boolean(s,k,v)
+#define eina_conf_set_str(s,k,v)  eina_conf_set_string(s,k,v)
+
+GValue      *eina_conf_get        (EinaConf *self, gchar *key);
+gboolean     eina_conf_get_boolean(EinaConf *self, gchar *key, gboolean def);
+gint         eina_conf_get_int    (EinaConf *self, gchar *key, gint def);
+gfloat       eina_conf_get_float  (EinaConf *self, gchar *key, gfloat def);
+const gchar *eina_conf_get_string (EinaConf *self, gchar *key, const gchar *def);
+
+#define eina_conf_get_bool(s,k,d) eina_conf_get_boolean(s,k,d)
+#define eina_conf_get_str(s,k,d)  eina_conf_get_string(s,k,d)
+
+GList       *eina_conf_get_keys(EinaConf *self);
+GType        eina_conf_get_key_type(EinaConf *self, gchar *key);
 
 gboolean
 eina_conf_delete_key(EinaConf *self, gchar *key);
