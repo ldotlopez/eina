@@ -645,11 +645,7 @@ io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,
 // --
 EINA_PLUGIN_SPEC (player,
 	PACKAGE_VERSION,
-#if ENABLE_EXPERIMENTAL
 	"about,lomo,window,preferences",
-#else
-	"about,lomo,window",
-#endif
 	NULL,
 	NULL,
 

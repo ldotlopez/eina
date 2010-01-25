@@ -29,6 +29,8 @@ static void
 lomo_repeat_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
 static void
 lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
+static void
+conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine);
 
 GEL_AUTO_QUARK_FUNC(lomo)
 
@@ -56,10 +58,12 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	lomo_player_set_mute  (engine, eina_conf_get_bool(conf, "/core/mute",   FALSE));
 	lomo_player_set_repeat(engine, eina_conf_get_bool(conf, "/core/repeat", FALSE));
 	lomo_player_set_random(engine, eina_conf_get_bool(conf, "/core/random", FALSE));
+	g_signal_connect(conf, "change", (GCallback) conf_change_cb, engine);
 
 	g_signal_connect(engine, "mute",   (GCallback) lomo_mute_cb,   conf);
 	g_signal_connect(engine, "repeat", (GCallback) lomo_repeat_cb, conf);
 	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, conf);
+
 
 	return TRUE;
 }
@@ -77,6 +81,8 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 	EinaConf *conf = gel_app_get_settings(app);
 	eina_conf_set_int(conf, "/core/volume", lomo_player_get_volume(engine));
+	g_signal_handlers_disconnect_by_func(conf, conf_change_cb, engine);
+
 	g_object_unref(G_OBJECT(engine));
 
 	return TRUE;
@@ -100,6 +106,18 @@ lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
 	eina_conf_set_bool(conf, "/core/random", value);
 	if (value)
 		lomo_player_randomize(lomo);
+}
+
+static void
+conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine)
+{
+	// We need to check current engine values to prevent infinite loop
+
+	if (g_str_equal(key, "/core/random") && (lomo_player_get_random(engine) != eina_conf_get_boolean(conf, key, FALSE)))
+		lomo_player_set_random(engine, eina_conf_get_boolean(conf, key, FALSE));
+
+	if (g_str_equal(key, "/core/repeat") && (lomo_player_get_repeat(engine) != eina_conf_get_boolean(conf, key, FALSE)))
+		lomo_player_set_repeat(engine, eina_conf_get_boolean(conf, key, FALSE));
 }
 
 EINA_PLUGIN_SPEC(lomo,
