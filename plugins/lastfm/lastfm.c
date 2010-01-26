@@ -116,7 +116,7 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (!lastfm_artwork_fini(app, plugin, error))
 		return FALSE;
 
-	g_free(plugin->data);
+	eina_obj_fini((EinaObj *) self);
 	self = plugin->data = NULL;
 
 	return TRUE;
