@@ -141,15 +141,7 @@ eina_window_new (void)
 void
 eina_window_set_persistant(EinaWindow *self, gboolean persistant)
 {
-	EinaWindowPrivate *priv = GET_PRIVATE(self);
-	if (priv->persistant == persistant)
-		return;
-
-	priv->persistant = persistant;
-	if (persistant)
-		g_signal_connect(self, "delete-event", (GCallback) gtk_widget_hide_on_delete, NULL);
-	else
-		g_signal_handlers_disconnect_by_func(self, gtk_widget_hide_on_delete, NULL);
+	GET_PRIVATE(self)->persistant = TRUE;
 }
 
 gboolean

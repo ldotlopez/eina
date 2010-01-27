@@ -26,6 +26,9 @@
 GEL_AUTO_QUARK_FUNC(window)
 
 static gboolean
+window_delete_event_cb(EinaWindow *window, GdkEvent *ev, GelApp *app);
+
+static gboolean
 window_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaWindow *window = eina_window_new();
@@ -37,12 +40,14 @@ window_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
+	g_signal_connect(window, "delete-event", (GCallback) window_delete_event_cb, app);
 	gtk_widget_show(GTK_WIDGET(window));
 
 	// Due some bug on OSX main window needs to be resizable on creation, but
 	// without dock or other attached widgets to main window it must not be
 	// resizable.
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+
 
 	return TRUE;
 }
@@ -60,6 +65,17 @@ window_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 	gtk_widget_destroy((GtkWidget *) window);
 	gel_app_shared_unregister(app, "window");
+
+	return TRUE;
+}
+
+static gboolean
+window_delete_event_cb(EinaWindow *window, GdkEvent *ev, GelApp *app)
+{
+	if (eina_window_get_persistant(window))
+		gtk_widget_hide((GtkWidget *) window);
+	else
+		g_object_unref(app);
 
 	return TRUE;
 }

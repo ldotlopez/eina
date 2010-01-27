@@ -259,7 +259,8 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 
 	GSList *selected = g_slist_sort(gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self)), (GCompareFunc) strcmp);
 
-	// Build a queue with URIs
+	// Transform selected GList to a Queue, transfering data, uri will be owned
+	// by queue.
 	GSList *iter  = selected;
 	while (iter)
 	{
@@ -272,9 +273,15 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	update_sensitiviness(self, FALSE);
 
 	// Loading image
+	GtkImage *loading = NULL;
 	gchar *loading_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "loading-spin-16x16.gif");
-	GtkImage *loading = (GtkImage *) gtk_image_new_from_file(loading_path);
-	g_free(loading_path);
+	if (loading_path)
+	{
+		loading = (GtkImage *) gtk_image_new_from_file(loading_path);
+		g_free(loading_path);
+	}
+	else
+		g_warning(N_("Cannot locate resource %s"), "loading-spin-16x16.gif");
 
 	// The 'cancel' button
 	GtkButton *cancel = (GtkButton *) gtk_button_new();
@@ -462,7 +469,6 @@ parse_tree(EinaFileChooserDialog *self, GNode *result)
 	if (type == G_FILE_TYPE_REGULAR)
 	{
 		priv->uris = g_slist_prepend(priv->uris, uri);
-		g_free(uri);
 		return;
 	}
 

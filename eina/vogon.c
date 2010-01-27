@@ -66,6 +66,9 @@ status_icon_destroy_cb(GtkWidget *w, EinaVogon *self);
 static const gchar ui_def[] =
 "<ui>"
 "	<popup name='Main'>"
+"		<menuitem name='Show' action='show-action'  />"
+"		<menuitem name='Hide' action='hide-action'  />"
+"		<separator />"
 "		<menuitem name='Play'  action='play-action'  />"
 "		<menuitem name='Pause' action='pause-action'  />"
 "		<separator />"
@@ -91,13 +94,15 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	GtkActionGroup *ag;
 	const GtkActionEntry ui_actions[] = {
-		{ "play-action",  GTK_STOCK_MEDIA_PLAY,     N_("Play"),     "<alt>x", N_("Play"),            G_CALLBACK(action_activate_cb) },
-		{ "pause-action", GTK_STOCK_MEDIA_PAUSE,    N_("Pause"),    "<alt>c", N_("Pause"),           G_CALLBACK(action_activate_cb) },
-		{ "next-action",  GTK_STOCK_MEDIA_NEXT,     N_("Next"),     "<alt>b", N_("Next stream"),     G_CALLBACK(action_activate_cb) },
-		{ "prev-action",  GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"), "<alt>z", N_("Previous stream"), G_CALLBACK(action_activate_cb) },
-		{ "open-action",  GTK_STOCK_OPEN,           N_("_Open"),    "<alt>o", N_("Add or queue stream(s)"),  G_CALLBACK(action_activate_cb) },
-		{ "clear-action", GTK_STOCK_CLEAR,          N_("C_lear"),   "<alt>l", N_("Clear playlist"),  G_CALLBACK(action_activate_cb) },
-		{ "quit-action",  GTK_STOCK_QUIT,           N_("_Quit"),    "<alt>q", N_("Quit Eina"),       G_CALLBACK(action_activate_cb) }
+		{ "show-action",  NULL,     N_("Show Eina"), NULL,     N_("Show Eina"),       G_CALLBACK(action_activate_cb) },
+		{ "hide-action",  NULL,     N_("Hide Eina"), NULL,     N_("Hide Eina"),       G_CALLBACK(action_activate_cb) },
+		{ "play-action",  GTK_STOCK_MEDIA_PLAY,     N_("Play"),      "<alt>x", N_("Play"),            G_CALLBACK(action_activate_cb) },
+		{ "pause-action", GTK_STOCK_MEDIA_PAUSE,    N_("Pause"),     "<alt>c", N_("Pause"),           G_CALLBACK(action_activate_cb) },
+		{ "next-action",  GTK_STOCK_MEDIA_NEXT,     N_("Next"),      "<alt>b", N_("Next stream"),     G_CALLBACK(action_activate_cb) },
+		{ "prev-action",  GTK_STOCK_MEDIA_PREVIOUS, N_("Previous"),  "<alt>z", N_("Previous stream"), G_CALLBACK(action_activate_cb) },
+		{ "open-action",  GTK_STOCK_OPEN,           N_("_Open"),     "<alt>o", N_("Add or queue stream(s)"),  G_CALLBACK(action_activate_cb) },
+		{ "clear-action", GTK_STOCK_CLEAR,          N_("C_lear"),    "<alt>l", N_("Clear playlist"),  G_CALLBACK(action_activate_cb) },
+		{ "quit-action",  GTK_STOCK_QUIT,           N_("_Quit"),     "<alt>q", N_("Quit Eina"),       G_CALLBACK(action_activate_cb) }
 	};
 	const GtkToggleActionEntry ui_toggle_actions[] = {
 		{ "random-action", NULL, N_("Random"), "<alt>s", N_("Random playlist"), G_CALLBACK(action_activate_cb) },
@@ -126,6 +131,7 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 		eina_window_set_persistant(GEL_APP_GET_WINDOW(app), TRUE);
 	#endif
 
+	eina_window_set_persistant(GEL_APP_GET_WINDOW(app), TRUE);
 	self->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON);
 	if (!self->icon)
 	{
@@ -168,6 +174,10 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "repeat", (GCallback) update_toggles, self);
 	g_signal_connect_swapped(lomo, "random", (GCallback) update_toggles, self);
 
+	EinaWindow *window = eina_obj_get_window(self);
+	g_signal_connect_swapped(window, "show",  G_CALLBACK(update_ui_manager), self);
+	g_signal_connect_swapped(window, "hide",  G_CALLBACK(update_ui_manager), self);
+
 	// Done, just a warning before
 	#if OSX_SYSTEM
 	gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
@@ -183,11 +193,12 @@ vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaVogon *self = EINA_PLUGIN_DATA(plugin);
 
 	// Disconnect signals
-	g_signal_handlers_disconnect_by_func(GEL_APP_GET_LOMO(app), update_ui_manager, self);
+	g_signal_handlers_disconnect_by_func(gel_app_get_lomo(app), update_ui_manager, self);
+	g_signal_handlers_disconnect_by_func(gel_app_get_window(app), update_ui_manager, self);
 
 	// Free/unref objects
-	gel_free_and_invalidate(self->icon,   NULL, g_object_unref);
 	gel_free_and_invalidate(self->ui_mng, NULL, g_object_unref);
+	gel_free_and_invalidate(self->icon,   NULL, g_object_unref);
 
 	// Free self
 	eina_obj_fini(EINA_OBJ(self));
@@ -234,6 +245,20 @@ update_ui_manager(EinaVogon *self)
 	}
 	gtk_widget_hide(gtk_ui_manager_get_widget(self->ui_mng, hide));
 	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
+
+	EinaWindow *window = eina_obj_get_window(self);
+	if (GTK_WIDGET_VISIBLE(window))
+	{
+		hide = "/Main/Show";
+		show = "/Main/Hide";
+	}
+	else
+	{
+		show = "/Main/Show";
+		hide = "/Main/Hide";
+	}
+	gtk_widget_hide(gtk_ui_manager_get_widget(self->ui_mng, hide));
+	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
 }
 
 static void
@@ -268,7 +293,13 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 	GError *error = NULL;
 	const gchar *name = gtk_action_get_name(action);
 
-	if (g_str_equal(name, "play-action"))
+	if (g_str_equal(name, "show-action"))
+		gtk_widget_show((GtkWidget *) eina_obj_get_window(self));
+
+	else if (g_str_equal(name, "hide-action"))
+		gtk_widget_hide((GtkWidget *) eina_obj_get_window(self));
+
+	else if (g_str_equal(name, "play-action"))
 		lomo_player_play(eina_obj_get_lomo(self), &error);
 
 	else if (g_str_equal(name, "pause-action"))
