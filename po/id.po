@@ -1,16 +1,16 @@
-# Serbian translation for eina
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# Indonesian translation for eina
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the eina package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-28 18:35+0100\n"
-"PO-Revision-Date: 2009-07-14 06:54+0000\n"
-"Last-Translator: liticovjesac <Unknown>\n"
-"Language-Team: Serbian <sr@li.org>\n"
+"PO-Revision-Date: 2010-01-08 14:02+0000\n"
+"Last-Translator: dadanhrn <dadanhrn@gmail.com>\n"
+"Language-Team: Indonesian <id@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -38,7 +38,7 @@ msgstr ""
 #: ../gel/gel-app.c:380 ../eina/plugins.c:112
 #, c-format
 msgid "Cannot load %s: %s"
-msgstr ""
+msgstr "Tidak dapat memuat %s: %s"
 
 #: ../gel/gel-app.c:414
 #, c-format
@@ -61,9 +61,8 @@ msgid "Init for '%s' failed: %s"
 msgstr ""
 
 #: ../gel/gel-app.c:501
-#, fuzzy
 msgid "No error"
-msgstr "Непозната грешка"
+msgstr ""
 
 #: ../gel/gel-app.c:504
 #, c-format
@@ -284,12 +283,12 @@ msgstr ""
 
 #: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
 msgid "Unknow error"
-msgstr "Непозната грешка"
+msgstr ""
 
 #: ../eina/ext/eina-file-chooser-dialog.c:284
 #, fuzzy, c-format
 msgid "Cannot locate resource %s"
-msgstr "Не могу направити ставку у менију:  %s"
+msgstr "Tidak dapat memuat %s: %s"
 
 #: ../eina/ext/eina-file-chooser-dialog.c:295
 msgid "Loading files..."
@@ -353,9 +352,8 @@ msgid "Unable to handle type '%s' for object '%s' of group '%s'"
 msgstr ""
 
 #: ../eina/ext/eina-preferences-dialog.c:370
-#, fuzzy
 msgid "Cannot get active iter"
-msgstr "Не могу креирати механизам"
+msgstr ""
 
 #: ../eina/ext/eina-stock.c:44
 msgid "Status icon"
@@ -400,11 +398,11 @@ msgstr ""
 
 #: ../eina/about.c:95
 msgid "A classic player for the modern era"
-msgstr "Класични плејер за модерно доба"
+msgstr ""
 
 #: ../eina/about.c:108
 msgid "About Eina"
-msgstr "О програму"
+msgstr ""
 
 #: ../eina/about.c:130
 msgid "About window plugin"
@@ -490,69 +488,69 @@ msgstr ""
 #: ../eina/log.c:196
 #, c-format
 msgid "Cannot load UI from %s: %s"
-msgstr "Не могу да учитам корисничко окружење из %s: %s"
+msgstr ""
 
 #: ../eina/log.c:212
 msgid "Not all required widgets are valids"
-msgstr "Сви потребни графички објекти нису исправни"
+msgstr ""
 
 #: ../eina/log.c:230
 #, c-format
 msgid "Cannot create menu item: %s"
-msgstr "Не могу направити ставку у менију:  %s"
+msgstr ""
 
 #: ../eina/log.c:236
 msgid "Debug window"
-msgstr "Прозор за откривање грешака"
+msgstr ""
 
 #: ../eina/log.c:300
 msgid "Severe errors"
-msgstr "Критична грешка"
+msgstr ""
 
 #: ../eina/log.c:301
 msgid "Errors"
-msgstr "Грешке"
+msgstr ""
 
 #: ../eina/log.c:302
 msgid "Warnings"
-msgstr "Упозорења"
+msgstr ""
 
 #: ../eina/log.c:303
 msgid "Information messages"
-msgstr "Информативне поруке"
+msgstr ""
 
 #: ../eina/log.c:304
 msgid "Debug information"
-msgstr "Информација о откривеним грешкама"
+msgstr ""
 
 #: ../eina/log.c:305
 msgid "Full debug"
-msgstr "Ружна грешка"
+msgstr ""
 
 #: ../eina/log.c:310
 #, c-format
 msgid "Set level to %s"
-msgstr "Подеси ниво на %s"
+msgstr ""
 
 #: ../eina/log.c:406
 msgid "Cannot not shot dialog, it doest exists"
-msgstr "Не могу приказати дијалог јер не постоји"
+msgstr ""
 
 #: ../eina/log.c:455
 msgid "Build-in log"
-msgstr "Уграђена датотека за евиденцију"
+msgstr ""
 
 #: ../eina/lomo.c:44
 msgid "Cannot create engine"
-msgstr "Не могу креирати механизам"
+msgstr ""
 
 #: ../eina/lomo.c:52
 msgid "Cannot share engine"
-msgstr "Не могу поделити механизам"
+msgstr ""
 
 #: ../eina/lomo.c:78
 msgid "Cannot destroy engine"
-msgstr "Не могу уништити механизам"
+msgstr ""
 
 #. version
 #. deps
@@ -560,7 +558,7 @@ msgstr "Не могу уништити механизам"
 #. url
 #: ../eina/lomo.c:129
 msgid "Build-in lomo plugin"
-msgstr "Уграђени lomo програм за подешавање"
+msgstr ""
 
 #: ../eina/player.c:174
 #, c-format
@@ -660,7 +658,7 @@ msgstr ""
 #: ../eina/preferences.c:183
 #, fuzzy, c-format
 msgid "Cannot attach menu: %s"
-msgstr "Не могу направити ставку у менију:  %s"
+msgstr "Tidak dapat memuat %s: %s"
 
 #: ../eina/preferences.c:199
 msgid ""
@@ -679,15 +677,15 @@ msgstr ""
 #: ../eina/settings.c:46
 #, c-format
 msgid "Cannot create config folder %s"
-msgstr "Не могу направити конфигурациони директоријум %s"
+msgstr ""
 
 #: ../eina/settings.c:77
 msgid "Conf object not found"
-msgstr "Конфигурациони објекат није пронађен"
+msgstr ""
 
 #: ../eina/settings.c:92
 msgid "Build-in settings plugin"
-msgstr "Уграђени додатак програма за подешавање"
+msgstr ""
 
 #: ../eina/template.c:95
 msgid "Build-in template plugin"
@@ -704,9 +702,8 @@ msgid "Cannot fini plugin %s: %s"
 msgstr ""
 
 #: ../eina/vogon.c:97
-#, fuzzy
 msgid "Show Eina"
-msgstr "О програму"
+msgstr ""
 
 #: ../eina/vogon.c:98
 msgid "Hide Eina"
@@ -1012,23 +1009,23 @@ msgstr ""
 
 #: ../ui/dock.ui.h:1
 msgid "\t"
-msgstr "\t"
+msgstr ""
 
 #: ../ui/log.ui.h:1
 msgid "<b>Log level:</b> "
-msgstr "<b>Ниво датотека за евиденцију:</b> "
+msgstr ""
 
 #: ../ui/log.ui.h:2
 msgid "gtk-clear"
-msgstr "gtk-clear"
+msgstr ""
 
 #: ../ui/log.ui.h:3
 msgid "gtk-close"
-msgstr "gtk-close"
+msgstr ""
 
 #: ../ui/log.ui.h:4 ../ui/plugins.ui.h:15
 msgid "label"
-msgstr "етикета"
+msgstr ""
 
 #: ../ui/player-preferences.ui.h:1
 msgid "By default new files"
@@ -1060,7 +1057,7 @@ msgstr ""
 
 #: ../ui/player.ui.h:1
 msgid "<small><tt></tt></small>"
-msgstr "<small><tt></tt></small>"
+msgstr ""
 
 #: ../ui/player.ui.h:3
 #, no-c-format
@@ -1068,8 +1065,6 @@ msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
-"<span size=\\\"x-large\\\" weight=\\\"bold\\\">%t</span>\n"
-"<span size=\\\"x-large\\\" weight=\\\"normal\\\">{%a}</span>"
 
 #: ../ui/playlist.ui.h:1
 msgid "Filter"
@@ -1077,7 +1072,7 @@ msgstr ""
 
 #: ../ui/playlist.ui.h:2
 msgid "Playlist"
-msgstr "Листа песама"
+msgstr ""
 
 #: ../ui/plugins.ui.h:2
 #, no-c-format
@@ -1165,32 +1160,5 @@ msgstr ""
 msgid "page 3"
 msgstr ""
 
-#~ msgid "Dock"
-#~ msgstr "Усидри"
-
-#~ msgid "<b>Information format</b>"
-#~ msgstr "<b>Облик информација</b>"
-
-#~ msgid "Custom format:"
-#~ msgstr "Кориснички облик:"
-
-#~ msgid "More info about Pango markup language"
-#~ msgstr "Више информација о Pango језику за означавање"
-
-#~ msgid ""
-#~ "This format uses the pango markup, follow next link to learn about it.\n"
-#~ "\n"
-#~ "The following 'tags' can be used: %a for artist, %b for album, %t for "
-#~ "title and %n for track number.\n"
-#~ "\n"
-#~ "Embracing any text with curly brackets makes it optional, disapearing if "
-#~ "no matches for its content is found.\n"
-#~ msgstr ""
-#~ "Овај облик користи панго означавање, прати линк да би сазнао више о њему."
-#~ "\\n\n"
-#~ "\\n\n"
-#~ "Следеће ознаке могу бити кориштене: %a за извођача, %t  за наслов, %n за "
-#~ "редни број песме.\\n\n"
-#~ "\\n\n"
-#~ "Уоквиравање било ког текста у велику заграду чини га опционалним, и "
-#~ "нестаће ако никакво слагање за његов садржај није пронађено.\\n\n"
+#~ msgid "none"
+#~ msgstr "tidak ada"
