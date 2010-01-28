@@ -26,7 +26,7 @@
 #include "submit.h"
 #define debug(...) ;
 
-#define ALLWAYS_GEN_YAML 0
+#define ALWAYS_GEN_YAML 0
 #define SETTINGS_PATH "/plugins/lastfm"
 
 /*
@@ -53,6 +53,7 @@ generate_yaml()
 struct _LastFMSubmit {
 	gchar      *daemonpath;
 	GPid        daemonpid;
+
 	GIOChannel *io_out, *io_err;
 	guint       out_id, err_id;
 
@@ -114,10 +115,10 @@ str_parser_cb(gchar key, LomoStream *stream)
 		tag = LOMO_TAG_ALBUM;
 		break;
 	default:
-		return FALSE;
+		return NULL;
 	}
 	gchar *ret = lomo_stream_get_tag(stream, tag);
-	return ret ? ret : NULL;
+	return ret ? g_strdup(ret) : NULL;
 }
 
 static void
@@ -129,7 +130,6 @@ generate_yaml(LastFMSubmit *self, LomoPlayer *lomo, LomoStream *stream)
 	self->submited = TRUE;
 
 	// Build YAML format
-
 	gchar *tmp = gel_str_parser("---\n{album: %b\n}{title: %t\n}{artist: %a\n}", (GelStrParserFunc) str_parser_cb, stream);
 	GString *str = g_string_new(tmp);
 	g_free(tmp);
@@ -472,7 +472,7 @@ lomo_state_change_cb(LomoPlayer *lomo, LastFMSubmit *self)
 
 	case LOMO_STATE_PAUSE:
 		// Add to counter secs from the last checkpoint
-		 set_checkpoint(self, lomo_player_tell_time(lomo), TRUE);
+		set_checkpoint(self, lomo_player_tell_time(lomo), TRUE);
 		break;
 
 	default:
@@ -487,19 +487,20 @@ lomo_eos_cb(LomoPlayer *lomo, LastFMSubmit *self)
 {
 	debug("Got EOS/PRE_CHANGE");
 	set_checkpoint(self, lomo_player_tell_time(lomo), TRUE);
-	if ((self->played >= 30) && (self->played >= (lomo_player_length_time(lomo) / 2)))
+
+#if ALWAYS_GEN_YAML
+	// For debugging purposes
+	generate_yaml(self, lomo, lomo_player_get_current_stream(lomo));
+
+#else
+	if ((self->played >= 30) && (self->played >= (lomo_player_length_time(lomo) / 2)) && !self->submited)
 	{
-		#if !ALLWAYS_GEN_YAML
 		generate_yaml(self, lomo, lomo_player_get_current_stream(lomo));
-		#endif
 		gel_warn("Submit to lastfm");
 	}
 	else
 		debug("Not enought to submit to lastfm");
-
-	#if ALLWAYS_GEN_YAML
-	generate_yaml(self, lomo, lomo_player_get_current_stream(lomo));
-	#endif
+#endif
 }
 
 static void
