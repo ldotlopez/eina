@@ -2,12 +2,12 @@ Source: eina
 Section: sound
 Priority: extra
 Maintainer: Luis Lopez <xuzo@cuarentaydos.com>
-Build-Depends: debhelper (>= 5), autotools-dev, intltool, pkg-config, python2.6, libgstreamer0.10-dev, libgtk2.0-dev, libdbus-glib-1-dev, libnotify-dev, libunique-dev, libsqlite3-dev, libcurl4-gnutls-dev
+Build-Depends: debhelper (>= 5), autotools-dev, intltool, pkg-config, python2.6, libgstreamer0.10-dev, libgtk2.0-dev, libdbus-glib-1-dev, libunique-dev, libsqlite3-dev, libcurl4-gnutls-dev
 Standards-Version: 3.7.3
 
 Package: eina
 Architecture: any
-Depends: libc6, libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk2.0-0 (>= 2.12.0), libdbus-glib-1-2, libnotify1, libunique-1.0-0, libsqlite3-0, libcurl3-gnutls
+Depends: libc6, libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk2.0-0 (>= 2.12.0), libdbus-glib-1-2, libunique-1.0-0, libsqlite3-0, libcurl3-gnutls
 Recommends: gstreamer0.10-ffmpeg, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-ugly
 Replaces: liblomo1
 Conflicts: liblomo1

@@ -1,13 +1,10 @@
 usr/bin/vogon
 usr/bin/eina
 usr/include/eina-0.9
-usr/lib/eina/ntfy/libntfy.so
-usr/lib/eina/ntfy/ntfy.png
-usr/lib/eina/recently/librecently.so
-usr/lib/eina/recently/go-back.png
-usr/lib/eina/recently/dock.ui
 usr/lib/eina/adb/libadb.so
 usr/lib/eina/adb/adb.png
+usr/lib/eina/callhome/libcallhome.so
+usr/lib/eina/coverplus/libcoverplus.so
 usr/lib/eina/lastfm/lastfmsubmitd
 usr/lib/eina/lastfm/lastfmsubmitd/lastfm
 usr/lib/eina/lastfm/lastfmsubmitd/lastfm/client.py
@@ -21,7 +18,6 @@ usr/lib/eina/lastfm/liblastfm.so
 usr/lib/eina/lastfm/logo.gif
 usr/lib/eina/lastfm/lastfm.ui
 usr/lib/eina/lastfm/lastfm.png
-usr/lib/eina/coverplus/libcoverplus.so
 usr/lib/liblomo-1.0.so.1
 usr/lib/liblomo-1.0.so.1.0.0
 usr/lib/libgel-1.0.so.1

@@ -56,6 +56,7 @@ eina/window.c
 plugins/adb/adb.c
 plugins/adb/iface.c
 plugins/adb/register.c
+plugins/callhome/callhome.c
 plugins/coverplus/banshee.c
 plugins/coverplus/iface.c
 plugins/coverplus/infolder-sync.c

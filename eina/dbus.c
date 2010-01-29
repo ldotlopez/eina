@@ -95,7 +95,7 @@ dbus_register_server(GelApp *app, DBusGConnection *conn, GError **error)
 	}
 
 	guint result;
-    org_freedesktop_DBus_request_name (proxy,
+	org_freedesktop_DBus_request_name (proxy,
 		"net.sourceforge.Eina.LomoPlayer", 
 		DBUS_NAME_FLAG_DO_NOT_QUEUE, &result, error);
 	if (*error)

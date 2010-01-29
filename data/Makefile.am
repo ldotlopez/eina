@@ -1,6 +1,6 @@
 # Build / clean / extra
 BUILT_SOURCES = lomo-player-glue.h
-CLEAN_FILES = lomo-player-glue.h
+CLEANFILES = $(BUILT_SOURCES)
 EXTRA_DIST = lomo-player.xml
 
 lomo-player-glue.h: lomo-player.xml

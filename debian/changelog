@@ -1,9 +1,9 @@
-eina (0.9.0+git20091107~ppa1) karmic; urgency=low
+eina (0.9.0.0) karmic; urgency=low
 
-  * Update to 0.9.0
-  * Move to karmic
+  * Upstream release 0.9.0
+  * Add a .0 to version number to be greater than ppa versions.
 
- -- Luis Lopez <xuzo@cuarentaydos.com>  Sat, 07 Nov 2009 13:17:17 +0100
+ -- Luis Lopez <xuzo@cuarentaydos.com>  Fri, 29 Jan 2010 09:35:13 +0100
 
 eina (0.8.0~rc2~ppa3) jaunty; urgency=low
 
