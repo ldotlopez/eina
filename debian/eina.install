@@ -1,6 +1,5 @@
 usr/bin/vogon
 usr/bin/eina
-usr/include/eina-0.9
 usr/lib/eina/adb/libadb.so
 usr/lib/eina/adb/adb.png
 usr/lib/eina/callhome/libcallhome.so
@@ -22,7 +21,6 @@ usr/lib/liblomo-1.0.so.1
 usr/lib/liblomo-1.0.so.1.0.0
 usr/lib/libgel-1.0.so.1
 usr/lib/libgel-1.0.so.1.0.0
-usr/lib/pkgconfig/eina-0.9.pc
 usr/share/locale
 usr/share/eina
 usr/share/applications/eina.desktop
