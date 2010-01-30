@@ -22,7 +22,7 @@
 #define PING_URL "http://cuarentaydos.com/uuid.php?q=%s"
 
 #include <config.h>
-#include <ossp/uuid.h>
+#include <uuid/uuid.h>
 #include <eina/eina-plugin.h>
 
 enum {
@@ -35,31 +35,42 @@ GEL_AUTO_QUARK_FUNC(callhome)
 static gchar *
 build_uuid(gchar *seed, GError **error)
 {
-	uuid_t *uuid;
-	char *uuid_str = NULL;
+	uuid_t uuid;
+	char uuid_str[37] = "\0";
 
-	if (uuid_create(&uuid) != 0)
-	{
-		g_set_error(error, callhome_quark(), EINA_CALLHOME_ERROR_GENERAL, N_("Cannot create UUID object"));
-		return NULL;
-	}
+	memset(uuid_str, 0, 37);
+	uuid_clear(uuid);
 
 	// If seed, try to import it (verify)
-	if (seed && (uuid_import(uuid, UUID_FMT_STR, (void *) seed, strlen(seed)) == 0))
+	if (seed)
 	{
-		uuid_destroy(uuid);
-		return g_strdup(seed);
+		uuid_parse(seed, uuid);
+		if (!uuid_is_null(uuid))
+			return g_strdup(seed);
 	}
 
 	// No seed or invalid, generate a new one
-	if (uuid_make(uuid, UUID_MAKE_V4) || uuid_export(uuid, UUID_FMT_STR, (void*) &uuid_str, NULL))
+	uuid_generate(uuid);
+	if (uuid_is_null(uuid))
+	{
+		g_set_error(error, callhome_quark(), EINA_CALLHOME_ERROR_GENERAL, N_("Cannot create UUID object"));
+		return NULL;
+	}
+	uuid_unparse(uuid, uuid_str);
+	return g_strdup(uuid_str);
+
+	// No seed or invalid, generate a new one
+	/*
+	uuid_generate(uuid);
+	uuid_unparse(uuid, uuid_str);
+	if (uuid_is_null(uuid))
 	{
 		g_set_error(error, callhome_quark(), EINA_CALLHOME_ERROR_GENERAL, N_("Cannot create UUID object"));
 		return NULL;
 	}
 
-	uuid_destroy(uuid);
-	return uuid_str;
+	return g_strdup(uuid_str);
+	*/
 }
 
 static void
