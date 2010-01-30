@@ -251,34 +251,23 @@ PKG_CHECK_MODULES(UNIQUE, $unique_modules,
 dnl
 dnl uuid (!core, callhome)
 dnl
-UUID_VERSION="1.6.0"
-uuid_modules="ossp-uuid >= $UUID_VERSION" 
+UUID_VERSION="2.16.0"
+uuid_modules="uuid >= $UUID_VERSION" 
 PKG_CHECK_MODULES(UUID, $uuid_modules,
 	[
 		HAVE_UUID=yes
 	],
 	[
-		HAVE_UUID=no
+		dnl On MacOS X uuid is installed by default but is unreachable by
+		dnl pkg-config. We need to check if uuid/uuid.h is present and asume some things
+		AC_CHECK_HEADER(uuid/uuid.h, [HAVE_UUID=yes], [HAVE_UUID=no])
 	]
 	)
 
-# On Mac OS X ossp-uuid is named as uuid
-if test x"$HAVE_UUID" = "xno"; then
-	uuid_modules="uuid >= $UUID_VERSION" 
-	PKG_CHECK_MODULES(UUID, $uuid_modules,
-		[
-			HAVE_UUID=yes
-		],
-		[
-			HAVE_UUID=no
-		]
-		)
-fi
-
 if test x"$HAVE_UUID" = "xyes"; then
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=1"
 	AC_SUBST(UUID_CFLAGS)
 	AC_SUBST(UUID_LIBS)
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=1"
 else
 	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UUID=0"
 fi
