@@ -22,6 +22,9 @@
 #include <eina/eina-plugin.h>
 #include <plugins/adb/adb.h>
 
+#define DEFAULT_SIZE 64
+#define AUTO_REFRESH 0
+
 enum {
 	EINA_MUINE_NO_ERROR = 0,
 	EINA_MUINE_ERROR_UI_NOT_FOUND,
@@ -31,6 +34,9 @@ enum {
 enum {
 	COMBO_COLUMN_ICON,
 	COMBO_COLUMN_MARKUP,
+
+	COMBO_COLUMN_ID,
+	COMBO_COLUMN_SEARCH
 };
 
 struct _EinaMuine {
@@ -38,37 +44,151 @@ struct _EinaMuine {
 
 	GtkWidget *dock;
 
-	GtkTreeView *list;
-	GtkComboBox *combo;
+	GtkTreeView  *view;
+	GtkListStore *model;
 
-	GtkListStore *list_model;
-	GtkListStore *combo_model;
+	GdkPixbuf *default_icon;
+	guint refresh_id;
 };
 typedef struct _EinaMuine EinaMuine;
 
 GEL_AUTO_QUARK_FUNC(muine)
 
+static void
+muine_model_refresh(EinaMuine *self);
+static void
+muine_model_clear(EinaMuine *self);
+#if AUTO_REFRESH
+static void
+muine_schedule_refresh(EinaMuine *self);
+#endif
+static void
+row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self);
+static void
+action_activate_cb(GtkAction *action, EinaMuine *self);
+static void
+search_cb(Art *art, ArtSearch *search, EinaMuine *self);
+
 static gboolean
 muine_init(EinaMuine *self, GError **error)
 {
 	self->dock  = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
-	self->list  = eina_obj_get_typed(self, GTK_TREE_VIEW, "list-view");
-	self->combo = eina_obj_get_typed(self, GTK_COMBO_BOX, "combo-view");
-	self->list_model  = eina_obj_get_typed(self, GTK_LIST_STORE, "list-model");
-	self->combo_model = eina_obj_get_typed(self, GTK_LIST_STORE, "combo-model");
+	self->view  = eina_obj_get_typed(self, GTK_TREE_VIEW, "list-view");
+	self->model = eina_obj_get_typed(self, GTK_LIST_STORE, "model");
 
-	if (!self->dock || !self->list || !self->combo || !self->list_model || !self->combo_model)
+	GError *err = NULL;
+	gchar *icon_path = NULL;
+	if (!(icon_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg")) ||
+	    !(self->default_icon = gdk_pixbuf_new_from_file_at_scale(icon_path, DEFAULT_SIZE, DEFAULT_SIZE, TRUE, &err)))
 	{
-		g_set_error(error, muine_quark(), EINA_MUINE_ERROR_MISSING_OBJECTS,
-			N_("Missing widgets D:%p LV:%p CV:%p LS:%p CS:%p"),
-			self->dock, self->list, self->combo, self->list_model, self->combo_model);
-		return FALSE;
+		if (err)
+		{
+			gel_warn(N_("Cannot load resource %s: %s"), icon_path, err->message);
+			g_error_free(err);
+		}
+
+		if (!icon_path)
+			gel_warn(N_("Cannot locate resource %s"), "eina.svg");
+		else
+			g_free(icon_path);
 	}
 
+	if (!self->dock || !self->view || !self->model)
+	{
+		g_set_error(error, muine_quark(), EINA_MUINE_ERROR_MISSING_OBJECTS,
+			N_("Missing widgets D:%p V:%p M:%p"),
+			self->dock, self->view, self->model);
+		return FALSE;
+	}
+	g_object_set(eina_obj_get_object(self, "markup-renderer"), "yalign", 0.0f, NULL);
+	g_signal_connect(self->view, "row-activated", (GCallback) row_activated_cb, self);
+
+	#if AUTO_REFRESH
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
+	g_signal_connect_swapped(lomo, "insert", (GCallback) muine_schedule_refresh, self);
+	#endif
+
+	gint i;
+	gchar *actions[] = { "play-action", "queue-action", NULL };
+	for (i = 0; actions[i] != NULL; i++)
+	{
+		GObject *a = eina_obj_get_object(self, actions[i]);
+		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
+	}
+	muine_model_refresh(self);
+
+	gtk_widget_unparent(self->dock);
+	gtk_widget_show(self->dock);
+
+	EinaDock *dock = eina_obj_get_dock(self);
+	eina_dock_add_widget(dock, "muine", gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_SMALL_TOOLBAR), self->dock);
+	return TRUE;
+}
+
+static gboolean
+muine_destroy(EinaMuine *self, GError **error)
+{
+	if (!self || !self->dock)
+		return TRUE;
+
+	muine_model_clear(self);
+
+	EinaDock *dock = eina_obj_get_dock(self);
+	eina_dock_remove_widget(dock, "muine");
+
+	gel_free_and_invalidate(self->dock, NULL, g_object_unref);
+	g_object_unref(self->dock);
+	self->dock = FALSE;
+
+	return TRUE;
+}
+
+static void
+muine_model_clear(EinaMuine *self)
+{
+	GtkTreeIter iter;
+	if (self->model && gtk_tree_model_get_iter_first((GtkTreeModel *) self->model, &iter))
+	{
+		Art *art = eina_obj_get_art(self);
+		ArtSearch *search = NULL;
+		do {
+			gtk_tree_model_get((GtkTreeModel *) self->model, &iter,
+				COMBO_COLUMN_SEARCH, &search,
+				-1);
+
+			if (search)
+				art_cancel(art, search);
+		} while (gtk_tree_model_iter_next((GtkTreeModel *) self->model, &iter));
+	}
+	gtk_list_store_clear(self->model);
+}
+
+#if AUTO_REFRESH
+static gboolean
+muine_model_refresh_wrapper(EinaMuine *self)
+{
+	muine_model_refresh(self);
+	self->refresh_id = 0;
+	return FALSE;
+}
+
+static void
+muine_schedule_refresh(EinaMuine *self)
+{
+	if (self->refresh_id)
+		g_source_remove(self->refresh_id);
+	self->refresh_id = g_timeout_add_seconds(10, (GSourceFunc) muine_model_refresh_wrapper, self);
+}
+#endif
+
+// Very rudimental refresh
+static void
+muine_model_refresh(EinaMuine *self)
+{
+	muine_model_clear(self);
+
 	Adb *adb = eina_obj_get_adb(self);
-	// select count(*) as count,artist,album from fast_meta group
-	// by(lower(album));
-	gchar *q = "select count(*) as count,artist,album from fast_meta group by(lower(album)) order by album";
+	gchar *q = "select count(*) as count,artist,album from fast_meta group by(lower(album)) order by album DESC";
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
 	{
@@ -76,42 +196,168 @@ muine_init(EinaMuine *self, GError **error)
 		sqlite3_free(q);
 	}
 
+	const gchar *db_album, *db_artist;
 	gchar *album, *artist;
 	gint   count;
 	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
 	{
 		count  = (gint)   sqlite3_column_int (stmt, 0);
-		artist = g_markup_escape_text((gchar*) sqlite3_column_text(stmt, 1), -1);
-		album  = g_markup_escape_text((gchar*) sqlite3_column_text(stmt, 2), -1);
 
-		gchar *markup = g_strdup_printf("<big>%s</big>\n%s - %d streams", album, artist, count);
-		gtk_list_store_insert_with_values(self->combo_model, NULL, 0,
+		db_artist = (const gchar *) sqlite3_column_text(stmt, 1);
+		db_album  = (const gchar *) sqlite3_column_text(stmt, 2);
+	
+		artist = g_markup_escape_text(db_artist, -1);
+		album  = g_markup_escape_text(db_album,  -1);
+
+		LomoStream *fake_stream = lomo_stream_new("file:///dev/null");
+		lomo_stream_set_tag(fake_stream, LOMO_TAG_ARTIST, g_strdup(db_artist));
+		lomo_stream_set_tag(fake_stream, LOMO_TAG_ALBUM,  g_strdup(db_album));
+
+		ArtSearch *search = art_search(eina_obj_get_art(self), fake_stream, (ArtFunc) search_cb, self);
+
+		gchar *markup = g_strdup_printf("<big><b>%s</b></big>\n%s <span size=\"small\" weight=\"light\">(%d streams)</span>", album, artist, count);
+		gtk_list_store_insert_with_values(self->model, NULL, 0,
 			COMBO_COLUMN_MARKUP, markup,
+			COMBO_COLUMN_ID,     db_album,
+			COMBO_COLUMN_SEARCH, search,
+			COMBO_COLUMN_ICON,   self->default_icon,
 			-1);
 		g_free(markup);
 		g_free(artist);
 		g_free(album);
 	}
     sqlite3_finalize(stmt);
-
-
-	gtk_widget_unparent(self->dock);
-	gtk_widget_show(self->dock);
-
-	EinaDock *dock = eina_obj_get_dock(self);
-	eina_dock_add_widget(dock, "muine", gtk_label_new(N_("M")), self->dock);
-	return TRUE;
 }
 
-static gboolean
-muine_destroy(EinaMuine *self, GError **error)
+static void
+muine_update_icon(EinaMuine *self, ArtSearch *search)
 {
-	if (self && self->dock)
+	GtkTreeIter iter;
+
+	GdkPixbuf *icon = art_search_get_result(search);
+	if (!icon || !GDK_IS_PIXBUF(icon))
 	{
-		EinaDock *dock = eina_obj_get_dock(self);
-		eina_dock_remove_widget(dock, "muine");
+		gel_error(N_("Invalid result"));
+		return;
 	}
-	return TRUE;
+
+	if (!gtk_tree_model_get_iter_first((GtkTreeModel *) self->model, &iter))
+	{
+		gel_error(N_("Cannot get first iter"));
+		return;
+	}
+
+	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(icon, DEFAULT_SIZE, DEFAULT_SIZE, GDK_INTERP_NEAREST);
+	if (!scaled || !GDK_IS_PIXBUF(scaled))
+	{
+		gel_error(N_("Unable to scale icon"));
+		return;
+	}
+
+	ArtSearch *test;
+	do {
+		gtk_tree_model_get((GtkTreeModel *) self->model, &iter,
+			COMBO_COLUMN_SEARCH, &test,
+			-1);
+		if ((test == search) && scaled)
+		{
+			gtk_list_store_set(self->model, &iter,
+				COMBO_COLUMN_ICON, scaled,
+				COMBO_COLUMN_SEARCH, NULL,
+				-1);
+			return;
+		}
+	} while (gtk_tree_model_iter_next((GtkTreeModel *) self->model, &iter));
+	gel_error("Search NOT found");
+}
+
+static GList *
+muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
+{
+	gchar *id = NULL;
+	gtk_tree_model_get((GtkTreeModel *) self->model, iter,
+		COMBO_COLUMN_ID, &id,
+		-1);
+	
+	Adb *adb = eina_obj_get_adb(self);
+	char *q = sqlite3_mprintf("select uri from streams where sid in (select sid from fast_meta where album='%q')", id);
+	sqlite3_stmt *stmt;
+	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	{
+		gel_error("Cannot build stmt");
+		sqlite3_free(q);
+		return NULL;
+	}
+	sqlite3_free(q);
+
+	GList *uris = NULL;
+	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+		uris = g_list_prepend(uris, g_strdup((const gchar *) sqlite3_column_text(stmt, 0)));
+	sqlite3_finalize(stmt);
+
+	return g_list_reverse(uris);
+}
+
+static void
+row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self)
+{
+	GtkTreeIter iter;
+	if (!gtk_tree_model_get_iter((GtkTreeModel *) self->model, &iter, path))
+	{
+		gel_error(N_("Cannot get iter  for model"));
+		return;
+	}
+
+	GList *uris = muine_get_uris_from_tree_iter(self, &iter);
+	if (uris == NULL)
+	{
+		gel_error(N_("NULL result from ADB"));
+		return;
+	}
+
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
+	lomo_player_clear(lomo);
+	lomo_player_append_uri_multi(lomo, uris);
+
+	gel_list_deep_free(uris, g_free);
+}
+
+static void
+action_activate_cb(GtkAction *action, EinaMuine *self)
+{
+	const gchar *name = gtk_action_get_name(action);
+	gboolean do_clear = FALSE;
+
+	if (g_str_equal(name, "play-action"))
+		do_clear = TRUE;
+	else if (g_str_equal(name, "queue-action"))
+		do_clear = FALSE;
+	else
+		return;
+
+	GtkTreeSelection *sel = gtk_tree_view_get_selection(self->view);
+	if (!sel)
+		return;
+
+	GtkTreeIter iter;
+	if (!gtk_tree_selection_get_selected(sel, NULL, &iter))
+		return;
+
+	GList *uris = muine_get_uris_from_tree_iter(self, &iter);
+	if (!uris)
+		return;
+
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
+	if (do_clear)
+		lomo_player_clear(lomo);
+	lomo_player_append_uri_multi(lomo, uris);
+	gel_list_deep_free(uris, g_free);
+}
+
+static void
+search_cb(Art *art, ArtSearch *search, EinaMuine *self)
+{
+	muine_update_icon(self, search);
 }
 
 G_MODULE_EXPORT gboolean
@@ -122,27 +368,7 @@ muine_iface_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self = g_new0(EinaMuine, 1);
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "muine", EINA_OBJ_GTK_UI, error))
 		return FALSE;
-
-	/*
-	gchar *ui_path = NULL;
-	gchar *ui_xml  = NULL;
-
-	// This snippet is very common, it should move to some common place
-	if (!(ui_path = gel_plugin_get_resource(EINA_OBJ(self)->plugin, GEL_RESOURCE_UI, "muine.ui")) ||
-	    !(g_file_get_contents(ui_path, &ui_xml, NULL, error)))
-	{
-		if (ui_path == NULL)
-		{
-			g_set_error(error, muine_quark(), EINA_MUINE_ERROR_UI_NOT_FOUND, N_("Resource not found: %s"), "muine.ui");
-			return FALSE;
-		}
-		else
-			g_free(ui_path);
-	}
-	*/
-
 	plugin->data = self;
-	gel_warn("Muine is on fire");
 
 	if (!muine_init(self, error))
 	{
@@ -157,7 +383,6 @@ G_MODULE_EXPORT gboolean
 muine_iface_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaMuine *self = GEL_PLUGIN_DATA(plugin);
-	gel_warn("Muine is... out");
 
 	gboolean ret = muine_destroy(self, error);
 	if (ret == FALSE)
@@ -169,13 +394,14 @@ muine_iface_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 EINA_PLUGIN_SPEC(muine,
 	"0.0.1",
-	"dock,adb",
+	"dock,art,adb,lomo,settings",
 
 	NULL,
 	NULL,
 
-	N_("Muine-like playlist"),
-	NULL,
+	N_("Build playlist from your albums"),
+	N_("This plugin allows Eina to work like Muine music player.\n"
+	"You can handle your playlists grouped by album. Add once, play anytime"),
 	NULL,
 
 	muine_iface_init,

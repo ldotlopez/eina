@@ -2,58 +2,119 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
+  <object class="GtkListStore" id="model">
+    <columns>
+      <!-- column-name icon -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name markup -->
+      <column type="gchararray"/>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+      <!-- column-name search -->
+      <column type="gpointer"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main-window">
     <child>
       <object class="GtkVBox" id="main-widget">
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
+        <property name="spacing">5</property>
         <child>
-          <object class="GtkComboBox" id="combo-view">
+          <object class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
-            <property name="model">combo-model</property>
+            <property name="can_focus">True</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
             <child>
-              <object class="GtkCellRendererPixbuf" id="cellrenderertext1"/>
-              <attributes>
-                <attribute name="pixbuf">0</attribute>
-              </attributes>
-            </child>
-            <child>
-              <object class="GtkCellRendererText" id="cellrenderertext2"/>
-              <attributes>
-                <attribute name="markup">1</attribute>
-              </attributes>
+              <object class="GtkTreeView" id="list-view">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">model</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
+                <property name="search_column">1</property>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="title">column</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1"/>
+                      <attributes>
+                        <attribute name="pixbuf">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+                    <property name="title">column</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="markup-renderer"/>
+                      <attributes>
+                        <attribute name="markup">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+              </object>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkTreeView" id="list-view">
+          <object class="GtkHButtonBox" id="hbuttonbox1">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="model">list-model</property>
+            <property name="spacing">5</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">queue-action</property>
+                <property name="use_action_appearance">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button2">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">play-action</property>
+                <property name="use_action_appearance">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
           </object>
           <packing>
+            <property name="expand">False</property>
             <property name="position">1</property>
           </packing>
         </child>
       </object>
     </child>
   </object>
-  <object class="GtkListStore" id="combo-model">
-    <columns>
-      <!-- column-name icon -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name markup -->
-      <column type="gchararray"/>
-    </columns>
+  <object class="GtkAction" id="play-action">
+    <property name="label">Play</property>
+    <property name="short_label">Play</property>
+    <property name="stock_id">gtk-media-play</property>
   </object>
-  <object class="GtkListStore" id="list-model">
-    <columns>
-      <!-- column-name markup -->
-      <column type="gchararray"/>
-    </columns>
+  <object class="GtkAction" id="queue-action">
+    <property name="label">Enqueue</property>
+    <property name="short_label">Enqueue</property>
+    <property name="stock_id">queue</property>
   </object>
 </interface>
