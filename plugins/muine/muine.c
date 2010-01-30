@@ -193,7 +193,7 @@ muine_model_refresh(EinaMuine *self)
 	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
 	{
 		gel_error("Cannot select a fake stream using query %s", q);
-		sqlite3_free(q);
+		return;
 	}
 
 	const gchar *db_album, *db_artist;

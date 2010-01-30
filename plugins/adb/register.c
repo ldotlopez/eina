@@ -76,11 +76,29 @@ adb_register_setup_0(Adb *self, gpointer data, GError **error)
 	return adb_exec_queryes(self, q, NULL, error);
 }
 
+gboolean
+adb_register_setup_1(Adb *self, gpointer data, GError **error)
+{
+	gchar *q[] = 
+	{
+		"DROP VIEW IF EXISTS fast_meta;",
+		"CREATE VIEW fast_meta AS"
+		"  SELECT t.sid AS sid, t.value AS title, a.value AS artist, b.value AS album FROM"
+		"    (SELECT sid,value FROM metadata WHERE key='artist') AS a JOIN"
+		"    (SELECT sid,value FROM metadata WHERE key='album')  AS b USING(sid) JOIN"
+		"    (SELECT sid,value FROM metadata WHERE key='title')  AS t USING(sid);",
+
+		NULL
+	};
+	return adb_exec_queryes(self, q, NULL, error);
+}
+
 void
 adb_register_enable(Adb *self)
 {
 	gpointer callbacks[] = {
 		adb_register_setup_0,
+		adb_register_setup_1,
 		NULL
 		};
 
