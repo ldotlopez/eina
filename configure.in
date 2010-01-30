@@ -313,6 +313,7 @@ plugins/callhome/Makefile
 plugins/coverplus/Makefile
 plugins/fieshta/Makefile
 plugins/hooktest/Makefile
+plugins/muine/Makefile
 plugins/ntfy/Makefile
 plugins/lastfm/Makefile
 plugins/recently/Makefile

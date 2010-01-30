@@ -362,7 +362,10 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPlug
 	}
 	else
 	{
-		gel_app_load_plugin(priv->app, (gchar *) gel_plugin_get_pathname(plugin), (gchar *) plugin->name, NULL);
+		// Make GelApp happy
+		GError *error = NULL;
+		if (!gel_app_load_plugin(priv->app, (gchar *) gel_plugin_get_pathname(plugin), (gchar *) plugin->name, &error))
+			g_error_free(error);
 	}
 }
 

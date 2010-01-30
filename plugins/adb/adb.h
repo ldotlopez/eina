@@ -27,6 +27,10 @@ G_BEGIN_DECLS
 
 #define GEL_APP_GET_ADB(app) ((Adb*) gel_app_shared_get(app, "adb"))
 
+#define EINA_ADB(p) ((Adb *) p)
+#define eina_obj_get_adb(obj) gel_app_get_adb(eina_obj_get_app(obj))
+#define gel_app_get_adb(app) ((Adb*) gel_app_shared_get(app, "adb"))
+
 typedef struct Adb {
 	sqlite3 *db;
 	GelApp  *app;

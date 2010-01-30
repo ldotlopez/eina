@@ -35,12 +35,24 @@ gboolean eina_obj_init
 
 	if (flags & EINA_OBJ_GTK_UI)
 	{
-		self->ui = gel_ui_load_resource(self->name, error);
-		if (self->ui == NULL)
+		gchar *n = g_strconcat(name, ".ui", NULL);
+		gchar *ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, n);
+		g_free(n);
+
+		if (!ui_path)
 		{
 			eina_obj_fini(self);
 			return FALSE;
 		}
+
+		self->ui = gtk_builder_new();
+		if (!gtk_builder_add_from_file(self->ui, ui_path, error))
+		{
+			g_free(ui_path);
+			eina_obj_fini(self);
+			return FALSE;
+		}
+		g_free(ui_path);
 	}
 
 	return TRUE;

@@ -4,7 +4,7 @@ DIST_SUBDIRS = adb callhome coverplus fieshta hooktest lastfm ntfy recently
 SUBDIRS = coverplus lastfm
 
 if BUILD_ADB
-SUBDIRS += adb
+SUBDIRS += adb muine
 endif
 
 if BUILD_CALLHOME

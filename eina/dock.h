@@ -30,6 +30,9 @@ G_BEGIN_DECLS
 #define GEL_APP_GET_DOCK(app)  EINA_DOCK(gel_app_shared_get(app, "dock"))
 #define EINA_OBJ_GET_DOCK(obj) GEL_APP_GET_DOCK(eina_obj_get_app(obj))
 
+#define gel_app_get_dock(app)  EINA_DOCK(gel_app_shared_get(app, "dock"))
+#define eina_obj_get_dock(obj) gel_app_get_dock(eina_obj_get_app(obj))
+
 typedef struct _EinaDock EinaDock;
 
 GtkWidget*

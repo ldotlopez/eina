@@ -23,6 +23,12 @@
 #include "adb.h"
 #include "register.h"
 
+// Consident this view:
+// create view fast_meta as select  t.sid as sid, t.value as title, a.value as artist, b.value
+// as album from (select sid,value from metadata where key='artist') as a join
+// (select sid,value from metadata where key='album') as b using(sid) join
+// (select sid,value from metadata where key='title') as t using(sid);
+
 // --
 // Upgrade callbacks
 // --
