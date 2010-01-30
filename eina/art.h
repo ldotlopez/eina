@@ -28,6 +28,9 @@ G_BEGIN_DECLS
 #define GEL_APP_GET_ART(app)  ((Art*) gel_app_shared_get(app, "art"))
 #define EINA_OBJ_GET_ART(obj) GEL_APP_GET_ART(eina_obj_get_app(obj))
 
+#define gel_app_get_art(app)  ((Art*) gel_app_shared_get(app, "art"))
+#define eina_obj_get_art(obj) gel_app_get_art(eina_obj_get_app(obj))
+
 typedef struct _Art        Art;
 typedef struct _ArtBackend ArtBackend;
 typedef struct _ArtSearch  ArtSearch;
