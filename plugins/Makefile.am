@@ -1,4 +1,4 @@
-DIST_SUBDIRS = adb callhome coverplus fieshta hooktest lastfm ntfy recently
+DIST_SUBDIRS = adb callhome coverplus fieshta hooktest lastfm muine ntfy recently
 
 # Stable, basic plugins
 SUBDIRS = coverplus lastfm

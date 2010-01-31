@@ -8,8 +8,5 @@ pixmaps_DATA = \
 	loading-spin-16x16.gif \
 	plugin.png
 
-EXTRA_DIST = \
-	cover-mask.xcf         \
-	loading-spin.xcf       \
-	$(pixmaps_DATA)
+EXTRA_DIST = $(pixmaps_DATA)
 
