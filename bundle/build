@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="0.9.0"
+VERSION="0.9.1"
 
 # Create app bundle
 ~/local/bin/ige-mac-bundler eina.bundle

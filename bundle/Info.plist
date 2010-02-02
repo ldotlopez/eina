@@ -7,7 +7,7 @@
     <key>CFBundleExecutable</key>
     <string>Eina</string>
     <key>CFBundleGetInfoString</key>
-    <string>0.8.0, Copyright 2003-2009 Luis Lopez</string>
+    <string>0.9.1, Copyright 2003-2010 Luis Lopez</string>
     <key>CFBundleIconFile</key>
     <string>Eina.icns</string>
     <key>CFBundleIdentifier</key>
@@ -17,13 +17,13 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.7.3.91</string>
+    <string>0.9.1</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleVersion</key>
-    <string>0.8.0</string>
+    <string>0.9.1</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright 2003-2009 Luis Lopez, GNU General Public License.</string>
+    <string>Copyright 2003-2010 Luis Lopez, GNU General Public License.</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.5</string>
 </dict>
