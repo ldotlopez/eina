@@ -83,6 +83,24 @@ adb_schema_upgrade(Adb *self, gchar *schema, gpointer *handlers, gpointer data, 
 gboolean
 adb_exec_queryes(Adb *self, gchar **queryes, gint *successes, GError **error);
 
+// --
+// Easy setup
+// --
+
+typedef sqlite3_stmt AdbResult;
+
+AdbResult*
+adb_query(Adb *self, gchar *query, ...);
+
+gboolean
+adb_result_step(AdbResult *result);
+
+gboolean
+adb_result_get(AdbResult *result, ...);
+
+void
+adb_result_free(AdbResult *result);
+
 G_END_DECLS
 
 #endif // _ADB_COMMON_H

@@ -19,6 +19,7 @@
 
 #define GEL_DOMAIN "Adb"
 #include <config.h>
+#include <stdlib.h>
 #include <glib/gi18n.h>
 #include "adb.h"
 #include "register.h"
@@ -254,4 +255,83 @@ adb_exec_queryes(Adb *self, gchar **queryes, gint *successes, GError **error)
 	return (queryes[i] == NULL);
 }
 
+//
+// Easy query
+//
+AdbResult*
+adb_query(Adb *self, gchar *query, ...)
+{
+	va_list args;
+	va_start(args, query);
+	gchar *q = sqlite3_vmprintf(query, args);
+	va_end(args);
 
+	if (!q)
+		goto adb_query_fail;
+
+	sqlite3_stmt *stmt = NULL;
+	if (sqlite3_prepare_v2(self->db, q, -1, &stmt, NULL) != SQLITE_OK)
+		goto adb_query_fail;
+
+	sqlite3_free(q);
+	return stmt;
+
+adb_query_fail:
+	if (q)
+		sqlite3_free(q);
+	return NULL;
+}
+
+gboolean
+adb_result_step(AdbResult *result)
+{
+	g_return_val_if_fail(result != NULL, FALSE);
+
+	int ret = sqlite3_step(result);
+	g_return_val_if_fail(ret == SQLITE_ROW, FALSE);
+
+	return TRUE;
+}
+
+gboolean
+adb_result_get(AdbResult *result, ...)
+{
+	va_list args;
+	va_start(args, result);
+	gint column = va_arg(args, gint);
+	while (column >= 0)
+	{
+		GType type = va_arg(args, GType);
+		gchar **str;
+		gint   *i;
+		guint  *u;
+
+		switch (type)
+		{
+		case G_TYPE_STRING:
+			str = va_arg(args, gchar**);
+			*str = g_strdup((gchar *) sqlite3_column_text(result, column));
+			break;
+		case G_TYPE_INT:
+			i = va_arg(args, gint*);
+			*i = (gint) sqlite3_column_int(result, column);
+			break;
+		case G_TYPE_UINT:
+			u = va_arg(args, guint*);
+			*u = (guint) sqlite3_column_int(result, column);
+			break;
+		default:
+			g_warning(N_("Unhandled type '%s' in %s. Aborting"), g_type_name(type), __FUNCTION__);
+			return FALSE;
+		}
+		column = va_arg(args, guint); 
+	}
+	return TRUE;
+}
+
+void
+adb_result_free(AdbResult *result)
+{
+	g_return_if_fail(result != NULL);
+	sqlite3_finalize(result);
+}
