@@ -189,29 +189,35 @@ muine_model_refresh(EinaMuine *self)
 
 	Adb *adb = eina_obj_get_adb(self);
 	gchar *q = "select count(*) as count,artist,album from fast_meta group by(lower(album)) order by album DESC";
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+
+	AdbResult *r = adb_query(adb, q, NULL);
+	if (!r)
 	{
-		gel_error("Cannot select a fake stream using query %s", q);
+		gel_warn("Query failed");
 		return;
 	}
 
-	const gchar *db_album, *db_artist;
+	gchar *db_album, *db_artist;
 	gchar *album, *artist;
 	gint   count;
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
+	while (adb_result_step(r))
 	{
-		count  = (gint)   sqlite3_column_int (stmt, 0);
+		if (!adb_result_get(r,
+			0, G_TYPE_UINT, &count,
+			1, G_TYPE_STRING, &db_artist,
+			2, G_TYPE_STRING, &db_album,
+			-1))
+		{
+			gel_warn("Cannot get row results");
+			continue;
+		}
 
-		db_artist = (const gchar *) sqlite3_column_text(stmt, 1);
-		db_album  = (const gchar *) sqlite3_column_text(stmt, 2);
-	
 		artist = g_markup_escape_text(db_artist, -1);
 		album  = g_markup_escape_text(db_album,  -1);
 
 		LomoStream *fake_stream = lomo_stream_new("file:///dev/null");
-		lomo_stream_set_tag(fake_stream, LOMO_TAG_ARTIST, g_strdup(db_artist));
-		lomo_stream_set_tag(fake_stream, LOMO_TAG_ALBUM,  g_strdup(db_album));
+		lomo_stream_set_tag(fake_stream, LOMO_TAG_ARTIST, db_artist);
+		lomo_stream_set_tag(fake_stream, LOMO_TAG_ALBUM,  db_album);
 
 		ArtSearch *search = art_search(eina_obj_get_art(self), fake_stream, (ArtFunc) search_cb, self);
 
@@ -226,7 +232,7 @@ muine_model_refresh(EinaMuine *self)
 		g_free(artist);
 		g_free(album);
 	}
-    sqlite3_finalize(stmt);
+	adb_result_free(r);
 }
 
 static void
@@ -272,21 +278,21 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 		COMBO_COLUMN_ID, &id,
 		-1);
 	
+	char *q = "select uri from streams where sid in (select sid from fast_meta where album='%q')";
 	Adb *adb = eina_obj_get_adb(self);
-	char *q = sqlite3_mprintf("select uri from streams where sid in (select sid from fast_meta where album='%q')", id);
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	AdbResult *r = adb_query(adb, q, id);
+	if (r == NULL)
 	{
-		gel_error("Cannot build stmt");
-		sqlite3_free(q);
+		gel_warn(N_("Unable to build query '%s'"), q);
 		return NULL;
 	}
-	sqlite3_free(q);
 
 	GList *uris = NULL;
-	while (stmt && (sqlite3_step(stmt) == SQLITE_ROW))
-		uris = g_list_prepend(uris, g_strdup((const gchar *) sqlite3_column_text(stmt, 0)));
-	sqlite3_finalize(stmt);
+	gchar *uri;
+	while (adb_result_step(r))
+		if (adb_result_get(r, 0, G_TYPE_STRING, &uri, -1))
+			uris = g_list_prepend(uris, uri);
+	adb_result_free(r);
 
 	return g_list_reverse(uris);
 }
