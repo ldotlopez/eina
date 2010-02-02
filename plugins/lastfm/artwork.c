@@ -414,7 +414,7 @@ curl_engine_cover_cb(CurlEngine *engine, CurlQuery *query, SearchCtx *ctx)
 	g_object_unref(loader);
 
 	// Report and cleanup
-	art_report_success(ctx->art, ctx->search, (gpointer) pb);
+	art_report_success(ctx->art, ctx->search, pb);
 	search_ctx_free(ctx);
 	return;
 

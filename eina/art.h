@@ -49,7 +49,7 @@ const gchar *art_backend_get_name(ArtBackend *backend);
 ArtSearch* art_search(Art *art, LomoStream *stream, ArtFunc callback, gpointer pointer);
 void       art_cancel(Art *art, ArtSearch *search);
 
-void art_report_success(Art *art, ArtSearch *search, gpointer result);
+void art_report_success(Art *art, ArtSearch *search, GdkPixbuf *result);
 void art_report_failure(Art *art, ArtSearch *search);
 
 LomoStream *art_search_get_stream(ArtSearch *search);

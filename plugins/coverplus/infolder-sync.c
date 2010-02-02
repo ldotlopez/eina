@@ -126,7 +126,7 @@ coverplus_infolder_art_search_cb(Art *art, ArtSearch *search, CoverPlusInfolder 
 	{	
 		gchar *cover_pathname = g_build_filename(dirname, winner, NULL);
 		GdkPixbuf *pb = gdk_pixbuf_new_from_file(cover_pathname, NULL);
-		if (pb)
+		if (pb && GDK_IS_PIXBUF(pb))
 			art_report_success(art, search, pb);
 		else
 			art_report_failure(art, search);

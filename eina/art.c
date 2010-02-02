@@ -52,7 +52,7 @@ struct _ArtSearch {
 	Art *art;
 	LomoStream *stream;
 	ArtFunc callback;
-	gpointer result;
+	GdkPixbuf *result;
 	gpointer data;
 	GList *backend_link;
 	gboolean running;
@@ -322,7 +322,7 @@ art_report_success_idle(ArtSearch *search)
 }
 
 void
-art_report_success(Art *art, ArtSearch *search, gpointer result)
+art_report_success(Art *art, ArtSearch *search, GdkPixbuf *result)
 {
 	// Search must be running, linked and result valid
 	g_return_if_fail(search->running);
