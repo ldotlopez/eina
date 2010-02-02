@@ -233,38 +233,31 @@ static void
 muine_update_icon(EinaMuine *self, ArtSearch *search)
 {
 	GtkTreeIter iter;
-
-	GdkPixbuf *icon = art_search_get_result(search);
-	if (!icon || !GDK_IS_PIXBUF(icon))
-	{
-		gel_error(N_("Invalid result"));
-		return;
-	}
-
 	if (!gtk_tree_model_get_iter_first((GtkTreeModel *) self->model, &iter))
 	{
 		gel_error(N_("Cannot get first iter"));
 		return;
 	}
 
-	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(icon, DEFAULT_SIZE, DEFAULT_SIZE, GDK_INTERP_NEAREST);
-	if (!scaled || !GDK_IS_PIXBUF(scaled))
-	{
-		gel_error(N_("Unable to scale icon"));
-		return;
-	}
+	GdkPixbuf *icon = art_search_get_result(search);
+	GdkPixbuf *scaled = (icon && GDK_IS_PIXBUF(icon)) ? gdk_pixbuf_scale_simple(icon, DEFAULT_SIZE, DEFAULT_SIZE, GDK_INTERP_NEAREST) : NULL;
 
 	ArtSearch *test;
 	do {
 		gtk_tree_model_get((GtkTreeModel *) self->model, &iter,
 			COMBO_COLUMN_SEARCH, &test,
 			-1);
-		if ((test == search) && scaled)
+		if (test == search)
 		{
-			gtk_list_store_set(self->model, &iter,
-				COMBO_COLUMN_ICON, scaled,
-				COMBO_COLUMN_SEARCH, NULL,
-				-1);
+			if (scaled)
+				gtk_list_store_set(self->model, &iter,
+					COMBO_COLUMN_ICON, scaled,
+					COMBO_COLUMN_SEARCH, NULL,
+					-1);
+			else
+				gtk_list_store_set(self->model, &iter,
+					COMBO_COLUMN_SEARCH, NULL,
+					-1);
 			return;
 		}
 	} while (gtk_tree_model_iter_next((GtkTreeModel *) self->model, &iter));
