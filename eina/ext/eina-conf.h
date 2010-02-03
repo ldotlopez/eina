@@ -65,6 +65,7 @@ void eina_conf_load(EinaConf *self);
 
 void eina_conf_set_boolean(EinaConf *self, gchar *key, gboolean val);
 void eina_conf_set_int    (EinaConf *self, gchar *key, gint val);
+void eina_conf_set_uint   (EinaConf *self, gchar *key, guint val);
 void eina_conf_set_float  (EinaConf *self, gchar *key, gfloat val);
 void eina_conf_set_string (EinaConf *self, gchar *key, gchar *val);
 
@@ -74,6 +75,7 @@ void eina_conf_set_string (EinaConf *self, gchar *key, gchar *val);
 GValue      *eina_conf_get        (EinaConf *self, gchar *key);
 gboolean     eina_conf_get_boolean(EinaConf *self, gchar *key, gboolean def);
 gint         eina_conf_get_int    (EinaConf *self, gchar *key, gint def);
+guint        eina_conf_get_uint   (EinaConf *self, gchar *key, guint def);
 gfloat       eina_conf_get_float  (EinaConf *self, gchar *key, gfloat def);
 const gchar *eina_conf_get_string (EinaConf *self, gchar *key, const gchar *def);
 

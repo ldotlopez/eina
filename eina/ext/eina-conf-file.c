@@ -242,6 +242,10 @@ dump_forearch_cb(gpointer _key, gpointer _value, gpointer data)
 		type_prefix="int";
 		break;
 
+	case G_TYPE_UINT:
+		type_prefix="uint";
+		break;
+
 	case G_TYPE_FLOAT:
 		type_prefix="float";
 		break;
@@ -323,6 +327,9 @@ void eina_conf_load(EinaConf *self) {
 		else if (g_str_equal(parts[0], "int")) {
 			eina_conf_set_int(self, parts[1], (strtol(parts[2], NULL, 0) / 1));
 		}
+		else if (g_str_equal(parts[0], "uint")) {
+			eina_conf_set_uint(self, parts[1], (strtol(parts[2], NULL, 0) / 1));
+		}
 		else if (g_str_equal(parts[0], "float")) {
 			eina_conf_set_float(self, parts[1], strtol(parts[2], NULL, 0));
 		}
@@ -360,6 +367,14 @@ void eina_conf_set_int(EinaConf *self, gchar *key, gint val) {
 	GValue *_val = g_new0(GValue, 1);
 	g_value_init(_val, G_TYPE_INT);
 	g_value_set_int(_val, val);
+
+	eina_conf_set(self, key, _val);
+}
+
+void eina_conf_set_uint(EinaConf *self, gchar *key, guint val) {
+	GValue *_val = g_new0(GValue, 1);
+	g_value_init(_val, G_TYPE_UINT);
+	g_value_set_uint(_val, val);
 
 	eina_conf_set(self, key, _val);
 }
@@ -405,6 +420,17 @@ gint eina_conf_get_int(EinaConf *self, gchar *key, gint def) {
 		return def;
 	return g_value_get_int(val);
 }
+
+guint eina_conf_get_uint(EinaConf *self, gchar *key, guint def) {
+	GValue *val;
+   
+	if ((val = eina_conf_get(self, key)) == NULL)
+		return def;
+	if (G_VALUE_TYPE(val) != G_TYPE_UINT)
+		return def;
+	return g_value_get_uint(val);
+}
+
 
 gfloat eina_conf_get_float(EinaConf *self, gchar *key, gfloat def) {
 	GValue *val;
