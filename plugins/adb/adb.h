@@ -93,6 +93,9 @@ AdbResult*
 adb_query(Adb *self, gchar *query, ...);
 
 gboolean
+adb_query_exec(Adb *self, gchar *q, ...);
+
+gboolean
 adb_result_step(AdbResult *result);
 
 gboolean

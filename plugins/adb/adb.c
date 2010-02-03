@@ -283,11 +283,42 @@ adb_query_fail:
 }
 
 gboolean
+adb_query_exec(Adb *adb, gchar *q, ...)
+{
+	va_list args;
+
+	va_start(args, q);
+	gchar *query = sqlite3_vmprintf(q, args);
+	va_end(args);
+
+	g_return_val_if_fail((query != NULL), FALSE);
+
+	char *msg = NULL;
+	int ret = sqlite3_exec(adb->db, query, NULL, NULL, &msg);
+
+	if (ret == 0)
+	{
+		sqlite3_free(query);
+		return TRUE;
+	}
+	else
+	{
+		g_warning(N_("Error %d in query '%s'"), ret, msg);
+		sqlite3_free(msg);
+		sqlite3_free(query);
+		return FALSE;
+	}
+}
+
+gboolean
 adb_result_step(AdbResult *result)
 {
 	g_return_val_if_fail(result != NULL, FALSE);
 
 	int ret = sqlite3_step(result);
+	if (ret == SQLITE_DONE)
+		return FALSE;
+
 	g_return_val_if_fail(ret == SQLITE_ROW, FALSE);
 
 	return TRUE;
