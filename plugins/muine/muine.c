@@ -355,6 +355,7 @@ static GList *
 muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 {
 	gchar *id = NULL;
+
 	gtk_tree_model_get((GtkTreeModel *) self->filter, iter,
 		COMBO_COLUMN_ID, &id,
 		-1);
@@ -453,7 +454,7 @@ static void
 row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self)
 {
 	GtkTreeIter iter;
-	if (!gtk_tree_model_get_iter((GtkTreeModel *) self->model, &iter, path))
+	if (!gtk_tree_model_get_iter((GtkTreeModel *) self->filter, &iter, path))
 	{
 		gel_error(N_("Cannot get iter  for model"));
 		return;
