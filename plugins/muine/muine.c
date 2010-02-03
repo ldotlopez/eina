@@ -40,9 +40,9 @@ enum {
 enum {
 	COMBO_COLUMN_ICON,
 	COMBO_COLUMN_MARKUP,
-
 	COMBO_COLUMN_ID,
-	COMBO_COLUMN_SEARCH
+	COMBO_COLUMN_SEARCH,
+	COMBO_N_COLUMNS
 };
 
 struct _EinaMuine {
@@ -52,8 +52,11 @@ struct _EinaMuine {
 
 	GtkTreeView  *view;
 	GtkListStore *model;
+	GtkTreeModelFilter *filter;
+	GtkEntry *search;
 	GtkComboBox  *mode_view;
-
+	gchar *search_str;
+	
 	GdkPixbuf *default_icon;
 	guint refresh_id;
 };
@@ -67,12 +70,21 @@ static void
 muine_model_clear(EinaMuine *self);
 static guint
 muine_get_mode(EinaMuine *self);
+static void
+muine_modify_func(GtkTreeModel *model, GtkTreeIter *iter, GValue *value, gint column, EinaMuine *self);
+static gboolean
+muine_filter_func(GtkTreeModel *model, GtkTreeIter *iter, EinaMuine *self);
+
 #if AUTO_REFRESH
 static void
 muine_schedule_refresh(EinaMuine *self);
 #endif
 static void
 row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self);
+static void
+search_changed_cb(GtkWidget *w, EinaMuine *self);
+static void
+search_icon_press_cb(GtkWidget *w, GtkEntryIconPosition pos, GdkEvent *ev, EinaMuine *self);
 static void
 action_activate_cb(GtkAction *action, EinaMuine *self);
 static void
@@ -85,6 +97,8 @@ muine_init(EinaMuine *self, GError **error)
 	self->dock  = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
 	self->view  = eina_obj_get_typed(self, GTK_TREE_VIEW, "list-view");
 	self->model = eina_obj_get_typed(self, GTK_LIST_STORE, "model");
+	self->filter = eina_obj_get_typed(self, GTK_TREE_MODEL_FILTER, "model-filter");
+	self->search = eina_obj_get_typed(self, GTK_ENTRY, "search-entry");
 	self->mode_view = eina_obj_get_typed(self, GTK_COMBO_BOX, "mode-view");
 
 	GError *err = NULL;
@@ -104,15 +118,17 @@ muine_init(EinaMuine *self, GError **error)
 			g_free(icon_path);
 	}
 
-	if (!self->dock || !self->view || !self->model || !self->mode_view)
+	if (!self->dock || !self->view || !self->model || !self->filter || !self->mode_view)
 	{
 		g_set_error(error, muine_quark(), EINA_MUINE_ERROR_MISSING_OBJECTS,
-			N_("Missing widgets D:%p V:%p M:%p MV:%p"),
-			self->dock, self->view, self->model, self->mode_view);
+			N_("Missing widgets D:%p V:%p M:%p F:%p MV:%p"),
+			self->dock, self->view, self->model, self->filter, self->mode_view);
 		return FALSE;
 	}
 	g_object_set(eina_obj_get_object(self, "markup-renderer"), "yalign", 0.0f, NULL);
 	g_signal_connect(self->view, "row-activated", (GCallback) row_activated_cb, self);
+	g_signal_connect(self->search, "changed", (GCallback) search_changed_cb, self);
+	g_signal_connect(self->search, "icon-press", (GCallback) search_icon_press_cb, self);
 	g_signal_connect_swapped(self->mode_view, "changed", (GCallback) muine_model_refresh, self);
 
 	#if AUTO_REFRESH
@@ -130,9 +146,13 @@ muine_init(EinaMuine *self, GError **error)
 
 	EinaConf *conf = eina_obj_get_settings(self);
 	guint mode = eina_conf_get_uint(conf, "/muine/group-by", 0);
-	gtk_combo_box_set_active(self->mode_view, mode);
+	gtk_combo_box_set_active(self->mode_view, CLAMP(mode, 0, G_MAXUINT));
 
+	GType types[] = {GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER};
 	muine_model_refresh(self);
+	if (0)
+		gtk_tree_model_filter_set_modify_func(self->filter, COMBO_N_COLUMNS, types, (GtkTreeModelFilterModifyFunc) muine_modify_func, self, NULL);
+	gtk_tree_model_filter_set_visible_func(self->filter, (GtkTreeModelFilterVisibleFunc) muine_filter_func, self, NULL);
 
 	gtk_widget_unparent(self->dock);
 	gtk_widget_show(self->dock);
@@ -153,6 +173,9 @@ muine_destroy(EinaMuine *self, GError **error)
 	EinaDock *dock = eina_obj_get_dock(self);
 	eina_dock_remove_widget(dock, "muine");
 
+	// Signals!!!
+
+	gel_free_and_invalidate(self->search_str, NULL, g_free);
 	gel_free_and_invalidate(self->dock, NULL, g_object_unref);
 	g_object_unref(self->dock);
 	self->dock = FALSE;
@@ -208,7 +231,7 @@ muine_schedule_refresh(EinaMuine *self)
 static void
 muine_model_refresh(EinaMuine *self)
 {
-	gint mode = muine_get_mode(self);
+	guint mode = muine_get_mode(self);
 	EinaConf *conf = eina_obj_get_settings(self);
 	eina_conf_set_uint(conf, "/muine/group-by", mode);
 
@@ -225,7 +248,7 @@ muine_model_refresh(EinaMuine *self)
 		markup_fmt = "<big><b>%s</b></big>\n<span size=\"small\" weight=\"light\">(%d streams)</span>";
 		break;
 	default:
-		g_warning(N_("Unknow mode"));
+		g_warning(N_("Unknow mode: %d"), mode);
 		return;
 	}
 
@@ -332,7 +355,7 @@ static GList *
 muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 {
 	gchar *id = NULL;
-	gtk_tree_model_get((GtkTreeModel *) self->model, iter,
+	gtk_tree_model_get((GtkTreeModel *) self->filter, iter,
 		COMBO_COLUMN_ID, &id,
 		-1);
 	
@@ -368,6 +391,64 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	return g_list_reverse(uris);
 }
 
+static gboolean
+muine_filter_func(GtkTreeModel *model, GtkTreeIter *iter, EinaMuine *self)
+{
+	if (self->search_str == NULL)
+		return TRUE;
+
+	gchar *markup = NULL;
+	gtk_tree_model_get(model, iter,
+		COMBO_COLUMN_MARKUP, &markup,
+		-1
+		);
+	g_return_val_if_fail(markup != NULL, FALSE);
+
+	gchar *haystack = g_utf8_casefold(markup, -1);
+	g_free(markup);
+
+	gboolean ret = (strstr(haystack, self->search_str) != NULL);
+	g_free(haystack);
+	return ret;
+}
+
+static void
+muine_modify_func(GtkTreeModel *model, GtkTreeIter *iter, GValue *value, gint column, EinaMuine *self)
+{
+	GdkPixbuf *icon = NULL;
+	gchar *markup = NULL;
+	gchar *out;
+
+	GtkTreeModel *m = gtk_tree_model_filter_get_model((GtkTreeModelFilter *) model);
+	GtkTreeIter   i;
+	gtk_tree_model_filter_convert_iter_to_child_iter((GtkTreeModelFilter *) model, &i, iter);
+
+	switch (column)
+	{
+	case COMBO_COLUMN_ICON:
+		gtk_tree_model_get(m, &i,
+			column, &icon,
+			-1);
+		g_value_set_object(value, icon);
+		break;
+
+	case COMBO_COLUMN_MARKUP:
+		gtk_tree_model_get(m, &i,
+			column, &markup,
+			-1);
+		out = (self->search_str == NULL) ? markup :  g_strconcat("> ", markup, NULL);
+		// gel_warn("'%s' -> '%s'", markup, out);
+		g_value_set_string(value, out);
+		g_free(markup);
+		if (self->search_str)
+			g_free(out);
+		break;
+
+	default:
+		break;
+	}
+}
+
 static void
 row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self)
 {
@@ -390,6 +471,49 @@ row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, Ein
 	lomo_player_append_uri_multi(lomo, uris);
 
 	gel_list_deep_free(uris, g_free);
+}
+
+static void
+search_changed_cb(GtkWidget *w, EinaMuine *self)
+{
+	const gchar *search_str = gtk_entry_get_text(GTK_ENTRY(w));
+	if (search_str && (search_str[0] == '\0'))
+		search_str = NULL;
+
+	// From no-search to search
+	if ((self->search_str == NULL) && (search_str != NULL))
+	{
+		self->search_str = g_utf8_casefold(search_str, -1);
+		// gel_warn("Enable filter with '%s'", self->search_str);
+		gtk_tree_model_filter_refilter(self->filter);
+	}
+
+	// From search to more complex search
+	else if ((self->search_str != NULL) && (search_str != NULL))
+	{
+		g_free(self->search_str);
+		self->search_str = g_utf8_casefold(search_str, -1);
+		// gel_warn("Refine filter with '%s'", self->search_str);
+		gtk_tree_model_filter_refilter(self->filter);
+	}
+
+	// From search to no search
+	else if ((self->search_str != NULL) && (search_str == NULL))
+	{
+		// gel_warn("Disable search");
+		gel_free_and_invalidate(self->search_str, NULL, g_free);
+		gtk_tree_model_filter_refilter(self->filter);
+	}
+
+	else
+		gel_warn(N_("Unhandled situation"));
+}
+
+static void
+search_icon_press_cb(GtkWidget *w, GtkEntryIconPosition pos, GdkEvent *ev, EinaMuine *self)
+{
+	if (pos == GTK_ENTRY_ICON_SECONDARY)
+		gtk_entry_set_text(GTK_ENTRY(w), "");
 }
 
 static void
