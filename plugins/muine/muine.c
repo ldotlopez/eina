@@ -31,6 +31,12 @@ enum {
 	EINA_MUINE_ERROR_MISSING_OBJECTS
 };
 
+// Sync with UI
+enum {
+	EINA_MUINE_MODE_ALBUM  = 0,
+	EINA_MUINE_MODE_ARTIST = 1
+};
+
 enum {
 	COMBO_COLUMN_ICON,
 	COMBO_COLUMN_MARKUP,
@@ -68,6 +74,8 @@ static void
 action_activate_cb(GtkAction *action, EinaMuine *self);
 static void
 search_cb(Art *art, ArtSearch *search, EinaMuine *self);
+
+#define muine_get_mode(self) EINA_MUINE_MODE_ALBUM
 
 static gboolean
 muine_init(EinaMuine *self, GError **error)
@@ -115,6 +123,7 @@ muine_init(EinaMuine *self, GError **error)
 		GObject *a = eina_obj_get_object(self, actions[i]);
 		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
 	}
+
 	muine_model_refresh(self);
 
 	gtk_widget_unparent(self->dock);
@@ -185,10 +194,24 @@ muine_schedule_refresh(EinaMuine *self)
 static void
 muine_model_refresh(EinaMuine *self)
 {
-	muine_model_clear(self);
-
 	Adb *adb = eina_obj_get_adb(self);
-	gchar *q = "select count(*) as count,artist,album from fast_meta group by(lower(album)) order by album DESC";
+	gint mode = muine_get_mode(self);
+	gchar *q = NULL;
+	gchar *markup_fmt = NULL;
+	switch (mode)
+	{
+	case EINA_MUINE_MODE_ALBUM:
+		q = "select count(*) as count,artist,album from fast_meta group by(lower(album)) order by album DESC";
+		markup_fmt = "<big><b>%s</b></big>\n%s <span size=\"small\" weight=\"light\">(%d streams)</span>";
+		break;
+	case EINA_MUINE_MODE_ARTIST:
+		q = "select count(*) as count,artist,NULL from fast_meta group by(lower(artist)) order by artist DESC";
+		markup_fmt = "<big><b>%s</b></big>\n<span size=\"small\" weight=\"light\">(%d streams)</span>";
+		break;
+	default:
+		g_warning(N_("Unknow mode"));
+		return;
+	}
 
 	AdbResult *r = adb_query(adb, q, NULL);
 	if (!r)
@@ -196,9 +219,10 @@ muine_model_refresh(EinaMuine *self)
 		gel_warn("Query failed");
 		return;
 	}
+	muine_model_clear(self);
 
-	gchar *db_album, *db_artist;
-	gchar *album, *artist;
+	gchar *db_album = NULL, *db_artist = NULL;
+	gchar *album = NULL, *artist = NULL;
 	gint   count;
 	while (adb_result_step(r))
 	{
@@ -212,25 +236,42 @@ muine_model_refresh(EinaMuine *self)
 			continue;
 		}
 
-		artist = g_markup_escape_text(db_artist, -1);
-		album  = g_markup_escape_text(db_album,  -1);
+		LomoStream *fake_stream = NULL;
+		if (db_artist || db_album)
+			fake_stream = lomo_stream_new("file:///dev/null");
 
-		LomoStream *fake_stream = lomo_stream_new("file:///dev/null");
-		lomo_stream_set_tag(fake_stream, LOMO_TAG_ARTIST, db_artist);
-		lomo_stream_set_tag(fake_stream, LOMO_TAG_ALBUM,  db_album);
+		if (db_artist)
+		{
+			artist = g_markup_escape_text(db_artist, -1);
+			lomo_stream_set_tag(fake_stream, LOMO_TAG_ARTIST, db_artist);
+		}
+		if (db_album)
+		{
+			album  = g_markup_escape_text(db_album,  -1);
+			lomo_stream_set_tag(fake_stream, LOMO_TAG_ALBUM,  db_album);
+		}
 
 		ArtSearch *search = art_search(eina_obj_get_art(self), fake_stream, (ArtFunc) search_cb, self);
 
-		gchar *markup = g_strdup_printf("<big><b>%s</b></big>\n%s <span size=\"small\" weight=\"light\">(%d streams)</span>", album, artist, count);
+		gchar *markup;
+		switch (mode)
+		{
+		case EINA_MUINE_MODE_ALBUM:
+			markup = g_strdup_printf(markup_fmt, album, artist, count);
+			break;
+		case EINA_MUINE_MODE_ARTIST:
+			markup = g_strdup_printf(markup_fmt, artist, count);
+			break;
+		}
 		gtk_list_store_insert_with_values(self->model, NULL, 0,
 			COMBO_COLUMN_MARKUP, markup,
-			COMBO_COLUMN_ID,     db_album,
+			COMBO_COLUMN_ID,     (mode == EINA_MUINE_MODE_ALBUM) ? db_album : db_artist,
 			COMBO_COLUMN_SEARCH, search,
 			COMBO_COLUMN_ICON,   self->default_icon,
 			-1);
 		g_free(markup);
-		g_free(artist);
-		g_free(album);
+		gel_free_and_invalidate(artist, NULL, g_free);
+		gel_free_and_invalidate(album,  NULL, g_free);
 	}
 	adb_result_free(r);
 }
@@ -278,7 +319,20 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 		COMBO_COLUMN_ID, &id,
 		-1);
 	
-	char *q = "select uri from streams where sid in (select sid from fast_meta where album='%q')";
+	char *q = NULL;
+	switch (muine_get_mode(self))
+	{
+	case EINA_MUINE_MODE_ALBUM:
+		q = "select uri from streams where sid in (select sid from fast_meta where lower(album)=lower('%q'))";
+		break;
+	case EINA_MUINE_MODE_ARTIST:
+		q = "select uri from streams where sid in (select sid from fast_meta where lower(artist)=lower('%q'))";
+		break;
+	default:
+		g_warning(N_("Unknow mode"));
+		return NULL;
+	}
+
 	Adb *adb = eina_obj_get_adb(self);
 	AdbResult *r = adb_query(adb, q, id);
 	if (r == NULL)
@@ -332,7 +386,10 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 	else if (g_str_equal(name, "queue-action"))
 		do_clear = FALSE;
 	else
+	{
+		g_warning(N_("Unknow action %s"), name);
 		return;
+	}
 
 	GtkTreeSelection *sel = gtk_tree_view_get_selection(self->view);
 	if (!sel)
