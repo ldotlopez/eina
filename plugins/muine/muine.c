@@ -128,6 +128,10 @@ muine_init(EinaMuine *self, GError **error)
 		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
 	}
 
+	EinaConf *conf = eina_obj_get_settings(self);
+	guint mode = eina_conf_get_uint(conf, "/muine/group-by", 0);
+	gtk_combo_box_set_active(self->mode_view, mode);
+
 	muine_model_refresh(self);
 
 	gtk_widget_unparent(self->dock);
@@ -204,8 +208,10 @@ muine_schedule_refresh(EinaMuine *self)
 static void
 muine_model_refresh(EinaMuine *self)
 {
-	Adb *adb = eina_obj_get_adb(self);
 	gint mode = muine_get_mode(self);
+	EinaConf *conf = eina_obj_get_settings(self);
+	eina_conf_set_uint(conf, "/muine/group-by", mode);
+
 	gchar *q = NULL;
 	gchar *markup_fmt = NULL;
 	switch (mode)
@@ -223,6 +229,7 @@ muine_model_refresh(EinaMuine *self)
 		return;
 	}
 
+	Adb *adb = eina_obj_get_adb(self);
 	AdbResult *r = adb_query(adb, q, NULL);
 	if (!r)
 	{
