@@ -52,6 +52,7 @@ struct _EinaMuine {
 
 	GtkTreeView  *view;
 	GtkListStore *model;
+	GtkComboBox  *mode_view;
 
 	GdkPixbuf *default_icon;
 	guint refresh_id;
@@ -64,6 +65,8 @@ static void
 muine_model_refresh(EinaMuine *self);
 static void
 muine_model_clear(EinaMuine *self);
+static guint
+muine_get_mode(EinaMuine *self);
 #if AUTO_REFRESH
 static void
 muine_schedule_refresh(EinaMuine *self);
@@ -75,7 +78,6 @@ action_activate_cb(GtkAction *action, EinaMuine *self);
 static void
 search_cb(Art *art, ArtSearch *search, EinaMuine *self);
 
-#define muine_get_mode(self) EINA_MUINE_MODE_ALBUM
 
 static gboolean
 muine_init(EinaMuine *self, GError **error)
@@ -83,6 +85,7 @@ muine_init(EinaMuine *self, GError **error)
 	self->dock  = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
 	self->view  = eina_obj_get_typed(self, GTK_TREE_VIEW, "list-view");
 	self->model = eina_obj_get_typed(self, GTK_LIST_STORE, "model");
+	self->mode_view = eina_obj_get_typed(self, GTK_COMBO_BOX, "mode-view");
 
 	GError *err = NULL;
 	gchar *icon_path = NULL;
@@ -101,15 +104,16 @@ muine_init(EinaMuine *self, GError **error)
 			g_free(icon_path);
 	}
 
-	if (!self->dock || !self->view || !self->model)
+	if (!self->dock || !self->view || !self->model || !self->mode_view)
 	{
 		g_set_error(error, muine_quark(), EINA_MUINE_ERROR_MISSING_OBJECTS,
-			N_("Missing widgets D:%p V:%p M:%p"),
-			self->dock, self->view, self->model);
+			N_("Missing widgets D:%p V:%p M:%p MV:%p"),
+			self->dock, self->view, self->model, self->mode_view);
 		return FALSE;
 	}
 	g_object_set(eina_obj_get_object(self, "markup-renderer"), "yalign", 0.0f, NULL);
 	g_signal_connect(self->view, "row-activated", (GCallback) row_activated_cb, self);
+	g_signal_connect_swapped(self->mode_view, "changed", (GCallback) muine_model_refresh, self);
 
 	#if AUTO_REFRESH
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
@@ -170,6 +174,12 @@ muine_model_clear(EinaMuine *self)
 		} while (gtk_tree_model_iter_next((GtkTreeModel *) self->model, &iter));
 	}
 	gtk_list_store_clear(self->model);
+}
+
+static guint
+muine_get_mode(EinaMuine *self)
+{
+	return gtk_combo_box_get_active(self->mode_view);
 }
 
 #if AUTO_REFRESH

@@ -21,6 +21,16 @@
       <!-- column-name markup -->
       <column type="gchararray"/>
     </columns>
+    <data>
+      <row>
+        <col id="0">0</col>
+        <col id="1" translatable="yes">album</col>
+      </row>
+      <row>
+        <col id="0">1</col>
+        <col id="1" translatable="yes">artist</col>
+      </row>
+    </data>
   </object>
   <object class="GtkWindow" id="main-window">
     <child>
@@ -31,6 +41,7 @@
         <property name="spacing">5</property>
         <child>
           <object class="GtkHBox" id="hbox1">
+            <property name="visible">True</property>
             <property name="spacing">5</property>
             <child>
               <object class="GtkLabel" id="label1">
@@ -43,9 +54,16 @@
               </packing>
             </child>
             <child>
-              <object class="GtkComboBox" id="view-mode-view">
+              <object class="GtkComboBox" id="mode-view">
                 <property name="visible">True</property>
                 <property name="model">liststore1</property>
+                <property name="active">0</property>
+                <child>
+                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                  <attributes>
+                    <attribute name="markup">1</attribute>
+                  </attributes>
+                </child>
               </object>
               <packing>
                 <property name="position">1</property>
