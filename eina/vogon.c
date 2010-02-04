@@ -50,12 +50,12 @@ update_ui_manager(EinaVogon *self);
 // --
 // UI callbacks
 // --
-static gboolean
+static void
 status_icon_activate_cb(GtkWidget *w , EinaVogon *self);
 static void
 action_activate_cb(GtkAction *action, EinaVogon *self);
 static void
-popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
+status_icon_popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaVogon *self);
 static gboolean
 status_icon_destroy_cb(GtkWidget *w, EinaVogon *self);
 
@@ -163,7 +163,7 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 		NULL);
 
 	// Connect signals
-	g_signal_connect(self->icon, "popup-menu",      G_CALLBACK(popup_menu_cb), self);
+	g_signal_connect(self->icon, "popup-menu",      G_CALLBACK(status_icon_popup_menu_cb), self);
 	g_signal_connect(self->icon, "activate",        G_CALLBACK(status_icon_activate_cb), self);
 	g_signal_connect(self->icon, "notify::destroy", G_CALLBACK(status_icon_destroy_cb), self);
 
@@ -277,7 +277,7 @@ update_toggles(EinaVogon *self)
 // Implement UI Callbacks 
 // --
 static void
-popup_menu_cb (GtkWidget *w, guint button, guint activate_time, EinaVogon *self)
+status_icon_popup_menu_cb (GtkWidget *w, guint button, guint activate_time, EinaVogon *self)
 {
     gtk_menu_popup(
         GTK_MENU(self->menu),
@@ -358,13 +358,13 @@ status_icon_destroy_cb(GtkWidget *w, EinaVogon *self)
 	return FALSE;
 }
 
-static gboolean
+static void
 status_icon_activate_cb
 (GtkWidget *w, EinaVogon *self)
 {
 	GtkWindow *window = (GtkWindow *) EINA_OBJ_GET_WINDOW(self);
 	if (!window)
-		return FALSE;
+		return;
 
 	if (GTK_WIDGET_VISIBLE(window))
 	{
@@ -375,14 +375,10 @@ status_icon_activate_cb
 	}
 	else
 	{
-		gtk_window_move(window,
-			self->player_x,
-			self->player_y);
-		gtk_widget_show((GtkWidget *) window);
-		if (!gtk_window_is_active(window))
-			gtk_window_activate_default(window);
+		if (!GTK_WIDGET_VISIBLE(window))
+			gtk_window_move(window, self->player_x, self->player_y);
+		gtk_window_present(window);
 	}
-	return FALSE;
 }
 
 
