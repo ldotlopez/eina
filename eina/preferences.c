@@ -110,6 +110,12 @@ eina_preferences_add_tab_full(EinaPreferences *self, gchar *group, gchar *xml, g
 		attach_menu(self);
 }
 
+void
+eina_preferences_remove_tab(EinaPreferences *self, gchar *group)
+{
+	g_hash_table_remove(self->entries, group);
+}
+
 static void
 build_dialog(EinaPreferences *self)
 {

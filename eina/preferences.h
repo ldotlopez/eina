@@ -37,6 +37,9 @@ void
 eina_preferences_add_tab_full(EinaPreferences *self, gchar *group, gchar *xml, gchar *root, gchar **objects, guint n,
     GtkImage *icon, GtkLabel *label);
 
+void
+eina_preferences_remove_tab(EinaPreferences *self, gchar *group);
+
 G_END_DECLS
 
 #endif // _PREFERENCES_H

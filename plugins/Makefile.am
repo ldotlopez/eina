@@ -11,6 +11,10 @@ if BUILD_CALLHOME
 SUBDIRS += callhome
 endif
 
+if BUILD_NTFY
+SUBDIRS += ntfy
+endif
+
 # Experimental plugins
 if BUILD_EXPERIMENTAL
 
@@ -18,10 +22,6 @@ SUBDIRS += fieshta
 
 if BUILD_ADB
 SUBDIRS += recently
-endif
-
-if BUILD_NTFY
-SUBDIRS += ntfy
 endif
 
 endif
