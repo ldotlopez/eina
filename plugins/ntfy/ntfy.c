@@ -120,17 +120,6 @@ ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
 		}
 	}
 
-	gchar *prefs_path = NULL;
-	gchar *prefs_xml  = NULL;
-	if ((prefs_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "lastfm.ui")) &&
-		g_file_get_contents(prefs_path, &prefs_xml, NULL, NULL))
-	{
-		EinaPreferences *preferences = gel_app_get_preferences(app);
-		gchar *objects[] = { "/ntfy/enable" };
-		eina_preferences_add_tab_full(preferences, "ntfy", prefs_xml, "main-widget", objects, G_N_ELEMENTS(objects),
-		NULL, (GtkLabel*) gtk_label_new("Ntfy"));
-	}
-
 	// Try to enable vogon integration
 	GelPlugin *vogon = gel_app_get_plugin_by_name(app, "vogon");
 	if (vogon && gel_plugin_is_enabled(vogon))
@@ -151,9 +140,6 @@ ntfy_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 	g_signal_handlers_disconnect_by_func(app, app_plugin_init_cb, self);
 	g_signal_handlers_disconnect_by_func(app, app_plugin_fini_cb, self);
-
-	EinaPreferences *prefs = gel_app_get_preferences(app);
-	eina_preferences_remove_tab(prefs, "ntfy");
 
 	// Try to disable vogon integration
 	GelPlugin *vogon = gel_app_get_plugin_by_name(app, "vogon");
@@ -665,7 +651,7 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 
 EINA_PLUGIN_SPEC(ntfy,
 	"0.0.1",
-	"lomo,art,settings,preferences",
+	"lomo,art,settings",
 
 	NULL,
 	NULL,
