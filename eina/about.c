@@ -22,7 +22,6 @@
 #include <gel/gel.h>
 #include <eina/eina-plugin.h>
 #include <eina/about.h>
-#define CODENAME "In Muine we believe"
 
 // GEL_AUTO_QUARK_FUNC(about)
 
@@ -92,7 +91,7 @@ eina_about_show(EinaAbout *self)
 		g_free(logo_path);
 	}
 
-	gchar *comments = g_strconcat("(" CODENAME ")\n\n", N_("A classic player for the modern era"), NULL);
+	gchar *comments = g_strconcat("(" EINA_CODENAME ")\n\n", N_("A classic player for the modern era"), NULL);
 	self->about = gtk_about_dialog_new();
 	g_object_set((GObject *) self->about,
 		"artists", artists,
