@@ -79,6 +79,18 @@ gel_get_package_data_dir(void)
 	return (const gchar *) _gel_package_data_dir;
 }
 
+guint
+gel_object_get_ref_count(GObject *object)
+{
+	return G_OBJECT(object)->ref_count;
+}
+
+const gchar*
+gel_object_get_type_name(GObject *object)
+{
+	return G_OBJECT_TYPE_NAME(object);
+}
+
 // --
 // Utilities for GList/GSList
 // --

@@ -124,6 +124,15 @@ gel_ui_load_pixbuf_from_imagedef(GelUIImageDef def, GError **error)
 }
 
 void
+gel_ui_container_clear(GtkContainer *container)
+{
+	GList *l, *children = gtk_container_get_children(GTK_CONTAINER(container));
+	for (l = children; l != NULL; l = l->next)
+		gtk_container_remove((GtkContainer *) container, GTK_WIDGET(l->data));
+	gel_free_and_invalidate(children, NULL, g_list_free);
+}
+
+void
 gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
 {
 	gtk_container_foreach(container, (GtkCallback) gtk_widget_destroy, NULL);

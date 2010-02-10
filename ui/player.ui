@@ -106,7 +106,7 @@
                         <child>
                           <object class="GtkLabel" id="time-current-label">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">&lt;small&gt;&lt;tt&gt;&lt;/tt&gt;&lt;/small&gt;</property>
+                            <property name="label" translatable="yes">&lt;small&gt;&lt;tt&gt;%d:%02d&lt;/tt&gt;&lt;/small&gt;</property>
                             <property name="use_markup">True</property>
                           </object>
                           <packing>
@@ -118,7 +118,7 @@
                         <child>
                           <object class="GtkLabel" id="time-total-label">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">&lt;small&gt;&lt;tt&gt;&lt;/tt&gt;&lt;/small&gt;</property>
+                            <property name="label" translatable="yes">&lt;small&gt;&lt;tt&gt;%d:%02d&lt;/tt&gt;&lt;/small&gt;</property>
                             <property name="use_markup">True</property>
                           </object>
                           <packing>

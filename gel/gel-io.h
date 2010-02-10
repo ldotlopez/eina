@@ -20,6 +20,7 @@
 #ifndef _GEL_IO
 #define _GEL_IO
 
+#include <gel/gel.h>
 #include <gel/gel-io-misc.h>
 #include <gel/gel-io-tree.h>
 

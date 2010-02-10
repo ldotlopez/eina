@@ -88,7 +88,8 @@ curl_engine_get_default(void)
 void
 curl_engine_free(CurlEngine *self)
 {
-	g_source_remove(self->id);
+	if (self->id > 0)
+		g_source_remove(self->id);
 	self->id = 0;
 
 	GList *iter = self->querys;
