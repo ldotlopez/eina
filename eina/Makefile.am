@@ -39,7 +39,7 @@ INST_H_FILES = \
 	settings.h    \
 	window.h
 
-headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina
+headerdir = $(prefix)/include/@PACKAGE_NAME@-@EINA_API_VERSION@/eina
 header_DATA = $(INST_H_FILES)
 
 # template.{c,h} are template files to create Eina components

@@ -30,7 +30,7 @@ INST_H_FILES = \
 	gel-io.h                \
 	gel-ui.h
 
-headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/gel
+headerdir = $(prefix)/include/@PACKAGE_NAME@-@EINA_API_VERSION@/gel
 header_DATA = $(INST_H_FILES)
 
 libgel_1_0_la_SOURCES = \

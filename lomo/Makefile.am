@@ -22,7 +22,7 @@ INST_H_FILES = \
 	lomo-stream.h           \
 	lomo-util.h
 
-headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/lomo
+headerdir = $(prefix)/include/@PACKAGE_NAME@-@EINA_API_VERSION@/lomo
 header_DATA = $(INST_H_FILES)
 
 liblomo_1_0_la_SOURCES = \
