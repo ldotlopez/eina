@@ -18,7 +18,7 @@ INST_H_FILES = \
 NO_INST_H_FILES = \
 	eina-preferences-dialog-marshallers.h
 
-headerdir = $(prefix)/include/eina-@EINA_API_VERSION@/eina/ext
+headerdir = $(prefix)/include/@PACKAGE_NAME@-@EINA_API_VERSION@/eina/ext
 header_DATA = $(INST_H_FILES)
 
 libeinaext_la_SOURCES = \
