@@ -63,6 +63,7 @@ plugins/coverplus/infolder-sync.c
 plugins/fieshta/fieshta.c
 plugins/fieshta/fieshta-stage.c
 plugins/fieshta/fieshta-stream.c
+plugins/muine/muine.c
 plugins/ntfy/ntfy.c
 plugins/recently/recently.c
 
@@ -74,5 +75,6 @@ plugins/recently/recently.c
 [type: gettext/glade]ui/plugins.ui
 
 [type: gettext/glade]plugins/lastfm/lastfm.ui
+[type: gettext/glade]plugins/muine/muine.ui
 [type: gettext/glade]plugins/recently/dock.ui
 

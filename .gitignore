@@ -74,8 +74,12 @@ docs/lomo.*
 # Debian files
 debian/tmp
 debian/files
-debian/eina.substvars
+debian/eina-player.substvars
+debian/eina-player-dev.substvars
+debian/eina-player-doc.substvars
 debian/*.log
 debian/*.debhelper
-debian/eina-dev/
-debian/eina/
+debian/eina-player/
+debian/eina-player-dev/
+debian/eina-player-doc/
+.pc/
