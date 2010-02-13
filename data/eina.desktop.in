@@ -1,10 +1,10 @@
 [Desktop Entry]
-Name=Eina Music Player
-GenericName=Music Player
+Name=Eina music player
+GenericName=Music player
 Comment=Play songs
-X-GNOME-FullName=Eina Music Player
+X-GNOME-FullName=Eina music player
 Exec=eina %U
-Icon=@prefix@/share/eina/pixmaps/eina.svg
+Icon=@prefix@/share/@PACKAGE_NAME@/pixmaps/eina.svg
 Terminal=false
 Type=Application
 Categories=GNOME;GTK;AudioVideo;Player;
