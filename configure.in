@@ -16,8 +16,8 @@ AC_CONFIG_MACRO_DIR([m4])
 EINA_API_VERSION="0.9"
 EINA_VERSION="$EINA_API_VERSION.2"
 EINA_CODENAME="Pagan poetry"              # Björk
-EINA_CODENAME_0_9_1 "In muine we believe" #
-EINA_CODENAME_0_9_0 "They don't believe"  # "Russian Red" 
+EINA_CODENAME_0_9_1="In muine we believe" #
+EINA_CODENAME_0_9_0="They don't believe"  # "Russian Red" 
 
 AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
 
