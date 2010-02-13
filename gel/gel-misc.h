@@ -21,6 +21,7 @@
 #define _GEL_MISC_H_
 
 #include <glib.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
@@ -85,6 +86,14 @@ gel_get_package_lib_dir(void);
 
 const gchar*
 gel_get_package_data_dir(void);
+
+// --
+// Gobject
+// --
+guint
+gel_object_get_ref_count(GObject *object);
+const gchar*
+gel_object_get_type_name(GObject *object);
 
 // --
 // Utilities for GList/GSList
