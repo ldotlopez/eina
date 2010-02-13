@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-28 18:35+0100\n"
+"POT-Creation-Date: 2010-02-11 11:19+0100\n"
 "PO-Revision-Date: 2009-10-28 15:37+0000\n"
 "Last-Translator: Kristjan <Unknown>\n"
 "Language-Team: Esperanto <eo@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-01-28 17:32+0000\n"
+"X-Launchpad-Export-Date: 2010-02-11 10:04+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../gel/gel-app.c:107
@@ -212,7 +212,7 @@ msgstr ""
 msgid "Cannot locate resource '%s'"
 msgstr ""
 
-#: ../gel/gel-ui.c:181
+#: ../gel/gel-ui.c:190
 #, c-format
 msgid "Invalid GtkTreePath in selection, use %s only with ListModels"
 msgstr ""
@@ -281,7 +281,7 @@ msgstr ""
 msgid "Action blocked by hook"
 msgstr ""
 
-#: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
+#: ../eina/ext/curl-engine.c:246 ../plugins/adb/adb.c:228
 msgid "Unknow error"
 msgstr ""
 
@@ -391,20 +391,20 @@ msgstr ""
 msgid "_Help"
 msgstr ""
 
-#: ../eina/about.c:88
+#: ../eina/about.c:87
 #, c-format
 msgid "Missing resource: %s"
 msgstr ""
 
-#: ../eina/about.c:95
+#: ../eina/about.c:94
 msgid "A classic player for the modern era"
 msgstr ""
 
-#: ../eina/about.c:108
+#: ../eina/about.c:107
 msgid "About Eina"
 msgstr ""
 
-#: ../eina/about.c:130
+#: ../eina/about.c:129
 msgid "About window plugin"
 msgstr ""
 
@@ -476,11 +476,11 @@ msgstr ""
 msgid "OSX integration"
 msgstr ""
 
-#: ../eina/eina-obj.c:53
+#: ../eina/eina-obj.c:65
 msgid "Trying to free a NULL pointer"
 msgstr ""
 
-#: ../eina/eina-obj.c:107
+#: ../eina/eina-obj.c:119
 #, c-format
 msgid "Resource not found: %s"
 msgstr ""
@@ -548,7 +548,7 @@ msgstr ""
 msgid "Cannot share engine"
 msgstr ""
 
-#: ../eina/lomo.c:78
+#: ../eina/lomo.c:80
 msgid "Cannot destroy engine"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgstr ""
 #. deps
 #. author
 #. url
-#: ../eina/lomo.c:129
+#: ../eina/lomo.c:131
 msgid "Build-in lomo plugin"
 msgstr ""
 
@@ -642,35 +642,35 @@ msgstr ""
 msgid "Build-in plugin manager plugin"
 msgstr ""
 
-#: ../eina/preferences.c:118 ../eina/preferences.c:160
+#: ../eina/preferences.c:124 ../eina/preferences.c:166
 msgid "Preferences"
 msgstr ""
 
-#: ../eina/preferences.c:137
+#: ../eina/preferences.c:143
 msgid "Found NULL key"
 msgstr ""
 
-#: ../eina/preferences.c:176
+#: ../eina/preferences.c:182
 msgid ""
 "Cannot get GtkUIManager for main menu, unable to attach preferences menu"
 msgstr ""
 
-#: ../eina/preferences.c:183
+#: ../eina/preferences.c:189
 #, c-format
 msgid "Cannot attach menu: %s"
 msgstr ""
 
-#: ../eina/preferences.c:199
+#: ../eina/preferences.c:205
 msgid ""
 "Cannot get GtkUIManager for main menu, unable to deattach preferences menu"
 msgstr ""
 
-#: ../eina/preferences.c:250
+#: ../eina/preferences.c:256
 #, c-format
 msgid "Type %s for object %s is not handled"
 msgstr ""
 
-#: ../eina/preferences.c:277
+#: ../eina/preferences.c:283
 msgid "Build-in preferences plugin"
 msgstr ""
 
@@ -787,7 +787,7 @@ msgid ""
 "bugs about this."
 msgstr ""
 
-#: ../eina/vogon.c:396
+#: ../eina/vogon.c:392
 msgid "Build-in systray and notification plugin"
 msgstr ""
 
@@ -803,13 +803,23 @@ msgstr ""
 msgid "Main window plugin"
 msgstr ""
 
-#: ../plugins/adb/adb.c:51
+#: ../plugins/adb/adb.c:58
 #, c-format
 msgid "Version mismatch. source:%s runtime:%s"
 msgstr ""
 
-#: ../plugins/adb/adb.c:208
+#: ../plugins/adb/adb.c:215
 msgid "Cannot get schema version"
+msgstr ""
+
+#: ../plugins/adb/adb.c:306
+#, c-format
+msgid "Error %d in query '%s'"
+msgstr ""
+
+#: ../plugins/adb/adb.c:355
+#, c-format
+msgid "Unhandled type '%s' in %s. Aborting"
 msgstr ""
 
 #: ../plugins/adb/iface.c:35
@@ -822,6 +832,23 @@ msgstr ""
 
 #: ../plugins/adb/iface.c:66
 msgid "Audio database"
+msgstr ""
+
+#: ../plugins/callhome/callhome.c:56
+msgid "Cannot create UUID object"
+msgstr ""
+
+#: ../plugins/callhome/callhome.c:140
+msgid "Help us to follow Eina's usage"
+msgstr ""
+
+#: ../plugins/callhome/callhome.c:141
+msgid ""
+"Call home will help us to know how many (not who) users has Eina.\n"
+"This plugins generate one aleatory, unique and anonimous number (an UUID, "
+"search Google ) and send it to Eina's home. We only track how many different "
+"UUID got.\n"
+"No personal data is transmitted or stored."
 msgstr ""
 
 #: ../plugins/coverplus/iface.c:63
@@ -851,19 +878,28 @@ msgstr ""
 msgid "Party plugin"
 msgstr ""
 
-#: ../plugins/ntfy/ntfy.c:92
+#: ../plugins/ntfy/ntfy.c:108
 msgid "Cannot get settings object"
 msgstr ""
 
-#: ../plugins/ntfy/ntfy.c:171 ../plugins/ntfy/ntfy.c:173
-msgid "Playing:"
+#: ../plugins/ntfy/ntfy.c:166
+msgid "Now playing"
 msgstr ""
 
-#: ../plugins/ntfy/ntfy.c:238
+#: ../plugins/ntfy/ntfy.c:176
+#, c-format
+msgid "Cannot load resource %s. Cover art will be disabled."
+msgstr ""
+
+#: ../plugins/ntfy/ntfy.c:237
 msgid "Show notifications"
 msgstr ""
 
-#: ../plugins/ntfy/ntfy.c:392
+#: ../plugins/ntfy/ntfy.c:360
+msgid "Playing now"
+msgstr ""
+
+#: ../plugins/ntfy/ntfy.c:435
 msgid "Notifications plugin"
 msgstr ""
 
@@ -1055,11 +1091,12 @@ msgstr ""
 msgid "replace the current playlist"
 msgstr ""
 
-#: ../ui/player.ui.h:1
-msgid "<small><tt></tt></small>"
+#: ../ui/player.ui.h:2
+#, no-c-format
+msgid "<small><tt>%d:%02d</tt></small>"
 msgstr ""
 
-#: ../ui/player.ui.h:3
+#: ../ui/player.ui.h:4
 #, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"

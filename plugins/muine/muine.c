@@ -293,7 +293,7 @@ muine_model_refresh(EinaMuine *self)
 
 		ArtSearch *search = art_search(eina_obj_get_art(self), fake_stream, (ArtFunc) search_cb, self);
 
-		gchar *markup;
+		gchar *markup = NULL;
 		switch (mode)
 		{
 		case EINA_MUINE_MODE_ALBUM:
