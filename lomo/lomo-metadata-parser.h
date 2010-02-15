@@ -42,6 +42,11 @@ G_BEGIN_DECLS
 #define LOMO_METADATA_PARSER_GET_CLASS(obj) \
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserClass))
 
+/**
+ * LomoMetadataParser:
+ * 
+ * Metadata parser
+ */
 typedef struct {
 	GObject parent;
 } LomoMetadataParser;
@@ -52,6 +57,21 @@ typedef struct {
 	void (*all_tags) (LomoMetadataParser *self, LomoStream *stream);
 } LomoMetadataParserClass;
 
+/**
+ * LomoMetadataParserPrio:
+ *
+ * Define priority for #LomoStream in the #LomoMetadataParser
+ */
+/**
+ * LOMO_METADATA_PARSER_PRIO_INMEDIATE:
+ *
+ * Parse stream as soon as possible
+ */
+/**
+ * LOMO_METADATA_PARSER_PRIO_DEFAULT:
+ *
+ * Parse stream with default priority
+ */
 typedef enum {
 	LOMO_METADATA_PARSER_PRIO_INMEDIATE,
 	LOMO_METADATA_PARSER_PRIO_DEFAULT
@@ -60,7 +80,6 @@ typedef enum {
 GType lomo_metadata_parser_get_type (void);
 
 LomoMetadataParser* lomo_metadata_parser_new(void);
-LomoMetadataParser* lomo_metadata_parser_get_default(void);
 void                lomo_metadata_parser_parse(LomoMetadataParser *meta, LomoStream *stream, LomoMetadataParserPrio prio);
 void                lomo_metadata_parser_clear(LomoMetadataParser *meta);
 

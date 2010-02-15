@@ -43,7 +43,17 @@ G_BEGIN_DECLS
 #define LOMO_PLAYER_GET_CLASS(obj) \
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
-/* LomoPlayer object and class */
+/**
+ * LomoPlayer:
+ *
+ * This is the main object in liblomo.
+ * It supports:
+ * - Playback and seeking operations.
+ * - Volume and mute control
+ * - Adding, removing, quequeing and dequeueing streams
+ * - Tag parsing using #LomoMetadataParser
+ * - Signal emission
+ */
 typedef struct {
 	GObject parent;
 } LomoPlayer;
@@ -173,7 +183,22 @@ typedef enum {
 
 GType lomo_player_get_type (void);
 
+/**
+ * lomo_init:
+ * @argc: argc from main()
+ * @argv: argv from main()
+ *
+ * Initializes liblomo
+ */
 #define lomo_init(argc,argv)    gst_init(argc,argv)
+
+/**
+ * lomo_get_option_group:
+ *
+ * Gets the default option group for liblomo
+ *
+ * Returns: a #GOptionGroup
+ */
 #define lomo_get_option_group() gst_init_get_option_group()
 
 LomoPlayer* lomo_player_new (gchar *option_name, ...);
@@ -190,14 +215,43 @@ LomoStream *lomo_player_get_stream(LomoPlayer *self);
 gboolean lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error); // API Changed
 gboolean lomo_player_play_stream(LomoPlayer *self, LomoStream *stream, GError **error); // API Changed
 
-// Get/Set state
 LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error);
+
+/**
+ * lomo_player_play:
+ * @p: The #LomoPlayer
+ * @error: Location to store error (if any)
+ *
+ * Sets #LOMO_STATE_PLAY (start playback) on @p
+ *
+ * Returns: #TRUE on success, #FALSE otherwise
+ */
 #define lomo_player_play(p,error)  lomo_player_set_state(p,LOMO_STATE_PLAY, error)
+
+/**
+ * lomo_player_pause:
+ * @p: The #LomoPlayer
+ * @error: Location to store error (if any)
+ *
+ * Sets #LOMO_STATE_PAUSE (pause playback) on @p
+ *
+ * Returns: #TRUE on success, #FALSE otherwise
+ */
 #define lomo_player_pause(p,error) lomo_player_set_state(p,LOMO_STATE_PAUSE,error)
+
+/**
+ * lomo_player_stop:
+ * @p: The #LomoPlayer
+ * @error: Location to store error (if any)
+ *
+ * Sets #LOMO_STATE_STOP (stop playback) on @p
+ *
+ * Returns: #TRUE on success, #FALSE otherwise
+ */
 #define lomo_player_stop(p,error)  lomo_player_set_state(p,LOMO_STATE_STOP, error)
+
 LomoState lomo_player_get_state(LomoPlayer *self);
 
-// Seek/Query
 gint64  lomo_player_tell(LomoPlayer *self, LomoFormat format);
 #define lomo_player_tell_time(p)    lomo_player_tell(p,LOMO_FORMAT_TIME)
 #define lomo_player_tell_percent(p) lomo_player_tell(p,LOMO_FORMAT_PERCENT)
