@@ -290,6 +290,8 @@ AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"    = "xyes")
 
 dnl Keep in alphabetical order
 AC_OUTPUT([
+bundle/build
+bundle/Info.plist
 data/Makefile
 docs/Makefile
 eina/Makefile
