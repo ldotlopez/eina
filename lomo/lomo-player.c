@@ -946,14 +946,13 @@ lomo_player_get_stream(LomoPlayer *self)
 
 /**
  * lomo_player_set_state:
- * @self: a #LomoPlayer
- * @state: the #LomoState to set
- * @error: location for an error
+ * @self: The #LomoPlayer
+ * @state: The #LomoState to set
+ * @error: Location to store error (if any)
  *
- * Changes the current state of @self to @state
+ * Changes state of @self to @state.
  *
- * Returns: a #LomoStateChangeReturn representing success, failure or async
- * change
+ * Returns: a #LomoStateChangeReturn indicating how the action is realized
  */
 LomoStateChangeReturn
 lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
@@ -990,11 +989,11 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 
 /**
  * lomo_player_get_state:
- * @self: a #LomoPlayer
+ * @self: The #LomoPlayer
  *
- * Gets the current state
+ * Gets current state from @self
  *
- * Returns: the current #LomoState
+ * Returns: a #LomoState representing current state
  */
 LomoState lomo_player_get_state(LomoPlayer *self)
 {
@@ -1015,13 +1014,13 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 
 /**
  * lomo_player_tell:
- * @self: a #LomoPlayer
- * @format: the #LomoFormat to use, currently only %LOMO_FORMAT_TIME is
- * supported
+ * @self: The #LomoPlayer
+ * @format: Format to use.
  *
- * Gets current position of the active #LomoStream 
+ * Gets current position on the stream returning it in the format specified by
+ * @format
  *
- * Returns: the position expresed in format @format
+ * Returns: The position
  */
 gint64
 lomo_player_tell(LomoPlayer *self, LomoFormat format)

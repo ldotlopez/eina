@@ -85,6 +85,14 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+	/**
+	 * LomoMetadataParser::tag:
+	 * @parser: The parser
+	 * @stream: The stream where the tag was found
+	 * @tag: The #LomoTag found
+	 *
+	 * The ::tag signal is emitted for every tag found in the @stream
+	 */
 	lomo_metadata_parser_signals[TAG] =
 		g_signal_new ("tag",
 			G_OBJECT_CLASS_TYPE (object_class),
@@ -96,6 +104,14 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 			2,
 			G_TYPE_POINTER,
 			G_TYPE_INT);
+	/**
+	 * LomoMetadataParser::all-tags:
+	 * @parser: The parser
+	 * @stream: The stream where all tags have been parsed
+	 *
+	 * The ::all-tags signal is emitted when all tags in the @stream have been
+	 * parsed
+	 */
 	lomo_metadata_parser_signals[ALL_TAGS] =
 		g_signal_new ("all-tags",
 			G_OBJECT_CLASS_TYPE (object_class),
@@ -123,21 +139,27 @@ lomo_metadata_parser_init (LomoMetadataParser *self)
 	priv->failure  = priv->got_state_signal = priv->got_new_clock_signal = FALSE;
 }
 
+/**
+ * lomo_metadata_parser_new:
+ *
+ * Creates a new #LomoMetadataParser object
+ *
+ * Returns: the object
+ */
 LomoMetadataParser*
 lomo_metadata_parser_new (void)
 {
 	return g_object_new (LOMO_TYPE_METADATA_PARSER, NULL);
 }
 
-LomoMetadataParser*
-lomo_metadata_parser_get_default(void)
-{
-	static LomoMetadataParser *self = NULL;
-	if (!self)
-		self = lomo_metadata_parser_new();
-	return self;
-}
-
+/**
+ * lomo_metadata_parser_parse:
+ * @self: The parser
+ * @stream: The stream to parse
+ * @prio: The priority on the queue
+ *
+ * Adds @stream to @self internal queue with @prio to be parsed
+ */
 void
 lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMetadataParserPrio prio)
 {
@@ -160,6 +182,12 @@ lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMet
 		priv->idle_id = g_idle_add((GSourceFunc) run_queue, self);
 }
 
+/**
+ * lomo_metadata_parser_clear:
+ * @self: The parser
+ *
+ * Clears internal queue and stop any parse in progress
+ */
 void
 lomo_metadata_parser_clear(LomoMetadataParser *self)
 {
