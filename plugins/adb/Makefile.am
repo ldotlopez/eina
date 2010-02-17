@@ -7,7 +7,7 @@ EXTRA_DIST = $(adb_DATA) adb.svg
 INST_H_FILES = adb.h
 NOINST_H_FILES = register.h
 
-headerdir = $(includedir)/@PACKAGE_NAME@-@EINA_API_VERSION@/plugins/adb
+headerdir = $(includedir)/@PACKAGE@-@EINA_API_VERSION@/plugins/adb
 header_DATA = $(INST_H_FILES)
 
 AM_CFLAGS         = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@

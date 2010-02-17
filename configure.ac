@@ -7,14 +7,13 @@ AC_CONFIG_HEADERS([config.h])
 #
 # Prerequisites and some initilizations
 #
-AC_PREREQ(2.65)
+AC_PREREQ(2.63)
 LT_PREREQ([2.2.6])
 AM_INIT_AUTOMAKE([1.10])
 IT_PROG_INTLTOOL([0.40.0])
 LT_INIT
 AM_GLIB_GNU_GETTEXT
 GTK_DOC_CHECK(1.9)
-
 #
 # Package information
 #
@@ -81,6 +80,7 @@ AC_TYPE_SIZE_T
 # checks for compiler characteristics
 #
 AC_C_INLINE
+AM_PROG_CC_C_O
 
 #
 # checks for library functions
@@ -350,14 +350,10 @@ dnl Keep in alphabetical order
 AC_CONFIG_FILES([
 bundle/build
 bundle/Info.plist
-data/Makefile
 docs/Makefile
-eina/Makefile
-eina/ext/Makefile
+data/Makefile
 icons/Makefile
 icons/hicolor/Makefile
-gel/Makefile
-lomo/Makefile
 Makefile
 data/eina.desktop
 data/eina-0.9.pc

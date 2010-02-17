@@ -22,7 +22,7 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 # gtk-doc will search all .c & .h files beneath here for inline comments
 # documenting the functions and macros.
 # e.g. DOC_SOURCE_DIR=../../../gtk
-DOC_SOURCE_DIR=../lomo
+DOC_SOURCE_DIR=$(top_srcdir)/lomo
 
 # Extra options to pass to gtkdoc-scangobj. Not normally needed.
 SCANGOBJ_OPTIONS=
@@ -75,7 +75,7 @@ expand_content_files=
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(PACKAGE_CFLAGS)
-GTKDOC_LIBS=$(PACKAGE_LIBS) $(top_builddir)/lomo/.libs/liblomo-1.0.a
+GTKDOC_LIBS=$(PACKAGE_LIBS) $(top_builddir)/lomo/liblomo-1.0.la
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/docs/gtk-doc.make
