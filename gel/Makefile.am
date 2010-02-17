@@ -2,9 +2,8 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DGEL_COMPILATION \
 	-DPACKAGE_PREFIX=\""$(prefix)"\" \
-	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE_NAME)\" \
+	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE)\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	@PACKAGE_CFLAGS@
 
 # Version X.Y must be specified
@@ -30,7 +29,7 @@ INST_H_FILES = \
 	gel-io.h                \
 	gel-ui.h
 
-headerdir = $(prefix)/include/@PACKAGE_NAME@-@EINA_API_VERSION@/gel
+headerdir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel
 header_DATA = $(INST_H_FILES)
 
 libgel_1_0_la_SOURCES = \

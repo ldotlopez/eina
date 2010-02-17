@@ -1,18 +1,24 @@
-AC_INIT([eina], 0.9.3, xuzo@cuarentaydos.com)
-AM_INIT_AUTOMAKE([eina], [0.9.3])
-AM_CONFIG_HEADER(config.h)
-AM_MAINTAINER_MODE
+#
+# Init package
+#
+AC_INIT([Eina],[0.9.3],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_CONFIG_HEADERS([config.h])
 
-dnl aclocal flags
-ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
+#
+# Prerequisites and some initilizations
+#
+AC_PREREQ(2.65)
+LT_PREREQ([2.2.6])
+AM_INIT_AUTOMAKE([1.10])
+IT_PROG_INTLTOOL([0.40.0])
+LT_INIT
+AM_GLIB_GNU_GETTEXT
+GTK_DOC_CHECK(1.9)
 
-AC_ISC_POSIX
-AC_PROG_CC
-AC_HEADER_STDC
-AC_PROG_INTLTOOL
-AM_PROG_LIBTOOL
-AC_CONFIG_MACRO_DIR([m4])
-
+#
+# Package information
+#
+GETTEXT_PACKAGE="eina"
 EINA_API_VERSION="0.9"
 EINA_VERSION="$EINA_API_VERSION.3"
 EINA_CODENAME="White rabbit"              # Jefferson airplane
@@ -25,30 +31,84 @@ AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_CODENAME)
 AC_SUBST(EINA_API_VERSION)
+
+PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
+AC_SUBST(PACKAGE_RELEASE_DATE)
+
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
+
+# for po/
+DATADIRNAME="share"
+AC_SUBST(DATADIRNAME)
+
+dnl aclocal flags
+ACLOCAL_AMFLAGS="-I m4 ${ACLOCAL_FLAGS}"
+
+#
+# checks for programs
+#
+AC_PROG_CC
+# AC_PROG_CXX
+AC_PATH_PROG(PKG_CONFIG, pkg-config)
+AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
+
+GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
+AC_SUBST(GLIB_GENMARSHAL)
+AC_SUBST(DBUS_BINDING_TOOL)
+
+#
+# checks for libraries
+#
+AC_SEARCH_LIBS([strerror],[cposix])
+
+#
+# checks for header files
+#
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h])
+
+#
+# checks for types
+#
+AC_TYPE_SIZE_T
+
+#
+# checks for structures
+#
+
+#
+# checks for compiler characteristics
+#
+AC_C_INLINE
+
+#
+# checks for library functions
+#
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([atexit])
+AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([pow])
+AC_CHECK_FUNCS([strchr])
+AC_CHECK_FUNCS([strstr])
+AC_CHECK_FUNCS([strtol])
+
+#
+# checks for system services
+#
+
+AC_CONFIG_MACRO_DIR([m4])
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+
 # export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
 
-AC_PATH_PROG(PKG_CONFIG, pkg-config)
-
-GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
-AC_SUBST(GLIB_GENMARSHAL)
-
-AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
-AC_SUBST(DBUS_BINDING_TOOL)
-
-GTK_DOC_CHECK(1.9)
 
 #*******************************************************************************
 # Internationalization
 #*******************************************************************************
-AM_GLIB_GNU_GETTEXT
-GETTEXT_PACKAGE=eina
-AC_SUBST(GETTEXT_PACKAGE)
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
-DATADIRNAME="share"
-AC_SUBST(DATADIRNAME)
-
 # Some flags
 TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 	-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
@@ -117,9 +177,6 @@ AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(GTK_VERSION)
 AC_SUBST(GSTREAMER_VERSION)
-
-PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
-AC_SUBST(PACKAGE_RELEASE_DATE)
 
 dnl
 dnl Optional deps: clutter, notify, ige-mac-integration, dbus-glib, sqlite3, unique, uuid
@@ -290,7 +347,7 @@ AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"    = "xyes")
 AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"    = "xyes")
 
 dnl Keep in alphabetical order
-AC_OUTPUT([
+AC_CONFIG_FILES([
 bundle/build
 bundle/Info.plist
 data/Makefile
@@ -319,4 +376,5 @@ po/Makefile.in
 tools/Makefile
 ui/Makefile
 ])
+AC_OUTPUT
 

@@ -3,10 +3,6 @@ AM_CPPFLAGS = \
 	-DLIBLOMO_COMPILATION \
 	@PACKAGE_CFLAGS@
 
-#	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
-#	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
-#
-	
 lib_LTLIBRARIES = liblomo-1.0.la
 liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0
 liblomo_1_0_la_LIBADD = @PACKAGE_LIBS@ $(INTLLIBS)
@@ -22,7 +18,7 @@ INST_H_FILES = \
 	lomo-stream.h           \
 	lomo-util.h
 
-headerdir = $(prefix)/include/@PACKAGE_NAME@-@EINA_API_VERSION@/lomo
+headerdir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/lomo
 header_DATA = $(INST_H_FILES)
 
 liblomo_1_0_la_SOURCES = \
