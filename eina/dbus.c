@@ -43,7 +43,7 @@ static void
 key_pressed
 (DBusGProxy *proxy, const gchar *application, const gchar *key, GelApp *app)
 {
-	if (!g_str_equal(application, PACKAGE_NAME))
+	if (!g_str_equal(application, PACKAGE))
 		return;
 	
 	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
@@ -151,7 +151,7 @@ dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	}
 
 	dbus_g_proxy_call(proxy, "GrabMediaPlayerKeys", error,
-		G_TYPE_STRING, PACKAGE_NAME,
+		G_TYPE_STRING, PACKAGE,
 		G_TYPE_UINT, 0,
 		G_TYPE_INVALID,
 		G_TYPE_INVALID);
@@ -182,7 +182,7 @@ dbus_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	DBusGProxy *proxy = EINA_PLUGIN_DATA(plugin);
 	if (!dbus_g_proxy_call (proxy,
 		"ReleaseMediaPlayerKeys", error,
-		G_TYPE_STRING, PACKAGE_NAME,
+		G_TYPE_STRING, PACKAGE,
 		G_TYPE_INVALID, G_TYPE_INVALID))
 		return FALSE;
 

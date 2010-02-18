@@ -136,10 +136,10 @@ gint main
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 
-	g_set_prgname(PACKAGE_NAME);
+	g_set_prgname(PACKAGE);
 	gtk_init(&argc, &argv);
 	lomo_init(&argc, &argv);
-	gel_init(PACKAGE_NAME, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
+	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
 
 	// --
 	// Parse commandline

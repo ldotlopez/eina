@@ -250,7 +250,7 @@ coverplus_load_contents_cb(GObject *source, GAsyncResult *res, gpointer data)
 	}
 	g_object_unref(source);
 
-	gchar *tmpfile = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "tmpcover", NULL);
+	gchar *tmpfile = g_build_filename(g_get_home_dir(), "." PACKAGE, "tmpcover", NULL);
 	if (!g_file_set_contents(tmpfile, contents, size, &err))
 	{
 		gel_error("Cannot create pixbuf: %s", err->message);

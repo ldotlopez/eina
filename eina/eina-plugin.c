@@ -67,7 +67,7 @@ eina_plugin_build_userdir_path (EinaPlugin *self, gchar *path)
 {
 	gchar *dirname = g_path_get_dirname(gel_plugin_get_pathname(self));
 	gchar *bname   = g_path_get_basename(dirname);
-	gchar *ret     = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, bname, path, NULL);
+	gchar *ret     = g_build_filename(g_get_home_dir(), "." PACKAGE, bname, path, NULL);
 	g_free(bname);
 	g_free(dirname);
 	
