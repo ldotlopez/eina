@@ -4,3 +4,8 @@ Eina 0.9.3
 - New autotools build system.
   Eina has changed his classic build system for a non-recursive, cleaner than
   before, schema.
+
+  References:
+  http://blogs.gnome.org/jjardon/2010/01/25/modernize-your-autotools-build-system/
+  http://live.gnome.org/JavierJardon/NewBuildSystem
+  http://live.gnome.org/GnomeGoals/ModernAutotools
