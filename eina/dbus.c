@@ -25,7 +25,7 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
 #include <eina/dbus-marshallers.h>
-#include "../data/lomo-player-glue.h"
+#include <lomo/lomo-player-dbus-glue.h>
 
 /*
  * dbus-send --session --type=method_call --print-reply

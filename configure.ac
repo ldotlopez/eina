@@ -351,14 +351,12 @@ AC_CONFIG_FILES([
 bundle/build
 bundle/Info.plist
 docs/Makefile
-data/Makefile
 icons/Makefile
 icons/hicolor/Makefile
 Makefile
 data/eina.desktop
 data/eina-0.9.pc
 pixmaps/Makefile
-plugins/adb/Makefile
 plugins/callhome/Makefile
 plugins/coverplus/Makefile
 plugins/fieshta/Makefile
@@ -370,7 +368,6 @@ plugins/recently/Makefile
 plugins/Makefile
 po/Makefile.in
 tools/Makefile
-ui/Makefile
 ])
 AC_OUTPUT
 
