@@ -1,0 +1,6 @@
+Eina 0.9.3
+==========
+
+- New autotools build system.
+  Eina has changed his classic build system for a non-recursive, cleaner than
+  before, schema.

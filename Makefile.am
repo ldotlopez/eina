@@ -13,7 +13,7 @@ SUBDIRS = \
 
 EXTRA_DIST = \
 	intltool-extract.in intltool-merge.in intltool-update.in \
-	COPYRIGHT README AUTHORS INSTALL
+	AUTHORS BUGS COPYING INSTALL NEWS README
 
 BUILT_SOURCES = \
 	lomo/lomo-marshallers.c              \
