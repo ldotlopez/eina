@@ -32,7 +32,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DPACKAGE_PREFIX=\""$(prefix)"\" \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE)\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
+	-DPACKAGE_DATA_DIR=\""$(datadir)/$(PACKAGE)"\" \
 	@PACKAGE_CFLAGS@
 
 PACKAGE_LIBS += $(INTLLIBS)
@@ -173,17 +173,17 @@ eina/ext/eina-preferences-dialog-marshallers.c: eina/ext/eina-preferences-dialog
 	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header --body > $@
 
 eina/ext/eina-plugin-dialog-ui.h: eina/ext/eina-plugin-dialog.ui
-	tools/ui2h $< > $@ ui_xml
+	tools/ui2h $< ui_xml > $@
 
 eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
-	tools/ui2h $< > $@ ui_xml
+	tools/ui2h $< ui_xml > $@
 
 
 #
 # eina
 #
-eina_eina_CFLAGS  = -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
-eina_vogon_CFLAGS = -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_eina_CFLAGS  = $(AM_CPPFLAGS) -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
+eina_vogon_CFLAGS = $(AM_CPPFLAGS) -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
 
 eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	@PACKAGE_LIBS@ \
