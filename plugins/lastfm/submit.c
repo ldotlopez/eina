@@ -147,7 +147,7 @@ generate_yaml(LastFMSubmit *self, LomoPlayer *lomo, LomoStream *stream)
 	g_string_append_printf(str, "time: !timestamp %s\n", strf);
 
 	// Write to file
-	gchar *spool = g_build_filename(g_get_user_cache_dir(), PACKAGE_NAME, "lastfmsubmitd", "spool", NULL);
+	gchar *spool = g_build_filename(g_get_user_cache_dir(), PACKAGE, "lastfmsubmitd", "spool", NULL);
 	if (!eina_fs_mkdir(spool, 0700))
 	{
 		gel_error("Cannot create spooldir");
@@ -247,9 +247,9 @@ lastfm_submit_set_account_info(LastFMSubmit *self, gchar *username, gchar *passw
 	g_free(dirname);
 
 	gchar *contents = g_strdup_printf(template,
-		cache, PACKAGE_NAME,
-		cache, PACKAGE_NAME,
-		cache, PACKAGE_NAME,
+		cache, PACKAGE,
+		cache, PACKAGE,
+		cache, PACKAGE,
 		username, password);
 	GError *error = NULL;
 	if (!g_file_set_contents(pathname, contents, -1, &error))
@@ -311,7 +311,7 @@ daemon_start(LastFMSubmit *self, GError **error)
 	}
 
 	// Folders
-	gchar *spool = g_build_filename(g_get_user_cache_dir(), PACKAGE_NAME, "lastfmsubmitd", "spool", NULL);
+	gchar *spool = g_build_filename(g_get_user_cache_dir(), PACKAGE, "lastfmsubmitd", "spool", NULL);
 	if (!eina_fs_mkdir(spool, 0700))
 	{
 		g_set_error(error, lastfm_quark(), EINA_LASTFM_ERROR_START_DAEMON,

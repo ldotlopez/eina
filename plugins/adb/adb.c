@@ -59,7 +59,7 @@ adb_new(GelApp *app, GError **error)
 		return FALSE;
 	}
 
-	gchar *db_path = g_build_filename(conf_dir, PACKAGE_NAME, "adb.db", NULL);
+	gchar *db_path = g_build_filename(conf_dir, PACKAGE, "adb.db", NULL);
 	gchar *db_dirname = g_path_get_dirname(db_path);
 	g_mkdir_with_parents(db_dirname, 0755);
 	g_free(db_dirname);

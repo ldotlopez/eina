@@ -101,7 +101,7 @@ callhome_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	gchar *buffer = NULL;
 
 	// Load and check UUID from configdir
-	gchar *uuid_path = g_build_filename(g_get_user_config_dir(), PACKAGE_NAME, "callhome-uuid", NULL);
+	gchar *uuid_path = g_build_filename(g_get_user_config_dir(), PACKAGE, "callhome-uuid", NULL);
 	if (g_file_get_contents(uuid_path, &buffer, NULL, NULL))
 	{
 		uuid_str = build_uuid(buffer, error);

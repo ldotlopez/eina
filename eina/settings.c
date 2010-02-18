@@ -33,9 +33,9 @@ settings_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gchar *cfg_file = NULL;
 	const gchar *config_dir = g_get_user_config_dir();
 	if (config_dir == NULL)
-		cfg_file = g_build_filename(g_get_home_dir(), "." PACKAGE_NAME, "settings", NULL);
+		cfg_file = g_build_filename(g_get_home_dir(), "." PACKAGE, "settings", NULL);
 	else
-		cfg_file = g_build_filename(config_dir, PACKAGE_NAME, "settings", NULL);
+		cfg_file = g_build_filename(config_dir, PACKAGE, "settings", NULL);
 	gchar *dirname = g_path_get_dirname(cfg_file);
 
 	// Create folder structure

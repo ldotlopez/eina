@@ -140,8 +140,8 @@ gint main
 
 	gtk_init(&argc, &argv);
 	lomo_init(&argc, &argv);
-	gel_init(PACKAGE_NAME, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
-	g_set_prgname(PACKAGE_NAME);
+	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
+	g_set_prgname(PACKAGE);
 
 	// --
 	// Parse commandline

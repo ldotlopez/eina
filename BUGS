@@ -1,35 +1,6 @@
-TODO
-====
+Search on https://bugs.launchpad.net/eina for a list of known eina's bug.
 
-* Insertar ficheros ordenados
-* (Solucionado? )La caratula debe tener en cuanta el stream actual y ante la señal
-all_tags de LomoPlayer actualizar la caratula
-* Autoplay al iniciar
-* (Solucionado?) Recently falla cuando solo hay una lista y es seleccionada
-* La primera vez que se ejecuta el plugin recently no carga
-* Aceptar streams como argumentos
-* Cuadros de dialogo por doquier
-* Redimensionar la ventana correctamente al esconder la pl
-* Reordenar la random pl una vez se llega al final
-* Tipo restante/total disponible en el player
-* Total de tiempo de la pl
-* Plugin de lyrics
+If you find a new bug, please report it at
+http://bugs.launchpad.net/eina/+filebug
 
-* Soporte para encolar dentro de una misma pl
-* Soporte para hacer loop sobre una sola cancion
-* Tooltips
-* Sacar la duracion desde el stream si no se encuentra el tag
-* Funcionar con HTTP (http://srbs.zonepro.com:8022/)
-* La busqueda de las caratulas en disco debe ser case insensitive
-* Eina comienza sin caratula si no hay nada en la playlist
-* El seek no se debe poder mover si la cancion no ha empezado
-* Reducir el numero operacion de cadenas en la playlist
-* Usar algun tipo de cache para los diferentes estados de cadenas que maneja la playlist.
-
-DONE
-====
-* Fallback a cover.png/.jpg si no se encuentra la caratula en inet (Guardar en cache?)
-* Move el seek justo en el momento de arrancar da numeros negativos
-* El volumen debe funcionar correctamente
-* Filtrar la pl por tipo de fichero
-
+Thanks
