@@ -1,24 +1,11 @@
-DIST_SUBDIRS = callhome coverplus fieshta hooktest lastfm muine ntfy recently
+DIST_SUBDIRS = hooktest recently
+
+SUBDIRS = 
 
 # Stable, basic plugins
-SUBDIRS = coverplus lastfm
-
-if BUILD_ADB
-SUBDIRS += muine
-endif
-
-if BUILD_CALLHOME
-SUBDIRS += callhome
-endif
-
-if BUILD_NTFY
-SUBDIRS += ntfy
-endif
 
 # Experimental plugins
 if BUILD_EXPERIMENTAL
-
-SUBDIRS += fieshta
 
 if BUILD_ADB
 SUBDIRS += recently

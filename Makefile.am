@@ -7,11 +7,9 @@ AUTOMAKE_OPTIONS = subdir-objects
 # Some non-code subdirs follow a recursive schema for convenience
 SUBDIRS = \
 	.       \
-	plugins \
 	docs    \
 	icons   \
 	tools   \
-	pixmaps \
 	po
 
 EXTRA_DIST = \
@@ -21,11 +19,11 @@ EXTRA_DIST = \
 BUILT_SOURCES = \
 	lomo/lomo-marshallers.c              \
 	lomo/lomo-marshallers.h              \
-	lomo/lomo-player-dbus-glue.h         \
 	eina/ext/eina-plugin-dialog-ui.h     \
     eina/ext/eina-plugin-properties-ui.h \
     eina/ext/eina-preferences-dialog-marshallers.c \
     eina/ext/eina-preferences-dialog-marshallers.h \
+	eina/lomo-player-dbus-glue.h         \
 	eina/dbus-marshallers.c \
 	eina/dbus-marshallers.h
 
@@ -121,17 +119,13 @@ lomo_liblomo_1_0_la_SOURCES = \
     lomo/lomo-util.c
 
 EXTRA_DIST += \
-	lomo/lomo-marshallers.list       \
-	lomo/lomo-player.xml
+	lomo/lomo-marshallers.list
 
 lomo/lomo-marshallers.c: lomo/lomo-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=lomo_marshal --header --body > $@
 
 lomo/lomo-marshallers.h: lomo/lomo-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=lomo_marshal --header > $@
-
-lomo/lomo-player-dbus-glue.h: lomo/lomo-player.xml
-	$(DBUS_BINDING_TOOL) --mode=glib-server --prefix=lomo_player $< > $@
 
 #
 # libeinaext
@@ -253,9 +247,18 @@ eina_vogon_SOURCES = \
     eina/vogon-app.c
 
 if BUILD_DBUS 
-eina_eina_SOURCES += eina/dbus.c lomo/lomo-player-dbus-glue.h eina/dbus-marshallers.c eina/dbus-marshallers.h
+eina_eina_SOURCES += \
+	eina/dbus.c \
+	eina/lomo-player-dbus-glue.h \
+	eina/dbus-marshallers.c \
+	eina/dbus-marshallers.h
+
 eina_eina_CFLAGS  += @DBUS_GLIB_CFLAGS@
 eina_eina_LDFLAGS += @DBUS_GLIB_LIBS@
+
+eina/lomo-player-dbus-glue.h: eina/lomo-player-dbus-glue.xml
+	$(DBUS_BINDING_TOOL) --mode=glib-server --prefix=lomo_player $< > $@
+
 endif
 
 if BUILD_IGE
@@ -264,7 +267,9 @@ eina_eina_CFLAGS  += @IGE_CFLAGS@
 eina_eina_LDFLAGS += @IGE_LIBS@
 endif
 
-EXTRA_DIST += eina/dbus-marshallers.list
+EXTRA_DIST += \
+	eina/dbus-marshallers.list \
+	eina/lomo-player-dbus-glue.xml
 
 eina/dbus-marshallers.h: eina/dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header > $@
@@ -284,10 +289,24 @@ ui_DATA = \
     ui/playlist.ui \
     ui/plugins.ui
 
+EXTRA_DIST += $(ui_DATA)
+
+#
+# pixmaps
+#
+pixmapsdir = $(pkgdatadir)/pixmaps
+pixmaps_DATA = 
+	pixmaps/cover-default.png      \
+	pixmaps/cover-loading.png      \
+	pixmaps/cover-mask.png         \
+	pixmaps/eina.svg               \
+	pixmaps/loading-spin-16x16.gif \
+	pixmaps/plugin.png
+EXTRA_DIST += $(pixmaps_DATA)
+
 #
 # data
 #
-
 # pkgconfig files
 data_pkgconfigdir = $(libdir)/pkgconfig
 data_pkgconfig_DATA = data/eina-@EINA_API_VERSION@.pc
@@ -302,10 +321,10 @@ data_applications_DATA = data/eina.desktop
 if BUILD_ADB
 plugins_adbdir = $(pkglibdir)/adb
 plugins_adb_includedir = $(includedir)/@PACKAGE@-@EINA_API_VERSION@/plugins/adb
+plugins_adb_include_HEADERS = plugins/adb/adb.h
 
 plugins_adb_LTLIBRARIES = plugins/adb/libadb.la
 plugins_adb_DATA = plugins/adb/adb.png 
-plugins_adb_include_HEADERS = plugins/adb/adb.h
 
 plugins_adb_libadb_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ 
 plugins_adb_libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
@@ -315,6 +334,156 @@ plugins_adb_libadb_la_SOURCES = \
 	plugins/adb/adb.c      \
 	plugins/adb/iface.c
 
-EXTRA_DIST += plugins/adb/adb.svg
+EXTRA_DIST += \
+	$(plugins_adb_DATA) \
+	$(plugins_adb_include_HEADERS) \
+	plugins/adb/adb.svg
+endif
+
+#
+# callhome plugin
+#
+if BUILD_CALLHOME
+plugins_callhomedir = $(pkglibdir)/callhome
+plugins_callhome_LTLIBRARIES = plugins/callhome/libcallhome.la
+
+plugins_callhome_libcallhome_la_CFLAGS  = @PACKAGE_CFLAGS@ @UUID_CFLAGS@
+plugins_callhome_libcallhome_la_LDFLAGS = @PACKAGE_LIBS@ @UUID_LIBS@ -module -avoid-version
+plugins_callhome_libcallhome_la_SOURCES = plugins/callhome/callhome.c
+endif
+
+#
+# coverplus plugin
+#
+plugins_coverplusdir = $(pkglibdir)/coverplus
+plugins_coverplus_LTLIBRARIES = plugins/coverplus/libcoverplus.la
+
+plugins_coverplus_libcoverplus_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+plugins_coverplus_libcoverplus_la_SOURCES = \
+	plugins/coverplus/banshee.c       \
+	plugins/coverplus/banshee.h       \
+	plugins/coverplus/infolder-sync.c \
+	plugins/coverplus/infolder.h      \
+	plugins/coverplus/iface.c
+
+#
+# fieshta plugin
+#
+if BUILD_EXPERIMENTAL
+
+plugins_fieshtadir = $(pkglibdir)/fieshta
+plugins_fieshta_LTLIBRARIES = plugins/fieshta/libfieshta.la
+
+plugins_fieshta_libfieshta_la_CFLAGS  = @PACKAGE_LIBS@
+plugins_fieshta_libfieshta_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+plugins_fieshta_libfieshta_la_SOURCES = \
+	plugins/fieshta/fieshta.c \
+	plugins/fieshta/fieshta.h
+
+if USE_CLUTTER
+plugins_fieshta_libfieshta_la_SOURCES += \
+	plugins/fieshta/fieshta-stage.c  \
+	plugins/fieshta/fieshta-stage.h  \
+	plugins/fieshta/fieshta-stream.c \
+	plugins/fieshta/fieshta-stream.h
+
+plugins_fieshta_libfieshta_la_CFLAGS  += @CLUTTER_CFLAGS@
+plugins_fieshta_libfieshta_la_LDFLAGS += @CLUTTER_LIBS@
+endif
+endif
+
+#
+# lastfm plugin
+#
+plugins_lastfmdir = $(pkglibdir)/lastfm
+
+plugins_lastfm_LTLIBRARIES = plugins/lastfm/liblastfm.la
+plugins_lastfm_DATA = \
+	plugins/lastfm/lastfm.png \
+	plugins/lastfm/lastfm.ui  \
+	plugins/lastfm/logo.gif
+
+#if USE_LASTFM_WEBVIEW
+#liblastfm_la_LDFLAGS += @WEBKITGTK_LIBS@
+#liblastfm_la_SOURCES += webview.c webview.h
+#endif
+
+plugins_lastfm_liblastfm_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+plugins_lastfm_liblastfm_la_SOURCES = \
+	plugins/lastfm/lastfm.c  \
+	plugins/lastfm/lastfm.h  \
+	plugins/lastfm/submit.c  \
+	plugins/lastfm/submit.h  \
+	plugins/lastfm/artwork.c \
+	plugins/lastfm/artwork.h
+
+plugins_lastfm_lastfmsubmitddir = $(plugins_lastfmdir)/lastfmsubmitd
+plugins_lastfm_lastfmsubmitd_DATA = \
+	plugins/lastfm/lastfmsubmitd/lastfmsubmitd \
+	plugins/lastfm/lastfmsubmitd/COPYRIGHT \
+	plugins/lastfm/lastfmsubmitd/info.txt
+plugins_lastfm_lastfmsubmitdlibdir = $(plugins_lastfm_lastfmsubmitddir)/lastfm
+plugins_lastfm_lastfmsubmitdlib_DATA = \
+	plugins/lastfm/lastfmsubmitd/lastfm/__init__.py   \
+	plugins/lastfm/lastfmsubmitd/lastfm/marshaller.py \
+	plugins/lastfm/lastfmsubmitd/lastfm/config.py     \
+	plugins/lastfm/lastfmsubmitd/lastfm/client.py
+
+EXTRA_DIST += \
+	$(plugins_lastfm_DATA) \
+	$(plugins_lastfm_lastfmsubmitd_DATA) \
+	$(plugins_lastfm_lastfmsubmitdlib_DATA)
+
+#
+# muine plugin
+#
+if BUILD_ADB
+plugins_muinedir = $(pkglibdir)/muine
+plugins_muine_LTLIBRARIES = plugins/muine/libmuine.la
+plugins_muine_DATA = plugins/muine/muine.ui
+
+plugins_muine_libmuine_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
+plugins_muine_libmuine_la_LDFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ -module -avoid-version
+plugins_muine_libmuine_la_SOURCES = plugins/muine/muine.c
+EXTRA_DIST += $(plugins_muine_DATA)
+endif
+
+#
+# ntfy plugin
+#
+if BUILD_NTFY
+plugins_ntfydir = $(pkglibdir)/ntfy
+plugins_ntfy_LTLIBRARIES = plugins/ntfy/libntfy.la
+plugins_ntfy_DATA = plugins/ntfy/ntfy.png
+
+plugins_ntfy_libntfy_la_CFLAGS  = @PACKAGE_CFLAGS@ @NOTIFY_CFLAGS@
+plugins_ntfy_libntfy_la_LDFLAGS = @PACKAGE_LIBS@ @NOTIFY_LIBS@ -module -avoid-version
+plugins_ntfy_libntfy_la_SOURCES = \
+	plugins/ntfy/ntfy.c \
+	plugins/ntfy/ntfy.h
+
+EXTRA_DIST += \
+	$(plugins_ntfy_DATA) \
+	plugins/ntfy/ntfy.svg
+endif
+
+#
+# recently plugin
+#
+if BUILD_EXPERIMENTAL
+if BUILD_ADB
+plugins_recentlydir = $(pkglibdir)/recently
+plugins_recently_LTLIBRARIES   = plugins/recently/librecently.la
+plugins_recently_DATA = \
+	plugins/recently/dock.ui \
+	plugins/recently/go-back.png
+
+plugins_recently_librecently_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
+plugins_recently_librecently_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
+plugins_recently_librecently_la_SOURCES = plugins/recently/recently.c
+
+EXTRA_DIST += $(plugins_recently_DATA)
+
+endif
 endif
 
