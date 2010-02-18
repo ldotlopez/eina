@@ -314,7 +314,7 @@ PKG_CHECK_MODULES(UNIQUE, $unique_modules,
 dnl
 dnl uuid (!core, callhome)
 dnl
-UUID_VERSION="2.16.0"
+UUID_VERSION="1.41.0"
 uuid_modules="uuid >= $UUID_VERSION" 
 PKG_CHECK_MODULES(UUID, $uuid_modules,
 	[
