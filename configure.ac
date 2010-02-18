@@ -357,7 +357,6 @@ docs/Makefile
 icons/Makefile
 icons/hicolor/Makefile
 po/Makefile.in
-tools/Makefile
 ])
 AC_OUTPUT
 

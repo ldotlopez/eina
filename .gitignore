@@ -39,8 +39,11 @@ po/Makefile.in.in
 po/POTFILES
 po/stamp-it
 stamp-h1
+.dirstamp
 
 # Eina bundle for OSX
+bundle/build
+bundle/Info.plist
 bundle/Eina-*
 eina/eina
 eina/vogon
@@ -56,9 +59,9 @@ eina/ext/*-ui.h
 bindings/
 
 # Output data
+eina/lomo-player-dbus-glue.h
 data/eina-0.9.pc
 data/eina.desktop
-data/lomo-player-glue.h
 
 tools/plugins/
 

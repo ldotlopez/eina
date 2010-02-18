@@ -9,7 +9,6 @@ SUBDIRS = \
 	.       \
 	docs    \
 	icons   \
-	tools   \
 	po
 
 EXTRA_DIST = \
@@ -314,6 +313,11 @@ data_pkgconfig_DATA = data/eina-@EINA_API_VERSION@.pc
 # desktop files
 data_applicationsdir = $(datadir)/applications
 data_applications_DATA = data/eina.desktop
+
+#
+# tools
+#
+EXTRA_DIST += tools/ui2h
 
 #
 # Adb plugin
