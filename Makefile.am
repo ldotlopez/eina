@@ -295,7 +295,7 @@ EXTRA_DIST += $(ui_DATA)
 # pixmaps
 #
 pixmapsdir = $(pkgdatadir)/pixmaps
-pixmaps_DATA = 
+pixmaps_DATA =  \
 	pixmaps/cover-default.png      \
 	pixmaps/cover-loading.png      \
 	pixmaps/cover-mask.png         \
