@@ -54,6 +54,7 @@ gel_include_HEADERS = \
     gel/gel-misc.h              \
     gel/gel-string.h            \
     gel/gel-str-parser.h        \
+    gel/gel-job-queue.h         \
     gel/gel-plugin.h            \
     gel/gel-app.h               \
     gel/gel-io-misc.h           \
@@ -68,6 +69,7 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-misc.c              \
     gel/gel-string.c            \
     gel/gel-str-parser.c        \
+    gel/gel-job-queue.c         \
     gel/gel-app-marshallers.c   \
 	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \

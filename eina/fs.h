@@ -23,11 +23,16 @@
 #include <glib.h>
 #include <gio/gio.h>
 #include <lomo/lomo-player.h>
+#include <gel/gel-io.h>
 
-#if 0
 void
-eina_fs_load_files_from_uri(LomoPlayer *lomo, gchar *uri);
-#endif
+eina_fs_load_from_uri_multiple(LomoPlayer *lomo, GList *uris);
+
+GelIOTreeOp*
+eina_fs_load_uris(LomoPlayer *lomo, GList *uris);
+
+GelIOTreeOp*
+eina_fs_load_uri(LomoPlayer *lomo, gchar *uri);
 
 // Runs a file chooser dialog with all the stuff (cancel, loading, ...)
 // and adds results to lomo handling play or enqueue

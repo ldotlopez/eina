@@ -99,14 +99,6 @@ inspect_gdk_pixbuf_loaders(void)
 #endif
 
 // --
-// Callbacks
-// --
-static void
-list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data);
-static void
-list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data);
-
-// --
 // XXX ugly hack
 // --
 void xxx_ugly_hack(void);
@@ -247,20 +239,18 @@ gint main
 	{
 		gint i;
 		gchar *uri;
-		GSList *uris = NULL;
+		GList *uris = NULL;
 
 		for (i = 0; (opt_uris != NULL) && (opt_uris[i] != NULL); i++)
 			if ((uri = lomo_create_uri(opt_uris[i])) != NULL)
-			{
-				uris = g_slist_prepend(uris, g_file_new_for_uri(uri));
-				g_free(uri);
-			}
-		uris = g_slist_reverse(uris);
-		g_strfreev(opt_uris);
+				uris = g_list_prepend(uris, uri);
 
-		gel_io_list_read(uris, "standard::*",
-			list_read_success_cb, list_read_error_cb,
-			(gpointer) app);
+		uris = g_list_reverse(uris);
+
+		eina_fs_load_from_uri_multiple(gel_app_get_lomo(app), uris);
+
+		g_list_free(uris);
+		g_strfreev(opt_uris);
 	}
 
 	// Load pl
@@ -319,26 +309,21 @@ unique_message_received_cb (UniqueApp *unique,
 	if ((((command == COMMAND_PLAY) || command == COMMAND_ENQUEUE)) &&
 		(uris = unique_message_data_get_uris(message)))
 	{
-		GSList *gfiles = NULL;
 		gint i;
-		gchar *uri;
+		GList *uris_l = NULL;
+		gchar *tmp;
+	
+		for (i = 0; uris[i] != NULL; i++)
+			if ((tmp = lomo_create_uri(uris[i])) != NULL)
+				uris_l = g_list_prepend(uris_l, tmp);
 
-		for (i = 0; (uris != NULL) && (uris[i] != NULL); i++)
-			if ((uri = lomo_create_uri(uris[i])) != NULL)
-			{
-				gfiles = g_slist_prepend(gfiles, g_file_new_for_uri(uri));
-				g_free(uri);
-			}
-		g_strfreev(uris);
-
-		gfiles = g_slist_reverse(gfiles);
-
+		uris_l = g_list_reverse(uris_l);
 		if (command == COMMAND_PLAY)
-			lomo_player_clear(GEL_APP_GET_LOMO(app));
-		gel_io_list_read(gfiles, "standard::*",
-			list_read_success_cb, list_read_error_cb,
-			app);
-		gtk_main();
+			lomo_player_clear(gel_app_get_lomo(app));
+		eina_fs_load_from_uri_multiple(gel_app_get_lomo(app), uris_l);
+
+		g_list_free(uris_l);
+		g_strfreev(uris);
 
 		res = UNIQUE_RESPONSE_OK;
 	}
@@ -346,39 +331,6 @@ unique_message_received_cb (UniqueApp *unique,
 	return res;
 }
 #endif
-
-// --
-// Callbacks
-// --
-static void
-list_read_success_cb(GelIOOp *op, GFile *source, GelIOOpResult *res, gpointer data)
-{
-	GelApp *app = GEL_APP(data);
-	GList *results = gel_io_op_result_get_object_list(res);
-	GSList *filter = gel_list_filter(results, (GelFilterFunc) eina_fs_is_supported_file, NULL);
-	GList *uris = NULL;
-	while (filter)
-	{
-		uris = g_list_prepend(uris, g_file_get_uri(G_FILE(filter->data)));
-		filter = filter->next;
-	}
-	gel_list_deep_free(results, g_object_unref);
-
-	lomo_player_append_uri_multi(GEL_APP_GET_LOMO(app), uris);
-	gel_slist_deep_free(gel_io_list_read_get_sources(op), g_object_unref);
-	gel_list_deep_free(uris, g_free);
-
-	if (gtk_main_level() > 1)
-		gtk_main_quit();
-}
-
-static void
-list_read_error_cb(GelIOOp *op, GFile *source, GError *error, gpointer data)
-{
-	gchar *uri = g_file_get_uri(source);
-	gel_error("Error while getting info for '%s': %s", uri, error->message);
-	g_free(uri);
-}
 
 // --
 // XXX ugly hack

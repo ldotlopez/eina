@@ -147,6 +147,22 @@ gel_list_join(const gchar *separator, GList *list)
 	return ret;
 }
 
+void
+gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data)
+{
+	GList *iter = input;
+	while (iter)
+	{
+		input = g_list_remove_link(input, iter);
+		if (callback(iter->data, data))
+			*accepted = g_list_concat(*accepted, iter);
+		else
+			*rejected = g_list_concat(*rejected, iter);
+		iter = input;
+	}
+}
+
+
 GSList*
 gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data)
 {

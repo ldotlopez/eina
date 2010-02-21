@@ -133,6 +133,14 @@ gst_state_change_return_to_str(GstStateChangeReturn s)
 // Conversions between LomoStateChangeReturn and GstStateChangeReturn
 // --
 
+/*
+ * lomo_create_uri:
+ * @str: A filepath (relative or absolute) or an URI
+ *
+ * Creates an uri from @str
+ *
+ * Returns: a newly allocated uri for @str.
+ */
 gchar *
 lomo_create_uri(gchar *str)
 {

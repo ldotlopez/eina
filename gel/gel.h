@@ -24,6 +24,7 @@
 #include <gel/gel-plugin.h>
 #include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>
+#include <gel/gel-job-queue.h>
 #include <gel/gel-misc.h>
 
 #endif // _GEL_H

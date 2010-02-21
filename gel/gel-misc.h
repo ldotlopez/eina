@@ -121,6 +121,9 @@ gel_list_join(const gchar *separator, GList *list);
 	} while (0)
 
 
+void
+gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data);
+
 // Filter: no data copied, its shared
 #define gel_list_filter(input,callback,user_data) gel_slist_filter((GSList*)input,callback,user_data); // Compatible
 GSList*
