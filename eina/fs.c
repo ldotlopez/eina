@@ -70,13 +70,11 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
  * @uris: list of uris (gchar *) to load, this function deep copies it
  *
  * Scans and add uris to lomo
- *
- * Returns: a #GelIOScanner
  */
-GelIOScanner*
+void
 eina_fs_load_from_uri_multiple(GelApp *app, GList *uris)
 {
-	return gel_io_scan(uris, "standard::*",  TRUE,
+	gel_io_scan(uris, "standard::*",  TRUE,
 		(GelIOScannerSuccessFunc) load_from_uri_multiple_scanner_success_cb, 
 		(GelIOScannerErrorFunc)   load_from_uri_multiple_scanner_error_cb,
 		app);

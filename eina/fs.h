@@ -25,7 +25,7 @@
 #include <lomo/lomo-player.h>
 #include <gel/gel-io.h>
 
-GelIOScanner*
+void
 eina_fs_load_from_uri_multiple(GelApp *app, GList *uris);
 
 

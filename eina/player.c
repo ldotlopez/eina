@@ -38,9 +38,6 @@ struct _EinaPlayer {
 	EinaObj parent;
 	GtkActionGroup *action_group;
 	guint merge_id;
-
-	GQueue *io_tree_files;
-	GelIOTreeOp *io_op;
 };
 
 static void
@@ -61,11 +58,6 @@ static void
 volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
-
-static void
-io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlayer *self);
-static void
-io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error, gpointer data);
 
 static gchar *ui_xml = 
 "<ui>"
@@ -115,7 +107,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	self->io_tree_files = g_queue_new();
 	plugin->data = self;
 
 	//
@@ -237,10 +228,6 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlayer *self = EINA_PLUGIN_DATA(plugin);
 
-	gel_free_and_invalidate(self->io_op, NULL, gel_io_tree_op_close);
-	g_queue_foreach(self->io_tree_files, (GFunc) g_object_unref, NULL);
-	g_queue_clear(self->io_tree_files);
-
 	eina_window_remove_widget(eina_obj_get_window(self), eina_obj_get_typed(self, GTK_WIDGET, "main-widget"));
 	eina_obj_fini(EINA_OBJ(plugin->data));
 
@@ -359,10 +346,6 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 {
-	gel_free_and_invalidate(self->io_op, NULL, gel_io_tree_op_close);
-	g_queue_foreach(self->io_tree_files, (GFunc) g_object_unref, NULL);
-	g_queue_clear(self->io_tree_files);
-
 	player_update_information(self);
 }
 
@@ -489,34 +472,23 @@ drag_data_received_cb
 
 	}
 
+	GList *uris = NULL;
 	if (dnd_success == FALSE)
-	{
 		gel_error("DnD data transfer failed!\n");
-	}
 	else
 	{
-		lomo_player_clear(eina_obj_get_lomo(self));
-		gchar **uris = g_uri_list_extract_uris(_sdata);
-		gint i;
-		for (i = 0; uris[i] && uris[i][0] ; i++)
-			g_queue_push_tail(self->io_tree_files, g_file_new_for_uri(uris[i]));
-		
-		g_strfreev(uris);
+		gchar **urisv = g_uri_list_extract_uris(_sdata);
+		uris = gel_strv_to_list(urisv, FALSE);
+		g_free(urisv);
 	}
 
-	gtk_drag_finish (context, dnd_success, delete_selection_data, time);
-
-	if (g_queue_is_empty(self->io_tree_files))
-		return;
-
-	if (self->io_op)
+	if (uris)
 	{
-		gel_io_tree_op_close(self->io_op);
-		self->io_op = NULL;
+		lomo_player_clear(eina_obj_get_lomo(self));
+		eina_fs_load_from_uri_multiple(eina_obj_get_app(self), uris);
+		gel_list_deep_free(uris, (GFunc) g_free);
 	}
-	
-	self->io_op = gel_io_tree_walk(g_queue_pop_head(self->io_tree_files), "standard::*", TRUE,
-		(GelIOTreeSuccessFunc) io_tree_read_success_cb, io_tree_read_error_cb, self);
+	gtk_drag_finish (context, dnd_success, delete_selection_data, time);
 }
 
 /* Emitted when a drag is over the destination */
@@ -599,43 +571,6 @@ player_dnd_setup(EinaPlayer *self)
 	g_signal_connect (dest, "drag-leave",         G_CALLBACK (drag_leave_cb),        self);
 	g_signal_connect (dest, "drag-motion",        G_CALLBACK (drag_motion_cb),       self);
 	g_signal_connect (dest, "drag-drop",          G_CALLBACK (drag_drop_cb),         self);
-}
-
-static void
-io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlayer *self)
-{
-	GList *l = gel_io_tree_result_flatten(result);
-	GList *i = l;
-	while (i)
-	{
-		GFile     *file = G_FILE(i->data);
-		GFileInfo *info = g_object_get_data((GObject *) i->data, "gfileinfo");
-		gchar *uri = g_file_get_uri(file);
-		if ((eina_file_utils_is_supported_extension(uri)) && (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR))
-			lomo_player_append_uri(eina_obj_get_lomo(self), uri);
-		g_free(uri);
-		i = i->next;
-	}
-
-	gel_io_tree_op_close(op);
-	g_list_free(l);
-
-	if (g_queue_is_empty(self->io_tree_files))
-	{
-		self->io_op = NULL;
-		return;
-	}
-
-	self->io_op = gel_io_tree_walk(g_queue_pop_head(self->io_tree_files), "standard::*", TRUE,
-		(GelIOTreeSuccessFunc) io_tree_read_success_cb, io_tree_read_error_cb, self);
-}
-
-static void
-io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error, gpointer data)
-{
-	gchar *uri = g_file_get_uri((GFile *) source);
-	gel_warn(N_("Error on file %s: %s"), uri, error->message);
-	g_free(uri);
 }
 
 // --
