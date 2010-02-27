@@ -62,6 +62,7 @@ gel_include_HEADERS = \
     gel/gel-io-op-result.h      \
     gel/gel-io-ops.h            \
     gel/gel-io-recurse-tree.h   \
+	gel/gel-io-scanner.h        \
     gel/gel-io.h                \
     gel/gel-ui.h
 
@@ -79,6 +80,7 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-io-op-result.c      \
     gel/gel-io-ops.c            \
     gel/gel-io-recurse-tree.c   \
+	gel/gel-io-scanner.c        \
     gel/gel-ui.c
 
 EXTRA_DIST += gel/gel-app-marshallers.list
@@ -136,6 +138,7 @@ eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
     eina/ext/eina-conf.h                \
     eina/ext/eina-file-chooser-dialog.h \
+    eina/ext/eina-file-utils.h          \
     eina/ext/eina-plugin-dialog.h       \
     eina/ext/eina-plugin-properties.h   \
     eina/ext/eina-preferences-dialog.h  \
@@ -148,6 +151,7 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/curl-engine.c              \
     eina/ext/eina-conf-file.c           \
     eina/ext/eina-file-chooser-dialog.c \
+    eina/ext/eina-file-utils.c          \
     eina/ext/eina-plugin-dialog.c       \
     eina/ext/eina-plugin-properties.c   \
     eina/ext/eina-preferences-dialog.c  \

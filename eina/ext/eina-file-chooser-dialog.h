@@ -72,7 +72,7 @@ EinaFileChooserDialog* eina_file_chooser_dialog_new (EinaFileChooserDialogAction
 void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	EinaFileChooserDialogMsgType type, gchar *msg);
 
-GSList *eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self);
+GList *eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self);
 
 
 G_END_DECLS

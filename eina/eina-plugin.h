@@ -44,6 +44,7 @@
 #include <eina/window.h>
 #include <eina/ext/curl-engine.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
+#include <eina/ext/eina-file-utils.h>
 #include <eina/ext/eina-preferences-dialog.h>
 #include <eina/ext/eina-stock.h>
 

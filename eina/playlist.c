@@ -1099,12 +1099,10 @@ io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *resul
 	{
 		GFile     *file = G_FILE(i->data);
 		GFileInfo *info = g_object_get_data((GObject *) i->data, "gfileinfo");
-		if ((eina_fs_is_supported_file(file)) && (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR))
-		{
-			gchar *uri = g_file_get_uri((GFile *) i->data);
+		gchar     *uri = g_file_get_uri(file);
+		if ((eina_file_utils_is_supported_extension(uri)) && (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR))
 			lomo_player_append_uri(eina_obj_get_lomo(self), uri);
-			g_free(uri);
-		}
+		g_free(uri);
 		i = i->next;
 	}
 

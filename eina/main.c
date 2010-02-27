@@ -67,7 +67,6 @@ unique_message_received_cb (UniqueApp *unique,
 	gpointer           data);
 #endif
 
-
 static void
 open_uri_hook(GtkWidget *widget, const gchar *link_, gpointer user_data)
 {
@@ -246,8 +245,7 @@ gint main
 				uris = g_list_prepend(uris, uri);
 
 		uris = g_list_reverse(uris);
-
-		eina_fs_load_from_uri_multiple(gel_app_get_lomo(app), uris);
+		eina_fs_load_from_uri_multiple(app, uris);
 
 		g_list_free(uris);
 		g_strfreev(opt_uris);
@@ -320,7 +318,7 @@ unique_message_received_cb (UniqueApp *unique,
 		uris_l = g_list_reverse(uris_l);
 		if (command == COMMAND_PLAY)
 			lomo_player_clear(gel_app_get_lomo(app));
-		eina_fs_load_from_uri_multiple(gel_app_get_lomo(app), uris_l);
+		eina_fs_load_from_uri_multiple(app, uris_l);
 
 		g_list_free(uris_l);
 		g_strfreev(uris);

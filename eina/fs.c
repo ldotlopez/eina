@@ -21,59 +21,48 @@
 
 #include <glib/gi18n.h>
 #include <gel/gel.h>
-#include <eina/ext/eina-file-chooser-dialog.h>
-#include <lomo/lomo-util.h>
-#include <eina/fs.h>
 #include <gel/gel-io.h>
+#include <lomo/lomo-util.h>
+#include <eina/ext/eina-file-chooser-dialog.h>
+#include <eina/ext/eina-file-utils.h>
 #include <eina/ext/eina-stock.h>
+#include <eina/fs.h>
+#include <eina/lomo.h>
 
-typedef struct
+static void
+load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app)
 {
-	LomoPlayer  *lomo;
-	GQueue      *inputs;
-	GList       *results;
-	GelIOTreeOp *op;
-	GelJobQueue *jq;
-} FsLoadUriMultipleJob;
+	GList *flatten = gel_io_scan_flatten_result(forest);
+	GList *l = flatten;
+	GList *uris = NULL;
+	while (l)
+	{
+		GFile     *file = G_FILE(l->data);
+		GFileInfo *info = g_object_get_data((GObject *) file, "g-file-info");
+		gchar *uri = g_file_get_uri(file);
+	
+		if ((g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR) &&
+			(eina_file_utils_is_supported_extension(uri)))
+			uris = g_list_prepend(uris, uri);
+		else
+			g_free(uri);
 
-static FsLoadUriMultipleJob*
-fs_load_uri_multiple_job_new(LomoPlayer *lomo)
-{
-	FsLoadUriMultipleJob *self = g_new0(FsLoadUriMultipleJob, 1);
-	self->lomo   = lomo;
-	self->jq     = gel_job_queue_new();
-	self->inputs = g_queue_new();
-	return self;
+		l = l->next;
+	}
+	uris = g_list_reverse(uris);
+	lomo_player_append_uri_multi(gel_app_get_lomo(app), uris);
+
+	gel_list_deep_free(uris, (GFunc) g_free);
+	g_list_free(flatten);
 }
 
 static void
-fs_load_uri_multiple_job_free(FsLoadUriMultipleJob *self)
+load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, GelApp *app)
 {
-	if (self->inputs)
-	{
-		g_queue_foreach(self->inputs, (GFunc) g_free, NULL);
-		g_queue_free(self->inputs);
-	}
-
-	if (self->results)
-	{
-		gel_list_deep_free(self->results, (GFunc) g_free);
-		self->results = NULL;
-	}
-
-	gel_free_and_invalidate(self->op, NULL, gel_io_tree_op_close);
-	gel_free_and_invalidate(self->jq, NULL, g_object_unref);
-	g_free(self);
+	gchar *uri = g_file_get_uri(source);
+	gel_warn(N_("'%s' throw an error: %s"), error->message);
+	g_free(uri);
 }
-
-static void
-fs_load_from_uri_multiple_tree_success_cb(GelIOTreeOp *op, const GFile *root, const GNode *results, FsLoadUriMultipleJob *job_data);
-static void
-fs_load_from_uri_multiple_tree_error_cb(GelIOTreeOp *op, const GFile *file, const GError *error, FsLoadUriMultipleJob *job_data);
-static void
-fs_load_from_uri_multiple_job_run_cb(GelJobQueue *jq, FsLoadUriMultipleJob *job_data);
-static void
-fs_load_from_uri_multiple_job_cancel_cb(GelJobQueue *jq, FsLoadUriMultipleJob *job_data);
 
 /*
  * eina_fs_load_from_uri_multiple:
@@ -81,106 +70,16 @@ fs_load_from_uri_multiple_job_cancel_cb(GelJobQueue *jq, FsLoadUriMultipleJob *j
  * @uris: list of uris (gchar *) to load, this function deep copies it
  *
  * Scans and add uris to lomo
+ *
+ * Returns: a #GelIOScanner
  */
-void
-eina_fs_load_from_uri_multiple(LomoPlayer *lomo, GList *uris)
+GelIOScanner*
+eina_fs_load_from_uri_multiple(GelApp *app, GList *uris)
 {
-	FsLoadUriMultipleJob *job_data = fs_load_uri_multiple_job_new(lomo);
-
-	GList *l = uris;
-	while (l)
-	{
-		g_queue_push_tail(job_data->inputs, g_strdup((gchar *) l->data));
-		l = l->next;
-	}
-
-	gel_job_queue_push_job(job_data->jq,
-		(GelJobCallback) fs_load_from_uri_multiple_job_run_cb,
-		(GelJobCallback) fs_load_from_uri_multiple_job_cancel_cb,
-		job_data);
-	gel_job_queue_run(job_data->jq);
-}
-
-static void
-fs_load_from_uri_multiple_job_run_cb(GelJobQueue *jq, FsLoadUriMultipleJob *job_data)
-{
-	if (g_queue_is_empty(job_data->inputs))
-	{
-		fs_load_uri_multiple_job_free(job_data);
-		return;
-	}
-
-	gchar *uri = g_queue_pop_head(job_data->inputs);
-	GFile *file = g_file_new_for_uri(uri);
-	g_free(uri);
-
-	job_data->op = gel_io_tree_walk(file,
-		"standard::*",
-		TRUE,
-		(GelIOTreeSuccessFunc) fs_load_from_uri_multiple_tree_success_cb,
-		(GelIOTreeErrorFunc) fs_load_from_uri_multiple_tree_error_cb,
-		job_data
-		);
-}
-
-static void
-fs_load_from_uri_multiple_job_cancel_cb(GelJobQueue *jq, FsLoadUriMultipleJob *job_data)
-{
-	fs_load_uri_multiple_job_free(job_data);
-}
-
-static void
-fs_load_from_uri_multiple_tree_success_cb(GelIOTreeOp *op, const GFile *root, const GNode *results, FsLoadUriMultipleJob *job_data)
-{
-	// Extract uris for regular files and links
-	GList *valid_type = NULL;
-	GList *l, *flat = gel_io_tree_result_flatten(results);
-	for (l = flat; l != NULL; l = l->next)
-	{
-		GFile *file = G_FILE(l->data);
-		GFileInfo *info = gel_file_get_file_info(file);
-		GFileType  type = g_file_info_get_file_type(info);
-
-		if ((type == G_FILE_TYPE_REGULAR) || (type == G_FILE_TYPE_SYMBOLIC_LINK))
-			valid_type = g_list_prepend(valid_type, g_file_get_uri(file));
-	}
-	g_list_free(flat);
-
-	// Filter supported extensions
-	GList *accepted = NULL, *rejected = NULL;
-	gel_list_bisect(valid_type, &accepted, &rejected, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
-
-	g_list_foreach(rejected, (GFunc) g_free, NULL);
-	g_list_free(rejected);
-
-	// Add results
-	job_data->results = g_list_concat(job_data->results, accepted);
-	gchar *root_ = g_file_get_uri((GFile *) root);
-	gel_warn("Got %d results in %s", g_list_length(accepted), root_);
-	g_free(root_);
-
-	// Fire next job
-	if (!g_queue_is_empty(job_data->inputs))
-	{
-		gel_job_queue_push_job(job_data->jq,
-			(GelJobCallback) fs_load_from_uri_multiple_job_run_cb,
-			(GelJobCallback) fs_load_from_uri_multiple_job_cancel_cb,
-			job_data);
-		gel_job_queue_next(job_data->jq);
-	}
-	else
-	{
-		lomo_player_append_uri_multi(job_data->lomo, job_data->results);
-		fs_load_uri_multiple_job_free(job_data);
-	}
-}
-
-static void
-fs_load_from_uri_multiple_tree_error_cb(GelIOTreeOp *op, const GFile *file, const GError *error, FsLoadUriMultipleJob *job_data)
-{
-	gchar *uri = g_file_get_uri((GFile *) file);
-	gel_warn(N_("Error with '%s': %s"), uri, error->message);
-	g_free(uri);
+	return gel_io_scan(uris, "standard::*",  TRUE,
+		(GelIOScannerSuccessFunc) load_from_uri_multiple_scanner_success_cb, 
+		(GelIOScannerErrorFunc)   load_from_uri_multiple_scanner_error_cb,
+		app);
 }
 
 void
@@ -201,66 +100,24 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 			break;
 		}
 
-		GSList *uris = eina_file_chooser_dialog_get_uris(picker);
+		GList *uris = eina_file_chooser_dialog_get_uris(picker);
 		if (uris == NULL)
 			continue;
-
-		GSList *supported = gel_slist_filter(uris, (GelFilterFunc) eina_fs_is_supported_extension, NULL);
-		if (!supported)
-		{
-			g_slist_foreach(uris, (GFunc) g_free, NULL);
-			g_slist_free(uris);
-			continue;
-		}
+		gel_warn("Got %d uris, response: %d", g_list_length(uris), response);
 
 		if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
 		{
 			run = FALSE;
 			lomo_player_clear(lomo);
 		}
-
 		gboolean do_play = (lomo_player_get_total(lomo) == 0);
-		lomo_player_append_uri_multi(lomo, (GList *) supported);
-		g_slist_foreach(uris, (GFunc) g_free, NULL);
-		g_slist_free(uris);
-		g_slist_free(supported);
+		lomo_player_append_uri_multi(lomo, uris);
+		gel_list_deep_free(uris, (GFunc) g_free);
+
 		if (do_play)
 			lomo_player_play(lomo, NULL);
 	}
 	gtk_widget_destroy((GtkWidget *) picker);
-}
-
-gboolean
-eina_fs_is_supported_extension(gchar *uri)
-{
-	static const gchar *suffixes[] = {".mp3", ".ogg", "wav", ".wma", ".aac", ".flac", ".m4a", NULL };
-	gchar *lc_name;
-	gint i;
-	gboolean ret = FALSE;
-
-	// lc_name = g_utf8_strdown(uri, -1);
-	lc_name = g_ascii_strdown(uri, -1);
-	for (i = 0; suffixes[i] != NULL; i++)
-	{
-		if (g_str_has_suffix(lc_name, suffixes[i]))
-		{
-			ret = TRUE;
-			break;
-		}
-	}
-
-	g_free(lc_name);
-	return ret;
-}
-
-gboolean
-eina_fs_is_supported_file(GFile *uri)
-{
-	gboolean ret;
-	gchar *u = g_file_get_uri(uri);
-	ret = eina_fs_is_supported_extension(u);
-	g_free(u);
-	return ret;
 }
 
 // Return a list with children's URIs from URI
