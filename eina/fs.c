@@ -103,7 +103,6 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 		GList *uris = eina_file_chooser_dialog_get_uris(picker);
 		if (uris == NULL)
 			continue;
-		gel_warn("Got %d uris, response: %d", g_list_length(uris), response);
 
 		if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
 		{
