@@ -75,6 +75,7 @@ gel_libgel_1_0_la_SOURCES = \
 	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \
     gel/gel-app.c               \
+	gel/gel-io-marshallers.c    \
     gel/gel-io-misc.c           \
     gel/gel-io-tree.c           \
     gel/gel-io-op-result.c      \
@@ -83,13 +84,20 @@ gel_libgel_1_0_la_SOURCES = \
 	gel/gel-io-scanner.c        \
     gel/gel-ui.c
 
-EXTRA_DIST += gel/gel-app-marshallers.list
+EXTRA_DIST += \
+	gel/gel-app-marshallers.list \
+	gel/gel-io-marshallers.list
+
 BUILT_SOURCES += \
-	gel/gel-app-marshallers.h            \
-	gel/gel-app-marshallers.c
+	gel/gel-app-marshallers.h \
+	gel/gel-app-marshallers.c \
+	gel/gel-io-marshallers.h  \
+	gel/gel-io-marshallers.c
 CLEANFILES += \
-	gel/gel-app-marshallers.h            \
-	gel/gel-app-marshallers.c
+	gel/gel-app-marshallers.h \
+	gel/gel-app-marshallers.c \
+	gel/gel-io-marshallers.h  \
+	gel/gel-io-marshallers.c
 
 gel/gel-app-marshallers.h: gel/gel-app-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header > $@
@@ -97,6 +105,11 @@ gel/gel-app-marshallers.h: gel/gel-app-marshallers.list
 gel/gel-app-marshallers.c: gel/gel-app-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header --body > $@
 
+gel/gel-io-marshallers.h: gel/gel-io-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header > $@
+
+gel/gel-io-marshallers.c: gel/gel-io-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header --body > $@
 #
 # liblomo
 #

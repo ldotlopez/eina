@@ -442,53 +442,41 @@ drag_data_received_cb
         GtkSelectionData *selection_data, guint target_type, guint time,
 	EinaPlayer *self)
 {
-	gchar   *_sdata;
-
-	gboolean dnd_success = FALSE;
-	gboolean delete_selection_data = FALSE;
-
 	/* Deal with what we are given from source */
-	if((selection_data != NULL) && (selection_data-> length >= 0))
+	if ((selection_data == NULL) || (selection_data->length == 0))
 	{
-		if (context-> action == GDK_ACTION_ASK)
-		{
-			/* Ask the user to move or copy, then set the context action. */
-		}
-
-		if (context-> action == GDK_ACTION_MOVE)
-			delete_selection_data = TRUE;
-
-		/* Check that we got the format we can use */
-		switch (target_type)
-		{
-			case DND_TARGET_STRING:
-				_sdata = (gchar*) selection_data-> data;
-				dnd_success = TRUE;
-				break;
-
-			default:
-				gel_warn("Unknow DnD type");
-		}
-
+		gtk_drag_finish(context, FALSE, FALSE, time);
+		return;
 	}
 
-	GList *uris = NULL;
-	if (dnd_success == FALSE)
-		gel_error("DnD data transfer failed!\n");
-	else
+	/* Check that we got the format we can use */
+	gchar **urisv = NULL;
+	GList  *uris  = NULL;
+	switch (target_type)
 	{
-		gchar **urisv = g_uri_list_extract_uris(_sdata);
-		uris = gel_strv_to_list(urisv, FALSE);
-		g_free(urisv);
+		case DND_TARGET_STRING:
+			urisv = g_uri_list_extract_uris((gchar*) selection_data-> data);
+			uris  = gel_strv_to_list(urisv, FALSE);
+			g_free(urisv);
+			break;
+
+		default:
+			gel_warn(N_("Unknow DnD type"));
+			gtk_drag_finish(context, FALSE, FALSE, time);
+			return;
 	}
 
-	if (uris)
+	if (uris == NULL)
 	{
-		lomo_player_clear(eina_obj_get_lomo(self));
-		eina_fs_load_from_uri_multiple(eina_obj_get_app(self), uris);
-		gel_list_deep_free(uris, (GFunc) g_free);
+		gel_warn(N_("No URIs on DnD"));
+		gtk_drag_finish(context, FALSE, FALSE, time);
+		return;
 	}
-	gtk_drag_finish (context, dnd_success, delete_selection_data, time);
+
+	lomo_player_clear(eina_obj_get_lomo(self));
+	eina_fs_load_from_uri_multiple(eina_obj_get_app(self), uris);
+	gel_list_deep_free(uris, (GFunc) g_free);
+	gtk_drag_finish (context, TRUE, FALSE, time);
 }
 
 /* Emitted when a drag is over the destination */

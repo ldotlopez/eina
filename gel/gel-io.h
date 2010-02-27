@@ -24,6 +24,5 @@
 #include <gel/gel-io-misc.h>
 #include <gel/gel-io-tree.h>
 #include <gel/gel-io-scanner.h>
-
 #endif
 

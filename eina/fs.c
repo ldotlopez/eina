@@ -28,6 +28,7 @@
 #include <eina/ext/eina-stock.h>
 #include <eina/fs.h>
 #include <eina/lomo.h>
+#include <eina/settings.h>
 
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
@@ -44,16 +45,22 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 void
 eina_fs_load_from_uri_multiple(GelApp *app, GList *uris)
 {
+	GelIOScanner *scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
+	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, app);
+	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   app);
+	/*
 	gel_io_scan(uris, "standard::*",  TRUE,
 		(GelIOScannerSuccessFunc) load_from_uri_multiple_scanner_success_cb, 
 		(GelIOScannerErrorFunc)   load_from_uri_multiple_scanner_error_cb,
 		app);
+		*/
 }
 
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app)
 {
-	GList *flatten = gel_io_scan_flatten_result(forest);
+	// GList *flatten = gel_io_scan_flatten_result(forest);
+	GList *flatten = gel_io_scanner_flatten_result(forest);
 	GList *l = flatten;
 	GList *uris = NULL;
 	while (l)
@@ -71,7 +78,12 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 		l = l->next;
 	}
 	uris = g_list_reverse(uris);
-	lomo_player_append_uri_multi(gel_app_get_lomo(app), uris);
+
+	LomoPlayer *lomo = gel_app_get_lomo(app);
+	gboolean do_play = ((lomo_player_get_total(lomo) == 0) && eina_conf_get_boolean(gel_app_get_settings(app), "/core/auto-play", TRUE));
+	lomo_player_append_uri_multi(lomo, uris);
+	if (do_play)
+		lomo_player_play(lomo, NULL);
 
 	gel_list_deep_free(uris, (GFunc) g_free);
 	g_list_free(flatten);

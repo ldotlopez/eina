@@ -1,28 +1,29 @@
-#include <gel/gel.h>
 #include <gel/gel-io-scanner.h>
 #include <string.h>
+#include <gel/gel-io-marshallers.h>
 
-#define GEL_DOMAIN "Gel::IO::Scanner"
+G_DEFINE_TYPE (GelIOScanner, gel_io_scanner, G_TYPE_OBJECT)
 
-struct _GelIOScanner {
+#define GET_PRIVATE(o) \
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_IO_TYPE_SCANNER, GelIOScannerPrivate))
+
+typedef struct _GelIOScannerPrivate GelIOScannerPrivate;
+
+struct _GelIOScannerPrivate {
 	GList                   *uris;
 	const gchar             *attributes;
 	gboolean                 recurse;
-	GelIOScannerSuccessFunc  success_cb;
-	GelIOScannerErrorFunc    error_cb;
-	gpointer                 userdata;
+	// GelIOScannerSuccessFunc  success_cb;
+	// GelIOScannerErrorFunc    error_cb;
+	// gpointer                 userdata;
 
 	GList *results;
 	GQueue *queue;
 	GCancellable *cancellable;
-
-	gboolean disposed;
 };
 
-static void
-_scanner_run_success(GelIOScanner *self);
-static void
-_scanner_run_error(GelIOScanner *self, GFile *file, GError *error);
+static gboolean
+_scanner_run_queue_idle_wrapper(gpointer self);
 static void
 _scanner_run_queue(GelIOScanner *self);
 
@@ -39,73 +40,137 @@ static void
 _scanner_sort_children(GNode *parent);
 static gint
 _scanner_cmp_by_type_by_name_cb(GNode *a, GNode *b);
+
 static gboolean
 _scanner_traverse_cb(GNode *node, GList **list);
 
-GelIOScanner*
-gel_io_scan(GList *uris, const gchar *attributes, gboolean recurse,
-    GelIOScannerSuccessFunc success_cb, GelIOScannerErrorFunc error_cb, gpointer data)
+enum {
+	FINISH,
+	ERROR,
+	CANCEL,
+
+	LAST_SIGNAL
+};
+static guint scanner_signals[LAST_SIGNAL] = { 0 }; 
+
+static void
+gel_io_scanner_dispose (GObject *object)
 {
-	GelIOScanner *self = g_new0(GelIOScanner, 1);
-	self->attributes = attributes;
-	self->recurse    = recurse;
-	self->success_cb = success_cb;
-	self->error_cb   = error_cb;
-	self->userdata   = data;
-
-	self->cancellable = g_cancellable_new();
-	self->queue = g_queue_new();
-	GList *iter = uris;
-	while (iter)
+	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(object));
+	if (priv->cancellable)
 	{
-		GFile *file = g_file_new_for_uri(iter->data);
-		g_queue_push_tail(self->queue, file);
-
-		iter = iter->next;
+		g_cancellable_cancel(priv->cancellable);
+		g_object_unref(priv->cancellable);
+		priv->cancellable = NULL;
 	}
-
-	_scanner_run_queue(self);
-
-	return self;
-}
-
-void
-gel_io_scan_close(GelIOScanner *self)
-{
-	if (self->disposed)
-		return;
-
-	if (self->cancellable)
+	if (priv->queue)
 	{
-		g_cancellable_cancel(self->cancellable);
-		g_object_unref(self->cancellable);
-		self->cancellable = NULL;
+		g_queue_foreach(priv->queue, (GFunc) _scanner_free_node, NULL);
+		g_queue_foreach(priv->queue, (GFunc) g_node_destroy, NULL);
+		g_queue_free(priv->queue);
+		priv->queue = NULL;
 	}
-	if (self->queue)
+	if (priv->results)
 	{
-		g_queue_foreach(self->queue, (GFunc) _scanner_free_node, NULL);
-		g_queue_foreach(self->queue, (GFunc) g_node_destroy, NULL);
-		g_queue_free(self->queue);
-		self->queue = NULL;
-	}
-	if (self->results)
-	{
-		GList *iter = self->results;
+		GList *iter = priv->results;
 		while (iter)
 		{
 			g_node_traverse((GNode *) iter->data, G_IN_ORDER, G_TRAVERSE_ALL, -1, _scanner_free_node, NULL);
 			g_node_destroy((GNode *) iter->data);
 			iter = iter->next;
 		}
-		g_list_free(self->results);
-		self->results = NULL;
+		g_list_free(priv->results);
+		priv->results = NULL;
 	}
 
-	self->disposed = TRUE;
+	G_OBJECT_CLASS (gel_io_scanner_parent_class)->dispose (object);
+}
+
+static void
+gel_io_scanner_class_init (GelIOScannerClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (GelIOScannerPrivate));
+	scanner_signals[FINISH] =
+		g_signal_new ("finish",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (GelIOScannerClass, finish),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__POINTER,
+			    G_TYPE_NONE,
+				1,
+				G_TYPE_POINTER);
+	scanner_signals[ERROR] =
+		g_signal_new ("error",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (GelIOScannerClass, error),
+			    NULL, NULL,
+			    gel_io_marshal_VOID__OBJECT_POINTER,
+			    G_TYPE_NONE,
+			    2,
+				G_TYPE_OBJECT,
+				G_TYPE_POINTER);
+	scanner_signals[CANCEL] =
+		g_signal_new ("cancel",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (GelIOScannerClass, cancel),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
+
+	object_class->dispose = gel_io_scanner_dispose;
+}
+
+static void
+gel_io_scanner_init (GelIOScanner *self)
+{
+}
+
+GelIOScanner*
+gel_io_scanner_new (void)
+{
+	return g_object_new (GEL_IO_TYPE_SCANNER, NULL);
+}
+
+GelIOScanner*
+gel_io_scanner_new_full(GList *uris, const gchar *attributes, gboolean recurse)
+{
+	GelIOScanner *self = gel_io_scanner_new();
+	gel_io_scanner_scan(self, uris, attributes, recurse);
+	return self;
+}
+
+void
+gel_io_scanner_scan(GelIOScanner *self, GList *uris, const gchar *attributes, gboolean recurse)
+{
+	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+	priv->attributes = attributes;
+	priv->recurse    = recurse;
+	// priv->success_cb = success_cb;
+	// priv->error_cb   = error_cb;
+	// priv->userdata   = data;
+
+	priv->cancellable = g_cancellable_new();
+	priv->queue = g_queue_new();
+	GList *iter = uris;
+	while (iter)
+	{
+		GFile *file = g_file_new_for_uri(iter->data);
+		g_queue_push_tail(priv->queue, file);
+
+		iter = iter->next;
+	}
+
+	g_idle_add(_scanner_run_queue_idle_wrapper, self);
 }
 
 GList*
-gel_io_scan_flatten_result(GList *forest)
+gel_io_scanner_flatten_result(GList *forest)
 {
 	GList *ret = NULL;
 
@@ -119,41 +184,18 @@ gel_io_scan_flatten_result(GList *forest)
 }
 
 static void
-_scanner_run_success(GelIOScanner *self)
-{
-	GList *l = self->results = g_list_reverse(g_list_sort(self->results, (GCompareFunc) _scanner_cmp_by_type_by_name_cb));
-	while (l)
-	{
-		GNode *root = (GNode *) l->data;
-		_scanner_sort_children(root);
-
-		l = l->next;
-	}
-
-	if (self->success_cb)
-		self->success_cb(self, self->results, self->userdata);
-	gel_io_scan_close(self);
-	g_free(self);
-}
-
-static void
-_scanner_run_error(GelIOScanner *self, GFile *file, GError *error)
-{
-	if (self->error_cb)
-		self->error_cb(self, file, error, self->userdata);
-
-	g_object_unref(file);
-	g_error_free(error);
-}
-
-static void
 _scanner_query_info_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 {
+	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+
 	GError *error = NULL;
 	GFileInfo *info = g_file_query_info_finish((GFile *) source, res, &error);
 	if (info == NULL)
 	{
-		_scanner_run_error(self, source, error);
+		g_signal_emit(self, scanner_signals[ERROR], 0, source, error);
+		g_error_free(error);
+		g_object_unref(source);
+		// _scanner_run_error(self, source, error);
 		_scanner_run_queue(self);
 		return;
 	}
@@ -162,13 +204,13 @@ _scanner_query_info_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 	GNode *node = g_node_new(source);
 	g_object_set_data((GObject *) source, "x-node",      node);
 	g_object_set_data((GObject *) source, "g-file-info", info);
-	self->results = g_list_append(self->results, node);
+	priv->results = g_list_append(priv->results, node);
 
 	GFileType type = g_file_info_get_file_type(info);
-	if ((type == G_FILE_TYPE_DIRECTORY) && self->recurse)
+	if ((type == G_FILE_TYPE_DIRECTORY) && priv->recurse)
 	{
-		g_file_enumerate_children_async(source, self->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
-			self->cancellable, (GAsyncReadyCallback) _scanner_enumerate_children_cb, self);
+		g_file_enumerate_children_async(source, priv->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
+			priv->cancellable, (GAsyncReadyCallback) _scanner_enumerate_children_cb, self);
 	}
 	else if (type == G_FILE_TYPE_REGULAR)
 	{
@@ -184,29 +226,37 @@ _scanner_query_info_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 static void
 _scanner_enumerate_children_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 {
+	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
 	GError *error = NULL;
 	GFileEnumerator *e = g_file_enumerate_children_finish(source, res, &error);
 	if (e == NULL)
 	{
-		_scanner_run_error(self, source, error);
+		g_signal_emit(self, scanner_signals[ERROR], 0, source, error);
+		g_error_free(error);
+		g_object_unref(source);
+		// _scanner_run_error(self, source, error);
 		_scanner_run_queue(self);
 		return;
 	}
 
 	g_file_enumerator_next_files_async(e, 8, G_PRIORITY_DEFAULT,
-		self->cancellable, (GAsyncReadyCallback) _scanner_enumerator_next_cb, self);
+		priv->cancellable, (GAsyncReadyCallback) _scanner_enumerator_next_cb, self);
 }
 
 static void
 _scanner_enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelIOScanner *self)
 {
+	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
 	GError *error = NULL;
 	GList *children = g_file_enumerator_next_files_finish(e, res, &error);
 	GFile *parent   = g_file_enumerator_get_container(e);
 	if (error)
 	{
 		g_file_enumerator_close(e, NULL, NULL);
-		_scanner_run_error(self, parent, error);
+		g_signal_emit(self, scanner_signals[ERROR], 0, e, error);
+		g_error_free(error);
+		g_object_unref(e);
+		// _scanner_run_error(self, parent, error);
 		_scanner_run_queue(self);
 		return;
 	}
@@ -229,35 +279,52 @@ _scanner_enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelIOScanner 
 		g_object_set_data((GObject *) file, "g-file-info",   info);
 
 		// Add this to queue
-		g_queue_push_tail(self->queue, file);
+		g_queue_push_tail(priv->queue, file);
 
 		iter = iter->next;
 	}
 
 	g_list_free(children);
 	g_file_enumerator_next_files_async(e, 8, G_PRIORITY_DEFAULT,
-		self->cancellable, (GAsyncReadyCallback) _scanner_enumerator_next_cb, self);
+		priv->cancellable, (GAsyncReadyCallback) _scanner_enumerator_next_cb, self);
 }
 
+
+static gboolean
+_scanner_run_queue_idle_wrapper(gpointer self)
+{
+	_scanner_run_queue(GEL_IO_SCANNER(self));
+	return FALSE;
+}
 
 static void
 _scanner_run_queue(GelIOScanner *self)
 {
-	if (g_queue_is_empty(self->queue))
+	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+	if (g_queue_is_empty(priv->queue))
 	{
-		_scanner_run_success(self);
+		GList *l = priv->results = g_list_reverse(g_list_sort(priv->results, (GCompareFunc) _scanner_cmp_by_type_by_name_cb));
+		while (l)
+		{
+			GNode *root = (GNode *) l->data;
+			_scanner_sort_children(root);
+	
+			l = l->next;
+		}
+
+		g_signal_emit(self, scanner_signals[FINISH], 0, priv->results);
 		return;
 	}
-	g_cancellable_reset(self->cancellable);
+	g_cancellable_reset(priv->cancellable);
 
-	GFile     *file = g_queue_pop_head(self->queue);
+	GFile     *file = g_queue_pop_head(priv->queue);
 	GFileInfo *info = g_object_get_data((GObject *) file, "g-file-info");
 
 	if (info == NULL)
 	{
 		// GFileInfo is needed
-		g_file_query_info_async(file, self->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
-			self->cancellable, (GAsyncReadyCallback) _scanner_query_info_cb, self);
+		g_file_query_info_async(file, priv->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
+			priv->cancellable, (GAsyncReadyCallback) _scanner_query_info_cb, self);
 	}
 	else
 	{
@@ -279,8 +346,8 @@ _scanner_run_queue(GelIOScanner *self)
 		}
 
 		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
-			g_file_enumerate_children_async(file, self->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
-				self->cancellable, (GAsyncReadyCallback) _scanner_enumerate_children_cb, self);
+			g_file_enumerate_children_async(file, priv->attributes, G_FILE_QUERY_INFO_NONE, G_PRIORITY_DEFAULT,
+				priv->cancellable, (GAsyncReadyCallback) _scanner_enumerate_children_cb, self);
 		else if (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR)
 			_scanner_run_queue(self);
 		else 
@@ -367,5 +434,4 @@ _scanner_traverse_cb(GNode *node, GList **list)
 	*list = g_list_prepend(*list, node->data);
 	return FALSE;
 }
-
 

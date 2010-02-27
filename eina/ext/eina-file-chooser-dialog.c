@@ -66,12 +66,14 @@ reset_resources(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 
+	/*
 	if (priv->scanner)
 	{
 		gel_io_scan_close(priv->scanner);
 		priv->scanner = NULL;
 	}
-
+	*/
+	gel_free_and_invalidate(priv->scanner, NULL, g_object_unref);
 	if (priv->uris)
 	{
 		g_list_foreach(priv->uris, (GFunc) g_free, NULL);
@@ -247,9 +249,14 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	uris = g_list_reverse(uris);
 	g_slist_free(s_uris);
 
-	priv->scanner = gel_io_scan(uris, "standard::*", TRUE,
+	/*priv->scanner = gel_io_scan(uris, "standard::*", TRUE,
 		(GelIOScannerSuccessFunc) scanner_success_cb,
 		(GelIOScannerErrorFunc)   scanner_error_cb, self);
+		*/
+	priv->scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
+	g_signal_connect(priv->scanner, "finish", (GCallback) scanner_success_cb, self);
+	g_signal_connect(priv->scanner, "error",  (GCallback) scanner_error_cb,   self);
+
 	gel_list_deep_free(uris, (GFunc) g_free);
 
 	// Put UI in busy state
@@ -413,7 +420,8 @@ scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaFileChooserDialog *
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 
-	GList *flatten = gel_io_scan_flatten_result(forest);
+	// GList *flatten = gel_io_scan_flatten_result(forest);
+	GList *flatten = gel_io_scanner_flatten_result(forest);
 	GList *l = flatten;
 	while (l)
 	{
@@ -437,8 +445,9 @@ scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaFileChooserDialog *
 		gtk_main_quit();
 
 	// Close this operation and go to next element in queue
-	gel_io_scan_close(scanner);
-	priv->scanner = NULL;
+	// gel_io_scan_close(scanner);
+	//priv->scanner = NULL;
+	gel_free_and_invalidate(priv->scanner, NULL, g_object_unref);
 }
 
 // Show errors from GelIOOp and update UI to reflect them
