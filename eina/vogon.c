@@ -328,7 +328,7 @@ action_activate_cb(GtkAction *action, EinaVogon *self)
 			gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
 	}
 	else if (g_str_equal(name, "open-action"))
-		eina_fs_file_chooser_load_files(eina_obj_get_lomo(self));
+		eina_fs_load_from_default_file_chooser(eina_obj_get_app(self));
 
 	else if (g_str_equal(name, "clear-action"))
 		lomo_player_clear(eina_obj_get_lomo(self));

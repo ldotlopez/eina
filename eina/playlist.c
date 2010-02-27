@@ -1066,7 +1066,7 @@ void action_activate_cb
 	const gchar *name = gtk_action_get_name(action);
 
 	if (g_str_equal("add-action", name))
-		eina_fs_file_chooser_load_files(eina_obj_get_lomo(self));
+		eina_fs_load_from_default_file_chooser(eina_obj_get_app(self));
 
 	else if (g_str_equal("remove-action", name))
 		playlist_remove_selected(self);

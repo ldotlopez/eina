@@ -30,6 +30,27 @@
 #include <eina/lomo.h>
 
 static void
+load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
+static void
+load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, GelApp *app);
+
+/*
+ * eina_fs_load_from_uri_multiple:
+ * @lomo: a #LomoPlayer
+ * @uris: list of uris (gchar *) to load, this function deep copies it
+ *
+ * Scans and add uris to lomo
+ */
+void
+eina_fs_load_from_uri_multiple(GelApp *app, GList *uris)
+{
+	gel_io_scan(uris, "standard::*",  TRUE,
+		(GelIOScannerSuccessFunc) load_from_uri_multiple_scanner_success_cb, 
+		(GelIOScannerErrorFunc)   load_from_uri_multiple_scanner_error_cb,
+		app);
+}
+
+static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app)
 {
 	GList *flatten = gel_io_scan_flatten_result(forest);
@@ -64,49 +85,42 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 	g_free(uri);
 }
 
-/*
- * eina_fs_load_from_uri_multiple:
- * @lomo: a #LomoPlayer
- * @uris: list of uris (gchar *) to load, this function deep copies it
- *
- * Scans and add uris to lomo
- */
-void
-eina_fs_load_from_uri_multiple(GelApp *app, GList *uris)
-{
-	gel_io_scan(uris, "standard::*",  TRUE,
-		(GelIOScannerSuccessFunc) load_from_uri_multiple_scanner_success_cb, 
-		(GelIOScannerErrorFunc)   load_from_uri_multiple_scanner_error_cb,
-		app);
-}
 
 void
-eina_fs_file_chooser_load_files(LomoPlayer *lomo)
+eina_fs_load_from_default_file_chooser(GelApp *app)
 {
 	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
 		NULL);
+	eina_fs_load_from_file_chooser(app, picker);
+	gtk_widget_destroy((GtkWidget *) picker);
+}
 
+void
+eina_fs_load_from_file_chooser(GelApp *app, EinaFileChooserDialog *dialog)
+{
 	gboolean run = TRUE;
 	while (run)
 	{
-		gint response = gtk_dialog_run((GtkDialog *) picker);
+		gint response = gtk_dialog_run((GtkDialog *) dialog);
 		if ((response != EINA_FILE_CHOOSER_RESPONSE_PLAY) && (response != EINA_FILE_CHOOSER_RESPONSE_QUEUE))
 		{
 			run = FALSE;
 			break;
 		}
 
-		GList *uris = eina_file_chooser_dialog_get_uris(picker);
+		GList *uris = eina_file_chooser_dialog_get_uris(dialog);
 		if (uris == NULL)
 			continue;
 
+		LomoPlayer *lomo = gel_app_get_lomo(app);
 		if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
 		{
 			run = FALSE;
 			lomo_player_clear(lomo);
 		}
+
 		gboolean do_play = (lomo_player_get_total(lomo) == 0);
 		lomo_player_append_uri_multi(lomo, uris);
 		gel_list_deep_free(uris, (GFunc) g_free);
@@ -114,8 +128,8 @@ eina_fs_file_chooser_load_files(LomoPlayer *lomo)
 		if (do_play)
 			lomo_player_play(lomo, NULL);
 	}
-	gtk_widget_destroy((GtkWidget *) picker);
 }
+
 
 // Return a list with children's URIs from URI
 // Returned list and list data must be free

@@ -21,18 +21,16 @@
 #define __FS_H__
 
 #include <glib.h>
-#include <gio/gio.h>
-#include <lomo/lomo-player.h>
-#include <gel/gel-io.h>
+#include <gel/gel.h>
+#include <eina/ext/eina-file-chooser-dialog.h>
 
 void
 eina_fs_load_from_uri_multiple(GelApp *app, GList *uris);
 
-
-// Runs a file chooser dialog with all the stuff (cancel, loading, ...)
-// and adds results to lomo handling play or enqueue
 void
-eina_fs_file_chooser_load_files(LomoPlayer *lomo);
+eina_fs_load_from_default_file_chooser(GelApp *app);
+void
+eina_fs_load_from_file_chooser(GelApp *app, EinaFileChooserDialog *dialog);
 
 GSList*
 eina_fs_files_from_uri_strv(gchar **uris);

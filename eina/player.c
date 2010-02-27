@@ -380,7 +380,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		;
 
 	else if (g_str_equal(name, "open-action"))
-		eina_fs_file_chooser_load_files(lomo);
+		eina_fs_load_from_default_file_chooser(eina_obj_get_app(self));
 
 	else if (g_str_equal(name, "quit-action"))
 		g_object_unref(eina_obj_get_app(self));
