@@ -67,8 +67,12 @@ tools/plugins/
 
 # Doc files
 docs/gtk-doc.make
+docs/lomo-decl-list.txt
+docs/lomo-decl.txt
+docs/lomo-sections.txt
+docs/lomo-undeclared.txt
+docs/lomo-undocumented.txt
 docs/*.stamp
-docs/*.txt
 docs/*.sgml
 docs/html/
 docs/xml

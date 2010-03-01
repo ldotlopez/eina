@@ -38,7 +38,7 @@ struct _LomoPlayerPrivate {
 
 	GList *hooks, *hooks_data;
 
-	gboolean            auto_parse;
+	gboolean            auto_parse, auto_play;
 
 	GstElement         *pipeline;
 	LomoPlaylist       *pl;
@@ -69,7 +69,8 @@ struct _LomoPlayerPrivate {
  */
 
 enum {
-	PROPERTY_AUTO_PARSE = 1
+	PROPERTY_AUTO_PARSE = 1,
+	PROPERTY_AUTO_PLAY 
 };
 
 enum {
@@ -177,6 +178,9 @@ lomo_player_get_property (GObject *object, guint property_id,
 	case PROPERTY_AUTO_PARSE:
 		g_value_set_boolean(value, lomo_player_get_auto_parse(self));
 		break;
+	case PROPERTY_AUTO_PLAY:
+		g_value_set_boolean(value, lomo_player_get_auto_play(self));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -192,6 +196,9 @@ lomo_player_set_property (GObject *object, guint property_id,
 	{
 	case PROPERTY_AUTO_PARSE:
 		lomo_player_set_auto_parse(self, g_value_get_boolean(value));
+		break;
+	case PROPERTY_AUTO_PLAY:
+		lomo_player_set_auto_play(self, g_value_get_boolean(value));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -616,6 +623,9 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PARSE,
 		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
 		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, PROPERTY_AUTO_PLAY,
+		g_param_spec_boolean("auto-play", "auto-play", "Auto play added streams",
+		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
 static void
@@ -702,6 +712,7 @@ lomo_player_get_auto_parse(LomoPlayer *self)
 {
 	return GET_PRIVATE(self)->auto_parse;
 }
+
 /**
  * lomo_player_set_auto_parse:
  * @lomo: a #LomoPlayer
@@ -714,6 +725,34 @@ lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse)
 {
 	GET_PRIVATE(self)->auto_parse = auto_parse;
 }
+
+/**
+ * lomo_player_get_auto_play:
+ * @lomo: a #LomoPlayer
+ *
+ * Gets the auto-play property value.
+ *
+ * Returns: The auto-play property value.
+ */
+gboolean
+lomo_player_get_auto_play(LomoPlayer *self)
+{
+	return GET_PRIVATE(self)->auto_play;
+}
+
+/**
+ * lomo_player_set_auto_play:
+ * @lomo: a #LomoPlayer
+ * @auto_parse: new value for auto-play property
+ *
+ * Sets the auto-play property value.
+ */
+void
+lomo_player_set_auto_play(LomoPlayer *self, gboolean auto_play)
+{
+	GET_PRIVATE(self)->auto_play = auto_play;
+}
+
 
 static gboolean
 lomo_player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
@@ -1428,7 +1467,11 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 				g_error_free(err);
 			}
 			else
+			{
+				if (priv->auto_play)
+					lomo_player_play(self, NULL);
 				emit_change = FALSE;
+			}
 		}
 
 		pos++;

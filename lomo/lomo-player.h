@@ -206,6 +206,9 @@ LomoPlayer* lomo_player_new (gchar *option_name, ...);
 gboolean lomo_player_get_auto_parse(LomoPlayer *self);
 void     lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse);
 
+gboolean lomo_player_get_auto_play(LomoPlayer *self);
+void     lomo_player_set_auto_play(LomoPlayer *self, gboolean auto_play);
+
 void lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data);
 void lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func);
 
