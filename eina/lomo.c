@@ -30,6 +30,8 @@ lomo_repeat_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
 static void
 lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
 static void
+lomo_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaConf *conf);
+static void
 conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine);
 
 GEL_AUTO_QUARK_FUNC(lomo)
@@ -60,12 +62,16 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	lomo_player_set_mute  (engine, eina_conf_get_bool(conf, "/core/mute",   FALSE));
 	lomo_player_set_repeat(engine, eina_conf_get_bool(conf, "/core/repeat", FALSE));
 	lomo_player_set_random(engine, eina_conf_get_bool(conf, "/core/random", FALSE));
+
+	lomo_player_set_auto_parse(engine, eina_conf_get_bool(conf, "/core/auto-parse", TRUE));
+	lomo_player_set_auto_play (engine, eina_conf_get_bool(conf, "/core/auto-play",  FALSE));
+
 	g_signal_connect(conf, "change", (GCallback) conf_change_cb, engine);
 
 	g_signal_connect(engine, "mute",   (GCallback) lomo_mute_cb,   conf);
 	g_signal_connect(engine, "repeat", (GCallback) lomo_repeat_cb, conf);
 	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, conf);
-
+	g_signal_connect(engine, "notify", (GCallback) lomo_notify_cb, conf);
 
 	return TRUE;
 }
@@ -111,6 +117,12 @@ lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
 }
 
 static void
+lomo_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaConf *conf)
+{
+	gel_warn("Property has changed: %s", g_param_spec_get_name(pspec));
+}
+
+static void
 conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine)
 {
 	// We need to check current engine values to prevent infinite loop
@@ -120,6 +132,17 @@ conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine)
 
 	if (g_str_equal(key, "/core/repeat") && (lomo_player_get_repeat(engine) != eina_conf_get_boolean(conf, key, FALSE)))
 		lomo_player_set_repeat(engine, eina_conf_get_boolean(conf, key, FALSE));
+
+	gboolean auto_play_a = lomo_player_get_auto_play(engine);
+	gboolean auto_play_b = eina_conf_get_bool(conf, key, TRUE);
+	if (g_str_equal(key, "/core/auto-play") && (auto_play_a != auto_play_b))
+		lomo_player_set_auto_play(engine, auto_play_b);
+
+	gboolean auto_parse_a = lomo_player_get_auto_parse(engine);
+	gboolean auto_parse_b = eina_conf_get_bool(conf, key, TRUE);
+	if (g_str_equal(key, "/core/auto-parse") && (auto_parse_a != auto_parse_b))
+		lomo_player_set_auto_parse(engine, auto_parse_b);
+
 }
 
 EINA_PLUGIN_SPEC(lomo,

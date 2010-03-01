@@ -189,7 +189,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if ((ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui")) &&
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
-		gchar *objects[] = {"/core/repeat", "/core/random", "/core/auto-play", "/player/show-artwork", "/core/add-mode"};
+		gchar *objects[] = {"/core/repeat", "/core/random", "/core/auto-play", "/core/auto-parse", "/core/add-mode"};
 
 		eina_preferences_add_tab_full(gel_app_get_preferences(app),
 			"player", ui_str, "main-widget", objects, G_N_ELEMENTS(objects),
