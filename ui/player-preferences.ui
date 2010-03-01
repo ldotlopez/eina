@@ -14,6 +14,7 @@
         <child>
           <object class="GtkCheckButton" id="/core/auto-play">
             <property name="label" translatable="yes">Start playback automatically</property>
+            <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="draw_indicator">True</property>
@@ -22,21 +23,6 @@
             <property name="right_attach">2</property>
             <property name="top_attach">2</property>
             <property name="bottom_attach">3</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkCheckButton" id="/player/show-artwork">
-            <property name="label" translatable="yes">Show artwork</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="draw_indicator">True</property>
-          </object>
-          <packing>
-            <property name="right_attach">2</property>
-            <property name="top_attach">3</property>
-            <property name="bottom_attach">4</property>
             <property name="x_options">GTK_FILL</property>
             <property name="y_options">GTK_FILL</property>
           </packing>
@@ -102,6 +88,29 @@
             <property name="right_attach">2</property>
             <property name="top_attach">1</property>
             <property name="bottom_attach">2</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="/core/auto-parse">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Show streams' labels (metadata). 
+&lt;small&gt;Only affects new streams&lt;/small&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
             <property name="x_options">GTK_FILL</property>
             <property name="y_options">GTK_FILL</property>
           </packing>
