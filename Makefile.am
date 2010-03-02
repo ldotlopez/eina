@@ -12,6 +12,7 @@ SUBDIRS = \
 	po
 
 EXTRA_DIST = \
+	run-uninstalled.sh \
 	intltool-extract.in intltool-merge.in intltool-update.in \
 	AUTHORS BUGS COPYING INSTALL NEWS README
 
