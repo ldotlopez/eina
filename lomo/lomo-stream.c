@@ -156,12 +156,19 @@ lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value)
  *
  * Gets the list of #LomoTag for a #LomoStream
  *
- * Returns: a #GList, it must be freed when no longer needed.
+ * Returns: a #GList, it must be freed when no longer needed, data too
  */
 GList*
 lomo_stream_get_tags(LomoStream *self)
 {
-	return g_list_copy(GET_PRIVATE(self)->tags);
+	GList *ret = NULL;
+	GList *iter = GET_PRIVATE(self)->tags;
+	while (iter)
+	{
+		ret = g_list_prepend(ret, g_strdup((gchar *) iter->data));
+		iter = iter->next;
+	}
+	return ret;
 }
 
 /**

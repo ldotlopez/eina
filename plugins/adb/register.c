@@ -330,7 +330,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
 
 		iter = iter->next;
 	}
-	g_list_free(tags);
+	gel_list_deep_free(tags, (GFunc) g_free);
 
 	if (sqlite3_exec(self->db, "END TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
 		gel_warn("Cannot end transaction: %s", err);
