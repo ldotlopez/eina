@@ -87,15 +87,25 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 	g_free(uri);
 }
 
-
 void
 eina_fs_load_from_default_file_chooser(GelApp *app)
 {
+
 	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
 		NULL);
+
+	const gchar *prev_folder_uri = eina_conf_get_string(gel_app_get_settings(app), "/file-chooser/last-folder-uri", NULL);
+	if (prev_folder_uri != NULL)
+		gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(picker), prev_folder_uri);
+
 	eina_fs_load_from_file_chooser(app, picker);
+
+	gchar *curr_folder_uri = gtk_file_chooser_get_current_folder_uri(GTK_FILE_CHOOSER(picker));
+	eina_conf_set_string(gel_app_get_settings(app), "/file-chooser/last-folder-uri", curr_folder_uri);
+	g_free(curr_folder_uri);
+
 	gtk_widget_destroy((GtkWidget *) picker);
 }
 
