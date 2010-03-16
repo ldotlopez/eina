@@ -162,7 +162,7 @@ static gint
 cover_height(EinaCover *self)
 {
 	GtkAllocation alloc;
-	gtk_widget_get_allocation(GTK_WIDGET(self), &alloc);
+	gtk_widget_get_allocation(GTK_WIDGET(self->cover), &alloc);
 	return alloc.height;
 }
 
