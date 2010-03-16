@@ -160,8 +160,8 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 	priv->info_box = (GtkBox   *) gtk_hbox_new(FALSE, 5);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
 
-	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
-	gtk_box_reorder_child(GTK_BOX(GTK_DIALOG(self)->vbox), GTK_WIDGET(priv->info_box), 1);
+	gtk_box_pack_end(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);
+	gtk_box_reorder_child(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))), GTK_WIDGET(priv->info_box), 1);
 	gtk_window_set_icon_name(GTK_WINDOW(self), GTK_STOCK_OPEN);
 }
 
@@ -355,8 +355,8 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 
-	gtk_widget_set_sensitive(GTK_DIALOG(self)->action_area, value);
-	GList *children = gtk_container_get_children(GTK_CONTAINER(GTK_DIALOG(self)->vbox));
+	gtk_widget_set_sensitive(gtk_dialog_get_action_area(GTK_DIALOG(self)), value);
+	GList *children = gtk_container_get_children(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(self))));
 	GList *l = children;
 	while (l)
 	{

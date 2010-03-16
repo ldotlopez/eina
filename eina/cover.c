@@ -47,8 +47,6 @@
 		}                                                     \
 	} G_STMT_END
 
-#define cover_height(self) (((GtkWidget *)self->cover)->allocation.height)
-
 typedef struct _EinaCover {
 	EinaObj    parent;
 
@@ -63,6 +61,8 @@ typedef struct _EinaCover {
 	gboolean   loading;
 } EinaCover;
 
+static gint
+cover_height(EinaCover *self);
 static GdkPixbuf*
 build_cover_mask(EinaCover *self);
 
@@ -156,6 +156,14 @@ cover_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	search_cancel(self);
 	eina_obj_fini(EINA_OBJ(self));
 	return TRUE;
+}
+
+static gint
+cover_height(EinaCover *self)
+{
+	GtkAllocation alloc;
+	gtk_widget_get_allocation(GTK_WIDGET(self), &alloc);
+	return alloc.height;
 }
 
 static gboolean
@@ -388,7 +396,7 @@ build_cover_mask(EinaCover *self)
 	rowstride = gdk_pixbuf_get_rowstride (mask);
 	pixels    = gdk_pixbuf_get_pixels    (mask);
 
-	GdkColor color = gtk_widget_get_style(((GtkWidget *) self->cover)->parent)->bg[GTK_STATE_NORMAL];
+	GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(GTK_WIDGET(self->cover)))->bg[GTK_STATE_NORMAL];
 	for ( i = 0; i < width; i++)
 		for (j = 0; j < height; j++)
 		{

@@ -90,7 +90,7 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_notebook_set_show_tabs(self->dock, FALSE);
 
 	// Transfer widget to player
-	GtkWidget *parent = self->widget->parent;
+	GtkWidget *parent = gtk_widget_get_parent(self->widget);
 	g_object_ref(self->widget);
 	gtk_widget_show(self->widget);
 	gtk_container_remove(GTK_CONTAINER(parent), self->widget);

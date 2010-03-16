@@ -443,7 +443,7 @@ drag_data_received_cb
 	EinaPlayer *self)
 {
 	/* Deal with what we are given from source */
-	if ((selection_data == NULL) || (selection_data->length == 0))
+	if ((selection_data == NULL) || (gtk_selection_data_get_length(selection_data) == 0))
 	{
 		gtk_drag_finish(context, FALSE, FALSE, time);
 		return;
@@ -455,7 +455,7 @@ drag_data_received_cb
 	switch (target_type)
 	{
 		case DND_TARGET_STRING:
-			urisv = g_uri_list_extract_uris((gchar*) selection_data-> data);
+			urisv = g_uri_list_extract_uris((gchar *) gtk_selection_data_get_data(selection_data));
 			uris  = gel_strv_to_list(urisv, FALSE);
 			g_free(urisv);
 			break;

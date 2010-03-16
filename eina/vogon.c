@@ -247,7 +247,7 @@ update_ui_manager(EinaVogon *self)
 	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
 
 	EinaWindow *window = eina_obj_get_window(self);
-	if (GTK_WIDGET_VISIBLE(window))
+	if (gtk_widget_get_visible(GTK_WIDGET(window)))
 	{
 		hide = "/Main/Show";
 		show = "/Main/Hide";
@@ -351,7 +351,7 @@ status_icon_destroy_cb(GtkWidget *w, EinaVogon *self)
 {
 	GtkWidget *window = eina_obj_get_widget(self, "main-window");
 
-	if (!GTK_WIDGET_VISIBLE(window))
+	if (!gtk_widget_get_visible(window))
 		gtk_widget_show(window);
 
 	vogon_fini(eina_obj_get_app(self), gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
@@ -366,7 +366,7 @@ status_icon_activate_cb
 	if (!window)
 		return;
 
-	if (GTK_WIDGET_VISIBLE(window))
+	if (gtk_widget_get_visible(GTK_WIDGET(window)))
 	{
 		gtk_window_get_position(window,
 			&self->player_x,
@@ -375,7 +375,7 @@ status_icon_activate_cb
 	}
 	else
 	{
-		if (!GTK_WIDGET_VISIBLE(window))
+		if (!gtk_widget_get_visible(GTK_WIDGET(window)))
 			gtk_window_move(window, self->player_x, self->player_y);
 		gtk_window_present(window);
 	}

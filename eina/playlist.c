@@ -387,7 +387,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 
 	self->dock = eina_obj_get_widget(self, "playlist-main-box");
 	g_object_ref(self->dock);
-	if (self->dock->parent != NULL)
+	if (gtk_widget_get_parent(self->dock) != NULL)
 		gtk_widget_unparent(self->dock);
 
 	g_signal_connect(self->dock, "key-press-event", G_CALLBACK(dock_key_press_event_cb), self);
@@ -407,7 +407,9 @@ static gboolean
 playlist_resize_columns(EinaPlaylist *self)
 {
 	static gint l[] = {-1, -1, -1};
-	gint tv = GTK_WIDGET(self->tv)->allocation.width;
+	GtkAllocation alloc;
+	gtk_widget_get_allocation((GtkWidget *) self->tv, &alloc);
+	gint tv = alloc.width;
 	gint sc = gtk_tree_view_column_get_width(eina_obj_get_typed((EinaObj *) self, GTK_TREE_VIEW_COLUMN, "state-column"));
 	gint qc = gtk_tree_view_column_get_width(eina_obj_get_typed((EinaObj *) self, GTK_TREE_VIEW_COLUMN, "queue-column"));
 
@@ -1151,11 +1153,11 @@ drag_data_received_cb
 
 	gboolean dnd_success = FALSE;
 
-	if((selection_data != NULL) && (selection_data-> length >= 0))
+	if((selection_data != NULL) && (gtk_selection_data_get_length(selection_data) >= 0))
 	{
 		if (target_type == DND_TARGET_STRING)
 		{
-			_sdata = (gchar*) selection_data-> data;
+			_sdata = (gchar*) gtk_selection_data_get_data(selection_data);
 			dnd_success = TRUE;
 		}
 		else

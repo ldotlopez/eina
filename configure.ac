@@ -112,7 +112,7 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 # Some flags
 TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 	-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
-	-DGDK_MULTIHEAD_SAFE -DGTK_MULTIHEAD_SAFE"
+	-DGDK_MULTIHEAD_SAFE -DGTK_MULTIHEAD_SAFE -DGSEAL_ENABLE"
 
 AC_ARG_ENABLE(release-build, [  --enable-release-build      Build in release mode (-debug,+optimizations)], release_build=yes, release_build=no)
 AC_ARG_ENABLE(experimental,  [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
@@ -341,7 +341,7 @@ dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"   = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"      = "xyes")
 AM_CONDITIONAL(USE_CLUTTY,     test x"$enable_clutty"  = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
-AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB" = "xyes")
+AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB" = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"       = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"    = "xyes")
 AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"    = "xyes")
