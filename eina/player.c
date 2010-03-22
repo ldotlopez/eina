@@ -28,6 +28,7 @@
 #include <eina/ext/eina-volume.h>
 #include <eina/about.h>
 #include <eina/player.h>
+#include <eina/ext/eina-cover-image.h>
 
 #define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
 #define OSX_OPEN_PATH "/usr/bin/open"
@@ -135,6 +136,20 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		GTK_WIDGET(volume));
 		gtk_widget_show(GTK_WIDGET(volume));
 
+	// Cover widget
+	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
+	EinaCover *cover = eina_cover_new();
+	g_object_set(cover,
+		"art", eina_obj_get_art(self),
+		"lomo-player", eina_obj_get_lomo(self),
+		"default-pixbuf", def_pb,
+		"renderer",    eina_cover_image_new(),
+		NULL);
+	GtkContainer *cover_container = eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
+	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
+	gtk_box_pack_start(GTK_BOX(cover_container), GTK_WIDGET(cover), TRUE, TRUE, 0);
+	gtk_widget_show(GTK_WIDGET(cover));
+
 	// Enable actions
 	gint i;
 	self->action_group = gtk_action_group_new("player");
@@ -236,7 +251,8 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 
 GtkContainer *
 eina_player_get_cover_container(EinaPlayer* self)
-{
+{	
+	return NULL;
 	return eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
 }
 
@@ -566,7 +582,7 @@ player_dnd_setup(EinaPlayer *self)
 // --
 EINA_PLUGIN_SPEC (player,
 	PACKAGE_VERSION,
-	"about,lomo,window,preferences",
+	"art,about,lomo,window,preferences",
 	NULL,
 	NULL,
 

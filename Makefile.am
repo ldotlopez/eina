@@ -151,6 +151,8 @@ eina_ext_libeina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/ein
 eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
     eina/ext/eina-conf.h                \
+    eina/ext/eina-cover.h               \
+    eina/ext/eina-cover-image.h         \
     eina/ext/eina-file-chooser-dialog.h \
     eina/ext/eina-file-utils.h          \
     eina/ext/eina-plugin-dialog.h       \
@@ -164,6 +166,8 @@ eina_ext_libeina_include_HEADERS = \
 eina_ext_libeinaext_la_SOURCES = \
     eina/ext/curl-engine.c              \
     eina/ext/eina-conf-file.c           \
+    eina/ext/eina-cover.c               \
+    eina/ext/eina-cover-image.c         \
     eina/ext/eina-file-chooser-dialog.c \
     eina/ext/eina-file-utils.c          \
     eina/ext/eina-plugin-dialog.c       \
@@ -234,7 +238,6 @@ eina_eina_SOURCES = \
     eina/about.c            \
     eina/about.h            \
     eina/art.c              \
-    eina/cover.c            \
     eina/dock.c             \
     eina/dock.h             \
     eina/eina-obj.c         \
