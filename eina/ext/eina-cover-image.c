@@ -1,5 +1,4 @@
 #include "eina-cover-image.h"
-#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (EinaCoverImage, eina_cover_image, GTK_TYPE_DRAWING_AREA)
 
@@ -10,17 +9,15 @@ typedef struct _EinaCoverImagePrivate EinaCoverImagePrivate;
 
 struct _EinaCoverImagePrivate {
 	GdkPixbuf *pixbuf;
-	GdkPixbuf *scaled;
+	GtkAllocation allocation;
+	gint pb_w, pb_h;
+	gfloat scale;
+	cairo_t *cr;
 };
 
 enum {
 	PROPERTY_COVER = 1
 };
-
-static void
-cover_image_rescale(EinaCoverImage *self);
-static void
-cover_image_redraw(EinaCoverImage *self);
 
 static void
 eina_cover_image_get_property (GObject *object, guint property_id,
@@ -54,34 +51,37 @@ eina_cover_image_dispose (GObject *object)
 static gboolean
 eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 {
-	#if 0
 	EinaCoverImagePrivate *priv = GET_PRIVATE(EINA_COVER_IMAGE(widget));
-	if (priv->scaled == NULL)
+	if (!priv->pixbuf)
 		return TRUE;
 
-	gdk_draw_pixbuf((GdkDrawable *) gtk_widget_get_window(widget),
-		NULL,
-		priv->scaled,
-		0, 0,
-		0, 0,
-		-1, -1,
-		/*
-		ev->area.x, ev->area.y,
-		ev->area.x, ev->area.y,
-		ev->area.width, ev->area.height,
-		*/
-		GDK_RGB_DITHER_NONE,
-		0, 0);
-	g_printf("Got expose\n");
-	#endif
-	cover_image_redraw(EINA_COVER_IMAGE(widget));
+	cairo_t *cr = gdk_cairo_create(gtk_widget_get_window(widget));
+	cairo_scale(cr, priv->scale, priv->scale);
+	gdk_cairo_set_source_pixbuf(cr, priv->pixbuf, 0, 0);
+
+	GdkRectangle *rects = NULL;
+	gint n_rects;
+	gdk_region_get_rectangles(ev->region, &rects, &n_rects);
+
+	gint i;
+	for (i = 0; i < n_rects; i++)
+	{
+		cairo_rectangle(cr, rects[i].x, rects[i].y, rects[i].width, rects[i].height);
+		cairo_paint(cr);
+	}
+	g_free(rects);
+	cairo_destroy(cr);
+
 	return TRUE;
 }
 
 static gboolean
 eina_cover_image_configure_event(GtkWidget *widget, GdkEventConfigure *ev)
 {
-	cover_image_rescale(EINA_COVER_IMAGE(widget));
+	EinaCoverImagePrivate *priv = GET_PRIVATE(EINA_COVER_IMAGE(widget));
+	gtk_widget_get_allocation(widget, &priv->allocation);
+	priv->scale = MAX(priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
+	gtk_widget_queue_draw(widget);
 	return TRUE;
 }
 
@@ -123,70 +123,18 @@ eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
 	if (priv->pixbuf)
 		g_object_unref(priv->pixbuf);
-	if (priv->scaled)
-	{
-		g_object_unref(priv->scaled);
-		priv->scaled = NULL;
-	}
 
 	priv->pixbuf = pixbuf;
-	if (priv->pixbuf)
-		g_object_ref(priv->pixbuf);
-	cover_image_redraw(self);
-}
-
-static void
-cover_image_rescale(EinaCoverImage *self)
-{
-	g_return_if_fail(EINA_IS_COVER_IMAGE(self));
-    EinaCoverImagePrivate *priv = GET_PRIVATE(self); 
-
-	if (priv->pixbuf == NULL)
-		return;
-	if (priv->scaled != NULL)
-		g_object_unref(priv->scaled);
-
-	gfloat w, h;
-	w = (gfloat) gdk_pixbuf_get_width(priv->pixbuf);
-	h = (gfloat) gdk_pixbuf_get_height(priv->pixbuf);
-
-	GtkAllocation alloc;
-	gtk_widget_get_allocation(GTK_WIDGET(self), &alloc);
-	gfloat scale = MIN(
-		(gfloat) alloc.width  / w,
-		(gfloat) alloc.height / h);
-
-	priv->scaled = gdk_pixbuf_scale_simple(priv->pixbuf,
-		w * scale,
-		h * scale,
-		GDK_INTERP_HYPER);
-	g_printf("Rescale done (%dx%d)\n", (int) (w*scale), (int) (h*scale));
-}
-
-static void
-cover_image_redraw(EinaCoverImage *self)
-{
-	g_return_if_fail(EINA_IS_COVER_IMAGE(self));
-	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
 	if (!priv->pixbuf)
+	{
+		priv->pb_w = priv->pb_h = -1;
+		priv->scale = 0;
 		return;
+	}
 
-	if (!priv->scaled)
-		cover_image_rescale(self);
-
-	gdk_draw_pixbuf((GdkDrawable *) gtk_widget_get_window(GTK_WIDGET(self)),
-		NULL,
-		priv->scaled,
-		0, 0,
-		0, 0,
-		-1, -1,
-		/*
-		ev->area.x, ev->area.y,
-		ev->area.x, ev->area.y,
-		ev->area.width, ev->area.height,
-		*/
-		GDK_RGB_DITHER_NONE,
-		0, 0);
-	g_printf("Redraw done\n");
+	priv->pb_w = gdk_pixbuf_get_width(priv->pixbuf);
+	priv->pb_h = gdk_pixbuf_get_width(priv->pixbuf);
+	priv->scale = MAX(priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
+	gtk_widget_queue_draw(GTK_WIDGET(self));
 }
 

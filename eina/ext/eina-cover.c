@@ -281,6 +281,13 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 		return;
 	}
 
+	if (!stream)
+	{
+		g_printf(" no stream\n");
+		cover_set_pixbuf(self, NULL);
+		return;
+	}
+
 	g_printf(" new search started: %p\n", priv->search = art_search(priv->art, stream, (ArtFunc) search_finish_cb, self));
 	if (priv->search)
 	{
