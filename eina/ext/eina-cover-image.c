@@ -1,4 +1,7 @@
 #include "eina-cover-image.h"
+#include "eina-cover-image-mask.h"
+#include <glib/gi18n.h>
+#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (EinaCoverImage, eina_cover_image, GTK_TYPE_DRAWING_AREA)
 
@@ -8,9 +11,9 @@ G_DEFINE_TYPE (EinaCoverImage, eina_cover_image, GTK_TYPE_DRAWING_AREA)
 typedef struct _EinaCoverImagePrivate EinaCoverImagePrivate;
 
 struct _EinaCoverImagePrivate {
-	GdkPixbuf *pixbuf;
+	GdkPixbuf *pixbuf, *mask;
 	GtkAllocation allocation;
-	gint pb_w, pb_h;
+	gint pb_w, pb_h, m_w, m_h;
 	gfloat scale;
 	cairo_t *cr;
 };
@@ -51,13 +54,45 @@ eina_cover_image_dispose (GObject *object)
 static gboolean
 eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 {
-	EinaCoverImagePrivate *priv = GET_PRIVATE(EINA_COVER_IMAGE(widget));
+	EinaCoverImage        *self = EINA_COVER_IMAGE(widget);
+	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
 	if (!priv->pixbuf)
 		return TRUE;
 
 	cairo_t *cr = gdk_cairo_create(gtk_widget_get_window(widget));
-	cairo_scale(cr, priv->scale, priv->scale);
+
+	// Paint cover
+	cairo_scale(cr, priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
 	gdk_cairo_set_source_pixbuf(cr, priv->pixbuf, 0, 0);
+	cairo_paint(cr);
+
+	if (priv->mask)
+	{
+		// Create mask
+		cairo_push_group(cr);
+		cairo_identity_matrix(cr);
+		cairo_scale(cr,
+			priv->allocation.width  / (gfloat) priv->m_w,
+			priv->allocation.height / (gfloat) priv->m_h);
+		gdk_cairo_set_source_pixbuf(cr, priv->mask, 0, 0);
+		cairo_paint(cr);
+		cairo_pattern_t *mask = cairo_pop_group(cr);
+
+		// Create new combined pattern
+		cairo_push_group(cr);
+		GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(widget))->bg[GTK_STATE_NORMAL];
+		cairo_set_source_rgb(cr,
+			color.red   / (gfloat) 65535,
+			color.green / (gfloat) 65535,
+			color.blue  / (gfloat) 65535);
+		cairo_mask(cr, mask);
+		cairo_pattern_t *f = cairo_pop_group(cr);
+		cairo_pattern_destroy(mask);
+	
+		// Apply all
+		cairo_set_source(cr, f);
+		cairo_pattern_destroy(f);
+	}
 
 	GdkRectangle *rects = NULL;
 	gint n_rects;
@@ -70,6 +105,7 @@ eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 		cairo_paint(cr);
 	}
 	g_free(rects);
+
 	cairo_destroy(cr);
 
 	return TRUE;
@@ -108,12 +144,87 @@ eina_cover_image_class_init (EinaCoverImageClass *klass)
 static void
 eina_cover_image_init (EinaCoverImage *self)
 {
+	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
+	if (priv->mask == NULL)
+	{
+		GError *err = NULL;
+		if ((priv->mask = gdk_pixbuf_new_from_inline(-1, __cover_mask, FALSE, &err)) == NULL)
+		{
+			g_warning(N_("Unable to load cover mask: %s"), err->message);
+			priv->m_w = priv->m_h = -1;
+			g_error_free(err);
+			return;
+		}
+		priv->m_w = gdk_pixbuf_get_width (priv->mask);
+		priv->m_h = gdk_pixbuf_get_height(priv->mask);
+	}
 }
 
 EinaCoverImage*
 eina_cover_image_new (void)
 {
 	return g_object_new (EINA_TYPE_COVER_IMAGE, NULL);
+}
+
+static void
+compose_pixbuf(EinaCoverImage *self)
+{
+	g_return_if_fail(EINA_IS_COVER_IMAGE(self));
+	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
+
+	if (priv->pixbuf == NULL)
+		return;
+
+	if (priv->mask == NULL)
+	{
+		GError *err = NULL;
+		if ((priv->mask = gdk_pixbuf_new_from_inline(-1, __cover_mask, FALSE, &err)) == NULL)
+		{
+			g_warning(N_("Unable to load cover mask: %s"), err->message);
+			g_error_free(err);
+			return;
+		}
+	}
+
+	int width, height, rowstride, n_channels, i, j;
+	guchar *pixels, *p;
+	n_channels = gdk_pixbuf_get_n_channels(priv->mask);
+	if ((gdk_pixbuf_get_colorspace (priv->mask) != GDK_COLORSPACE_RGB) ||
+		(gdk_pixbuf_get_bits_per_sample (priv->mask) != 8)             ||
+		(!gdk_pixbuf_get_has_alpha (priv->mask))                       ||
+		(n_channels != 4))
+	{
+		g_object_unref(priv->mask);
+		priv->mask = NULL;
+		g_warning(N_("Invalid cover mask"));
+		return;
+	}
+
+	width     = gdk_pixbuf_get_width     (priv->mask);
+	height    = gdk_pixbuf_get_height    (priv->mask);
+	rowstride = gdk_pixbuf_get_rowstride (priv->mask);
+	pixels    = gdk_pixbuf_get_pixels    (priv->mask);
+
+	GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(GTK_WIDGET(self)))->bg[GTK_STATE_NORMAL];
+	for ( i = 0; i < width; i++)
+		for (j = 0; j < height; j++)
+		{
+			p = pixels + j * rowstride + i * n_channels;
+			p[0] = color.red;
+			p[1] = color.green;
+			p[2] = color.blue;
+		}
+	
+	gdk_pixbuf_composite(priv->mask, priv->pixbuf,
+			0, 0,
+			gdk_pixbuf_get_width(priv->pixbuf),
+			gdk_pixbuf_get_height(priv->pixbuf),
+			0, 0,
+			gdk_pixbuf_get_width(priv->mask) / (double) gdk_pixbuf_get_width(priv->pixbuf),
+			gdk_pixbuf_get_height(priv->mask) / (double) gdk_pixbuf_get_height(priv->pixbuf),
+			GDK_INTERP_BILINEAR,
+			255);
+
 }
 
 void
@@ -131,6 +242,8 @@ eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 		priv->scale = 0;
 		return;
 	}
+
+	if (0) compose_pixbuf(self);
 
 	priv->pb_w = gdk_pixbuf_get_width(priv->pixbuf);
 	priv->pb_h = gdk_pixbuf_get_width(priv->pixbuf);

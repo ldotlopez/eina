@@ -55,6 +55,7 @@ m4/
 
 # Generated header files
 eina/ext/*-ui.h
+eina/ext/eina-cover-image-mask.h
 
 bindings/
 

@@ -292,7 +292,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (priv->search)
 	{
 		g_printf(" set loading cover\n");
-		cover_set_pixbuf(self, gdk_pixbuf_copy(priv->loading_pb));
+		cover_set_pixbuf(self, gdk_pixbuf_copy(priv->loading_pb ? priv->loading_pb: priv->default_pb));
 	}
 }
 

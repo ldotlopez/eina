@@ -19,10 +19,6 @@ EXTRA_DIST = \
 BUILT_SOURCES = \
 	lomo/lomo-marshallers.c              \
 	lomo/lomo-marshallers.h              \
-	eina/ext/eina-plugin-dialog-ui.h     \
-    eina/ext/eina-plugin-properties-ui.h \
-    eina/ext/eina-preferences-dialog-marshallers.c \
-    eina/ext/eina-preferences-dialog-marshallers.h \
 	eina/lomo-player-dbus-glue.h         \
 	eina/dbus-marshallers.c \
 	eina/dbus-marshallers.h
@@ -189,6 +185,23 @@ EXTRA_DIST += \
 	eina/ext/eina-plugin-dialog.ui            \
 	eina/ext/eina-plugin-properties.ui        \
 	eina/ext/eina-preferences-dialog-marshallers.list
+
+CLEANFILES += \
+	eina/ext/eina-cover-image-mask.h               \
+	eina/ext/eina-preferences-dialog-marshallers.h \
+	eina/ext/eina-preferences-dialog-marshallers.c \
+	eina/ext/eina-plugin-dialog-ui.h               \
+	eina/ext/eina-plugin-properties-ui.h
+
+BUILT_SOURCES += \
+	eina/ext/eina-cover-image-mask.h               \
+    eina/ext/eina-preferences-dialog-marshallers.c \
+    eina/ext/eina-preferences-dialog-marshallers.h \
+	eina/ext/eina-plugin-dialog-ui.h               \
+    eina/ext/eina-plugin-properties-ui.h
+
+eina/ext/eina-cover-image-mask.h: pixmaps/cover-mask.png
+	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask $<  > $@
 
 eina/ext/eina-preferences-dialog-marshallers.h: eina/ext/eina-preferences-dialog-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header > $@
