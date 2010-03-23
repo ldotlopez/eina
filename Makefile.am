@@ -213,13 +213,15 @@ eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	@PACKAGE_LIBS@ \
 	-L$(top_builddir)/gel/.libs  \
 	-L$(top_builddir)/lomo/.libs \
-	$(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.0 -llomo-1.0
+	-lgel-1.0 -llomo-1.0
+eina_eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 
 eina_vogon_LDFLAGS = -export-dynamic  -module -avoid-version \
 	@PACKAGE_LIBS@ \
 	-L$(top_builddir)/gel/.libs  \
 	-L$(top_builddir)/lomo/.libs \
-	$(top_builddir)/eina/ext/.libs/libeinaext.a -lgel-1.0 -llomo-1.0 #LDDADD
+	-lgel-1.0 -llomo-1.0
+eina_vogon_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 
 eina_eina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 eina_eina_include_HEADERS = \

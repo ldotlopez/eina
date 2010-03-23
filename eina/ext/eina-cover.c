@@ -13,6 +13,7 @@ struct _EinaCoverPrivate {
 	ArtSearch *search;
 
 	LomoPlayer *lomo;
+	gboolean  got_cover;
 
 	GdkPixbuf *default_pb, *loading_pb;
 	GtkWidget *renderer;
@@ -244,7 +245,7 @@ cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 	g_return_if_fail(EINA_IS_COVER(self) || GDK_IS_PIXBUF(pb));
 
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	pb = (pb ? pb : priv->default_pb);
+	pb = (pb ? pb : gdk_pixbuf_copy(priv->default_pb));
 
 	if (priv->renderer)
 		g_object_set((GObject *) priv->renderer, "cover", (gpointer) pb, NULL);
@@ -254,55 +255,59 @@ static void
 search_finish_cb(Art *art, ArtSearch *search, EinaCover *self)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	priv->art = NULL;
+	priv->search = NULL;
 
 	GdkPixbuf *pb = art_search_get_result(search);
-	g_printf("Search got result: %p\n", pb);
+	g_printf(" search got result: %p\n", pb);
 	cover_set_pixbuf(self, pb);
 }
 
 static void
-look_for(EinaCover *self, LomoStream *stream)
+cover_set_stream(EinaCover *self, LomoStream *stream)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	if ((priv->art) && (priv->search))
+
+	g_printf("Got new stream %p\n", stream);
+	if (priv->art && priv->search)
 	{
+		g_printf(" discart running search %p\n", priv->search);
 		art_cancel(priv->art, priv->search);
 		priv->search = NULL;
 	}
-
 	if (!priv->art)
 	{
-		priv->search = NULL; 
+		g_printf(" no art interface, set default cover\n");
+		cover_set_pixbuf(self, NULL);
 		return;
 	}
 
-	priv->search = art_search(priv->art, stream, (ArtFunc) search_finish_cb, self);
+	g_printf(" new search started: %p\n", priv->search = art_search(priv->art, stream, (ArtFunc) search_finish_cb, self));
 	if (priv->search)
-		cover_set_pixbuf(self, priv->loading_pb);
+	{
+		g_printf(" set loading cover\n");
+		cover_set_pixbuf(self, gdk_pixbuf_copy(priv->loading_pb));
+	}
 }
 
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	g_printf("Change %d -> %d\n", from, to);
-
-	look_for(self, lomo_player_get_current_stream(priv->lomo));
+	cover_set_stream(self, lomo_player_get_current_stream(priv->lomo));
 }
 
 static void
 lomo_clear_cb(LomoPlayer *lomo,  EinaCover *self)
 {
-    g_printf("Clear\n");
+	cover_set_stream(self, NULL);
 }
 
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream , EinaCover *self)
 {
-	if (stream != lomo_player_get_current_stream(lomo))
+	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	if (stream != lomo_player_get_current_stream(priv->lomo))
 		return;
-
-	g_printf("All tags on %p (current stream)\n", stream);
+	cover_set_stream(self, stream);
 }
 

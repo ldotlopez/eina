@@ -18,6 +18,11 @@ enum {
 };
 
 static void
+cover_image_rescale(EinaCoverImage *self);
+static void
+cover_image_redraw(EinaCoverImage *self);
+
+static void
 eina_cover_image_get_property (GObject *object, guint property_id,
 		                          GValue *value, GParamSpec *pspec)
 {
@@ -46,36 +51,10 @@ eina_cover_image_dispose (GObject *object)
 	G_OBJECT_CLASS (eina_cover_image_parent_class)->dispose (object);
 }
 
-/*
-static void
-eina_cover_image_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
-{
-	g_printf("Need to resize to %dx%d\n", allocation->width, allocation->height);
-	GTK_WIDGET_CLASS(eina_cover_image_parent_class)->size_allocate(widget, allocation);
-
-	EinaCoverImagePrivate *priv = GET_PRIVATE(EINA_COVER_IMAGE(widget));
-	if (!priv->pixbuf)
-		return;
-
-	gfloat w, h;
-	w = (gfloat) gdk_pixbuf_get_width(priv->pixbuf);
-	h = (gfloat) gdk_pixbuf_get_height(priv->pixbuf);
-
-	gfloat scale = MIN(
-		(gfloat) allocation->width  / w,
-		(gfloat) allocation->height / h);
-
-	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(priv->pixbuf,
-		w * scale,
-		h * scale,
-		GDK_INTERP_HYPER);
-	gtk_image_set_from_pixbuf(GTK_IMAGE(widget), scaled);
-}
-*/
-
 static gboolean
 eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 {
+	#if 0
 	EinaCoverImagePrivate *priv = GET_PRIVATE(EINA_COVER_IMAGE(widget));
 	if (priv->scaled == NULL)
 		return TRUE;
@@ -83,38 +62,26 @@ eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 	gdk_draw_pixbuf((GdkDrawable *) gtk_widget_get_window(widget),
 		NULL,
 		priv->scaled,
+		0, 0,
+		0, 0,
+		-1, -1,
+		/*
 		ev->area.x, ev->area.y,
 		ev->area.x, ev->area.y,
 		ev->area.width, ev->area.height,
+		*/
 		GDK_RGB_DITHER_NONE,
 		0, 0);
 	g_printf("Got expose\n");
+	#endif
+	cover_image_redraw(EINA_COVER_IMAGE(widget));
 	return TRUE;
 }
 
 static gboolean
 eina_cover_image_configure_event(GtkWidget *widget, GdkEventConfigure *ev)
 {
-	EinaCoverImagePrivate *priv = GET_PRIVATE(EINA_COVER_IMAGE(widget));
-
-	if (priv->pixbuf == NULL)
-		return TRUE;
-	if (priv->scaled != NULL)
-		g_object_unref(priv->scaled);
-
-	gfloat w, h;
-	w = (gfloat) gdk_pixbuf_get_width(priv->pixbuf);
-	h = (gfloat) gdk_pixbuf_get_height(priv->pixbuf);
-
-	gfloat scale = MIN(
-		(gfloat) ev->width  / w,
-		(gfloat) ev->height / h);
-
-	priv->scaled = gdk_pixbuf_scale_simple(priv->pixbuf,
-		w * scale,
-		h * scale,
-		GDK_INTERP_HYPER);
-	g_printf("Configure done (%dx%d)", (int) (w*scale), (int) (h*scale));
+	cover_image_rescale(EINA_COVER_IMAGE(widget));
 	return TRUE;
 }
 
@@ -153,11 +120,73 @@ void
 eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 {
 	g_return_if_fail(EINA_IS_COVER_IMAGE(self) || GDK_IS_PIXBUF(pixbuf));
-
 	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
 	if (priv->pixbuf)
 		g_object_unref(priv->pixbuf);
+	if (priv->scaled)
+	{
+		g_object_unref(priv->scaled);
+		priv->scaled = NULL;
+	}
+
 	priv->pixbuf = pixbuf;
-	g_object_ref(priv->pixbuf);
+	if (priv->pixbuf)
+		g_object_ref(priv->pixbuf);
+	cover_image_redraw(self);
+}
+
+static void
+cover_image_rescale(EinaCoverImage *self)
+{
+	g_return_if_fail(EINA_IS_COVER_IMAGE(self));
+    EinaCoverImagePrivate *priv = GET_PRIVATE(self); 
+
+	if (priv->pixbuf == NULL)
+		return;
+	if (priv->scaled != NULL)
+		g_object_unref(priv->scaled);
+
+	gfloat w, h;
+	w = (gfloat) gdk_pixbuf_get_width(priv->pixbuf);
+	h = (gfloat) gdk_pixbuf_get_height(priv->pixbuf);
+
+	GtkAllocation alloc;
+	gtk_widget_get_allocation(GTK_WIDGET(self), &alloc);
+	gfloat scale = MIN(
+		(gfloat) alloc.width  / w,
+		(gfloat) alloc.height / h);
+
+	priv->scaled = gdk_pixbuf_scale_simple(priv->pixbuf,
+		w * scale,
+		h * scale,
+		GDK_INTERP_HYPER);
+	g_printf("Rescale done (%dx%d)\n", (int) (w*scale), (int) (h*scale));
+}
+
+static void
+cover_image_redraw(EinaCoverImage *self)
+{
+	g_return_if_fail(EINA_IS_COVER_IMAGE(self));
+	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
+	if (!priv->pixbuf)
+		return;
+
+	if (!priv->scaled)
+		cover_image_rescale(self);
+
+	gdk_draw_pixbuf((GdkDrawable *) gtk_widget_get_window(GTK_WIDGET(self)),
+		NULL,
+		priv->scaled,
+		0, 0,
+		0, 0,
+		-1, -1,
+		/*
+		ev->area.x, ev->area.y,
+		ev->area.x, ev->area.y,
+		ev->area.width, ev->area.height,
+		*/
+		GDK_RGB_DITHER_NONE,
+		0, 0);
+	g_printf("Redraw done\n");
 }
 
