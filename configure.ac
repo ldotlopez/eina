@@ -117,7 +117,6 @@ TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 
 AC_ARG_ENABLE(release-build, [  --enable-release-build      Build in release mode (-debug,+optimizations)], release_build=yes, release_build=no)
 AC_ARG_ENABLE(experimental,  [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
-AC_ARG_ENABLE(clutty,        [  --enable-clutty             Use clutty cover     ], enable_clutty=yes, enable_clutty=no)
 
 if test x$release_build = 'xyes'; then
 	CXXFLAGS="-O2"
@@ -186,27 +185,27 @@ dnl
 dnl
 dnl Clutter (core, fieshta)
 dnl
-CLUTTER_VERSION="0.10.0"
-clutter_modules="clutter-gtk-0.10 >= $CLUTTER_VERSION"
+CLUTTER_GTK_VERSION="0.10.0"
+clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
 PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 [
-	AC_SUBST(CLUTTER_CFLAGS)
-	AC_SUBST(CLUTTER_LIBS)
-	HAVE_CLUTTER=yes
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS $CLUTTER_CFLAGS -DHAVE_CLUTTER=1"
-	PACKAGE_LIBS="$PACKAGE_LIBS $CLUTTER_LIBS"
+	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
+		echo "clutter-gtk is not supported on osx"
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER=0"
+		HAVE_CLUTTER=no
+	else
+		AC_SUBST(CLUTTER_CFLAGS)
+		AC_SUBST(CLUTTER_LIBS)
+		HAVE_CLUTTER=yes
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS $CLUTTER_CFLAGS -DHAVE_CLUTTER=1"
+		PACKAGE_LIBS="$PACKAGE_LIBS $CLUTTER_LIBS"
+	fi
 ],
 [
 	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER=0"
 	HAVE_CLUTTER=no
 ])
 AM_CONDITIONAL(USE_CLUTTER, test x"$HAVE_CLUTTER" = "xyes")
-
-#if test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes"; then
-#	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=1"
-#else
-#	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=0"
-#fi
 
 dnl
 dnl notify (ntfy)

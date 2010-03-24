@@ -29,6 +29,7 @@
 #include <eina/about.h>
 #include <eina/player.h>
 #include <eina/ext/eina-cover-image.h>
+#include <eina/ext/eina-cover-clutter.h>
 
 #define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
 #define OSX_OPEN_PATH "/usr/bin/open"
@@ -143,7 +144,11 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		"art", eina_obj_get_art(self),
 		"lomo-player", eina_obj_get_lomo(self),
 		"default-pixbuf", def_pb,
+		#if HAVE_CLUTTER
+		"renderer",    eina_cover_clutter_new(),
+		#else
 		"renderer",    eina_cover_image_new(),
+		#endif
 		NULL);
 	GtkContainer *cover_container = eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
 	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
