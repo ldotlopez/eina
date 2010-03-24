@@ -231,6 +231,7 @@ void
 eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 {
 	g_return_if_fail(EINA_IS_COVER_IMAGE(self) || GDK_IS_PIXBUF(pixbuf));
+
 	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
 	if (priv->pixbuf)
 		g_object_unref(priv->pixbuf);

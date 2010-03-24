@@ -186,7 +186,7 @@ dnl
 dnl
 dnl Clutter (core, fieshta)
 dnl
-CLUTTER_VERSION="99.10.0"
+CLUTTER_VERSION="0.10.0"
 clutter_modules="clutter-gtk-0.10 >= $CLUTTER_VERSION"
 PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 [
@@ -202,11 +202,11 @@ PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 ])
 AM_CONDITIONAL(USE_CLUTTER, test x"$HAVE_CLUTTER" = "xyes")
 
-if test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes"; then
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=1"
-else
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=0"
-fi
+#if test x$enable_clutty = "xyes" -a x"$HAVE_CLUTTER" = "xyes"; then
+#	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=1"
+#else
+#	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTY=0"
+#fi
 
 dnl
 dnl notify (ntfy)
@@ -341,7 +341,7 @@ dnl Conditionals
 dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"   = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"      = "xyes")
-AM_CONDITIONAL(USE_CLUTTY,     test x"$enable_clutty"  = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
+#AM_CONDITIONAL(USE_CLUTTY,     test x"$enable_clutty"  = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
 AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB" = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"       = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"    = "xyes")

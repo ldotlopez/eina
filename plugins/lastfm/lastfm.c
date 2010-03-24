@@ -22,6 +22,7 @@
 #include "submit.h"
 #include "artwork.h"
 
+#define ENABLE_ARTWORK 0
 #define ENABLE_WEBVIEW 0
 #define SETTINGS_PATH "/lastfm"
 
@@ -63,11 +64,13 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	plugin->data = self;
 
-	if (!lastfm_artwork_init(app, plugin, error))
-		goto lastfm_init_fail;
-
 	if (!lastfm_submit_init(app, plugin, error))
 		goto lastfm_init_fail;
+
+#if ENABLE_ARTWORK
+	if (!lastfm_artwork_init(app, plugin, error))
+		goto lastfm_init_fail;
+#endif
 
 #if ENABLE_WEBVIEW
 	GError *non_fatal_err = NULL;
@@ -92,8 +95,10 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 
 lastfm_init_fail:
+#if ENABLE_ARTWORK
 	if (self->artwork)
 		lastfm_artwork_fini(app, plugin, NULL);
+#endif
 	if (self->submit)
 		lastfm_submit_fini(app, plugin, NULL);
 	g_free(self);
@@ -113,8 +118,10 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 		return FALSE;
 #endif
 
+#if ENABLE_ARTWORK
 	if (!lastfm_artwork_fini(app, plugin, error))
 		return FALSE;
+#endif
 
 	eina_obj_fini((EinaObj *) self);
 	self = plugin->data = NULL;

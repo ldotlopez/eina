@@ -177,8 +177,8 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/eina-window.c
 
 if USE_CLUTTER
-eina_ext_libeinaext_la_SOURCES += eina/ext/eina-clutty.c
-eina_ext_libeina_include_HEADERS += eina/ext/eina-clutty.h
+eina_ext_libeinaext_la_SOURCES += eina/ext/eina-cover-clutter.c
+eina_ext_libeina_include_HEADERS += eina/ext/eina-cover-clutter.h
 endif
 
 EXTRA_DIST += \

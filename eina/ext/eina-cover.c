@@ -274,6 +274,11 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 		art_cancel(priv->art, priv->search);
 		priv->search = NULL;
 	}
+	if (!priv->renderer)
+	{
+		g_printf(" no renderer, no search\n");
+		return;
+	}
 	if (!priv->art)
 	{
 		g_printf(" no art interface, set default cover\n");
