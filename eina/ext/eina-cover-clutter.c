@@ -17,24 +17,18 @@ enum { CURR, NEXT, N_PBS };
 enum { SPIN, ZOOM_IN, ZOOM_OUT, N_EFF };
 
 struct _EinaCoverClutterPrivate {
-	ClutterActor *stage;
 	ClutterActor *texture;
+
+	ClutterScore *score;
 
 	ClutterAnimation *anims[N_EFF];
 	GdkPixbuf *pbs[N_PBS];
 };
 
 enum {
-	PROPERTY_COVER = 1
+	PROPERTY_COVER = 1,
+	PROPERTY_ASIS
 };
-
-static void
-actor_print_size(ClutterActor *actor)
-{	
-	gfloat h, w;
-	clutter_actor_get_size(actor, &w, &h);
-	g_printf("== Actor %p: %fx%f\n", actor, w, h);
-}
 
 static gboolean
 configure_event_cb(GtkWidget *self, GdkEventConfigure *ev, gpointer data);
@@ -42,13 +36,16 @@ static void
 hierarchy_changed_cb(GtkWidget *self, GtkWidget *prev_tl, gpointer data);
 
 static void
-animation_completed_cb(ClutterAnimation *animation, EinaCoverClutter *self);
+spin_1_completed_cb(ClutterTimeline *tl, EinaCoverClutter *self);
 
 static void
 eina_cover_clutter_get_property (GObject *object, guint property_id,
 	GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
+	case PROPERTY_ASIS:
+		g_value_set_boolean(value, TRUE);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -61,6 +58,8 @@ eina_cover_clutter_set_property (GObject *object, guint property_id,
 	switch (property_id) {
 	case PROPERTY_COVER:
 		eina_cover_clutter_set_from_pixbuf(EINA_COVER_CLUTTER(object), GDK_PIXBUF(g_value_get_object(value)));
+		break;
+	case PROPERTY_ASIS:
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -87,6 +86,9 @@ eina_cover_clutter_class_init (EinaCoverClutterClass *klass)
     g_object_class_install_property(object_class, PROPERTY_COVER,
 		g_param_spec_object("cover", "Cover", "Cover pixbuf",
 		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, PROPERTY_ASIS,
+		g_param_spec_boolean("asis", "Asis", "As-is hint, ignored, allways TRUE",
+		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 
 	gint r = gtk_clutter_init(NULL, NULL);
 	if (r != CLUTTER_INIT_SUCCESS)
@@ -101,6 +103,35 @@ eina_cover_clutter_init (EinaCoverClutter *self)
 	priv->texture = clutter_texture_new();
 	clutter_container_add_actor((ClutterContainer *) gtk_clutter_embed_get_stage((GtkClutterEmbed *) self), priv->texture);
 
+	priv->score = clutter_score_new();
+
+	ClutterTimeline *zoom_out = clutter_timeline_new(EFFECT_DURATION / 2);
+	ClutterTimeline *zoom_in  = clutter_timeline_new(EFFECT_DURATION / 2);
+	ClutterTimeline *spin_1   = clutter_timeline_new(EFFECT_DURATION / 2);
+	ClutterTimeline *spin_2   = clutter_timeline_new(EFFECT_DURATION / 2);
+
+	ClutterAlpha *a_z_out = clutter_alpha_new_full(zoom_out, ZOOM_OUT_MODE); 
+	ClutterAlpha *a_z_in  = clutter_alpha_new_full(zoom_in,  ZOOM_IN_MODE); 
+	ClutterAlpha *a_s_1   = clutter_alpha_new_full(spin_1,   SPIN_MODE); 
+	ClutterAlpha *a_s_2   = clutter_alpha_new_full(spin_2,   SPIN_MODE); 
+
+	ClutterBehaviour *b_z_out = clutter_behaviour_scale_new (a_z_out, 1.0, 1.0, 0.5, 0.5);
+	ClutterBehaviour *b_z_in  = clutter_behaviour_scale_new (a_z_in,  0.5, 0.5, 1.0, 1.0);
+	ClutterBehaviour *b_s_1   = clutter_behaviour_rotate_new(a_s_1,   CLUTTER_Y_AXIS, CLUTTER_ROTATE_CW, 0.0,   90.0);
+	ClutterBehaviour *b_s_2   = clutter_behaviour_rotate_new(a_s_2,   CLUTTER_Y_AXIS, CLUTTER_ROTATE_CW, 270.0, 360.0);
+	
+	clutter_behaviour_apply(b_z_out, priv->texture);
+	clutter_behaviour_apply(b_z_in, priv->texture);
+	clutter_behaviour_apply(b_s_1, priv->texture);
+	clutter_behaviour_apply(b_s_2, priv->texture);
+
+	clutter_score_append(priv->score, NULL, spin_1);
+	clutter_score_append(priv->score, spin_1, spin_2);
+	clutter_score_append(priv->score, NULL, zoom_out);
+	clutter_score_append(priv->score, zoom_out, zoom_in);
+
+	g_signal_connect(spin_1, "completed", (GCallback) spin_1_completed_cb, self);
+	
 	g_signal_connect(self, "configure-event",   (GCallback) configure_event_cb, NULL);
 	g_signal_connect(self, "hierarchy-changed", (GCallback) hierarchy_changed_cb, NULL);
 }
@@ -115,20 +146,10 @@ static void
 start_animation(EinaCoverClutter *self)
 {
 	EinaCoverClutterPrivate *priv = GET_PRIVATE(self);
-	if (!gtk_widget_get_visible((GtkWidget *) self) || !priv->texture ||
-		priv->anims[SPIN] || priv->anims[ZOOM_IN] || priv->anims[ZOOM_OUT])
-		return;
-	
-	priv->anims[ZOOM_OUT] = clutter_actor_animate(priv->texture, ZOOM_OUT_MODE, EFFECT_DURATION / 2,
-		"scale-x", 0.5,
-		"scale-y", 0.5,
-		"signal-after::completed", animation_completed_cb, self,
-		NULL);
-	priv->anims[SPIN] = clutter_actor_animate(priv->texture, SPIN_MODE, EFFECT_DURATION,
-		"rotation-angle-y", 180.0,
-		"signal-after::completed", animation_completed_cb, self,
-		NULL);
 
+	if (!gtk_widget_get_visible((GtkWidget *) self) || clutter_score_is_playing(priv->score))
+		return;
+	clutter_score_start(priv->score);
 }
 
 void
@@ -137,14 +158,6 @@ eina_cover_clutter_set_from_pixbuf(EinaCoverClutter *self, GdkPixbuf *pixbuf)
 	EinaCoverClutterPrivate *priv = GET_PRIVATE(self);
 	g_return_if_fail(pixbuf != NULL);
 
-#if 1
-	if (priv->pbs[CURR])
-		g_object_unref(priv->pbs[CURR]);
-	priv->pbs[CURR] = pixbuf;
-	gtk_widget_queue_resize((GtkWidget *) self);
-	start_animation(self);
-	return;
-#else
 	// Put on next?
 	if (priv->pbs[CURR])
 	{
@@ -159,7 +172,6 @@ eina_cover_clutter_set_from_pixbuf(EinaCoverClutter *self, GdkPixbuf *pixbuf)
 		priv->pbs[CURR] = pixbuf;
 		gtk_widget_queue_resize((GtkWidget *) self);
 	}
-#endif
 }
 
 static gboolean
@@ -177,14 +189,16 @@ configure_event_cb(GtkWidget *widget, GdkEventConfigure *ev, gpointer data)
 	// gint pbw = gdk_pixbuf_get_width (priv->pbs[CURR]);
 	// gint pbh = gdk_pixbuf_get_height(priv->pbs[CURR]);
 	// clutter_actor_set_size(priv->texture, pbw, pbh);
+	/*
 	gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) priv->texture, priv->pbs[CURR], NULL);
 	clutter_actor_set_size(priv->texture, ev->width, ev->height);
+	*/
+	clutter_actor_set_size(priv->texture, ev->width, ev->height);
+	gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) priv->texture, priv->pbs[CURR], NULL);
 
 	clutter_actor_set_anchor_point_from_gravity(priv->texture, CLUTTER_GRAVITY_CENTER);
 	clutter_actor_set_position(priv->texture, ev->width / (gfloat) 2, ev->width / (gfloat) 2);
 
-	actor_print_size((ClutterActor *) gtk_clutter_embed_get_stage((GtkClutterEmbed *) self));
-	actor_print_size(priv->texture);
 	return FALSE;
 }
 
@@ -201,36 +215,14 @@ hierarchy_changed_cb(GtkWidget *self, GtkWidget *prev_tl, gpointer data)
 }
 
 static void
-animation_completed_cb(ClutterAnimation *animation, EinaCoverClutter *self)
+spin_1_completed_cb(ClutterTimeline *tl, EinaCoverClutter *self)
 {
 	EinaCoverClutterPrivate *priv = GET_PRIVATE(self);
-	g_warning("Animation %p completed", animation);
-	if (animation == priv->anims[ZOOM_OUT])
-	{
-		priv->anims[ZOOM_OUT] = NULL;
-		priv->anims[ZOOM_IN] = clutter_actor_animate(priv->texture, ZOOM_IN_MODE, EFFECT_DURATION / 2,
-			"scale-x", 1.0,
-			"scale-y", 1.0,
-			"signal-after::completed", animation_completed_cb, self,
-			NULL);
-	}
-	else if (animation == priv->anims[ZOOM_IN])
-		priv->anims[ZOOM_IN] = NULL;
-	else if (animation == priv->anims[SPIN])
-	{
-		priv->anims[SPIN] = NULL;
-		clutter_actor_set_rotation(priv->texture, CLUTTER_Y_AXIS, 0.0, 0, 1, 0);
-	}
+	g_return_if_fail(priv->pbs[NEXT] != NULL);
+
+	g_object_unref(priv->pbs[CURR]);
+	priv->pbs[CURR] = priv->pbs[NEXT];
+	priv->pbs[NEXT] = NULL;
+	gtk_clutter_texture_set_from_pixbuf((ClutterTexture *) priv->texture, priv->pbs[CURR], NULL);
 }
 
-#if 0
-static void
-mark_reached_cb(ClutterTimeline *tl, gchar *marker, gint msecs, EinaCoverClutter *self)
-{
-	EinaCoverClutterPrivate *priv = GET_PRIVATE(self);
-
-	gdouble sx, sy;
-	clutter_actor_get_scale(priv->texture, &sx, &sy);
-	g_warning("Got half! scale: %f,%f", sx, sy);
-}
-#endif

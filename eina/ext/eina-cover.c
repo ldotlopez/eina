@@ -272,10 +272,10 @@ cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 	gboolean asis = (pb == priv->default_pb) || (pb == priv->loading_pb);
 	priv->got_cover = !asis;
 	debug("* Setting cover to %p (got_cover: %s)\n", pb, priv->got_cover ? "true" : "false");
-	g_object_set((GObject *) priv->renderer,
-		"asis",  asis,
-		"cover", asis ? gdk_pixbuf_copy(pb) : pb,
-		NULL);
+
+	// Keep two call to g_object_set, renderer may not support asis property
+	g_object_set((GObject *) priv->renderer, "asis",  asis, NULL);
+	g_object_set((GObject *) priv->renderer, "cover", asis ? gdk_pixbuf_copy(pb) : pb, NULL);
 }
 
 static gboolean
