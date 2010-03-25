@@ -178,67 +178,6 @@ eina_cover_image_new (void)
 	return g_object_new (EINA_TYPE_COVER_IMAGE, NULL);
 }
 
-static void
-compose_pixbuf(EinaCoverImage *self)
-{
-	g_return_if_fail(EINA_IS_COVER_IMAGE(self));
-	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
-
-	if (priv->pixbuf == NULL)
-		return;
-
-	if (priv->mask == NULL)
-	{
-		GError *err = NULL;
-		if ((priv->mask = gdk_pixbuf_new_from_inline(-1, __cover_mask, FALSE, &err)) == NULL)
-		{
-			g_warning(N_("Unable to load cover mask: %s"), err->message);
-			g_error_free(err);
-			return;
-		}
-	}
-
-	int width, height, rowstride, n_channels, i, j;
-	guchar *pixels, *p;
-	n_channels = gdk_pixbuf_get_n_channels(priv->mask);
-	if ((gdk_pixbuf_get_colorspace (priv->mask) != GDK_COLORSPACE_RGB) ||
-		(gdk_pixbuf_get_bits_per_sample (priv->mask) != 8)             ||
-		(!gdk_pixbuf_get_has_alpha (priv->mask))                       ||
-		(n_channels != 4))
-	{
-		g_object_unref(priv->mask);
-		priv->mask = NULL;
-		g_warning(N_("Invalid cover mask"));
-		return;
-	}
-
-	width     = gdk_pixbuf_get_width     (priv->mask);
-	height    = gdk_pixbuf_get_height    (priv->mask);
-	rowstride = gdk_pixbuf_get_rowstride (priv->mask);
-	pixels    = gdk_pixbuf_get_pixels    (priv->mask);
-
-	GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(GTK_WIDGET(self)))->bg[GTK_STATE_NORMAL];
-	for ( i = 0; i < width; i++)
-		for (j = 0; j < height; j++)
-		{
-			p = pixels + j * rowstride + i * n_channels;
-			p[0] = color.red;
-			p[1] = color.green;
-			p[2] = color.blue;
-		}
-	
-	gdk_pixbuf_composite(priv->mask, priv->pixbuf,
-			0, 0,
-			gdk_pixbuf_get_width(priv->pixbuf),
-			gdk_pixbuf_get_height(priv->pixbuf),
-			0, 0,
-			gdk_pixbuf_get_width(priv->mask) / (double) gdk_pixbuf_get_width(priv->pixbuf),
-			gdk_pixbuf_get_height(priv->mask) / (double) gdk_pixbuf_get_height(priv->pixbuf),
-			GDK_INTERP_BILINEAR,
-			255);
-
-}
-
 void
 eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 {
@@ -256,7 +195,6 @@ eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 		return;
 	}
 
-	if (0) compose_pixbuf(self);
 
 	priv->pb_w = gdk_pixbuf_get_width(priv->pixbuf);
 	priv->pb_h = gdk_pixbuf_get_width(priv->pixbuf);
