@@ -6,23 +6,31 @@ G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_COVER, EinaCoverPrivate))
 
+// #define debug(...) g_printf(__VA_ARGS__)
+#define debug(...) ;
+
 typedef struct _EinaCoverPrivate EinaCoverPrivate;
 
 struct _EinaCoverPrivate {
-	Art *art;
-	ArtSearch *search;
+	LomoPlayer *lomo;      // <EXtern object, used for monitor changes
+	Art        *art;       // <Extern object, used for search covers
+	GtkWidget  *renderer;  // <Renderer
 
-	LomoPlayer *lomo;
-	gboolean  got_cover;
+	GdkPixbuf *default_pb; // <Default pixbuf to use if no cover is found
+	GdkPixbuf *loading_pb; // <Pixbuf for used while search is performed
+	GdkPixbuf *curr_pb;    // <Pointer alias for current pixbuf
 
-	GdkPixbuf *default_pb, *loading_pb;
-	GtkWidget *renderer;
+	ArtSearch *search;     // <Search in progress
+
+	guint loading_timeout; // <Used to draw a loading cover after a timeout
+	gboolean got_cover;    // <Flag to indicate if cover was found
 };
 
 enum {
 	PROPERTY_RENDERER = 1,
 	PROPERTY_LOMO_PLAYER,
 	PROPERTY_ART,
+
 	PROPERTY_DEFAULT_PIXBUF,
 	PROPERTY_LOADING_PIXBUF
 };
@@ -80,7 +88,7 @@ eina_cover_size_request (GtkWidget *widget, GtkRequisition *requisition)
 {
 	requisition->width  = 0;
 	requisition->height = 0;
-	g_printf("EinaCover size request to %dx%d\n", requisition->width, requisition->height);
+	// debug("EinaCover size request to %dx%d\n", requisition->width, requisition->height);
 }
 
 static void
@@ -96,8 +104,7 @@ eina_cover_size_allocate (GtkWidget *widget, GtkAllocation *allocation)
 		allocation->width = allocation->height;
 		gtk_widget_set_size_request(widget, allocation->height, allocation->height);
 		gtk_widget_size_allocate(child, allocation);
-		g_printf("EinaCover size allcate to  %dx%d\n", allocation->width, allocation->height);
-
+		// debug("EinaCover size allcate to  %dx%d\n", allocation->width, allocation->height);
 	}
 }
 
@@ -245,6 +252,12 @@ cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 	g_return_if_fail(EINA_IS_COVER(self));
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 
+	if (priv->loading_timeout)
+	{
+		g_source_remove(priv->loading_timeout);
+		priv->loading_timeout = 0;
+	}
+
 	if (!priv->renderer)
 		return;
 
@@ -252,11 +265,39 @@ cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 		pb = priv->default_pb;
 	g_return_if_fail(GDK_IS_PIXBUF(pb));
 
+	if (pb == priv->curr_pb)
+		return;
+
+	priv->curr_pb = pb;
 	gboolean asis = (pb == priv->default_pb) || (pb == priv->loading_pb);
+	priv->got_cover = !asis;
+	debug("* Setting cover to %p (got_cover: %s)\n", pb, priv->got_cover ? "true" : "false");
 	g_object_set((GObject *) priv->renderer,
 		"asis",  asis,
 		"cover", asis ? gdk_pixbuf_copy(pb) : pb,
 		NULL);
+}
+
+static gboolean
+_cover_set_loading_real(EinaCover *self)
+{
+	g_return_val_if_fail(EINA_IS_COVER(self), FALSE);
+	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	priv->loading_timeout = 0;
+
+	cover_set_pixbuf(self, priv->loading_pb);
+
+	return FALSE;
+}
+
+static void
+cover_set_loading(EinaCover *self)
+{
+	g_return_if_fail(EINA_IS_COVER(self));
+	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	if (priv->loading_timeout)
+		g_source_remove(priv->loading_timeout);
+	priv->loading_timeout = g_timeout_add(500, (GSourceFunc) _cover_set_loading_real, self);
 }
 
 static void
@@ -266,7 +307,7 @@ search_finish_cb(Art *art, ArtSearch *search, EinaCover *self)
 	priv->search = NULL;
 
 	GdkPixbuf *pb = art_search_get_result(search);
-	g_printf(" search got result: %p\n", pb);
+	debug("* Search got result: %p\n", pb);
 	cover_set_pixbuf(self, pb);
 }
 
@@ -274,38 +315,40 @@ static void
 cover_set_stream(EinaCover *self, LomoStream *stream)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	priv->got_cover = FALSE;
 
-	g_printf("Got new stream %p\n", stream);
+	debug("* Got new stream %p\n", stream);
 	if (priv->art && priv->search)
 	{
-		g_printf(" discart running search %p\n", priv->search);
+		debug(" discart running search %p\n", priv->search);
 		art_cancel(priv->art, priv->search);
 		priv->search = NULL;
 	}
 	if (!priv->renderer)
 	{
-		g_printf(" no renderer, no search\n");
+		debug(" no renderer, no search\n");
 		return;
 	}
 	if (!priv->art)
 	{
-		g_printf(" no art interface, set default cover\n");
+		debug(" no art interface, set default cover\n");
 		cover_set_pixbuf(self, priv->default_pb);
 		return;
 	}
 
 	if (!stream)
 	{
-		g_printf(" no stream\n");
+		debug(" no stream\n");
 		cover_set_pixbuf(self, priv->default_pb);
 		return;
 	}
 
-	g_printf(" new search started: %p\n", priv->search = art_search(priv->art, stream, (ArtFunc) search_finish_cb, self));
+	priv->search = art_search(priv->art, stream, (ArtFunc) search_finish_cb, self);
+	debug(" new search started: %p\n", priv->search);
 	if (priv->search)
 	{
-		g_printf(" set loading cover\n");
-		cover_set_pixbuf(self, priv->loading_pb);
+		debug(" set loading cover\n");
+		cover_set_loading(self);
 	}
 }
 
@@ -326,7 +369,7 @@ static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream , EinaCover *self)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	if (stream != lomo_player_get_current_stream(priv->lomo))
+	if (priv->got_cover || (stream != lomo_player_get_current_stream(priv->lomo)))
 		return;
 	cover_set_stream(self, stream);
 }

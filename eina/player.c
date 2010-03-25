@@ -142,11 +142,13 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Cover widget
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
+	GdkPixbuf *loa_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-loading.png"), NULL);
 	EinaCover *cover = eina_cover_new();
 	g_object_set(cover,
 		"art", eina_obj_get_art(self),
 		"lomo-player", eina_obj_get_lomo(self),
 		"default-pixbuf", def_pb,
+		"loading-pixbuf", loa_pb,
 		#if HAVE_CLUTTER
 		"renderer",    eina_cover_clutter_new(),
 		#else
