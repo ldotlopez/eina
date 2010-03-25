@@ -16,10 +16,13 @@ struct _EinaCoverImagePrivate {
 	gint pb_w, pb_h, m_w, m_h;
 	gfloat scale;
 	cairo_t *cr;
+
+	gboolean asis;
 };
 
 enum {
-	PROPERTY_COVER = 1
+	PROPERTY_COVER = 1,
+	PROPERTY_ASIS
 };
 
 static void
@@ -27,6 +30,9 @@ eina_cover_image_get_property (GObject *object, guint property_id,
 		                          GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
+	case PROPERTY_ASIS:
+		g_value_set_boolean(value, eina_cover_image_get_asis(EINA_COVER_IMAGE(object)));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -37,6 +43,9 @@ eina_cover_image_set_property (GObject *object, guint property_id,
 		                          const GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
+	case PROPERTY_ASIS:
+		eina_cover_image_set_asis((EinaCoverImage *) object, g_value_get_boolean(value));
+		break;
 	case PROPERTY_COVER:
 		eina_cover_image_set_from_pixbuf((EinaCoverImage *) object, g_value_get_object(value));
 		break;
@@ -66,7 +75,7 @@ eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 	gdk_cairo_set_source_pixbuf(cr, priv->pixbuf, 0, 0);
 	cairo_paint(cr);
 
-	if (priv->mask)
+	if (!priv->asis && priv->mask)
 	{
 		// Create mask
 		cairo_push_group(cr);
@@ -139,6 +148,9 @@ eina_cover_image_class_init (EinaCoverImageClass *klass)
     g_object_class_install_property(object_class, PROPERTY_COVER,
 		g_param_spec_object("cover", "Cover", "Cover pixbuf",
 		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+    g_object_class_install_property(object_class, PROPERTY_ASIS,
+		g_param_spec_boolean("asis", "Asis", "Hint for draw cover pixbuf as-is with no decoration or artifacts from renderer",
+		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
 static void
@@ -250,5 +262,17 @@ eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 	priv->pb_h = gdk_pixbuf_get_width(priv->pixbuf);
 	priv->scale = MAX(priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
 	gtk_widget_queue_draw(GTK_WIDGET(self));
+}
+
+void
+eina_cover_image_set_asis(EinaCoverImage *self, gboolean asis)
+{
+	GET_PRIVATE(self)->asis = asis;
+}
+
+gboolean
+eina_cover_image_get_asis(EinaCoverImage *self)
+{
+	return GET_PRIVATE(self)->asis;
 }
 

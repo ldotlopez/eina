@@ -36,6 +36,9 @@ GType eina_cover_image_get_type (void);
 EinaCoverImage* eina_cover_image_new (void);
 void            eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf);
 
+void     eina_cover_image_set_asis(EinaCoverImage *self, gboolean asis);
+gboolean eina_cover_image_get_asis(EinaCoverImage *self);
+
 G_END_DECLS
 
 #endif /* _EINA_COVER_IMAGE */

@@ -242,13 +242,21 @@ eina_cover_set_loading_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 void
 cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 {
-	g_return_if_fail(EINA_IS_COVER(self) || GDK_IS_PIXBUF(pb));
-
+	g_return_if_fail(EINA_IS_COVER(self));
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	pb = (pb ? pb : gdk_pixbuf_copy(priv->default_pb));
 
-	if (priv->renderer)
-		g_object_set((GObject *) priv->renderer, "cover", (gpointer) pb, NULL);
+	if (!priv->renderer)
+		return;
+
+	if (pb == NULL)
+		pb = priv->default_pb;
+	g_return_if_fail(GDK_IS_PIXBUF(pb));
+
+	gboolean asis = (pb == priv->default_pb) || (pb == priv->loading_pb);
+	g_object_set((GObject *) priv->renderer,
+		"asis",  asis,
+		"cover", asis ? gdk_pixbuf_copy(pb) : pb,
+		NULL);
 }
 
 static void
@@ -282,14 +290,14 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (!priv->art)
 	{
 		g_printf(" no art interface, set default cover\n");
-		cover_set_pixbuf(self, NULL);
+		cover_set_pixbuf(self, priv->default_pb);
 		return;
 	}
 
 	if (!stream)
 	{
 		g_printf(" no stream\n");
-		cover_set_pixbuf(self, NULL);
+		cover_set_pixbuf(self, priv->default_pb);
 		return;
 	}
 
@@ -297,7 +305,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (priv->search)
 	{
 		g_printf(" set loading cover\n");
-		cover_set_pixbuf(self, gdk_pixbuf_copy(priv->loading_pb ? priv->loading_pb: priv->default_pb));
+		cover_set_pixbuf(self, priv->loading_pb);
 	}
 }
 
