@@ -28,8 +28,11 @@
 #include <eina/ext/eina-volume.h>
 #include <eina/about.h>
 #include <eina/player.h>
-#include <eina/ext/eina-cover-image.h>
+#if HAVE_CLUTTER
 #include <eina/ext/eina-cover-clutter.h>
+#else
+#include <eina/ext/eina-cover-image.h>
+#endif
 
 #define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
 #define OSX_OPEN_PATH "/usr/bin/open"

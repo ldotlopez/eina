@@ -190,7 +190,7 @@ clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
 PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
 [
 	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
-		echo "clutter-gtk is not supported on osx"
+		echo "*** clutter-gtk is not supported on osx (disabling clutter features) ***"
 		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER=0"
 		HAVE_CLUTTER=no
 	else
