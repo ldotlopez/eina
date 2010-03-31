@@ -16,14 +16,7 @@ EXTRA_DIST = \
 	intltool-extract.in intltool-merge.in intltool-update.in \
 	AUTHORS BUGS COPYING INSTALL NEWS README
 
-BUILT_SOURCES = \
-	lomo/lomo-marshallers.c              \
-	lomo/lomo-marshallers.h              \
-	eina/lomo-player-dbus-glue.h         \
-	eina/dbus-marshallers.c \
-	eina/dbus-marshallers.h
-
-CLEANFILES = $(BUILT_SOURCES)
+BUILT_SOURCES = 
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
@@ -90,11 +83,6 @@ BUILT_SOURCES += \
 	gel/gel-app-marshallers.c \
 	gel/gel-io-marshallers.h  \
 	gel/gel-io-marshallers.c
-CLEANFILES += \
-	gel/gel-app-marshallers.h \
-	gel/gel-app-marshallers.c \
-	gel/gel-io-marshallers.h  \
-	gel/gel-io-marshallers.c
 
 gel/gel-app-marshallers.h: gel/gel-app-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header > $@
@@ -107,6 +95,7 @@ gel/gel-io-marshallers.h: gel/gel-io-marshallers.list
 
 gel/gel-io-marshallers.c: gel/gel-io-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header --body > $@
+
 #
 # liblomo
 #
@@ -133,6 +122,10 @@ lomo_liblomo_1_0_la_SOURCES = \
 
 EXTRA_DIST += \
 	lomo/lomo-marshallers.list
+
+BUILT_SOURCES += \
+	lomo/lomo-marshallers.c \
+	lomo/lomo-marshallers.h
 
 lomo/lomo-marshallers.c: lomo/lomo-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=lomo_marshal --header --body > $@
@@ -186,13 +179,6 @@ EXTRA_DIST += \
 	eina/ext/eina-plugin-properties.ui        \
 	eina/ext/eina-preferences-dialog-marshallers.list
 
-CLEANFILES += \
-	eina/ext/eina-cover-image-mask.h               \
-	eina/ext/eina-preferences-dialog-marshallers.h \
-	eina/ext/eina-preferences-dialog-marshallers.c \
-	eina/ext/eina-plugin-dialog-ui.h               \
-	eina/ext/eina-plugin-properties-ui.h
-
 BUILT_SOURCES += \
 	eina/ext/eina-cover-image-mask.h               \
     eina/ext/eina-preferences-dialog-marshallers.c \
@@ -210,10 +196,10 @@ eina/ext/eina-preferences-dialog-marshallers.c: eina/ext/eina-preferences-dialog
 	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header --body > $@
 
 eina/ext/eina-plugin-dialog-ui.h: eina/ext/eina-plugin-dialog.ui
-	tools/ui2h $< ui_xml > $@
+	$(top_srcdir)/tools/ui2h $< ui_xml > $@
 
 eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
-	tools/ui2h $< ui_xml > $@
+	$(top_srcdir)/tools/ui2h $< ui_xml > $@
 
 
 #
@@ -239,7 +225,6 @@ eina_vogon_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 eina_eina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 eina_eina_include_HEADERS = \
 	eina/art.h         \
-    eina/dbus.h        \
     eina/eina-obj.h    \
     eina/eina-plugin.h \
     eina/fs.h          \
@@ -286,6 +271,7 @@ eina_vogon_SOURCES = \
 if BUILD_DBUS 
 eina_eina_SOURCES += \
 	eina/dbus.c \
+	eina/dbus.h \
 	eina/lomo-player-dbus-glue.h \
 	eina/dbus-marshallers.c \
 	eina/dbus-marshallers.h
@@ -296,6 +282,16 @@ eina_eina_LDFLAGS += @DBUS_GLIB_LIBS@
 eina/lomo-player-dbus-glue.h: eina/lomo-player-dbus-glue.xml
 	$(DBUS_BINDING_TOOL) --mode=glib-server --prefix=lomo_player $< > $@
 
+eina/dbus-marshallers.h: eina/dbus-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header > $@
+
+eina/dbus-marshallers.c: eina/dbus-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
+
+BUILT_SOURCES += \
+	eina/lomo-player-dbus-glue.h
+	eina/dbus-marshallers.c \
+	eina/dbus-marshallers.h
 endif
 
 if BUILD_IGE
@@ -307,12 +303,6 @@ endif
 EXTRA_DIST += \
 	eina/dbus-marshallers.list \
 	eina/lomo-player-dbus-glue.xml
-
-eina/dbus-marshallers.h: eina/dbus-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header > $@
-
-eina/dbus-marshallers.c: eina/dbus-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
 
 #
 # ui
@@ -528,4 +518,7 @@ EXTRA_DIST += $(plugins_recently_DATA)
 
 endif
 endif
+
+# Final CLEANFILES
+CLEANFILES = $(BUILT_SOURCES)
 
