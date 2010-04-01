@@ -50,6 +50,8 @@ player_update_state(EinaPlayer *self);
 static void
 player_update_information(EinaPlayer *self);
 static void
+player_update_sensitive(EinaPlayer *self);
+static void
 player_dnd_setup(EinaPlayer *self);
 
 static gchar *
@@ -204,9 +206,10 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
+	g_signal_connect_swapped(lomo, "random", (GCallback) player_update_sensitive, self);
+	g_signal_connect_swapped(lomo, "repeat", (GCallback) player_update_sensitive, self);
 	g_signal_connect(lomo, "clear",    (GCallback) lomo_clear_cb, self);
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
-
 
 	// Preferences
 	GError *err2 = NULL;
@@ -298,6 +301,25 @@ player_update_state(EinaPlayer *self)
 }
 
 static void
+player_update_sensitive(EinaPlayer *self)
+{
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
+
+	if (lomo != NULL)
+	{
+		gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, "play-pause-button"), (lomo_player_get_current(lomo) != -1));
+		gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, "prev-button"),       (lomo_player_get_prev(lomo) != -1));
+		gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, "next-button"),       (lomo_player_get_next(lomo) != -1));
+	}
+	else
+	{
+		gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, "play-pause-button"), FALSE);
+		gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, "prev-button"),       FALSE);
+		gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, "next-button"),       FALSE);
+	}
+}
+
+static void
 player_update_information(EinaPlayer *self)
 {
 	gchar *info   = "<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n<span size=\"x-large\" weight=\"normal\">\u200B</span>";
@@ -307,6 +329,9 @@ player_update_information(EinaPlayer *self)
 
 	LomoPlayer *lomo;
 	LomoStream *stream;
+
+	// Buttons' sensitiviness
+	player_update_sensitive(self);
 
 	if (!(lomo = eina_obj_get_lomo(self)) || !(stream = lomo_player_get_current_stream(lomo)))
 	{
@@ -333,10 +358,11 @@ player_update_information(EinaPlayer *self)
 		gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 		title =  g_uri_unescape_string(tmp, NULL);
 		g_free(tmp);
-   }
+	}
 
-   gtk_window_set_title((GtkWindow *) eina_obj_get_window(self), title);
-   g_free(title);
+	gtk_window_set_title((GtkWindow *) eina_obj_get_window(self), title);
+	g_free(title);
+
 }
 
 static gchar *

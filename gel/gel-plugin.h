@@ -96,9 +96,6 @@ gel_plugin_get_resource_list(GelPlugin *plugin, GelResourceType type, gchar *res
 gchar * 
 gel_plugin_get_resource(GelPlugin *plugin, GelResourceType type, gchar *resource); 
 
-#if 0
-gchar*       gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path);
-#endif
 const GList* gel_plugin_get_dependants(GelPlugin *plugin);
 gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 

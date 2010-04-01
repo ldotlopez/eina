@@ -22,10 +22,13 @@
 #include <lomo/lomo-util.h>
 #include <gel/gel.h>
 
+
 G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_HSCALE)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_SEEK, EinaSeekPrivate))
+
+#define ZERO_SPACE "\u200b"
 
 typedef struct _EinaSeekPrivate EinaSeekPrivate;
 
@@ -310,6 +313,7 @@ eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label)
 	g_object_ref(label);
 	priv->time_labels[id] = label;
 	priv->time_fmts[id]   = g_strdup(gtk_label_get_label(label));
+	gtk_label_set_label(label, ZERO_SPACE);
 }
 
 void
@@ -439,7 +443,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 			priv->total_is_desync = FALSE;
 		}
 		else
-			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], "\u200b");
+			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], ZERO_SPACE);
 	}
 	// If total is -1 even if there is no widget to show it, self must be
 	// insensitive and progress reset
@@ -459,7 +463,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 		else
 			remaining = NULL;
 
-		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_REMAINING], remaining ? remaining : "" );
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_REMAINING], remaining ? remaining : ZERO_SPACE );
 		gel_free_and_invalidate(remaining, NULL, g_free);
 	}
 
@@ -470,7 +474,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 			current = eina_seek_fmt_time(self, EINA_SEEK_TIME_CURRENT, current_time, temp);
 		else
 			current = NULL;
-		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], current ? current : "");
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], current ? current : ZERO_SPACE);
 		gel_free_and_invalidate(current, NULL, g_free);
    }
 }
