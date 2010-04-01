@@ -47,6 +47,9 @@
 #include <eina/fs.h>
 #include <eina/window.h>
 
+#define TAB_PLAYLIST_EMPTY 0
+#define TAB_PLAYLIST_NON_EMPTY 1
+
 struct _EinaPlaylist
 {
 	EinaObj       parent;
@@ -385,12 +388,18 @@ eina_playlist_dock_init(EinaPlaylist *self)
 		NULL);
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(self->tv), GTK_SELECTION_MULTIPLE);
 
-	self->dock = eina_obj_get_widget(self, "playlist-main-box");
+	self->dock = eina_obj_get_widget(self, "playlist-main-widget");
 	g_object_ref(self->dock);
 	if (gtk_widget_get_parent(self->dock) != NULL)
 		gtk_widget_unparent(self->dock);
 
 	g_signal_connect(self->dock, "key-press-event", G_CALLBACK(dock_key_press_event_cb), self);
+
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
+	if (lomo && (lomo_player_get_total(lomo) > 0))
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_NON_EMPTY);
+	else
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_EMPTY);
 
 #if ENABLE_EXPERIMENTAL
 	gtk_widget_show(eina_obj_get_widget(self, "search-separator"));
@@ -843,6 +852,9 @@ static void lomo_insert_cb
 		-1);
 	g_free(v);
 	gel_free_and_invalidate(m, NULL, g_free);
+
+	if (lomo_player_get_total(lomo) == 1)
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_NON_EMPTY);
 }
 
 static void lomo_remove_cb
@@ -878,6 +890,9 @@ static void lomo_remove_cb
 		  gtk_tree_model_iter_next(model, &iter);
 	}
 	gtk_tree_path_free(treepath);
+
+	if (lomo_player_get_total(lomo) == 0)
+		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_EMPTY);
 }
 
 static void lomo_queue_cb
@@ -932,6 +947,7 @@ static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self)
 {
 	gtk_list_store_clear((GtkListStore *) self->model);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_EMPTY);
 }
 
 static void lomo_random_cb
