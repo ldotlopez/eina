@@ -289,7 +289,7 @@ eina/dbus-marshallers.c: eina/dbus-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=eina_dbus_marshal --header --body > $@
 
 BUILT_SOURCES += \
-	eina/lomo-player-dbus-glue.h
+	eina/lomo-player-dbus-glue.h \
 	eina/dbus-marshallers.c \
 	eina/dbus-marshallers.h
 endif
