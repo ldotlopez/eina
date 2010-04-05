@@ -5,6 +5,7 @@ gel/gel-io-op-result.c
 gel/gel-io-ops.c
 gel/gel-io-recurse-tree.c
 gel/gel-io-tree.c
+gel/gel-job-queue.c
 gel/gel-misc.c
 gel/gel-plugin.c
 gel/gel-string.c
@@ -18,8 +19,10 @@ lomo/lomo-stream.c
 lomo/lomo-util.c
 
 eina/ext/curl-engine.c
-eina/ext/eina-clutty.c
 eina/ext/eina-conf-file.c
+eina/ext/eina-cover.c
+eina/ext/eina-cover-image.c
+eina/ext/eina-cover-clutter.c
 eina/ext/eina-file-chooser-dialog.c
 eina/ext/eina-plugin-dialog.c
 eina/ext/eina-plugin-dialog.ui
@@ -33,7 +36,6 @@ eina/ext/eina-window.c
 
 eina/about.c
 eina/art.c
-eina/cover.c
 eina/dbus.c
 eina/dock.c
 eina/eina-ige.c

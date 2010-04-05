@@ -1,21 +1,21 @@
-Index: eina/configure.in
-===================================================================
---- eina.orig/configure.in	2010-02-13 16:58:07.032816076 +0100
-+++ eina/configure.in	2010-02-13 16:58:18.834063751 +0100
-@@ -1,5 +1,5 @@
--AC_INIT([eina], 0.9.2, xuzo@cuarentaydos.com)
--AM_INIT_AUTOMAKE([eina], [0.9.2])
-+AC_INIT([eina-player], 0.9.2, xuzo@cuarentaydos.com)
-+AM_INIT_AUTOMAKE([eina-player], [0.9.2])
- AM_CONFIG_HEADER(config.h)
- AM_MAINTAINER_MODE
+diff -Nru a/configure.ac b/configure.ac
+--- a/configure.ac	2010-04-05 20:29:52.624644265 +0200
++++ b/configure.ac	2010-04-05 20:30:14.137149083 +0200
+@@ -1,7 +1,7 @@
+ #
+ # Init package
+ #
+-AC_INIT([Eina],[0.9.3],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
++AC_INIT([Eina],[0.9.3],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
+ AC_CONFIG_HEADERS([config.h])
  
-@@ -42,7 +42,7 @@
- # Internationalization
- #*******************************************************************************
- AM_GLIB_GNU_GETTEXT
--GETTEXT_PACKAGE=eina
-+GETTEXT_PACKAGE=eina-player
- AC_SUBST(GETTEXT_PACKAGE)
- AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
- DATADIRNAME="share"
+ #
+@@ -17,7 +17,7 @@
+ #
+ # Package information
+ #
+-GETTEXT_PACKAGE="eina"
++GETTEXT_PACKAGE="eina-player"
+ EINA_API_VERSION="0.9"
+ EINA_VERSION="$EINA_API_VERSION.3"
+ EINA_CODENAME="White rabbit"              # Jefferson airplane
