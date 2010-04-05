@@ -87,6 +87,8 @@ playlist_queue_selected(EinaPlaylist *self);
 static void
 playlist_remove_selected(EinaPlaylist *self);
 static void
+playlist_update_tab(EinaPlaylist *self);
+static void
 playlist_dnd_setup(EinaPlaylist *self);
 static gchar *
 format_stream(LomoStream *stream, gchar *fmt);
@@ -395,11 +397,7 @@ eina_playlist_dock_init(EinaPlaylist *self)
 
 	g_signal_connect(self->dock, "key-press-event", G_CALLBACK(dock_key_press_event_cb), self);
 
-	LomoPlayer *lomo = eina_obj_get_lomo(self);
-	if (lomo && (lomo_player_get_total(lomo) > 0))
-		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_NON_EMPTY);
-	else
-		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_EMPTY);
+	playlist_update_tab(self);
 
 #if ENABLE_EXPERIMENTAL
 	gtk_widget_show(eina_obj_get_widget(self, "search-separator"));
@@ -539,6 +537,34 @@ playlist_remove_selected(EinaPlaylist *self)
 	}
 	g_free(indices);
 }
+
+static void
+playlist_update_tab(EinaPlaylist *self)
+{
+	GtkNotebook *nb  = eina_obj_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
+	g_return_if_fail(nb != NULL);
+
+	LomoPlayer *lomo = eina_obj_get_lomo(self);
+	gint curr = gtk_notebook_get_current_page(nb);
+
+	if (lomo == NULL)
+	{
+		gtk_notebook_set_current_page(nb, TAB_PLAYLIST_EMPTY);
+		g_return_if_fail(lomo != NULL);
+	}
+
+	gint new_tab = lomo_player_get_total(lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY;
+	if (curr != new_tab)
+	{
+		gboolean sensitive = (new_tab == TAB_PLAYLIST_NON_EMPTY);
+		gchar *widgets[] = { "playlist-random-button", "playlist-repeat-button", "playlist-remove-button", "playlist-clear-button", NULL};
+		gint i;
+		for (i = 0; widgets[i] != NULL; i++)
+			gtk_widget_set_sensitive(eina_obj_get_typed(self, GTK_WIDGET, widgets[i]), sensitive);
+		gtk_notebook_set_current_page(nb, new_tab);
+	}
+}
+
 
 void
 __eina_playlist_update_item_state(EinaPlaylist *self, GtkTreeIter *iter, gint item, gchar *current_state, gint current_item)
@@ -853,8 +879,7 @@ static void lomo_insert_cb
 	g_free(v);
 	gel_free_and_invalidate(m, NULL, g_free);
 
-	if (lomo_player_get_total(lomo) == 1)
-		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_NON_EMPTY);
+	playlist_update_tab(self);
 }
 
 static void lomo_remove_cb
@@ -891,8 +916,7 @@ static void lomo_remove_cb
 	}
 	gtk_tree_path_free(treepath);
 
-	if (lomo_player_get_total(lomo) == 0)
-		gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_EMPTY);
+	playlist_update_tab(self);
 }
 
 static void lomo_queue_cb
@@ -947,7 +971,7 @@ static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self)
 {
 	gtk_list_store_clear((GtkListStore *) self->model);
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(self->dock), TAB_PLAYLIST_EMPTY);
+	playlist_update_tab(self);
 }
 
 static void lomo_random_cb
