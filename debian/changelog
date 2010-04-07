@@ -1,3 +1,27 @@
+eina-player (0.9.2+git20100407-5) karmic; urgency=low
+
+  * Add (again :( ) libclutter-gtk-0.10-dev to build-deps
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Wed, 07 Apr 2010 17:51:13 +0200
+
+eina-player (0.9.2+git20100407-4) karmic; urgency=low
+
+  * Fix cover-clutter issues 
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Wed, 07 Apr 2010 17:51:13 +0200
+
+eina-player (0.9.2+git20100407-3) lucid; urgency=low
+
+  * Add clutter-gtk to deps
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Wed, 07 Apr 2010 17:30:25 +0200
+
+eina-player (0.9.2+git20100405-2) karmic; urgency=low
+
+  * Fix Makefile.am to include all necessary files
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Wed, 07 Apr 2010 17:10:18 +0200
+
 eina-player (0.9.2+git20100405-1) karmic; urgency=low
 
   * Update to git version

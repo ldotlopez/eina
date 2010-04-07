@@ -146,13 +146,14 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	GdkPixbuf *loa_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-loading.png"), NULL);
 	GType renderer_type;
 	#if HAVE_CLUTTER
-		if (eina_conf_get_boolean(eina_obj_get_settings(self), "/player/cover-efects", TRUE))
+		if (eina_conf_get_boolean(eina_obj_get_settings(self), "/player/cover-effects", TRUE))
 			renderer_type = EINA_TYPE_COVER_CLUTTER;
 		else
 			renderer_type = EINA_TYPE_COVER_IMAGE;
 	#else
 		renderer_type = EINA_TYPE_COVER_IMAGE;
 	#endif
+	gel_warn("Using cover renderer: %s", g_type_name(renderer_type));
 
 	EinaCover *cover = g_object_new(EINA_TYPE_COVER,
 		"art", eina_obj_get_art(self),

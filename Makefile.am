@@ -350,14 +350,13 @@ EXTRA_DIST += tools/ui2h
 #
 # Adb plugin
 #
-if BUILD_ADB
 plugins_adbdir = $(pkglibdir)/adb
 plugins_adb_includedir = $(includedir)/@PACKAGE@-@EINA_API_VERSION@/plugins/adb
 plugins_adb_include_HEADERS = plugins/adb/adb.h
-
-plugins_adb_LTLIBRARIES = plugins/adb/libadb.la
 plugins_adb_DATA = plugins/adb/adb.png 
 
+if BUILD_ADB
+plugins_adb_LTLIBRARIES = plugins/adb/libadb.la
 plugins_adb_libadb_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ 
 plugins_adb_libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
 plugins_adb_libadb_la_SOURCES = \
@@ -365,12 +364,12 @@ plugins_adb_libadb_la_SOURCES = \
 	plugins/adb/register.h \
 	plugins/adb/adb.c      \
 	plugins/adb/iface.c
+endif
 
 EXTRA_DIST += \
 	$(plugins_adb_DATA) \
 	$(plugins_adb_include_HEADERS) \
 	plugins/adb/adb.svg
-endif
 
 #
 # callhome plugin
@@ -469,55 +468,58 @@ EXTRA_DIST += \
 #
 # muine plugin
 #
-if BUILD_ADB
 plugins_muinedir = $(pkglibdir)/muine
-plugins_muine_LTLIBRARIES = plugins/muine/libmuine.la
 plugins_muine_DATA = plugins/muine/muine.ui
+
+if BUILD_ADB
+plugins_muine_LTLIBRARIES = plugins/muine/libmuine.la
 
 plugins_muine_libmuine_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
 plugins_muine_libmuine_la_LDFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ -module -avoid-version
 plugins_muine_libmuine_la_SOURCES = plugins/muine/muine.c
-EXTRA_DIST += $(plugins_muine_DATA)
 endif
+
+EXTRA_DIST += $(plugins_muine_DATA)
 
 #
 # ntfy plugin
 #
-if BUILD_NTFY
 plugins_ntfydir = $(pkglibdir)/ntfy
-plugins_ntfy_LTLIBRARIES = plugins/ntfy/libntfy.la
 plugins_ntfy_DATA = plugins/ntfy/ntfy.png
+
+if BUILD_NTFY
+plugins_ntfy_LTLIBRARIES = plugins/ntfy/libntfy.la
 
 plugins_ntfy_libntfy_la_CFLAGS  = @PACKAGE_CFLAGS@ @NOTIFY_CFLAGS@
 plugins_ntfy_libntfy_la_LDFLAGS = @PACKAGE_LIBS@ @NOTIFY_LIBS@ -module -avoid-version
 plugins_ntfy_libntfy_la_SOURCES = \
 	plugins/ntfy/ntfy.c \
 	plugins/ntfy/ntfy.h
+endif
 
 EXTRA_DIST += \
 	$(plugins_ntfy_DATA) \
 	plugins/ntfy/ntfy.svg
-endif
 
 #
 # recently plugin
 #
-if BUILD_EXPERIMENTAL
-if BUILD_ADB
 plugins_recentlydir = $(pkglibdir)/recently
-plugins_recently_LTLIBRARIES   = plugins/recently/librecently.la
 plugins_recently_DATA = \
 	plugins/recently/dock.ui \
 	plugins/recently/go-back.png
 
+if BUILD_EXPERIMENTAL
+if BUILD_ADB
+plugins_recently_LTLIBRARIES   = plugins/recently/librecently.la
 plugins_recently_librecently_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
 plugins_recently_librecently_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
 plugins_recently_librecently_la_SOURCES = plugins/recently/recently.c
 
-EXTRA_DIST += $(plugins_recently_DATA)
+endif
+endif
 
-endif
-endif
+EXTRA_DIST += $(plugins_recently_DATA)
 
 # Final CLEANFILES
 CLEANFILES = $(BUILT_SOURCES)
