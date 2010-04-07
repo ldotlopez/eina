@@ -28,10 +28,9 @@
 #include <eina/ext/eina-volume.h>
 #include <eina/about.h>
 #include <eina/player.h>
+#include <eina/ext/eina-cover-image.h>
 #if HAVE_CLUTTER
 #include <eina/ext/eina-cover-clutter.h>
-#else
-#include <eina/ext/eina-cover-image.h>
 #endif
 
 #define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
@@ -145,17 +144,22 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Cover widget
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
 	GdkPixbuf *loa_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-loading.png"), NULL);
+	GType renderer_type;
+	#if HAVE_CLUTTER
+		if (eina_conf_get_boolean(eina_obj_get_settings(self), "/player/cover-efects", TRUE))
+			renderer_type = EINA_TYPE_COVER_CLUTTER;
+		else
+			renderer_type = EINA_TYPE_COVER_IMAGE;
+	#else
+		renderer_type = EINA_TYPE_COVER_IMAGE;
+	#endif
+
 	EinaCover *cover = g_object_new(EINA_TYPE_COVER,
 		"art", eina_obj_get_art(self),
 		"lomo-player", eina_obj_get_lomo(self),
 		"default-pixbuf", def_pb,
 		"loading-pixbuf", loa_pb,
-		"renderer", g_object_new(
-			#if HAVE_CLUTTER
-			EINA_TYPE_COVER_CLUTTER,
-			#else
-			EINA_TYPE_COVER_IMAGE, 
-			#endif
+		"renderer", g_object_new(renderer_type,
 			"cover", def_pb,
 			NULL),
 		NULL);
@@ -219,7 +223,12 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if ((ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui")) &&
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
-		gchar *objects[] = {"/core/repeat", "/core/random", "/core/auto-play", "/core/auto-parse", "/core/add-mode"};
+		gchar *objects[] = {
+			"/core/repeat",    "/core/random",
+			"/core/auto-play", "/core/auto-parse",
+			"/core/add-mode",
+			"/player/cover-effects"
+			};
 
 		eina_preferences_add_tab_full(gel_app_get_preferences(app),
 			"player", ui_str, "main-widget", objects, G_N_ELEMENTS(objects),
