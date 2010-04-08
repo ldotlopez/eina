@@ -1,3 +1,6 @@
+*.tar.gz
+*~
+*.patch
 .DS_Store
 COPYING
 .*.swp
@@ -40,6 +43,8 @@ po/POTFILES
 po/stamp-it
 stamp-h1
 .dirstamp
+compile
+mkinstalldirs
 
 # Eina bundle for OSX
 bundle/build
