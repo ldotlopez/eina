@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #define GEL_DOMAIN "Eina::DBus"
 #define EINA_PLUGIN_DATA_TYPE DBusGProxy
 #include <config.h>

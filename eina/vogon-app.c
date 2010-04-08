@@ -1,5 +1,5 @@
 /*
- * eina/v.c
+ * eina/vogon-app.c
  *
  * Copyright (C) 2004-2010 Eina
  *
