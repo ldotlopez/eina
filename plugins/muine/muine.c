@@ -90,7 +90,6 @@ action_activate_cb(GtkAction *action, EinaMuine *self);
 static void
 search_cb(Art *art, ArtSearch *search, EinaMuine *self);
 
-
 static gboolean
 muine_init(EinaMuine *self, GError **error)
 {
@@ -158,6 +157,7 @@ muine_init(EinaMuine *self, GError **error)
 	gtk_widget_show(self->dock);
 
 	EinaDock *dock = eina_obj_get_dock(self);
+	g_object_ref(self->dock);
 	eina_dock_add_widget(dock, "muine", gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_SMALL_TOOLBAR), self->dock);
 	return TRUE;
 }
@@ -174,11 +174,8 @@ muine_destroy(EinaMuine *self, GError **error)
 	eina_dock_remove_widget(dock, "muine");
 
 	// Signals!!!
-
 	gel_free_and_invalidate(self->search_str, NULL, g_free);
 	gel_free_and_invalidate(self->dock, NULL, g_object_unref);
-	g_object_unref(self->dock);
-	self->dock = FALSE;
 
 	return TRUE;
 }
