@@ -1,3 +1,15 @@
+eina-player (0.9.3-1) karmic; urgency=low
+
+  * Upstream release 0.9.3
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Thu, 08 Apr 2010 15:42:34 +0200
+
+eina-player (0.9.2+git20100408-1~lucid) lucid; urgency=low
+
+  * Fix version schema
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Thu, 08 Apr 2010 12:20:37 +0200
+
 eina-player (0.9.2+git20100407-5) karmic; urgency=low
 
   * Add (again :( ) libclutter-gtk-0.10-dev to build-deps
