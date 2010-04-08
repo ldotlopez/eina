@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.9.4],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.9.3],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -19,9 +19,8 @@ GTK_DOC_CHECK(1.9)
 #
 GETTEXT_PACKAGE="eina"
 EINA_API_VERSION="0.9"
-EINA_VERSION="$EINA_API_VERSION.4"
-EINA_CODENAME="Trained"                   # Najwa
-EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
+EINA_VERSION="$EINA_API_VERSION.3"
+EINA_CODENAME="White rabbit"              # Jefferson airplane
 EINA_CODENAME_0_9_2="Pagan poetry"        # Björk
 EINA_CODENAME_0_9_1="In muine we believe" #
 EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
