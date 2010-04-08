@@ -1,16 +1,16 @@
-# Turkish translation for eina
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# Occitan (post 1500) translation for eina
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the eina package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-11-10 19:34+0100\n"
-"PO-Revision-Date: 2010-01-28 19:39+0000\n"
-"Last-Translator: seqizz (gurkanGur) <seqizz@gmail.com>\n"
-"Language-Team: Turkish <tr@li.org>\n"
+"PO-Revision-Date: 2010-03-13 17:46+0000\n"
+"Last-Translator: Cédric VALMARY (Per Tot en òc) <cvalmary@yahoo.fr>\n"
+"Language-Team: Occitan (post 1500) <oc@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,8 +21,6 @@ msgstr ""
 #, c-format
 msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
 msgstr ""
-"%d eklentileri çıkışta etkinleştirilir. Bunları kaldırmak için bir yok etme "
-"fonksiyonu kullanın."
 
 #: ../gel/gel-app.c:114
 #, c-format
@@ -38,16 +36,16 @@ msgstr ""
 
 #: ../gel/gel-app.c:317
 msgid "Invalid arguments"
-msgstr "Geçersiz parametreler"
+msgstr "Arguments invalids"
 
 #: ../gel/gel-app.c:361
 msgid "Plugin not found"
-msgstr "Eklenti bulunamadı"
+msgstr ""
 
 #: ../gel/gel-app.c:392
 #, c-format
 msgid "Cannot load %s: %s"
-msgstr "%s: %s yükleyemiyor"
+msgstr "Impossible de cargar %s: %s"
 
 #: ../gel/gel-app.c:426
 #, c-format
@@ -68,12 +66,11 @@ msgstr ""
 #, c-format
 msgid "Cannot unload plugin %s, its used by %d plugins"
 msgstr ""
-"%s eklentisi kaldırılamıyor çünkü %d eklentileri tarafından kullanılıyor"
 
 #: ../gel/gel-app.c:586 ../gel/gel-plugin.c:421
 #, c-format
 msgid "Cannot finalize plugin %s: %s"
-msgstr "%s: %s eklentisi sonlandırılamıyor"
+msgstr ""
 
 #: ../gel/gel-app.c:601
 #, c-format
@@ -92,17 +89,17 @@ msgstr ""
 
 #: ../gel/gel-plugin.c:62
 msgid "Module loading is not supported on this platform"
-msgstr "Modül yükleme bu platfomda desteklenmemektedir."
+msgstr ""
 
 #: ../gel/gel-plugin.c:69
 #, c-format
 msgid "%s is not loadable"
-msgstr "%s yüklenebilir değil."
+msgstr ""
 
 #: ../gel/gel-plugin.c:76
 #, c-format
 msgid "Cannot find symbol %s in %s"
-msgstr "%s'de %s sembolü bulunamıyor"
+msgstr ""
 
 #: ../gel/gel-plugin.c:84
 #, c-format
@@ -118,27 +115,27 @@ msgstr ""
 #: ../gel/gel-plugin.c:111
 #, c-format
 msgid "Plugin %s created"
-msgstr "%s eklentisi oluşturuldu"
+msgstr ""
 
 #: ../gel/gel-plugin.c:124
 #, c-format
 msgid "Plugin %s is in use"
-msgstr "%s eklentisi şu anda kullanılıyor"
+msgstr ""
 
 #: ../gel/gel-plugin.c:132
 #, c-format
 msgid "Plugin %s is still enabled"
-msgstr "%s eklentisi hala etkin"
+msgstr ""
 
 #: ../gel/gel-plugin.c:140
 #, c-format
 msgid "Plugin %s is locked"
-msgstr "%s eklentisi kilitli"
+msgstr ""
 
 #: ../gel/gel-plugin.c:144
 #, c-format
 msgid "Plugin %s destroyed"
-msgstr "%s eklentisi yokedildi"
+msgstr ""
 
 #: ../gel/gel-plugin.c:201 ../gel/gel-plugin.c:219
 #, c-format
@@ -147,7 +144,7 @@ msgstr ""
 
 #: ../gel/gel-plugin.c:209 ../gel/gel-plugin.c:228
 msgid "none"
-msgstr ""
+msgstr "pas cap"
 
 #: ../gel/gel-plugin.c:270
 #, c-format
@@ -165,7 +162,7 @@ msgstr ""
 #: ../gel/gel-plugin.c:367
 #, c-format
 msgid "Plugin %s already initialized"
-msgstr "%s eklentisi zaten yapılandırılmış"
+msgstr ""
 
 #: ../gel/gel-plugin.c:374
 #, c-format
@@ -180,32 +177,32 @@ msgstr ""
 #: ../gel/gel-plugin.c:386
 #, c-format
 msgid "Cannot init plugin %s, unknow reason"
-msgstr "%s eklentisi yapılandırılamıyor, nedeni bilinmiyor"
+msgstr ""
 
 #: ../gel/gel-plugin.c:390
 #, c-format
 msgid "Plugin %s initialized"
-msgstr "%s eklentisi yapılandırıldı"
+msgstr ""
 
 #: ../gel/gel-plugin.c:401
 #, c-format
 msgid "Plugin %s is not initialized"
-msgstr "%s eklentisi yapılandırılmamış"
+msgstr ""
 
 #: ../gel/gel-plugin.c:426
 #, c-format
 msgid "Cannot finalize plugin %s: unknow reason"
-msgstr "%s eklentisi bitirilemiyor, nedeni bilinmiyor"
+msgstr ""
 
 #: ../gel/gel-plugin.c:430
 #, c-format
 msgid "Plugin %s finalized"
-msgstr "%s eklentisi tamamlandı"
+msgstr ""
 
 #: ../gel/gel-ui.c:49 ../eina/cover.c:356
 #, c-format
 msgid "Cannot locate resource '%s'"
-msgstr "'%s' kaynağının yeri belirlenemiyor"
+msgstr ""
 
 #: ../gel/gel-ui.c:153
 #, c-format
@@ -216,7 +213,7 @@ msgstr ""
 #: ../lomo/lomo-player.c:121
 #, c-format
 msgid "Missing method %s"
-msgstr "Eksik yöntem %s"
+msgstr ""
 
 #: ../lomo/lomo-player.c:859
 msgid "Cannot create pipeline for NULL stream"
@@ -237,23 +234,23 @@ msgstr ""
 
 #: ../lomo/lomo-player.c:1063
 msgid "Player not seekable"
-msgstr "Yürütücü aranabilir değil"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1071
 msgid "Invalid format"
-msgstr "Geçersiz biçim"
+msgstr "Format incorrècte"
 
 #: ../lomo/lomo-player.c:1089
 msgid "Error seeking"
-msgstr "Ararken hata oluştu"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1169
 msgid "Error setting volume"
-msgstr "Sesi ayarlarken hata oluştu"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1199
 msgid "Error getting volume"
-msgstr "Sesi alırken hata oluştu"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1217
 msgid "Missing set_mute and set_volume methods, cannot mute"
@@ -261,7 +258,7 @@ msgstr ""
 
 #: ../lomo/lomo-player.c:1248
 msgid "Error setting mute"
-msgstr "Sesi kapatırken hata oluştu"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1426
 #, c-format
@@ -278,11 +275,11 @@ msgstr ""
 
 #: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
 msgid "Unknow error"
-msgstr "Bilinmeyen hata"
+msgstr "Error desconeguda"
 
 #: ../eina/ext/eina-file-chooser-dialog.c:288
 msgid "Loading files..."
-msgstr "Dosyalar yükleniyor..."
+msgstr "Cargament dels fichièrs..."
 
 #: ../eina/ext/eina-file-chooser-dialog.c:342 ../eina/fs.c:64
 msgid "Add or queue files"
@@ -295,7 +292,7 @@ msgstr ""
 
 #: ../eina/ext/eina-plugin-dialog.c:180 ../eina/plugins.c:53
 msgid "Select plugins"
-msgstr "Eklentileri seçin"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-dialog.c:334
 #, c-format
@@ -304,63 +301,63 @@ msgstr ""
 
 #: ../eina/ext/eina-plugin-properties.c:157
 msgid "No name"
-msgstr "İsimsiz"
+msgstr "Sens nom"
 
 #: ../eina/ext/eina-plugin-properties.c:158
 msgid "No description"
-msgstr "Açıklama yok"
+msgstr "Pas de descripcion"
 
 #: ../eina/ext/eina-plugin-properties.c:159
 msgid "No more information"
-msgstr "Daha fazla bilgi yok"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-properties.c:161
 msgid "[Internal plugin]"
-msgstr "[Dahili eklenti]"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-properties.c:163
 msgid "No dependencies"
-msgstr "Bağımlılık yok"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-properties.c:166
 msgid "No reverse dependencies"
-msgstr "Ters bağımlılık yok"
+msgstr ""
 
 #: ../eina/ext/eina-stock.c:44
 msgid "Status icon"
-msgstr "Durum simgesi"
+msgstr ""
 
 #: ../eina/ext/eina-stock.c:45
 msgid "_Random"
-msgstr "_Rastgele"
+msgstr ""
 
 #: ../eina/ext/eina-stock.c:46
 msgid "_Shuffle"
-msgstr "_Karıştır"
+msgstr "_Mesclar"
 
 #: ../eina/ext/eina-stock.c:47
 msgid "_Queue"
-msgstr "_Kuyruk"
+msgstr "_Fila d'espèra"
 
 #: ../eina/ext/eina-stock.c:48
 msgid "Report a bug"
-msgstr "Hata bildir"
+msgstr "Senhalar un bug"
 
 #: ../eina/ext/eina-window.c:60
 msgid "_File"
-msgstr "_Dosya"
+msgstr "_Fichièr"
 
 #: ../eina/ext/eina-window.c:61
 msgid "_Edit"
-msgstr "_Düzenle"
+msgstr "_Edicion"
 
 #: ../eina/ext/eina-window.c:62
 msgid "_Add-ons"
-msgstr "_Eklentiler"
+msgstr ""
 
 #: ../eina/ext/eina-window.c:63
 msgid "_Help"
-msgstr "_Yardım"
+msgstr "_Ajuda"
 
 #: ../eina/about.c:88
 #, c-format
@@ -369,19 +366,19 @@ msgstr ""
 
 #: ../eina/about.c:95
 msgid "A classic player for the modern era"
-msgstr "Modern çağın klasik oynatıcısı"
+msgstr ""
 
 #: ../eina/about.c:108
 msgid "About Eina"
-msgstr "Eina Hakkında"
+msgstr "A prepaus d'Eina"
 
 #: ../eina/about.c:130
 msgid "About window plugin"
-msgstr "Hakkında penceresi eklentisi"
+msgstr ""
 
 #: ../eina/art.c:736
 msgid "Art"
-msgstr "Sanat"
+msgstr "Art"
 
 #: ../eina/art.c:736
 msgid "Art framework"
@@ -402,7 +399,7 @@ msgstr ""
 #. url
 #: ../eina/cover.c:411
 msgid "Cover plugin"
-msgstr "Kapak eklentisi"
+msgstr ""
 
 #: ../eina/dbus.c:93
 msgid "Cannot get DBus proxy"
@@ -441,7 +438,7 @@ msgstr ""
 
 #: ../eina/eina-ige.c:148
 msgid "OSX integration"
-msgstr "OSX entegrasyonu"
+msgstr ""
 
 #: ../eina/eina-obj.c:53
 msgid "Trying to free a NULL pointer"
@@ -464,35 +461,35 @@ msgstr ""
 #: ../eina/log.c:230
 #, c-format
 msgid "Cannot create menu item: %s"
-msgstr "Menü öğesi oluşturulamadı: %s"
+msgstr ""
 
 #: ../eina/log.c:236
 msgid "Debug window"
-msgstr "Hata ayıklama penceresi"
+msgstr ""
 
 #: ../eina/log.c:300
 msgid "Severe errors"
-msgstr ""
+msgstr "Errors fatalas"
 
 #: ../eina/log.c:301
 msgid "Errors"
-msgstr "Hatalar"
+msgstr "Errors"
 
 #: ../eina/log.c:302
 msgid "Warnings"
-msgstr "Uyarılar"
+msgstr "Avertiments"
 
 #: ../eina/log.c:303
 msgid "Information messages"
-msgstr "Bilgi mesajları"
+msgstr "Messatges informatius"
 
 #: ../eina/log.c:304
 msgid "Debug information"
-msgstr "Hata ayıklama bilgisi"
+msgstr ""
 
 #: ../eina/log.c:305
 msgid "Full debug"
-msgstr "Tam hata ayıklama"
+msgstr ""
 
 #: ../eina/log.c:310
 #, c-format
@@ -505,7 +502,7 @@ msgstr ""
 
 #: ../eina/log.c:455
 msgid "Build-in log"
-msgstr ""
+msgstr "Registre intèrne"
 
 #: ../eina/lomo.c:42
 msgid "Cannot create engine"
@@ -535,7 +532,7 @@ msgstr ""
 #: ../eina/player.c:388 ../eina/plugins.c:123
 #, c-format
 msgid "Unknow action: %s"
-msgstr "Bilinmeyen görev: %s"
+msgstr ""
 
 #: ../eina/player.c:394
 #, c-format
@@ -590,7 +587,7 @@ msgstr ""
 
 #: ../eina/plugins.c:52
 msgid "Plugins"
-msgstr ""
+msgstr "Moduls extèrnes"
 
 #: ../eina/plugins.c:80
 #, c-format
@@ -607,7 +604,7 @@ msgstr ""
 
 #: ../eina/preferences.c:67 ../eina/preferences.c:117
 msgid "Preferences"
-msgstr ""
+msgstr "Preferéncias"
 
 #: ../eina/preferences.c:180
 msgid "Build-in preferences plugin"
@@ -624,7 +621,7 @@ msgstr ""
 
 #: ../eina/settings.c:92
 msgid "Build-in settings plugin"
-msgstr ""
+msgstr "Complement d'ajustament intèrne"
 
 #: ../eina/template.c:95
 msgid "Build-in template plugin"
@@ -646,7 +643,7 @@ msgstr ""
 
 #: ../eina/vogon.c:95
 msgid "Pause"
-msgstr ""
+msgstr "Pausa"
 
 #: ../eina/vogon.c:96
 msgid "Next"
@@ -666,7 +663,7 @@ msgstr ""
 
 #: ../eina/vogon.c:98
 msgid "_Open"
-msgstr ""
+msgstr "_Dobrir"
 
 #: ../eina/vogon.c:98
 msgid "Add or queue stream(s)"
@@ -682,7 +679,7 @@ msgstr ""
 
 #: ../eina/vogon.c:100
 msgid "_Quit"
-msgstr ""
+msgstr "_Quitar"
 
 #: ../eina/vogon.c:100
 msgid "Quit Eina"
@@ -690,7 +687,7 @@ msgstr ""
 
 #: ../eina/vogon.c:103
 msgid "Random"
-msgstr ""
+msgstr "Aleatòri"
 
 #: ../eina/vogon.c:103
 msgid "Random playlist"
@@ -698,7 +695,7 @@ msgstr ""
 
 #: ../eina/vogon.c:104
 msgid "Repeat"
-msgstr ""
+msgstr "Repetir"
 
 #: ../eina/vogon.c:104
 msgid "Repeat playlist"
@@ -788,11 +785,11 @@ msgstr ""
 
 #: ../plugins/ntfy/ntfy.c:171 ../plugins/ntfy/ntfy.c:173
 msgid "Playing:"
-msgstr ""
+msgstr "En cors de lectura :"
 
 #: ../plugins/ntfy/ntfy.c:238
 msgid "Show notifications"
-msgstr ""
+msgstr "Afichar las notificacions"
 
 #: ../plugins/ntfy/ntfy.c:392
 msgid "Notifications plugin"
@@ -813,35 +810,35 @@ msgstr ""
 
 #: ../plugins/recently/recently.c:264
 msgid "Monday"
-msgstr ""
+msgstr "Diluns"
 
 #: ../plugins/recently/recently.c:265
 msgid "Tuesday"
-msgstr ""
+msgstr "Dimars"
 
 #: ../plugins/recently/recently.c:266
 msgid "Wednesday"
-msgstr ""
+msgstr "Dimècres"
 
 #: ../plugins/recently/recently.c:267
 msgid "Thursday"
-msgstr ""
+msgstr "Dijòus"
 
 #: ../plugins/recently/recently.c:268
 msgid "Saturday"
-msgstr ""
+msgstr "Dissabte"
 
 #: ../plugins/recently/recently.c:269
 msgid "Sunday"
-msgstr ""
+msgstr "Dimenge"
 
 #: ../plugins/recently/recently.c:274
 msgid "Today"
-msgstr ""
+msgstr "Uèi"
 
 #: ../plugins/recently/recently.c:276
 msgid "Yesterday"
-msgstr ""
+msgstr "Ièr"
 
 #: ../plugins/recently/recently.c:286
 msgid "More than 7 days ago"
@@ -870,23 +867,23 @@ msgstr ""
 
 #: ../plugins/recently/recently.c:352
 msgid "Title"
-msgstr ""
+msgstr "Títol"
 
 #: ../plugins/recently/recently.c:362
 msgid "Enqueue"
-msgstr ""
+msgstr "Metre en espèra"
 
 #: ../plugins/recently/recently.c:367
 msgid "Delete"
-msgstr ""
+msgstr "Suprimir"
 
 #: ../plugins/recently/recently.c:805
 msgid ", "
-msgstr ""
+msgstr ", "
 
 #: ../plugins/recently/recently.c:807
 msgid " and "
-msgstr ""
+msgstr " e "
 
 #: ../plugins/recently/recently.c:883
 #, c-format
@@ -940,7 +937,7 @@ msgstr ""
 
 #: ../ui/dock.ui.h:1
 msgid "\t"
-msgstr ""
+msgstr "\t"
 
 #: ../ui/dock.ui.h:2
 msgid "Dock"
@@ -952,15 +949,15 @@ msgstr ""
 
 #: ../ui/log.ui.h:2
 msgid "gtk-clear"
-msgstr ""
+msgstr "gtk-clear"
 
 #: ../ui/log.ui.h:3
 msgid "gtk-close"
-msgstr ""
+msgstr "gtk-close"
 
 #: ../ui/log.ui.h:4 ../ui/plugins.ui.h:15
 msgid "label"
-msgstr ""
+msgstr "etiqueta"
 
 #: ../ui/player-preferences.ui.h:1
 msgid "<b>Information format</b>"
@@ -988,7 +985,7 @@ msgstr ""
 
 #: ../ui/player.ui.h:1
 msgid "<small><tt></tt></small>"
-msgstr ""
+msgstr "<small><tt></tt></small>"
 
 #: ../ui/player.ui.h:3
 #, no-c-format
@@ -996,27 +993,29 @@ msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 
 #: ../ui/playlist.ui.h:1
 msgid "Filter"
-msgstr ""
+msgstr "Filtrar"
 
 #: ../ui/playlist.ui.h:2
 msgid "Playlist"
-msgstr ""
+msgstr "Lista de lectura"
 
 #: ../ui/plugins.ui.h:2
 #, no-c-format
 msgid "%s"
-msgstr ""
+msgstr "%s"
 
 #: ../ui/plugins.ui.h:3
 msgid "<b>Description</b>"
-msgstr ""
+msgstr "<b>Descripcion</b>"
 
 #: ../ui/plugins.ui.h:4
 msgid "<b>Filename</b>"
-msgstr ""
+msgstr "<b>Nom de fichièr</b>"
 
 #: ../ui/plugins.ui.h:6
 #, no-c-format
@@ -1024,6 +1023,8 @@ msgid ""
 "<big><b>%s</b></big>\n"
 "%s"
 msgstr ""
+"<big><b>%s</b></big>\n"
+"%s"
 
 #: ../ui/plugins.ui.h:8
 msgid ""
@@ -1034,7 +1035,7 @@ msgstr ""
 
 #: ../ui/plugins.ui.h:11
 msgid "Contact"
-msgstr ""
+msgstr "Contacte"
 
 #: ../ui/plugins.ui.h:12
 msgid "Eina plugins"
@@ -1046,23 +1047,23 @@ msgstr ""
 
 #: ../ui/plugins.ui.h:14
 msgid "Website"
-msgstr ""
+msgstr "Site web"
 
 #: ../ui/plugins.ui.h:16 ../plugins/recently/dock.ui.h:5
 msgid "page 1"
-msgstr ""
+msgstr "pagina 1"
 
 #: ../ui/plugins.ui.h:17 ../plugins/recently/dock.ui.h:6
 msgid "page 2"
-msgstr ""
+msgstr "pagina 2"
 
 #: ../plugins/lastfm/lastfm.ui.h:1
 msgid "<b>Password</b>"
-msgstr ""
+msgstr "<b>Senhal</b>"
 
 #: ../plugins/lastfm/lastfm.ui.h:2
 msgid "<b>Username</b>"
-msgstr ""
+msgstr "<b>Nom d'utilizaire</b>"
 
 #: ../plugins/lastfm/lastfm.ui.h:3
 msgid "<big><b>Last FM configuration</b></big>"
@@ -1078,7 +1079,7 @@ msgstr ""
 
 #: ../plugins/recently/dock.ui.h:1
 msgid "<b>Search</b>"
-msgstr ""
+msgstr "<b>Recèrca</b>"
 
 #: ../plugins/recently/dock.ui.h:2
 msgid "<span color=\"#666\">Type at least 3 characters</span>"
@@ -1093,4 +1094,4 @@ msgstr ""
 
 #: ../plugins/recently/dock.ui.h:7
 msgid "page 3"
-msgstr ""
+msgstr "pagina 3"
