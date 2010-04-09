@@ -1,3 +1,17 @@
+eina-player (0.9.3-3) lucid; urgency=low
+
+  * Closes NMU LP: #306935
+  * Fix distribution, from now, only lucid packages will be build
+  * Fix mantainer field in debian/control
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Fri, 09 Apr 2010 15:52:24 +0200
+
+eina-player (0.9.3-2) karmic; urgency=low
+
+  * Remove tools/plugins
+
+ -- Luis Lopez <luis.lopez@cuarentaydos.com>  Thu, 08 Apr 2010 17:20:11 +0200
+
 eina-player (0.9.3-1) karmic; urgency=low
 
   * Upstream release 0.9.3
