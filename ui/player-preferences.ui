@@ -81,7 +81,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkCheckButton" id="/player/cover-efects">
+          <object class="GtkCheckButton" id="/player/cover-effects">
             <property name="label" translatable="yes">Enable cover efects</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>

@@ -22,6 +22,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
+#include <eina/ext/eina-preferences-tab.h>
 
 G_BEGIN_DECLS
 
@@ -48,19 +49,8 @@ typedef struct {
 
 typedef struct {
   GtkDialogClass parent_class;
-  void (*value_changed)  (EinaPreferencesDialog *self, const gchar *group, const gchar *object, GValue *value);
+  void (*value_changed)  (EinaPreferencesDialog *self, const gchar *key, GValue *value);
 } EinaPreferencesDialogClass;
-
-typedef struct {
-	GTimeVal stamp;
-	gchar *group;
-	gchar *xml;
-	gchar *root;
-	gchar **objects;
-	guint n;
-	GtkImage *icon;
-	GtkLabel *label;
-} EinaPreferencesDialogEntry;
 
 GType eina_preferences_dialog_get_type (void);
 
@@ -68,29 +58,10 @@ EinaPreferencesDialog*
 eina_preferences_dialog_new (void);
 
 void
-eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, const gchar *group, GtkImage *icon, GtkLabel *label, GtkWidget *tab);
+eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, EinaPreferencesTab *tab);
 
 void
-eina_preferences_dialog_remove_tab(EinaPreferencesDialog *self, GtkWidget *widget);
-
-void
-eina_preferences_dialog_add_tab_from_entry(EinaPreferencesDialog *self, EinaPreferencesDialogEntry *entry);
-
-void
-eina_preferences_dialog_add_tab_full(EinaPreferencesDialog *self, gchar *group, gchar *xml, gchar *root, gchar **objects, guint n,
-    GtkImage *icon, GtkLabel *label);
-
-void
-eina_preferences_dialog_set_value(EinaPreferencesDialog *self, gchar *group, gchar *object, GValue *value);
-
-EinaPreferencesDialogEntry *
-eina_preferences_dialog_entry_new(gchar *xml, gchar *group, gchar *root, gchar **objects, guint n,
-	GtkImage *icon, GtkLabel *label);
-void
-eina_preferences_dialog_entry_free(EinaPreferencesDialogEntry *entry);
-
-gint
-eina_preferecens_dialog_entry_cmp(EinaPreferencesDialogEntry *a, EinaPreferencesDialogEntry *b);
+eina_preferences_dialog_remove_tab(EinaPreferencesDialog *self, EinaPreferencesTab *tab);
 
 G_END_DECLS
 

@@ -34,11 +34,10 @@ G_BEGIN_DECLS
 typedef struct _EinaPreferences EinaPreferences;
 
 void
-eina_preferences_add_tab_full(EinaPreferences *self, gchar *group, gchar *xml, gchar *root, gchar **objects, guint n,
-    GtkImage *icon, GtkLabel *label);
+eina_preferences_add_tab(EinaPreferences *self, EinaPreferencesTab *tab);
 
 void
-eina_preferences_remove_tab(EinaPreferences *self, gchar *group);
+eina_preferences_remove_tab(EinaPreferences *self, EinaPreferencesTab *tab);
 
 G_END_DECLS
 

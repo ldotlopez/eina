@@ -28,18 +28,20 @@ struct  _EinaPreferences {
 	EinaObj parent;
 
 	EinaPreferencesDialog *dialog;
+	GList *tabs;
 	guint n_tabs;
 
 	GtkActionGroup *ag;
 	guint ui_merge_id;
 
-	GHashTable *entries;
 };
 
 static void
-attach_menu(EinaPreferences *self);
+preferences_attach_menu(EinaPreferences *self);
 static void
-deattach_menu(EinaPreferences *self);
+preferences_deattach_menu(EinaPreferences *self);
+static void 
+preferences_remove_all_tabs(EinaPreferences *self);
 static void
 menu_activate_cb(GtkAction *action, EinaPreferences *self);
 
@@ -49,9 +51,12 @@ response_cb(GtkWidget *w, gint response, EinaPreferences *self);
 static gboolean
 delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self);
 static void
-value_changed_cb(EinaPreferencesDialog *w, gchar *group, gchar *object, GValue *value, EinaPreferences *self);
+value_changed_cb(EinaPreferencesDialog *w, gchar *key, GValue *value, EinaPreferences *self);
+
 
 // conf
+
+
 static void
 change_cb(EinaConf *conf, gchar *key, EinaPreferences *self);
 
@@ -75,8 +80,6 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	plugin->data = self;
 
-	self->entries = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) eina_preferences_dialog_entry_free);
-	
 	g_signal_connect(gel_app_get_settings(app), "change", (GCallback) change_cb, self);
 
 	return TRUE;
@@ -88,32 +91,64 @@ static gboolean preferences_fini
 	EinaPreferences *self = EINA_PREFERENCES(plugin->data);
 
 	if (self->n_tabs > 0)
-		deattach_menu(self);
-	
-	if (self->dialog)
-		gtk_widget_destroy((GtkWidget *) self->dialog);
-	g_hash_table_destroy(self->entries);
-	eina_obj_fini(EINA_OBJ(self));
+	{
+		preferences_deattach_menu(self);
+		self->n_tabs = 0;
+	}
 
+	if (self->tabs)
+	{
+		preferences_remove_all_tabs(self);
+		g_list_foreach(self->tabs, (GFunc) g_object_unref, NULL);
+		g_list_free(self->tabs);
+		self->tabs = NULL;
+	}
+
+	eina_obj_fini(EINA_OBJ(self));
 	return TRUE;
 }
 
 void
-eina_preferences_add_tab_full(EinaPreferences *self, gchar *group, gchar *xml, gchar *root, gchar **objects, guint n,
-    GtkImage *icon, GtkLabel *label)
+eina_preferences_add_tab(EinaPreferences *self, EinaPreferencesTab *tab)
 {
-	EinaPreferencesDialogEntry *entry = eina_preferences_dialog_entry_new(group, xml, root, objects, n, icon, label);
-	g_hash_table_insert(self->entries, g_strdup(group), entry);
+	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
+	g_return_if_fail(g_list_find(self->tabs, tab) == NULL);
+
+	self->tabs = g_list_prepend(self->tabs, g_object_ref_sink(tab));
+	if (self->dialog)
+		eina_preferences_dialog_add_tab(self->dialog, tab);
 	self->n_tabs++;
 
 	if (self->n_tabs == 1)
-		attach_menu(self);
+		preferences_attach_menu(self);
+
+	EinaConf *conf = eina_obj_get_settings(self);
+
+	GList *watching = eina_preferences_tab_get_watched(tab);
+	GList *iter = watching;
+	while (iter)
+	{
+		GValue *cv = eina_conf_get(conf, (gchar *) iter->data);
+		if (cv)
+			eina_preferences_tab_set_widget_value(tab, (gchar *) iter->data, cv);
+		else
+			gel_warn("EinaConf has no value for '%s'", (gchar *) iter->data);
+		iter = iter->next;
+	}
+	g_list_free(watching);
 }
 
 void
-eina_preferences_remove_tab(EinaPreferences *self, gchar *group)
+eina_preferences_remove_tab(EinaPreferences *self, EinaPreferencesTab *tab)
 {
-	g_hash_table_remove(self->entries, group);
+	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
+	g_return_if_fail(g_list_find(self->tabs, tab) != NULL);
+
+	g_object_unref(tab);
+	if (self->dialog)
+		eina_preferences_dialog_remove_tab(self->dialog, tab);
+	self->tabs = g_list_remove(self->tabs, tab);
+	g_object_unref(G_OBJECT(tab));
 }
 
 static void
@@ -130,37 +165,16 @@ build_dialog(EinaPreferences *self)
 	g_signal_connect(self->dialog, "delete-event", (GCallback) delete_event_cb, self);
 	g_signal_connect(self->dialog, "value-changed",(GCallback) value_changed_cb, self);
 
-	EinaConf *conf = eina_obj_get_settings(self);
-
-	GList *keys = g_list_reverse(g_list_sort(g_hash_table_get_keys(self->entries), (GCompareFunc) eina_preferecens_dialog_entry_cmp));
-	GList *iter = keys;
+	GList *iter = g_list_last(self->tabs);
 	while (iter)
 	{
-		gchar *key = (gchar *) iter->data;
-		EinaPreferencesDialogEntry *value = (EinaPreferencesDialogEntry *) g_hash_table_lookup(self->entries, key);
-		if (value == NULL)
-		{
-			gel_warn(N_("Found NULL key"));
-			iter = iter->next;
-			continue;
-		}
-
-		eina_preferences_dialog_add_tab_from_entry(self->dialog, value);
-		gint i;
-		for (i = 0; i < value->n; i++)
-		{
-			GValue *v = eina_conf_get(conf, value->objects[i]);
-			if (v != NULL)
-				eina_preferences_dialog_set_value(self->dialog, value->group, value->objects[i], v);
-		}
-
-		iter = iter->next;
+		eina_preferences_dialog_add_tab(self->dialog, EINA_PREFERENCES_TAB(iter->data));
+		iter = iter->prev;
 	}
-	g_list_free(keys);
 }
 
 static void
-attach_menu(EinaPreferences *self)
+preferences_attach_menu(EinaPreferences *self)
 {
 	const GtkActionEntry action_entries[] = {
 		{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
@@ -197,7 +211,7 @@ attach_menu(EinaPreferences *self)
 }
 
 static void
-deattach_menu(EinaPreferences *self)
+preferences_deattach_menu(EinaPreferences *self)
 {
 	GtkUIManager *ui_manager = eina_window_get_ui_manager(EINA_OBJ_GET_WINDOW(self));
 	if (ui_manager == NULL)
@@ -222,56 +236,63 @@ menu_activate_cb(GtkAction *action, EinaPreferences *self)
 	}
 }
 
+static void 
+preferences_remove_all_tabs(EinaPreferences *self)
+{
+	g_return_if_fail(self->dialog != NULL);
+	GList *iter = self->tabs;
+	while (iter)
+	{
+		eina_preferences_dialog_remove_tab(self->dialog, EINA_PREFERENCES_TAB(iter->data));
+		iter = iter->next;
+	}
+}
+
 static void
 response_cb(GtkWidget *w, gint response, EinaPreferences *self)
 {
-	gtk_widget_destroy(w);
-	self->dialog = NULL;
+	if (self->dialog)
+	{
+		preferences_remove_all_tabs(self);
+		gtk_widget_destroy(w);
+		self->dialog = NULL;
+	}
 }
 
 static gboolean
 delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self)
 {
-	self->dialog = NULL;
+	if (self->dialog)
+	{
+		preferences_remove_all_tabs(self);
+		self->dialog = NULL;
+	}
 	return FALSE;
 }
 
 static void
-value_changed_cb(EinaPreferencesDialog *w, gchar *group, gchar *object, GValue *value, EinaPreferences *self)
+value_changed_cb(EinaPreferencesDialog *w, gchar *key, GValue *value, EinaPreferences *self)
 {
 	EinaConf *conf = eina_obj_get_settings(self);
-	// gchar *path = g_strdup_printf("/%s/%s", group, object);
-
-	GType type = G_VALUE_TYPE(value);
-	if (type == G_TYPE_BOOLEAN)
-		eina_conf_set_bool(conf, object, g_value_get_boolean(value));
-
-	else if (type == G_TYPE_INT)
-		eina_conf_set_int(conf, object, g_value_get_int(value));
-
-	else if (type == G_TYPE_STRING)
-		eina_conf_set_string(conf, object, (gchar *) g_value_get_string(value));
-
-	else
-		gel_warn(N_("Type %s for object %s is not handled"), g_type_name(type), object);
-
-	// g_free(path);
+	eina_conf_set(conf, key, value);
 }
 
 static void
 change_cb(EinaConf *conf, gchar *key, EinaPreferences *self)
 {
-	if (self->dialog == NULL)
-		return;
-
-	/*
-	gchar **comp = g_strsplit(key, "/", 0);
-	if (g_strv_length(comp) != 2)
-		return;
-	*/
-	GValue *value = eina_conf_get(conf, key);
-	eina_preferences_dialog_set_value(self->dialog, NULL, key, value);
-	// g_strfreev(comp);
+	GList *iter = self->tabs;
+	while (iter)
+	{
+		EinaPreferencesTab *tab = EINA_PREFERENCES_TAB(iter->data);
+		GtkWidget *w = eina_preferences_tab_get_widget(tab, key);
+		if (w)
+		{
+			eina_preferences_tab_set_widget_value(tab, key, eina_conf_get(eina_obj_get_settings(self), key));
+			return;
+		}
+		iter = iter->next;
+	}
+	gel_warn(N_("Widget for key '%s' not found"), key);
 }
 
 

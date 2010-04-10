@@ -344,9 +344,14 @@ void eina_conf_load(EinaConf *self) {
 	g_strfreev(lines);
 }
 
-void eina_conf_set(EinaConf *self, gchar *key, GValue *val) {
+void eina_conf_set(EinaConf *self, gchar *key, GValue *val)
+{
 	EinaConfPrivate *priv = GET_PRIVATE(self);
-	g_hash_table_replace(priv->values, g_strdup(key), val);
+	GValue *_val = g_new0(GValue, 1);
+	g_value_init(_val, G_VALUE_TYPE(val));
+	g_value_copy(val, _val);
+
+	g_hash_table_replace(priv->values, g_strdup(key), _val);
 
 	if (priv->timeout_id)
 		g_source_remove(priv->timeout_id);

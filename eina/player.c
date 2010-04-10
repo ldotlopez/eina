@@ -224,18 +224,23 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if ((ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui")) &&
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
+		EinaPreferencesTab *tab = eina_preferences_tab_new();
+		g_object_set(tab,
+			"ui-string", ui_str,
+			"label-image", (GtkImage*) gtk_image_new_from_stock(GTK_STOCK_EXECUTE, GTK_ICON_SIZE_SMALL_TOOLBAR),
+			"label-text", N_("Player"),
+			NULL);
+		g_free(ui_str);
+
 		gchar *objects[] = {
 			"/core/repeat",    "/core/random",
 			"/core/auto-play", "/core/auto-parse",
 			"/core/add-mode",
-			"/player/cover-effects"
+			"/player/cover-effects", NULL
 			};
+		eina_preferences_tab_add_watchers(tab, objects);
 
-		eina_preferences_add_tab_full(gel_app_get_preferences(app),
-			"player", ui_str, "main-widget", objects, G_N_ELEMENTS(objects),
-			(GtkImage*) gtk_image_new_from_stock(GTK_STOCK_EXECUTE, GTK_ICON_SIZE_SMALL_TOOLBAR), (GtkLabel *) gtk_label_new(N_("Player")));
-		g_free(ui_path);
-		g_free(ui_str);
+		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
 	else
 	{

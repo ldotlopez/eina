@@ -63,6 +63,7 @@ guint eina_conf_get_timeout(EinaConf *self);
 
 void eina_conf_load(EinaConf *self);
 
+void eina_conf_set        (EinaConf *self, gchar *key, GValue *val);
 void eina_conf_set_boolean(EinaConf *self, gchar *key, gboolean val);
 void eina_conf_set_int    (EinaConf *self, gchar *key, gint val);
 void eina_conf_set_uint   (EinaConf *self, gchar *key, guint val);

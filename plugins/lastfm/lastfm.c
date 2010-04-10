@@ -52,14 +52,25 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	self->priv = g_new0(LastFMPriv, 1);
 
 	gchar *prefs_path = NULL;
-	gchar *prefs_xml  = NULL;
+	gchar *prefs_ui_string = NULL;
 	if ((prefs_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "lastfm.ui")) &&
-	     g_file_get_contents(prefs_path, &prefs_xml, NULL, NULL))
+	     g_file_get_contents(prefs_path, &prefs_ui_string, NULL, NULL))
 	{
-		EinaPreferences *preferences = gel_app_get_preferences(app);
-		gchar *objects[] = { "/lastfm/submit", "/lastfm/username", "/lastfm/password"};
-		eina_preferences_add_tab_full(preferences, "lastfm", prefs_xml, "main-widget", objects, G_N_ELEMENTS(objects), 
-			NULL, (GtkLabel*) gtk_label_new("Last FM"));
+		gchar *logo_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, "logo.gif");
+
+		EinaPreferencesTab *tab = eina_preferences_tab_new();
+		g_object_set(tab,
+			"ui-string", prefs_ui_string,
+			"label-text", "Last FM",
+			"label-image", gtk_image_new_from_file(logo_path),
+			NULL);
+		g_free(prefs_ui_string);
+		g_free(logo_path);
+		
+		gchar *objects[] = { "/lastfm/submit", "/lastfm/username", "/lastfm/password", NULL};
+		eina_preferences_tab_add_watchers(tab, objects);
+
+		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
 
 	plugin->data = self;
