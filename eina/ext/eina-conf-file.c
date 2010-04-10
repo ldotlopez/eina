@@ -19,6 +19,7 @@
 
 #define GEL_DOMAIN "Eina::Conf::File"
 
+#include "eina/ext/eina-conf.h"
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -27,8 +28,8 @@
 #include <stdlib.h>
 #include <glib-object.h>
 #include <glib/gstdio.h>
-#include <gel/gel.h>
-#include <eina/ext/eina-conf.h>
+#include <glib/gi18n.h>
+#include "gel/gel.h"
 
 // --
 // Internal GValue
@@ -55,7 +56,6 @@ struct _EinaConfPrivate {
 	guint       timeout_id;
 	gchar      *filename;
 	guint       timeout;
-	gint        io_fd;
 };
 
 // Signals
@@ -222,73 +222,64 @@ eina_conf_set_timeout(EinaConf *self, guint timeout)
 	GET_PRIVATE(self)->timeout = timeout;
 }
 
-static void
-dump_forearch_cb(gpointer _key, gpointer _value, gpointer data)
-{
-	EinaConf *self        = (EinaConf *) data;
-	EinaConfPrivate *priv = GET_PRIVATE(self);
-	gchar *key            = (gchar *) _key;
-	GValue *value         = (GValue *) _value;
-	gchar *buff = NULL;
-
-	gchar *type_prefix = NULL;
-	switch (G_VALUE_TYPE(value))
-	{
-	case G_TYPE_BOOLEAN:
-		type_prefix="boolean";
-		break;
-
-	case G_TYPE_INT:
-		type_prefix="int";
-		break;
-
-	case G_TYPE_UINT:
-		type_prefix="uint";
-		break;
-
-	case G_TYPE_FLOAT:
-		type_prefix="float";
-		break;
-
-	case G_TYPE_STRING:
-		type_prefix="string";
-		break;
-
-	default:
-		return;
-		gel_warn("unknow key type '%s'\n", key);
-	}
-
-	gchar *tmp = ((G_VALUE_TYPE(value) == G_TYPE_STRING) ? g_strdup(g_value_get_string(value)) : g_strdup_value_contents(value));
-	buff = g_strdup_printf("%s:%s=%s\n", type_prefix, key, tmp);
-	g_free(tmp);
-
-	if (buff != NULL)
-	{
-		if (write(priv->io_fd, buff, strlen(buff)) == -1)
-			; // Avoid warning
-		g_free(buff);
-	}
-}
-
 gboolean
 eina_conf_dump(EinaConf *self)
 {
 	EinaConfPrivate *priv = GET_PRIVATE(self);
-	priv->io_fd = g_open(
-		priv->filename,
-		O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR|S_IWUSR);
-	
-	if (priv->io_fd == -1) {
-		gel_error("Error while opening '%s' for writing",
-			priv->filename);
-		return FALSE;
+
+	GString *buffer = g_string_new(NULL);
+	GList *keys = g_list_sort(g_hash_table_get_keys(priv->values), (GCompareFunc) strcmp);
+	GList *iter = keys;
+	while (iter)
+	{
+		gchar  *key = (gchar *) iter->data;
+		GValue *value = (GValue *) g_hash_table_lookup(priv->values, key);
+		gchar *type_prefix = NULL;
+		switch (G_VALUE_TYPE(value))
+		{
+		case G_TYPE_BOOLEAN:
+			type_prefix="boolean";
+			break;
+
+		case G_TYPE_INT:
+			type_prefix="int";
+			break;
+
+		case G_TYPE_UINT:
+			type_prefix="uint";
+			break;
+
+		case G_TYPE_FLOAT:
+			type_prefix="float";
+			break;
+
+		case G_TYPE_STRING:
+			type_prefix="string";
+			break;
+
+		default:
+			gel_warn("unknow key type '%s'\n", key);
+			continue;
+		}
+
+		gchar *tmp = g_strdup_printf("%s:%s=%s\n",
+			type_prefix,
+			key,
+			(G_VALUE_TYPE(value) == G_TYPE_STRING) ? g_strdup(g_value_get_string(value)) : g_strdup_value_contents(value)
+			);
+		buffer = g_string_append(buffer, tmp);
+		g_free(tmp);
+		iter = iter->next;
 	}
-	
-	g_hash_table_foreach(priv->values,
-		dump_forearch_cb,
-		self);
-	close(priv->io_fd);
+	g_list_free(keys);
+
+	GError *error = NULL;
+	if (!g_file_set_contents(priv->filename, buffer->str, -1, &error))
+	{
+		g_warning(N_("Cannot save configuration to file '%s': '%s'"), priv->filename, error->message);
+		g_error_free(error);
+	}
+	g_string_free(buffer, TRUE);
 
 	return FALSE;
 }
