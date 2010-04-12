@@ -152,16 +152,6 @@ eina_plugin_remove_art_backend(EinaPlugin *plugin, ArtBackend *backend)
 // --
 // LomoEvents handling
 // --
-LomoPlayer*
-eina_plugin_get_lomo(EinaPlugin *self)
-{
-	GelApp *app;
-
-	if ((app = gel_plugin_get_app(self)) == NULL)
-		return NULL;
-	return GEL_APP_GET_LOMO(app);
-}
-
 void
 eina_plugin_attach_events(EinaPlugin *self, ...)
 {
