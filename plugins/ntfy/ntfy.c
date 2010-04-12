@@ -165,9 +165,9 @@ ntfy_enable(EinaNtfy *self, GError **error)
 	self->enabled = TRUE;
 	self->ntfy = notify_notification_new(N_("Now playing"), NULL, NULL, NULL);
 
-	g_signal_connect_swapped(EINA_OBJ_GET_LOMO(self), "play",     (GCallback) ntfy_sync, self);
-	g_signal_connect_swapped(EINA_OBJ_GET_LOMO(self), "change",   (GCallback) ntfy_reset, self);
-	g_signal_connect(EINA_OBJ_GET_LOMO(self), "all-tags", (GCallback) lomo_all_tags_cb, self);
+	g_signal_connect_swapped(eina_obj_get_lomo(self), "play",     (GCallback) ntfy_sync, self);
+	g_signal_connect_swapped(eina_obj_get_lomo(self), "change",   (GCallback) ntfy_reset, self);
+	g_signal_connect(eina_obj_get_lomo(self), "all-tags", (GCallback) lomo_all_tags_cb, self);
 
 	gchar *path = NULL;
 	if (!(path = gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png")) ||
@@ -188,9 +188,9 @@ ntfy_disable(EinaNtfy *self)
 		return;
 	self->enabled = FALSE;
 
-	g_signal_handlers_disconnect_by_func(EINA_OBJ_GET_LOMO(self), (GCallback) ntfy_reset, self);
-	g_signal_handlers_disconnect_by_func(EINA_OBJ_GET_LOMO(self), (GCallback) ntfy_sync, self);
-	g_signal_handlers_disconnect_by_func(EINA_OBJ_GET_LOMO(self), (GCallback) lomo_all_tags_cb, self);
+	g_signal_handlers_disconnect_by_func(eina_obj_get_lomo(self), (GCallback) ntfy_reset, self);
+	g_signal_handlers_disconnect_by_func(eina_obj_get_lomo(self), (GCallback) ntfy_sync, self);
+	g_signal_handlers_disconnect_by_func(eina_obj_get_lomo(self), (GCallback) lomo_all_tags_cb, self);
 
 	self->stream = NULL;
 	self->all_tags  = FALSE;
