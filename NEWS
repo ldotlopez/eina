@@ -1,9 +1,8 @@
-Eina 0.9.3
-==========
+====== Eina 0.9.3 ======
 
 - New autotools build system.
-  Eina has changed his classic build system for a non-recursive, cleaner than
-  before, schema.
+  Eina has changed his classic build system for a non-recursive,
+  cleaner than before, schema.
 
   References:
   http://blogs.gnome.org/jjardon/2010/01/25/modernize-your-autotools-build-system/
@@ -14,22 +13,23 @@ Eina 0.9.3
   Better and consistent sorting and loading.
 
 - New pluggable cover widget
-  Now plugins can render cover, Eina itself includes the classic cover and a 3D-enabled
-  cover (clutter-gtk required).
+  Now plugins can render cover, Eina itself includes the classic
+  cover and a 3D-enabled cover (clutter-gtk required).
 
 - Updated documentation
-  Almost all APIs from liblomo are documented, more to come on the next release.
+  Almost all APIs from liblomo are documented, more to come on the
+  next release.
 
 - More DBus API
   DBus signals and methods from liblomo are almost completed.
 
 - Gtk 3.0 Ready
-  Eina depends on zero deprecated modules and compiles with GSeal enable, so Eina is
-  ready for gtk/gnome 3.0
+  Eina depends on zero deprecated modules and compiles with GSeal
+  enable, so Eina is ready for gtk/gnome 3.0
 
 - Packaging improvements
-  Now Eina can be renamed to eina-player or foo-bar or whatever, distributions now can avoid
-  conflicts with other 'eina' packages.
+  Now Eina can be renamed to eina-player or foo-bar or whatever,
+  distributions now can avoid conflicts with other 'eina' packages.
 
 - Lots of minor bugfixes
   This release refines Eina internals, less crashes expected.

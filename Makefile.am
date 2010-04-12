@@ -171,11 +171,6 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/eina-volume.c              \
     eina/ext/eina-window.c
 
-if USE_CLUTTER
-eina_ext_libeinaext_la_SOURCES += eina/ext/eina-cover-clutter.c
-eina_ext_libeina_include_HEADERS += eina/ext/eina-cover-clutter.h
-endif
-
 EXTRA_DIST += \
 	eina/ext/eina-plugin-dialog.ui            \
 	eina/ext/eina-plugin-properties.ui        \
@@ -386,6 +381,22 @@ plugins_callhome_libcallhome_la_SOURCES = plugins/callhome/callhome.c
 endif
 
 #
+# clutty plugin
+#
+if BUILD_CLUTTY
+plugins_cluttydir = $(pkglibdir)/clutty
+plugins_clutty_LTLIBRARIES = plugins/clutty/libclutty.la
+
+plugins_clutty_libclutty_la_CFLAGS  = @PACKAGE_CFLAGS@ @CLUTTER_GTK_CFLAGS@
+plugins_clutty_libclutty_la_LDFLAGS = @PACKAGE_LIBS@ @CLUTTER_GTK_LIBS@ -module -avoid-version
+plugins_clutty_libclutty_la_SOURCES =   \
+	plugins/clutty/clutty.c             \
+	plugins/clutty/eina-cover-clutter.c \
+	plugins/clutty/eina-cover-clutter.h
+
+endif
+
+#
 # coverplus plugin
 #
 plugins_coverplusdir = $(pkglibdir)/coverplus
@@ -413,15 +424,15 @@ plugins_fieshta_libfieshta_la_SOURCES = \
 	plugins/fieshta/fieshta.c \
 	plugins/fieshta/fieshta.h
 
-if USE_CLUTTER
+if USE_CLUTTER_GTK
 plugins_fieshta_libfieshta_la_SOURCES += \
 	plugins/fieshta/fieshta-stage.c  \
 	plugins/fieshta/fieshta-stage.h  \
 	plugins/fieshta/fieshta-stream.c \
 	plugins/fieshta/fieshta-stream.h
 
-plugins_fieshta_libfieshta_la_CFLAGS  += @CLUTTER_CFLAGS@
-plugins_fieshta_libfieshta_la_LDFLAGS += @CLUTTER_LIBS@
+plugins_fieshta_libfieshta_la_CFLAGS  += @CLUTTER_GTK_CFLAGS@
+plugins_fieshta_libfieshta_la_LDFLAGS += @CLUTTER_GTK_LIBS@
 endif
 endif
 

@@ -30,8 +30,16 @@ G_BEGIN_DECLS
 #define GEL_APP_GET_PLAYER(app)  EINA_PLAYER(gel_app_shared_get(app, "player"))
 #define EINA_OBJ_GET_PLAYER(obj) GEL_APP_GET_PLAYER(eina_obj_get_app(obj))
 
+#define gel_app_get_player(app)       EINA_PLAYER(gel_app_shared_get(app, "player"))
+#define eina_plugin_get_player(plugin) gel_app_get_player(gel_plugin_get_app(plugin))
+#define eina_obj_get_player(obj)      gel_app_get_player(eina_obj_get_app(obj))
+
+
 typedef struct _EinaPlayer EinaPlayer;
-GtkContainer* eina_player_get_cover_container(EinaPlayer* self);
+
+#define eina_plugin_player_get_cover_widget(plugin) eina_player_get_cover_widget(eina_plugin_get_player(plugin))
+EinaCover *
+eina_player_get_cover_widget(EinaPlayer* self);
 
 G_END_DECLS
 

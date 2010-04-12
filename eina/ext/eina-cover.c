@@ -65,7 +65,12 @@ static void
 eina_cover_get_property (GObject *object, guint property_id,
 		                          GValue *value, GParamSpec *pspec)
 {
+	EinaCover *self = (EinaCover *) object;
+
 	switch (property_id) {
+	case PROPERTY_RENDERER:
+		g_value_set_object(value, (GObject *) eina_cover_get_renderer(self));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -154,7 +159,7 @@ eina_cover_class_init (EinaCoverClass *klass)
 
 	g_object_class_install_property(object_class, PROPERTY_RENDERER,
 		g_param_spec_object("renderer", "Renderer object", "Widget used to render images",
-		GTK_TYPE_WIDGET, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		GTK_TYPE_WIDGET, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property(object_class, PROPERTY_ART,
 		g_param_spec_pointer("art", "Art interface", "Art interface",
 		G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
@@ -191,15 +196,30 @@ eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer)
 	if (priv->renderer)
 	{
 		gtk_container_remove((GtkContainer *) self, priv->renderer); 
-		g_object_unref(priv->renderer);
+		// g_object_unref(priv->renderer);
 	}
+
 	priv->renderer = renderer;
 	if (priv->renderer)
 	{
 		gtk_container_add(GTK_CONTAINER(self), renderer);
 		gtk_widget_set_visible(renderer, TRUE);
-		g_object_ref(renderer);
+		// g_object_ref(renderer);
+
+		g_object_set(renderer, "asis",   ((priv->curr_pb == priv->default_pb) || (priv->curr_pb == priv->loading_pb)), NULL);
+		g_object_set(renderer, "cover", priv->curr_pb ? priv->curr_pb : priv->default_pb, NULL);
 	}
+	else
+	{
+		g_warning("Renderer is NULL");
+	}
+}
+
+GtkWidget*
+eina_cover_get_renderer(EinaCover *self)
+{
+	g_return_val_if_fail(EINA_IS_COVER(self), NULL);
+	return GET_PRIVATE(self)->renderer;
 }
 
 void

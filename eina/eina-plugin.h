@@ -51,18 +51,19 @@
 
 // Redefine some types and enums
 #define EinaPlugin GelPlugin
-
 #define EINA_PLUGIN_SERIAL GEL_PLUGIN_SERIAL
-#define EINA_PLUGIN_GENERIC_AUTHOR "xuzo <xuzo@cuarentaydos.com>"
+#define EINA_PLUGIN_GENERIC_AUTHOR "Luis Lopez <luis.lopez@cuarentaydos.com>"
 #define EINA_PLUGIN_GENERIC_URL    "http://eina.sourceforge.net/"
 #define EINA_PLUGIN(p)      GEL_PLUGIN(p)
 
+// If EINA_PLUGIN_DATA_TYPE is defined create a macro to easy access
 #ifdef EINA_PLUGIN_DATA_TYPE
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) EINA_PLUGIN(p)->data)
 #endif
 
+// Define a macro for define plugin struct easily
 #define EINA_PLUGIN_SPEC(name,version,deps,author,url,short_desc,long_desc,icon,init,fini) \
-	G_MODULE_EXPORT GelPlugin name ## _plugin = { \
+	G_MODULE_EXPORT EinaPlugin name ## _plugin = { \
 		GEL_PLUGIN_SERIAL,                            \
 		G_STRINGIFY(name),                            \
 		version ? version : PACKAGE_VERSION,          \
@@ -78,8 +79,8 @@
 // --
 // Access to internal values
 // --
-#define eina_plugin_get_app(p) \
-	gel_plugin_get_app(p)
+#define eina_plugin_get_app(p) gel_plugin_get_app(p)
+
 LomoPlayer*
 eina_plugin_get_lomo(EinaPlugin *self);
 

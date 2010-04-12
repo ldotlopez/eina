@@ -29,9 +29,6 @@
 #include <eina/about.h>
 #include <eina/player.h>
 #include <eina/ext/eina-cover-image.h>
-#if HAVE_CLUTTER
-#include <eina/ext/eina-cover-clutter.h>
-#endif
 
 #define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
 #define OSX_OPEN_PATH "/usr/bin/open"
@@ -144,23 +141,12 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Cover widget
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
 	GdkPixbuf *loa_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-loading.png"), NULL);
-	GType renderer_type;
-	#if HAVE_CLUTTER
-		if (eina_conf_get_boolean(eina_obj_get_settings(self), "/player/cover-effects", TRUE))
-			renderer_type = EINA_TYPE_COVER_CLUTTER;
-		else
-			renderer_type = EINA_TYPE_COVER_IMAGE;
-	#else
-		renderer_type = EINA_TYPE_COVER_IMAGE;
-	#endif
-	gel_warn("Using cover renderer: %s", g_type_name(renderer_type));
-
 	EinaCover *cover = g_object_new(EINA_TYPE_COVER,
 		"art", eina_obj_get_art(self),
 		"lomo-player", eina_obj_get_lomo(self),
 		"default-pixbuf", def_pb,
 		"loading-pixbuf", loa_pb,
-		"renderer", g_object_new(renderer_type,
+		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE,
 			"cover", def_pb,
 			NULL),
 		NULL);
@@ -239,7 +225,13 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 			"/player/cover-effects", NULL
 			};
 		eina_preferences_tab_add_watchers(tab, objects);
-
+		gtk_widget_set_visible(eina_preferences_tab_get_widget(tab, "/player/cover-effects"),
+			#if HAVE_CLUTTER
+			TRUE
+			#else
+			FALSE
+			#endif
+			);
 		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
 	else
@@ -279,11 +271,15 @@ player_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-GtkContainer *
-eina_player_get_cover_container(EinaPlayer* self)
+EinaCover *
+eina_player_get_cover_widget(EinaPlayer* self)
 {	
-	return NULL;
-	return eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
+	GtkContainer *parent = eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
+	GList *children = gtk_container_get_children(parent);
+	EinaCover *cover = EINA_COVER(children->data);
+	g_list_free(children);
+
+	return cover;
 }
 
 // --

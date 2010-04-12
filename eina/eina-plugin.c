@@ -76,29 +76,6 @@ eina_plugin_build_userdir_path (EinaPlugin *self, gchar *path)
 }
 
 // --
-// Player management
-// --
-EinaPlayer *
-eina_plugin_get_player(EinaPlugin *self)
-{
-	GelApp     *app;
-
-	if ((app = gel_plugin_get_app(self)) == NULL)
-		return NULL;
-	return GEL_APP_GET_PLAYER(app);
-}
-
-GtkWindow *
-eina_plugin_get_main_window(EinaPlugin *self)
-{
-	EinaPlayer *player;
-
-	if ((player = eina_plugin_get_player(self)) == NULL)
-		return NULL;
-	return eina_obj_get_typed(player, GTK_WINDOW, "main-window");
-}
-
-// --
 // Dock management
 // --
 static EinaDock*

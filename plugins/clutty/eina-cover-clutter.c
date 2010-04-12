@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-cover-clutter.c
+ * plugins/clutty/eina-cover-clutter.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -109,10 +109,6 @@ eina_cover_clutter_class_init (EinaCoverClutterClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_ASIS,
 		g_param_spec_boolean("asis", "Asis", "As-is hint, ignored, allways TRUE",
 		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-
-	gint r = gtk_clutter_init(NULL, NULL);
-	if (r != CLUTTER_INIT_SUCCESS)
-		g_warning("Unable to init clutter-gtk: %d", r);
 }
 
 static void

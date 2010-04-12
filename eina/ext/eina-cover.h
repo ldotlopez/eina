@@ -57,6 +57,8 @@ GType eina_cover_get_type (void);
 
 EinaCover* eina_cover_new (void);
 void       eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer);
+GtkWidget* eina_cover_get_renderer(EinaCover *self);
+
 void       eina_cover_set_art(EinaCover *self, Art *art);
 void       eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo);
 void       eina_cover_set_default_pixbuf(EinaCover *self, GdkPixbuf *pixbuf);

@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-cover-clutter.h
+ * plugins/clutty/eina-cover-clutter.h
  *
  * Copyright (C) 2004-2010 Eina
  *

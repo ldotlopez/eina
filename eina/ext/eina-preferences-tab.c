@@ -433,14 +433,17 @@ eina_preferences_tab_get_widget_value(EinaPreferencesTab *self, gchar *name, GVa
 
 	if (GTK_IS_TOGGLE_BUTTON(widget))
 	{
+		g_value_init(value, G_TYPE_BOOLEAN);
 		g_value_set_boolean(value, gtk_toggle_button_get_active((GtkToggleButton *) widget));
 	}
 	else if (GTK_IS_COMBO_BOX(widget))
 	{
+		g_value_init(value, G_TYPE_INT);
 		g_value_set_int(value, gtk_combo_box_get_active((GtkComboBox *) widget));
 	}
 	else if (GTK_IS_ENTRY(widget))
 	{
+		g_value_init(value, G_TYPE_STRING);
 		g_value_set_string(value, gtk_entry_get_text((GtkEntry *) widget));
 	}
 	else

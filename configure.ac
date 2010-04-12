@@ -188,25 +188,25 @@ dnl Clutter (core, fieshta)
 dnl
 CLUTTER_GTK_VERSION="0.10.0"
 clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
-PKG_CHECK_MODULES(CLUTTER, $clutter_modules,
+PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 [
 	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
 		echo "*** clutter-gtk is not supported on osx (disabling clutter features) ***"
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER=0"
-		HAVE_CLUTTER=no
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER_GTK=0"
+		HAVE_CLUTTER_GTK=no
 	else
-		AC_SUBST(CLUTTER_CFLAGS)
-		AC_SUBST(CLUTTER_LIBS)
-		HAVE_CLUTTER=yes
-		PACKAGE_CFLAGS="$PACKAGE_CFLAGS $CLUTTER_CFLAGS -DHAVE_CLUTTER=1"
-		PACKAGE_LIBS="$PACKAGE_LIBS $CLUTTER_LIBS"
+		AC_SUBST(CLUTTER_GTK_CFLAGS)
+		AC_SUBST(CLUTTER_GTK_LIBS)
+		HAVE_CLUTTER_GTK=yes
+		PACKAGE_CFLAGS="$PACKAGE_CFLAGS $CLUTTER_GTK_CFLAGS -DHAVE_CLUTTER_GTK=1"
+		PACKAGE_LIBS="$PACKAGE_LIBS $CLUTTER_GTK_LIBS"
 	fi
 ],
 [
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER=0"
-	HAVE_CLUTTER=no
+	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_CLUTTER_GTK=0"
+	HAVE_CLUTTER_GTK=no
 ])
-AM_CONDITIONAL(USE_CLUTTER, test x"$HAVE_CLUTTER" = "xyes")
+AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
 dnl
 dnl notify (ntfy)
@@ -339,13 +339,13 @@ fi
 dnl
 dnl Conditionals
 dnl
-AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"   = "xyes")
-AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"      = "xyes")
-#AM_CONDITIONAL(USE_CLUTTY,     test x"$enable_clutty"  = "xyes" -a x"$HAVE_CLUTTER" = "xyes")
-AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB" = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
-AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"       = "xyes")
-AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"    = "xyes")
-AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"    = "xyes")
+AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
+AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
+AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
+AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
+AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
+AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
+AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"      = "xyes")
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([

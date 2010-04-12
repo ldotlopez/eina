@@ -1,6 +1,7 @@
 Source: eina-player
 Section: sound
 Priority: extra
+Maintainer: Ubuntu MOTU Developers <ubuntu-motu@lists.ubuntu.com>
 XSBC-Original-Maintainer: Luis Lopez <xuzo@cuarentaydos.com>
 Build-Depends: debhelper (>= 7.0.50~), quilt, autotools-dev, intltool, libtool, pkg-config, python2.6, libgstreamer0.10-dev, libgtk2.0-dev, libdbus-glib-1-dev, libunique-dev, libsqlite3-dev, libcurl4-gnutls-dev, uuid-dev, libnotify-dev, libclutter-gtk-0.10-dev, gtk-doc-tools
 Standards-Version: 3.8.3
@@ -9,9 +10,6 @@ Package: eina-player
 Architecture: any
 Depends: ${shlibs:Depends}, libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk2.0-0 (>= 2.12.0), libdbus-glib-1-2, libunique-1.0-0, libsqlite3-0, libcurl3-gnutls, libuuid1, libclutter-gtk-0.10-0
 Recommends: gstreamer0.10-ffmpeg, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-ugly
-Replaces: liblomo1, eina
-Conflicts: liblomo1, eina
-Provides: liblomo1, eina
 Description: Music player based on gtk+-2.0 and gstreamer
  Eina is a classic player for the modern era. It features a small screen
  footprint, network capabilites and extensible functionality through plugins.
@@ -20,9 +18,6 @@ Package: eina-player-dev
 Section: devel
 Architecture: any
 Depends: ${shlibs:Depends}, eina (= ${source:Version}), libgtk2.0-dev (>= 2.12.0), libgstreamer0.10-0 (>= 0.10.0), libsqlite3-dev, libclutter-gtk-0.10-dev
-Replaces: liblomo-dev, eina-dev
-Conflicts: liblomo-dev, eina-dev
-Provides: liblomo-dev, eina-dev
 Suggests: eina-player-doc
 Description: Music player based on liblomo and gtk+-2.0 - development files
  This package contains the headers and other development files not included in
@@ -30,9 +25,6 @@ Description: Music player based on liblomo and gtk+-2.0 - development files
 
 Package: eina-player-doc
 Architecture: all
-Replaces: eina-doc
-Conflicts: eina-doc
-Provides: eina-doc
 Depends: lynx | www-browser
 Description: Music player based on gtk+-2.0 and gstreamer - Documentation
  Eina is a classic player for the modern era. It features a small screen

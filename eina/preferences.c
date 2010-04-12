@@ -132,7 +132,11 @@ eina_preferences_add_tab(EinaPreferences *self, EinaPreferencesTab *tab)
 		if (cv)
 			eina_preferences_tab_set_widget_value(tab, (gchar *) iter->data, cv);
 		else
-			gel_warn("EinaConf has no value for '%s'", (gchar *) iter->data);
+		{
+			GValue cv2 ;
+			if (eina_preferences_tab_get_widget_value(tab, (gchar *) iter->data, &cv2))
+				eina_conf_set(conf, (gchar *) iter->data, &cv2);
+		}
 		iter = iter->next;
 	}
 	g_list_free(watching);
@@ -292,7 +296,6 @@ change_cb(EinaConf *conf, gchar *key, EinaPreferences *self)
 		}
 		iter = iter->next;
 	}
-	gel_warn(N_("Widget for key '%s' not found"), key);
 }
 
 
