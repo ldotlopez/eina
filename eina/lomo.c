@@ -23,6 +23,11 @@
 #include <eina/eina-plugin.h>
 #include <eina/lomo.h>
 
+typedef struct {
+	GList *signals;
+	GList *handlers;
+} LomoEventHandlerGroup;
+
 static void
 lomo_mute_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
 static void
@@ -34,7 +39,7 @@ lomo_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaConf *conf);
 static void
 conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine);
 
-GEL_AUTO_QUARK_FUNC(lomo)
+GEL_DEFINE_QUARK_FUNC(lomo)
 
 gboolean
 lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -94,6 +99,61 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	g_object_unref(G_OBJECT(engine));
 
 	return TRUE;
+}
+
+void
+lomo_event_handler_group_free(LomoEventHandlerGroup *group)
+{
+	g_list_foreach(group->signals, (GFunc) g_free, NULL);
+	g_list_free(group->signals);
+	g_list_free(group->handlers);
+	g_free(group);
+}
+
+gpointer
+eina_plugin_lomo_add_handlers(EinaPlugin *plugin, ...)
+{
+	g_warning("This function is unsupported");
+	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
+	g_return_val_if_fail(lomo != NULL, NULL);
+
+	GelApp *app = eina_plugin_get_app(plugin);
+	GHashTable *handlers = gel_app_shared_get(app, "lomo-event-handlers");
+	if (!handlers)
+	{
+		handlers = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) lomo_event_handler_group_free);
+		gel_app_shared_set(app, "lomo-event-handlers", handlers);
+	}
+
+	LomoEventHandlerGroup *group = g_new0(LomoEventHandlerGroup, 1);
+
+	va_list p;
+	gchar *signal;
+	gpointer callback;
+
+	va_start(p, plugin);
+	signal = va_arg(p, gchar*);
+	while (signal != NULL)
+	{
+		callback = va_arg(p, gpointer);
+		if (callback)
+		{
+			g_signal_connect(lomo, signal, callback, plugin);
+			group->signals  = g_list_prepend(group->signals,  g_strdup(signal));
+			group->handlers = g_list_prepend(group->handlers, callback);
+		}
+		signal = va_arg(p, gchar*);
+	}
+	va_end(p);
+
+	g_hash_table_insert(handlers, group, group);
+	return group;
+}
+
+void
+eina_plugin_lomo_remove_handlers(EinaPlugin *plugin, gpointer handler_pointer)
+{
+	g_warning("This function is unsupported");
 }
 
 static void

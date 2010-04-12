@@ -177,7 +177,7 @@ generate_yaml(LastFMSubmit *self, LomoPlayer *lomo, LomoStream *stream)
 gboolean
 lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	LomoPlayer *lomo = gel_app_get_lomo(app);
 	g_return_val_if_fail(lomo != NULL, FALSE);
 
 	LastFMSubmit *self = g_new0(LastFMSubmit, 1);
@@ -196,7 +196,7 @@ lastfm_submit_init(GelApp *app, EinaPlugin *plugin, GError **error)
 gboolean
 lastfm_submit_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	LomoPlayer *lomo = gel_app_get_lomo(app);
 	g_return_val_if_fail(lomo != NULL, FALSE);
 
 	LastFMSubmit *self = EINA_PLUGIN_DATA(plugin)->submit;

@@ -115,7 +115,7 @@ log_init(GelApp *app, GelPlugin *plugin, GError **error)
 		build_player(self);
 
 	// If lomo is loaded attach signals
-	if (GEL_APP_GET_LOMO(app))
+	if (gel_app_get_lomo(app))
 		setup_lomo(self);
 	
 	g_signal_connect(app, "plugin-load",   (GCallback) plugin_load_cb,   self);
@@ -252,7 +252,7 @@ setup_lomo(EinaLog *self)
 {
 	g_return_val_if_fail((self->flags & FLAG_LOMO_INIT) == 0, FALSE);
 
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
+	LomoPlayer *lomo = gel_app_get_lomo(self->app);
 	g_return_val_if_fail(lomo != NULL, FALSE);
 
 #if LOG_SIGNALS

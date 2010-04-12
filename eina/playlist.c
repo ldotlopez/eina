@@ -512,11 +512,11 @@ playlist_dequeue_selected(EinaPlaylist *self)
 		LomoStream *stream;
 		gtk_tree_model_get(model, &iter, PLAYLIST_COLUMN_STREAM, &stream, -1);
 
-		gint idx = lomo_player_queue_index(EINA_OBJ_GET_LOMO(self), stream);
+		gint idx = lomo_player_queue_index(eina_obj_get_lomo(self), stream);
 		if (idx == -1)
 			gel_warn("Stream not in queue");
 		else
-			lomo_player_dequeue(EINA_OBJ_GET_LOMO(self), idx);
+			lomo_player_dequeue(eina_obj_get_lomo(self), idx);
 	}
 	g_free(indices);
 }

@@ -31,7 +31,7 @@ gboolean eina_obj_init
 
 	self->plugin = plugin;
 	self->name   = g_strdup(name);
-	self->lomo   = GEL_APP_GET_LOMO(gel_plugin_get_app(plugin));
+	self->lomo   = gel_app_get_lomo(gel_plugin_get_app(plugin));
 
 	if (flags & EINA_OBJ_GTK_UI)
 	{

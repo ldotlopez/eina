@@ -24,12 +24,6 @@
 #include "adb.h"
 #include "register.h"
 
-// Consident this view:
-// create view fast_meta as select  t.sid as sid, t.value as title, a.value as artist, b.value
-// as album from (select sid,value from metadata where key='artist') as a join
-// (select sid,value from metadata where key='album') as b using(sid) join
-// (select sid,value from metadata where key='title') as t using(sid);
-
 // --
 // Upgrade callbacks
 // --
@@ -51,13 +45,6 @@ adb_new(GelApp *app, GError **error)
 	const gchar *conf_dir = g_get_user_config_dir();
 	if (!conf_dir)
 		conf_dir = ".cache";
-
-	if (!g_str_equal(SQLITE_VERSION, sqlite3_libversion()))
-	{
-		g_set_error(error, adb_quark(), EINA_ADB_ERROR_VERSION_MISMATCH,
-			N_("Version mismatch. source:%s runtime:%s"), SQLITE_VERSION, sqlite3_libversion());
-		return FALSE;
-	}
 
 	gchar *db_path = g_build_filename(conf_dir, PACKAGE, "adb.db", NULL);
 	gchar *db_dirname = g_path_get_dirname(db_path);

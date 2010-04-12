@@ -22,8 +22,12 @@
 
 #include <gel/gel.h>
 #include <lomo/lomo-player.h>
+#include <eina/eina-plugin.h>
 
 G_BEGIN_DECLS
+
+// FIXME:
+#define EinaPlugin GelPlugin
 
 typedef enum { 
 	EINA_LOMO_NO_ERROR = 0, 
@@ -32,10 +36,15 @@ typedef enum {
 	EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE 
 } EinaLomoError; 
 
-#define GEL_APP_GET_LOMO(app)    ((LomoPlayer *) gel_app_shared_get(app,"lomo"))
-#define EINA_OBJ_GET_LOMO(obj)   GEL_APP_GET_LOMO(eina_obj_get_app(obj))
+#define gel_app_get_lomo(app)        LOMO_PLAYER(gel_app_shared_get(app,"lomo"))
+#define eina_plugin_get_lomo(plugin) gel_app_get_lomo(gel_plugin_get_app(plugin))
+#define eina_obj_get_lomo(obj)       gel_app_get_lomo(eina_obj_get_app(obj))
 
-#define gel_app_get_lomo(app)  LOMO_PLAYER(gel_app_shared_get(app,"lomo"))
+gpointer
+eina_plugin_lomo_add_handlers(EinaPlugin *plugin, ...);
+
+void
+eina_plugin_lomo_remove_handlers(EinaPlugin *plugin, gpointer handler_pointer); 
 
 G_END_DECLS
 

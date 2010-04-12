@@ -72,7 +72,6 @@ eina_obj_strip(EinaObj *self, EinaObjFlag flags);
 #define EINA_OBJ(s)    ((EinaObj *)s)
 #define eina_obj_get_app(self)    gel_plugin_get_app(eina_obj_get_plugin(self))
 #define eina_obj_get_plugin(self) EINA_OBJ(self)->plugin
-#define eina_obj_get_lomo(self)   EINA_OBJ(self)->lomo
 #define eina_obj_get_ui(self)     EINA_OBJ(self)->ui
 
 #define eina_obj_get_object(self,name)     gtk_builder_get_object(eina_obj_get_ui(self),name)

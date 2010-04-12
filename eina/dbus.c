@@ -47,7 +47,7 @@ key_pressed
 	if (!g_str_equal(application, PACKAGE))
 		return;
 	
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	LomoPlayer *lomo = gel_app_get_lomo(app);
 	if (lomo == NULL)
 	{
 		gel_error("No lomo available, ignoring key");

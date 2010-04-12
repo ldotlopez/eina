@@ -110,7 +110,7 @@ adb_register_enable(Adb *self)
 		return;
 	}
 
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
+	LomoPlayer *lomo = gel_app_get_lomo(self->app);
 	if (lomo == NULL)
 		g_signal_connect(self->app, "plugin-init", (GCallback) app_plugin_init_cb, self);
 	else
@@ -121,7 +121,7 @@ adb_register_enable(Adb *self)
 void
 adb_register_disable(Adb *self)
 {
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
+	LomoPlayer *lomo = gel_app_get_lomo(self->app);
 	if (lomo != NULL)
 		adb_register_disconnect_lomo(self, lomo);
 }
@@ -186,7 +186,7 @@ app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Adb *self)
 {
 	if (!g_str_equal(plugin->name, "lomo"))
 		return;
-	adb_register_connect_lomo(self, GEL_APP_GET_LOMO(app));
+	adb_register_connect_lomo(self, gel_app_get_lomo(app));
 }
 
 static void
