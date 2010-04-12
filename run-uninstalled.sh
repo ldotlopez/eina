@@ -29,25 +29,38 @@ do
 	done
 done
 
+BIN=""
+for i in eina/eina eina/.libs/eina
+do
+	if [ "$(file -ib "$i" 2>&1 | cut -d ";" -f 1)" = "application/octet-stream" ]; then
+		BIN="$i"
+		break
+	fi
+done
+if [ -z "$BIN" ]; then
+	echo "No binary found"
+	exit 1
+fi
+
 if [ ! -z "$1" ]; then
 	case "$1" in
 		ltrace)
 			shift
-			ltrace "`dirname $0`/eina/.libs/eina" "$@"
+			ltrace "`dirname $0`/$BIN" "$@"
 			;;
 		strace)
 			shift
-			strace "`dirname $0`/eina/.libs/eina" "$@"
+			strace "`dirname $0`/$BIN" "$@"
 			;;
 		gdb)
 			shift
-			gdb --args "`dirname $0`/eina/.libs/eina" "$@"
+			gdb --args "`dirname $0`/$BIN" "$@"
 			;;
 		*)
-			"`dirname $0`/eina/eina" "$@"
+			"`dirname $0`/$BIN" "$@"
 			;;
 	esac
 else 
-	"`dirname $0`/eina/eina" "$@"
+	"`dirname $0`/$BIN" "$@"
 fi
 

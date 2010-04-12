@@ -267,10 +267,10 @@ gint main
 			if (g_file_get_contents(file, &buff, NULL, NULL))
 			{
 				gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
-				lomo_player_append_uri_strv(GEL_APP_GET_LOMO(app), uris);
+				lomo_player_append_uri_strv(gel_app_get_lomo(app), uris);
 				gint current = eina_conf_get_int(GEL_APP_GET_SETTINGS(app), "/playlist/last_current", 0);
 				if (current >= 0)
-					lomo_player_go_nth( GEL_APP_GET_LOMO(app), current, NULL);
+					lomo_player_go_nth( gel_app_get_lomo(app), current, NULL);
 				g_strfreev(uris);
 				g_free(buff);
 			}
