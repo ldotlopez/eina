@@ -32,9 +32,13 @@ done
 BIN=""
 for i in eina/eina eina/.libs/eina
 do
-	if [ "$(file -ib "$i" 2>&1 | cut -d ";" -f 1)" = "application/octet-stream" ]; then
-		BIN="$i"
-		break
+	MIME="$(file -ib "$i" 2>&1 | cut -d ";" -f 1)"
+	if [ \
+		\( "$MIME" = "application/octet-stream" \) -o \
+		\( "$MIME" = "application/x-executable" \) \
+		]; then
+			BIN="$i"
+			break
 	fi
 done
 if [ -z "$BIN" ]; then
