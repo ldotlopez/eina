@@ -17,15 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gprintf.h>
 #include "eina-cover.h"
+#include <glib/gi18n.h>
+#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_COVER, EinaCoverPrivate))
 
-// #define debug(...) g_printf(__VA_ARGS__)
+// #define debug(...) g_warning(__VA_ARGS__)
 #define debug(...) ;
 
 typedef struct _EinaCoverPrivate EinaCoverPrivate;
@@ -54,6 +55,10 @@ enum {
 	PROPERTY_LOADING_PIXBUF
 };
 
+void
+cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb);
+static void
+weak_ref_cb (gpointer data, GObject *_object);
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self);
 static void
@@ -101,9 +106,25 @@ eina_cover_set_property (GObject *object, guint property_id,
 	}
 }
 
+#define dispose_pixbuf(pb) \
+	G_STMT_START { \
+		if (pb) \
+		{ \
+			g_object_weak_unref((GObject *) pb, weak_ref_cb, NULL); \
+			g_object_unref(pb); \
+			pb = NULL; \
+		} \
+	} G_STMT_END
+
 static void
 eina_cover_dispose (GObject *object)
 {
+	EinaCover *self = EINA_COVER(object);
+	EinaCoverPrivate *priv = GET_PRIVATE(self);
+
+	dispose_pixbuf(priv->default_pb);
+	dispose_pixbuf(priv->loading_pb);
+
 	G_OBJECT_CLASS (eina_cover_parent_class)->dispose (object);
 }
 
@@ -194,20 +215,16 @@ eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer)
 
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 	if (priv->renderer)
-	{
 		gtk_container_remove((GtkContainer *) self, priv->renderer); 
-		// g_object_unref(priv->renderer);
-	}
 
 	priv->renderer = renderer;
 	if (priv->renderer)
 	{
 		gtk_container_add(GTK_CONTAINER(self), renderer);
 		gtk_widget_set_visible(renderer, TRUE);
-		// g_object_ref(renderer);
 
-		g_object_set(renderer, "asis",   ((priv->curr_pb == priv->default_pb) || (priv->curr_pb == priv->loading_pb)), NULL);
-		g_object_set(renderer, "cover", priv->curr_pb ? priv->curr_pb : priv->default_pb, NULL);
+		if (priv->curr_pb || priv->default_pb)
+			cover_set_pixbuf(self,  priv->curr_pb ? priv->curr_pb : priv->default_pb );
 	}
 	else
 	{
@@ -268,9 +285,11 @@ eina_cover_set_default_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 	if (priv->default_pb)
 		g_object_unref(priv->default_pb);
 
-	priv->default_pb = pixbuf;
 	if (pixbuf)
-		g_object_ref(pixbuf);
+	{
+		priv->default_pb = g_object_ref_sink(pixbuf);
+		g_object_weak_ref((GObject *) priv->default_pb, (GWeakNotify) weak_ref_cb, NULL);
+	}
 }
 
 void
@@ -280,9 +299,11 @@ eina_cover_set_loading_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 	if (priv->loading_pb)
 		g_object_unref(priv->loading_pb);
 
-	priv->loading_pb = pixbuf;
 	if (pixbuf)
-		g_object_ref(pixbuf);
+	{
+		priv->loading_pb = g_object_ref_sink(pixbuf);
+		g_object_weak_ref((GObject *) priv->loading_pb, (GWeakNotify) weak_ref_cb, NULL);
+	}
 }
 
 void
@@ -301,7 +322,10 @@ cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 		return;
 
 	if (pb == NULL)
+	{
+		debug("Setting pixbuf to NULL (no search result?), using default");
 		pb = priv->default_pb;
+	}
 	g_return_if_fail(GDK_IS_PIXBUF(pb));
 
 	if (pb == priv->curr_pb)
@@ -371,13 +395,13 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (!priv->art)
 	{
 		debug(" no art interface, set default cover\n");
-		cover_set_pixbuf(self, priv->default_pb);
+		cover_set_pixbuf(self, priv->default_pb); 
 		return;
 	}
 
 	if (!stream)
 	{
-		debug(" no stream\n");
+		debug(" no stream, set default cover\n");
 		cover_set_pixbuf(self, priv->default_pb);
 		return;
 	}
@@ -390,6 +414,13 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 		cover_set_loading(self);
 	}
 }
+
+static void
+weak_ref_cb (gpointer data, GObject *_object)
+{
+	g_warning(N_("Protected object %p is begin destroyed. There is a bug somewhere, set a breakpoint on %s"), _object, __FUNCTION__);
+}
+
 
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
