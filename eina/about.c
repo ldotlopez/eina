@@ -71,7 +71,7 @@ eina_about_show(EinaAbout *self)
 		NULL
 	};
 	gchar *authors[] = {
-		"xuzo <xuzo@cuarentaydos.com>",
+		"Luis Lopez <luis.lopez@cuarentaydos.com>",
 		NULL
 	};
 	gchar *license = 
