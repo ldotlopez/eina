@@ -39,6 +39,8 @@ enum {
 	EINA_ADB_UPGRADE_QUERY_FAILED
 };
 
+#include "eina-adb-lomo.h"
+
 GType eina_adb_get_type (void);
 
 EinaAdb* eina_adb_new (void);

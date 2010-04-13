@@ -93,7 +93,29 @@ static gchar *schema_2[] = {
 		NULL
 };
 
-static gchar **schema_queries[] = { schema_1, schema_2, NULL };
+static gchar *schema_3[] = {
+		"DROP TABLE IF EXISTS recent_plays;",
+		"CREATE TABLE recent_plays ("
+		"	sid INTEGER NOT NULL,"
+		"	timestamp TIMESTAMP NOT NULL,"
+		"	CONSTRAINT recent_plays_pk PRIMARY KEY(sid,timestamp),"
+		"	CONSTRAINT recent_plays_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
+		");",
+
+		"DROP TABLE IF EXISTS historic_plays;",
+		"CREATE TABLE historic_plays ("
+		"	sid INTEGER NOT NULL,"
+		"	timestamp TIMESTAMP NOT NULL,"
+		"	aggregation_timestamp TIMESTAMP NOT NULL,"
+		"	count INTEGER NOT NULL DEFAULT 0,"
+		"	CONSTRAINT historic_plays_pk PRIMARY KEY(sid),"
+		"	CONSTRAINT historic_plays_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
+		");",
+
+		NULL
+};
+
+static gchar **schema_queries[] = { schema_1, schema_2, schema_3, NULL };
 
 // Our data
 static GList *__playlist = NULL;

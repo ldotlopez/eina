@@ -360,6 +360,8 @@ plugins_adb_libadb_la_SOURCES = \
 	plugins/adb/eina-adb.c \
 	plugins/adb/eina-adb.h \
 	plugins/adb/eina-adb-upgrade.c \
+	plugins/adb/eina-adb-lomo.c \
+	plugins/adb/eina-adb-lomo.h \
 	plugins/adb/register.c \
 	plugins/adb/register.h \
 	plugins/adb/adb.c      \
