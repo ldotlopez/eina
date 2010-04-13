@@ -207,7 +207,7 @@ lomo_eos_cb(LomoPlayer *lomo, EinaAdb *adb)
 	if ((__markers.played >= 30) && (__markers.played >= (lomo_player_length_time(lomo) / 2)) && !__markers.submited)
 	{
 		debug("Submit to lastfm");
-		eina_adb_queue_query(adb, "UPDATE streams SET (played,count) VALUES(DATETIME('NOW', 'UTC'), count + 1) WHERE uri='%q' LIMIT 1;",
+		eina_adb_queue_query(adb, "UPDATE streams SET played = DATETIME('NOW', 'UTC'), count = (count + 1) WHERE uri='%q';",
 			(gchar *) lomo_stream_get_tag(lomo_player_get_current_stream(lomo), LOMO_TAG_URI));
 		__markers.submited = TRUE;
 	}
