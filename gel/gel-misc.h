@@ -63,13 +63,21 @@ typedef enum GelFileLoadCode {
 typedef gchar*   (*GelListPrintfFunc)(const gpointer data);
 typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 
-#define GEL_AUTO_QUARK_FUNC(name) \
+#define GEL_AUTO_QUARK_FUNC(name) GEL_DEFINE_QUARK_FUNC(name)
+#define GEL_DEFINE_QUARK_FUNC(name) \
 	static GQuark name ## _quark(void) \
 	{ \
 		static GQuark ret = 0; \
 		if (ret == 0) \
 			ret = g_quark_from_static_string(G_STRINGIFY(name)); \
 		return ret; \
+	}
+
+#define GEL_DEFINE_WEAK_REF_CALLBACK(name) \
+	static void \
+	name ## _weak_ref_cb (gpointer data, GObject *_object) \
+	{ \
+	    g_warning("Protected object %p is begin destroyed. There is a bug somewhere, set a breakpoint on %s", _object, G_STRINGIFY(name)  "_weak_ref_cb"); \
 	}
 
 // --
