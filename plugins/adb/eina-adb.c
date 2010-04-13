@@ -339,13 +339,18 @@ eina_adb_result_free(EinaAdbResult *result)
 // Queue querys
 // --
 void
-eina_adb_queue_query(EinaAdb *self, char *query)
+eina_adb_queue_query(EinaAdb *self, gchar *query, ...)
 {
 	g_return_if_fail(EINA_IS_ADB(self));
 	g_return_if_fail(query != NULL);
 	EinaAdbPrivate *priv = GET_PRIVATE(self);
 
-	g_queue_push_tail(priv->queue, query);
+	va_list args;
+	va_start(args, query);
+	gchar *q = sqlite3_vmprintf(query, args);
+	va_end(args);
+
+	g_queue_push_tail(priv->queue, q);
 	adb_schedule_flush(self);
 }
 

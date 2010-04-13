@@ -57,7 +57,7 @@ eina_adb_set_db_file(EinaAdb *self, const gchar *path);
 // Query queue
 // --
 void
-eina_adb_queue_query(EinaAdb *self, char *query);
+eina_adb_queue_query(EinaAdb *self, gchar *query, ...);
 void
 eina_adb_flush(EinaAdb *self);
 
