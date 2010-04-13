@@ -357,10 +357,13 @@ plugins_adb_LTLIBRARIES = plugins/adb/libadb.la
 plugins_adb_libadb_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ 
 plugins_adb_libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
 plugins_adb_libadb_la_SOURCES = \
+	plugins/adb/eina-adb.c \
+	plugins/adb/eina-adb.h \
+	plugins/adb/eina-adb-upgrade.c \
 	plugins/adb/register.c \
 	plugins/adb/register.h \
 	plugins/adb/adb.c      \
-	plugins/adb/iface.c
+	plugins/adb/adb.h
 endif
 
 EXTRA_DIST += \

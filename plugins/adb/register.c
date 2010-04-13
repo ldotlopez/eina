@@ -17,32 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Plugin::Adb"
-#include <eina/eina-plugin.h>
-#include <plugins/adb/adb.h>
-#include "register.h"
+#include "eina-adb.h"
+#include <string.h>
+#include <lomo/lomo-player.h>
+#include <gel/gel.h>
+
+GEL_DEFINE_WEAK_REF_CALLBACK(adb_register)
 
 static void
-adb_register_connect_lomo(Adb *self, LomoPlayer *lomo);
+lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self);
 static void
-adb_register_disconnect_lomo(Adb *self, LomoPlayer *lomo);
+lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self);
 static void
-app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Adb *self);
+lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self);
 static void
-app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Adb *self);
-static void
-lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
-static void
-lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data);
-static void
-lomo_clear_cb(LomoPlayer *lomo, gpointer data);
-void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data);
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaAdb *self);
 
-gboolean
-adb_register_setup_0(Adb *self, gpointer data, GError **error)
-{
-	gchar *q[] = {
+static gchar *schema_1[] = {
 		"DROP TABLE IF EXISTS streams;",
 		"CREATE TABLE streams ("
 		"	sid INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -72,15 +63,9 @@ adb_register_setup_0(Adb *self, gpointer data, GError **error)
 		");",
 
 		NULL
-	};
-	return adb_exec_queryes(self, q, NULL, error);
-}
+};
 
-gboolean
-adb_register_setup_1(Adb *self, gpointer data, GError **error)
-{
-	gchar *q[] = 
-	{
+static gchar *schema_2[] = {
 		"DROP VIEW IF EXISTS fast_meta;",
 		"CREATE VIEW fast_meta AS"
 		"  SELECT t.sid AS sid, t.value AS title, a.value AS artist, b.value AS album FROM"
@@ -89,163 +74,90 @@ adb_register_setup_1(Adb *self, gpointer data, GError **error)
 		"    (SELECT sid,value FROM metadata WHERE key='title')  AS t USING(sid);",
 
 		NULL
-	};
-	return adb_exec_queryes(self, q, NULL, error);
+};
+
+static gchar **schema_queries[] = { schema_1, schema_2, NULL };
+
+static GList *__playlist = NULL;
+
+struct {
+	gchar *signal;
+	gpointer handler;
+} signal_table[] = {
+	{ "insert",   lomo_insert_cb   },
+	{ "remove",   lomo_remove_cb   },
+	{ "clear",    lomo_clear_cb    },
+	{ "all-tags", lomo_all_tags_cb },
+	{ NULL, NULL }
+};
+
+void
+adb_register_start(EinaAdb *self, LomoPlayer *lomo)
+{
+	g_return_if_fail(EINA_IS_ADB(self));
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+
+	g_return_if_fail(eina_adb_upgrade_schema(self, "register", schema_queries, NULL));
+
+	g_object_ref(lomo);
+	g_object_weak_ref((GObject *) lomo, adb_register_weak_ref_cb, NULL);
+
+	gint i;
+	for (i = 0; signal_table[i].signal != NULL; i++)
+		g_signal_connect(lomo, signal_table[i].signal, (GCallback) signal_table[i].handler, self);
 }
 
 void
-adb_register_enable(Adb *self)
+adb_register_stop(EinaAdb *self, LomoPlayer *lomo)
 {
-	gpointer callbacks[] = {
-		adb_register_setup_0,
-		adb_register_setup_1,
-		NULL
-		};
+	g_return_if_fail(EINA_IS_ADB(self));
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
-	GError *error = NULL;
-	if (!adb_schema_upgrade(self, "register", callbacks, NULL, &error))
-	{
-		gel_error("Cannot enable register: %s", error->message);
-		g_error_free(error);
-		return;
-	}
+	gint i;
+	for (i = 0; signal_table[i].signal != NULL; i++)
+		g_signal_handlers_disconnect_by_func(lomo, signal_table[i].handler, self);
 
-	LomoPlayer *lomo = gel_app_get_lomo(self->app);
-	if (lomo == NULL)
-		g_signal_connect(self->app, "plugin-init", (GCallback) app_plugin_init_cb, self);
-	else
-		adb_register_connect_lomo(self, lomo);
-
-}
-
-void
-adb_register_disable(Adb *self)
-{
-	LomoPlayer *lomo = gel_app_get_lomo(self->app);
-	if (lomo != NULL)
-		adb_register_disconnect_lomo(self, lomo);
-}
-
-// --
-// Create table for registers
-// --
-void
-adb_register_setup_db(Adb *self)
-{
-	gint   schema_version;
-	gchar *schema_version_str = adb_variable_get(self, "schema-version");
-	if (schema_version_str == NULL)
-		schema_version = -1;
-	else
-	{
-		schema_version = atoi((gchar *) schema_version_str);
-		g_free(schema_version_str);
-	}
-}
-
-// --
-// Connect 'add' from lomo
-// Disconnect 'plugin-init' form app
-// Connect 'plugin-fini' from app
-// --
-static void
-adb_register_connect_lomo(Adb *self, LomoPlayer *lomo)
-{
-	if (lomo == NULL) return;
-
-	g_signal_handlers_disconnect_by_func(self->app, app_plugin_init_cb, self);
-	g_signal_connect(self->app, "plugin-fini", (GCallback) app_plugin_fini_cb, self);
-	g_signal_connect(lomo,      "insert",      (GCallback) lomo_insert_cb,     self);
-	g_signal_connect(lomo,      "remove",      (GCallback) lomo_remove_cb,     self);
-	g_signal_connect(lomo,      "clear",       (GCallback) lomo_clear_cb,      self);
-	g_signal_connect(lomo,      "all-tags",    (GCallback) lomo_all_tags_cb,   self);
-}
-
-// --
-// Disconnect 'add' from lomo
-// Connect 'plugin-init' from app
-// Disconnect 'plugin-fini' from app
-static void
-adb_register_disconnect_lomo(Adb *self, LomoPlayer *lomo)
-{
-	if (lomo == NULL) return;
-
-	g_signal_handlers_disconnect_by_func(lomo, lomo_insert_cb, self);
-	g_signal_handlers_disconnect_by_func(lomo, lomo_remove_cb, self);
-	g_signal_handlers_disconnect_by_func(lomo, lomo_clear_cb, self);
-	g_signal_handlers_disconnect_by_func(lomo, lomo_all_tags_cb, self);
-	g_signal_connect(self->app, "plugin-init", (GCallback)  app_plugin_init_cb, self);
-	g_signal_handlers_disconnect_by_func(self->app, app_plugin_fini_cb, self);
-}
-
-// --
-// Handle load/unload of lomo plugin
-// --
-static void
-app_plugin_init_cb(GelApp *app, GelPlugin *plugin, Adb *self)
-{
-	if (!g_str_equal(plugin->name, "lomo"))
-		return;
-	adb_register_connect_lomo(self, gel_app_get_lomo(app));
+	g_object_weak_unref((GObject *) lomo, adb_register_weak_ref_cb, NULL);
+	g_object_unref(lomo);
 }
 
 static void
-app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, Adb *self)
+lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self)
 {
-	if (!g_str_equal(plugin->name, "lomo"))
-		return;
-	adb_register_disconnect_lomo(self, gel_app_shared_get(app, "lomo"));
-}
-
-// --
-// Register each stream added
-// --
-static void
-lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
-{
-	Adb *self = (Adb *) data;
-
-	self->pl = g_list_prepend(self->pl, g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_URI)));
+	g_return_if_fail(EINA_IS_ADB(self));
 
 	gchar *uri = (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI);
-	gchar *q[2];
-	q[0] = sqlite3_mprintf(
+	eina_adb_queue_query(self, sqlite3_mprintf(
 		"INSERT OR IGNORE INTO streams (uri,timestamp) VALUES("
 			"'%q',"
 			"DATETIME('NOW', 'UTC'));",
-			uri);
-	q[1] = NULL;
-
-	GError *error = NULL;
-	if (!adb_exec_queryes((Adb*) data, q, NULL, &error))
-	{
-		gel_error("%s", error->message);
-		g_error_free(error);
-	}
-	sqlite3_free(q[0]);
+			uri));
+	__playlist = g_list_prepend(__playlist, g_strdup(uri));
 }
 
 static void
-lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, gpointer data)
+lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self)
 {
-	Adb *self = (Adb *) data;
+	g_return_if_fail(EINA_IS_ADB(self));
+
 	GList *p;
-	if ((p = g_list_find_custom(self->pl, lomo_stream_get_tag(stream, LOMO_TAG_URI), (GCompareFunc) strcmp)) == NULL)
+	if ((p = g_list_find_custom(__playlist, lomo_stream_get_tag(stream, LOMO_TAG_URI), (GCompareFunc) strcmp)) == NULL)
 	{
-		gel_warn("Deleted stream not found");
+		g_warning("Deleted stream not found in internal playlist");
 		return;
 	}
-	self->pl = g_list_remove_link(self->pl, p);
+	__playlist = g_list_remove_link(__playlist, p);
 	g_free(p->data);
 	g_list_free(p);
 }
 
 static void
-lomo_clear_cb(LomoPlayer *lomo, gpointer data)
+lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self)
 {
+	g_return_if_fail(EINA_IS_ADB(self));
 
-	Adb *self = (Adb *) data;
-	char *err = NULL;
+	if (!__playlist) return;
+
 	GTimeVal now; g_get_current_time(&now);
 	gchar *now_str = g_time_val_to_iso8601(&now);
 
@@ -253,58 +165,24 @@ lomo_clear_cb(LomoPlayer *lomo, gpointer data)
 	g_date_clear(&dt, 1);
 	g_date_set_time_val(&dt, &now);
 
-	if (sqlite3_exec(self->db, "BEGIN TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
-	{
-		gel_warn("Cannot begin transaction: %s", err);
-		sqlite3_free(err);
-		return;
-	}
-
-	self->pl = g_list_reverse(self->pl);
-	GList *iter = self->pl;
+	GList *iter = __playlist = g_list_reverse(__playlist);
 	while (iter)
 	{
-		char *q = sqlite3_mprintf("INSERT INTO playlist_history VALUES('%s',(SELECT sid FROM streams WHERE uri='%q'));", now_str, iter->data);
-		if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
-		{
-			gel_warn("Cannot update playlist_history: %s", err);
-			sqlite3_exec(self->db, "ROLLBACK;", NULL, NULL, NULL);
-			sqlite3_free(q);
-			goto lomo_clear_cb_return;
-		}
-		sqlite3_free(q);
+		eina_adb_queue_query(self, sqlite3_mprintf(
+			"INSERT INTO playlist_history VALUES('%s',(SELECT sid FROM streams WHERE uri='%q'));", now_str, iter->data));
+		g_free(iter->data);
 		iter = iter->next;
 	}
+	g_list_free(__playlist);
+	__playlist = NULL;
 
-	if (sqlite3_exec(self->db, "END TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
-	{
-		gel_warn("Cannot end transaction: %s", err);
-		goto lomo_clear_cb_return;
-	}
-lomo_clear_cb_return:
-	gel_free_and_invalidate(err, NULL, sqlite3_free);
-	gel_free_and_invalidate(now_str, NULL, g_free);
-	if (self->pl != NULL)
-	{
-		gel_list_deep_free(self->pl, g_free);
-		self->pl = NULL;
-	}
+	g_free(now_str);
 }
 
-
-void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
+static void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaAdb *self)
 {
-
-	Adb *self = (Adb *) data;
-	char *err = NULL;
-
-	if (sqlite3_exec(self->db, "BEGIN TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
-	{
-		gel_warn("Cannot begin transaction: %s", err);
-		sqlite3_free(err);
-		return;
-	}
+	g_return_if_fail(EINA_IS_ADB(self));
 
 	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 	GList *tags = lomo_stream_get_tags(stream);
@@ -319,21 +197,11 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, gpointer data)
 		}
 
 		gchar *value = (gchar *) lomo_stream_get_tag(stream, iter->data);
-		char *q = sqlite3_mprintf("INSERT OR IGNORE INTO metadata "
-			"VALUES((SELECT sid FROM streams WHERE uri='%q'), '%q', '%q');", uri, tag, value);
-		if (sqlite3_exec(self->db, q, NULL, NULL, &err) != SQLITE_OK)
-		{
-			gel_warn("Cannot store metadata %s for %s: %s", tag, uri, err);
-			sqlite3_free(err);
-			err = NULL;
-		}
-
+		eina_adb_queue_query(self, sqlite3_mprintf("INSERT OR IGNORE INTO metadata "
+			"VALUES((SELECT sid FROM streams WHERE uri='%q'), '%q', '%q');", uri, tag, value));
 		iter = iter->next;
 	}
 	gel_list_deep_free(tags, (GFunc) g_free);
-
-	if (sqlite3_exec(self->db, "END TRANSACTION;", NULL, NULL, &err) != SQLITE_OK)
-		gel_warn("Cannot end transaction: %s", err);
-
 }
+
 

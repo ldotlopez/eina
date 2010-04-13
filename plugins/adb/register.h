@@ -17,15 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <plugins/adb/adb.h>
-
 G_BEGIN_DECLS
 
-void
-adb_register_enable(Adb *self);
+#include "eina-adb.h"
+#include <lomo/lomo-player.h>
 
-void
-adb_register_disable(Adb *self);
+void adb_register_start(EinaAdb *adb, LomoPlayer *lomo);
+void adb_register_stop (EinaAdb *adb, LomoPlayer *lomo);
 
 G_END_DECLS
 

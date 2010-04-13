@@ -249,8 +249,8 @@ muine_model_refresh(EinaMuine *self)
 		return;
 	}
 
-	Adb *adb = eina_obj_get_adb(self);
-	AdbResult *r = adb_query(adb, q, NULL);
+	EinaAdb *adb = eina_obj_get_adb(self);
+	EinaAdbResult *r = eina_adb_query(adb, q, NULL);
 	if (!r)
 	{
 		gel_warn("Query failed");
@@ -261,9 +261,9 @@ muine_model_refresh(EinaMuine *self)
 	gchar *db_album = NULL, *db_artist = NULL;
 	gchar *album = NULL, *artist = NULL;
 	gint   count;
-	while (adb_result_step(r))
+	while (eina_adb_result_step(r))
 	{
-		if (!adb_result_get(r,
+		if (!eina_adb_result_get(r,
 			0, G_TYPE_UINT, &count,
 			1, G_TYPE_STRING, &db_artist,
 			2, G_TYPE_STRING, &db_album,
@@ -310,7 +310,7 @@ muine_model_refresh(EinaMuine *self)
 		gel_free_and_invalidate(artist, NULL, g_free);
 		gel_free_and_invalidate(album,  NULL, g_free);
 	}
-	adb_result_free(r);
+	eina_adb_result_free(r);
 }
 
 static void
@@ -371,8 +371,8 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 		return NULL;
 	}
 
-	Adb *adb = eina_obj_get_adb(self);
-	AdbResult *r = adb_query(adb, q, id);
+	EinaAdb *adb = eina_obj_get_adb(self);
+	EinaAdbResult *r = eina_adb_query(adb, q, id);
 	if (r == NULL)
 	{
 		gel_warn(N_("Unable to build query '%s'"), q);
@@ -381,10 +381,10 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 
 	GList *uris = NULL;
 	gchar *uri;
-	while (adb_result_step(r))
-		if (adb_result_get(r, 0, G_TYPE_STRING, &uri, -1))
+	while (eina_adb_result_step(r))
+		if (eina_adb_result_get(r, 0, G_TYPE_STRING, &uri, -1))
 			uris = g_list_prepend(uris, uri);
-	adb_result_free(r);
+	eina_adb_result_free(r);
 
 	return g_list_reverse(uris);
 }
