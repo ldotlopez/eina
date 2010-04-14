@@ -181,6 +181,11 @@ gel_run_once_on_idle(GSourceFunc callback, gpointer data, GDestroyNotify destroy
 guint
 gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDestroyNotify destroy);
 
+// --
+// Date time
+// --
+gchar *
+gel_8601_date_now(void);
 
 // --
 // Pointers safe free functions

@@ -429,6 +429,15 @@ gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDe
 	return g_timeout_add_full(interval, G_PRIORITY_DEFAULT_IDLE, gel_run_once_callback_helper, ro, gel_run_once_destroy_helper);
 }
 
+// --
+// Date time
+// --
+gchar *
+gel_8601_date_now(void)
+{
+	GTimeVal now; g_get_current_time(&now);
+	return g_time_val_to_iso8601(&now);
+}
 
 // --
 // Debug functions

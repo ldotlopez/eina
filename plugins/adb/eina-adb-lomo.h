@@ -23,8 +23,9 @@
 #include "eina-adb.h"
 #include <lomo/lomo-player.h>
 
-gboolean
-eina_adb_lomo_stream_set_sid(EinaAdb *adb, LomoStream *stream);
+gint
+eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream);
+
 gint
 eina_adb_lomo_stream_get_sid(EinaAdb *adb, LomoStream *stream);
 

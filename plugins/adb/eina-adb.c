@@ -224,27 +224,39 @@ EinaAdbResult*
 eina_adb_query(EinaAdb *self, gchar *query, ...)
 {
 	g_return_val_if_fail(EINA_IS_ADB(self), FALSE);
-	EinaAdbPrivate *priv = GET_PRIVATE(self);
+	g_return_val_if_fail(query != NULL, NULL);
 
 	va_list args;
 	va_start(args, query);
 	gchar *q = sqlite3_vmprintf(query, args);
 	va_end(args);
 
-	if (!q)
-		goto adb_query_fail;
+	g_return_val_if_fail(q != NULL, NULL);
 
 	sqlite3_stmt *stmt = NULL;
-	if (sqlite3_prepare_v2(priv->db, q, -1, &stmt, NULL) != SQLITE_OK)
-		goto adb_query_fail;
+	if (!(stmt = eina_adb_query_raw(self, q)))
+	{
+		sqlite3_free(q);
+		g_return_val_if_fail(stmt != NULL, NULL);
+	}
 
 	sqlite3_free(q);
 	return stmt;
+}
 
-adb_query_fail:
-	if (q)
-		sqlite3_free(q);
-	return NULL;
+EinaAdbResult*
+eina_adb_query_raw(EinaAdb *self, gchar *query)
+{
+	g_return_val_if_fail(EINA_IS_ADB(self), NULL);
+	g_return_val_if_fail(query != NULL, NULL);
+
+	EinaAdbPrivate *priv = GET_PRIVATE(self);
+	
+	int code;
+	sqlite3_stmt *stmt = NULL;
+	if ((code = sqlite3_prepare_v2(priv->db, query, -1, &stmt, NULL)) != SQLITE_OK)
+		g_warning("Query failed with code %d, query was: '%s'", code, query);
+	return stmt;
 }
 
 gboolean
@@ -276,6 +288,20 @@ eina_adb_query_exec(EinaAdb *self, gchar *q, ...)
 		sqlite3_free(query);
 		return FALSE;
 	}
+}
+
+gint
+eina_adb_changes(EinaAdb *self)
+{
+	g_return_val_if_fail(EINA_IS_ADB(self), -1);
+	return (gint) sqlite3_changes(GET_PRIVATE(self)->db);
+}
+
+gint
+eina_adb_result_column_count(EinaAdbResult *result)
+{
+	g_return_val_if_fail(result != NULL, -1);
+	return sqlite3_column_count((sqlite3_stmt *) result);
 }
 
 gboolean

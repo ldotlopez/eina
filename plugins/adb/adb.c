@@ -28,19 +28,6 @@
 GEL_DEFINE_QUARK_FUNC(adb)
 
 static gboolean
-lomo_insert_hook(LomoPlayer *lomo, LomoPlayerHookEvent event, gpointer ret, EinaAdb *adb)
-{
-	if (event.type != LOMO_PLAYER_HOOK_INSERT)
-		return FALSE;
-	g_return_val_if_fail(EINA_IS_ADB(adb), FALSE);
-	g_return_val_if_fail(LOMO_IS_STREAM(event.stream), FALSE);
-
-	eina_adb_lomo_stream_set_sid(adb, event.stream);
-
-	return FALSE;
-}
-
-static gboolean
 adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaAdb *adb = eina_adb_new();
@@ -73,20 +60,7 @@ adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
-	
-	GList *pl = lomo_player_get_playlist(lomo);
-	GList *iter = pl;
-	while (iter)
-	{
-		eina_adb_lomo_stream_set_sid(adb, LOMO_STREAM(iter->data));
-		iter = iter->next;
-	}
-	g_list_free(pl);
-
-	lomo_player_hook_add(lomo, (LomoPlayerHook) lomo_insert_hook, adb);
-
-	adb_register_start(adb, lomo);
+	adb_register_start(adb, eina_plugin_get_lomo(plugin));
 
 	return ret;
 }

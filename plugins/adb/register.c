@@ -33,6 +33,9 @@ reset_counters(void);
 static inline void
 set_checkpoint(gint64 check_point, gboolean add);
 
+static gboolean
+lomo_insert_hook(LomoPlayer *lomo, LomoPlayerHookEvent event, gpointer ret, EinaAdb *adb);
+
 static void
 lomo_state_change_cb(LomoPlayer *lomo);
 static void
@@ -155,6 +158,17 @@ adb_register_start(EinaAdb *self, LomoPlayer *lomo)
 	g_object_ref(lomo);
 	g_object_weak_ref((GObject *) lomo, adb_register_weak_ref_cb, NULL);
 
+	GList *pl = lomo_player_get_playlist(lomo);
+	GList *iter = pl;
+	while (iter)
+	{
+		eina_adb_lomo_stream_attach_sid(self, LOMO_STREAM(iter->data));
+		iter = iter->next;
+	}
+	g_list_free(pl);
+
+	lomo_player_hook_add(lomo, (LomoPlayerHook) lomo_insert_hook, self);
+
 	gint i;
 	for (i = 0; __signal_table[i].signal != NULL; i++)
 		g_signal_connect(lomo, __signal_table[i].signal, (GCallback) __signal_table[i].handler, self);
@@ -174,7 +188,6 @@ adb_register_stop(EinaAdb *self, LomoPlayer *lomo)
 	g_object_unref(lomo);
 }
 
-
 static inline void
 reset_counters(void)
 {
@@ -192,6 +205,18 @@ set_checkpoint(gint64 check_point, gboolean add)
 		__markers.played += (check_point - __markers.check_point);
 	__markers.check_point = check_point;
 	debug("  Currently %"G_GINT64_FORMAT" secs played", lomo_nanosecs_to_secs(__markers.played));
+}
+
+static gboolean
+lomo_insert_hook(LomoPlayer *lomo, LomoPlayerHookEvent event, gpointer ret, EinaAdb *adb)
+{
+	if (event.type != LOMO_PLAYER_HOOK_INSERT)
+		return FALSE;
+	g_return_val_if_fail(EINA_IS_ADB(adb), FALSE);
+	g_return_val_if_fail(LOMO_IS_STREAM(event.stream), FALSE);
+
+	eina_adb_lomo_stream_attach_sid(adb, event.stream);
+	return FALSE;
 }
 
 static void
@@ -229,8 +254,9 @@ lomo_eos_cb(LomoPlayer *lomo, EinaAdb *adb)
 	if ((__markers.played >= 30) && (__markers.played >= (lomo_player_length_time(lomo) / 2)) && !__markers.submited)
 	{
 		debug("Submit to lastfm");
-		eina_adb_queue_query(adb, "UPDATE streams SET played = DATETIME('NOW', 'UTC'), count = (count + 1) WHERE uri='%q';",
-			(gchar *) lomo_stream_get_tag(lomo_player_get_current_stream(lomo), LOMO_TAG_URI));
+		gint sid = eina_adb_lomo_stream_get_sid(adb, lomo_player_get_current_stream(lomo));
+		g_return_if_fail(sid >= 0);
+		eina_adb_queue_query(adb, "UPDATE streams SET played = DATETIME('NOW', 'UTC'), count = (count + 1) WHERE sid=%d;", sid);
 		__markers.submited = TRUE;
 	}
 	else
@@ -295,6 +321,10 @@ lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self)
 	GDate dt;
 	g_date_clear(&dt, 1);
 	g_date_set_time_val(&dt, &now);
+
+	gchar *n = gel_8601_date_now();
+	g_warning("Now is: %s", n);
+	g_free(n);
 
 	GList *iter = __playlist = g_list_reverse(__playlist);
 	while (iter)

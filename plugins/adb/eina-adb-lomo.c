@@ -20,28 +20,57 @@
 #include "eina-adb-lomo.h"
 #include <glib/gi18n.h>
 
-gboolean
-eina_adb_lomo_stream_set_sid(EinaAdb *adb, LomoStream *stream)
+gint
+eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 {
-	g_return_val_if_fail(EINA_IS_ADB(adb) && LOMO_IS_STREAM(stream), FALSE);
+	g_return_val_if_fail(EINA_IS_ADB(adb), -1);
+	g_return_val_if_fail(LOMO_IS_STREAM(stream), -1);
 
-	EinaAdbResult *res = eina_adb_query(adb, "SELECT sid FROM streams WHERE uri='%q'", lomo_stream_get_tag(stream, LOMO_TAG_URI));
-	g_return_val_if_fail(res != NULL, FALSE);
-	eina_adb_result_step(res);
+	// Check if already have a SID
+	GValue *v = (GValue *) g_object_get_data((GObject *) stream, "x-adb-sid");
+	if ((v != NULL) && (g_value_get_int(v) >= 0))
+		return g_value_get_int(v);
 
-	gint sid = -1;
-	gboolean ret = eina_adb_result_get(res, 0, G_TYPE_INT, &sid, -1);
-	eina_adb_result_free(res);
+	// Try INSERT or IGNORE INTO streams
+	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 
-	if (ret)
+	if (!eina_adb_query_exec(adb, "INSERT OR IGNORE INTO streams (uri,timestamp) VALUES('%q',DATETIME('NOW', 'UTC'));", uri))
 	{
-		GValue *v = g_new0(GValue, 1);
-		g_value_init(v, G_TYPE_INT);
-		g_value_set_int(v, sid);
-		g_object_set_data_full((GObject *) stream, "x-adb-sid", v, g_free);
+		g_warning(N_("Cannot INSERT OR IGNORE"));
+		return -1;
 	}
 
-	return ret;
+	gchar *q = NULL;
+	if (eina_adb_changes(adb) == 0)
+		q = sqlite3_mprintf("SELECT sid FROM streams where uri='%q'", uri);
+	else
+		q = sqlite3_mprintf("SELECT LAST_INSERT_ROWID();");
+
+	EinaAdbResult *res = NULL;
+	gint sid = -1;
+	if (
+		!(res = eina_adb_query_raw(adb, q)) ||
+		!eina_adb_result_step(res) ||
+		!eina_adb_result_get(res, 0, G_TYPE_INT, &sid, -1))
+	{
+		sqlite3_free(q);
+		if (res)
+			eina_adb_result_free(res);
+		g_warning(N_("Unable to retrieve sid for stream"));
+		return -1;
+	}
+	eina_adb_result_free(res);
+	sqlite3_free(q);
+
+	g_return_val_if_fail(sid >= 0, -1);
+
+	// Attach result
+	v = g_new0(GValue, 1);
+	g_value_init(v, G_TYPE_INT);
+	g_value_set_int(v, sid);
+	g_object_set_data_full((GObject *) stream, "x-adb-sid", v, g_free);
+
+	return sid;
 }
 
 gint
@@ -50,26 +79,7 @@ eina_adb_lomo_stream_get_sid(EinaAdb *adb, LomoStream *stream)
 	GValue *v = (GValue *) g_object_get_data((GObject *) stream, "x-adb-sid");
 	if (v)
 		return g_value_get_int(v);
-	
-	// Run query on db
-	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
-	g_warning(N_("Stream for URI '%s' has no key 'x-adb-sid', quering to ADB"), uri);
-	
-	EinaAdbResult *res = eina_adb_query(adb, "SELECT sid FROM streams WHERE uri = '%q'");
-	g_return_val_if_fail(res, -1);
-	eina_adb_result_step(res);
 
-	gint sid = -1;
-	eina_adb_result_get(res, 0, G_TYPE_INT, &sid, -1);
-	eina_adb_result_free(res);
-	g_return_val_if_fail(sid != -1, -1);
-
-	// Save value
-	v = g_new0(GValue, 1);
-	g_value_init(v, G_TYPE_INT);
-	g_value_set_int(v, sid);
-	g_object_set_data_full((GObject *) stream, "x-adb-sid", v, g_free);
-	return sid;
+	return -1;
 }
-
 

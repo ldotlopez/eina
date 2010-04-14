@@ -72,8 +72,17 @@ typedef sqlite3_stmt EinaAdbResult;
 EinaAdbResult*
 eina_adb_query(EinaAdb *self, gchar *query, ...);
 
+EinaAdbResult*
+eina_adb_query_raw(EinaAdb *self, gchar *query);
+
 gboolean
 eina_adb_query_exec(EinaAdb *self, gchar *q, ...);
+
+gint
+eina_adb_changes(EinaAdb *self);
+
+gint
+eina_adb_result_column_count(EinaAdbResult *result);
 
 gboolean
 eina_adb_result_step(EinaAdbResult *result);
