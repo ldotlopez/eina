@@ -32,11 +32,13 @@ typedef struct {
 	GObjectClass parent_class;
 } EinaAdbClass;
 
+typedef gboolean (*EinaAdbFunc)(EinaAdb *adb, GError **error);
+
 enum {
 	EINA_ADB_NO_ERROR = 0,
-	EINA_ADB_UPGRADE_ERROR_UNKNOW_SCHEMA_VERSION,
-	EINA_ADB_UPGRADE_ERROR_TRANSACTION,
-	EINA_ADB_UPGRADE_QUERY_FAILED
+	EINA_ADB_ERROR_OBJECT_IS_NOT_ADB,
+	EINA_ADB_ERROR_TRANSACTION,
+	EINA_ADB_ERROR_QUERY_FAILED
 };
 
 #include "eina-adb-lomo.h"
@@ -78,6 +80,9 @@ eina_adb_query_raw(EinaAdb *self, gchar *query);
 gboolean
 eina_adb_query_exec(EinaAdb *self, gchar *q, ...);
 
+gboolean
+eina_adb_query_block_exec(EinaAdb *self, gchar *queries[], GError **error);
+
 gint
 eina_adb_changes(EinaAdb *self);
 
@@ -104,7 +109,7 @@ void
 eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version);
 
 gboolean
-eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, gchar **queries[], GError **error);
+eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], GError **error);
 
 G_END_DECLS
 

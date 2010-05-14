@@ -26,8 +26,11 @@ enum {
 	PROPERTY_DB_FILE = 1,
 };
 
-static gchar *schema_1[] =
+static gboolean
+upgrade_1(EinaAdb *self, GError **error)
 {
+	gchar *queries[] =
+	{
 	// Control schemas versions
 	"DROP TABLE IF EXISTS schema_versions;"
 	"CREATE TABLE schema_versions ("
@@ -43,9 +46,12 @@ static gchar *schema_1[] =
 	");",
 
 	NULL
+	};
+
+	return eina_adb_query_block_exec(self, queries, error);
 };
 
-static gchar **schema_queries[] = { schema_1, NULL };
+static EinaAdbFunc upgrade_funcs[] = { &upgrade_1, NULL };
 
 static gboolean
 adb_flush(EinaAdb *self);
@@ -155,7 +161,7 @@ eina_adb_set_db_file(EinaAdb *self, const gchar *path)
 	}
 
 	GError *error = NULL;
-	if (!eina_adb_upgrade_schema(self, "core", schema_queries, &error))
+	if (!eina_adb_upgrade_schema(self, "core", upgrade_funcs, &error))
 	{
 		g_warning("Unable to upgrade database '%s': %s", priv->db_file, error ? error->message : N_("No error message"));
 		if (error)

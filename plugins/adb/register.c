@@ -54,7 +54,10 @@ lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaAdb *self);
 
-static gchar *schema_1[] = {
+static gboolean
+upgrade_1(EinaAdb *self, GError **error)
+{
+	gchar *qs[] = {
 		"DROP TABLE IF EXISTS streams;",
 		"CREATE TABLE streams ("
 		"	sid INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -84,9 +87,14 @@ static gchar *schema_1[] = {
 		");",
 
 		NULL
-};
+	};
+	return eina_adb_query_block_exec(self, qs, error);
+}
 
-static gchar *schema_2[] = {
+static gboolean
+upgrade_2(EinaAdb *self, GError **error)
+{
+	gchar *qs[] = {
 		"DROP VIEW IF EXISTS fast_meta;",
 		"CREATE VIEW fast_meta AS"
 		"  SELECT t.sid AS sid, t.value AS title, a.value AS artist, b.value AS album FROM"
@@ -95,10 +103,15 @@ static gchar *schema_2[] = {
 		"    (SELECT sid,value FROM metadata WHERE key='title')  AS t USING(sid);",
 
 		NULL
+	};
+	return eina_adb_query_block_exec(self, qs, error);
 };
 
 // Added for Eina 0.9.4
-static gchar *schema_3[] = {
+static gboolean
+upgrade_3(EinaAdb *self, GError **error)
+{
+	gchar *qs[] = {
 		"DROP TABLE IF EXISTS recent_plays;",
 		"CREATE TABLE recent_plays ("
 		"	sid INTEGER NOT NULL,"
@@ -117,15 +130,30 @@ static gchar *schema_3[] = {
 		"	CONSTRAINT historic_plays_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
 		");",
 
+		"DROP TABLE IF EXISTS stream_relationship;",
+		"CREATE TABLE stream_relationship ("
+		"	sid  INTEGER NOT NULL,"
+		"	sid2 INTEGER NOT NULL,"
+		"	CONSTRAINT stream_relationship_sid_fk  FOREIGN KEY(sid)  REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE,"
+		"	CONSTRAINT stream_relationship_sid2_fk FOREIGN KEY(sid2) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
+		");",
+		"DROP INDEX IF EXISTS stream_relationship_sid_idx;"
+		"DROP INDEX IF EXISTS stream_relationship_sid2_idx;"
+		"CREATE INDEX stream_relationship_sid_idx  ON stream_relationship(sid);"
+		"CREATE INDEX stream_relationship_sid2_idx ON stream_relationship(sid2);"
+		
 		"UPDATE streams SET timestamp = STRFTIME('%s', timestamp);",
 		"UPDATE streams SET played    = STRFTIME('%s', played) where played > 0;",
 		"UPDATE playlist_history SET timestamp = STRFTIME('%s', timestamp);",
 		"INSERT OR REPLACE INTO variables VALUES('timestamp-format', 'unixepoch');",
 
 		NULL
+	};
+	return eina_adb_query_block_exec(self, qs, error);
 };
 
-static gchar **schema_queries[] = { schema_1, schema_2, schema_3, NULL };
+static EinaAdbFunc upgrade_funcs[] = { upgrade_1, upgrade_2, upgrade_3, NULL };
+
 
 // Our data
 static GList *__playlist = NULL;
@@ -160,7 +188,7 @@ adb_register_start(EinaAdb *self, LomoPlayer *lomo)
 	g_return_if_fail(EINA_IS_ADB(self));
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
-	g_return_if_fail(eina_adb_upgrade_schema(self, "register", schema_queries, NULL));
+	g_return_if_fail(eina_adb_upgrade_schema(self, "register", upgrade_funcs, NULL));
 
 	g_object_ref(lomo);
 	g_object_weak_ref((GObject *) lomo, adb_register_weak_ref_cb, NULL);
