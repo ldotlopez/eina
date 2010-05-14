@@ -26,8 +26,8 @@
 
 GEL_DEFINE_WEAK_REF_CALLBACK(adb_register)
 
-// #define debug(...) do ; while(0)
-#define debug(...) g_warning(__VA_ARGS__)
+#define debug(...) do ; while(0)
+// #define debug(...) g_warning(__VA_ARGS__)
 
 static inline void
 reset_counters(void);
@@ -290,7 +290,21 @@ static void
 lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self)
 {
 	g_return_if_fail(LOMO_IS_STREAM(stream));
-	__playlist = g_list_prepend(__playlist, g_strdup((gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI)));
+	gint sid = eina_adb_lomo_stream_get_sid(self, stream);
+	g_return_if_fail(sid >= 0);
+
+	GList *iter = __playlist;
+
+	eina_adb_queue_query(self, "BEGIN TRANSACTION;");
+	while (iter)
+	{
+		eina_adb_queue_query(self, "INSERT INTO stream_relationship VALUES (%d,%d);", sid, GPOINTER_TO_INT(iter->data));
+		eina_adb_queue_query(self, "INSERT INTO stream_relationship VALUES (%d,%d);", GPOINTER_TO_INT(iter->data), sid);
+		iter = iter->next;
+	}
+	eina_adb_queue_query(self, "COMMIT TRANSACTION;");
+
+	__playlist = g_list_prepend(__playlist, GINT_TO_POINTER(sid));
 }
 
 static void
@@ -299,13 +313,12 @@ lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self)
 	g_return_if_fail(EINA_IS_ADB(self));
 
 	GList *p;
-	if ((p = g_list_find_custom(__playlist, lomo_stream_get_tag(stream, LOMO_TAG_URI), (GCompareFunc) strcmp)) == NULL)
+	if ((p = g_list_find(__playlist, GINT_TO_POINTER(eina_adb_lomo_stream_get_sid(self, stream)))) == NULL)
 	{
 		g_warning("Deleted stream not found in internal playlist");
 		return;
 	}
 	__playlist = g_list_remove_link(__playlist, p);
-	g_free(p->data);
 	g_list_free(p);
 }
 
@@ -328,8 +341,7 @@ lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self)
 	while (iter)
 	{
 		eina_adb_queue_query(self,
-			"INSERT INTO playlist_history VALUES('%s',(SELECT sid FROM streams WHERE uri='%q'));", buffer, iter->data);
-		g_free(iter->data);
+			"INSERT INTO playlist_history VALUES('%s',%d);", buffer, GPOINTER_TO_INT(iter->data));
 		iter = iter->next;
 	}
 
