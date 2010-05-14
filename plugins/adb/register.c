@@ -19,6 +19,7 @@
 
 #include "eina-adb.h"
 #include <string.h>
+#include <sys/time.h>
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
 #include <gel/gel.h>
@@ -96,6 +97,7 @@ static gchar *schema_2[] = {
 		NULL
 };
 
+// Added for Eina 0.9.4
 static gchar *schema_3[] = {
 		"DROP TABLE IF EXISTS recent_plays;",
 		"CREATE TABLE recent_plays ("
@@ -114,6 +116,11 @@ static gchar *schema_3[] = {
 		"	CONSTRAINT historic_plays_pk PRIMARY KEY(sid),"
 		"	CONSTRAINT historic_plays_fk FOREIGN KEY(sid) REFERENCES streams(sid) ON DELETE CASCADE ON UPDATE CASCADE"
 		");",
+
+		"UPDATE streams SET timestamp = STRFTIME('%s', timestamp);",
+		"UPDATE streams SET played    = STRFTIME('%s', played) where played > 0;",
+		"UPDATE playlist_history SET timestamp = STRFTIME('%s', timestamp);",
+		"INSERT OR REPLACE INTO variables VALUES('timestamp-format', 'unixepoch');",
 
 		NULL
 };
@@ -256,7 +263,8 @@ lomo_eos_cb(LomoPlayer *lomo, EinaAdb *adb)
 		debug("Submit to lastfm");
 		gint sid = eina_adb_lomo_stream_get_sid(adb, lomo_player_get_current_stream(lomo));
 		g_return_if_fail(sid >= 0);
-		eina_adb_queue_query(adb, "UPDATE streams SET played = DATETIME('NOW', 'UTC'), count = (count + 1) WHERE sid=%d;", sid);
+		eina_adb_query_exec(adb, "UPDATE streams SET played = STRFTIME('%%s', 'NOW'), count = (count + 1) WHERE sid=%d;", sid);
+		eina_adb_query_exec(adb, "INSERT INTO recent_plays (sid,timestamp) VALUES(%d,STRFTIME('%%s', 'NOW'))", sid);
 		__markers.submited = TRUE;
 	}
 	else
@@ -281,15 +289,8 @@ lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to)
 static void
 lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self)
 {
-	g_return_if_fail(EINA_IS_ADB(self));
-
-	gchar *uri = (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI);
-	eina_adb_queue_query(self, 
-		"INSERT OR IGNORE INTO streams (uri,timestamp) VALUES("
-			"'%q',"
-			"DATETIME('NOW', 'UTC'));",
-			uri);
-	__playlist = g_list_prepend(__playlist, g_strdup(uri));
+	g_return_if_fail(LOMO_IS_STREAM(stream));
+	__playlist = g_list_prepend(__playlist, g_strdup((gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI)));
 }
 
 static void
@@ -315,29 +316,25 @@ lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self)
 
 	if (!__playlist) return;
 
-	GTimeVal now; g_get_current_time(&now);
-	gchar *now_str = g_time_val_to_iso8601(&now);
+	time_t now;
+	struct tm *ts;
+	char buffer[80];
 
-	GDate dt;
-	g_date_clear(&dt, 1);
-	g_date_set_time_val(&dt, &now);
-
-	gchar *n = gel_8601_date_now();
-	g_warning("Now is: %s", n);
-	g_free(n);
+	now = time(NULL);
+	ts = localtime(&now);
+	strftime(buffer, sizeof(buffer), "%s", ts);
 
 	GList *iter = __playlist = g_list_reverse(__playlist);
 	while (iter)
 	{
 		eina_adb_queue_query(self,
-			"INSERT INTO playlist_history VALUES('%s',(SELECT sid FROM streams WHERE uri='%q'));", now_str, iter->data);
+			"INSERT INTO playlist_history VALUES('%s',(SELECT sid FROM streams WHERE uri='%q'));", buffer, iter->data);
 		g_free(iter->data);
 		iter = iter->next;
 	}
+
 	g_list_free(__playlist);
 	__playlist = NULL;
-
-	g_free(now_str);
 }
 
 static void

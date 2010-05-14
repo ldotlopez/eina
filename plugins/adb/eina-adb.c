@@ -22,7 +22,6 @@ struct _EinaAdbPrivate {
 
 enum {
 	PROPERTY_DB_FILE = 1,
-	// PROPERTY_LOMO_PLAYER
 };
 
 static gchar *schema_1[] =
@@ -110,9 +109,6 @@ eina_adb_class_init (EinaAdbClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_DB_FILE,
 		g_param_spec_string("db-filename", "db-filename",  "db-filename",
 		NULL, G_PARAM_READABLE | G_PARAM_WRITABLE));
-	/* g_object_class_install_property(object_class, PROPERTY_LOMO_PLAYER,
-		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
-		LOMO_TYPE_PLAYER, G_PARAM_READABLE | G_PARAM_WRITABLE)); */
 }
 
 static void
@@ -127,54 +123,6 @@ eina_adb_new (void)
 {
 	return g_object_new (EINA_TYPE_ADB, NULL);
 }
-
-#if 0
-LomoPlayer*
-eina_adb_get_lomo_player(EinaAdb *self)
-{
-	g_return_val_if_fail(EINA_IS_ADB(self), NULL);
-	return GET_PRIVATE(self)->lomo;
-}
-
-void
-eina_adb_set_lomo_player(EinaAdb *self, LomoPlayer *lomo)
-{
-	g_return_if_fail(EINA_IS_ADB(self));
-
-	EinaAdbPrivate *priv = GET_PRIVATE(self);
-	struct {
-		gchar *signal;
-		gpointer handler;
-	} table[] = {
-		{ "insert",   lomo_insert_cb   },
-		{ "remove",   lomo_remove_cb   },
-		{ "clear",    lomo_clear_cb    },
-		{ "all-tags", lomo_all_tags_cb },
-		{ NULL, NULL }
-	};
-
-	if (priv->lomo)
-	{
-		gint i;
-		for (i = 0; table[i].signal != NULL; i++)
-			g_signal_handlers_disconnect_by_func(priv->lomo, table[i].handler, self);
-
-		g_object_weak_unref((GObject *) priv->lomo, adb_weak_ref_cb, NULL);
-		g_object_unref(priv->lomo);
-	}
-	
-	priv->lomo = lomo;
-	if (lomo)
-	{
-		g_object_ref(priv->lomo);
-		g_object_weak_ref((GObject *) priv->lomo, adb_weak_ref_cb, NULL);
-
-		gint i;
-		for (i = 0; table[i].signal != NULL; i++)
-			g_signal_connect(priv->lomo, table[i].signal, (GCallback) table[i].handler, self);
-	}
-}
-#endif
 
 gchar *
 eina_adb_get_db_file(EinaAdb *self)
@@ -251,7 +199,7 @@ eina_adb_query_raw(EinaAdb *self, gchar *query)
 	g_return_val_if_fail(query != NULL, NULL);
 
 	EinaAdbPrivate *priv = GET_PRIVATE(self);
-	
+
 	int code;
 	sqlite3_stmt *stmt = NULL;
 	if ((code = sqlite3_prepare_v2(priv->db, query, -1, &stmt, NULL)) != SQLITE_OK)
@@ -266,11 +214,9 @@ eina_adb_query_exec(EinaAdb *self, gchar *q, ...)
 	EinaAdbPrivate *priv = GET_PRIVATE(self);
 
 	va_list args;
-
 	va_start(args, q);
 	gchar *query = sqlite3_vmprintf(q, args);
 	va_end(args);
-
 	g_return_val_if_fail((query != NULL), FALSE);
 
 	char *msg = NULL;
