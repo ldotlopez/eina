@@ -34,7 +34,7 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 	// Try INSERT or IGNORE INTO streams
 	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
 
-	if (!eina_adb_query_exec(adb, "INSERT OR IGNORE INTO streams (uri,timestamp) VALUES('%q',DATETIME('NOW', 'UTC'));", uri))
+	if (!eina_adb_query_exec(adb, "INSERT OR IGNORE INTO streams (uri,timestamp) VALUES('%q',STRFTIME('%%s',DATETIME('now')));", uri))
 	{
 		g_warning(N_("Cannot INSERT OR IGNORE"));
 		return -1;
@@ -42,7 +42,7 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 
 	gchar *q = NULL;
 	if (eina_adb_changes(adb) == 0)
-		q = sqlite3_mprintf("SELECT sid FROM streams where uri='%q'", uri);
+		q = sqlite3_mprintf("SELECT sid FROM streams WHERE uri='%q'", uri);
 	else
 		q = sqlite3_mprintf("SELECT LAST_INSERT_ROWID();");
 
