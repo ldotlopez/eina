@@ -9,6 +9,8 @@ G_DEFINE_TYPE (EinaAdb, eina_adb, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ADB, EinaAdbPrivate))
 
+GEL_DEFINE_QUARK_FUNC(eina_adb);
+
 typedef struct _EinaAdbPrivate EinaAdbPrivate;
 
 struct _EinaAdbPrivate {
@@ -288,6 +290,45 @@ eina_adb_query_exec(EinaAdb *self, gchar *q, ...)
 		sqlite3_free(query);
 		return FALSE;
 	}
+}
+
+gboolean
+eina_adb_query_block_exec(EinaAdb *self, gchar *queries[], GError **error)
+{
+	if (!EINA_IS_ADB(self))
+	{
+		g_set_error(error, eina_adb_quark(), EINA_ADB_ERROR_OBJECT_IS_NOT_ADB,
+			"EINA_IS_ADB(self) failed");
+		return FALSE;
+	}
+
+	if (!eina_adb_query_exec(self, "BEGIN TRANSACTION;"))
+	{
+		g_set_error(error, eina_adb_quark(), EINA_ADB_ERROR_TRANSACTION,
+			N_("Cannot begin transaction"));
+		return FALSE;
+	}
+
+	gint i;
+	for (i = 0; queries[i] != NULL; i++)
+	{
+		if (!eina_adb_query_exec(self, queries[i]))
+		{
+			g_set_error(error, eina_adb_quark(), EINA_ADB_ERROR_QUERY_FAILED,
+				N_("Query %d failed. Query was: %s"), i, queries[i]);
+			eina_adb_query_exec(self, "ROLLBACK;");
+			return FALSE;
+		}
+	}
+
+	if (!eina_adb_query_exec(self, "END TRANSACTION;"))
+	{
+		g_set_error(error, eina_adb_quark(), EINA_ADB_ERROR_TRANSACTION,
+			N_("Cannot end transaction"));
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 gint
