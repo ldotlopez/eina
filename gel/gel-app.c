@@ -34,14 +34,7 @@ G_DEFINE_TYPE (GelApp, gel_app, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_TYPE_APP, GelAppPrivate))
 
-static GQuark 
-gel_app_quark(void)
-{
-	static GQuark ret = 0;
-	if (!ret)
-		ret = g_quark_from_static_string("gel-app");
-	return ret;
-}
+GEL_DEFINE_QUARK_FUNC(app)
 
 static GList*
 build_paths(void);
@@ -302,7 +295,7 @@ gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
 {
 	if (!self || !pathname)
 	{
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_GENERIC, N_("Invalid arguments"));
+		g_set_error(error, app_quark(), GEL_APP_ERROR_GENERIC, N_("Invalid arguments"));
 		return NULL;
 	}
 
@@ -346,7 +339,7 @@ gel_app_query_plugin_by_name(GelApp *self, gchar *name, GError **error)
 	// Build-in
 	gchar *symbol = g_strconcat(name, "_plugin", NULL);
 	if ((plugin = gel_plugin_new(self, NULL, symbol, NULL)) == NULL)
-		g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_NOT_FOUND, N_("Plugin not found"));
+		g_set_error(error, app_quark(), GEL_APP_PLUGIN_NOT_FOUND, N_("Plugin not found"));
 	g_free(symbol);
 
 	return plugin;
@@ -410,7 +403,7 @@ gel_app_load_plugin_dependences(GelApp *app, GelPlugin *plugin, GError **error)
 		GelPlugin *p = NULL;
 		if ((p = gel_app_load_plugin_by_name(app, deps[i], &err)) == NULL)
 		{
-			g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_DEP_NOT_FOUND,
+			g_set_error(error, app_quark(), GEL_APP_PLUGIN_DEP_NOT_FOUND,
 				N_("Dependecy %s for %s not found"), deps[i], gel_plugin_stringify(plugin));
 			g_error_free(err);
 			break;
@@ -428,7 +421,7 @@ gel_app_load_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
 {
 	if ((self == NULL) || (name == NULL))
 	{
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_INVALID_ARGUMENTS,
+		g_set_error(error, app_quark(), GEL_APP_ERROR_INVALID_ARGUMENTS,
 			N_("Invalid arguments, set breakpoint on %s to debug"), name);
 		return NULL;
 	}
@@ -569,7 +562,7 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	// Check if any other plugin references this plugin
 	if (gel_plugin_is_in_use(plugin))
 	{
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_PLUGIN_IN_USE,
+		g_set_error(error, app_quark(), GEL_APP_ERROR_PLUGIN_IN_USE,
 			N_("Cannot unload plugin %s, its used by %d plugins"),
 			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
 		gel_error(N_("Cannot unload plugin %s, its used by %d plugins"),
