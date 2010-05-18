@@ -140,6 +140,7 @@ eina_plugin_properties_new (GelPlugin *plugin)
 void
 set_plugin(EinaPluginProperties *self, GelPlugin *plugin)
 {
+#if 0
 	g_return_if_fail(plugin != NULL);
 
 	EinaPluginPropertiesPrivate *priv = GET_PRIVATE(self);
@@ -166,6 +167,7 @@ set_plugin(EinaPluginProperties *self, GelPlugin *plugin)
 	gtk_label_set_markup(priv->rdeps, gel_str_or_text(tmp, N_("No reverse dependencies")));
 	if (tmp)
 		g_free(tmp);
+#endif
 }
 
 const GelPlugin*

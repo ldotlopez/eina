@@ -219,8 +219,9 @@ gint main
 			gel_error("Cannot load %s: %s", modules[i], error->message);
 			g_error_free(error);
 		}
+		/*
 		else
-			gel_plugin_add_lock(plugin);
+			gel_plugin_add_lock(plugin) ; */
 	}
 
 	// --

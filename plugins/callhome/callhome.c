@@ -76,13 +76,12 @@ build_uuid(gchar *seed, GError **error)
 static void
 cleanup(GelPlugin *plugin)
 {
-	CurlEngine *engine = (CurlEngine * ) plugin->data;
+	CurlEngine *engine = (CurlEngine *) gel_plugin_get_data(plugin);
 	if (engine)
 	{
 		gel_run_once_on_idle((GSourceFunc) curl_engine_free, (gpointer) engine, NULL);
-		plugin->data = NULL;
+		gel_plugin_set_data(plugin, NULL);
 	}
-
 }
 
 static void
@@ -94,8 +93,8 @@ query_finished(CurlEngine *self, CurlQuery *query, gpointer data)
 // --
 // Main
 // --
-gboolean
-callhome_init(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+callhome_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	gchar *uuid_str = NULL;
 	gchar *buffer = NULL;
@@ -116,7 +115,7 @@ callhome_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	gchar *url = g_strdup_printf(PING_URL, uuid_str);
 	CurlEngine *engine = curl_engine_new();
 
-	plugin->data = (gpointer) engine;
+	gel_plugin_set_data(plugin, (gpointer) engine);
 	curl_engine_query(engine, url, query_finished, plugin);
 
 	g_file_set_contents(uuid_path, uuid_str, -1, NULL);
@@ -126,14 +125,14 @@ callhome_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-gboolean
-callhome_fini(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+callhome_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	cleanup(plugin);
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(callhome,
+EINA_PLUGIN_INFO_SPEC(callhome,
 	PACKAGE_VERSION, GEL_PLUGIN_NO_DEPS,
 	NULL, NULL,
 
@@ -142,8 +141,6 @@ EINA_PLUGIN_SPEC(callhome,
 	   "This plugins generate one aleatory, unique and anonimous number (an UUID, search Google ) "
 	   "and send it to Eina's home. We only track how many different UUID got.\n"
 	   "No personal data is transmitted or stored."),
-	NULL,
-
-	callhome_init, callhome_fini 
+	NULL
 );
 

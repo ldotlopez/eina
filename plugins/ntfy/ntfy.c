@@ -129,7 +129,7 @@ ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(app, "plugin-init", (GCallback) app_plugin_init_cb, self);
 	g_signal_connect(app, "plugin-fini", (GCallback) app_plugin_init_cb, self);
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
@@ -367,7 +367,7 @@ ntfy_sync(EinaNtfy *self)
 static void
 app_plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self)
 {
-	if (!g_str_equal(plugin->name, "vogon"))
+	if (!g_str_equal(gel_plugin_get_info(plugin)->name, "vogon"))
 		return;
 	vogon_enable(self);
 }
@@ -375,7 +375,7 @@ app_plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self)
 static void
 app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self)
 {
-	if (!g_str_equal(plugin->name, "vogon"))
+	if (!g_str_equal(gel_plugin_get_info(plugin)->name, "vogon"))
 		return;
 	vogon_disable(self);
 }
@@ -425,7 +425,7 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 	}
 }
 
-EINA_PLUGIN_SPEC(ntfy,
+EINA_PLUGIN_INFO_SPEC(ntfy,
 	"0.1.0",
 	"lomo,art,settings",
 
@@ -434,9 +434,6 @@ EINA_PLUGIN_SPEC(ntfy,
 
 	N_("Notifications plugin"),
 	NULL,
-	"ntfy.png",
-
-	ntfy_init,
-	ntfy_fini
+	"ntfy.png"
 );
 

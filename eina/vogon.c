@@ -89,8 +89,8 @@ static const gchar ui_def[] =
 
 GEL_AUTO_QUARK_FUNC(vogon)
 
-static gboolean
-vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+vogon_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	GtkActionGroup *ag;
 	const GtkActionEntry ui_actions[] = {
@@ -183,12 +183,12 @@ vogon_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
 	#endif
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
-static gboolean
-vogon_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+vogon_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaVogon *self = EINA_PLUGIN_DATA(plugin);
 
@@ -354,7 +354,7 @@ status_icon_destroy_cb(GtkWidget *w, EinaVogon *self)
 	if (!gtk_widget_get_visible(window))
 		gtk_widget_show(window);
 
-	vogon_fini(eina_obj_get_app(self), gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
+	vogon_plugin_fini(eina_obj_get_app(self), gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
 	return FALSE;
 }
 
@@ -382,7 +382,7 @@ status_icon_activate_cb
 }
 
 
-EINA_PLUGIN_SPEC(vogon,
+EINA_PLUGIN_INFO_SPEC(vogon,
 	NULL,
 	"lomo,window",
 				
@@ -391,8 +391,6 @@ EINA_PLUGIN_SPEC(vogon,
 
 	N_("Build-in systray and notification plugin"),
 	NULL,
-	NULL,
-
-	vogon_init, vogon_fini
+	NULL
 );
 

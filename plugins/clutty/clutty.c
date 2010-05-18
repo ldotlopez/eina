@@ -30,17 +30,10 @@ enum {
 	EINA_CLUTTY_ERROR_INIT_FAIL
 };
 
-static GQuark
-clutty_quark(void)
-{
-	static GQuark ret = 0;
-	if (!ret)
-		ret = g_quark_from_static_string("clutty-quark");
-	return ret;
-}
+GEL_DEFINE_QUARK_FUNC(clutty)
 
 G_MODULE_EXPORT gboolean
-clutty_init(GelApp *app, EinaPlugin *plugin, GError **error)
+clutty_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaCover *cover = eina_plugin_player_get_cover_widget(plugin);
 	if (!cover)
@@ -66,7 +59,7 @@ clutty_init(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-clutty_fini(GelApp *app, GelPlugin *plugin, GError **error)
+clutty_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaCover *cover = eina_plugin_player_get_cover_widget(plugin);
 	if (!cover)
@@ -89,12 +82,10 @@ clutty_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(clutty, CLUTTY_VERSION,
+EINA_PLUGIN_INFO_SPEC(clutty, CLUTTY_VERSION,
 	"player",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 	N_("Cover renderer with 3D effects"),  NULL,
-	"icon.png",
-	clutty_init,
-	clutty_fini
+	"icon.png"
 );
 

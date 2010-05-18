@@ -18,6 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::Preferences"
+#define EINA_PLUGIN_DATA_TYPE EinaPreferences
 
 #include <config.h>
 #include <eina/ext/eina-preferences-dialog.h>
@@ -67,8 +68,8 @@ enum {
 	EINA_PREFERENCES_CANNOT_REGISTER_SHARED
 };
 
-static gboolean
-preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+preferences_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPreferences       *self;
 
@@ -78,17 +79,17 @@ preferences_init (GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(self);
 		return FALSE;
 	}
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	g_signal_connect(gel_app_get_settings(app), "change", (GCallback) change_cb, self);
 
 	return TRUE;
 }
 
-static gboolean preferences_fini
-(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+preferences_plugin_fini (GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaPreferences *self = EINA_PREFERENCES(plugin->data);
+	EinaPreferences *self = EINA_PLUGIN_DATA(plugin);
 
 	if (self->n_tabs > 0)
 	{
@@ -299,15 +300,13 @@ change_cb(EinaConf *conf, gchar *key, EinaPreferences *self)
 }
 
 
-EINA_PLUGIN_SPEC(preferences,
+EINA_PLUGIN_INFO_SPEC(preferences,
 	NULL,
 	"settings,window",
 	NULL,
 	NULL,
 	N_("Build-in preferences plugin"),
 	NULL,
-	NULL,
-	preferences_init,
-	preferences_fini
-);
+	NULL
+	);
 

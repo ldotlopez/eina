@@ -18,7 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::Log"
-#define GEL_PLUGIN_DATA_TYPE EinaLog
+#define EINA_PLUGIN_DATA_TYPE EinaLog
 #define LOG_SIGNALS 0
 
 #include <config.h>
@@ -102,13 +102,13 @@ static void
 lomo_signal_cb(gchar *signal);
 #endif
 
-static gboolean
-log_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+log_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaLog *self = g_new0(EinaLog, 1);
 	self->app    = app;
 	self->plugin = plugin;
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	// If player is loaded attach menu
 	if (GEL_APP_GET_PLAYER(app))
@@ -127,10 +127,10 @@ log_init(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static gboolean
-log_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+log_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaLog *self = GEL_PLUGIN_DATA(plugin);
+	EinaLog *self = EINA_PLUGIN_DATA(plugin);
 	gel_debug_remove_handler((GelDebugHandler) debug_handler);
 	g_signal_handlers_disconnect_by_func(app, plugin_load_cb, self);
 	g_signal_handlers_disconnect_by_func(app, plugin_unload_cb, self);
@@ -369,9 +369,9 @@ plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaLog *self)
 {
 	gel_debug("Init plugin '%s'", PSTR(plugin));
 
-	if (g_str_equal(plugin->name, "player") && !(self->flags & FLAG_PLAYER_INIT))
+	if (g_str_equal(gel_plugin_get_info(plugin)->name, "player") && !(self->flags & FLAG_PLAYER_INIT))
 		build_player(self);
-	else if (g_str_equal(plugin->name, "lomo") && !(self->flags & FLAG_LOMO_INIT))
+	else if (g_str_equal(gel_plugin_get_info(plugin)->name, "lomo") && !(self->flags & FLAG_LOMO_INIT))
 		setup_lomo(self);
 }
 
@@ -447,15 +447,13 @@ log_level_scale_value_change_cb(GtkWidget *w, EinaLog *self)
 	set_debug_level(self, level);
 }
 
-G_MODULE_EXPORT GelPlugin log_plugin = {
-	GEL_PLUGIN_SERIAL,
-	"log", PACKAGE_VERSION, NULL,
-	NULL, NULL,
-
-	N_("Build-in log"), N_("Build-in log"), NULL,
-	
-	log_init, log_fini,
-
-	NULL, NULL, NULL
-};
+EINA_PLUGIN_INFO_SPEC(log,
+	PACKAGE_VERSION,
+	NULL,
+	NULL,
+	NULL,
+	N_("Build-in log"),
+	N_("Build-in log"),
+	NULL
+	);
 

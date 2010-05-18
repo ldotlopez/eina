@@ -65,8 +65,8 @@ static GtkActionEntry ui_mng_action_entries[] = {
 static void
 response_cb(GtkWidget *w, gint response, EinaPlugins *self);
 
-static gboolean
-plugins_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+plugins_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlugins *self = g_new0(EinaPlugins, 1);
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "plugins", 0, error))
@@ -74,7 +74,7 @@ plugins_init(GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(self);
 		return FALSE;
 	}
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	// Add on menu
 	self->action_group = gtk_action_group_new("plugins");
@@ -102,6 +102,7 @@ plugins_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if (!tmp)
 		return TRUE;
 
+#if 0
 	gint i = 0;
 	gchar **plugins = g_strsplit(tmp, ",", 0);
 	for (i = 0; plugins[i] && plugins[i][0]; i++)
@@ -113,14 +114,14 @@ plugins_init(GelApp *app, GelPlugin *plugin, GError **error)
 			g_error_free(error);
 		}
 	}
-
+#endif
 	return TRUE;
 }
 
-static gboolean
-plugins_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+plugins_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaPlugins *self = (EinaPlugins *) plugin->data;
+	EinaPlugins *self = EINA_PLUGIN_DATA(plugin);
 	
 	GtkUIManager *ui_mng = eina_window_get_ui_manager(eina_obj_get_window(EINA_OBJ(self)));
 	gtk_ui_manager_remove_ui(ui_mng, self->ui_mng_merge);
@@ -164,6 +165,7 @@ disable_watch(EinaPlugins *self)
 static void
 update_plugins_list(EinaPlugins *self)
 {
+#if 0
 	GelApp *app = eina_obj_get_app(self);
 	GList *list = NULL;
 
@@ -183,7 +185,7 @@ update_plugins_list(EinaPlugins *self)
 	gel_list_deep_free(list, g_free);
 	eina_conf_set_str(eina_obj_get_settings(self), "/core/plugins", list_str);
 	g_free(list_str);
-
+#endif
 }
 
 static void
@@ -228,7 +230,7 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 	}
 }
 
-EINA_PLUGIN_SPEC(plugins,
+EINA_PLUGIN_INFO_SPEC(plugins,
 	NULL,
 	"settings,window",
 
@@ -237,8 +239,6 @@ EINA_PLUGIN_SPEC(plugins,
 
 	N_("Build-in plugin manager plugin"),
 	NULL,
-	NULL,
-
-	plugins_init, plugins_fini
+	NULL
 );
 

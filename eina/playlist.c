@@ -196,8 +196,8 @@ static EinaWindowKeyBind keybindings[] = {
 };
 */
 
-static gboolean
-playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+playlist_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlaylist *self;
 
@@ -272,8 +272,8 @@ playlist_init (GelApp *app, GelPlugin *plugin, GError **error)
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), self->dock);
 }
 
-static gboolean
-playlist_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+playlist_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlaylist *self = GEL_APP_GET_PLAYLIST(app);
 	gchar *file;
@@ -1567,15 +1567,13 @@ void setup_dnd(EinaPlaylist *self)
 /*
  * Connector
  */
-EINA_PLUGIN_SPEC(playlist,
+EINA_PLUGIN_INFO_SPEC(playlist,
 	NULL,                           // version
 	"dock,lomo,settings,window",	// deps
 	NULL,                           // author
 	NULL,                           // url
 	N_("Build-in playlist plugin"), // short
 	NULL,                           // long
-	NULL,                           // icon
-	playlist_init,                  // init
-	playlist_fini                   // fini
+	NULL                            // icon
 );
 

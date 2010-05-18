@@ -53,17 +53,18 @@ struct _GelApp {
 
 typedef struct {
 	GObjectClass parent_class;
-	void (*plugin_load)   (GelApp *self, GelPlugin *plugin);
-	void (*plugin_unload) (GelApp *self, GelPlugin *plugin);
 	void (*plugin_init)   (GelApp *self, GelPlugin *plugin);
 	void (*plugin_fini)   (GelApp *self, GelPlugin *plugin);
-	// void (*plugin_ref)    (GelApp *self, const gchar *name, guint refs);
-	// void (*plugin_unref)  (GelApp *self, const gchar *name, guint refs);
 } GelAppClass;
 typedef void (*GelAppDisposeFunc) (GelApp *self, gpointer data);
 
 enum {
 	GEL_APP_NO_ERROR = 0,
+
+	GEL_PLUGIN_INFO_NOT_FOUND,
+	GEL_APP_MISSING_PLUGIN_DEPS,
+	GEL_APP_PLUGIN_HAS_RDEPS,
+
 	GEL_APP_ERROR_GENERIC,
 	GEL_APP_ERROR_INVALID_ARGUMENTS,
 	GEL_APP_PLUGIN_NOT_FOUND,
@@ -100,7 +101,7 @@ GList *gel_app_get_plugins  (GelApp *self);
 
 GelPlugin *gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error);
 GelPlugin *gel_app_load_plugin_by_name    (GelApp *self, gchar *name,     GError **error);
-GelPlugin *gel_app_load_plugin            (GelApp *self, gchar *pathname, gchar *name, GError **error);
+GelPlugin *gel_app_load_plugin            (GelApp *self, GelPluginInfo *info, GError **error);
 
 #define gel_app_unload_plugin_by_pathname(self,pathname,error) \
 	gel_app_unload_plugin(self,gel_app_get_plugin_by_pathname(self,pathname), error)
@@ -109,17 +110,13 @@ GelPlugin *gel_app_load_plugin            (GelApp *self, gchar *pathname, gchar 
 gboolean   gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error);
 void       gel_app_purge(GelApp *self);
 
-gboolean gel_app_shared_register  (GelApp *self, gchar *name, gsize size);
-gboolean gel_app_shared_unregister(GelApp *self, gchar *name);
-
+void     gel_app_shared_free(GelApp *self, gchar *name);
 gboolean gel_app_shared_set(GelApp *self, gchar *name, gpointer data);
 gpointer gel_app_shared_get(GelApp *self, gchar *name);
 
 #if (defined GEL_COMPILATION) && (defined _GEL_PLUGIN_H)
-void gel_app_add_plugin   (GelApp *self, GelPlugin *plugin);
-void gel_app_remove_plugin(GelApp *self, GelPlugin *plugin);
-void gel_app_emit_init  (GelApp *self, GelPlugin *plugin);
-void gel_app_emit_fini  (GelApp *self, GelPlugin *plugin);
+void gel_app_priv_run_init(GelApp *self, GelPlugin *plugin);
+void gel_app_priv_run_fini(GelApp *self, GelPlugin *plugin);
 #endif
 
 G_END_DECLS

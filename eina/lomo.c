@@ -86,11 +86,12 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	LomoPlayer *engine = gel_app_get_lomo(app);
 
-	if ((engine == NULL) || !gel_app_shared_unregister(app, "lomo"))
+	if (engine == NULL)
 	{
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
+	gel_app_shared_free(app, "lomo");
 
 	EinaConf *conf = gel_app_get_settings(app);
 	eina_conf_set_int(conf, "/core/volume", lomo_player_get_volume(engine));
@@ -205,7 +206,7 @@ conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine)
 
 }
 
-EINA_PLUGIN_SPEC(lomo,
+EINA_PLUGIN_INFO_SPEC(lomo,
 	PACKAGE_VERSION,			// version
 	"settings",		            // deps
 	NULL,						// author
@@ -213,9 +214,6 @@ EINA_PLUGIN_SPEC(lomo,
 
 	N_("Build-in lomo plugin"),	// short
 	NULL,						// long
-	NULL,						// icon
-
-	lomo_plugin_init,			// init
-	lomo_plugin_fini			// fini
+	NULL						// icon
 );
 

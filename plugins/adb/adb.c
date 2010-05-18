@@ -27,7 +27,7 @@
 
 GEL_DEFINE_QUARK_FUNC(adb)
 
-static gboolean
+G_MODULE_EXPORT gboolean
 adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaAdb *adb = eina_adb_new();
@@ -65,7 +65,7 @@ adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	return ret;
 }
 
-static gboolean
+G_MODULE_EXPORT gboolean
 adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
@@ -77,12 +77,10 @@ adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(adb,
+EINA_PLUGIN_INFO_SPEC(adb,
 	PACKAGE_VERSION, "lomo",
 	NULL, NULL,
 
-	N_("Audio database"), NULL, "adb.png",
-
-	adb_plugin_init, adb_plugin_exit
+	N_("Audio database"), NULL, "adb.png"
 );
 

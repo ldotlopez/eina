@@ -28,8 +28,8 @@ GEL_AUTO_QUARK_FUNC(window)
 static gboolean
 window_delete_event_cb(EinaWindow *window, GdkEvent *ev, GelApp *app);
 
-static gboolean
-window_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+window_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaWindow *window = eina_window_new();
 	if (!gel_app_shared_set(app, "window", (gpointer) window))
@@ -52,8 +52,8 @@ window_init(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static gboolean
-window_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+window_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaWindow *window = gel_app_shared_get(app, "window");
 	if (!window || !EINA_IS_WINDOW(window))
@@ -64,7 +64,7 @@ window_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	gtk_widget_destroy((GtkWidget *) window);
-	gel_app_shared_unregister(app, "window");
+	gel_app_shared_free(app, "window");
 
 	return TRUE;
 }
@@ -80,13 +80,12 @@ window_delete_event_cb(EinaWindow *window, GdkEvent *ev, GelApp *app)
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(window,
+EINA_PLUGIN_INFO_SPEC(window,
 	NULL,
-	GEL_PLUGIN_NO_DEPS,
+	NULL,
 	NULL,
 	NULL,
 	N_("Main window plugin"),
 	NULL,
-	NULL,
-	window_init,
-	window_fini);
+	NULL
+	);

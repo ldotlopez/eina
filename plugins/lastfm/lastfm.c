@@ -44,7 +44,7 @@ lastfm_quark(void)
 // Main plugin
 // --
 gboolean
-lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
+lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFM *self = g_new0(LastFM, 1);
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "lastfm", EINA_OBJ_NONE, error))
@@ -69,11 +69,10 @@ lastfm_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		
 		gchar *objects[] = { "/lastfm/submit", "/lastfm/username", "/lastfm/password", NULL};
 		eina_preferences_tab_add_watchers(tab, objects);
-
 		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin , self);
 
 	if (!lastfm_submit_init(app, plugin, error))
 		goto lastfm_init_fail;
@@ -117,7 +116,7 @@ lastfm_init_fail:
 }
 
 gboolean
-lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
+lastfm_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LastFM *self = EINA_PLUGIN_DATA(plugin);
 
@@ -135,7 +134,7 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 #endif
 
 	eina_obj_fini((EinaObj *) self);
-	self = plugin->data = NULL;
+	gel_plugin_set_data(plugin, NULL);
 
 	return TRUE;
 }
@@ -144,14 +143,12 @@ lastfm_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 // --
 // Export plugin
 // --
-EINA_PLUGIN_SPEC(lastfm,
+EINA_PLUGIN_INFO_SPEC(lastfm,
 	NULL, "lomo,settings",
 	NULL, NULL,
 
 	N_("Lastfm integration"),
 	N_("Lastfm integration:\n"
 	"· Query Last.fm for covers"),
-	"lastfm.png",
-	
-	lastfm_init, lastfm_fini
+	"lastfm.png"
 );

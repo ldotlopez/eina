@@ -50,6 +50,7 @@
 #include <eina/ext/eina-stock.h>
 
 // Redefine some types and enums
+#define EinaPluginInfo GelPluginInfo
 #define EinaPlugin GelPlugin
 #define EINA_PLUGIN_SERIAL GEL_PLUGIN_SERIAL
 #define EINA_PLUGIN_GENERIC_AUTHOR "Luis Lopez <luis.lopez@cuarentaydos.com>"
@@ -58,7 +59,7 @@
 
 // If EINA_PLUGIN_DATA_TYPE is defined create a macro to easy access
 #ifdef EINA_PLUGIN_DATA_TYPE
-#define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) EINA_PLUGIN(p)->data)
+#define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) gel_plugin_get_data((GelPlugin *) p))
 #endif
 
 // Define a macro for define plugin struct easily
@@ -71,10 +72,24 @@
 		author ? author : EINA_PLUGIN_GENERIC_AUTHOR, \
 		url    ? url    : EINA_PLUGIN_GENERIC_URL,    \
 		short_desc, long_desc, icon,                  \
+		NULL, \
 		init, fini,                                   \
 		NULL, NULL, NULL                              \
 	}
 
+#define EINA_PLUGIN_INFO_SPEC(name,version,deps,author,url,short_desc,long_desc,icon) \
+	G_MODULE_EXPORT EinaPluginInfo name ## _plugin_info = { \
+		NULL, \
+		NULL, \
+		version ? version : PACKAGE_VERSION,          \
+		deps,                                         \
+		author ? author : EINA_PLUGIN_GENERIC_AUTHOR, \
+		url    ? url    : EINA_PLUGIN_GENERIC_URL,    \
+		short_desc, \
+		long_desc, \
+		icon,                   \
+		G_STRINGIFY(name) \
+	}
 
 // --
 // Access to internal values

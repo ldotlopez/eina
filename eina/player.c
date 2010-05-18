@@ -78,8 +78,8 @@ static gchar *ui_xml =
 "</ui>"
 ;
 
-static gboolean
-player_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlayer *self = NULL;
 
@@ -110,7 +110,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	//
 	// Setup UI bits
@@ -260,13 +260,13 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static gboolean
-player_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+player_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlayer *self = EINA_PLUGIN_DATA(plugin);
 
 	eina_window_remove_widget(eina_obj_get_window(self), eina_obj_get_typed(self, GTK_WIDGET, "main-widget"));
-	eina_obj_fini(EINA_OBJ(plugin->data));
+	eina_obj_fini(EINA_OBJ(gel_plugin_get_data(plugin)));
 
 	return TRUE;
 }
@@ -629,7 +629,7 @@ player_dnd_setup(EinaPlayer *self)
 // --
 // Connector 
 // --
-EINA_PLUGIN_SPEC (player,
+EINA_PLUGIN_INFO_SPEC (player,
 	PACKAGE_VERSION,
 	"art,about,lomo,window,preferences",
 	NULL,
@@ -637,8 +637,6 @@ EINA_PLUGIN_SPEC (player,
 
 	N_("Build-in player plugin"),
 	NULL,
-	NULL,
-
-	player_init, player_fini
+	NULL
 );
 

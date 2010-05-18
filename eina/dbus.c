@@ -112,8 +112,8 @@ dbus_register_server(GelApp *app, DBusGConnection *conn, GError **error)
 	return TRUE;
 }
 
-static gboolean
-dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+dbus_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
  	DBusGConnection *connection = dbus_g_bus_get(DBUS_BUS_SESSION, error);
 	if (connection == NULL)
@@ -172,13 +172,13 @@ dbus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		G_CALLBACK (key_pressed),
 		app, NULL);
 	
-	plugin->data = proxy;
+	gel_plugin_set_data(plugin, proxy);
 
 	return TRUE;
 }
 
-static gboolean
-dbus_fini(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+dbus_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	DBusGProxy *proxy = EINA_PLUGIN_DATA(plugin);
 	if (!dbus_g_proxy_call (proxy,
@@ -191,14 +191,14 @@ dbus_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(dbus,
-	NULL,	// version
-	"lomo",	// deps
-	NULL,	// author
-	NULL,	// url
-	N_("DBus interface for Eina"),
-	NULL,
-	NULL,
-	dbus_init, 
-	dbus_fini);
+EINA_PLUGIN_INFO_SPEC(dbus,
+	NULL,   // version
+	"lomo", // deps
+	NULL,   // author
+	NULL,   // url
+
+	N_("DBus interface for Eina"), // short
+	NULL,   // long
+	NULL    // icon
+	);
 

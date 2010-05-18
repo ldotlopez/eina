@@ -22,6 +22,7 @@
 #include "eina-plugin-dialog.h"
 #include "eina-plugin-dialog-ui.h"
 #include "eina-plugin-properties.h"
+#define GEL_DOMAIN "Eina::Ext::PluginDialog"
 
 G_DEFINE_TYPE (EinaPluginDialog, eina_plugin_dialog, GTK_TYPE_DIALOG)
 
@@ -54,18 +55,22 @@ enum {
 
 static void
 set_app(EinaPluginDialog *self, GelApp *app);
+#if 0
 static void
 insert_plugin(EinaPluginDialog *self, GtkListStore *model, GtkTreeIter *iter, GelPlugin *plugin);
 static void
 update_plugin(EinaPluginDialog *self, GelPlugin *plugin);
 static gboolean
 get_iter_from_plugin(EinaPluginDialog *self, GtkTreeIter *iter, GelPlugin *plugin);
+#endif
 static void
 enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPluginDialog *self);
+#if 0
 static void
 plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaPluginDialog *self);
 static void
 plugin_fini_cb(GelApp *app, GelPlugin *plugin, EinaPluginDialog *self);
+#endif
 
 static void
 eina_plugin_dialog_get_property (GObject *object, guint property_id,
@@ -102,6 +107,7 @@ eina_plugin_dialog_set_property (GObject *object, guint property_id,
 static void
 eina_plugin_dialog_dispose (GObject *object)
 {
+#if 0
 	EinaPluginDialog *self = EINA_PLUGIN_DIALOG(object);
 	EinaPluginDialogPrivate *priv = GET_PRIVATE(self);
 	
@@ -134,6 +140,7 @@ eina_plugin_dialog_dispose (GObject *object)
 	}
 
 	G_OBJECT_CLASS (eina_plugin_dialog_parent_class)->dispose (object);
+#endif
 }
 
 static void
@@ -200,11 +207,14 @@ eina_plugin_dialog_get_app(EinaPluginDialog *self)
 static void
 set_app(EinaPluginDialog *self, GelApp *app)
 {
+#if 0
 	EinaPluginDialogPrivate *priv = GET_PRIVATE(self);
 	g_return_if_fail(priv->app == NULL);
 	g_return_if_fail(app != NULL);
 
 	priv->app = app;
+
+	return;
 
 	// Get plugins, lock and count
 	GList *l = priv->plugins = g_list_sort(gel_app_query_plugins(priv->app), (GCompareFunc) gel_plugin_compare_by_name);
@@ -247,6 +257,7 @@ set_app(EinaPluginDialog *self, GelApp *app)
 
 	g_signal_connect(app,  "plugin-init", (GCallback) plugin_init_cb, self);
 	g_signal_connect(app,  "plugin-fini", (GCallback) plugin_fini_cb, self);
+#endif
 }
 
 
@@ -268,6 +279,7 @@ eina_plugin_dialog_get_selected_plugin(EinaPluginDialog *self)
 	return plugin;
 }
 
+#if 0
 static gboolean
 get_iter_from_plugin(EinaPluginDialog *self, GtkTreeIter *iter, GelPlugin *plugin)
 {
@@ -283,10 +295,11 @@ get_iter_from_plugin(EinaPluginDialog *self, GtkTreeIter *iter, GelPlugin *plugi
 			return TRUE;
 
 	} while (gtk_tree_model_iter_next(model, iter));
-
 	return FALSE;
 }
+#endif
 
+#if 0
 static void
 insert_plugin(EinaPluginDialog *self, GtkListStore *model, GtkTreeIter *iter, GelPlugin *plugin)
 {
@@ -322,7 +335,9 @@ insert_plugin(EinaPluginDialog *self, GtkListStore *model, GtkTreeIter *iter, Ge
 		-1);
 	g_free(markup);
 }
+#endif
 
+#if 0
 static void
 update_plugin(EinaPluginDialog *self, GelPlugin *plugin)
 {
@@ -338,10 +353,14 @@ update_plugin(EinaPluginDialog *self, GelPlugin *plugin)
 	GtkListStore *model = GTK_LIST_STORE(gtk_tree_view_get_model(priv->tv));
 	gtk_list_store_set(model, &iter, COLUMN_ENABLED, gel_plugin_is_enabled(plugin), -1);
 }
+#endif
 
 static void
 enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPluginDialog *self)
 {
+	gel_error(__FUNCTION__);
+	return; 
+	#if 0
 	EinaPluginDialogPrivate *priv = GET_PRIVATE(self);
 
 	GtkTreePath *tp = gtk_tree_path_new_from_string(path);
@@ -367,8 +386,10 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPlug
 		if (!gel_app_load_plugin(priv->app, (gchar *) gel_plugin_get_pathname(plugin), (gchar *) plugin->name, &error))
 			g_error_free(error);
 	}
+	#endif
 }
 
+#if 0
 static void
 plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaPluginDialog *self)
 {
@@ -380,4 +401,4 @@ plugin_fini_cb(GelApp *app, GelPlugin *plugin, EinaPluginDialog *self)
 {
 	update_plugin(self, plugin);
 }
-
+#endif

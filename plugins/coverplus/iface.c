@@ -53,8 +53,8 @@ typedef enum {
 // --
 // Main
 // --
-gboolean
-coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+coverplus_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	Art *art = GEL_APP_GET_ART(app);
 	if (!art)
@@ -80,12 +80,12 @@ coverplus_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		(ArtFunc) coverplus_banshee_art_search_cb, NULL,
 		NULL);
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
-gboolean
-coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+coverplus_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	CoverPlus *self = EINA_PLUGIN_DATA(plugin);
 	if (!self)
@@ -106,12 +106,12 @@ coverplus_exit(GelApp *app, EinaPlugin *plugin, GError **error)
 		self->banshee_backend = NULL;
 	}
 	g_free(self);
-	plugin->data = NULL;
+	gel_plugin_set_data(plugin, NULL);
 
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(coverplus,
+EINA_PLUGIN_INFO_SPEC(coverplus,
 	PACKAGE_VERSION, "art",
 	NULL, NULL,
 
@@ -119,8 +119,6 @@ EINA_PLUGIN_SPEC(coverplus,
 	N_("Brings Eina several simple but fundamental cover providers like:\n"
 	   "· In-folder cover discover\n"
 	   "· Banshee (on Linux) covers"),
-	NULL,
-
-	coverplus_init, coverplus_exit
+	NULL
 );
 

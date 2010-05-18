@@ -226,8 +226,9 @@ gint main
 			gel_error("Cannot load %s: %s", modules[i], error->message);
 			g_error_free(error);
 		}
+		/*
 		else
-			gel_plugin_add_lock(plugin);
+			gel_plugin_add_lock(plugin); */
 	}
 
 	// --
@@ -351,7 +352,7 @@ app_dispose_cb(GelApp *app, gpointer data)
 			continue;
 		}
 	
-		gel_plugin_remove_lock(plugin);
+		/* gel_plugin_remove_lock(plugin); */
 		if (!gel_app_unload_plugin(app, plugin, &error))
 		{
 			gel_error(N_("Cannot fini plugin %s: %s"), gel_plugin_stringify(plugin), error->message);
