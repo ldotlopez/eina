@@ -26,11 +26,11 @@
 #include <gel/gel-plugin-info.h>
 
 struct _GelPlugin {
-	const GelPluginInfo *info;
-	GelApp              *app;
-	GModule             *module;
-	GList               *rdepends;
-	gchar               *stringified;
+	GelPluginInfo *info;
+	GelApp        *app;
+	GModule       *module;
+	GList         *references;
+	gchar         *stringified;
 	gboolean (*init) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Init function
 	gboolean (*fini) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Exit function
 	gpointer data;
@@ -79,7 +79,7 @@ gel_plugin_new(GelApp *app, GelPluginInfo *info, GError **error)
 	plugin->fini     = fini;
 	plugin->app      = app;
 	plugin->module   = mod;
-	plugin->rdepends = NULL;
+	plugin->references = NULL;
 
 	if (!plugin->init(app, plugin, error))
 	{
@@ -95,7 +95,7 @@ gel_plugin_new(GelApp *app, GelPluginInfo *info, GError **error)
 gboolean
 gel_plugin_free(GelPlugin *self, GError **error)
 {
-	g_warn_if_fail(self->rdepends == NULL);
+	g_warn_if_fail(self->references == NULL);
 	g_warn_if_fail(gel_plugin_is_in_use(self) == FALSE);
 
 	// Plugin in use (referenced) cannot be destroyed
@@ -107,13 +107,17 @@ gel_plugin_free(GelPlugin *self, GError **error)
 	}
 
 	if (self->fini && !self->fini(self->app, self, error))
+	{	
+		if (error && !*error)
+			g_warning(N_("fini hook failed without a reason"));
 		return FALSE;
+	}
 
 	gel_app_priv_run_fini(self->app, self);
 
 	gel_free_and_invalidate(self->stringified, NULL, g_free);
+	gel_plugin_info_free(self->info);
 	g_module_close(self->module);
-	gel_plugin_info_free((GelPluginInfo *) self->info);
 	g_free(self);
 
 	return TRUE;
@@ -140,53 +144,38 @@ gel_plugin_set_data(GelPlugin *plugin, gpointer data)
 const GList*
 gel_plugin_get_dependants(GelPlugin *plugin)
 {
-	return (const GList *) plugin->rdepends;
+	return (const GList *) plugin->references;
 }
 
 guint
 gel_plugin_get_usage(GelPlugin *self)
 {
-	return g_list_length(self->rdepends);
+	return g_list_length(self->references);
 }
 
 gboolean
 gel_plugin_is_in_use(GelPlugin *self)
 {
-	return self->rdepends != NULL;
+	return self->references != NULL;
 }
 
 void
 gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 {
-	if (g_list_find(self->rdepends, dependant))
+	if (g_list_find(self->references, dependant))
 	{
 		gel_warn("[@] '%s' already referenced by '%s'", self->info->name, dependant->info->name);
 		return;
 	}
 
-	self->rdepends = g_list_prepend(self->rdepends, dependant);
+	self->references = g_list_prepend(self->references, dependant);
 	gel_warn("[@] '%s' -> '%s'", dependant->info->name, self->info->name);
-#if 0
-	if (p != NULL)
-	{
-		gel_error(N_("Invalid reference from %s on %s"),
-			gel_plugin_stringify(dependant),
-			gel_plugin_stringify(self));
-		return;
-	}
-	self->priv->rdepends = g_list_prepend(self->priv->rdepends, dependant);
-#endif
-	/*
-	gchar *refs = gel_plugin_util_join_list(", ", self->priv->rdepends);
-	gel_warn("[^] %s (%s)", gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
-	gel_free_and_invalidate(refs, NULL, g_free);
-	*/
 }
 
 void
 gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 {
-	GList *p = g_list_find(self->rdepends, dependant);
+	GList *p = g_list_find(self->references, dependant);
 	if (p == NULL)
 	{
 		gel_error(N_("Invalid reference from %s on %s"),
@@ -194,14 +183,10 @@ gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 			gel_plugin_stringify(self));
 		return;
 	}
-	self->rdepends = g_list_remove_link(self->rdepends, p);
+	self->references = g_list_remove_link(self->references, p);
 	g_list_free(p);
 
-	/*
-	gchar *refs = gel_plugin_util_join_list(", ", self->priv->rdepends);
-	gel_warn("[v] %s (%s)", gel_plugin_stringify(self), gel_str_or_text(refs, N_("none")));
-	g_free(refs);
-	*/
+	 gel_warn("[@] '%s' w '%s'", dependant->info->name, self->info->name);
 }
 
 GelApp *
@@ -215,26 +200,6 @@ gel_plugin_get_pathname(GelPlugin *self)
 {
 	return self->info->pathname;
 }
-
-#if 0
-gchar *
-gel_plugin_build_resource_path(GelPlugin *plugin, gchar *resource_path)
-{
-	gchar *ret = NULL;
-	const gchar *pathname = gel_plugin_get_pathname(plugin);
-
-	if (pathname != NULL)
-	{
-		gchar *dirname = g_path_get_dirname(pathname);
-		ret = g_build_filename(dirname, resource_path, NULL);
-		g_free(dirname);
-	}
-	else
-		ret = g_build_filename(gel_get_package_name(), resource_path, NULL);
-
-	return ret;
-}
-#endif
 
 GList *
 gel_plugin_get_resource_list(GelPlugin *plugin, GelResourceType type, gchar *resource)
@@ -335,6 +300,4 @@ gel_plugin_stringify(GelPlugin *self)
 			);
 	return self->stringified;
 }
-
-
 

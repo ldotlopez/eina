@@ -35,7 +35,7 @@ gel_plugin_info_new(const gchar *filename, const gchar *name ,GError **error)
 		g_return_val_if_fail((filename != NULL) && (name != NULL), NULL);
 	}
 
-	GelPluginInfo *pinfo = g_new0(GelPluginInfo, 1);
+	GelPluginInfo *info = NULL;
 
 	// Load as internal
 	if (filename == NULL)
@@ -56,7 +56,7 @@ gel_plugin_info_new(const gchar *filename, const gchar *name ,GError **error)
 			g_module_close(m);
 			return NULL;
 		}
-		gel_plugin_info_copy(symbol_p, pinfo);
+		info = gel_plugin_info_dup(symbol_p);
 		g_module_close(m);
 	}
 
@@ -88,39 +88,40 @@ gel_plugin_info_new(const gchar *filename, const gchar *name ,GError **error)
 			}
 		}
 
-		pinfo->pathname = g_strdup(filename);
-		pinfo->dirname  = g_path_get_dirname(filename);
-		pinfo->name     = g_key_file_get_string(kf, "Eina Plugin", "name",    NULL);
+		info = g_new0(GelPluginInfo, 1);
 
-		pinfo->version  = g_key_file_get_string(kf, "Eina Plugin", "version", NULL);
-		pinfo->depends  = g_key_file_get_string(kf, "Eina Plugin", "depends", NULL);
-		pinfo->author   = g_key_file_get_string(kf, "Eina Plugin", "author",  NULL);
-		pinfo->url      = g_key_file_get_string(kf, "Eina Plugin", "url",     NULL);
+		info->pathname = g_strdup(filename);
+		info->dirname  = g_path_get_dirname(filename);
+		info->name     = g_key_file_get_string(kf, "Eina Plugin", "name",    NULL);
 
-		pinfo->short_desc = g_key_file_get_string(kf, "Eina Plugin", "short-desc", NULL);
-		pinfo->long_desc  = g_key_file_get_string(kf, "Eina Plugin", "long-desc",  NULL);
-		pinfo->icon_pathname = g_key_file_get_string(kf, "Eina Plugin", "icon-pathname", NULL);
+		info->version  = g_key_file_get_string(kf, "Eina Plugin", "version", NULL);
+		info->depends  = g_key_file_get_string(kf, "Eina Plugin", "depends", NULL);
+		info->author   = g_key_file_get_string(kf, "Eina Plugin", "author",  NULL);
+		info->url      = g_key_file_get_string(kf, "Eina Plugin", "url",     NULL);
+
+		info->short_desc = g_key_file_get_locale_string(kf, "Eina Plugin", "short-desc", NULL, NULL);
+		info->long_desc  = g_key_file_get_locale_string(kf, "Eina Plugin", "long-desc",  NULL, NULL);
+		info->icon_pathname = g_key_file_get_string(kf, "Eina Plugin", "icon-pathname", NULL);
 	}
 
-	return pinfo;
+	return info;
 }
 
 void
-gel_plugin_info_free(GelPluginInfo *pinfo)
+gel_plugin_info_free(GelPluginInfo *info)
 {
-	return;
-	gel_free_and_invalidate(pinfo->dirname,  NULL, g_free);
-	gel_free_and_invalidate(pinfo->pathname, NULL, g_free);
+	gel_free_and_invalidate(info->name,     NULL, g_free);
+	gel_free_and_invalidate(info->dirname,  NULL, g_free);
+	gel_free_and_invalidate(info->pathname, NULL, g_free);
 
-	gel_free_and_invalidate(pinfo->version, NULL, g_free);
-	gel_free_and_invalidate(pinfo->depends, NULL, g_free);
-	gel_free_and_invalidate(pinfo->author,  NULL, g_free);
-	gel_free_and_invalidate(pinfo->url ,    NULL, g_free);
+	gel_free_and_invalidate(info->version, NULL, g_free);
+	gel_free_and_invalidate(info->depends, NULL, g_free);
+	gel_free_and_invalidate(info->author,  NULL, g_free);
+	gel_free_and_invalidate(info->url ,    NULL, g_free);
 
-	gel_free_and_invalidate(pinfo->short_desc, NULL, g_free);
-	gel_free_and_invalidate(pinfo->long_desc,  NULL, g_free);
-	gel_free_and_invalidate(pinfo->icon_pathname, NULL, g_free);
-	gel_free_and_invalidate(pinfo->name,     NULL, g_free);
+	gel_free_and_invalidate(info->short_desc, NULL, g_free);
+	gel_free_and_invalidate(info->long_desc,  NULL, g_free);
+	gel_free_and_invalidate(info->icon_pathname, NULL, g_free);
 }
 
 gboolean

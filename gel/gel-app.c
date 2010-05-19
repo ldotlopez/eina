@@ -64,8 +64,6 @@ static guint gel_app_signals[LAST_SIGNAL] = { 0 };
 static void
 gel_app_dispose (GObject *object)
 {
-	gel_warn(__FUNCTION__);
-
 	GelApp *self = GEL_APP(object);
 
 	if (self->priv == NULL)
@@ -81,7 +79,7 @@ gel_app_dispose (GObject *object)
 		self->priv->dispose_func = NULL;
 	}
 
-	GelPlugin *plugin;
+	GelPlugin *plugin = NULL;
 	while ((plugin = g_queue_peek_tail(self->priv->stack)))
 	{
 		GError *error = NULL;
@@ -105,67 +103,6 @@ gel_app_dispose (GObject *object)
 	}
 	gel_free_and_invalidate(self->priv->stack, NULL, g_queue_free);
 
-#if 0
-	GelApp *self = GEL_APP(object);
-
-	if (self->priv != NULL)
-	{
-		// Call dispose before destroy us
-		if (self->priv->dispose_func)
-		{	
-			self->priv->dispose_func(self, self->priv->dispose_data);
-			self->priv->dispose_func = NULL;
-		}
-
-		// Unload plugins
-		GList *plugins = gel_app_get_plugins(self);
-		GList *l = plugins;
-
-		g_list_foreach(plugins, (GFunc)  gel_plugin_remove_lock, NULL);
-		while (l)
-		{
-			GelPlugin *plugin = GEL_PLUGIN(l->data);
-
-			if (!gel_plugin_is_in_use(plugin))
-			{
-				l = plugins = g_list_remove(plugins, plugin);
-				gel_app_unload_plugin(self, plugin, NULL);
-			}
-			else
-				l = l->next;
-		}
-		g_list_free(plugins);
-
-		plugins = gel_app_get_plugins(self);
-		if (plugins)
-			gel_warn(N_("%d plugins are enabled at exit. Use a dispose func to unload them."), g_list_length(plugins));
-		GList *iter = plugins;
-		while (iter)
-		{
-			GelPlugin *plugin = GEL_PLUGIN(iter->data);
-			gchar *rdeps_str = gel_plugin_stringify_dependants(plugin);
-			gel_warn(N_("  %s (usage:%d enabled:%d locked:%d %s)"),
-				gel_plugin_stringify(plugin),
-				gel_plugin_get_usage(plugin),
-				gel_plugin_is_enabled(plugin),
-				gel_plugin_is_locked(plugin),
-				rdeps_str);
-			g_free(rdeps_str);
-			iter = iter->next;
-		}
-		g_list_free(plugins);
-
-		// Clear paths
-		if (self->priv->paths)
-		{
-			gel_list_deep_free(self->priv->paths, g_free);
-			self->priv->paths = NULL;
-		}
-
-		gel_free_and_invalidate(self->priv->shared, NULL, g_hash_table_destroy);
-		gel_free_and_invalidate(self->priv, NULL, g_free);
-	}
-#endif
 	G_OBJECT_CLASS (gel_app_parent_class)->dispose (object);
 }
 
@@ -730,11 +667,11 @@ gel_app_priv_run_init(GelApp *self, GelPlugin *plugin)
 	g_warn_if_fail(g_queue_find(self->priv->stack, plugin) == NULL);
 
 	// Insert into lookup table and stack
-	g_hash_table_insert(self->priv->lookup, gel_plugin_get_info(plugin)->name, plugin);
+	g_hash_table_insert(self->priv->lookup, g_strdup(gel_plugin_get_info(plugin)->name), plugin);
 	g_queue_push_tail(self->priv->stack, plugin);
 
 	// Emit signal
-	// g_signal_emit(self, gel_app_signals[PLUGIN_INIT], 0, plugin);
+	g_signal_emit(self, gel_app_signals[PLUGIN_INIT], 0, plugin);
 }
 
 void
@@ -742,7 +679,7 @@ gel_app_priv_run_fini(GelApp *self, GelPlugin *plugin)
 {
 	const GelPluginInfo *info = gel_plugin_get_info(plugin);
 
-	// g_signal_emit(self, gel_app_signals[PLUGIN_FINI], 0, plugin);
+	g_signal_emit(self, gel_app_signals[PLUGIN_FINI], 0, plugin);
 
 	g_warn_if_fail(g_queue_find(self->priv->stack, plugin) != NULL);
 	g_warn_if_fail(g_hash_table_lookup(self->priv->lookup, gel_plugin_get_info(plugin)->name) != NULL);
