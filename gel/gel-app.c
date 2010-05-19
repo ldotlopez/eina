@@ -185,24 +185,25 @@ gel_app_query_paths(GelApp *self)
 }
 
 // --
-// Getting from know plugins (full, by pathname, by name)
+// Get loaded plugins
 // --
-GelPlugin*
-gel_app_get_plugin(GelApp *self, gchar *pathname, gchar *name)
+GelPlugin *
+gel_app_get_plugin (GelApp *self, GelPluginInfo *info)
 {
-	gel_warn(__FUNCTION__);
-#if 0
-	// DONT remove this comment
-	// g_return_val_if_fail(pathname != NULL, NULL); // pathname can be NULL,
-	g_return_val_if_fail(name != NULL, NULL);
+	GelPlugin *ret = NULL;
 
-	gchar *pstr = gel_plugin_util_stringify(pathname, name);
-	GelPlugin *ret = g_hash_table_lookup(self->priv->lookup, pstr);
-	g_free(pstr);
+	GList *plugins = g_hash_table_get_values(self->priv->lookup);
+	GList *iter = plugins;
+	while (iter && !ret)
+	{
+		GelPlugin *plugin = GEL_PLUGIN(iter->data);
+		if (gel_plugin_info_equal((GelPluginInfo *) gel_plugin_get_info(plugin), info))
+			ret = plugin;
+		iter = iter->next;
+	}
+	g_list_free(plugins);
 
 	return ret;
-#endif
-	return NULL;
 }
 
 GelPlugin*
@@ -252,7 +253,7 @@ gel_app_get_plugin_by_name(GelApp *self, gchar *name)
 }
 
 GList *
-gel_app_get_plugins(GelApp *self)
+gel_app_query_plugins(GelApp *self)
 {
 	return g_hash_table_get_values(self->priv->lookup);
 }
@@ -261,48 +262,21 @@ gel_app_get_plugins(GelApp *self)
 // Querying for plugins (loaded or not) and full, by pathname, by name
 // --
 GelPlugin *
-gel_app_query_plugin(GelApp *self, gchar *pathname, gchar *name, GError **error)
+gel_app_query_plugin(GelApp *self, GelPluginInfo *info)
 {
-	gel_warn(__FUNCTION__);
-	return NULL;
-#if 0
-	// Search in know plugins
-	GelPlugin *plugin = gel_app_get_plugin(self, pathname, name);
-	if (plugin != NULL)
-		return plugin;
-
-	gchar *symbol = gel_plugin_util_symbol_from_name(name);
-	plugin = gel_plugin_new(self, pathname, symbol, error);
-	g_free(symbol);
-
-	return plugin;
-#endif
-}
-
-GelPlugin *
-gel_app_query_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
-{
-	gel_warn(__FUNCTION__);
-	return NULL;
-#if 0
-	if (!self || !pathname)
+	GelPlugin *ret = NULL;
+	GList *plugins = gel_app_query_plugins(self);
+	GList *iter = plugins;
+	while (iter && !ret)
 	{
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_GENERIC, N_("Invalid arguments"));
-		return NULL;
+		GelPlugin *plugin = GEL_PLUGIN(iter->data);
+		if (gel_plugin_info_equal((GelPluginInfo *) gel_plugin_get_info(plugin), info))
+			ret = plugin;
+		iter = iter->next;
 	}
+	g_list_free(plugins);
 
-	// Search in know plugins
-	GelPlugin *plugin = gel_app_get_plugin_by_pathname(self, pathname);
-	if (plugin != NULL)
-		return plugin;
-
-	// Create new plugin
-	gchar *symbol = gel_plugin_util_symbol_from_pathname(pathname);
-	plugin = gel_plugin_new(self, pathname, symbol, error);
-	g_free(symbol);
-
-	return plugin;
-#endif
+	return ret;
 }
 
 GelPlugin *
@@ -343,98 +317,9 @@ gel_app_query_plugin_by_name(GelApp *self, gchar *name, GError **error)
 }
 
 GList *
-gel_app_query_plugins(GelApp *self)
+gel_app_query_infos(GelApp *self)
 {
-	// gel_warn(__FUNCTION__);
-
 	return NULL;
-
-	GList *ret = NULL;
-	GList *paths = gel_app_query_paths(self);
-	GList *iter = paths;
-	while (iter)
-	{
-		gchar *path = (gchar *) iter->data;
-
-		GList *child, *children;
-		// gel_warn(" Search plugins in %s", path);
-		child = children = gel_dir_read(iter->data, TRUE, NULL);
-		while (child)
-		{
-			// Build a path for the plugin info file
-			gchar *basename = g_path_get_basename(child->data);
-			gchar *infoname = g_strconcat(basename, ".ini", NULL);
-			gchar *infopath = g_build_filename(path, basename, infoname, NULL);
-
-			g_free(basename);
-			g_free(infoname);
-
-			// Maybe this infopath is already loaded as plugin
-
-			// Read info file
-			if (g_file_test(infopath, G_FILE_TEST_IS_REGULAR))
-			{
-				GelPluginInfo *pinfo = NULL;
-				GError *error = NULL;
-				if (!(pinfo = gel_plugin_info_new(infopath, NULL, &error)))
-				{
-					gel_error(N_("Cannot load info for '%s': %s"), infopath, error->message);
-					g_error_free(error);
-				}
-				else
-					ret = g_list_prepend(ret, pinfo);
-			}
-			g_free(infopath);
-
-			child = child->next;
-		}
-		gel_list_deep_free(children, g_free);
-
-
-		iter = iter->next;
-	}
-	gel_list_deep_free(paths, g_free);
-
-	return g_list_reverse(ret);
-
-#if 0
-    GList *paths = gel_app_query_paths(self);
-	GList *iter  = paths;
-	GList *ret = NULL;
-
-	while (iter)
-	{
-		GList *child, *children;
-		gel_warn("[?] %s", iter->data);
-		child = children = gel_dir_read(iter->data, TRUE, NULL);
-		while (child)
-		{
-			gchar *plugin_name = g_path_get_basename(child->data);
-			gchar *module_path = g_module_build_path(child->data, plugin_name);
-			g_free(plugin_name);
-
-			GError *err = NULL;
-			GelPlugin *plugin = gel_app_query_plugin_by_pathname(self, module_path, &err);
-
-			if (plugin)
-				ret = g_list_prepend(ret, plugin);
-			else
-			{
-				gel_error(N_("Cannot load %s: %s"), module_path, err->message);
-				g_error_free(err);
-			}
-			g_free(module_path);
-
-			child = child->next;
-		}
-		gel_list_deep_free(children, g_free);
-
-		iter = iter->next;
-	}
-	g_list_free(paths);
-
-    return ret;
-#endif
 }
 
 // --
@@ -515,7 +400,7 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 	// gel_warn("%s (%p, %s,%p)", __FUNCTION__, self, name, error );
 
 	// 1. Query plugins and try to match name against one of them
-	GList *plugins_info = gel_app_query_plugins(self);
+	GList *plugins_info = gel_app_query_infos(self);
 	GList *iter = plugins_info;
 	while (iter)
 	{

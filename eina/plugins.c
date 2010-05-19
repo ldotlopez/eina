@@ -165,27 +165,28 @@ disable_watch(EinaPlugins *self)
 static void
 update_plugins_list(EinaPlugins *self)
 {
-#if 0
 	GelApp *app = eina_obj_get_app(self);
 	GList *list = NULL;
 
-	GList *plugins = gel_app_get_plugins(app);
+	GList *plugins = gel_app_query_infos(app);
 	GList *l = plugins;
 	while (l)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(l->data);
-		const gchar *pathname = gel_plugin_get_pathname(plugin);
-		if (pathname && gel_plugin_is_enabled(plugin))
-			list = g_list_prepend(list, g_strdup(pathname));
+
+		gel_warn("GelPlugin %s", gel_plugin_stringify(plugin));
+
+		if (gel_plugin_get_info(plugin)->pathname)
+			list = g_list_prepend(list, g_strdup(gel_plugin_stringify(plugin)));
 		l = l->next;
 	}
 	g_list_free(plugins);
 
+
 	gchar *list_str = gel_list_join(",", list);
 	gel_list_deep_free(list, g_free);
 	eina_conf_set_str(eina_obj_get_settings(self), "/core/plugins", list_str);
-	g_free(list_str);
-#endif
+	g_free(list_str); 
 }
 
 static void

@@ -40,13 +40,12 @@ enum {
 	GEL_PLUGIN_INFO_MISSING_KEY
 };
 
-#ifdef GEL_COMPILATION
 GelPluginInfo *gel_plugin_info_new(const gchar *filename, const gchar *name, GError **error);
 void           gel_plugin_info_free(GelPluginInfo *pinfo);
 void           gel_plugin_info_copy(GelPluginInfo *src, GelPluginInfo *dst);
 GelPluginInfo *gel_plugin_info_dup(GelPluginInfo *info);
 gboolean       gel_plugin_info_cmp(GelPluginInfo *a, GelPluginInfo *b);
-#endif
+#define gel_plugin_info_equal(a,b) (gel_plugin_info_cmp(a,b) == 0)
 
 G_END_DECLS
 

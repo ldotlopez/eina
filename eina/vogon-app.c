@@ -99,12 +99,6 @@ inspect_gdk_pixbuf_loaders(void)
 #endif
 
 // --
-// Callbacks
-// --
-static void
-app_dispose_cb(GelApp *app, gpointer data);
-
-// --
 // XXX ugly hack
 // --
 void xxx_ugly_hack(void);
@@ -234,7 +228,7 @@ gint main
 	// --
 	// Set some signals
 	// --
-	gel_app_set_dispose_callback(app, app_dispose_cb, (gpointer) modules);
+    gel_app_set_dispose_callback(app, (GelAppDisposeFunc) gtk_main_quit, NULL);
 
 #if HAVE_UNIQUE
 	unique_app_watch_window(unique, (GtkWindow *) GEL_APP_GET_WINDOW(app));
@@ -334,36 +328,6 @@ unique_message_received_cb (UniqueApp *unique,
 	return res;
 }
 #endif
-
-static void
-app_dispose_cb(GelApp *app, gpointer data)
-{
-	gchar **modules = (gchar **) data;
-	gint i = 0;
-	while (modules[i]) i++; i--; // Count how many modules
-
-	for (;i >= 0; i--)
-	{
-		GError *error = NULL;
-		GelPlugin *plugin = gel_app_get_plugin_by_name(app, modules[i]);
-		if (plugin == NULL)
-		{
-			gel_error(N_("Cannot find loaded plugin %s"), modules[i]);
-			continue;
-		}
-	
-		/* gel_plugin_remove_lock(plugin); */
-		if (!gel_app_unload_plugin(app, plugin, &error))
-		{
-			gel_error(N_("Cannot fini plugin %s: %s"), gel_plugin_stringify(plugin), error->message);
-			g_error_free(error);
-			continue;
-		}
-	}
-	gel_app_purge(app);
-
-	gtk_main_quit();
-}
 
 // --
 // XXX ugly hack
