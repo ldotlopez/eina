@@ -110,7 +110,6 @@ gel_ui_load_pixbuf_from_imagedef(GelUIImageDef def, GError **error)
 {
 	GdkPixbuf *ret;
 
-	// gchar *pathname = gel_app_resource_get_pathname(GEL_APP_RESOURCE_IMAGE, def.image);
 	gchar *pathname = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, def.image);
 	if (pathname == NULL)
 	{
@@ -153,7 +152,9 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 	while (iter && (ret == NULL))
 	{
 		GtkWidget *child = (GtkWidget *) iter->data;
-		const gchar *c_name = gtk_widget_get_name(child);
+		gchar *c_name = NULL;
+		gtk_widget_path(child, NULL, &c_name, NULL);
+		// gel_warn("%s <-> %s", c_name, name);
 
 		if (g_str_equal(c_name, name))
 			ret = child;
@@ -161,6 +162,7 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 		else if (GTK_IS_CONTAINER(child))
 			ret = gel_ui_container_find_widget((GtkContainer *) child, (gchar *) name);
 
+		g_free(c_name);
 		iter = iter->next;
 	}
 

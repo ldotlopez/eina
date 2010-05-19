@@ -22,6 +22,7 @@
 
 #include <gel/gel-app.h>
 #include <gel/gel-plugin.h>
+#include <gel/gel-plugin-info.h>
 #include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>
 #include <gel/gel-job-queue.h>

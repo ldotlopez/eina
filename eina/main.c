@@ -116,7 +116,7 @@ gint main
 #endif
 
 	// "Top-level" plugins loaded by default
-	"dbus", "player", "playlist", "plugins", "vogon",
+	"lomo", "dbus" , "player", "playlist", "plugins",  "vogon", 
 
 	NULL };
 

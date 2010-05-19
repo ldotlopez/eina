@@ -133,8 +133,8 @@ callhome_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 EINA_PLUGIN_INFO_SPEC(callhome,
-	PACKAGE_VERSION, GEL_PLUGIN_NO_DEPS,
-	NULL, NULL,
+	PACKAGE_VERSION,
+	NULL, NULL, NULL,
 
 	N_("Help us to follow Eina's usage"),
 	N_("Call home will help us to know how many (not who) users has Eina.\n"

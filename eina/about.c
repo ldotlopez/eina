@@ -45,6 +45,7 @@ about_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(self);
 		return FALSE;
 	}
+
 	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
@@ -53,8 +54,7 @@ G_MODULE_EXPORT gboolean
 about_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaAbout *self = EINA_PLUGIN_DATA(plugin);
-	if (self->about != NULL)
-		gtk_widget_destroy(self->about);
+	gel_free_and_invalidate(self->about, NULL, gtk_widget_destroy);
 
 	return TRUE;
 }

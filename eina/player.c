@@ -206,7 +206,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	GError *err2 = NULL;
 	gchar *ui_path = NULL;
 	gchar *ui_str  = NULL;
-	gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui");
 	if ((ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui")) &&
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
@@ -225,6 +224,7 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 			"/player/cover-effects", NULL
 			};
 		eina_preferences_tab_add_watchers(tab, objects);
+		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 		gtk_widget_set_visible(eina_preferences_tab_get_widget(tab, "/player/cover-effects"),
 			#if HAVE_CLUTTER
 			TRUE
@@ -232,7 +232,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 			FALSE
 			#endif
 			);
-		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
 	else
 	{

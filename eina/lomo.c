@@ -91,13 +91,13 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
-	gel_app_shared_free(app, "lomo");
 
 	EinaConf *conf = gel_app_get_settings(app);
 	eina_conf_set_int(conf, "/core/volume", lomo_player_get_volume(engine));
 	g_signal_handlers_disconnect_by_func(conf, conf_change_cb, engine);
 
 	g_object_unref(G_OBJECT(engine));
+	gel_app_shared_free(app, "lomo");
 
 	return TRUE;
 }
@@ -118,7 +118,7 @@ eina_plugin_lomo_add_handlers(EinaPlugin *plugin, ...)
 	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
 	g_return_val_if_fail(lomo != NULL, NULL);
 
-	GelApp *app = eina_plugin_get_app(plugin);
+	GelApp *app = gel_plugin_get_app(plugin);
 	GHashTable *handlers = gel_app_shared_get(app, "lomo-event-handlers");
 	if (!handlers)
 	{

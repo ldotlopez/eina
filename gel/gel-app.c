@@ -85,7 +85,7 @@ gel_app_dispose (GObject *object)
 	while ((plugin = g_queue_peek_tail(self->priv->stack)))
 	{
 		GError *error = NULL;
-		GelPluginInfo *info = gel_plugin_get_info(plugin);
+		const GelPluginInfo *info = gel_plugin_get_info(plugin);
 
 		gel_warn("Must unload %s", info->name);
 		if (!gel_app_unload_plugin(self, plugin, &error))
@@ -521,7 +521,6 @@ gel_app_load_plugin(GelApp *self, GelPluginInfo *info, GError **error)
  	}
  
  	// Load deps
- 	GList *dps = NULL;
  	if (info->depends && info->depends[0])
  	{
  		gel_warn("[?] '%s': %s", info->name, info->depends);
@@ -529,18 +528,17 @@ gel_app_load_plugin(GelApp *self, GelPluginInfo *info, GError **error)
  		for (gint i = 0; deps[i] && deps[i][0]; i++)
  		{
  			GError *err = NULL;
- 			dps = g_list_prepend(dps, gel_app_load_plugin_by_name(self, deps[i], &err));
- 			if (!dps || !dps->data)
- 			{
+			if (!gel_app_load_plugin_by_name(self, deps[i], &err))
+			{
  				g_set_error(error, app_quark(), GEL_APP_MISSING_PLUGIN_DEPS,
  					N_("Failed to load plugin dependency '%s' for '%s': %s"), deps[i], info->name, err->message);
  				g_error_free(err);
- 				g_list_free(dps);
  				g_strfreev(deps);
  				gel_warn("END LOAD '%s'", info->name);
  				return NULL;
  			}
  		}
+ 		g_strfreev(deps);
  	}
 
 	// Load plugin itself
@@ -556,99 +554,6 @@ gel_app_load_plugin(GelApp *self, GelPluginInfo *info, GError **error)
  	gel_warn("END LOAD '%s'", info->name);
  
  	return plugin;
-
-	#if 0
-	if ((self == NULL) || (name == NULL))
-	{
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_INVALID_ARGUMENTS,
-			N_("Invalid arguments, set breakpoint on %s to debug"), name);
-		return NULL;
-	}
-
-	// Check if another plugin with the same name is already loaded
-	// Set some pointers to posible matchmes.
-	GelPlugin *exact_plugin = NULL, *fuzzy_plugin = NULL;
-	GList *plugins, *iter;
-	plugins = iter = gel_app_get_plugins(self);
-	while (iter)
-	{
-		GelPlugin *p = GEL_PLUGIN(iter->data);
-
-		// Invalid data
-		if (p->name == NULL)
-		{
-			gel_warn(N_("Plugin %p has NULL name"), p);
-			iter = iter->next;
-			continue;
-		}
-
-		// not match
-		if (!g_str_equal(p->name, name))
-		{
-			iter = iter->next;
-			continue;
-		}
-
-		// Name matches at this point
-		if (
-			((pathname == NULL) && (gel_plugin_get_pathname(p) == NULL)) || // Both have NULL path
-			((pathname != NULL) && (gel_plugin_get_pathname(p) != NULL) && g_str_equal(gel_plugin_get_pathname(p), pathname)) // path match
-		)
-			exact_plugin = p;
-		else
-			fuzzy_plugin = p;
-
-		iter = iter->next;
-	}
-	g_list_free(plugins);
-
-	// Exact match found and enabled, nothing to do
-	if (exact_plugin && gel_plugin_is_enabled(exact_plugin))
-		return exact_plugin;
-
-	// Fuzzy plugin (matches name) found, if its enabled return it. Two enabled
-	// plugins cannot have the same name, warn about this.
-	if (fuzzy_plugin && gel_plugin_is_enabled(fuzzy_plugin))
-	{
-		gel_warn("[~] %s", gel_plugin_stringify(fuzzy_plugin));
-		return fuzzy_plugin;
-	}
-
-	// Ok, maybe we have nothing and we can get nothing :(
-	if (!exact_plugin && ((exact_plugin = gel_app_query_plugin(self, pathname, name, error)) == NULL))
-		return NULL;
-
-	// Try to enable this exact_match and all the stuff
-
-	// Before init we need to load other deps
-	if (!gel_app_load_plugin_dependences(self, exact_plugin, error))
-	{
-		// gel_warn("Cannot load dependences for %s: %s", gel_plugin_stringify(plugin), (*error)->message);
-		return NULL;
-	}
-
-	// Call init hook
-	if (!gel_plugin_init(exact_plugin, error))
-	{
-		gel_error(N_("Init for '%s' failed: %s"), gel_plugin_stringify(exact_plugin), error ? (*error)->message : N_("No error"));
-		if (gel_plugin_is_locked(exact_plugin))
-		{
-			gel_error(N_("Failed plugin '%s' is locked, unload aborted."), gel_plugin_stringify(exact_plugin));
-			return NULL;
-		}
-
-		GError *err2 = NULL;
-		if (!gel_app_unload_plugin(self, exact_plugin, &err2))
-		{
-			gel_error(N_("Error unloading failed plugin '%s': %s. Problems ahead"), gel_plugin_stringify(exact_plugin), err2->message);
-			g_error_free(err2);
-			return NULL;
-		}
-		return NULL;
-	}
-
-	return exact_plugin;
-#endif
 }
 
 GelPlugin *
@@ -704,31 +609,6 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 	gel_plugin_info_free(info);
 
 	return ret;
-
-#if 0
-	GelPlugin *ret = NULL;
-
-	// Search in paths for a matching filename
-	GList *paths = gel_app_query_paths(self);
-	GList *iter = paths;
-	while (iter)
-	{
-		gchar *parent = g_build_filename((gchar *) iter->data, name, NULL);
-		gchar *pathname = g_module_build_path(parent, name);
-		g_free(parent);
-
-		if ((ret = gel_app_load_plugin(self, pathname, name, NULL)) != NULL)
-		{
-			g_free(pathname);
-			return ret;
-		}
-		iter = iter->next;
-	}
-	g_list_free(paths);
-
-	// Plugin not found, try using build-in feature
-	return gel_app_load_plugin(self, NULL, name, error);
-#endif
 }
 
 // --
@@ -737,7 +617,7 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 gboolean
 gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 {
-	GelPluginInfo *info = NULL;
+	const GelPluginInfo *info = NULL;
 	if (!GEL_IS_APP(self) || !plugin || !(info = gel_plugin_get_info(plugin)))
 	{
 		g_set_error(error, app_quark(), GEL_APP_ERROR_INVALID_ARGUMENTS, N_("Invalid arguments"));
@@ -745,74 +625,7 @@ gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error)
 	}
 
 	// Call fini
-	if (!gel_plugin_free(plugin, error))
-		return FALSE;
-
-	return TRUE;
-
-#if 0
-	g_return_val_if_fail(plugin != NULL, FALSE);
-	GError *err = NULL;
-
-	// Check if any other plugin references this plugin
-	if (gel_plugin_is_in_use(plugin))
-	{
-		g_set_error(error, gel_app_quark(), GEL_APP_ERROR_PLUGIN_IN_USE,
-			N_("Cannot unload plugin %s, its used by %d plugins"),
-			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
-		gel_error(N_("Cannot unload plugin %s, its used by %d plugins"),
-			gel_plugin_stringify(plugin), gel_plugin_get_usage(plugin));
-		gchar *tmp = gel_plugin_stringify_dependants(plugin);
-		gel_error(tmp);
-		g_free(tmp);
-		return FALSE;
-	}
-
-	// Disable in case it was enabled
-	// gboolean was_enabled = gel_plugin_is_enabled(plugin);
-	if (gel_plugin_is_enabled(plugin) && !gel_plugin_fini(plugin, &err))
-	{
-		gel_warn(N_("Cannot finalize plugin %s: %s"), gel_plugin_stringify(plugin), err->message);
-		g_propagate_error(error, err);
-		return FALSE;
-	}
-
-	// Remove deps from dependencies if plugin is active
-	// if ((plugin->depends && was_enabled))
-
-	// Note: 2010-01-20
-	// references are loaded before plugin was initialized, so we have to
-	// remove them whatever it has enabled or not. This change hasn't be
-	// sufficient tested, so I leave this comment here (xuzo@cuarentaydos.com)
-	if (plugin->depends)
-	{
-		gint i;
-		gchar **deps = g_strsplit(plugin->depends, ",", 0);
-		for (i = 0; deps && (deps[i] != NULL); i++)
-		{
-			GelPlugin *p = gel_app_get_plugin_by_name(self, deps[i]);
-			if (p == NULL)
-			{
-				gel_warn(N_("Dependency %s for plugin %s not found"), deps[i], gel_plugin_stringify(plugin));
-				continue;
-			}
-			gel_plugin_remove_reference(p, plugin);
-		}
-	}
-
-	if (gel_plugin_is_locked(plugin))
-		return TRUE;
-
-	if (!gel_plugin_free(plugin, &err))
-	{
-		gel_warn(N_("Cannot free plugin after all: %s"), err->message);
-		g_propagate_error(error, err);
-		return FALSE;
-	}
-
-	return TRUE;
-#endif
-	return FALSE;
+	return gel_plugin_free(plugin, error);
 }
 
 // --
@@ -856,32 +669,46 @@ gel_app_purge(GelApp *app)
 // --
 // Shared memory management
 // --
-void
-gel_app_shared_free(GelApp *self, gchar *name)
-{
-	g_hash_table_remove(self->priv->shared, name);
-}
-
 gboolean gel_app_shared_set
 (GelApp *self, gchar *name, gpointer data)
 {
-	if (gel_app_shared_get(self, name) != NULL)
-		gel_warn("Data using the key '%s' is going to be leaked", name);
-	g_hash_table_insert(self->priv->shared, g_strdup(name), data);
+	g_return_val_if_fail(GEL_IS_APP(self), FALSE);
+	g_return_val_if_fail(name != NULL, FALSE);
+	g_return_val_if_fail(g_hash_table_lookup(self->priv->shared, name) == NULL, FALSE);
 
+	g_hash_table_insert(self->priv->shared, g_strdup(name), data);
 	return TRUE;
 }
 
 gpointer gel_app_shared_get
 (GelApp *self, gchar *name)
 {
-	return g_hash_table_lookup(self->priv->shared, name);
+	g_return_val_if_fail(GEL_IS_APP(self), FALSE);
+	g_return_val_if_fail(name != NULL, FALSE);
+
+	gpointer ret = g_hash_table_lookup(self->priv->shared, name);
+	g_return_val_if_fail(ret != NULL, FALSE);
+
+	return ret;
 }
 
 void
+gel_app_shared_free(GelApp *self, gchar *name)
+{
+	g_return_if_fail(GEL_IS_APP(self));
+	g_return_if_fail(name != NULL);
+
+	g_warn_if_fail(g_hash_table_lookup(self->priv->shared, name) != NULL);
+	g_hash_table_remove(self->priv->shared, name);
+}
+
+// --
+// Private funcs
+// --
+void
 gel_app_priv_run_init(GelApp *self, GelPlugin *plugin)
 {
-	GelPluginInfo *info = gel_plugin_get_info(plugin);
+	const GelPluginInfo *info = gel_plugin_get_info(plugin);
 
 	// Add references
 	if (info->depends)
@@ -907,16 +734,15 @@ gel_app_priv_run_init(GelApp *self, GelPlugin *plugin)
 	g_queue_push_tail(self->priv->stack, plugin);
 
 	// Emit signal
-	g_signal_emit(self, gel_app_signals[PLUGIN_INIT], 0, plugin);
+	// g_signal_emit(self, gel_app_signals[PLUGIN_INIT], 0, plugin);
 }
 
 void
 gel_app_priv_run_fini(GelApp *self, GelPlugin *plugin)
 {
-	GelPluginInfo *info = gel_plugin_get_info(plugin);
+	const GelPluginInfo *info = gel_plugin_get_info(plugin);
 
-	g_signal_emit(self, gel_app_signals[PLUGIN_FINI], 0, plugin);
-
+	// g_signal_emit(self, gel_app_signals[PLUGIN_FINI], 0, plugin);
 
 	g_warn_if_fail(g_queue_find(self->priv->stack, plugin) != NULL);
 	g_warn_if_fail(g_hash_table_lookup(self->priv->lookup, gel_plugin_get_info(plugin)->name) != NULL);

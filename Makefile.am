@@ -46,6 +46,7 @@ gel_include_HEADERS = \
     gel/gel-str-parser.h        \
     gel/gel-job-queue.h         \
     gel/gel-plugin.h            \
+    gel/gel-plugin-info.h       \
     gel/gel-app.h               \
     gel/gel-io-misc.h           \
     gel/gel-io-tree.h           \
@@ -64,6 +65,7 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-app-marshallers.c   \
 	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \
+    gel/gel-plugin-info.c       \
     gel/gel-app.c               \
 	gel/gel-io-marshallers.c    \
     gel/gel-io-misc.c           \

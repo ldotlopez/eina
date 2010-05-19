@@ -26,6 +26,7 @@ G_BEGIN_DECLS
 
 typedef struct _GelApp GelApp;
 #include <gel/gel-plugin.h>
+#include <gel/gel-plugin-info.h>
 
 #define GEL_TYPE_APP gel_app_get_type()
 
