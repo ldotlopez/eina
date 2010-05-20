@@ -48,13 +48,24 @@ gel_plugin_new(GelApp *app, GelPluginInfo *info, GError **error)
 		return NULL;
 	}
 
+	
+	gchar *mod_filename = NULL;
+	if (info->dirname)
+	{
+		gchar *pname = g_path_get_basename(info->dirname);
+		mod_filename = g_module_build_path(info->dirname, pname);
+		g_free(pname);
+	}
+
 	GModule *mod;
-	if ((mod = g_module_open(info->pathname, G_MODULE_BIND_LAZY)) == NULL)
+	if ((mod = g_module_open(mod_filename, G_MODULE_BIND_LAZY)) == NULL)
 	{
 		g_set_error(error, plugin_quark(), GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
 			N_("%s is not loadable"), info->pathname);
+		g_free(mod_filename);
 		return NULL;
 	}
+	gel_free_and_invalidate(mod_filename, NULL, g_free);
 
 	gchar *init_func = g_strconcat(info->name, "_plugin_init", NULL);
 	gchar *fini_func = g_strconcat(info->name, "_plugin_fini", NULL);

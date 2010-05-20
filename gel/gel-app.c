@@ -48,6 +48,7 @@ struct _GelAppPrivate {
 
 	GHashTable *shared;  // Shared memory
 	GList      *paths;   // Paths to search plugins
+	GList      *infos;   // Cached GelPluginInfo list
 
 	GHashTable *lookup;  // Fast lookup table
 	GQueue     *stack;
@@ -152,6 +153,7 @@ gel_app_init (GelApp *self)
 	priv->shared = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->lookup = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->stack  = g_queue_new();
+	gel_app_scan_plugins(self);
 }
 
 GelApp*
@@ -167,9 +169,8 @@ gel_app_set_dispose_callback(GelApp *self, GelAppDisposeFunc callback, gpointer 
 	self->priv->dispose_data = user_data;
 }
 
-// XXX: Needs API change, list must be deep copied
 GList *
-gel_app_query_paths(GelApp *self)
+gel_app_get_paths(GelApp *self)
 {
 	if (self->priv->paths == NULL)
 		self->priv->paths = build_paths();
@@ -184,142 +185,94 @@ gel_app_query_paths(GelApp *self)
 	return g_list_reverse(ret);
 }
 
-// --
-// Get loaded plugins
-// --
-GelPlugin *
-gel_app_get_plugin (GelApp *self, GelPluginInfo *info)
-{
-	GelPlugin *ret = NULL;
-
-	GList *plugins = g_hash_table_get_values(self->priv->lookup);
-	GList *iter = plugins;
-	while (iter && !ret)
-	{
-		GelPlugin *plugin = GEL_PLUGIN(iter->data);
-		if (gel_plugin_info_equal((GelPluginInfo *) gel_plugin_get_info(plugin), info))
-			ret = plugin;
-		iter = iter->next;
-	}
-	g_list_free(plugins);
-
-	return ret;
-}
-
-GelPlugin*
-gel_app_get_plugin_by_pathname(GelApp *self, gchar *pathname)
-{
-	gel_warn(__FUNCTION__);
-#if 0
-	g_return_val_if_fail(pathname != NULL, NULL);
-
-	gchar *pstr = gel_plugin_util_stringify_for_pathname(pathname);
-	GelPlugin *ret =  g_hash_table_lookup(self->priv->lookup, pstr);
-	g_free(pstr);
-
-	return ret;
-#endif
-	return NULL;
-}
-
-GelPlugin*
-gel_app_get_plugin_by_name(GelApp *self, gchar *name)
-{
-	g_return_val_if_fail(GEL_IS_APP(self), NULL);
-	g_return_val_if_fail(name != NULL, NULL);
-
-	gel_warn(__FUNCTION__);
-	return g_hash_table_lookup(self->priv->lookup, name);
-
-#if 0
-	g_return_val_if_fail(name != NULL, NULL);
-
-	GList *plugins, *iter;
-	GelPlugin *ret = NULL;
-	plugins = iter = gel_app_get_plugins(self);
-	while (iter)
-	{
-		if (g_str_equal(GEL_PLUGIN(iter->data)->name, name))
-		{
-			ret = GEL_PLUGIN(iter->data);
-			break;
-		}
-		iter = iter->next;
-	}
-	g_list_free(plugins);
-
-	return ret;
-#endif
-}
-
-GList *
-gel_app_query_plugins(GelApp *self)
+GList*
+gel_app_get_plugins(GelApp *self)
 {
 	return g_hash_table_get_values(self->priv->lookup);
 }
 
-// --
-// Querying for plugins (loaded or not) and full, by pathname, by name
-// --
-GelPlugin *
-gel_app_query_plugin(GelApp *self, GelPluginInfo *info)
+GelPlugin *gel_app_get_plugin (GelApp *self, GelPluginInfo *info)
 {
 	GelPlugin *ret = NULL;
-	GList *plugins = gel_app_query_plugins(self);
+
+	GList *plugins = gel_app_get_plugins(self);
 	GList *iter = plugins;
 	while (iter && !ret)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(iter->data);
-		if (gel_plugin_info_equal((GelPluginInfo *) gel_plugin_get_info(plugin), info))
+		if (gel_plugin_info_equal(gel_plugin_get_info(plugin), info))
 			ret = plugin;
 		iter = iter->next;
 	}
-	g_list_free(plugins);
-
 	return ret;
 }
 
-GelPlugin *
-gel_app_query_plugin_by_name(GelApp *self, gchar *name, GError **error)
+GelPlugin *gel_app_get_plugin_by_name(GelApp *self, gchar *name)
 {
-	gel_warn(__FUNCTION__);
-	return NULL;
-#if 0
-	// Search in know plugins
-	GelPlugin *plugin = gel_app_get_plugin_by_name(self, name);
-	if (plugin != NULL)
-		return plugin;
-
-	// Search into paths for matching plugin
-	GList *paths = gel_app_query_paths(self);
-	GList *iter = paths;
-	while (iter)
-	{
-		gchar *pathname = g_module_build_path((gchar *) iter->data, name);
-		if ((plugin = gel_plugin_new(self, pathname, name, NULL)) != NULL)
-		{
-			g_free(pathname);
-			g_list_free(paths);
-			return plugin;
-		}
-		iter = iter->next;
-	}
-	g_list_free(paths);
-
-	// Build-in
-	gchar *symbol = g_strconcat(name, "_plugin", NULL);
-	if ((plugin = gel_plugin_new(self, NULL, symbol, NULL)) == NULL)
-		g_set_error(error, gel_app_quark(), GEL_APP_PLUGIN_NOT_FOUND, N_("Plugin not found"));
-	g_free(symbol);
-
-	return plugin;
-#endif
+	return g_hash_table_lookup(self->priv->lookup, name);
 }
 
 GList *
-gel_app_query_infos(GelApp *self)
+gel_app_query_plugins(GelApp *app)
 {
-	return NULL;
+	GList *ret = NULL;
+	GList *iter = app->priv->infos;
+	while (iter)
+	{
+		ret = g_list_prepend(ret, gel_plugin_info_dup((GelPluginInfo *) iter->data));
+		iter = iter->next;
+	}
+	return g_list_reverse(ret);
+}
+
+void
+gel_app_scan_plugins(GelApp *app)
+{
+	if (app->priv->infos)
+	{
+		g_list_foreach(app->priv->infos, (GFunc) gel_plugin_info_free, NULL);
+		g_list_free(app->priv->infos);
+		app->priv->infos = NULL;
+	}
+
+	GList *paths = gel_app_get_paths(app);
+	GList *iter = paths;
+	while (iter)
+	{
+		gchar *path = (gchar *) iter->data;
+
+		GList *children = gel_dir_read(path, FALSE, NULL);
+		GList *child = children;
+		while (child)
+		{
+			gchar *p2 = (gchar *) child->data;
+			gchar *ini = g_strconcat(p2, ".ini", NULL);
+			gchar *infopath = g_build_filename(path, p2, ini, NULL);
+			g_free(ini);
+
+			GError *error = NULL;
+			GelPluginInfo *info = gel_plugin_info_new(infopath, NULL, &error);
+			if (!info)
+			{
+				gel_warn(N_("Cannot load plugin file '%s': %s"), infopath, error->message);
+				g_error_free(error);
+			}
+			else
+			{
+				gel_warn(N_("Plugin file %s loaded"), infopath);
+				app->priv->infos = g_list_prepend(app->priv->infos, info);
+			}
+			g_free(infopath);
+			g_free(p2);
+
+			child = child->next;
+		}
+		g_list_free(children);
+
+		g_free(path);
+		iter = iter->next;
+	}
+	g_list_free(paths);
 }
 
 // --
@@ -400,7 +353,7 @@ gel_app_load_plugin_by_name(GelApp *self, gchar *name, GError **error)
 	// gel_warn("%s (%p, %s,%p)", __FUNCTION__, self, name, error );
 
 	// 1. Query plugins and try to match name against one of them
-	GList *plugins_info = gel_app_query_infos(self);
+	GList *plugins_info = gel_app_query_plugins(self);
 	GList *iter = plugins_info;
 	while (iter)
 	{

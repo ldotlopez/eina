@@ -42,9 +42,9 @@ enum {
 
 GelPluginInfo *gel_plugin_info_new(const gchar *filename, const gchar *name, GError **error);
 void           gel_plugin_info_free(GelPluginInfo *pinfo);
-void           gel_plugin_info_copy(GelPluginInfo *src, GelPluginInfo *dst);
-GelPluginInfo *gel_plugin_info_dup(GelPluginInfo *info);
-gboolean       gel_plugin_info_cmp(GelPluginInfo *a, GelPluginInfo *b);
+void           gel_plugin_info_copy(const GelPluginInfo *src, GelPluginInfo *dst);
+GelPluginInfo *gel_plugin_info_dup(const GelPluginInfo *info);
+gboolean       gel_plugin_info_cmp(const GelPluginInfo *a, const GelPluginInfo *b);
 #define gel_plugin_info_equal(a,b) (gel_plugin_info_cmp(a,b) == 0)
 
 G_END_DECLS

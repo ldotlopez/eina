@@ -21,7 +21,6 @@
 #include <glib/gi18n.h>
 #include "eina-plugin-dialog.h"
 #include "eina-plugin-dialog-ui.h"
-#include "eina-plugin-properties.h"
 #define GEL_DOMAIN "Eina::Ext::PluginDialog"
 
 G_DEFINE_TYPE (EinaPluginDialog, eina_plugin_dialog, GTK_TYPE_DIALOG)
@@ -38,8 +37,6 @@ struct _EinaPluginDialogPrivate {
 	GtkTreeView *tv;
 	GtkNotebook *tabs;
 	GtkWidget   *info, *close;
-
-	guint n_plugins;
 };
 
 enum {
@@ -118,7 +115,7 @@ eina_plugin_dialog_dispose (GObject *object)
 
 	if (priv->infos)
 	{
-		gel_warn("Leaking infos");
+		gel_list_deep_free(priv->infos, gel_plugin_info_free);
 		priv->infos = NULL;
 	}
 
@@ -170,7 +167,7 @@ eina_plugin_dialog_init (EinaPluginDialog *self)
 
 	g_object_unref(builder);
 
-	priv->info  = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_INFO, EINA_PLUGIN_DIALOG_RESPONSE_INFO);
+	// priv->info  = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_INFO, EINA_PLUGIN_DIALOG_RESPONSE_INFO);
 	priv->close = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 }
 
@@ -195,25 +192,15 @@ set_app(EinaPluginDialog *self, GelApp *app)
 
 	priv->app = app;
 
-	// Get plugins, lock and count
-	/*
-	GList *l = priv->infos = g_list_sort(gel_app_query_plugins(priv->app), (GCompareFunc) gel_plugin_compare_by_name);
-	while (l)
-	{
-		GelPlugin *plugin = GEL_PLUGIN(l->data);
-		if (gel_plugin_get_pathname(plugin))
-		{
-			gel_plugin_add_lock(plugin);
-			priv->n_plugins++;
-		}
-		l = l->next;
-	}
-	*/
-	gel_warn("I need to query infos");
+	// Get Infos
+	gel_list_deep_free(priv->infos, gel_plugin_info_free);
+
+	gel_app_scan_plugins(priv->app);
+	priv->infos = g_list_sort(gel_app_query_plugins(priv->app), (GCompareFunc) gel_plugin_info_cmp);
 
 	// Tabs
 	gtk_notebook_set_show_tabs(priv->tabs, FALSE);
-	if (priv->n_plugins == 0)
+	if (!priv->infos)
 	{
 		gtk_notebook_set_current_page(priv->tabs, 0);
 		return;
@@ -226,17 +213,24 @@ set_app(EinaPluginDialog *self, GelApp *app)
 	GList *l = priv->infos;
 	while (l)
 	{
-		gtk_list_store_append(model, &iter);
-		insert_info(self, model, &iter, (GelPluginInfo *) l->data);
+		GelPluginInfo *info = (GelPluginInfo *) l->data;
+
+		if (info->pathname)
+		{
+			gtk_list_store_append(model, &iter);
+			insert_info(self, model, &iter, (GelPluginInfo *) l->data);
+		}
 
 		l = l->next;
 	}
 
+	// Set appropiate size
 	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(self));
 	gint w = gdk_screen_get_width(screen)  / 4;
 	gint h = gdk_screen_get_height(screen) / 2;
 	gtk_window_resize(GTK_WINDOW(self), w, h);
 
+	// Watch in/out plugins
 	g_signal_connect(app,  "plugin-init", (GCallback) plugin_init_cb, self);
 	g_signal_connect(app,  "plugin-fini", (GCallback) plugin_fini_cb, self);
 }
@@ -271,7 +265,7 @@ get_iter_from_info(EinaPluginDialog *self, GtkTreeIter *iter, GelPluginInfo *inf
 	{
 		GelPluginInfo *test;
 		gtk_tree_model_get(model, iter, COLUMN_INFO, &test, -1);
-		if (test == info)
+		if (gel_plugin_info_equal(test, info))
 			return TRUE;
 
 	} while (gtk_tree_model_iter_next(model, iter));
@@ -281,10 +275,11 @@ get_iter_from_info(EinaPluginDialog *self, GtkTreeIter *iter, GelPluginInfo *inf
 static void
 insert_info(EinaPluginDialog *self, GtkListStore *model, GtkTreeIter *iter, GelPluginInfo *info)
 {
-	gchar *pb_path = NULL;
+	gchar *pb_path = info->icon_pathname;
 	GdkPixbuf *pb = NULL;
+
 	if (info->icon_pathname)
-		pb = gdk_pixbuf_new_from_file_at_size(pb_path, 64, 64, NULL);
+		pb = gdk_pixbuf_new_from_file_at_size(info->icon_pathname, 64, 64, NULL);
 
 	if (pb == NULL)
 	{
@@ -295,11 +290,11 @@ insert_info(EinaPluginDialog *self, GtkListStore *model, GtkTreeIter *iter, GelP
 
 	gchar *markup = g_strdup_printf("<span size='x-large' weight='bold'>%s</span>\n%s",
 		info->name,
-		info->short_desc
+		info->short_desc ? info->short_desc : ""
 		);
 
 	gtk_list_store_set(model, iter,
-		COLUMN_ENABLED, (gel_app_query_plugin(GET_PRIVATE(self)->app, info) != NULL), 
+		COLUMN_ENABLED, (gel_app_get_plugin(GET_PRIVATE(self)->app, info) != NULL), 
 		COLUMN_ICON,    pb,
 		COLUMN_MARKUP,  markup,
 		COLUMN_INFO,    info,
@@ -340,7 +335,7 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPlug
 		COLUMN_INFO, &info,
 		-1);
 
-	GelPlugin *plugin = gel_app_query_plugin(priv->app, info);
+	GelPlugin *plugin = gel_app_get_plugin(priv->app, info);
 	if (plugin)
 	{
 		gel_app_unload_plugin(priv->app, plugin, NULL);
@@ -349,7 +344,10 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, EinaPlug
 	{
 		GError *error = NULL;
 		if (!gel_app_load_plugin(priv->app, info, &error))
+		{
+			gel_warn(N_("Cannot load plugin %s: %s"), info->name, error->message);
 			g_error_free(error);
+		}
 	}
 }
 

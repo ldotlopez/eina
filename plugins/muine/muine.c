@@ -587,16 +587,4 @@ muine_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_INFO_SPEC(muine,
-	"0.0.1",
-	"dock,art,adb,lomo,settings",
-
-	NULL,
-	NULL,
-
-	N_("Build playlist from your albums"),
-	N_("This plugin allows Eina to work like Muine music player.\n"
-	"You can handle your playlists grouped by album. Add once, play anytime"),
-	NULL
-);
 

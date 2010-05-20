@@ -190,6 +190,7 @@ adb_register_stop(EinaAdb *self, LomoPlayer *lomo)
 	gint i;
 	for (i = 0; __signal_table[i].signal != NULL; i++)
 		g_signal_handlers_disconnect_by_func(lomo, __signal_table[i].handler, self);
+	lomo_player_hook_remove(lomo, (LomoPlayerHook) lomo_insert_hook);
 
 	g_object_weak_unref((GObject *) lomo, adb_register_weak_ref_cb, NULL);
 	g_object_unref(lomo);

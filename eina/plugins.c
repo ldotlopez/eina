@@ -168,7 +168,7 @@ update_plugins_list(EinaPlugins *self)
 	GelApp *app = eina_obj_get_app(self);
 	GList *list = NULL;
 
-	GList *plugins = gel_app_query_infos(app);
+	GList *plugins = gel_app_get_plugins(app);
 	GList *l = plugins;
 	while (l)
 	{
@@ -208,10 +208,11 @@ action_activated_cb(GtkAction *action, EinaPlugins *self)
 static void
 response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 {
-	GelPlugin *plugin;
+	// GelPlugin *plugin;
 	switch (response)
 	{
 	case EINA_PLUGIN_DIALOG_RESPONSE_INFO:
+		#if 0
 		plugin = eina_plugin_dialog_get_selected_plugin(self->widget);
 		if (!plugin)
 		{
@@ -221,6 +222,7 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 		EinaPluginProperties *props = eina_plugin_properties_new(plugin);
 		g_signal_connect(props, "response", (GCallback) gtk_widget_destroy, NULL);
 		gtk_widget_show((GtkWidget *) props);
+		#endif
 		break;
 
 	default:

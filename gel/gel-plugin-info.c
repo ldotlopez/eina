@@ -27,7 +27,7 @@
 GEL_DEFINE_QUARK_FUNC(plugin_info);
 
 GelPluginInfo *
-gel_plugin_info_new(const gchar *filename, const gchar *name ,GError **error)
+gel_plugin_info_new(const gchar *filename, const gchar *name, GError **error)
 {
 	if ((filename == NULL) && (name == NULL))
 	{
@@ -92,6 +92,16 @@ gel_plugin_info_new(const gchar *filename, const gchar *name ,GError **error)
 
 		info->pathname = g_strdup(filename);
 		info->dirname  = g_path_get_dirname(filename);
+		/*
+		if (filename)
+		{
+			info->dirname  = g_path_get_dirname(filename);
+			gchar *pname = g_path_get_basename(info->dirname);
+
+			info->pathname = g_module_build_path(info->dirname, pname);
+			g_free(pname);
+		}
+		*/
 		info->name     = g_key_file_get_string(kf, "Eina Plugin", "name",    NULL);
 
 		info->version  = g_key_file_get_string(kf, "Eina Plugin", "version", NULL);
@@ -99,9 +109,19 @@ gel_plugin_info_new(const gchar *filename, const gchar *name ,GError **error)
 		info->author   = g_key_file_get_string(kf, "Eina Plugin", "author",  NULL);
 		info->url      = g_key_file_get_string(kf, "Eina Plugin", "url",     NULL);
 
-		info->short_desc = g_key_file_get_locale_string(kf, "Eina Plugin", "short-desc", NULL, NULL);
-		info->long_desc  = g_key_file_get_locale_string(kf, "Eina Plugin", "long-desc",  NULL, NULL);
-		info->icon_pathname = g_key_file_get_string(kf, "Eina Plugin", "icon-pathname", NULL);
+		info->short_desc = g_key_file_get_locale_string(kf, "Eina Plugin", "short-description", NULL, NULL);
+		info->long_desc  = g_key_file_get_locale_string(kf, "Eina Plugin", "long-description",  NULL, NULL);
+		info->icon_pathname = g_key_file_get_string(kf, "Eina Plugin", "icon", NULL);
+	}
+
+	if (info->icon_pathname && !g_path_is_absolute(info->icon_pathname))
+	{
+		gchar *old = info->icon_pathname;
+		if (info->dirname)
+			info->icon_pathname = g_build_filename(info->dirname, old, NULL);
+		else
+			info->icon_pathname = gel_resource_locate(GEL_RESOURCE_IMAGE, old);
+		g_free(old);
 	}
 
 	return info;
@@ -125,7 +145,7 @@ gel_plugin_info_free(GelPluginInfo *info)
 }
 
 gboolean
-gel_plugin_info_cmp(GelPluginInfo *a, GelPluginInfo *b)
+gel_plugin_info_cmp(const GelPluginInfo *a, const GelPluginInfo *b)
 {
 	if (!a->pathname && b->pathname)
 		return 1;
@@ -135,7 +155,7 @@ gel_plugin_info_cmp(GelPluginInfo *a, GelPluginInfo *b)
 }
 
 void
-gel_plugin_info_copy(GelPluginInfo *src, GelPluginInfo *dst)
+gel_plugin_info_copy(const GelPluginInfo *src, GelPluginInfo *dst)
 {
 	dst->name = src->name ? g_strdup(src->name) : NULL;
 	dst->dirname  = src->dirname  ? g_strdup(src->dirname) : NULL;
@@ -152,7 +172,7 @@ gel_plugin_info_copy(GelPluginInfo *src, GelPluginInfo *dst)
 }
 
 GelPluginInfo *
-gel_plugin_info_dup(GelPluginInfo *info)
+gel_plugin_info_dup(const GelPluginInfo *info)
 {
 	GelPluginInfo *ret = g_new0(GelPluginInfo, 1);
 	gel_plugin_info_copy(info, ret);

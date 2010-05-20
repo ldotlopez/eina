@@ -66,21 +66,15 @@ adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-adb_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
+adb_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
 	EinaAdb *adb = gel_app_shared_get(app, "adb");
+	gel_app_shared_free(app, "adb");
 	adb_register_stop(adb, lomo);
 
 	g_object_unref(adb);
 
 	return TRUE;
 }
-
-EINA_PLUGIN_INFO_SPEC(adb,
-	PACKAGE_VERSION, "lomo",
-	NULL, NULL,
-
-	N_("Audio database"), NULL, "adb.png"
-);
 

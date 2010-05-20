@@ -138,36 +138,33 @@ eina_plugin_properties_new (GelPlugin *plugin)
 }
 
 void
-set_plugin(EinaPluginProperties *self, GelPlugin *plugin)
+set_info(EinaPluginProperties *self, GelPluginInfo *info)
 {
-#if 0
 	g_return_if_fail(plugin != NULL);
 
 	EinaPluginPropertiesPrivate *priv = GET_PRIVATE(self);
-	priv->plugin = plugin;
+	priv->info = info;
 
 	gchar *path = plugin->icon ? gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, (gchar *) plugin->icon) : NULL;
-	if (path)
+	if (info->icon_pathname)
 	{
-		gtk_image_set_from_file(priv->icon, path);
+		gtk_image_set_from_file(priv->icon, info->icon_pathname);
 		g_free(path);
 	}
 	else
 		gtk_image_set_from_stock(priv->icon, EINA_STOCK_PLUGIN, GTK_ICON_SIZE_DIALOG); 
 
-	gtk_label_set_markup(priv->name, gel_str_or_text(plugin->name, N_("No name")));
-	gtk_label_set_markup(priv->short_desc, gel_str_or_text(plugin->short_desc, N_("No description")));
-	gtk_label_set_markup(priv->long_desc,  gel_str_or_text(plugin->long_desc,  N_("No more information")));
+	gtk_label_set_markup(priv->name, gel_str_or_text(info->name, N_("No name")));
+	gtk_label_set_markup(priv->short_desc, gel_str_or_text(info->short_desc, N_("No description")));
+	gtk_label_set_markup(priv->long_desc,  gel_str_or_text(info->long_desc,  N_("No more information")));
 
-	gtk_label_set_markup(priv->pathname, gel_str_or_text(gel_plugin_get_pathname(plugin), N_("[Internal plugin]")));
+	gtk_label_set_markup(priv->pathname, gel_str_or_text(info->pathname, N_("[Internal plugin]")));
 
 	gtk_label_set_markup(priv->deps,  gel_str_or_text(plugin->depends, N_("No dependencies")));
 
 	gchar *tmp = gel_plugin_stringify_dependants(plugin);
 	gtk_label_set_markup(priv->rdeps, gel_str_or_text(tmp, N_("No reverse dependencies")));
-	if (tmp)
-		g_free(tmp);
-#endif
+	gel_free_and_invalidate(tmp);
 }
 
 const GelPlugin*

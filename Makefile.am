@@ -147,7 +147,6 @@ eina_ext_libeina_include_HEADERS = \
     eina/ext/eina-file-chooser-dialog.h \
     eina/ext/eina-file-utils.h          \
     eina/ext/eina-plugin-dialog.h       \
-    eina/ext/eina-plugin-properties.h   \
     eina/ext/eina-preferences-dialog.h  \
     eina/ext/eina-preferences-tab.h     \
     eina/ext/eina-seek.h                \
@@ -165,7 +164,6 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/eina-file-chooser-dialog.c \
     eina/ext/eina-file-utils.c          \
     eina/ext/eina-plugin-dialog.c       \
-    eina/ext/eina-plugin-properties.c   \
     eina/ext/eina-preferences-dialog.c  \
     eina/ext/eina-preferences-tab.c     \
     eina/ext/eina-seek.c                \

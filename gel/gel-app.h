@@ -87,20 +87,16 @@ GelApp* gel_app_new (void);
 
 void gel_app_set_dispose_callback(GelApp *self, GelAppDisposeFunc callback, gpointer user_data);
 
-
-GelPlugin *gel_app_query_plugin (GelApp *self, GelPluginInfo *info);
-GList     *gel_app_query_plugins(GelApp *self);
-GList     *gel_app_query_paths  (GelApp *self);
-GList     *gel_app_query_infos  (GelApp *self);
-
-// GelPlugin *gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error);
 GelPlugin *gel_app_load_plugin_by_name    (GelApp *self, gchar *name,     GError **error);
 GelPlugin *gel_app_load_plugin            (GelApp *self, GelPluginInfo *info, GError **error);
 
-#define gel_app_unload_plugin_by_pathname(self,pathname,error) \
-	gel_app_unload_plugin(self,gel_app_get_plugin_by_pathname(self,pathname), error)
-#define gel_app_unload_plugin_by_name(self,name,error) \
-	gel_app_unload_plugin(self,gel_app_get_plugin_by_name(self,name), error)
+GList     *gel_app_get_plugins(GelApp *self);
+GelPlugin *gel_app_get_plugin (GelApp *self, GelPluginInfo *info);
+GelPlugin *gel_app_get_plugin_by_name(GelApp *self, gchar *name);
+
+void   gel_app_scan_plugins(GelApp *app);
+GList *gel_app_query_plugins(GelApp *app);
+
 gboolean   gel_app_unload_plugin(GelApp *self, GelPlugin *plugin, GError **error);
 void       gel_app_purge(GelApp *self);
 
