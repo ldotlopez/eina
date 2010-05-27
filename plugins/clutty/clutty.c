@@ -82,10 +82,3 @@ clutty_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_INFO_SPEC(clutty, CLUTTY_VERSION,
-	"player",
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
-	N_("Cover renderer with 3D effects"),  NULL,
-	"icon.png"
-);
-

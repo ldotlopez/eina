@@ -111,14 +111,3 @@ coverplus_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_INFO_SPEC(coverplus,
-	PACKAGE_VERSION, "art",
-	NULL, NULL,
-
-	N_("Enhace your covers"),
-	N_("Brings Eina several simple but fundamental cover providers like:\n"
-	   "· In-folder cover discover\n"
-	   "· Banshee (on Linux) covers"),
-	NULL
-);
-

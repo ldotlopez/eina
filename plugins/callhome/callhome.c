@@ -132,15 +132,3 @@ callhome_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_INFO_SPEC(callhome,
-	PACKAGE_VERSION,
-	NULL, NULL, NULL,
-
-	N_("Help us to follow Eina's usage"),
-	N_("Call home will help us to know how many (not who) users has Eina.\n"
-	   "This plugins generate one aleatory, unique and anonimous number (an UUID, search Google ) "
-	   "and send it to Eina's home. We only track how many different UUID got.\n"
-	   "No personal data is transmitted or stored."),
-	NULL
-);
-
