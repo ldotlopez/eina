@@ -78,8 +78,8 @@ static gchar *ui_xml =
 "</ui>"
 ;
 
-static gboolean
-player_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlayer *self = NULL;
 
@@ -110,7 +110,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	//
 	// Setup UI bits
@@ -206,7 +206,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	GError *err2 = NULL;
 	gchar *ui_path = NULL;
 	gchar *ui_str  = NULL;
-	gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui");
 	if ((ui_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "player-preferences.ui")) &&
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
@@ -225,6 +224,7 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 			"/player/cover-effects", NULL
 			};
 		eina_preferences_tab_add_watchers(tab, objects);
+		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 		gtk_widget_set_visible(eina_preferences_tab_get_widget(tab, "/player/cover-effects"),
 			#if HAVE_CLUTTER
 			TRUE
@@ -232,7 +232,6 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 			FALSE
 			#endif
 			);
-		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
 	else
 	{
@@ -260,13 +259,13 @@ player_init(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static gboolean
-player_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+player_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlayer *self = EINA_PLUGIN_DATA(plugin);
 
 	eina_window_remove_widget(eina_obj_get_window(self), eina_obj_get_typed(self, GTK_WIDGET, "main-widget"));
-	eina_obj_fini(EINA_OBJ(plugin->data));
+	eina_obj_fini(EINA_OBJ(gel_plugin_get_data(plugin)));
 
 	return TRUE;
 }
@@ -629,7 +628,7 @@ player_dnd_setup(EinaPlayer *self)
 // --
 // Connector 
 // --
-EINA_PLUGIN_SPEC (player,
+EINA_PLUGIN_INFO_SPEC (player,
 	PACKAGE_VERSION,
 	"art,about,lomo,window,preferences",
 	NULL,
@@ -637,8 +636,6 @@ EINA_PLUGIN_SPEC (player,
 
 	N_("Build-in player plugin"),
 	NULL,
-	NULL,
-
-	player_init, player_fini
+	NULL
 );
 

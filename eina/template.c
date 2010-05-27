@@ -37,8 +37,8 @@ struct _EinaTemplate {
 // --
 // init/fini hooks
 // --
-static gboolean 
-template_init (GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean 
+template_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaTemplate *self;
 
@@ -65,10 +65,10 @@ template_init (GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static gboolean
-template_fini (GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+template_plugin_fini (GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	// Find yourself, rememer your macros in template.h?
+	// Find yourself, remember your macros in template.h?
 	EinaTemplate *self = GEL_APP_GET_TEMPLATE(app);
 
 	// Or use data field:
@@ -87,15 +87,12 @@ template_fini (GelApp *app, EinaPlugin *plugin, GError **error)
 // --
 // Plugin definition
 // --
-G_MODULE_EXPORT EinaPlugin template_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"template", PACKAGE_VERSION, NULL,
-	NULL, NULL,
+EINA_PLUGIN_INFO_SPEC(template,
+	PACKAGE_VERSION,
+	NULL,
+	NULL,
+	NULL,
 
-	N_("Build-in template plugin"), NULL, NULL,
-
-	template_init, template_fini,
-
-	NULL, NULL, NULL
-};
+	N_("Build-in template plugin"), NULL, NULL
+);
 

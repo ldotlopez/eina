@@ -18,12 +18,15 @@
  */
 
 #define GEL_DOMAIN "Eina::Window"
+#define EINA_PLUGIN_DATA_TYPE EinaAbout
+
 #include <config.h>
 #include <gel/gel.h>
 #include <eina/eina-plugin.h>
 #include <eina/about.h>
 
 // GEL_AUTO_QUARK_FUNC(about)
+
 
 struct _EinaAbout {
 	EinaObj parent;
@@ -33,8 +36,8 @@ struct _EinaAbout {
 static void
 about_response_cb(GtkWidget *w, gint response, EinaAbout *self);
 
-static gboolean
-about_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+about_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaAbout *self = g_new0(EinaAbout, 1);
 	if (!eina_obj_init((EinaObj *) self, plugin, "about", EINA_OBJ_NONE, error))
@@ -42,16 +45,16 @@ about_init(GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(self);
 		return FALSE;
 	}
-	plugin->data = self;
+
+	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
-static gboolean
-about_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+about_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaAbout *self = (EinaAbout *) plugin->data;
-	if (self->about != NULL)
-		gtk_widget_destroy(self->about);
+	EinaAbout *self = EINA_PLUGIN_DATA(plugin);
+	gel_free_and_invalidate(self->about, NULL, gtk_widget_destroy);
 
 	return TRUE;
 }
@@ -121,13 +124,12 @@ about_response_cb(GtkWidget *w, gint response, EinaAbout *self)
 	self->about = NULL;
 }
 
-EINA_PLUGIN_SPEC(about,
-	PACKAGE_VERSION,
-	GEL_PLUGIN_NO_DEPS,
+EINA_PLUGIN_INFO_SPEC(about,
+	NULL,
+	"",
 	NULL,
 	NULL,
 	N_("About window plugin"),
 	NULL,
-	NULL,
-	about_init,
-	about_fini);
+	NULL
+);

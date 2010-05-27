@@ -46,6 +46,7 @@ gel_include_HEADERS = \
     gel/gel-str-parser.h        \
     gel/gel-job-queue.h         \
     gel/gel-plugin.h            \
+    gel/gel-plugin-info.h       \
     gel/gel-app.h               \
     gel/gel-io-misc.h           \
     gel/gel-io-tree.h           \
@@ -64,6 +65,7 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-app-marshallers.c   \
 	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \
+    gel/gel-plugin-info.c       \
     gel/gel-app.c               \
 	gel/gel-io-marshallers.c    \
     gel/gel-io-misc.c           \
@@ -145,7 +147,6 @@ eina_ext_libeina_include_HEADERS = \
     eina/ext/eina-file-chooser-dialog.h \
     eina/ext/eina-file-utils.h          \
     eina/ext/eina-plugin-dialog.h       \
-    eina/ext/eina-plugin-properties.h   \
     eina/ext/eina-preferences-dialog.h  \
     eina/ext/eina-preferences-tab.h     \
     eina/ext/eina-seek.h                \
@@ -163,7 +164,6 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/eina-file-chooser-dialog.c \
     eina/ext/eina-file-utils.c          \
     eina/ext/eina-plugin-dialog.c       \
-    eina/ext/eina-plugin-properties.c   \
     eina/ext/eina-preferences-dialog.c  \
     eina/ext/eina-preferences-tab.c     \
     eina/ext/eina-seek.c                \
@@ -413,7 +413,7 @@ plugins_coverplus_libcoverplus_la_SOURCES = \
 	plugins/coverplus/banshee.h       \
 	plugins/coverplus/infolder-sync.c \
 	plugins/coverplus/infolder.h      \
-	plugins/coverplus/iface.c
+	plugins/coverplus/coverplus.c
 
 #
 # fieshta plugin
@@ -525,7 +525,7 @@ EXTRA_DIST += \
 plugins_recentlydir = $(pkglibdir)/recently
 plugins_recently_DATA = \
 	plugins/recently/dock.ui \
-	plugins/recently/go-back.png
+	plugins/recently/recently.png
 
 if BUILD_EXPERIMENTAL
 if BUILD_ADB
@@ -537,7 +537,9 @@ plugins_recently_librecently_la_SOURCES = plugins/recently/recently.c
 endif
 endif
 
-EXTRA_DIST += $(plugins_recently_DATA)
+EXTRA_DIST += \
+	$(plugins_recently_DATA) \
+	plugins/recently/recently.svg
 
 # Final CLEANFILES
 CLEANFILES = $(BUILT_SOURCES)

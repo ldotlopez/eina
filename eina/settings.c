@@ -26,8 +26,8 @@
 
 GEL_AUTO_QUARK_FUNC(settings);
 
-static gboolean
-settings_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+settings_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	// Build paths
 	gchar *cfg_file = NULL;
@@ -63,12 +63,12 @@ settings_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	plugin->data = conf;
+	gel_plugin_set_data(plugin, conf);
 	return TRUE;
 }
 
-static gboolean
-settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+settings_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaConf *conf = GEL_APP_GET_SETTINGS(app);
 	if ((conf == NULL) || !EINA_IS_CONF(conf))
@@ -78,21 +78,19 @@ settings_fini(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 	
-	gel_app_shared_unregister(app, "settings");
+	gel_app_shared_free(app, "settings");
 	g_object_unref(conf);
 
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(settings,
+EINA_PLUGIN_INFO_SPEC(settings,
 	NULL,
-	GEL_PLUGIN_NO_DEPS,
+	NULL,
 	NULL,
 	NULL,
 	N_("Build-in settings plugin"),
 	NULL,
-	NULL,
-	settings_init,
-	settings_fini
+	NULL
 );
 

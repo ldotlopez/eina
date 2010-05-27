@@ -66,7 +66,7 @@ void eina_obj_fini(EinaObj *self)
 		return;
 	}
 		
-	gel_app_shared_unregister(eina_obj_get_app(self), self->name);
+	gel_app_shared_free(eina_obj_get_app(self), self->name);
 	eina_obj_strip(self, EINA_OBJ_ALL);
 	gel_free_and_invalidate(self->name,  NULL, g_free);
 	gel_free_and_invalidate(self,        NULL, g_free);

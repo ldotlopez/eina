@@ -18,6 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::Art"
+#define EINA_PLUGIN_DATA_TYPE Art
 #include <config.h>
 #include <string.h>
 #include <glib/gstdio.h>
@@ -712,31 +713,29 @@ art_backend_xdg_cache(Art *art, ArtSearch *search, gpointer data)
 // EinaPlugin interface
 // -------------------------
 // -------------------------
-static gboolean
-plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+art_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	plugin->data = art_new();
-	gel_app_shared_set(app, "art", plugin->data);
+	Art *art = art_new();
+	gel_plugin_set_data(plugin, art);
+	gel_app_shared_set(app, "art", art);
 	return TRUE;
 }
 
-static gboolean
-plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+art_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	art_destroy((Art *) plugin->data);
-	gel_app_shared_unregister(app, "art");
+	art_destroy(EINA_PLUGIN_DATA(plugin));
+	gel_app_shared_free(app, "art");
 	return TRUE;
 }
 
-G_MODULE_EXPORT EinaPlugin art_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"art", PACKAGE_VERSION, GEL_PLUGIN_NO_DEPS,
+EINA_PLUGIN_INFO_SPEC(art,
+	NULL,
+	"",
+	NULL,
 
-	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
-	N_("Art"), N_("Art framework"), NULL,
-
-	plugin_init, plugin_fini,
-
-	NULL, NULL, NULL
-};
+	NULL,
+	N_("Art"), N_("Art framework"), NULL
+);
 

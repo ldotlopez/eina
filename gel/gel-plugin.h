@@ -25,15 +25,16 @@
 G_BEGIN_DECLS
 
 typedef struct _GelPlugin       GelPlugin;
-typedef struct _GelPluginExtend GelPluginExtend;
+
 #include <gel/gel-app.h>
+#include <gel/gel-plugin-info.h>
 #include <gel/gel-misc.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
-#define GEL_PLUGIN_SERIAL 2009042401
-#define GEL_PLUGIN_NO_DEPS "\1"
 typedef enum {
 	GEL_PLUGIN_NO_ERROR = 0,
+	GEL_PLUGIN_ERROR_FINI_FAILED,
+	GEL_PLUGIN_ERROR_CANNOT_INIT_DEP,
 	GEL_PLUGIN_ERROR_NOT_SUPPORTED,
 	GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
 	GEL_PLUGIN_ERROR_SYMBOL_NOT_FOUND,
@@ -47,48 +48,25 @@ typedef enum {
 	GEL_PLUGIN_ERROR_NOT_INITIALIZED,
 } GelPluginError;
 
-typedef struct _GelPluginPrivate GelPluginPrivate;
-struct _GelPlugin {
-	guint serial;            // GEL_PLUGIN_SERIAL
-	const gchar *name;       // "My cool plugin"
-	const gchar *version;    // "1.0.0"
-	const gchar *depends;    // "foo,bar,baz" or NULL
-	const gchar *author;     // "me <me@company.com>"
-	const gchar *url;        // "http://www.company.com"
-	const gchar *short_desc; // "This plugins makes my app cooler"
-	const gchar *long_desc;  // "Blah blah blah..."
-	const gchar *icon;       // "icon.png", relative path
-
-	gboolean (*init) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Init function
-	gboolean (*fini) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Exit function
-
-	gpointer data;             // Plugin's own data
-
-	GelPluginPrivate *priv;   // GelPlugin system private data, must be NULL
-	GelPluginExtend  *extend; // Reserved for extensions, must be NULL
-};
-
 #ifdef GEL_COMPILATION
-GelPlugin* gel_plugin_new (GelApp *app, gchar *pathname, gchar *symbol, GError **error);
+GelPlugin* gel_plugin_new (GelApp *app, GelPluginInfo *info, GError **error);
 gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
-
-gboolean gel_plugin_init(GelPlugin *plugin, GError **error);
-gboolean gel_plugin_fini(GelPlugin *plugin, GError **error);
 
 void     gel_plugin_add_reference(GelPlugin *plugin, GelPlugin *dependant);
 void     gel_plugin_remove_reference(GelPlugin *plugin, GelPlugin *dependant);
 #endif
 
+const GelPluginInfo* gel_plugin_get_info(GelPlugin *plugin);
+gpointer             gel_plugin_get_data(GelPlugin *plugin);
+void                 gel_plugin_set_data(GelPlugin *plugin, gpointer data);
+
 gboolean gel_plugin_is_in_use(GelPlugin *plugin);
 guint    gel_plugin_get_usage(GelPlugin *plugin);
-
-gboolean gel_plugin_is_locked(GelPlugin *plugin);
-void     gel_plugin_add_lock(GelPlugin *plugin);
-void     gel_plugin_remove_lock(GelPlugin *plugin);
 
 GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
 const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
+
 const gchar* gel_plugin_get_pathname(GelPlugin *plugin);
 
 GList * 
@@ -101,18 +79,8 @@ gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE
-#define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) GEL_PLUGIN(p)->data)
+#define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) gel_plugin_get_data(GEL_PLUGIN(p)))
 #endif
 
-// Utils
-gint    gel_plugin_compare_by_name (GelPlugin *a, GelPlugin *b);
-gint    gel_plugin_compare_by_usage(GelPlugin *a, GelPlugin *b);
-
-gchar*  gel_plugin_util_symbol_from_pathname(gchar *pathname);
-#define gel_plugin_util_symbol_from_name(name) g_strconcat((name?name:""), "_plugin", NULL)
-gchar*  gel_plugin_util_symbol_from_pathname(gchar *pathname);
-#define gel_plugin_util_stringify(pathname,name) g_build_filename((pathname?pathname:"<NULL>"),name?name:"<NULL>",NULL)
-gchar*  gel_plugin_util_stringify_for_pathname(gchar *pathname);
-gchar*  gel_plugin_util_join_list(gchar *separator, GList *plugin_list);
-
 #endif
+

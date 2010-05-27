@@ -38,7 +38,7 @@ typedef struct {
 static void
 ige_sync_menu(EinaIge *self, GtkUIManager *ui_mng);
 
-static gboolean
+G_MODULE_EXPORT gboolean
 ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaIge *self = g_new0(EinaIge, 1);
@@ -86,13 +86,13 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	ige_sync_menu(self, NULL);
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	return TRUE;
 }
 
-static gboolean
-ige_plugin_exit(GelApp *app, EinaPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+ige_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	EinaIge *self = EINA_PLUGIN_DATA(plugin);
 	// g_object_unref(self->dock);
@@ -138,15 +138,10 @@ ige_sync_menu(EinaIge *self, GtkUIManager *ui_mng)
 	}
 }
 
-G_MODULE_EXPORT EinaPlugin ige_plugin = {
-	EINA_PLUGIN_SERIAL,
-	"ige", PACKAGE_VERSION, "window",
+EINA_PLUGIN_INFO_SPEC(ige,
+	PACKAGE_VERSION, "window",
 	EINA_PLUGIN_GENERIC_AUTHOR, EINA_PLUGIN_GENERIC_URL,
 
-	N_("OSX integration"), NULL, NULL,
-
-	ige_plugin_init, ige_plugin_exit,
-
-	NULL, NULL, NULL
-};
+	N_("OSX integration"), NULL, NULL
+);
 

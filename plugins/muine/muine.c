@@ -556,14 +556,14 @@ search_cb(Art *art, ArtSearch *search, EinaMuine *self)
 }
 
 G_MODULE_EXPORT gboolean
-muine_iface_init(GelApp *app, GelPlugin *plugin, GError **error)
+muine_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaMuine *self;
 
 	self = g_new0(EinaMuine, 1);
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "muine", EINA_OBJ_GTK_UI, error))
 		return FALSE;
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 
 	if (!muine_init(self, error))
 	{
@@ -575,7 +575,7 @@ muine_iface_init(GelApp *app, GelPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-muine_iface_fini(GelApp *app, GelPlugin *plugin, GError **error)
+muine_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaMuine *self = GEL_PLUGIN_DATA(plugin);
 
@@ -587,19 +587,4 @@ muine_iface_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-EINA_PLUGIN_SPEC(muine,
-	"0.0.1",
-	"dock,art,adb,lomo,settings",
-
-	NULL,
-	NULL,
-
-	N_("Build playlist from your albums"),
-	N_("This plugin allows Eina to work like Muine music player.\n"
-	"You can handle your playlists grouped by album. Add once, play anytime"),
-	NULL,
-
-	muine_iface_init,
-	muine_iface_fini
-);
 

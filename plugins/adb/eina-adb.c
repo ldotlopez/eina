@@ -4,7 +4,58 @@
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 
+#if 1
 G_DEFINE_TYPE (EinaAdb, eina_adb, G_TYPE_OBJECT)
+#else
+static void eina_adb_init (EinaAdb *self);
+static void eina_adb_class_init (EinaAdbClass *klass);
+static gpointer eina_adb_parent_class = ((void *)0);
+static void eina_adb_class_intern_init (gpointer klass) {
+	eina_adb_parent_class = g_type_class_peek_parent (klass);
+	eina_adb_class_init ((EinaAdbClass*) klass);
+}
+
+static GTypeInfo eina_adb_type_info = {
+	.class_size = sizeof(EinaAdbClass),
+	.base_init = NULL,
+	.base_finalize = NULL,
+
+	.class_init = (GClassInitFunc) eina_adb_class_intern_init,
+	.class_finalize = NULL,
+	.class_data = NULL,
+
+	.instance_size = sizeof (EinaAdb),
+	.n_preallocs = 0,
+	.instance_init = (GInstanceInitFunc) eina_adb_init,
+	.value_table = NULL
+};
+
+static GTypeModule eina_adb_type_module = { .name = "EinaAdb" };
+
+GType eina_adb_get_type (void) {
+	static volatile gsize g_define_type_id__volatile = 0;
+	if (g_once_init_enter (&g_define_type_id__volatile)) {
+		GType g_define_type_id = /* g_type_register_static_simple(
+			// ((GType) ((20) << (2))),
+			G_TYPE_OBJECT,
+			g_intern_static_string ("EinaAdb"),
+			sizeof (EinaAdbClass),
+			(GClassInitFunc) eina_adb_class_intern_init,
+			sizeof (EinaAdb),
+			(GInstanceInitFunc) eina_adb_init,
+			(GTypeFlags) 0); */
+		// { {{};} }
+		g_type_module_register_type(&eina_adb_type_module,
+			G_TYPE_OBJECT,
+			g_intern_static_string ("EinaAdb"),
+			&eina_adb_type_info,
+			(GTypeFlags) 0
+			);
+		g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+	}
+	return g_define_type_id__volatile;
+}
+#endif
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ADB, EinaAdbPrivate))

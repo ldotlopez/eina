@@ -48,8 +48,8 @@ window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self
 static void
 expander_activate_cb(GtkExpander *w, EinaDock *self);
 
-static gboolean
-dock_init(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaDock *self;
 
@@ -105,8 +105,8 @@ dock_init(GelApp *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static gboolean
-dock_fini(GelApp *app, GelPlugin *plugin, GError **error)
+G_MODULE_EXPORT gboolean
+dock_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 {
 	EinaDock *self = gel_app_shared_get(app, "dock");
 	if (self == NULL)
@@ -313,15 +313,13 @@ expander_activate_cb(GtkExpander *w, EinaDock *self)
 	}
 }
 
-EINA_PLUGIN_SPEC(dock,
+EINA_PLUGIN_INFO_SPEC(dock,
 	NULL,						// version
 	"settings,window",			// deps
 	NULL,						// author
 	NULL,						// url
 	N_("Build-in dock plugin"), // short
 	NULL,						// long
-	NULL,						// icon
-	dock_init,					// init
-	dock_fini					// fini
+	NULL 						// icon
 );
 
