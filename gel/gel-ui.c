@@ -152,17 +152,21 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 	while (iter && (ret == NULL))
 	{
 		GtkWidget *child = (GtkWidget *) iter->data;
-		gchar *c_name = NULL;
-		gtk_widget_path(child, NULL, &c_name, NULL);
-		// gel_warn("%s <-> %s", c_name, name);
+		#if GTK_CHECK_VERSION(2,20,0)
+		const gchar *c_name = gtk_buildable_get_name(GTK_BUILDABLE(child));
+		#else
+		const gchar *c_name = gtk_widget_get_name(child);
+		#endif
 
-		if (g_str_equal(c_name, name))
+		if (g_str_equal(name, c_name))
+		{
 			ret = child;
+			break;
+		}
 
-		else if (GTK_IS_CONTAINER(child))
+		if (GTK_IS_CONTAINER(child))
 			ret = gel_ui_container_find_widget((GtkContainer *) child, (gchar *) name);
 
-		g_free(c_name);
 		iter = iter->next;
 	}
 

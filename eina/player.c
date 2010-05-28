@@ -210,6 +210,7 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
 		EinaPreferencesTab *tab = eina_preferences_tab_new();
+
 		g_object_set(tab,
 			"ui-string", ui_str,
 			"label-image", (GtkImage*) gtk_image_new_from_stock(GTK_STOCK_EXECUTE, GTK_ICON_SIZE_SMALL_TOOLBAR),

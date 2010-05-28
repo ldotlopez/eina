@@ -56,8 +56,6 @@ value_changed_cb(EinaPreferencesDialog *w, gchar *key, GValue *value, EinaPrefer
 
 
 // conf
-
-
 static void
 change_cb(EinaConf *conf, gchar *key, EinaPreferences *self);
 

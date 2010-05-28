@@ -303,8 +303,6 @@ void
 eina_preferences_tab_add_watchers(EinaPreferencesTab *self, gchar **objects)
 {
 	g_return_if_fail(EINA_IS_PREFERENCES_TAB(self));
-	if (!objects)
-		return;
 	EinaPreferencesTabPrivate *priv = GET_PRIVATE(self);
 
 	gint i;
@@ -313,7 +311,7 @@ eina_preferences_tab_add_watchers(EinaPreferencesTab *self, gchar **objects)
 		GtkWidget *widget = gel_ui_container_find_widget((GtkContainer *) self, objects[i]);
 		if (!widget)
 		{
-			// g_warning(N_("Object '%s' not found in %p"), objects[i], self);
+			g_warning(N_("Object '%s' not found in %p"), objects[i], self);
 			continue;
 		}
 
