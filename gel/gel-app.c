@@ -334,17 +334,29 @@ gel_app_load_plugin(GelApp *self, GelPluginInfo *info, GError **error)
 GelPlugin *
 gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error)
 {
-	gel_warn(__FUNCTION__);
-	return NULL;
-#if 0
-	// Just build name and call gel_app_load_plugin
-	gchar *dirname = g_path_get_dirname(pathname);
-	gchar *name = g_path_get_basename(dirname);
+	// Check if pathname is inside paths
+	GList *paths = gel_app_get_paths(self);
+
+	gchar *basepath = g_path_get_dirname(pathname);
+	gchar *dirname  = g_path_get_dirname(basepath);
+	g_free(basepath);
+
+	if (!g_list_find_custom(paths, dirname, (GCompareFunc) strcmp))
+	{
+		gel_warn("Invalid path");
+		gel_list_deep_free(paths, g_free);
+		g_free(dirname);
+		return NULL;
+	}
 	g_free(dirname);
-	GelPlugin *ret = gel_app_load_plugin(self, pathname, name, error);
-	g_free(name);
+	gel_list_deep_free(paths, g_free);
+
+	GelPluginInfo *info = gel_plugin_info_new(pathname, NULL, error);
+	if (!info)
+		return NULL;
+	GelPlugin *ret = gel_app_load_plugin(self, info, error);
+	gel_plugin_info_free(info);
 	return ret;
-#endif
 }
 
 GelPlugin *

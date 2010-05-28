@@ -92,16 +92,6 @@ gel_plugin_info_new(const gchar *filename, const gchar *name, GError **error)
 
 		info->pathname = g_strdup(filename);
 		info->dirname  = g_path_get_dirname(filename);
-		/*
-		if (filename)
-		{
-			info->dirname  = g_path_get_dirname(filename);
-			gchar *pname = g_path_get_basename(info->dirname);
-
-			info->pathname = g_module_build_path(info->dirname, pname);
-			g_free(pname);
-		}
-		*/
 		info->name     = g_key_file_get_string(kf, "Eina Plugin", "name",    NULL);
 
 		info->version  = g_key_file_get_string(kf, "Eina Plugin", "version", NULL);
