@@ -144,21 +144,17 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 {
 	GtkWidget *ret = NULL;
 
-	if (!GTK_IS_CONTAINER(container))
-		return NULL;
+	g_return_val_if_fail(GTK_IS_CONTAINER(container), NULL);
+	g_return_val_if_fail(name, NULL);
 
 	GList *children = gtk_container_get_children(container);
 	GList *iter = children;
 	while (iter && (ret == NULL))
 	{
 		GtkWidget *child = (GtkWidget *) iter->data;
-		#if GTK_CHECK_VERSION(2,20,0)
 		const gchar *c_name = gtk_buildable_get_name(GTK_BUILDABLE(child));
-		#else
-		const gchar *c_name = gtk_widget_get_name(child);
-		#endif
 
-		if (g_str_equal(name, c_name))
+		if (c_name && g_str_equal(name, c_name))
 		{
 			ret = child;
 			break;
