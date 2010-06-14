@@ -123,8 +123,6 @@ static void lomo_change_cb
 (LomoPlayer *lomo, gint old, gint new, EinaPlaylist *self);
 static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
-static void lomo_repeat_cb
-(LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
 static void lomo_eos_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
 static void lomo_error_cb
@@ -206,15 +204,6 @@ playlist_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	// Configure settings
-	LomoPlayer *lomo = eina_obj_get_lomo((EinaObj *) self);
-	g_object_set(eina_obj_get_typed(self, GTK_TOGGLE_BUTTON, "playlist-repeat-button"),
-		"active", lomo_player_get_repeat(lomo),
-		NULL);
-	g_object_set(eina_obj_get_typed(self, GTK_TOGGLE_BUTTON, "playlist-random-button"),
-		"active", lomo_player_get_random(lomo),
-		NULL);
-
 	self->stream_fmt = (gchar *) eina_conf_get_str(eina_obj_get_settings((EinaObj *) self), "/ui/playlist/fmt", "{%a - }%t");
 
 	if (!eina_playlist_dock_init(self))
@@ -251,14 +240,13 @@ playlist_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(eina_obj_get_lomo(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
-	// g_signal_connect(eina_obj_get_lomo(self), "random",   G_CALLBACK(lomo_random_cb),       self);
-	g_signal_connect(eina_obj_get_lomo(self), "repeat",   G_CALLBACK(lomo_repeat_cb),       self);
 	g_signal_connect(eina_obj_get_lomo(self), "eos",      G_CALLBACK(lomo_eos_cb),          self);
 	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb),     self);
 	g_signal_connect(eina_obj_get_lomo(self), "error",    G_CALLBACK(lomo_error_cb),        self);
 
 	GSettings *lomo_settings = gel_app_get_gsettings(app, EINA_DOMAIN ".preferences.lomo");
 	g_settings_bind(lomo_settings, "random", eina_obj_get_object(self, "playlist-random-button"), "active", G_SETTINGS_BIND_DEFAULT);
+	g_settings_bind(lomo_settings, "repeat", eina_obj_get_object(self, "playlist-repeat-button"), "active", G_SETTINGS_BIND_DEFAULT);
 
 	// Accelerators
 	GtkAccelGroup *accel_group = gtk_accel_group_new();
@@ -973,12 +961,6 @@ static void lomo_clear_cb
 {
 	gtk_list_store_clear((GtkListStore *) self->model);
 	playlist_update_tab(self);
-}
-
-static void lomo_repeat_cb
-(LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
-{
-	gtk_toggle_action_set_active(eina_obj_get_typed(self, GTK_TOGGLE_ACTION, "repeat-action"), val);
 }
 
 static gboolean

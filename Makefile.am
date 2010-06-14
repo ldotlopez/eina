@@ -153,12 +153,9 @@ eina_ext_libeina_include_HEADERS = \
     eina/ext/eina-preferences-tab.h     \
     eina/ext/eina-seek.h                \
     eina/ext/eina-stock.h               \
-    eina/ext/eina-volume.h              \
     eina/ext/eina-window.h
 
 eina_ext_libeinaext_la_SOURCES = \
-    eina/ext/eina-ext-marshallers.c     \
-    eina/ext/eina-ext-marshallers.h     \
     eina/ext/curl-engine.c              \
     eina/ext/eina-conf-file.c           \
     eina/ext/eina-cover.c               \
@@ -170,29 +167,19 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/eina-preferences-tab.c     \
     eina/ext/eina-seek.c                \
     eina/ext/eina-stock.c               \
-    eina/ext/eina-volume.c              \
     eina/ext/eina-window.c
 
 EXTRA_DIST += \
 	eina/ext/eina-plugin-dialog.ui            \
-	eina/ext/eina-plugin-properties.ui        \
-	eina/ext/eina-ext-marshallers.list
+	eina/ext/eina-plugin-properties.ui
 
 BUILT_SOURCES += \
 	eina/ext/eina-cover-image-mask.h               \
-    eina/ext/eina-ext-marshallers.c                \
-    eina/ext/eina-ext-marshallers.h                \
 	eina/ext/eina-plugin-dialog-ui.h               \
     eina/ext/eina-plugin-properties-ui.h
 
 eina/ext/eina-cover-image-mask.h: pixmaps/cover-mask.png
 	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask $<  > $@
-
-eina/ext/eina-ext-marshallers.h: eina/ext/eina-ext-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=eina_ext_marshal --header > $@
-
-eina/ext/eina-ext-marshallers.c: eina/ext/eina-ext-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=eina_ext_marshal --header --body > $@
 
 eina/ext/eina-plugin-dialog-ui.h: eina/ext/eina-plugin-dialog.ui
 	$(top_srcdir)/tools/ui2h $< ui_xml > $@

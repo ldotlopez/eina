@@ -78,22 +78,7 @@ GtkWidget *
 eina_preferences_tab_get_label_widget(EinaPreferencesTab *self);
 
 void
-eina_preferences_tab_add_watcher (EinaPreferencesTab *self, gchar  *object );
-void
-eina_preferences_tab_add_watchers(EinaPreferencesTab *self, gchar **objects);
-
-void
-eina_preferences_tab_remove_watcher (EinaPreferencesTab *self, gchar  *object );
-void
-eina_preferences_tab_remove_watchers(EinaPreferencesTab *self, gchar **objects);
-
-GList *
-eina_preferences_tab_get_watched(EinaPreferencesTab *self);
-
-gboolean
-eina_preferences_tab_set_widget_value(EinaPreferencesTab *self, gchar *name, GValue *value);
-gboolean
-eina_preferences_tab_get_widget_value(EinaPreferencesTab *self, gchar *name, GValue *value);
+eina_preferences_tab_bindv(EinaPreferencesTab *self, gchar *domain, ...);
 
 G_END_DECLS
 

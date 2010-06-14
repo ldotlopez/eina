@@ -12,7 +12,7 @@
         <property name="column_spacing">5</property>
         <property name="row_spacing">5</property>
         <child>
-          <object class="GtkCheckButton" id="/core/auto-play">
+          <object class="GtkCheckButton" id="auto-play">
             <property name="label" translatable="yes">Start playback automatically</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -28,7 +28,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkCheckButton" id="/core/repeat">
+          <object class="GtkCheckButton" id="repeat">
             <property name="label" translatable="yes">Enable repeat mode</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -42,7 +42,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkCheckButton" id="/core/random">
+          <object class="GtkCheckButton" id="random">
             <property name="label" translatable="yes">Enable shuffle mode</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -58,7 +58,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkCheckButton" id="/core/auto-parse">
+          <object class="GtkCheckButton" id="auto-parse">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>

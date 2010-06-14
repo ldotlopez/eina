@@ -1,4 +1,0 @@
-# eina-preferences-dialog
-VOID:STRING,STRING,POINTER
-# eina-preferences-tab
-VOID:STRING,POINTER

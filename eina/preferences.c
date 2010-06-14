@@ -34,7 +34,6 @@ struct  _EinaPreferences {
 
 	GtkActionGroup *ag;
 	guint ui_merge_id;
-
 };
 
 static void
@@ -51,15 +50,6 @@ static void
 response_cb(GtkWidget *w, gint response, EinaPreferences *self);
 static gboolean
 delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self);
-static void
-value_changed_cb(EinaPreferencesDialog *w, gchar *key, GValue *value, EinaPreferences *self);
-
-
-// conf
-
-
-static void
-change_cb(EinaConf *conf, gchar *key, EinaPreferences *self);
 
 enum {
 	EINA_PREFERENCES_NO_ERROR = 0,
@@ -80,8 +70,6 @@ preferences_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 	gel_plugin_set_data(plugin, self);
-
-	g_signal_connect(gel_app_get_settings(app), "change", (GCallback) change_cb, self);
 
 	return TRUE;
 }
@@ -115,32 +103,13 @@ eina_preferences_add_tab(EinaPreferences *self, EinaPreferencesTab *tab)
 	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
 	g_return_if_fail(g_list_find(self->tabs, tab) == NULL);
 
-	self->tabs = g_list_prepend(self->tabs, g_object_ref_sink(tab));
+	self->tabs = g_list_prepend(self->tabs, g_object_ref_sink(tab)); // owning
 	if (self->dialog)
 		eina_preferences_dialog_add_tab(self->dialog, tab);
 	self->n_tabs++;
 
 	if (self->n_tabs == 1)
 		preferences_attach_menu(self);
-
-	EinaConf *conf = eina_obj_get_settings(self);
-
-	GList *watching = eina_preferences_tab_get_watched(tab);
-	GList *iter = watching;
-	while (iter)
-	{
-		GValue *cv = eina_conf_get(conf, (gchar *) iter->data);
-		if (cv)
-			eina_preferences_tab_set_widget_value(tab, (gchar *) iter->data, cv);
-		else
-		{
-			GValue cv2 ;
-			if (eina_preferences_tab_get_widget_value(tab, (gchar *) iter->data, &cv2))
-				eina_conf_set(conf, (gchar *) iter->data, &cv2);
-		}
-		iter = iter->next;
-	}
-	g_list_free(watching);
 }
 
 void
@@ -168,7 +137,6 @@ build_dialog(EinaPreferences *self)
 		NULL);
 	g_signal_connect(self->dialog, "response",     (GCallback) response_cb, self);
 	g_signal_connect(self->dialog, "delete-event", (GCallback) delete_event_cb, self);
-	g_signal_connect(self->dialog, "value-changed",(GCallback) value_changed_cb, self);
 
 	GList *iter = g_list_last(self->tabs);
 	while (iter)
@@ -275,38 +243,12 @@ delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self)
 	return FALSE;
 }
 
-static void
-value_changed_cb(EinaPreferencesDialog *w, gchar *key, GValue *value, EinaPreferences *self)
-{
-	EinaConf *conf = eina_obj_get_settings(self);
-	eina_conf_set(conf, key, value);
-}
-
-static void
-change_cb(EinaConf *conf, gchar *key, EinaPreferences *self)
-{
-	GList *iter = self->tabs;
-	while (iter)
-	{
-		EinaPreferencesTab *tab = EINA_PREFERENCES_TAB(iter->data);
-		GtkWidget *w = eina_preferences_tab_get_widget(tab, key);
-		if (w)
-		{
-			eina_preferences_tab_set_widget_value(tab, key, eina_conf_get(eina_obj_get_settings(self), key));
-			return;
-		}
-		iter = iter->next;
-	}
-}
-
-
 EINA_PLUGIN_INFO_SPEC(preferences,
 	NULL,
-	"settings,window",
+	"window",
 	NULL,
 	NULL,
 	N_("Build-in preferences plugin"),
 	NULL,
 	NULL
 	);
-

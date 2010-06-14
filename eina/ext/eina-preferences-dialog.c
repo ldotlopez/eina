@@ -19,7 +19,6 @@
 
 #define GEL_DOMAIN "Eina::EinaPreferencesDialog"
 #include "eina/ext/eina-preferences-dialog.h"
-#include <eina/ext/eina-ext-marshallers.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
@@ -41,9 +40,6 @@ enum {
 };
 
 guint preferences_dialog_signals[LAST_SIGNAL] = { 0 };
-
-static void
-changed_cb(EinaPreferencesTab *tab, gchar *key, GValue *v, EinaPreferencesDialog *self);
 
 static void
 eina_preferences_dialog_dispose (GObject *object)
@@ -68,17 +64,6 @@ eina_preferences_dialog_class_init (EinaPreferencesDialogClass *klass)
 
 	object_class->dispose = eina_preferences_dialog_dispose;
 	object_class->finalize = eina_preferences_dialog_finalize;
-	preferences_dialog_signals[SIGNAL_VALUE_CHANGED] =
-		g_signal_new ("value-changed",
-			G_OBJECT_CLASS_TYPE (object_class),
-			G_SIGNAL_RUN_LAST,
-			G_STRUCT_OFFSET (EinaPreferencesDialogClass, value_changed),
-			NULL, NULL,
-			eina_ext_marshal_VOID__STRING_POINTER,
-			G_TYPE_NONE,
-			2,
-			G_TYPE_STRING,
-			G_TYPE_VALUE);
 }
 
 static void
@@ -99,11 +84,7 @@ eina_preferences_dialog_new (void)
 	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 
 	gtk_box_pack_start(
-#if GTK_CHECK_VERSION(2,14,0)
 		GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))),
-#else
-		GTK_BOX(GTK_DIALOG(self)->vbox),
-#endif
 	 	GTK_WIDGET(priv->notebook),
 		TRUE, TRUE, 0);
 
@@ -122,7 +103,6 @@ eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, EinaPreferencesTab 
 	gtk_widget_show_all(label_widget);
 	gtk_widget_show((GtkWidget *) tab);
 	gtk_notebook_append_page(priv->notebook, (GtkWidget *) tab, label_widget);
-	g_signal_connect(tab, "changed", (GCallback) changed_cb, self);
 
 	if (gtk_notebook_get_n_pages(priv->notebook) > 1)
 		gtk_notebook_set_show_tabs(priv->notebook, TRUE);
@@ -143,15 +123,8 @@ eina_preferences_dialog_remove_tab(EinaPreferencesDialog *self, EinaPreferencesT
 	}
 
 	gtk_notebook_remove_page(priv->notebook, n);
-	g_signal_handlers_disconnect_by_func(tab, changed_cb, self);
 
 	if (gtk_notebook_get_n_pages(priv->notebook) <= 1)
 		gtk_notebook_set_show_tabs(priv->notebook, FALSE);
-}
-
-static void
-changed_cb(EinaPreferencesTab *tab, gchar *key, GValue *v, EinaPreferencesDialog *self)
-{
-	g_signal_emit(self, preferences_dialog_signals[SIGNAL_VALUE_CHANGED], 0, key, v);
 }
 

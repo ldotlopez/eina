@@ -26,7 +26,6 @@
 // Modules
 #include <eina/eina-plugin.h>
 #include <eina/ext/eina-seek.h>
-#include <eina/ext/eina-volume.h>
 #include <eina/about.h>
 #include <eina/player.h>
 #include <eina/ext/eina-cover-image.h>
@@ -118,16 +117,18 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	GSettings *lomo_settings = gel_app_get_gsettings(app, EINA_DOMAIN".preferences.lomo");
 
-	//
-	// Setup UI bits
-	//
+	// Map volume
 	g_settings_bind_with_mapping(lomo_settings, "volume",
-		(GObject *) eina_obj_get_lomo(self), "volume",
+		eina_obj_get_object(self, "volume-button"), "value",
 		G_SETTINGS_BIND_DEFAULT,
 		volume_mapping_get_cb,
 		volume_mapping_set_cb,
 		NULL,
 		NULL);
+
+	//
+	// Setup UI bits
+	//
 
 	// Seek widget
     EinaSeek *seek = eina_seek_new();
@@ -142,8 +143,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		eina_obj_get_typed(self, GTK_CONTAINER, "seek-container"),
 		GTK_WIDGET(seek));
 		gtk_widget_show(GTK_WIDGET(seek));
-
-	// Volume widget
 
 	// Cover widget
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
@@ -222,21 +221,13 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 			NULL);
 		g_free(ui_str);
 
-		gchar *objects[] = {
-			"/core/repeat",    "/core/random",
-			"/core/auto-play", "/core/auto-parse",
-			"/core/add-mode",
-			"/player/cover-effects", NULL
-			};
-		eina_preferences_tab_add_watchers(tab, objects);
+		eina_preferences_tab_bindv(tab, EINA_DOMAIN".preferences.lomo",
+			"repeat",     "repeat",     "active",
+			"random",     "random",     "active",
+			"auto-parse", "auto-parse", "active",
+			"auto-play",  "auto-play",  "active",
+			NULL);
 		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
-		gtk_widget_set_visible(eina_preferences_tab_get_widget(tab, "/player/cover-effects"),
-			#if HAVE_CLUTTER
-			TRUE
-			#else
-			FALSE
-			#endif
-			);
 	}
 	else
 	{
@@ -482,21 +473,17 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 static GVariant*
 volume_mapping_set_cb(const GValue *value, const GVariantType *expected_type, gpointer data)
 {
-	g_printf("Set to gsettings\n");
-	return NULL;
-/*
-	gint v = (g_value_get_double(value) * 100) / 1;
-	GVariant *ret = g_variant_new_int16(v);
-	g_printf("Return to gsettings: %d\n", v);
-	return ret;
-	*/
+	// FIXME: Next check fails, why?
+	// g_return_val_if_fail(expected_type == G_VARIANT_TYPE_INT32, NULL);
+	return g_variant_new_int32((g_value_get_double(value) * 100) / 1);
 }
 
 static gboolean
 volume_mapping_get_cb(GValue *value, GVariant *variant, gpointer data)
 {
-	g_printf("Get from gsettings\n");
-	return FALSE;
+	g_return_val_if_fail(G_VALUE_HOLDS_DOUBLE(value), FALSE);
+	g_value_set_double(value, CLAMP((g_variant_get_int32(variant) / (gdouble) 100), 0, 1));
+	return TRUE;
 }
 
 
@@ -504,7 +491,7 @@ volume_mapping_get_cb(GValue *value, GVariant *variant, gpointer data)
 // DnD
 // ---
 enum {
-	DND_TARGET_STRING
+		DND_TARGET_STRING
 };
 
 static GtkTargetEntry dnd_target_list[] = {
