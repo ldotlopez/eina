@@ -35,8 +35,6 @@ lomo_repeat_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
 static void
 lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
 static void
-lomo_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaConf *conf);
-static void
 conf_change_cb(EinaConf *conf, gchar *key, LomoPlayer *engine);
 
 GEL_DEFINE_QUARK_FUNC(lomo)
@@ -76,7 +74,6 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(engine, "mute",   (GCallback) lomo_mute_cb,   conf);
 	g_signal_connect(engine, "repeat", (GCallback) lomo_repeat_cb, conf);
 	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, conf);
-	g_signal_connect(engine, "notify", (GCallback) lomo_notify_cb, conf);
 
 	return TRUE;
 }
@@ -175,12 +172,6 @@ lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
 	eina_conf_set_bool(conf, "/core/random", value);
 	if (value)
 		lomo_player_randomize(lomo);
-}
-
-static void
-lomo_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaConf *conf)
-{
-	gel_warn("Property has changed: %s", g_param_spec_get_name(pspec));
 }
 
 static void
