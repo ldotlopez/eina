@@ -25,7 +25,6 @@
 // Modules
 #include <eina/eina-plugin.h>
 #include <eina/ext/eina-seek.h>
-#include <eina/ext/eina-volume.h>
 #include <eina/about.h>
 #include <eina/player.h>
 #include <eina/ext/eina-cover-image.h>
@@ -58,9 +57,10 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
 static void
-volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self);
-static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
+
+static gboolean
+volume_mapping_cb(GValue *src, GValue *dst);
 
 static gchar *ui_xml = 
 "<ui>"
@@ -116,6 +116,11 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Setup UI bits
 	//
 
+	gel_object_bind_mutual_with_mapping(
+		(GObject *) eina_obj_get_lomo(self), "volume",
+		eina_obj_get_object(self, "volume-button"), "value",
+		(GelObjectBindMappingFunc) volume_mapping_cb);
+
 	// Seek widget
     EinaSeek *seek = eina_seek_new();
     g_object_set(seek,
@@ -129,14 +134,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		eina_obj_get_typed(self, GTK_CONTAINER, "seek-container"),
 		GTK_WIDGET(seek));
 		gtk_widget_show(GTK_WIDGET(seek));
-
-	// Volume widget
-	EinaVolume *volume = eina_volume_new();
-	eina_volume_set_lomo_player(volume, eina_obj_get_lomo(self));
-	gel_ui_container_replace_children(
-		eina_obj_get_typed(self, GTK_CONTAINER, "volume-button-container"),
-		GTK_WIDGET(volume));
-		gtk_widget_show(GTK_WIDGET(volume));
 
 	// Cover widget
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
@@ -188,9 +185,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	else
 		gtk_ui_manager_ensure_update(ui_mng);
-
-	// Connect lomo signals
-	g_signal_connect(volume, "value-changed", (GCallback) volume_value_changed_cb, self);
 
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
 	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
@@ -415,12 +409,6 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 }
 
 static void
-volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self)
-{
-	lomo_player_set_volume(eina_obj_get_lomo(self), (gint) (value * 100));
-}
-
-static void
 action_activated_cb(GtkAction *action, EinaPlayer *self)
 {
 	const gchar *name = gtk_action_get_name(action);
@@ -440,9 +428,6 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 
 	else if (g_str_equal(name, "prev-action"))
 		lomo_player_go_prev(lomo, &error);
-
-	else if (g_str_equal(name, "volume-action"))
-		;
 
 	else if (g_str_equal(name, "open-action"))
 		eina_fs_load_from_default_file_chooser(eina_obj_get_app(self));
@@ -479,6 +464,25 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		g_error_free(error);
 	}
 }
+
+static gboolean
+volume_mapping_cb(GValue *src, GValue *dst)
+{
+	if (G_VALUE_TYPE(src) == G_TYPE_DOUBLE)
+	{
+		g_return_val_if_fail(G_VALUE_TYPE(dst) == G_TYPE_INT, FALSE);
+		g_value_set_int(dst, CLAMP((g_value_get_double(src) * 100) / 1, 0, 100));
+		return TRUE;
+	}
+	else if (G_VALUE_TYPE(src) == G_TYPE_INT)
+	{
+		g_return_val_if_fail(G_VALUE_TYPE(dst) == G_TYPE_DOUBLE, FALSE);
+		g_value_set_double(dst, CLAMP(g_value_get_int(src) / (gdouble) 100 , 0, 1));
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 // ---
 // DnD
