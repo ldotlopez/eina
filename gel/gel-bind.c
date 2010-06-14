@@ -21,13 +21,25 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
-typedef struct {
+struct _GelObjectBind {
 	GObject *src, *dst;
 	GParamSpec *s_pspec, *d_pspec;
 	GelObjectBindMappingFunc mapping;
-} GelObjectBindData;
+};
 
-gboolean
+
+static gboolean
+gel_value_equal(GValue *a, GValue *b);
+
+
+static void
+object_bind_notify_cb(GObject *src, GParamSpec *s_pspec, GelObjectBind *data);
+void
+object_bind_weak_src_cb(GelObjectBind *bind, GObject *old_object);
+void
+object_bind_weak_dst_cb(GelObjectBind *bind, GObject *old_object);
+
+static gboolean
 gel_value_equal(GValue *a, GValue *b)
 {
 	g_return_val_if_fail(G_VALUE_TYPE(a) == G_VALUE_TYPE(b), FALSE);
@@ -53,8 +65,48 @@ gel_value_equal(GValue *a, GValue *b)
 	}
 }
 
+GelObjectBind*
+gel_object_bind_with_mapping(GObject *src, gchar *s_prop, GObject *dst, gchar *d_prop, GelObjectBindMappingFunc mapping)
+{
+	g_return_val_if_fail(G_IS_OBJECT(src) && G_IS_OBJECT(dst), NULL);
+	g_return_val_if_fail((s_prop != NULL) &&  (d_prop != NULL), NULL);
+
+	GObjectClass *src_k = G_OBJECT_GET_CLASS(src);
+	GObjectClass *dst_k = G_OBJECT_GET_CLASS(dst);
+
+	GParamSpec *s_pspec = g_object_class_find_property(src_k, s_prop);
+	GParamSpec *d_pspec = g_object_class_find_property(dst_k, d_prop);
+	g_return_val_if_fail(s_pspec && d_pspec, NULL);
+
+	if (mapping == NULL)
+		g_return_val_if_fail(g_value_type_compatible(s_pspec->value_type, d_pspec->value_type), NULL);
+
+	GelObjectBind *data = g_new0(GelObjectBind, 1);
+	data->src = src;
+	data->dst = dst;
+	data->s_pspec = s_pspec;
+	data->d_pspec = d_pspec;
+	data->mapping = mapping;
+
+	object_bind_notify_cb(src, s_pspec, data);
+
+	gchar *detail = g_strconcat("notify::", s_prop, NULL);
+	g_signal_connect((GObject *) src, detail, (GCallback) object_bind_notify_cb, data);
+	g_free(detail);
+
+	g_object_weak_ref(src, (GWeakNotify) object_bind_weak_src_cb, data);
+	g_object_weak_ref(dst, (GWeakNotify) object_bind_weak_dst_cb, data);
+
+	return data;
+}
+
+void
+gel_object_unbind(GelObjectBind *bind)
+{
+}
+
 static void
-object_bind_notify_cb(GObject *src, GParamSpec *s_pspec, GelObjectBindData *data)
+object_bind_notify_cb(GObject *src, GParamSpec *s_pspec, GelObjectBind *data)
 {
 	const gchar *s_prop, *d_prop;
 	s_prop = g_param_spec_get_name(data->s_pspec);
@@ -104,32 +156,27 @@ object_bind_notify_cb(GObject *src, GParamSpec *s_pspec, GelObjectBindData *data
 }
 
 void
-gel_object_bind_with_mapping(GObject *src, gchar *s_prop, GObject *dst, gchar *d_prop, GelObjectBindMappingFunc mapping)
+object_bind_weak_src_cb(GelObjectBind *bind, GObject *old_object)
 {
-	g_return_if_fail(G_IS_OBJECT(src) && G_IS_OBJECT(dst));
-	g_return_if_fail((s_prop != NULL) &&  (d_prop != NULL));
-
-	GObjectClass *src_k = G_OBJECT_GET_CLASS(src);
-	GObjectClass *dst_k = G_OBJECT_GET_CLASS(dst);
-
-	GParamSpec *s_pspec = g_object_class_find_property(src_k, s_prop);
-	GParamSpec *d_pspec = g_object_class_find_property(dst_k, d_prop);
-	g_return_if_fail(s_pspec && d_pspec);
-
-	if (mapping == NULL)
-		g_return_if_fail(g_value_type_compatible(s_pspec->value_type, d_pspec->value_type));
-
-	GelObjectBindData *data = g_new0(GelObjectBindData, 1);
-	data->src = src;
-	data->dst = dst;
-	data->s_pspec = s_pspec;
-	data->d_pspec = d_pspec;
-	data->mapping = mapping;
-
-	object_bind_notify_cb(src, s_pspec, data);
-
-	gchar *detail = g_strconcat("notify::", s_prop, NULL);
-	g_signal_connect((GObject *) src, detail, (GCallback) object_bind_notify_cb, data);
-	g_free(detail);
+	g_printf("Object:src %p is going to be destroy, unbind automatically\n", old_object);
+	g_object_weak_unref(bind->src, (GWeakNotify) object_bind_weak_src_cb, bind);
+	g_object_weak_unref(bind->dst, (GWeakNotify) object_bind_weak_dst_cb, bind);
+	g_free(bind);
 }
+
+void
+object_bind_weak_dst_cb(GelObjectBind *bind, GObject *old_object)
+{
+	g_printf("Object:dst %p is going to be destroy, unbind automatically\n", old_object);
+
+	gchar *detail = g_strconcat("notify::", g_param_spec_get_name(bind->s_pspec), NULL);
+	g_signal_handlers_disconnect_by_func(bind->src, object_bind_notify_cb, bind);
+	g_free(detail);
+
+	g_object_weak_unref(bind->src, (GWeakNotify) object_bind_weak_src_cb, bind);
+	g_object_weak_unref(bind->dst, (GWeakNotify) object_bind_weak_dst_cb, bind);
+
+	g_free(bind);
+}
+
 

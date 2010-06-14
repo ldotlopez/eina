@@ -25,6 +25,7 @@
 
 G_BEGIN_DECLS
 
+typedef struct _GelObjectBind GelObjectBind;
 typedef gboolean (*GelObjectBindMappingFunc)(GValue *a, GValue *b);
 
 #define gel_object_bind(src,s_prop,dst,d_prop) gel_object_bind_with_mapping(src,s_prop,dst,d_prop,NULL)
@@ -39,8 +40,11 @@ typedef gboolean (*GelObjectBindMappingFunc)(GValue *a, GValue *b);
 		gel_object_bind_with_mapping(dst,d_prop,src,s_prop,mapping); \
 	} G_STMT_END
 
-void
+GelObjectBind*
 gel_object_bind_with_mapping(GObject *src, gchar *s_prop, GObject *dst, gchar *d_prop, GelObjectBindMappingFunc mapping);
+
+void
+gel_object_unbind(GelObjectBind *bind);
 
 G_END_DECLS
 
