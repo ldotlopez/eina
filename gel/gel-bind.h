@@ -1,5 +1,5 @@
 /*
- * gel/gel.h
+ * gel/gel-bind.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,16 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GEL_H
-#define _GEL_H
+#ifndef _GEL_BIND_H_
+#define _GEL_BIND_H_
 
-#include <gel/gel-app.h>
-#include <gel/gel-bind.h>
-#include <gel/gel-plugin.h>
-#include <gel/gel-plugin-info.h>
-#include <gel/gel-string.h>
-#include <gel/gel-str-parser.h>
-#include <gel/gel-job-queue.h>
-#include <gel/gel-misc.h>
+#include <glib.h>
+#include <glib-object.h>
 
-#endif // _GEL_H
+G_BEGIN_DECLS
+
+typedef gboolean (*GelObjectBindMappingFunc)(GValue *a, GValue *b);
+
+#define gel_object_bind(src,s_prop,dst,d_prop) gel_object_bind_with_mapping(src,s_prop,dst,d_prop,NULL)
+#define gel_object_bind_mutual(src,s_prop,dst,d_prop) \
+	G_STMT_START { \
+		gel_object_bind_with_mapping(src,s_prop,dst,d_prop,NULL); \
+		gel_object_bind_with_mapping(dst,d_prop,src,s_prop,NULL); \
+	} G_STMT_END
+
+void
+gel_object_bind_with_mapping(GObject *src, gchar *s_prop, GObject *dst, gchar *d_prop, GelObjectBindMappingFunc mapping);
+
+G_END_DECLS
+
+#endif // _GEL_BIND_H
+
