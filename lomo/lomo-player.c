@@ -70,7 +70,11 @@ struct _LomoPlayerPrivate {
 
 enum {
 	PROPERTY_AUTO_PARSE = 1,
-	PROPERTY_AUTO_PLAY 
+	PROPERTY_AUTO_PLAY,
+	PROPERTY_RANDOM,
+	PROPERTY_REPEAT,
+	PROPERTY_VOLUME,
+	PROPERTY_MUTE
 };
 
 enum {
@@ -181,6 +185,18 @@ lomo_player_get_property (GObject *object, guint property_id,
 	case PROPERTY_AUTO_PLAY:
 		g_value_set_boolean(value, lomo_player_get_auto_play(self));
 		break;
+	case PROPERTY_RANDOM:
+		g_value_set_boolean(value, lomo_player_get_random(self));
+		break;
+	case PROPERTY_REPEAT:
+		g_value_set_boolean(value, lomo_player_get_repeat(self));
+		break;
+	case PROPERTY_VOLUME:
+		g_value_set_int(value, lomo_player_get_volume(self));
+		break;
+	case PROPERTY_MUTE:
+		g_value_set_boolean(value, lomo_player_get_mute(self));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -199,6 +215,18 @@ lomo_player_set_property (GObject *object, guint property_id,
 		break;
 	case PROPERTY_AUTO_PLAY:
 		lomo_player_set_auto_play(self, g_value_get_boolean(value));
+		break;
+	case PROPERTY_RANDOM:
+		lomo_player_set_random(self, g_value_get_boolean(value));
+		break;
+	case PROPERTY_REPEAT:
+		lomo_player_set_repeat(self, g_value_get_boolean(value));
+		break;
+	case PROPERTY_VOLUME:
+		lomo_player_set_volume(self, g_value_get_int(value));
+		break;
+	case PROPERTY_MUTE:
+		lomo_player_set_mute(self, g_value_get_boolean(value));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -625,6 +653,18 @@ lomo_player_class_init (LomoPlayerClass *klass)
 		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PLAY,
 		g_param_spec_boolean("auto-play", "auto-play", "Auto play added streams",
+		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, PROPERTY_RANDOM,
+		g_param_spec_boolean("random", "random", "Random",
+		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, PROPERTY_REPEAT,
+		g_param_spec_boolean("repeat", "repeat", "Repeat",
+		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, PROPERTY_VOLUME,
+		g_param_spec_int("volume", "volume", "Volume",
+		0, 100, 50, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class, PROPERTY_MUTE,
+		g_param_spec_boolean("mute", "mute", "Mute",
 		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
