@@ -669,9 +669,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_REPEAT,
 		g_param_spec_boolean("repeat", "repeat", "Repeat",
 		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	g_object_class_install_property(object_class, PROPERTY_VOLUME,
-		g_param_spec_int("volume", "volume", "Volume",
-		0, 100, 50, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
 static void

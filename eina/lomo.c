@@ -57,7 +57,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	for (gint i = 0; props[i] ; i++)
 		g_settings_bind(settings, props[i], engine, props[i], G_SETTINGS_BIND_NO_SENSITIVITY);
 
-	g_signal_connect(settings, "changed::random", (GCallback) lomo_random_cb, engine);
+	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, engine);
 
 	return TRUE;
 }
