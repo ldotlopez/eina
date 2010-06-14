@@ -125,8 +125,6 @@ static void lomo_clear_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
 static void lomo_repeat_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
-static void lomo_random_cb
-(LomoPlayer *lomo, gboolean val, EinaPlaylist *self);
 static void lomo_eos_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
 static void lomo_error_cb
@@ -253,11 +251,14 @@ playlist_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(eina_obj_get_lomo(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(eina_obj_get_lomo(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "random",   G_CALLBACK(lomo_random_cb),       self);
+	// g_signal_connect(eina_obj_get_lomo(self), "random",   G_CALLBACK(lomo_random_cb),       self);
 	g_signal_connect(eina_obj_get_lomo(self), "repeat",   G_CALLBACK(lomo_repeat_cb),       self);
 	g_signal_connect(eina_obj_get_lomo(self), "eos",      G_CALLBACK(lomo_eos_cb),          self);
 	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb),     self);
 	g_signal_connect(eina_obj_get_lomo(self), "error",    G_CALLBACK(lomo_error_cb),        self);
+
+	GSettings *lomo_settings = gel_app_get_gsettings(app, EINA_DOMAIN ".preferences.lomo");
+	g_settings_bind(lomo_settings, "random", eina_obj_get_object(self, "playlist-random-button"), "active", G_SETTINGS_BIND_DEFAULT);
 
 	// Accelerators
 	GtkAccelGroup *accel_group = gtk_accel_group_new();
@@ -974,12 +975,6 @@ static void lomo_clear_cb
 	playlist_update_tab(self);
 }
 
-static void lomo_random_cb
-(LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
-{
-	gtk_toggle_action_set_active(eina_obj_get_typed(self, GTK_TOGGLE_ACTION, "random-action"), val);
-}
-
 static void lomo_repeat_cb
 (LomoPlayer *lomo, gboolean val, EinaPlaylist *self)
 {
@@ -1259,10 +1254,11 @@ drag_drop_cb
 	is_valid_drop_site = TRUE;
 
 	/* If the source offers a target */
-	if (context-> targets)
+	GList *targets = gdk_drag_context_list_targets(context);
+	if (targets)
 	{
 		/* Choose the best target type */
-		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (context->targets, DND_TARGET_STRING));
+		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (targets, DND_TARGET_STRING));
 
 		/* Request the data from the source. */
 		gtk_drag_get_data
@@ -1272,6 +1268,7 @@ drag_drop_cb
 			target_type,    /* the target type we want */
 			time            /* time stamp */
 		);
+		g_list_free(targets);
 	}
 
 	/* No target offered by source => error */

@@ -38,6 +38,10 @@ AC_SUBST(PACKAGE_RELEASE_DATE)
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
 
+EINA_DOMAIN="net.sourceforge.eina"
+AC_SUBST(EINA_DOMAIN)
+AC_DEFINE_UNQUOTED(EINA_DOMAIN,"$EINA_DOMAIN", [Eina domain])
+
 # for po/
 DATADIRNAME="share"
 AC_SUBST(DATADIRNAME)
@@ -140,6 +144,14 @@ else
 fi
 AM_CONDITIONAL(BUILD_EXPERIMENTAL, test x"$HAVE_EXPERIMENTAL" = "xyes")
 
+enable_plugins='no'
+if test x$enable_plugins = 'xyes'; then
+	HAVE_PLUGINS=yes
+else
+	HAVE_PLUGINS=no
+fi
+AM_CONDITIONAL(BUILD_PLUGINS, test x"$HAVE_PLUGINS" = "xyes")
+
 dnl
 dnl core configuration
 dnl
@@ -159,7 +171,7 @@ glib_modules="\
 	gio-2.0 >= $GLIB_VERSION      \
 	"
 gtk_modules="\
-	gtk+-2.0 >= $GTK_VERSION \
+	gtk+-3.0 >= $GTK_VERSION \
 	"
 gstreamer_modules="\
 	gstreamer-0.10 >= $GSTREAMER_VERSION \
@@ -210,6 +222,8 @@ AC_SUBST(GSTREAMER_LIBS)
 
 AC_SUBST(GTK_VERSION)
 AC_SUBST(GSTREAMER_VERSION)
+
+GLIB_GSETTINGS
 
 dnl
 dnl Optional deps: clutter, notify, ige-mac-integration, dbus-glib, sqlite3, unique, uuid
@@ -385,6 +399,7 @@ bundle/build
 bundle/Info.plist
 data/eina.desktop
 data/eina-0.9.pc
+data/net.sourceforge.eina.gschema.xml.in
 Makefile
 docs/Makefile
 icons/Makefile

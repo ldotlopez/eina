@@ -1,0 +1,52 @@
+<schemalist>
+  <schema gettext-domain="@GETTEXT_DOMAIN@" id="net.sourceforge.eina" path="/apps/@PACKAGE@/">
+    <child name="preferences" schema="net.sourceforge.eina.preferences"/>
+	<key name="test" type="s">
+      	<default>'teststring'</default>
+	</key>
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_DOMAIN@" id="net.sourceforge.eina.preferences" path="/apps/@PACKAGE@/preferences/">
+    <child name="test" schema="net.sourceforge.eina.preferences.test" />
+    <child name="lomo" schema="net.sourceforge.eina.preferences.lomo" />
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_DOMAIN@" id="net.sourceforge.eina.preferences.test" path="/apps/@PACKAGE@/preferences/test/">
+    <key name="string" type="s">
+      <default>'teststring'</default>
+      <_summary>string test setting</_summary>
+      <_description>string test setting</_description>
+    </key>
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_DOMAIN@" id="net.sourceforge.eina.preferences.lomo" path="/apps/@PACKAGE@/preferences/lomo/">
+    <key name="volume" type="i">
+      <default>50</default>
+      <_summary>Volume</_summary>
+    </key>
+    <key name="mute" type="b">
+      <default>false</default>
+	  <_summary>Set mute</_summary>
+    </key>
+
+    <key name="random" type="b">
+      <default>false</default>
+	  <_summary>Enable random mode</_summary>
+    </key>
+	<key name="repeat" type="b">
+      <default>false</default>
+	  <_summary>Enable repeat mode</_summary>
+    </key>
+
+    <key name="auto-play" type="b">
+      <default>false</default>
+	  <_summary>Automatically play streams</_summary>
+    </key>
+	<key name="auto-parse" type="b">
+      <default>true</default>
+	  <_summary>Automatically parse metadata on streams</_summary>
+    </key>
+
+  </schema>
+
+</schemalist>

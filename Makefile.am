@@ -17,6 +17,8 @@ EXTRA_DIST = \
 	AUTHORS BUGS COPYING INSTALL NEWS README
 
 BUILT_SOURCES = 
+CLEANFILES =
+DISTCLEANFILES =
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
@@ -331,6 +333,7 @@ EXTRA_DIST += $(pixmaps_DATA)
 #
 # data
 #
+
 # pkgconfig files
 data_pkgconfigdir = $(libdir)/pkgconfig
 data_pkgconfig_DATA = data/eina-@EINA_API_VERSION@.pc
@@ -338,11 +341,23 @@ data_pkgconfig_DATA = data/eina-@EINA_API_VERSION@.pc
 # desktop files
 data_applicationsdir = $(datadir)/applications
 data_applications_DATA = data/eina.desktop
+@INTLTOOL_DESKTOP_RULE@
 
-#
-# tools
-#
-EXTRA_DIST += tools/ui2h
+# schema
+gsettings_SCHEMAS = data/net.sourceforge.eina.gschema.xml
+@INTLTOOL_XML_NOMERGE_RULE@
+@GSETTINGS_RULES@
+
+DISTCLEANFILES += \
+	$(gsettings_SCHEMAS)
+CLEANFILES += \
+	$(gsettings_SCHEMAS)
+EXTRA_DIST += \
+	tools/ui2h \
+	data/net.sourceforge.eina.gschema.xml.in.in
+MAINTAINERCLEANFILES = $(gsettings_SCHEMAS:.xml=.valid)
+
+if BUILD_PLUGINS
 
 #
 # Adb plugin
@@ -541,6 +556,8 @@ EXTRA_DIST += \
 	$(plugins_recently_DATA) \
 	plugins/recently/recently.svg
 
+endif
+
 # Final CLEANFILES
-CLEANFILES = $(BUILT_SOURCES)
+CLEANFILES += $(BUILT_SOURCES)
 

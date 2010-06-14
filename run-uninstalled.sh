@@ -11,6 +11,11 @@ export EINA_LIB_PATH="`dirname $0`/tools/plugins"
 # Eina specific
 export EINA_THEME_DIR="`dirname $0`/icons"
 
+if [ ! -z "$(which glib-compile-schemas)" ]; then
+	export GSETTINGS_SCHEMA_DIR="`dirname $0`/data"
+	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
+fi
+
 rm -rf -- "`dirname $0`/tools/plugins"
 mkdir -p "`dirname $0`/tools/plugins"
 for PLUGIN_DIR in $(find "`dirname $0`/plugins" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | grep -v svn)

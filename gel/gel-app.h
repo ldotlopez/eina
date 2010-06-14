@@ -21,6 +21,7 @@
 #define _GEL_APP_H
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -103,6 +104,8 @@ void       gel_app_purge(GelApp *self);
 void     gel_app_shared_free(GelApp *self, gchar *name);
 gboolean gel_app_shared_set(GelApp *self, gchar *name, gpointer data);
 gpointer gel_app_shared_get(GelApp *self, gchar *name);
+
+GSettings *gel_app_get_gsettings(GelApp *self, gchar *domain);
 
 #if (defined GEL_COMPILATION) && (defined _GEL_PLUGIN_H)
 void gel_app_priv_run_init(GelApp *self, GelPlugin *plugin);

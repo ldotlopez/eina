@@ -46,11 +46,12 @@ struct _GelAppPrivate {
 	GelAppDisposeFunc dispose_func;
 	gpointer  dispose_data;
 
-	GHashTable *shared;  // Shared memory
-	GList      *paths;   // Paths to search plugins
-	GList      *infos;   // Cached GelPluginInfo list
+	GHashTable *settings; // Settings table
+	GHashTable *shared;   // Shared memory
+	GList      *paths;    // Paths to search plugins
+	GList      *infos;    // Cached GelPluginInfo list
 
-	GHashTable *lookup;  // Fast lookup table
+	GHashTable *lookup;   // Fast lookup table
 	GQueue     *stack;
 };
 
@@ -104,6 +105,8 @@ gel_app_dispose (GObject *object)
 	}
 	gel_free_and_invalidate(self->priv->stack, NULL, g_queue_free);
 
+	gel_free_and_invalidate(self->priv->settings, NULL, g_hash_table_destroy);
+
 	G_OBJECT_CLASS (gel_app_parent_class)->dispose (object);
 }
 
@@ -150,9 +153,10 @@ gel_app_init (GelApp *self)
 
 	priv->dispose_func = priv->dispose_data = NULL;
 	priv->paths  = NULL;
-	priv->shared = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-	priv->lookup = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-	priv->stack  = g_queue_new();
+	priv->settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	priv->shared   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+	priv->lookup   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+	priv->stack    = g_queue_new();
 	gel_app_scan_plugins(self);
 }
 
@@ -475,6 +479,21 @@ gel_app_shared_free(GelApp *self, gchar *name)
 
 	g_warn_if_fail(g_hash_table_lookup(self->priv->shared, name) != NULL);
 	g_hash_table_remove(self->priv->shared, name);
+}
+
+GSettings *
+gel_app_get_gsettings(GelApp *self, gchar *domain)
+{
+	g_return_val_if_fail(GEL_IS_APP(self), NULL);
+	g_return_val_if_fail(domain, NULL);
+
+	GSettings *settings = g_hash_table_lookup(self->priv->settings, domain);
+	if (!settings)
+	{
+		settings = g_settings_new(domain);
+		g_hash_table_insert(self->priv->settings, g_strdup(domain), settings);
+	}
+	return G_SETTINGS(settings);
 }
 
 // --

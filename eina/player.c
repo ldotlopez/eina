@@ -21,6 +21,7 @@
 #define EINA_PLUGIN_DATA_TYPE EinaPlayer
 
 #include <gel/gel-io.h>
+#include <glib/gprintf.h>
 
 // Modules
 #include <eina/eina-plugin.h>
@@ -58,9 +59,13 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
 static void
-volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self);
-static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
+
+
+static GVariant*
+volume_mapping_set_cb(const GValue *value, const GVariantType *expected_type, gpointer data);
+static gboolean
+volume_mapping_get_cb(GValue *value, GVariant *variant, gpointer data);
 
 static gchar *ui_xml = 
 "<ui>"
@@ -109,12 +114,20 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		eina_obj_fini((EinaObj *) self);
 		return FALSE;
 	}
-
 	gel_plugin_set_data(plugin, self);
+
+	GSettings *lomo_settings = gel_app_get_gsettings(app, EINA_DOMAIN".preferences.lomo");
 
 	//
 	// Setup UI bits
 	//
+	g_settings_bind_with_mapping(lomo_settings, "volume",
+		(GObject *) eina_obj_get_lomo(self), "volume",
+		G_SETTINGS_BIND_DEFAULT,
+		volume_mapping_get_cb,
+		volume_mapping_set_cb,
+		NULL,
+		NULL);
 
 	// Seek widget
     EinaSeek *seek = eina_seek_new();
@@ -131,12 +144,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		gtk_widget_show(GTK_WIDGET(seek));
 
 	// Volume widget
-	EinaVolume *volume = eina_volume_new();
-	eina_volume_set_lomo_player(volume, eina_obj_get_lomo(self));
-	gel_ui_container_replace_children(
-		eina_obj_get_typed(self, GTK_CONTAINER, "volume-button-container"),
-		GTK_WIDGET(volume));
-		gtk_widget_show(GTK_WIDGET(volume));
 
 	// Cover widget
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
@@ -190,8 +197,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		gtk_ui_manager_ensure_update(ui_mng);
 
 	// Connect lomo signals
-	g_signal_connect(volume, "value-changed", (GCallback) volume_value_changed_cb, self);
-
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
 	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
@@ -265,6 +270,7 @@ player_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	EinaPlayer *self = EINA_PLUGIN_DATA(plugin);
 
 	eina_window_remove_widget(eina_obj_get_window(self), eina_obj_get_typed(self, GTK_WIDGET, "main-widget"));
+
 	eina_obj_fini(EINA_OBJ(gel_plugin_get_data(plugin)));
 
 	return TRUE;
@@ -414,12 +420,6 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
 }
 
 static void
-volume_value_changed_cb(GtkScaleButton *w, gdouble value, EinaPlayer *self)
-{
-	lomo_player_set_volume(eina_obj_get_lomo(self), (gint) (value * 100));
-}
-
-static void
 action_activated_cb(GtkAction *action, EinaPlayer *self)
 {
 	const gchar *name = gtk_action_get_name(action);
@@ -478,6 +478,27 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		g_error_free(error);
 	}
 }
+
+static GVariant*
+volume_mapping_set_cb(const GValue *value, const GVariantType *expected_type, gpointer data)
+{
+	g_printf("Set to gsettings\n");
+	return NULL;
+/*
+	gint v = (g_value_get_double(value) * 100) / 1;
+	GVariant *ret = g_variant_new_int16(v);
+	g_printf("Return to gsettings: %d\n", v);
+	return ret;
+	*/
+}
+
+static gboolean
+volume_mapping_get_cb(GValue *value, GVariant *variant, gpointer data)
+{
+	g_printf("Get from gsettings\n");
+	return FALSE;
+}
+
 
 // ---
 // DnD
@@ -579,10 +600,11 @@ drag_drop_cb
 	is_valid_drop_site = TRUE;
 
 	/* If the source offers a target */
-	if (context-> targets)
+	GList *targets = gdk_drag_context_list_targets(context);
+	if (targets)
 	{
 		/* Choose the best target type */
-		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (context->targets, DND_TARGET_STRING));
+		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (targets, DND_TARGET_STRING));
 
 		/* Request the data from the source. */
 		gtk_drag_get_data
@@ -592,6 +614,7 @@ drag_drop_cb
 			target_type,    /* the target type we want */
 			time            /* time stamp */
 		);
+		g_list_free(targets);
 	}
 
 	/* No target offered by source => error */
