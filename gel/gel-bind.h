@@ -33,6 +33,11 @@ typedef gboolean (*GelObjectBindMappingFunc)(GValue *a, GValue *b);
 		gel_object_bind_with_mapping(src,s_prop,dst,d_prop,NULL); \
 		gel_object_bind_with_mapping(dst,d_prop,src,s_prop,NULL); \
 	} G_STMT_END
+#define gel_object_bind_mutual_with_mapping(src,s_prop,dst,d_prop,mapping) \
+	G_STMT_START { \
+		gel_object_bind_with_mapping(src,s_prop,dst,d_prop,mapping); \
+		gel_object_bind_with_mapping(dst,d_prop,src,s_prop,mapping); \
+	} G_STMT_END
 
 void
 gel_object_bind_with_mapping(GObject *src, gchar *s_prop, GObject *dst, gchar *d_prop, GelObjectBindMappingFunc mapping);

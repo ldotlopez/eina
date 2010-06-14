@@ -44,6 +44,9 @@ gel_value_equal(GValue *a, GValue *b)
 	case G_TYPE_FLOAT:
 		return g_value_get_float(a) == g_value_get_float(b);
 
+	case G_TYPE_DOUBLE:
+		return g_value_get_double(a) == g_value_get_double(b);
+
 	default:
 		g_warning(N_("Unhandled type %s"), g_type_name(type));
 		return FALSE;
@@ -74,8 +77,7 @@ object_bind_notify_cb(GObject *src, GParamSpec *s_pspec, GelObjectBindData *data
 
 	if (data->mapping)
 	{
-		g_printf("Not implemented\n");
-		return;
+		g_return_if_fail(data->mapping(&src_v, &new_v));
 	}
 	else
 	{	
