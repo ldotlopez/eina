@@ -137,6 +137,8 @@ eina_preferences_tab_dispose (GObject *object)
 			g_free(def->obj_name);
 			g_free(def->property);
 			g_free(def);
+
+			iter = iter->next;
 		}
 		g_list_free(priv->bind_defs);
 		priv->bind_defs = NULL;
