@@ -43,6 +43,7 @@ gel_libgel_1_0_la_CFLAGS = -DGEL_COMPILATION
 gel_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel
 gel_include_HEADERS = \
 	gel/gel.h                   \
+    gel/gel-bind.h              \
     gel/gel-misc.h              \
     gel/gel-string.h            \
     gel/gel-str-parser.h        \
@@ -60,6 +61,7 @@ gel_include_HEADERS = \
     gel/gel-ui.h
 
 gel_libgel_1_0_la_SOURCES = \
+    gel/gel-bind.c              \
     gel/gel-misc.c              \
     gel/gel-string.c            \
     gel/gel-str-parser.c        \

@@ -144,8 +144,8 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 {
 	GtkWidget *ret = NULL;
 
-	if (!GTK_IS_CONTAINER(container))
-		return NULL;
+	g_return_val_if_fail(GTK_IS_CONTAINER(container), NULL);
+	g_return_val_if_fail(name, NULL);
 
 	GList *children = gtk_container_get_children(container);
 	GList *iter = children;
@@ -154,10 +154,13 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 		GtkWidget *child = (GtkWidget *) iter->data;
 		const gchar *c_name= gtk_buildable_get_name(GTK_BUILDABLE(child));
 
-		if (c_name && g_str_equal(c_name, name))
+		if (c_name && g_str_equal(name, c_name))
+		{
 			ret = child;
+			break;
+		}
 
-		else if (GTK_IS_CONTAINER(child))
+		if (GTK_IS_CONTAINER(child))
 			ret = gel_ui_container_find_widget((GtkContainer *) child, (gchar *) name);
 
 		iter = iter->next;

@@ -102,19 +102,21 @@ plugins_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	if (!tmp)
 		return TRUE;
 
-#if 0
 	gint i = 0;
 	gchar **plugins = g_strsplit(tmp, ",", 0);
 	for (i = 0; plugins[i] && plugins[i][0]; i++)
 	{
+		gchar **parts  = g_strsplit(plugins[i], ":", 2);
 		GError *error = NULL;
-		if (!gel_app_load_plugin_by_pathname(app, plugins[i], &error))
+		if (parts[0] && !gel_app_load_plugin_by_pathname(app, parts[0], &error))
 		{
 			gel_error(N_("Cannot load %s: %s"), plugins[i], error->message);
 			g_error_free(error);
 		}
+		gel_free_and_invalidate(parts, NULL, g_strfreev);
 	}
-#endif
+	g_strfreev(plugins);
+
 	return TRUE;
 }
 

@@ -89,6 +89,7 @@ GelApp* gel_app_new (void);
 void gel_app_set_dispose_callback(GelApp *self, GelAppDisposeFunc callback, gpointer user_data);
 
 GelPlugin *gel_app_load_plugin_by_name    (GelApp *self, gchar *name,     GError **error);
+GelPlugin *gel_app_load_plugin_by_pathname(GelApp *self, gchar *pathname, GError **error);
 GelPlugin *gel_app_load_plugin            (GelApp *self, GelPluginInfo *info, GError **error);
 
 GList     *gel_app_get_plugins(GelApp *self);

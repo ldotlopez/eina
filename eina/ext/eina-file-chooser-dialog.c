@@ -88,33 +88,6 @@ free_resources(EinaFileChooserDialog *self)
 	reset_resources(self);
 }
 
-#if !GTK_CHECK_VERSION(2,14,0)
-static GObject*
-eina_file_chooser_dialog_constructor(GType gtype, guint n_properties, GObjectConstructParam *properties)
-{
-	gint i;
-	GObject *obj;
-
-	/* Override file-system-backend */
-	for (i = 0 ; i < n_properties; i++)
-	{
-		if (g_str_equal(properties[i].pspec->name, "file-system-backend"))
-			g_value_set_static_string(properties[i].value, "gio");
-	}
-	
-    {
-		/* Chain up to the parent constructor */
-		EinaFileChooserDialogClass *klass;
-		GObjectClass *parent_class;  
-		klass = EINA_FILE_CHOOSER_DIALOG_CLASS(g_type_class_peek(EINA_TYPE_FILE_CHOOSER_DIALOG));
-		parent_class = G_OBJECT_CLASS(g_type_class_peek_parent(klass));
-		obj = parent_class->constructor (gtype, n_properties, properties);
-	}
-
-	return obj;
-}
-#endif
-
 static void
 eina_file_chooser_dialog_dispose (GObject *object)
 {
@@ -139,9 +112,6 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	g_type_class_add_private (klass, sizeof (EinaFileChooserDialogPrivate));
 
-	#if !GTK_CHECK_VERSION(2,14,0)
-	object_class->constructor = eina_file_chooser_dialog_constructor;
-	#endif
 	object_class->dispose = eina_file_chooser_dialog_dispose;
 	object_class->finalize = eina_file_chooser_dialog_finalize;
 
@@ -181,7 +151,7 @@ eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 }
 
 void eina_file_chooser_dialog_set_custom_msg(EinaFileChooserDialog *self,
-	GtkImage *image, GtkLabel *label, GtkWidget *action)
+	GtkWidget *image, GtkLabel *label, GtkWidget *action)
 {
 	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
 
@@ -226,7 +196,7 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	g_signal_connect_swapped(button, "clicked", (GCallback) clear_message, self);
 
 	eina_file_chooser_dialog_set_custom_msg(self,
-		(GtkImage *) gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU),
+		gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU),
 		(GtkLabel *) gtk_label_new(msg),
 		GTK_WIDGET(button)
 		);
@@ -262,17 +232,6 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	// Put UI in busy state
 	update_sensitiviness(self, FALSE);
 
-	// Loading image
-	GtkImage *loading = NULL;
-	gchar *loading_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "loading-spin-16x16.gif");
-	if (loading_path)
-	{
-		loading = (GtkImage *) gtk_image_new_from_file(loading_path);
-		g_free(loading_path);
-	}
-	else
-		g_warning(N_("Cannot locate resource %s"), "loading-spin-16x16.gif");
-
 	// The 'cancel' button
 	GtkButton *cancel = (GtkButton *) gtk_button_new();
 	gtk_button_set_relief(cancel, GTK_RELIEF_NONE);
@@ -281,7 +240,7 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 
 	// Show busy UI
 	eina_file_chooser_dialog_set_custom_msg(self,
-		loading,
+		g_object_new(GTK_TYPE_SPINNER, "active", TRUE, NULL),
 		(GtkLabel *) gtk_label_new(_("Loading files...")),
 		GTK_WIDGET(cancel));
 
@@ -304,7 +263,7 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 
 	gchar *str = g_strdup_printf(N_("Loaded %d streams"), g_list_length(priv->uris));
 	eina_file_chooser_dialog_set_custom_msg(self,
-		(GtkImage *) gtk_image_new_from_stock(GTK_STOCK_INFO, GTK_ICON_SIZE_MENU),
+		gtk_image_new_from_stock(GTK_STOCK_INFO, GTK_ICON_SIZE_MENU),
 		(GtkLabel *) gtk_label_new(str),
 		GTK_WIDGET(close));
 	g_free(str);
@@ -369,22 +328,14 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 	if (value == TRUE)
 	{
 		gdk_window_set_cursor(
-			#if GTK_CHECK_VERSION(2,14,0)
 			gtk_widget_get_window(GTK_WIDGET(self)),
-			#else
-			GTK_WIDGET(self)->window,
-			#endif
 			NULL);
 		g_signal_handlers_disconnect_by_func(self, gtk_true, self);
 	}
 	else
 	{
 		GtkWidget *w = GTK_WIDGET(self);
-		#if GTK_CHECK_VERSION(2,14,0)
 		GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(self));
-		#else
-		GdkWindow *win = GTK_WIDGET(self)->window;
-		#endif
 		GdkDisplay *display = gtk_widget_get_display(w);
 		gdk_window_set_cursor(win, gdk_cursor_new_for_display(display, GDK_WATCH));
 		g_signal_connect(self, "delete-event", G_CALLBACK(gtk_true), self);

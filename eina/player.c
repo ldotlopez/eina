@@ -60,7 +60,6 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
 
-
 static GVariant*
 volume_mapping_set_cb(const GValue *value, const GVariantType *expected_type, gpointer data);
 static gboolean
@@ -195,7 +194,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	else
 		gtk_ui_manager_ensure_update(ui_mng);
 
-	// Connect lomo signals
 	LomoPlayer *lomo = eina_obj_get_lomo(self);
 	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
@@ -214,6 +212,7 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	     g_file_get_contents(ui_path, &ui_str, NULL, &err2))
 	{
 		EinaPreferencesTab *tab = eina_preferences_tab_new();
+
 		g_object_set(tab,
 			"ui-string", ui_str,
 			"label-image", (GtkImage*) gtk_image_new_from_stock(GTK_STOCK_EXECUTE, GTK_ICON_SIZE_SMALL_TOOLBAR),
@@ -431,9 +430,6 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 	else if (g_str_equal(name, "prev-action"))
 		lomo_player_go_prev(lomo, &error);
 
-	else if (g_str_equal(name, "volume-action"))
-		;
-
 	else if (g_str_equal(name, "open-action"))
 		eina_fs_load_from_default_file_chooser(eina_obj_get_app(self));
 
@@ -485,7 +481,6 @@ volume_mapping_get_cb(GValue *value, GVariant *variant, gpointer data)
 	g_value_set_double(value, CLAMP((g_variant_get_int32(variant) / (gdouble) 100), 0, 1));
 	return TRUE;
 }
-
 
 // ---
 // DnD
