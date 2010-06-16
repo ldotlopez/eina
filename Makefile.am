@@ -19,6 +19,8 @@ EXTRA_DIST = \
 BUILT_SOURCES = 
 CLEANFILES =
 DISTCLEANFILES =
+MAINTAINERCLEANFILES =
+gsettings_SCHEMAS =
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
@@ -333,18 +335,8 @@ data_applications_DATA = data/eina.desktop
 @INTLTOOL_DESKTOP_RULE@
 
 # schema
-gsettings_SCHEMAS = data/net.sourceforge.eina.gschema.xml
-@INTLTOOL_XML_NOMERGE_RULE@
-@GSETTINGS_RULES@
+gsettings_SCHEMAS += data/net.sourceforge.eina.gschema.xml 
 
-DISTCLEANFILES += \
-	$(gsettings_SCHEMAS)
-CLEANFILES += \
-	$(gsettings_SCHEMAS)
-EXTRA_DIST += \
-	tools/ui2h \
-	data/net.sourceforge.eina.gschema.xml.in.in
-MAINTAINERCLEANFILES = $(gsettings_SCHEMAS:.xml=.valid)
 
 if BUILD_PLUGINS
 
@@ -482,6 +474,8 @@ plugins_lastfm_lastfmsubmitdlib_DATA = \
 	plugins/lastfm/lastfmsubmitd/lastfm/config.py     \
 	plugins/lastfm/lastfmsubmitd/lastfm/client.py
 
+gsettings_SCHEMAS += plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml
+
 EXTRA_DIST += \
 	$(plugins_lastfm_DATA) \
 	$(plugins_lastfm_lastfmsubmitd_DATA) \
@@ -540,6 +534,19 @@ plugins_recently_librecently_la_SOURCES = plugins/recently/recently.c
 
 endif
 endif
+
+#
+# Build schemas at the end
+#
+@INTLTOOL_XML_NOMERGE_RULE@
+@GSETTINGS_RULES@
+DISTCLEANFILES += \
+	$(gsettings_SCHEMAS)
+CLEANFILES += \
+	$(gsettings_SCHEMAS)
+EXTRA_DIST += \
+	$(gsettings_SCHEMAS)
+MAINTAINERCLEANFILES += $(gsettings_SCHEMAS:.xml=.valid)
 
 EXTRA_DIST += \
 	$(plugins_recently_DATA) \

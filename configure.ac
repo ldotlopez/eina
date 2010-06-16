@@ -138,7 +138,7 @@ else
 fi
 AM_CONDITIONAL(BUILD_EXPERIMENTAL, test x"$HAVE_EXPERIMENTAL" = "xyes")
 
-enable_plugins='no'
+enable_plugins='yes'
 if test x$enable_plugins = 'xyes'; then
 	HAVE_PLUGINS=yes
 else
@@ -404,6 +404,7 @@ docs/Makefile
 icons/Makefile
 icons/hicolor/Makefile
 po/Makefile.in
+plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
 ])
 AC_OUTPUT
 

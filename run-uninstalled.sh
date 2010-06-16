@@ -11,11 +11,6 @@ export EINA_LIB_PATH="`dirname $0`/tools/plugins"
 # Eina specific
 export EINA_THEME_DIR="`dirname $0`/icons"
 
-if [ ! -z "$(which glib-compile-schemas)" ]; then
-	export GSETTINGS_SCHEMA_DIR="`dirname $0`/data"
-	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
-fi
-
 rm -rf -- "`dirname $0`/tools/plugins"
 mkdir -p "`dirname $0`/tools/plugins"
 for PLUGIN_DIR in $(find "`dirname $0`/plugins" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | grep -v svn)
@@ -33,6 +28,19 @@ do
 		ln -fs "../../../plugins/$B/$(basename -- "$F")" "$D/$B"
 	done
 done
+
+if [ ! -z "$(which glib-compile-schemas)" ]; then
+	[ -d "`dirname $0`/tools/schemas" ] && rm -rf -- "`dirname $0`/tools/schemas"
+	mkdir -p "`dirname $0`/tools/schemas"
+	for i in $(find `dirname -- $0`/data `dirname -- $0`/tools/plugins -name '*gschema.valid' | sed -e 's,.valid$,.xml,')
+	do
+		ln -s "$PWD/`dirname -- $0`/$i" tools/schemas/$(basename -- "$i")
+	done
+
+	export GSETTINGS_SCHEMA_DIR="`dirname $0`/tools/schemas"
+	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
+
+fi
 
 BIN=""
 for i in eina/eina eina/.libs/eina
@@ -53,6 +61,10 @@ fi
 
 if [ ! -z "$1" ]; then
 	case "$1" in
+		noop)
+			exit 0
+			;;
+
 		ltrace)
 			shift
 			ltrace "`dirname $0`/$BIN" "$@"
