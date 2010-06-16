@@ -122,13 +122,24 @@ eina_window_init (EinaWindow *self)
 
     gchar *icon_path = NULL;
 	GdkPixbuf *icon_pb = NULL; 
-	if ((icon_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg")) != NULL)
+	if ((icon_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg")) == NULL)
 	{
-		icon_pb = gdk_pixbuf_new_from_file_at_size(icon_path, 64, 64, NULL);
-		gtk_window_set_default_icon(icon_pb);
-		g_object_unref(icon_pb);
+		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
+		return;
 	}
-	gel_free_and_invalidate(icon_path, NULL, g_free);			    
+
+	GError *err = NULL;
+	if ((icon_pb = gdk_pixbuf_new_from_file_at_size(icon_path, 64, 64, &err)) == NULL)
+	{
+		g_warning(N_("Unable to load resource '%s': %s"), icon_path, err->message);
+		g_error_free(err);
+		gel_free_and_invalidate(icon_path, NULL, g_free);
+		return;
+	}
+
+	gel_free_and_invalidate(icon_path, NULL, g_free);
+	gtk_window_set_default_icon(icon_pb);
+	g_object_unref(icon_pb);
 }
 
 EinaWindow*
