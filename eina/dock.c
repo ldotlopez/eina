@@ -33,9 +33,7 @@ struct _EinaDock {
 	GtkWidget   *widget;
 	GtkNotebook *dock;
 	GHashTable  *dock_items;
-	GList       *dock_idx;
-
-	gchar     **widget_idx;
+	gchar     **dock_idx;
 	
 	gint         w, h;
 };
@@ -62,27 +60,16 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Setup things
 	GSettings *dock_settings = gel_app_get_gsettings(app, EINA_DOMAIN".preferences.dock");
-
+	gboolean expanded = g_settings_get_boolean(dock_settings, "expanded");
+	g_object_set((GObject *) self->widget,
+		"expanded", expanded,
+		NULL);
 	g_object_set((GObject *) gel_app_get_window(app),
-		"resizable", g_settings_get_boolean(dock_settings, "expanded"),
+		"resizable", expanded,
 		NULL);
 	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
 
-	self->widget_idx = g_settings_get_strv(dock_settings, "widget-order");
-
-#if 0
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-
-	// Configure the dock route table
-	const gchar *order;
-	gchar **split;
-
-	order = eina_conf_get_str(conf, "/dock/order", "playlist");
-	gel_list_deep_free(self->dock_idx, g_free);
-	split = g_strsplit(order, ",", 0);
-	self->dock_idx = gel_strv_to_list(split, FALSE);
-	g_free(split); // NOT g_freestrv, look the FALSE in the prev. line
-#endif
+	self->dock_idx = g_settings_get_strv(dock_settings, "widget-order");
 
 	// Handle tab-reorder
 	gtk_widget_realize(GTK_WIDGET(self->dock));
@@ -121,8 +108,8 @@ gboolean
 eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
 	gint pos = 0;
-	while (self->widget_idx[pos] != NULL)
-		if (g_str_equal(id, self->widget_idx[pos]))
+	while (self->dock_idx[pos] != NULL)
+		if (g_str_equal(id, self->dock_idx[pos]))
 			break;
 		else
 			pos++;
@@ -222,42 +209,33 @@ eina_dock_switch_widget(EinaDock *self, gchar *id)
 }
 
 static void
-page_reorder_cb_aux (gpointer k, gpointer v, gpointer data)
-{
-	GList *list       = (GList *) data;
-	GList *p;
-
-	p = g_list_find(list, v);
-	if (p == NULL)
-		return;
-	
-	p->data = k;
-}
-
-static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 {
-	gint n_tabs, i;
-	GList *dock_items = NULL;
-	GString *output = g_string_new(NULL);
-
-	n_tabs = gtk_notebook_get_n_pages(w);
-	for (i = (n_tabs - 1); i >= 0; i--)
+	gint n_tabs = gtk_notebook_get_n_pages(w);
+	
+	gchar **items = g_new0(gchar *, n_tabs + 1);
+	gint j = 0;
+	for (gint i = 0; i < n_tabs; i++)
 	{
-		dock_items = g_list_prepend(dock_items, gtk_notebook_get_nth_page(w, i));
+		gpointer tab = gtk_notebook_get_nth_page(w, i);
+
+		GHashTableIter iter;
+		gchar *id;
+		gpointer _tab;
+		g_hash_table_iter_init(&iter, self->dock_items);
+		while (g_hash_table_iter_next(&iter, (gpointer *) &id, &_tab))
+		{
+			if (tab == _tab)
+			{
+				items[j++] = id;
+				break;
+			}
+		}
 	}
 
-	if (self->dock_items != NULL)
-		g_hash_table_foreach(self->dock_items, page_reorder_cb_aux, dock_items);
-	for (i = 0; i < n_tabs; i++)
-	{
-		output = g_string_append(output, (gchar *) g_list_nth_data(dock_items, i));
-		if ((i+1) < n_tabs)
-			output = g_string_append_c(output, ',');
-	}
-
-	eina_conf_set_str(EINA_OBJ_GET_SETTINGS(self), "/dock/order", output->str);
-	g_string_free(output, TRUE);
+	GSettings *s = eina_obj_get_gsettings(self, EINA_DOMAIN".preferences.dock");
+	g_settings_set_strv(s, "widget-order", (const gchar * const*) items);
+	g_free(items);
 }
 
 static void
