@@ -55,7 +55,7 @@ ACLOCAL_AMFLAGS="-I m4 ${ACLOCAL_FLAGS}"
 AC_PROG_CC
 # AC_PROG_CXX
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
-AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource)
+AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource-3.0)
 AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 
@@ -124,22 +124,16 @@ AC_ARG_ENABLE(release-build, [  --enable-release-build      Build in release mod
 AC_ARG_ENABLE(experimental,  [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
 
 if test x$release_build = 'xyes'; then
-	CXXFLAGS="-O2"
-	CFLAGS="-O2"
-	BUILD_MODE_CFLAGS="-DG_DISABLE_CAST_CHECKS -O2"
+	DEBUG_CFLAGS="-O2"
 else
-	CXXFLAGS="-O0"
-	CFLAGS="-O0"
-	BUILD_MODE_CFLAGS="-g -O0"
+	DEBUG_CFLAGS="-g -O0"
 fi
 
 if test x$enable_experimental = 'xyes'; then
-	CXXFLAGS="$CXXFLAGS -DENABLE_EXPERIMENTAL=1"
-	CFLAGS="$CFLAGS -DENABLE_EXPERIMENTAL=1"
+	EXPERIMENTAL_CFLAGS="-DENABLE_EXPERIMENTAL=1"
 	HAVE_EXPERIMENTAL=yes
 else
-	CXXFLAGS="$CXXFLAGS -DENABLE_EXPERIMENTAL=0"
-	CFLAGS="$CFLAGS -DENABLE_EXPERIMENTAL=0"
+	EXPERIMENTAL_CFLAGS="-DENABLE_EXPERIMENTAL=0"
 	HAVE_EXPERIMENTAL=no
 fi
 AM_CONDITIONAL(BUILD_EXPERIMENTAL, test x"$HAVE_EXPERIMENTAL" = "xyes")
@@ -191,17 +185,22 @@ CURL_CFLAGS="`$CURL_CONFIG --cflags` $COMMON_CFLAGS"
 CURL_LIBS="`$CURL_CONFIG --libs`"
 
 PACKAGE_CFLAGS="\
-	$GLIB_CFLAGS      \
-	$GTK_CFLAGS       \
-	$GSTREAMER_CFLAGS \
-	$CURL_CFLAGS      \
-	$COMMON_CFLAGS    \
+	$GLIB_CFLAGS        \
+	$GTK_CFLAGS         \
+	$GSTREAMER_CFLAGS   \
+	$CURL_CFLAGS        \
+	$COMMON_CFLAGS      \
+	$DEBUG_CFLAGS       \
+	$EXPERIMENTA_CFLAGS \
 	"
 PACKAGE_LIBS="\
 	$GLIB_LIBS      \
 	$GTK_LIBS       \
 	$GSTREAMER_LIBS \
 	$CURL_LIBS      \
+	$COMMON_LIBS    \
+	$DEBUG_LIBS     \
+	$EXPERIMENTAL_LIBS  \
 	"
 AC_SUBST(PACKAGE_LIBS)
 AC_SUBST(PACKAGE_CFLAGS)
