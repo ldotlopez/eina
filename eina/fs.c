@@ -30,6 +30,9 @@
 #include <eina/lomo.h>
 #include <eina/settings.h>
 
+#define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
+#define EINA_FS_LAST_FOLDER_KEY "last-folder"
+
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
 static void
@@ -95,15 +98,16 @@ eina_fs_load_from_default_file_chooser(GelApp *app)
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
 		NULL);
+	GSettings *settings = gel_app_get_gsettings(app, EINA_FS_STATE_DOMAIN);
 
-	const gchar *prev_folder_uri = eina_conf_get_string(gel_app_get_settings(app), "/file-chooser/last-folder-uri", NULL);
-	if (prev_folder_uri != NULL)
+	const gchar *prev_folder_uri = g_settings_get_string(settings, EINA_FS_LAST_FOLDER_KEY);
+	if ((prev_folder_uri != NULL) && (prev_folder_uri[0] != '\0'))
 		gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(picker), prev_folder_uri);
 
 	eina_fs_load_from_file_chooser(app, picker);
 
 	gchar *curr_folder_uri = gtk_file_chooser_get_current_folder_uri(GTK_FILE_CHOOSER(picker));
-	eina_conf_set_string(gel_app_get_settings(app), "/file-chooser/last-folder-uri", curr_folder_uri);
+	g_settings_set_string(settings, EINA_FS_LAST_FOLDER_KEY, curr_folder_uri);
 	g_free(curr_folder_uri);
 
 	gtk_widget_destroy((GtkWidget *) picker);

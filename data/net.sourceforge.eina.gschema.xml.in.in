@@ -1,23 +1,16 @@
 <schemalist>
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina" path="/apps/@PACKAGE@/">
     <child name="preferences" schema="net.sourceforge.eina.preferences"/>
-	<key name="test" type="s">
-      	<default>'teststring'</default>
-	</key>
+    <child name="states"      schema="net.sourceforge.eina.states"     />
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences" path="/apps/@PACKAGE@/preferences/">
-    <child name="test" schema="net.sourceforge.eina.preferences.test" />
     <child name="lomo" schema="net.sourceforge.eina.preferences.lomo" />
     <child name="dock" schema="net.sourceforge.eina.preferences.dock" />
   </schema>
 
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.test" path="/apps/@PACKAGE@/preferences/test/">
-    <key name="string" type="s">
-      <default>'teststring'</default>
-      <_summary>string test setting</_summary>
-      <_description>string test setting</_description>
-    </key>
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states"      path="/apps/@PACKAGE@/states/">
+    <child name="file-chooser" schema="net.sourceforge.eina.states.file-chooser" />
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lomo" path="/apps/@PACKAGE@/preferences/lomo/">
@@ -66,6 +59,13 @@
 		<default>[]</default>
 		<_summary>Order for dock widgets</_summary>
 	</key>
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states.file-chooser" path="/apps/@PACKAGE@/states/file-chooser/">
+    <key name="last-folder" type="s">
+      <default>''</default>
+      <_summary>Last used folder for file chooser</_summary>
+    </key>
   </schema>
 
 </schemalist>
