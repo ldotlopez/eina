@@ -35,18 +35,18 @@ struct _EinaDock {
 	GHashTable  *dock_items;
 	GList       *dock_idx;
 
+	gchar     **widget_idx;
+	
 	gint         w, h;
 };
 
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
 
-static gboolean
-window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self);
-static gboolean
-window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self);
 static void
-expander_activate_cb(GtkExpander *w, EinaDock *self);
+expander_activate_cb(GtkExpander *wi, EinaDock *self);
+static gboolean
+expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self);
 
 G_MODULE_EXPORT gboolean
 dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
@@ -60,13 +60,18 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	self->widget = eina_obj_get_widget(self, "dock-expander");
 	self->dock   = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
 
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
+	// Setup things
+	GSettings *dock_settings = gel_app_get_gsettings(app, EINA_DOMAIN".preferences.dock");
 
-	// Delete old keys
-	eina_conf_delete_key(conf, "/ui/size_w");
-	eina_conf_delete_key(conf, "/ui/size_h");
-	eina_conf_delete_key(conf, "/ui/main-window/width");
-	eina_conf_delete_key(conf, "/ui/main-window/height");
+	g_object_set((GObject *) gel_app_get_window(app),
+		"resizable", g_settings_get_boolean(dock_settings, "expanded"),
+		NULL);
+	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
+
+	self->widget_idx = g_settings_get_strv(dock_settings, "widget-order");
+
+#if 0
+	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
 
 	// Configure the dock route table
 	const gchar *order;
@@ -77,6 +82,7 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	split = g_strsplit(order, ",", 0);
 	self->dock_idx = gel_strv_to_list(split, FALSE);
 	g_free(split); // NOT g_freestrv, look the FALSE in the prev. line
+#endif
 
 	// Handle tab-reorder
 	gtk_widget_realize(GTK_WIDGET(self->dock));
@@ -97,11 +103,6 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), self->widget, TRUE, TRUE, 0);
 	gtk_widget_destroy(parent);
 
-	// On first expose restore settings, connect expander signal, disconnect
-	// myself
-	g_signal_connect(EINA_OBJ_GET_WINDOW(self), "expose-event",
-		(GCallback) window_expose_event_cb, self);
-
 	return TRUE;
 }
 
@@ -119,8 +120,12 @@ dock_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 gboolean
 eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
 {
-	gint pos = g_list_position(self->dock_idx,
-		g_list_find_custom(self->dock_idx, id, (GCompareFunc) strcmp));
+	gint pos = 0;
+	while (self->widget_idx[pos] != NULL)
+		if (g_str_equal(id, self->widget_idx[pos]))
+			break;
+		else
+			pos++;
 
 	if (!self->dock || (g_hash_table_lookup(self->dock_items, id) != NULL))
 	{
@@ -255,62 +260,41 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 	g_string_free(output, TRUE);
 }
 
-static gboolean
-window_expose_event_cb(GtkWidget *w, GdkEventExpose *event, EinaDock *self)
-{
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-	gboolean expanded = eina_conf_get_bool(conf, "/dock/expanded", FALSE);
-	self->w = eina_conf_get_int(conf, "/dock/main-window-width",  1);
-	self->h = eina_conf_get_int(conf, "/dock/main-window-height", 1);
-
-	gtk_expander_set_expanded((GtkExpander*) self->widget, expanded);
-	gtk_window_set_resizable((GtkWindow *) w, expanded);
-	gtk_window_resize((GtkWindow *) w, self->w, self->h);
-
-	if (expanded)
-		g_signal_connect(w, "configure-event",
-			(GCallback) window_configure_event_cb, self);
-
-	g_signal_connect(self->widget, "activate", (GCallback) expander_activate_cb, self);
-
-	g_signal_handlers_disconnect_by_func(w, window_expose_event_cb, self);
-	return FALSE;
-}
-
-static gboolean
-window_configure_event_cb(GtkWidget *w, GdkEventConfigure *event, EinaDock *self)
-{
-	if (event->type != GDK_CONFIGURE)
-		return FALSE;
-	self->w = event->width;
-	self->h = event->height;
-
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-	eina_conf_set_int(conf, "/dock/main-window-width", self->w);
-	eina_conf_set_int(conf, "/dock/main-window-height", self->h);
-
-	return FALSE;
-}
-
 static void
-expander_activate_cb(GtkExpander *w, EinaDock *self)
+expander_activate_cb(GtkExpander *wi, EinaDock *self)
 {
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-	gboolean expanded = !gtk_expander_get_expanded((GtkExpander *) self->widget);
-	GtkWindow *window = (GtkWindow *) EINA_OBJ_GET_WINDOW(self);
+	gboolean resizable = !gtk_expander_get_expanded(wi);
 
-	eina_conf_set_bool(conf, "/dock/expanded", expanded);
-	if (expanded)
+	GtkWindow *window = (GtkWindow *) eina_obj_get_window(self);
+	GSettings *dock_settings = gel_app_get_gsettings(eina_obj_get_app(self), EINA_DOMAIN".preferences.dock");
+
+	g_settings_set_boolean(dock_settings, "expanded", resizable);
+	gtk_window_set_resizable(window, resizable);
+
+	if (!resizable)
 	{
-		gtk_window_set_resizable(window, TRUE);
-		gtk_window_resize(window, self->w, self->h);
-		g_signal_connect(window, "configure-event", (GCallback) window_configure_event_cb, self);
+		gint w, h;
+		gtk_window_get_size(window, &w, &h);
+		g_settings_set_int(dock_settings, "window-width", w);
+		g_settings_set_int(dock_settings, "window-height", h);
+		g_signal_handlers_disconnect_by_func(self->dock, expander_expose_event, self);
 	}
 	else
 	{
-		g_signal_handlers_disconnect_by_func(window, window_configure_event_cb, self);
-		gtk_window_set_resizable(window, FALSE);
+		g_signal_connect(self->dock, "expose-event", (GCallback) expander_expose_event, self);
 	}
+}
+
+static gboolean
+expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self)
+{
+	GSettings *dock_settings = gel_app_get_gsettings(eina_obj_get_app(self), EINA_DOMAIN".preferences.dock");
+	gint w = g_settings_get_int(dock_settings, "window-width");
+	gint h = g_settings_get_int(dock_settings, "window-height");
+	gtk_window_resize((GtkWindow *) eina_obj_get_window(self), w, h);
+	g_signal_handlers_disconnect_by_func(self->dock, expander_expose_event, self);
+
+	return FALSE;
 }
 
 EINA_PLUGIN_INFO_SPEC(dock,
