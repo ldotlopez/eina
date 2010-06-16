@@ -50,7 +50,7 @@ lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "lastfm", EINA_OBJ_NONE, error))
 		return FALSE;
 	self->priv = g_new0(LastFMPriv, 1);
-
+/*
 	gchar *prefs_path = NULL;
 	gchar *prefs_ui_string = NULL;
 	if ((prefs_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "lastfm.ui")) &&
@@ -71,7 +71,7 @@ lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		eina_preferences_tab_add_watchers(tab, objects);
 		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
 	}
-
+*/
 	gel_plugin_set_data(plugin , self);
 
 	if (!lastfm_submit_init(app, plugin, error))

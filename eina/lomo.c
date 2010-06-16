@@ -62,10 +62,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		EINA_LOMO_AUTO_PLAY_KEY,
 		NULL };
 	for (gint i = 0; props[i] ; i++)
-	{
-		g_warning("Binding %s", props[i]);
 		g_settings_bind(settings, props[i], engine, props[i], G_SETTINGS_BIND_DEFAULT);
-	}
 
 	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, engine);
 
@@ -83,7 +80,7 @@ lomo_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	g_signal_handlers_disconnect_by_func(gel_app_get_gsettings(app, EINA_DOMAIN ".preferences.lomo"), lomo_random_cb, engine);
+	g_signal_handlers_disconnect_by_func(engine, lomo_random_cb, engine);
 	g_object_unref(G_OBJECT(engine));
 
 	gel_app_shared_free(app, "lomo");

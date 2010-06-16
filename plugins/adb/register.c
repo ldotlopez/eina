@@ -193,14 +193,12 @@ adb_register_start(EinaAdb *self, LomoPlayer *lomo)
 	g_object_ref(lomo);
 	g_object_weak_ref((GObject *) lomo, adb_register_weak_ref_cb, NULL);
 
-	GList *pl = lomo_player_get_playlist(lomo);
-	GList *iter = pl;
+	GList *iter = (GList *) lomo_player_get_playlist(lomo);
 	while (iter)
 	{
 		eina_adb_lomo_stream_attach_sid(self, LOMO_STREAM(iter->data));
 		iter = iter->next;
 	}
-	g_list_free(pl);
 
 	lomo_player_hook_add(lomo, (LomoPlayerHook) lomo_insert_hook, self);
 

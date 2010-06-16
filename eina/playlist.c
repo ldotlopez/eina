@@ -280,15 +280,13 @@ playlist_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 	g_queue_foreach(self->io_tree_files, (GFunc) g_object_unref, NULL);
 	g_queue_clear(self->io_tree_files);
 
-	GList *pl    = lomo_player_get_playlist(eina_obj_get_lomo(self));
-	GList *iter  = pl;
-	char **out = g_new0(gchar*, g_list_length(pl) + 1);
+	GList *iter  = (GList *) lomo_player_get_playlist(eina_obj_get_lomo(self));
+	char **out = g_new0(gchar*, g_list_length(iter) + 1);
 	while (iter)
 	{
 		out[i++] = lomo_stream_get_tag(LOMO_STREAM(iter->data), LOMO_TAG_URI);
 		iter = iter->next;
 	}
-	g_list_free(pl);
 	
 	gchar *buff = g_strjoinv("\n", out);
 	g_free(out);
