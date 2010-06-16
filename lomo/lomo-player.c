@@ -767,6 +767,7 @@ void
 lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse)
 {
 	GET_PRIVATE(self)->auto_parse = auto_parse;
+	g_object_notify(G_OBJECT(self), "auto-parse");
 }
 
 /**
@@ -794,6 +795,7 @@ void
 lomo_player_set_auto_play(LomoPlayer *self, gboolean auto_play)
 {
 	GET_PRIVATE(self)->auto_play = auto_play;
+	g_object_notify(G_OBJECT(self), "auto-play");
 }
 
 
@@ -1253,6 +1255,7 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 	}
 
 	priv->volume = val;
+	g_object_notify(G_OBJECT(self), "volume");
 	g_signal_emit(self, lomo_player_signals[VOLUME], 0, val);
 	return TRUE;
 }
@@ -1332,6 +1335,7 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 	}
 
 	priv->mute = mute;
+	g_object_notify(G_OBJECT(self), "mute");
 	g_signal_emit(self, lomo_player_signals[MUTE], 0 , mute);
 
 	return ret;
@@ -1908,6 +1912,8 @@ void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 
 	// Exec action
 	lomo_playlist_set_repeat(GET_PRIVATE(self)->pl, val);
+
+	g_object_notify(G_OBJECT(self), "repeat");
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[REPEAT], 0, val);
 }
 
@@ -1942,6 +1948,8 @@ void lomo_player_set_random(LomoPlayer *self, gboolean val)
 
 	// Exec action
 	lomo_playlist_set_random(GET_PRIVATE(self)->pl, val);
+
+	g_object_notify(G_OBJECT(self), "repeat");
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[RANDOM], 0, val);
 }
 
