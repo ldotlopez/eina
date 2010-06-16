@@ -288,7 +288,7 @@ void    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint pos);
 
 gboolean lomo_player_del(LomoPlayer *self, gint pos);
 
-GList *lomo_player_get_playlist(LomoPlayer *self);
+const    GList *lomo_player_get_playlist(LomoPlayer *self);
 
 #define lomo_player_queue_stream(self,stream) lomo_player_queue(self,lomo_player_index(self,stream))
 gint    lomo_player_queue       (LomoPlayer *self, gint pos);

@@ -128,13 +128,13 @@ lomo_playlist_unref (LomoPlaylist * l)
  *
  * Gets the current elements of the playlist
  *
- * Returns: a newly created #GList of #LomoStream, this should be freeded when
- * no longer needed
+ * Returns: a #GList of #LomoStream, its owned by liblomo and should not be
+ * modified
  */
-GList*
+const GList*
 lomo_playlist_get_playlist (LomoPlaylist *l) 
 {
-	return g_list_copy(l->list);
+	return (const GList *) l->list;
 }
 /**
  * lomo_playlist_get_random_playlist:

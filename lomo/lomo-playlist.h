@@ -74,9 +74,9 @@ void lomo_playlist_clear(LomoPlaylist *l);
  * @lomo_playlist_get_playlist
  * @ Returns a GList of LomoStreams contained in playlist
  *  LomoPlaylist* l: [self]
- *  GList* ret: A copy of GList of LomoStreams
+ *  GList* ret: A GList of LomoStreams
  */
-GList *lomo_playlist_get_playlist(LomoPlaylist *l);
+const GList *lomo_playlist_get_playlist(LomoPlaylist *l);
 
 /*
  * @lomo_playlist_get_random_playlist

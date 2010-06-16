@@ -1697,10 +1697,9 @@ void lomo_player_queue_clear(LomoPlayer *self)
  *
  * Gets current playlist
  *
- * Returns: a new #GList of #LomoStream. Should be freed with #g_list_free when
- * no longer needed.
+ * Returns: a #GList of #LomoStream. Should not be modified
  */
-GList *lomo_player_get_playlist(LomoPlayer *self)
+const GList *lomo_player_get_playlist(LomoPlayer *self)
 {
 	return lomo_playlist_get_playlist(GET_PRIVATE(self)->pl);
 }
