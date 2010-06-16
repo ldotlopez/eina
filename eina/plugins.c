@@ -26,6 +26,9 @@
 #include <eina/ext/eina-plugin-dialog.h>
 #include <eina/ext/eina-plugin-properties.h>
 
+#define EINA_PLUGINS_DOMAIN       EINA_DOMAIN".preferences.plugins"
+#define EINA_PLUGINS_PLUGINS_KEY "plugins"
+
 typedef struct {
 	EinaObj         parent;
 
@@ -65,6 +68,9 @@ static GtkActionEntry ui_mng_action_entries[] = {
 static void
 response_cb(GtkWidget *w, gint response, EinaPlugins *self);
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlugins *self);
+
 G_MODULE_EXPORT gboolean
 plugins_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
@@ -96,15 +102,11 @@ plugins_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 
 	// Now load all plugins
 	self->watching = FALSE;
-	EinaConf *conf = eina_obj_get_settings(self);
-	eina_conf_delete_key(conf, "/plugins/enabled");
-	const gchar *tmp = eina_conf_get_str(conf, "/core/plugins", NULL);
-	if (!tmp)
-		return TRUE;
 
-	gint i = 0;
-	gchar **plugins = g_strsplit(tmp, ",", 0);
-	for (i = 0; plugins[i] && plugins[i][0]; i++)
+	GSettings *settings = gel_app_get_gsettings(app, EINA_PLUGINS_DOMAIN);
+	gchar **plugins = g_settings_get_strv(settings, EINA_PLUGINS_PLUGINS_KEY);
+
+	for (guint i = 0; plugins && plugins[i]; i++)
 	{
 		gchar **parts  = g_strsplit(plugins[i], ":", 2);
 		GError *error = NULL;
@@ -115,7 +117,7 @@ plugins_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		}
 		gel_free_and_invalidate(parts, NULL, g_strfreev);
 	}
-	g_strfreev(plugins);
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
 	return TRUE;
 }
@@ -168,27 +170,24 @@ static void
 update_plugins_list(EinaPlugins *self)
 {
 	GelApp *app = eina_obj_get_app(self);
-	GList *list = NULL;
 
 	GList *plugins = gel_app_get_plugins(app);
+	gchar **strv = g_new0(gchar *, g_list_length(plugins) + 1);
+	gint i = 0;
+
 	GList *l = plugins;
 	while (l)
 	{
 		GelPlugin *plugin = GEL_PLUGIN(l->data);
-
-		gel_warn("GelPlugin %s", gel_plugin_stringify(plugin));
-
 		if (gel_plugin_get_info(plugin)->pathname)
-			list = g_list_prepend(list, g_strdup(gel_plugin_stringify(plugin)));
+			strv[i++] = (gchar *) gel_plugin_stringify(plugin);
 		l = l->next;
 	}
 	g_list_free(plugins);
 
-
-	gchar *list_str = gel_list_join(",", list);
-	gel_list_deep_free(list, g_free);
-	eina_conf_set_str(eina_obj_get_settings(self), "/core/plugins", list_str);
-	g_free(list_str); 
+	GSettings *settings = eina_obj_get_gsettings(self, EINA_PLUGINS_DOMAIN);
+	g_settings_set_strv(settings, EINA_PLUGINS_PLUGINS_KEY, (const gchar * const*) strv);
+	g_free(strv);
 }
 
 static void
@@ -232,6 +231,20 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 		disable_watch(self);
 		gtk_widget_destroy(w);
 		break;
+	}
+}
+
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlugins *self)
+{
+	if (g_str_equal(key, EINA_PLUGINS_PLUGINS_KEY))
+	{
+		g_warning(N_("TODO: Implement a plugin sync routine"));
+	}
+
+	else
+	{
+		g_warning(N_("Unhanded key '%s'"), key);
 	}
 }
 

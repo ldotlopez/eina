@@ -9,6 +9,7 @@
     <child name="dock"     schema="net.sourceforge.eina.preferences.dock"     />
     <child name="playlist" schema="net.sourceforge.eina.preferences.playlist" />
     <child name="player"   schema="net.sourceforge.eina.preferences.player"   />
+    <child name="plugins"  schema="net.sourceforge.eina.preferences.plugins"  />
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states"      path="/apps/@PACKAGE@/states/">
@@ -74,6 +75,13 @@
     <key name="stream-fmt" type="s">
       <default>'{%a -} %t'</default>
       <_summary>Format to use for display stream title's</_summary>
+    </key>
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.plugins" path="/apps/@PACKAGE@/preferences/plugins/">
+    <key name="plugins" type="as">
+      <default>[]</default>
+      <_summary>Plugins to load</_summary>
     </key>
   </schema>
 
