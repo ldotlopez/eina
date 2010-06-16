@@ -30,9 +30,6 @@
 #include <eina/lomo.h>
 #include <eina/settings.h>
 
-#define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
-#define EINA_FS_LAST_FOLDER_KEY "last-folder"
-
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
 static void

@@ -26,6 +26,15 @@
 
 G_BEGIN_DECLS
 
+#define EINA_LOMO_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.lomo"
+#define EINA_LOMO_VOLUME_KEY     "volume"
+#define EINA_LOMO_MUTE_KEY       "mute"
+#define EINA_LOMO_REPEAT_KEY     "repeat"
+#define EINA_LOMO_RANDOM_KEY     "random"
+#define EINA_LOMO_AUTO_PARSE_KEY "auto-parse"
+#define EINA_LOMO_AUTO_PLAY_KEY  "auto-play"
+#define EINA_LOMO_CURRENT_KEY    "current-stream"
+
 // FIXME:
 #define EinaPlugin GelPlugin
 

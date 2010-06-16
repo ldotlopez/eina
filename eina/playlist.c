@@ -160,6 +160,9 @@ io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,
 static void
 io_tree_read_success_cb(GelIOTreeOp *op, const GFile *source, const GNode *result, EinaPlaylist *self);
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlaylist *self);
+
 /* Signal definitions */
 GelUISignalDef _playlist_signals[] = {
 	{ "playlist-treeview",   "row-activated",
@@ -205,11 +208,13 @@ playlist_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Configure settings
-	GSettings *lomo_settings = gel_app_get_gsettings(app, EINA_DOMAIN ".preferences.lomo");
-	g_settings_bind(lomo_settings, "random", eina_obj_get_object(self, "playlist-random-button"), "active", G_SETTINGS_BIND_DEFAULT);
-	g_settings_bind(lomo_settings, "repeat", eina_obj_get_object(self, "playlist-repeat-button"), "active", G_SETTINGS_BIND_DEFAULT);
+	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	g_settings_bind(settings, EINA_LOMO_RANDOM_KEY, eina_obj_get_object(self, "playlist-random-button"), "active", G_SETTINGS_BIND_DEFAULT);
+	g_settings_bind(settings, EINA_LOMO_REPEAT_KEY, eina_obj_get_object(self, "playlist-repeat-button"), "active", G_SETTINGS_BIND_DEFAULT);
 
-	self->stream_fmt = (gchar *) eina_conf_get_str(eina_obj_get_settings((EinaObj *) self), "/ui/playlist/fmt", "{%a - }%t");
+	settings = gel_app_get_gsettings(app, EINA_PLAYLIST_PREFERENCES_DOMAIN);
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
+	self->stream_fmt = g_strdup(g_settings_get_string(settings, EINA_PLAYLIST_STREAM_FMT_KEY));
 
 	if (!eina_playlist_dock_init(self))
 	{
@@ -304,8 +309,7 @@ playlist_plugin_fini(GelApp *app, GelPlugin *plugin, GError **error)
 		g_free(file);
 	}
 
-	i = lomo_player_get_current(eina_obj_get_lomo(self));
-	eina_conf_set_int(EINA_OBJ_GET_SETTINGS(self), "/playlist/last_current", i);
+	g_free(self->stream_fmt);
 	eina_dock_remove_widget(EINA_OBJ_GET_DOCK(self), "playlist");
 
 	eina_obj_fini(EINA_OBJ(self));
@@ -705,6 +709,22 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 	g_free(state);
 	g_free(title);
 	g_free(raw_title);
+}
+
+static void
+eina_playlist_update_all_items(EinaPlaylist *self)
+{
+	GtkTreeIter iter;
+	if (!gtk_tree_model_get_iter_first(self->model, &iter))
+	{
+		g_warning(N_("Unable to get iter for model"));
+		return;
+	}
+
+	do
+	{
+		eina_playlist_update_item(self, &iter, PLAYLIST_COLUMN_MARKUP, -1);
+	} while (gtk_tree_model_iter_next(self->model, &iter));
 }
 
 // ------------
@@ -1140,6 +1160,22 @@ io_tree_read_error_cb(GelIOTreeOp *op, const GFile *source, const GError *error,
 	gchar *uri = g_file_get_uri((GFile *) source);
 	gel_warn(N_("Error on file %s: %s"), uri, error->message);
 	g_free(uri);
+}
+
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlaylist *self)
+{
+	if (g_str_equal(key, EINA_PLAYLIST_STREAM_FMT_KEY))
+	{
+		g_free(self->stream_fmt);
+		self->stream_fmt = g_strdup(g_settings_get_string(settings, key));
+		eina_playlist_update_all_items(self);
+	}
+
+	else
+	{
+		g_warning(N_("Unhanded key '%s'"), key);
+	}
 }
 
 // ---

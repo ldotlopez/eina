@@ -28,6 +28,9 @@ G_BEGIN_DECLS
 #define GEL_APP_GET_PLAYLIST(app)  EINA_PLAYLIST(gel_app_shared_get(app,"playlist"))
 #define EINA_OBJ_GET_PLAYLIST(obj) GEL_HUB_GET_PLAYLIST(eina_obj_get_app(obj))
 
+#define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"                     
+#define EINA_PLAYLIST_STREAM_FMT_KEY "stream-fmt"
+
 typedef struct _EinaPlaylist EinaPlaylist;
 
 G_END_DECLS

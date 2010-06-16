@@ -111,7 +111,7 @@ log_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gel_plugin_set_data(plugin, self);
 
 	// If player is loaded attach menu
-	if (GEL_APP_GET_PLAYER(app))
+	if (gel_app_get_player(app))
 		build_player(self);
 
 	// If lomo is loaded attach signals

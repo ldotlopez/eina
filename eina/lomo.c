@@ -52,10 +52,20 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	g_object_ref_sink(engine);
 
-	static gchar *props[] = { "volume", "mute", "repeat", "random", "auto-parse", "auto-play", NULL };
-	GSettings *settings = gel_app_get_gsettings(app, EINA_DOMAIN ".preferences.lomo");
+	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	static gchar *props[] = {
+		EINA_LOMO_VOLUME_KEY,
+		EINA_LOMO_MUTE_KEY,
+		EINA_LOMO_REPEAT_KEY,
+		EINA_LOMO_RANDOM_KEY,
+		EINA_LOMO_AUTO_PARSE_KEY,
+		EINA_LOMO_AUTO_PLAY_KEY,
+		NULL };
 	for (gint i = 0; props[i] ; i++)
-		g_settings_bind(settings, props[i], engine, props[i], G_SETTINGS_BIND_NO_SENSITIVITY);
+	{
+		g_warning("Binding %s", props[i]);
+		g_settings_bind(settings, props[i], engine, props[i], G_SETTINGS_BIND_DEFAULT);
+	}
 
 	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, engine);
 
@@ -143,13 +153,13 @@ lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
 }
 
 EINA_PLUGIN_INFO_SPEC(lomo,
-	PACKAGE_VERSION,			// version
-	"settings",		            // deps
-	NULL,						// author
-	NULL,						// url
+	PACKAGE_VERSION,            // version
+	"",                         // deps
+	NULL,                       // author
+	NULL,                       // url
 
-	N_("Build-in lomo plugin"),	// short
-	NULL,						// long
-	NULL						// icon
+	N_("Build-in lomo plugin"), // short
+	NULL,                       // long
+	NULL                        // icon
 );
 

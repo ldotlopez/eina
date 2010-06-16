@@ -30,6 +30,13 @@ G_BEGIN_DECLS
 #define GEL_APP_GET_DOCK(app)  EINA_DOCK(gel_app_shared_get(app, "dock"))
 #define EINA_OBJ_GET_DOCK(obj) GEL_APP_GET_DOCK(eina_obj_get_app(obj))
 
+#define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN ".preferences.dock"
+
+#define EINA_DOCK_EXPANDED_KEY     "expanded"
+#define EINA_DOCK_WIDGET_ORDER_KEY "widget-order"
+#define EINA_DOCK_WINDOW_W_KEY     "window-width"
+#define EINA_DOCK_WINDOW_H_KEY     "window-height"
+
 #define gel_app_get_dock(app)  EINA_DOCK(gel_app_shared_get(app, "dock"))
 #define eina_obj_get_dock(obj) gel_app_get_dock(eina_obj_get_app(obj))
 

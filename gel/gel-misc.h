@@ -207,6 +207,11 @@ gel_8601_date_now(void);
 		} \
 	} while(0)
 
+// --
+// strv funcs
+// --
+gchar **
+gel_strv_copy(gchar **strv, gboolean deep);
 
 // --
 // Totally misc functions

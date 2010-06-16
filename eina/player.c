@@ -37,6 +37,7 @@
 
 struct _EinaPlayer {
 	EinaObj parent;
+	gchar *stream_mrkp;
 	GtkActionGroup *action_group;
 	guint merge_id;
 };
@@ -60,6 +61,8 @@ lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *self);
 static GVariant*
 volume_mapping_set_cb(const GValue *value, const GVariantType *expected_type, gpointer data);
 static gboolean
@@ -106,7 +109,6 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		"about-action",
 		"bug-action",
 		NULL };
-
 	if (!eina_obj_load_objects_from_resource((EinaObj *) self, "player.ui", objs, error))
 	{
 		eina_obj_fini((EinaObj *) self);
@@ -114,16 +116,20 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	gel_plugin_set_data(plugin, self);
 
-	GSettings *lomo_settings = gel_app_get_gsettings(app, EINA_DOMAIN".preferences.lomo");
-
 	// Map volume
-	g_settings_bind_with_mapping(lomo_settings, "volume",
+	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	g_settings_bind_with_mapping(settings, "volume",
 		eina_obj_get_object(self, "volume-button"), "value",
 		G_SETTINGS_BIND_DEFAULT,
 		volume_mapping_get_cb,
 		volume_mapping_set_cb,
 		NULL,
 		NULL);
+
+	// Setup markup
+	settings = gel_app_get_gsettings(app, EINA_PLAYER_PREFERENCES_DOMAIN);
+	self->stream_mrkp = g_strdup(g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY));
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
 	//
 	// Setup UI bits
@@ -329,7 +335,6 @@ static void
 player_update_information(EinaPlayer *self)
 {
 	gchar *info   = "<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n<span size=\"x-large\" weight=\"normal\">\u200B</span>";
-	gchar *markup = "<span size=\"x-large\" weight=\"bold\">%t</span>\n<span size=\"x-large\" weight=\"normal\">{%a}</span>";
 
 	GtkWidget *label = eina_obj_get_typed(self, GTK_WIDGET, "stream-info-label");
 
@@ -350,7 +355,7 @@ player_update_information(EinaPlayer *self)
 		return;
 	}
 
-	info = gel_str_parser(markup, (GelStrParserFunc) stream_info_parser_cb, stream);
+	info = gel_str_parser(self->stream_mrkp, (GelStrParserFunc) stream_info_parser_cb, stream);
 	g_object_set(label,
 		"selectable", TRUE,
 		"use-markup", TRUE,
@@ -368,7 +373,6 @@ player_update_information(EinaPlayer *self)
 
 	gtk_window_set_title((GtkWindow *) eina_obj_get_window(self), title);
 	g_free(title);
-
 }
 
 static gchar *
@@ -466,6 +470,22 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 	}
 }
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *self)
+{
+	if (g_str_equal(key, EINA_PLAYER_STREAM_MARKUP_KEY))
+	{
+		g_free(self->stream_mrkp);
+		self->stream_mrkp = g_strdup(g_settings_get_string(settings, key));
+		player_update_information(self);
+	}
+
+	else
+	{
+		g_warning(N_("Unhanded key '%s'"), key);
+	}
+}
+
 static GVariant*
 volume_mapping_set_cb(const GValue *value, const GVariantType *expected_type, gpointer data)
 {
@@ -481,6 +501,7 @@ volume_mapping_get_cb(GValue *value, GVariant *variant, gpointer data)
 	g_value_set_double(value, CLAMP((g_variant_get_int32(variant) / (gdouble) 100), 0, 1));
 	return TRUE;
 }
+
 
 // ---
 // DnD

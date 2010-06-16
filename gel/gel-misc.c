@@ -440,6 +440,21 @@ gel_8601_date_now(void)
 }
 
 // --
+// strv funcs
+// --
+gchar **
+gel_strv_copy(gchar **strv, gboolean deep)
+{
+	gchar **ret = g_new0(gchar *, g_strv_length(strv) + 1);
+	for (guint i = 0; strv[i] != NULL; i++)
+		if (deep)
+			ret[i] = g_strdup(strv[i]);
+		else
+			ret[i] = strv[i];
+	return ret;
+}
+
+// --
 // Debug functions
 // --
 GelDebugLevel

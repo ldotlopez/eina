@@ -5,8 +5,10 @@
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences" path="/apps/@PACKAGE@/preferences/">
-    <child name="lomo" schema="net.sourceforge.eina.preferences.lomo" />
-    <child name="dock" schema="net.sourceforge.eina.preferences.dock" />
+    <child name="lomo"     schema="net.sourceforge.eina.preferences.lomo"     />
+    <child name="dock"     schema="net.sourceforge.eina.preferences.dock"     />
+    <child name="playlist" schema="net.sourceforge.eina.preferences.playlist" />
+    <child name="player"   schema="net.sourceforge.eina.preferences.player"   />
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states"      path="/apps/@PACKAGE@/states/">
@@ -59,6 +61,20 @@
 		<default>[]</default>
 		<_summary>Order for dock widgets</_summary>
 	</key>
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.player" path="/apps/@PACKAGE@/preferences/player/">
+    <key name="stream-markup" type="s">
+      <default>'&lt;span size="x-large" weight="bold"&gt;%t&lt;/span&gt;\n&lt;span size="x-large" weight="normal"&gt;{%a}&lt;/span&gt;'</default>
+      <_summary>Format to use for display stream title's</_summary>
+    </key>
+  </schema>
+
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.playlist" path="/apps/@PACKAGE@/preferences/playlist/">
+    <key name="stream-fmt" type="s">
+      <default>'{%a -} %t'</default>
+      <_summary>Format to use for display stream title's</_summary>
+    </key>
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states.file-chooser" path="/apps/@PACKAGE@/states/file-chooser/">

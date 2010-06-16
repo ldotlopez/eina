@@ -26,14 +26,13 @@
 
 G_BEGIN_DECLS
 
-#define EINA_PLAYER(p)           ((EinaPlayer *) p)
-#define GEL_APP_GET_PLAYER(app)  EINA_PLAYER(gel_app_shared_get(app, "player"))
-#define EINA_OBJ_GET_PLAYER(obj) GEL_APP_GET_PLAYER(eina_obj_get_app(obj))
-
-#define gel_app_get_player(app)       EINA_PLAYER(gel_app_shared_get(app, "player"))
+#define EINA_PLAYER(obj)               ((EinaPlayer *) obj)
+#define gel_app_get_player(app)        EINA_PLAYER(gel_app_shared_get(app, "player"))
 #define eina_plugin_get_player(plugin) gel_app_get_player(gel_plugin_get_app(plugin))
-#define eina_obj_get_player(obj)      gel_app_get_player(eina_obj_get_app(obj))
+#define eina_obj_get_player(obj)       gel_app_get_player(eina_obj_get_app(obj))
 
+#define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
+#define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
 
 typedef struct _EinaPlayer EinaPlayer;
 

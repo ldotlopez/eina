@@ -24,6 +24,9 @@
 #include <gel/gel.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 
+#define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
+#define EINA_FS_LAST_FOLDER_KEY "last-folder"
+
 void
 eina_fs_load_from_uri_multiple(GelApp *app, GList *uris);
 
