@@ -19,8 +19,12 @@
 
 #define GEL_DOMAIN "Eina::Plugin::Muine"
 #define GEL_PLUGIN_DATA_TYPE EinaMuine
+#include <config.h>
 #include <eina/eina-plugin.h>
 #include <plugins/adb/adb.h>
+
+#define EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.plugins.muine"
+#define EINA_PLUGIN_MUINE_GROUP_BY_KEY "group-by"
 
 #define DEFAULT_SIZE 64
 #define AUTO_REFRESH 0
@@ -34,7 +38,8 @@ enum {
 // Sync with UI
 enum {
 	EINA_MUINE_MODE_ALBUM  = 0,
-	EINA_MUINE_MODE_ARTIST = 1
+	EINA_MUINE_MODE_ARTIST = 1,
+	EINA_MUINE_MODES = 2
 };
 
 enum {
@@ -90,6 +95,9 @@ action_activate_cb(GtkAction *action, EinaMuine *self);
 static void
 search_cb(Art *art, ArtSearch *search, EinaMuine *self);
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaMuine *self);
+
 static gboolean
 muine_init(EinaMuine *self, GError **error)
 {
@@ -143,9 +151,9 @@ muine_init(EinaMuine *self, GError **error)
 		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
 	}
 
-	EinaConf *conf = eina_obj_get_settings(self);
-	guint mode = eina_conf_get_uint(conf, "/muine/group-by", 0);
-	gtk_combo_box_set_active(self->mode_view, CLAMP(mode, 0, G_MAXUINT));
+	GSettings *settings = eina_obj_get_gsettings(self, EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN);
+	g_settings_bind(settings, EINA_PLUGIN_MUINE_GROUP_BY_KEY, self->mode_view, "active", G_SETTINGS_BIND_DEFAULT);
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
 	GType types[] = {GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER};
 	muine_model_refresh(self);
@@ -229,8 +237,6 @@ static void
 muine_model_refresh(EinaMuine *self)
 {
 	guint mode = muine_get_mode(self);
-	EinaConf *conf = eina_obj_get_settings(self);
-	eina_conf_set_uint(conf, "/muine/group-by", mode);
 
 	gchar *q = NULL;
 	gchar *markup_fmt = NULL;
@@ -553,6 +559,25 @@ static void
 search_cb(Art *art, ArtSearch *search, EinaMuine *self)
 {
 	muine_update_icon(self, search);
+}
+
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaMuine *self)
+{
+	if (g_str_equal(key, EINA_PLUGIN_MUINE_GROUP_BY_KEY))
+	{
+		gint v = g_settings_get_int(settings, key);
+		if ((v < 0) || (v >= EINA_MUINE_MODES))
+		{
+			g_warning(N_("Invalid value for '%s': %d"), key, v);
+			g_settings_set_int(settings, key, 0);
+			return;
+		}
+		muine_model_refresh(self);
+		return;
+	}
+
+	g_warning(N_("Unhanded key '%s'"), key);
 }
 
 G_MODULE_EXPORT gboolean

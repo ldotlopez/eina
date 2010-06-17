@@ -1,0 +1,8 @@
+<schemalist>
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.plugins.muine" path="/apps/@PACKAGE@/preferences/plugins/muine/">
+    <key name="group-by" type="i">
+      <default>0</default>
+	  <_summary>Group streams based on this field</_summary>
+    </key>
+  </schema>
+</schemalist>

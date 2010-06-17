@@ -405,6 +405,7 @@ icons/Makefile
 icons/hicolor/Makefile
 po/Makefile.in
 plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
+plugins/muine/net.sourceforge.eina.plugins.muine.gschema.xml.in
 ])
 AC_OUTPUT
 

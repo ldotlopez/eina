@@ -337,7 +337,6 @@ data_applications_DATA = data/eina.desktop
 # schema
 gsettings_SCHEMAS += data/net.sourceforge.eina.gschema.xml 
 
-
 if BUILD_PLUGINS
 
 #
@@ -493,7 +492,11 @@ plugins_muine_LTLIBRARIES = plugins/muine/libmuine.la
 plugins_muine_libmuine_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
 plugins_muine_libmuine_la_LDFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ -module -avoid-version
 plugins_muine_libmuine_la_SOURCES = plugins/muine/muine.c
+
 endif
+
+# schema
+gsettings_SCHEMAS += plugins/muine/net.sourceforge.eina.plugins.muine.gschema.xml
 
 EXTRA_DIST += $(plugins_muine_DATA)
 
