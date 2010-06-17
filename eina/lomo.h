@@ -35,6 +35,8 @@ G_BEGIN_DECLS
 #define EINA_LOMO_AUTO_PLAY_KEY  "auto-play"
 #define EINA_LOMO_CURRENT_KEY    "current-stream"
 
+#define EINA_LOMO_CURRENT_STREAM_KEY "current-stream"
+
 // FIXME:
 #define EinaPlugin GelPlugin
 
