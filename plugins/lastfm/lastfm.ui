@@ -10,7 +10,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">5</property>
         <child>
-          <object class="GtkCheckButton" id="/lastfm/submit">
+          <object class="GtkCheckButton" id="submit-enabled">
             <property name="label" translatable="yes">Submit played tracks to Last.fm</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -32,7 +32,7 @@
                 <property name="visible">True</property>
                 <property name="left_padding">12</property>
                 <child>
-                  <object class="GtkEntry" id="/lastfm/username">
+                  <object class="GtkEntry" id="username">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x2022;</property>
@@ -63,7 +63,7 @@
                 <property name="visible">True</property>
                 <property name="left_padding">12</property>
                 <child>
-                  <object class="GtkEntry" id="/lastfm/password">
+                  <object class="GtkEntry" id="password">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="visibility">False</property>

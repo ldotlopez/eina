@@ -24,12 +24,13 @@
 
 #define ENABLE_ARTWORK 0
 #define ENABLE_WEBVIEW 0
-#define SETTINGS_PATH "/lastfm"
 
 struct _LastFMPriv {
-	GtkBuilder *prefs_ui;
-	GtkWidget  *prefs_widget;
+	EinaPreferencesTab *prefs_tab;
 };
+
+static void
+settings_changed_cb(GSettings *settings, gchar *key, LastFM *self);
 
 GQuark
 lastfm_quark(void)
@@ -50,7 +51,7 @@ lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	if (!eina_obj_init(EINA_OBJ(self), plugin, "lastfm", EINA_OBJ_NONE, error))
 		return FALSE;
 	self->priv = g_new0(LastFMPriv, 1);
-/*
+
 	gchar *prefs_path = NULL;
 	gchar *prefs_ui_string = NULL;
 	if ((prefs_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_UI, "lastfm.ui")) &&
@@ -58,20 +59,32 @@ lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	{
 		gchar *logo_path = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, "logo.gif");
 
-		EinaPreferencesTab *tab = eina_preferences_tab_new();
-		g_object_set(tab,
+		self->priv->prefs_tab = eina_preferences_tab_new();
+		g_object_set(self->priv->prefs_tab,
 			"ui-string", prefs_ui_string,
 			"label-text", "Last FM",
 			"label-image", gtk_image_new_from_file(logo_path),
 			NULL);
 		g_free(prefs_ui_string);
 		g_free(logo_path);
+
+		eina_preferences_add_tab(gel_app_get_preferences(app), self->priv->prefs_tab);
+
+		GSettings *settings = gel_app_get_gsettings(app, EINA_PLUGIN_LASTFM_PREFERENCES_DOMAIN);
+		g_settings_bind(settings, EINA_PLUGIN_LASTFM_ENABLE_SUBMIT_KEY, eina_preferences_tab_get_widget(self->priv->prefs_tab, "submit-enabled"), "active", G_SETTINGS_BIND_DEFAULT);
 		
-		gchar *objects[] = { "/lastfm/submit", "/lastfm/username", "/lastfm/password", NULL};
-		eina_preferences_tab_add_watchers(tab, objects);
-		eina_preferences_add_tab(gel_app_get_preferences(app), tab);
+		GtkWidget *u = eina_preferences_tab_get_widget(self->priv->prefs_tab, "username");
+		GtkWidget *p = eina_preferences_tab_get_widget(self->priv->prefs_tab, "password");
+		g_settings_bind(settings, EINA_PLUGIN_LASTFM_USERNAME_KEY, u, "text", G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(settings, EINA_PLUGIN_LASTFM_PASSWORD_KEY, p, "text", G_SETTINGS_BIND_DEFAULT);
+
+		gboolean enabled = g_settings_get_boolean(settings, EINA_PLUGIN_LASTFM_ENABLE_SUBMIT_KEY);
+		g_object_set(u, "sensitive", enabled, NULL);
+		g_object_set(p, "sensitive", enabled, NULL);
+
+		g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 	}
-*/
+
 	gel_plugin_set_data(plugin , self);
 
 	if (!lastfm_submit_init(app, plugin, error))
@@ -90,17 +103,6 @@ lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 		g_error_free(non_fatal_err);
 	}
 #endif
-
-	const gchar *username = eina_conf_get_str(EINA_OBJ_GET_SETTINGS(self), SETTINGS_PATH"/username", NULL);
-	const gchar *password = eina_conf_get_str(EINA_OBJ_GET_SETTINGS(self), SETTINGS_PATH"/password", NULL);
-	gboolean account_ok = FALSE;
-	if ((username != NULL) && (password != NULL))
-		account_ok = lastfm_submit_set_account_info(self->submit, (gchar*) username, (gchar*) password);
-	
-	if (account_ok && eina_conf_get_bool(EINA_OBJ_GET_SETTINGS(self), SETTINGS_PATH"/submit", FALSE))
-		lastfm_submit_set_submit(self->submit, TRUE);
-	else
-		lastfm_submit_set_submit(self->submit, FALSE);
 
 	return TRUE;
 
@@ -139,6 +141,32 @@ lastfm_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, LastFM *self)
+{
+	if (g_str_equal(key, EINA_PLUGIN_LASTFM_ENABLE_SUBMIT_KEY))
+	{
+		gboolean enabled = g_settings_get_boolean(settings, key);
+		lastfm_submit_set_submit(self->submit, enabled);
+		g_object_set(eina_preferences_tab_get_widget(self->priv->prefs_tab, "username"),
+			"sensitive", enabled,
+			NULL);
+		g_object_set(eina_preferences_tab_get_widget(self->priv->prefs_tab, "password"),
+			"sensitive", enabled,
+			NULL);
+		return;
+	}
+
+	if (g_str_equal(key, EINA_PLUGIN_LASTFM_USERNAME_KEY) ||
+	    g_str_equal(key, EINA_PLUGIN_LASTFM_PASSWORD_KEY))
+	{
+		gchar *u = g_settings_get_string(settings, EINA_PLUGIN_LASTFM_USERNAME_KEY);
+		gchar *p = g_settings_get_string(settings, EINA_PLUGIN_LASTFM_PASSWORD_KEY);
+		lastfm_submit_set_account_info(self->submit, u, p);
+		return;
+	}
+	g_warning(N_("Unhanded key '%s'"), key);
+}
 
 // --
 // Export plugin

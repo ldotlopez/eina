@@ -24,12 +24,18 @@
 #define EINA_PLUGIN_NAME "LastFM"
 #define EINA_PLUGIN_DATA_TYPE LastFM
 
+#include <config.h>
 #include <eina/eina-plugin.h>
 #include "submit.h"
 #include "artwork.h"
 #if HAVE_WEBKIT
 #include "webview.h"
 #endif
+
+#define EINA_PLUGIN_LASTFM_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.plugins.lastfm"
+#define EINA_PLUGIN_LASTFM_ENABLE_SUBMIT_KEY  "submit-enabled"
+#define EINA_PLUGIN_LASTFM_USERNAME_KEY       "username"
+#define EINA_PLUGIN_LASTFM_PASSWORD_KEY       "password"
 
 G_BEGIN_DECLS
 
