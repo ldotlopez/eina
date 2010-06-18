@@ -155,8 +155,8 @@ lomo_metadata_parser_new (void)
 /**
  * lomo_metadata_parser_parse:
  * @self: The parser
- * @stream: The stream to parse
- * @prio: The priority on the queue
+ * @stream: (in): The stream to parse
+ * @prio: (in): The priority on the queue
  *
  * Adds @stream to @self internal queue with @prio to be parsed
  */

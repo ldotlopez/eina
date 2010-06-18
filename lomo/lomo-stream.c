@@ -88,7 +88,7 @@ lomo_stream_init (LomoStream *self)
 
 /**
  * lomo_stream_new:
- * @uri: An uri to create a #LomoStream from.
+ * @uri: (in) (transfer none): An uri to create a #LomoStream from.
  *
  * Create a new #LomoStream from an uri
  * 
@@ -118,10 +118,31 @@ lomo_stream_new (gchar *uri)
 }
 
 /**
+ * lomo_stream_get_tag:
+ * @stream: a #LomoStream
+ * @tag: (in) (type gchar*) (transfer none): a #LomoTag
+ *
+ * Gets a tag from #LomoStream. The returned value is owned by @stream, and
+ * should not be modified (Internally it uses g_object_get_data).
+ *
+ * Return value: (type gchar*) (transfer none): A pointer to the tag
+ * value
+ */
+gchar*
+lomo_stream_get_tag(LomoStream *self, LomoTag tag)
+{
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+	g_return_val_if_fail(tag, NULL);
+
+	g_warning("GET: %s", tag);
+	return g_object_get_data((GObject *) self, tag);
+}
+
+/**
  * lomo_stream_set_tag:
  * @self: a #LomoStream
- * @tag: a #LomoTag to set
- * @value: value for tag, must not be modified. It becomes owned by #LomoStream
+ * @tag: (in) (type gchar*) (transfer none): a #LomoTag to set
+ * @value: (in) (type gchar*) (transfer none): value for tag, must not be modified. It becomes owned by #LomoStream
  *
  * Sets a tag in a #LomoStream
  */
@@ -156,7 +177,7 @@ lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value)
  *
  * Gets the list of #LomoTag for a #LomoStream
  *
- * Returns: a #GList, it must be freed when no longer needed, data too
+ * Return value: (element-type utf8) (transfer full): a #GList, it must be freed when no longer needed, data too
  */
 GList*
 lomo_stream_get_tags(LomoStream *self)
@@ -174,7 +195,7 @@ lomo_stream_get_tags(LomoStream *self)
 /**
  * lomo_stream_set_all_tags_flag:
  * @self: a #LomoStream
- * @value: value for flag
+ * @value: (in): value for flag
  *
  * Sets the all_tags flag to value
  */
@@ -201,7 +222,7 @@ lomo_stream_get_all_tags_flag(LomoStream *self)
 /**
  * lomo_stream_set_failed_flag:
  * @self: a #LomoStream
- * @value: value for flag
+ * @value: (in): value for flag
  *
  * Sets the failed flag to value
  */
@@ -228,7 +249,7 @@ lomo_stream_get_failed_flag(LomoStream *self)
 /**
  * lomo_stream_get_tag_by_id:
  * @self: a #LomoStream
- * @id: identifier for tag (t = title, b = album, etc...)
+ * @id: (in): identifier for tag (t = title, b = album, etc...)
  *
  * Gets the tag value as string for the matching id
  *
@@ -256,7 +277,7 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 
 /*
  * lomo_tag_get_type:
- * @tag: a #LomoTag
+ * @tag: (in) (transfer none): a #LomoTag
  *
  * Queries for the #GType corresponding for the tag
  *

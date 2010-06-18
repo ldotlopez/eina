@@ -24,13 +24,6 @@
 
 G_BEGIN_DECLS
 
-/**
- * LomoTag:
- *
- * A string representing a tag
- */
-typedef const gchar* LomoTag;
-
 #define LOMO_TYPE_STREAM lomo_stream_get_type()
 
 #define LOMO_STREAM(obj) \
@@ -51,7 +44,7 @@ typedef const gchar* LomoTag;
 /**
  * LomoStream:
  *
- * LomoStream represents a stream
+ * Represents a stream
  */
 typedef struct {
 	GObject parent;
@@ -60,6 +53,13 @@ typedef struct {
 typedef struct {
 	GObjectClass parent_class;
 } LomoStreamClass;
+
+/**
+ * LomoTag:
+ *
+ * A string representing a tag
+ */
+typedef const gchar* LomoTag;
 
 GType lomo_stream_get_type (void);
 
@@ -73,18 +73,8 @@ void lomo_stream_set_failed_flag  (LomoStream *self, gboolean val);
 gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
 
-/**
- * lomo_stream_get_tag:
- * @stream: a #LomoStream
- * @tag: a #LomoTag
- *
- * Gets a tag from #LomoStream. The returned value is owned by @stream, and
- * should not be modified (Internally it uses g_object_get_data).
- *
- * Returns: A pointer to the tag value
- */
-#define lomo_stream_get_tag(stream,tag)  g_object_get_data(G_OBJECT(stream), tag)
 gchar*  lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
+gchar*  lomo_stream_get_tag      (LomoStream *self, LomoTag tag);
 void    lomo_stream_set_tag      (LomoStream *self, LomoTag tag, gpointer value);
 GList*  lomo_stream_get_tags     (LomoStream *self);
 

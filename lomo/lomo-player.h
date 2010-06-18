@@ -43,17 +43,6 @@ G_BEGIN_DECLS
 #define LOMO_PLAYER_GET_CLASS(obj) \
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
-/**
- * LomoPlayer:
- *
- * This is the main object in liblomo.
- * It supports:
- * - Playback and seeking operations.
- * - Volume and mute control
- * - Adding, removing, quequeing and dequeueing streams
- * - Tag parsing using #LomoMetadataParser
- * - Signal emission
- */
 typedef struct {
 	GObject parent;
 } LomoPlayer;

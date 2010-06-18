@@ -59,18 +59,10 @@ typedef struct {
 
 /**
  * LomoMetadataParserPrio:
+ * @LOMO_METADATA_PARSER_PRIO_INMEDIATE: Parse stream as soon as possible
+ * @LOMO_METADATA_PARSER_PRIO_DEFAULT: Parse stream with default priority
  *
  * Define priority for #LomoStream in the #LomoMetadataParser
- */
-/**
- * LOMO_METADATA_PARSER_PRIO_INMEDIATE:
- *
- * Parse stream as soon as possible
- */
-/**
- * LOMO_METADATA_PARSER_PRIO_DEFAULT:
- *
- * Parse stream with default priority
  */
 typedef enum {
 	LOMO_METADATA_PARSER_PRIO_INMEDIATE,
