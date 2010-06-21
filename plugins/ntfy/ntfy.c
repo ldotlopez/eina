@@ -82,6 +82,9 @@ art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self);
 static void
 action_activate_cb(GtkAction *action, EinaNtfy *self);
 
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaNtfy *self);
+
 GEL_AUTO_QUARK_FUNC(ntfy)
 
 // ------------------
@@ -111,7 +114,8 @@ ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Enable if needed (by default on)
-	if (eina_conf_get_bool(conf, SETTINGS_PATH "/enabled", TRUE))
+	GSettings *settings = gel_app_get_gsettings(app, EINA_PLUGIN_NTFY_PREFERENCES_DOMAIN);
+	if (g_settings_get_boolean(settings, EINA_PLUGIN_NTFY_ENABLED_KEY))
 	{
 		if (!ntfy_enable(self, error))
 		{
@@ -119,6 +123,7 @@ ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
 			return FALSE;
 		}
 	}
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
 	// Try to enable vogon integration
 	GelPlugin *vogon = gel_app_get_plugin_by_name(app, "vogon");
@@ -414,6 +419,13 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 	const gchar *name = gtk_action_get_name(action);
 	if (g_str_equal(ACTION_NAME, name))
 	{
+		// FIXME: Check if callback is called
+		g_settings_set_boolean(
+			eina_obj_get_gsettings(self, EINA_PLUGIN_NTFY_PREFERENCES_DOMAIN),
+			EINA_PLUGIN_NTFY_ENABLED_KEY,
+			gtk_toggle_action_get_active((GtkToggleAction*) action)
+			);
+		/*
 		gboolean active = gtk_toggle_action_get_active((GtkToggleAction*) action);
 		if (active)
 			ntfy_enable(self, NULL);
@@ -422,7 +434,23 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 
 		eina_conf_set_bool(EINA_OBJ_GET_SETTINGS(self), SETTINGS_PATH "/Notifications", self->enabled);
 		gtk_toggle_action_set_active((GtkToggleAction*) action, self->enabled);
+		*/
 	}
+}
+
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaNtfy *self)
+{
+	if (g_str_equal(key, EINA_PLUGIN_NTFY_ENABLED_KEY))
+	{
+		if (g_settings_get_boolean(settings, key))
+			ntfy_enable(self, NULL);
+		else
+			ntfy_disable(self);
+		return;
+	}
+
+	g_warning(N_("Unhanded key '%s'"), key);
 }
 
 EINA_PLUGIN_INFO_SPEC(ntfy,
