@@ -1578,7 +1578,7 @@ void setup_dnd(EinaPlaylist *self)
  */
 EINA_PLUGIN_INFO_SPEC(playlist,
 	NULL,                           // version
-	"dock,lomo,settings,window",	// deps
+	"dock,lomo,window",             // deps
 	NULL,                           // author
 	NULL,                           // url
 	N_("Build-in playlist plugin"), // short

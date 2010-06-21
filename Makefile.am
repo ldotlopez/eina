@@ -152,7 +152,6 @@ eina_ext_libeinaext_la_CFLAGS = @GTK_CFLAGS@ @CURL_CFLAGS@ @GSTREAMER_CFLAGS@
 eina_ext_libeina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
-    eina/ext/eina-conf.h                \
     eina/ext/eina-cover.h               \
     eina/ext/eina-cover-image.h         \
     eina/ext/eina-file-chooser-dialog.h \
@@ -166,7 +165,6 @@ eina_ext_libeina_include_HEADERS = \
 
 eina_ext_libeinaext_la_SOURCES = \
     eina/ext/curl-engine.c              \
-    eina/ext/eina-conf-file.c           \
     eina/ext/eina-cover.c               \
     eina/ext/eina-cover-image.c         \
     eina/ext/eina-file-chooser-dialog.c \
@@ -247,7 +245,6 @@ eina_eina_SOURCES = \
     eina/playlist.h         \
     eina/plugins.c          \
     eina/preferences.c      \
-    eina/settings.c         \
     eina/template.c         \
     eina/template.h         \
     eina/vogon.c            \
@@ -259,7 +256,6 @@ eina_vogon_SOURCES = \
     eina/about.c      \
     eina/lomo.c       \
     eina/fs.c         \
-    eina/settings.c   \
     eina/vogon.c      \
     eina/vogon-app.c
 

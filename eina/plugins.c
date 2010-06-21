@@ -250,7 +250,7 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaPlugins *self)
 
 EINA_PLUGIN_INFO_SPEC(plugins,
 	NULL,
-	"settings,window",
+	"window",
 
 	NULL,
 	NULL,

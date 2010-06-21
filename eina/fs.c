@@ -28,7 +28,6 @@
 #include <eina/ext/eina-stock.h>
 #include <eina/fs.h>
 #include <eina/lomo.h>
-#include <eina/settings.h>
 
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
