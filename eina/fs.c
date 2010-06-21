@@ -94,7 +94,7 @@ eina_fs_load_from_default_file_chooser(GelApp *app)
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
 		NULL);
-	GSettings *settings = gel_app_get_gsettings(app, EINA_FS_STATE_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_FS_STATE_DOMAIN);
 
 	const gchar *prev_folder_uri = g_settings_get_string(settings, EINA_FS_LAST_FOLDER_KEY);
 	if ((prev_folder_uri != NULL) && (prev_folder_uri[0] != '\0'))

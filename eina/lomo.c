@@ -52,7 +52,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	g_object_ref_sink(engine);
 
-	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	static gchar *props[] = {
 		EINA_LOMO_VOLUME_KEY,
 		EINA_LOMO_MUTE_KEY,

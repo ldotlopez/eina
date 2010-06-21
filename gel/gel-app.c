@@ -494,7 +494,7 @@ gel_app_shared_free(GelApp *self, gchar *name)
 }
 
 GSettings *
-gel_app_get_gsettings(GelApp *self, gchar *domain)
+gel_app_get_settings(GelApp *self, gchar *domain)
 {
 	g_return_val_if_fail(GEL_IS_APP(self), NULL);
 	g_return_val_if_fail(domain, NULL);

@@ -70,7 +70,7 @@ lastfm_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 		eina_preferences_add_tab(gel_app_get_preferences(app), self->priv->prefs_tab);
 
-		GSettings *settings = gel_app_get_gsettings(app, EINA_PLUGIN_LASTFM_PREFERENCES_DOMAIN);
+		GSettings *settings = gel_app_get_settings(app, EINA_PLUGIN_LASTFM_PREFERENCES_DOMAIN);
 		g_settings_bind(settings, EINA_PLUGIN_LASTFM_ENABLE_SUBMIT_KEY, eina_preferences_tab_get_widget(self->priv->prefs_tab, "submit-enabled"), "active", G_SETTINGS_BIND_DEFAULT);
 		
 		GtkWidget *u = eina_preferences_tab_get_widget(self->priv->prefs_tab, "username");
