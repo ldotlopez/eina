@@ -134,7 +134,6 @@ lomo_stream_get_tag(LomoStream *self, LomoTag tag)
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 	g_return_val_if_fail(tag, NULL);
 
-	g_warning("GET: %s", tag);
 	return g_object_get_data((GObject *) self, tag);
 }
 

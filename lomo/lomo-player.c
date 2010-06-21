@@ -1948,7 +1948,7 @@ void lomo_player_set_random(LomoPlayer *self, gboolean val)
 	// Exec action
 	lomo_playlist_set_random(GET_PRIVATE(self)->pl, val);
 
-	g_object_notify(G_OBJECT(self), "repeat");
+	g_object_notify(G_OBJECT(self), "random");
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[RANDOM], 0, val);
 }
 
