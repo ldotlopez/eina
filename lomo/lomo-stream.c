@@ -61,7 +61,6 @@ lomo_stream_dispose (GObject *object)
 		g_list_foreach(priv->tags, (GFunc) g_free, NULL);
 		g_list_free(priv->tags);
 		priv->tags = NULL;
-		// g_printf("[-] Disposing stream '%p' ('%s')\n", object, (gchar *) lomo_stream_get_tag((LomoStream *) object, LOMO_TAG_URI));
 	}
 
 	if (G_OBJECT_CLASS (lomo_stream_parent_class)->dispose)
@@ -134,7 +133,6 @@ lomo_stream_get_tag(LomoStream *self, LomoTag tag)
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 	g_return_val_if_fail(tag, NULL);
 
-	g_warning("GET: %s", tag);
 	return g_object_get_data((GObject *) self, tag);
 }
 
