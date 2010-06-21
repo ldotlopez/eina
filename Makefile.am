@@ -14,22 +14,25 @@ SUBDIRS = \
 EXTRA_DIST = \
 	run-uninstalled.sh \
 	intltool-extract.in intltool-merge.in intltool-update.in \
-	AUTHORS BUGS COPYING INSTALL NEWS README
+	AUTHORS BUGS COPYING INSTALL NEWS README \
+	m4/introspection.m4
 
 BUILT_SOURCES = 
 CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
-gsettings_SCHEMAS =
+
+ACLOCAL_AMFLAGS = -I m4
+DISTCHECK_CONFIGURE_FLAGS = --enable-instrospection --enable-gtk-doc
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DPACKAGE_PREFIX=\""$(prefix)"\" \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE)\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)/$(PACKAGE)"\" \
-	@PACKAGE_CFLAGS@
+	-DPACKAGE_DATA_DIR=\""$(datadir)/$(PACKAGE)"\"
+EINA_LIBS += $(INTLLIBS)
 
-PACKAGE_LIBS += $(INTLLIBS)
+gsettings_SCHEMAS =
 
 # Version X.Y must be specified
 bin_PROGRAMS = eina/eina eina/vogon
@@ -39,8 +42,8 @@ noinst_LTLIBRARIES = eina/ext/libeinaext.la
 #
 # libgel
 #
-gel_libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic 
-gel_libgel_1_0_la_CFLAGS = -DGEL_COMPILATION
+gel_libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic @GLIB_LIBS@ @GTK_LIBS@
+gel_libgel_1_0_la_CFLAGS = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@
 
 gel_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel
 gel_include_HEADERS = \
@@ -107,8 +110,8 @@ gel/gel-io-marshallers.c: gel/gel-io-marshallers.list
 #
 # liblomo
 #
-lomo_liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0
-lomo_liblomo_1_0_la_CFLAGS = -DLIBLOMO_COMPILATION
+lomo_liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 @GSTREAMER_LIBS@
+lomo_liblomo_1_0_la_CFLAGS = -DLIBLOMO_COMPILATION @GSTREAMER_CFLAGS@
 
 lomo_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/lomo
 lomo_include_HEADERS = \
@@ -144,6 +147,8 @@ lomo/lomo-marshallers.h: lomo/lomo-marshallers.list
 #
 # libeinaext
 #
+eina_ext_libeinaext_la_LDFLAGS = @GTK_LIBS@ @CURL_LIBS@ @GSTREAMER_LIBS@
+eina_ext_libeinaext_la_CFLAGS = @GTK_CFLAGS@ @CURL_CFLAGS@ @GSTREAMER_CFLAGS@
 eina_ext_libeina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
@@ -195,18 +200,18 @@ eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
 #
 # eina
 #
-eina_eina_CFLAGS  = $(AM_CPPFLAGS) -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
-eina_vogon_CFLAGS = $(AM_CPPFLAGS) -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_eina_CFLAGS  = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
+eina_vogon_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
 
 eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
-	@PACKAGE_LIBS@ \
+	@EINA_LIBS@ \
 	-L$(top_builddir)/gel/.libs  \
 	-L$(top_builddir)/lomo/.libs \
 	-lgel-1.0 -llomo-1.0
 eina_eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 
 eina_vogon_LDFLAGS = -export-dynamic  -module -avoid-version \
-	@PACKAGE_LIBS@ \
+	@EINA_LIBS@ \
 	-L$(top_builddir)/gel/.libs  \
 	-L$(top_builddir)/lomo/.libs \
 	-lgel-1.0 -llomo-1.0
@@ -349,8 +354,8 @@ plugins_adb_DATA = plugins/adb/adb.png
 
 if BUILD_ADB
 plugins_adb_LTLIBRARIES = plugins/adb/libadb.la
-plugins_adb_libadb_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ 
-plugins_adb_libadb_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
+plugins_adb_libadb_la_CFLAGS  = @EINA_CFLAGS@ @SQLITE3_CFLAGS@ 
+plugins_adb_libadb_la_LDFLAGS = @EINA_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
 plugins_adb_libadb_la_SOURCES = \
 	plugins/adb/eina-adb.c \
 	plugins/adb/eina-adb.h \
@@ -375,8 +380,8 @@ if BUILD_CALLHOME
 plugins_callhomedir = $(pkglibdir)/callhome
 plugins_callhome_LTLIBRARIES = plugins/callhome/libcallhome.la
 
-plugins_callhome_libcallhome_la_CFLAGS  = @PACKAGE_CFLAGS@ @UUID_CFLAGS@
-plugins_callhome_libcallhome_la_LDFLAGS = @PACKAGE_LIBS@ @UUID_LIBS@ -module -avoid-version
+plugins_callhome_libcallhome_la_CFLAGS  = @EINA_CFLAGS@ @UUID_CFLAGS@
+plugins_callhome_libcallhome_la_LDFLAGS = @EINA_LIBS@ @UUID_LIBS@ -module -avoid-version
 plugins_callhome_libcallhome_la_SOURCES = plugins/callhome/callhome.c
 endif
 
@@ -387,8 +392,8 @@ if BUILD_CLUTTY
 plugins_cluttydir = $(pkglibdir)/clutty
 plugins_clutty_LTLIBRARIES = plugins/clutty/libclutty.la
 
-plugins_clutty_libclutty_la_CFLAGS  = @PACKAGE_CFLAGS@ @CLUTTER_GTK_CFLAGS@
-plugins_clutty_libclutty_la_LDFLAGS = @PACKAGE_LIBS@ @CLUTTER_GTK_LIBS@ -module -avoid-version
+plugins_clutty_libclutty_la_CFLAGS  = @EINA_CFLAGS@ @CLUTTER_GTK_CFLAGS@
+plugins_clutty_libclutty_la_LDFLAGS = @EINA_LIBS@ @CLUTTER_GTK_LIBS@ -module -avoid-version
 plugins_clutty_libclutty_la_SOURCES =   \
 	plugins/clutty/clutty.c             \
 	plugins/clutty/eina-cover-clutter.c \
@@ -402,7 +407,8 @@ endif
 plugins_coverplusdir = $(pkglibdir)/coverplus
 plugins_coverplus_LTLIBRARIES = plugins/coverplus/libcoverplus.la
 
-plugins_coverplus_libcoverplus_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+plugins_coverplus_libcoverplus_la_CFLAGS  = @EINA_CFLAGS@
+plugins_coverplus_libcoverplus_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 plugins_coverplus_libcoverplus_la_SOURCES = \
 	plugins/coverplus/banshee.c       \
 	plugins/coverplus/banshee.h       \
@@ -418,8 +424,8 @@ if BUILD_EXPERIMENTAL
 plugins_fieshtadir = $(pkglibdir)/fieshta
 plugins_fieshta_LTLIBRARIES = plugins/fieshta/libfieshta.la
 
-plugins_fieshta_libfieshta_la_CFLAGS  = @PACKAGE_LIBS@
-plugins_fieshta_libfieshta_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+plugins_fieshta_libfieshta_la_CFLAGS  = @EINA_LIBS@
+plugins_fieshta_libfieshta_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 plugins_fieshta_libfieshta_la_SOURCES = \
 	plugins/fieshta/fieshta.c \
 	plugins/fieshta/fieshta.h
@@ -452,7 +458,8 @@ plugins_lastfm_DATA = \
 #liblastfm_la_SOURCES += webview.c webview.h
 #endif
 
-plugins_lastfm_liblastfm_la_LDFLAGS = @PACKAGE_LIBS@ -module -avoid-version
+plugins_lastfm_liblastfm_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
+plugins_lastfm_liblastfm_la_CFLAGS  = @EINA_CFLAGS@
 plugins_lastfm_liblastfm_la_SOURCES = \
 	plugins/lastfm/lastfm.c  \
 	plugins/lastfm/lastfm.h  \
@@ -489,8 +496,8 @@ plugins_muine_DATA = plugins/muine/muine.ui
 if BUILD_ADB
 plugins_muine_LTLIBRARIES = plugins/muine/libmuine.la
 
-plugins_muine_libmuine_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
-plugins_muine_libmuine_la_LDFLAGS = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@ -module -avoid-version
+plugins_muine_libmuine_la_CFLAGS  = @EINA_CFLAGS@ @SQLITE3_CFLAGS@
+plugins_muine_libmuine_la_LDFLAGS = @EINA_CFLAGS@ @SQLITE3_CFLAGS@ -module -avoid-version
 plugins_muine_libmuine_la_SOURCES = plugins/muine/muine.c
 
 endif
@@ -509,8 +516,8 @@ plugins_ntfy_DATA = plugins/ntfy/ntfy.png
 if BUILD_NTFY
 plugins_ntfy_LTLIBRARIES = plugins/ntfy/libntfy.la
 
-plugins_ntfy_libntfy_la_CFLAGS  = @PACKAGE_CFLAGS@ @NOTIFY_CFLAGS@
-plugins_ntfy_libntfy_la_LDFLAGS = @PACKAGE_LIBS@ @NOTIFY_LIBS@ -module -avoid-version
+plugins_ntfy_libntfy_la_CFLAGS  = @EINA_CFLAGS@ @NOTIFY_CFLAGS@
+plugins_ntfy_libntfy_la_LDFLAGS = @EINA_LIBS@ @NOTIFY_LIBS@ -module -avoid-version
 plugins_ntfy_libntfy_la_SOURCES = \
 	plugins/ntfy/ntfy.c \
 	plugins/ntfy/ntfy.h
@@ -531,8 +538,8 @@ plugins_recently_DATA = \
 if BUILD_EXPERIMENTAL
 if BUILD_ADB
 plugins_recently_LTLIBRARIES   = plugins/recently/librecently.la
-plugins_recently_librecently_la_CFLAGS  = @PACKAGE_CFLAGS@ @SQLITE3_CFLAGS@
-plugins_recently_librecently_la_LDFLAGS = @PACKAGE_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
+plugins_recently_librecently_la_CFLAGS  = @EINA_CFLAGS@ @SQLITE3_CFLAGS@
+plugins_recently_librecently_la_LDFLAGS = @EINA_LIBS@ @SQLITE3_LIBS@ -module -avoid-version
 plugins_recently_librecently_la_SOURCES = plugins/recently/recently.c
 
 endif
@@ -541,6 +548,11 @@ endif
 #
 # Build schemas at the end
 #
+EXTRA_DIST += \
+	$(plugins_recently_DATA) \
+	plugins/recently/recently.svg
+endif
+
 @INTLTOOL_XML_NOMERGE_RULE@
 @GSETTINGS_RULES@
 DISTCLEANFILES += \
@@ -551,12 +563,36 @@ EXTRA_DIST += \
 	$(gsettings_SCHEMAS)
 MAINTAINERCLEANFILES += $(gsettings_SCHEMAS:.xml=.valid)
 
-EXTRA_DIST += \
-	$(plugins_recently_DATA) \
-	plugins/recently/recently.svg
-
-endif
-
 # Final CLEANFILES
 CLEANFILES += $(BUILT_SOURCES)
 
+#
+# Introspection support
+#
+-include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir)
+INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
+
+if HAVE_INTROSPECTION
+#introspection_sources = $(lomo_liblomo_1_0_la_SOURCES)
+introspection_sources = \
+	lomo/lomo-stream.c \
+	lomo/lomo-stream.h \
+	lomo/lomo-metadata-parser.c \
+	lomo/lomo-metadata-parser.h
+
+Lomo-1.0.gir: lomo/liblomo-1.0.la
+Lomo_1_0_gir_INCLUDES = Gst-0.10 GLib-2.0 GstBase-0.10
+Lomo_1_0_gir_LIBS  = lomo/liblomo-1.0.la
+Lomo_1_0_gir_FILES = $(introspection_sources)
+INTROSPECTION_GIRS += Lomo-1.0.gir
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+endif
