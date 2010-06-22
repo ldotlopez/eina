@@ -40,7 +40,6 @@
 #include <eina/fs.h>
 #include <eina/lomo.h>
 #include <eina/preferences.h>
-#include <eina/settings.h>
 #include <eina/window.h>
 #include <eina/ext/curl-engine.h>
 #include <eina/ext/eina-cover.h>

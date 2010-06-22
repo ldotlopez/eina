@@ -151,7 +151,7 @@ muine_init(EinaMuine *self, GError **error)
 		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
 	}
 
-	GSettings *settings = eina_obj_get_gsettings(self, EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN);
+	GSettings *settings = eina_obj_get_settings(self, EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN);
 	g_settings_bind(settings, EINA_PLUGIN_MUINE_GROUP_BY_KEY, self->mode_view, "active", G_SETTINGS_BIND_DEFAULT);
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 

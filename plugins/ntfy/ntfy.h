@@ -19,6 +19,12 @@
 #ifndef _EINA_PLUGIN_NTFY_H
 #define _EINA_PLUGIN_NTFY_H
 
+#include <config.h>
+#include <glib.h>
+
+#define EINA_PLUGIN_NTFY_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.plugins.ntfy"
+#define EINA_PLUGIN_NTFY_ENABLED_KEY        "enabled"
+
 typedef struct _EinaNtfy EinaNtfy;
 
 enum {

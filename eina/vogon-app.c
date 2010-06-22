@@ -268,7 +268,7 @@ gint main
 			{
 				gchar **uris = g_uri_list_extract_uris((const gchar *) buff);
 				lomo_player_append_uri_strv(gel_app_get_lomo(app), uris);
-				GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+				GSettings *settings = gel_app_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 				gint current = g_settings_get_int(settings, EINA_LOMO_CURRENT_STREAM_KEY);
 				if (current >= 0)
 					lomo_player_go_nth( gel_app_get_lomo(app), current, NULL);

@@ -117,7 +117,7 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gel_plugin_set_data(plugin, self);
 
 	// Map volume
-	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	g_settings_bind_with_mapping(settings, "volume",
 		eina_obj_get_object(self, "volume-button"), "value",
 		G_SETTINGS_BIND_DEFAULT,
@@ -127,7 +127,7 @@ player_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		NULL);
 
 	// Setup markup
-	settings = gel_app_get_gsettings(app, EINA_PLAYER_PREFERENCES_DOMAIN);
+	settings = gel_app_get_settings(app, EINA_PLAYER_PREFERENCES_DOMAIN);
 	self->stream_mrkp = g_strdup(g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY));
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 

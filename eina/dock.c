@@ -66,7 +66,7 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	/*
 	 * Setup dock
 	 */
-	GSettings *settings = gel_app_get_gsettings(app, EINA_DOCK_PREFERENCES_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_DOCK_PREFERENCES_DOMAIN);
 	gboolean expanded = g_settings_get_boolean(settings, EINA_DOCK_EXPANDED_KEY);
 	g_object_set((GObject *) self->expander,
 		"expanded", expanded,
@@ -257,7 +257,7 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 		}
 	}
 
-	GSettings *s = eina_obj_get_gsettings(self, EINA_DOCK_PREFERENCES_DOMAIN);
+	GSettings *s = eina_obj_get_settings(self, EINA_DOCK_PREFERENCES_DOMAIN);
 	g_settings_set_strv(s, EINA_DOCK_WIDGET_ORDER_KEY, (const gchar * const*) items);
 	g_free(items);
 }
@@ -268,7 +268,7 @@ expander_activate_cb(GtkExpander *wi, EinaDock *self)
 	gboolean resizable = !gtk_expander_get_expanded(wi);
 
 	GtkWindow *window = (GtkWindow *) eina_obj_get_window(self);
-	GSettings *dock_settings = gel_app_get_gsettings(eina_obj_get_app(self), EINA_DOCK_PREFERENCES_DOMAIN);
+	GSettings *dock_settings = gel_app_get_settings(eina_obj_get_app(self), EINA_DOCK_PREFERENCES_DOMAIN);
 
 	g_settings_set_boolean(dock_settings, EINA_DOCK_EXPANDED_KEY, resizable);
 	gtk_window_set_resizable(window, resizable);
@@ -290,7 +290,7 @@ expander_activate_cb(GtkExpander *wi, EinaDock *self)
 static gboolean
 expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self)
 {
-	GSettings *dock_settings = gel_app_get_gsettings(eina_obj_get_app(self), EINA_DOCK_PREFERENCES_DOMAIN);
+	GSettings *dock_settings = gel_app_get_settings(eina_obj_get_app(self), EINA_DOCK_PREFERENCES_DOMAIN);
 	gint w = g_settings_get_int(dock_settings, "window-width");
 	gint h = g_settings_get_int(dock_settings, "window-height");
 	gtk_window_resize((GtkWindow *) eina_obj_get_window(self), w, h);

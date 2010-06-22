@@ -208,11 +208,11 @@ playlist_plugin_init (GelApp *app, GelPlugin *plugin, GError **error)
 	}
 
 	// Configure settings
-	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	g_settings_bind(settings, EINA_LOMO_RANDOM_KEY, eina_obj_get_object(self, "playlist-random-button"), "active", G_SETTINGS_BIND_DEFAULT);
 	g_settings_bind(settings, EINA_LOMO_REPEAT_KEY, eina_obj_get_object(self, "playlist-repeat-button"), "active", G_SETTINGS_BIND_DEFAULT);
 
-	settings = gel_app_get_gsettings(app, EINA_PLAYLIST_PREFERENCES_DOMAIN);
+	settings = gel_app_get_settings(app, EINA_PLAYLIST_PREFERENCES_DOMAIN);
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 	self->stream_fmt = g_strdup(g_settings_get_string(settings, EINA_PLAYLIST_STREAM_FMT_KEY));
 
@@ -1578,7 +1578,7 @@ void setup_dnd(EinaPlaylist *self)
  */
 EINA_PLUGIN_INFO_SPEC(playlist,
 	NULL,                           // version
-	"dock,lomo,settings,window",	// deps
+	"dock,lomo,window",             // deps
 	NULL,                           // author
 	NULL,                           // url
 	N_("Build-in playlist plugin"), // short

@@ -103,7 +103,7 @@ plugins_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	// Now load all plugins
 	self->watching = FALSE;
 
-	GSettings *settings = gel_app_get_gsettings(app, EINA_PLUGINS_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_PLUGINS_DOMAIN);
 	gchar **plugins = g_settings_get_strv(settings, EINA_PLUGINS_PLUGINS_KEY);
 
 	for (guint i = 0; plugins && plugins[i]; i++)
@@ -185,7 +185,7 @@ update_plugins_list(EinaPlugins *self)
 	}
 	g_list_free(plugins);
 
-	GSettings *settings = eina_obj_get_gsettings(self, EINA_PLUGINS_DOMAIN);
+	GSettings *settings = eina_obj_get_settings(self, EINA_PLUGINS_DOMAIN);
 	g_settings_set_strv(settings, EINA_PLUGINS_PLUGINS_KEY, (const gchar * const*) strv);
 	g_free(strv);
 }
@@ -250,7 +250,7 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaPlugins *self)
 
 EINA_PLUGIN_INFO_SPEC(plugins,
 	NULL,
-	"settings,window",
+	"window",
 
 	NULL,
 	NULL,

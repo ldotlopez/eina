@@ -29,7 +29,7 @@ typedef struct {
 } LomoEventHandlerGroup;
 
 static void
-lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf);
+lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data);
 
 GEL_DEFINE_QUARK_FUNC(lomo)
 
@@ -52,7 +52,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	}
 	g_object_ref_sink(engine);
 
-	GSettings *settings = gel_app_get_gsettings(app, EINA_LOMO_PREFERENCES_DOMAIN);
+	GSettings *settings = gel_app_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	static gchar *props[] = {
 		EINA_LOMO_VOLUME_KEY,
 		EINA_LOMO_MUTE_KEY,
@@ -64,7 +64,7 @@ lomo_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	for (gint i = 0; props[i] ; i++)
 		g_settings_bind(settings, props[i], engine, props[i], G_SETTINGS_BIND_DEFAULT);
 
-	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, engine);
+	g_signal_connect(engine, "random", (GCallback) lomo_random_cb, NULL);
 
 	return TRUE;
 }
@@ -144,7 +144,7 @@ eina_plugin_lomo_remove_handlers(EinaPlugin *plugin, gpointer handler_pointer)
 }
 
 static void
-lomo_random_cb(LomoPlayer *lomo, gboolean value, EinaConf *conf)
+lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data)
 {
 	if (value) lomo_player_randomize(lomo);
 }
