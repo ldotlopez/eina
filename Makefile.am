@@ -35,7 +35,7 @@ EINA_LIBS += $(INTLLIBS)
 gsettings_SCHEMAS =
 
 # Version X.Y must be specified
-bin_PROGRAMS = eina/eina eina/vogon
+bin_PROGRAMS = eina/eina eina/vogon eina/eina-app
 lib_LTLIBRARIES = gel/libgel-1.0.la lomo/liblomo-1.0.la
 noinst_LTLIBRARIES = eina/ext/libeinaext.la
 
@@ -147,11 +147,12 @@ lomo/lomo-marshallers.h: lomo/lomo-marshallers.list
 #
 # libeinaext
 #
-eina_ext_libeinaext_la_LDFLAGS = @GTK_LIBS@ @CURL_LIBS@ @GSTREAMER_LIBS@
-eina_ext_libeinaext_la_CFLAGS = @GTK_CFLAGS@ @CURL_CFLAGS@ @GSTREAMER_CFLAGS@
+eina_ext_libeinaext_la_LDFLAGS = @EINA_LIBS@
+eina_ext_libeinaext_la_CFLAGS = @EINA_CFLAGS@
 eina_ext_libeina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
+	eina/ext/eina-application.h         \
     eina/ext/eina-cover.h               \
     eina/ext/eina-cover-image.h         \
     eina/ext/eina-file-chooser-dialog.h \
@@ -165,6 +166,7 @@ eina_ext_libeina_include_HEADERS = \
 
 eina_ext_libeinaext_la_SOURCES = \
     eina/ext/curl-engine.c              \
+	eina/ext/eina-application.c         \
     eina/ext/eina-cover.c               \
     eina/ext/eina-cover-image.c         \
     eina/ext/eina-file-chooser-dialog.c \
@@ -200,6 +202,12 @@ eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
 #
 eina_eina_CFLAGS  = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_vogon_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_eina_app_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_eina_app_LDFLAGS = \
+	@EINA_LIBS@ \
+	-L$(top_builddir)/gel/.libs  \
+	-L$(top_builddir)/lomo/.libs \
+	-lgel-1.0 -llomo-1.0
 
 eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 	@EINA_LIBS@ \
@@ -257,6 +265,11 @@ eina_vogon_SOURCES = \
     eina/fs.c         \
     eina/vogon.c      \
     eina/vogon-app.c
+
+eina_eina_app_SOURCES = \
+	eina/ext/eina-application.c \
+	eina/ext/eina-application.h \
+    eina/eina-app.c
 
 if BUILD_DBUS 
 eina_eina_SOURCES += \
@@ -336,6 +349,14 @@ data_applications_DATA = data/eina.desktop
 
 # schema
 gsettings_SCHEMAS += data/net.sourceforge.eina.gschema.xml 
+
+
+plugins_playerdir = $(pkglibdir)/adb
+plugins_player_LTLIBRARIES = plugins/player/libplayer.la
+plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
+plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
+plugins_player_libplayer_la_SOURCES = \
+	plugins/player/player.c
 
 if BUILD_PLUGINS
 
