@@ -223,7 +223,6 @@ eina_eina_include_HEADERS = \
     eina/fs.h          \
     eina/lomo.h        \
     eina/preferences.h \
-    eina/settings.h    \
     eina/window.h
 
 # template.{c,h} are template files to create Eina components
