@@ -160,6 +160,7 @@ COMMON_CFLAGS="\
 
 GLIB_VERSION="2.25.9"
 GTK_VERSION="2.90"
+PEASUI_VERSION="0.5.0"
 GSTREAMER_VERSION="0.10"
 glib_modules="\
 	glib-2.0 >= $GLIB_VERSION,    \
@@ -169,12 +170,16 @@ glib_modules="\
 gtk_modules="\
 	gtk+-3.0 >= $GTK_VERSION \
 	"
+peasui_modules="\
+	libpeasui-1.0 >= $PEASUI_VERSION \
+	"
 gstreamer_modules="\
 	gstreamer-0.10 >= $GSTREAMER_VERSION \
 	"
 
 PKG_CHECK_MODULES(GLIB,      $glib_modules)
 PKG_CHECK_MODULES(GTK,       $gtk_modules)
+PKG_CHECK_MODULES(PEASUI,    $peasui_modules)
 PKG_CHECK_MODULES(GSTREAMER, $gstreamer_modules)
 
 AC_PATH_PROG(CURL_CONFIG, curl-config)
@@ -191,6 +196,7 @@ AC_SUBST(CURL_LIBS)
 EINA_CFLAGS="\
 	$GLIB_CFLAGS        \
 	$GTK_CFLAGS         \
+	$PEASUI_CFLAGS      \
 	$GSTREAMER_CFLAGS   \
 	$CURL_CFLAGS        \
 	$COMMON_CFLAGS      \
@@ -200,6 +206,7 @@ EINA_CFLAGS="\
 EINA_LIBS="\
 	$GLIB_LIBS      \
 	$GTK_LIBS       \
+	$PEASUI_LIBS    \
 	$GSTREAMER_LIBS \
 	$CURL_LIBS      \
 	$COMMON_LIBS    \
