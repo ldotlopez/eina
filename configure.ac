@@ -277,9 +277,9 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 dnl
 dnl ige-mac-integracion (ige)
 dnl
-IGE_VERSION="0.8.0"
+IGE_VERSION="0.9.0"
 ige_modules="ige-mac-integration >= $IGE_VERSION"
-if test `pkg-config --variable target gtk+-2.0` = "quartz"; then
+if test "x`pkg-config --variable target gtk+-3.0`" = "xquartz"; then
 	PKG_CHECK_MODULES(IGE, $ige_modules,
 		[
 			HAVE_IGE=yes
@@ -293,8 +293,8 @@ if test `pkg-config --variable target gtk+-2.0` = "quartz"; then
 		]
 		)
 else
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-		HAVE_IGE=no
+	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
+	HAVE_IGE=no
 fi
 
 dnl
