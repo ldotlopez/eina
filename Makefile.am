@@ -350,14 +350,6 @@ data_applications_DATA = data/eina.desktop
 # schema
 gsettings_SCHEMAS += data/net.sourceforge.eina.gschema.xml 
 
-
-plugins_playerdir = $(pkglibdir)/adb
-plugins_player_LTLIBRARIES = plugins/player/libplayer.la
-plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
-plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
-plugins_player_libplayer_la_SOURCES = \
-	plugins/player/player.c
-
 if BUILD_PLUGINS
 
 #
