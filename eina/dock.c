@@ -26,6 +26,7 @@
 #include <eina/dock.h>
 #include <eina/eina-plugin.h>
 #include <eina/window.h>
+#define OSX_SYSTEM (defined(__APPLE__) || defined(__APPLE_CC__))
 
 struct _EinaDock {
 	EinaObj      parent;
@@ -43,10 +44,12 @@ dock_reorder(EinaDock *self);
 
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
+#if !OSX_SYSTEM
 static void
 expander_activate_cb(GtkExpander *wi, EinaDock *self);
 static gboolean
 expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self);
+#endif
 
 static void
 settings_changed_cb(GSettings *setting, gchar *key, EinaDock *self);
@@ -61,12 +64,13 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		return FALSE;
 
 	self->expander = eina_obj_get_widget(self, "dock-expander");
-	self->notebook   = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
+	self->notebook = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
 
 	/*
 	 * Setup dock
 	 */
 	GSettings *settings = gel_app_get_settings(app, EINA_DOCK_PREFERENCES_DOMAIN);
+	#if !OSX_SYSTEM
 	gboolean expanded = g_settings_get_boolean(settings, EINA_DOCK_EXPANDED_KEY);
 	g_object_set((GObject *) self->expander,
 		"expanded", expanded,
@@ -75,6 +79,9 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 		"resizable", expanded,
 		NULL);
 	g_signal_connect(self->expander, "activate", (GCallback) expander_activate_cb, self);
+	#else
+	g_object_set((GObject *) gel_app_get_window(app), "resizable", TRUE, NULL);
+	#endif
 
 	/*
 	 * Setup tab ordering
@@ -89,11 +96,17 @@ dock_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 	gtk_notebook_set_show_tabs(self->notebook, FALSE);
 
 	// Transfer widget to player
-	GtkWidget *parent = gtk_widget_get_parent(self->expander);
-	g_object_ref(self->expander);
-	gtk_widget_show(self->expander);
-	gtk_container_remove(GTK_CONTAINER(parent), self->expander);
-	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), self->expander, TRUE, TRUE, 0);
+	#if !OSX_SYSTEM
+	GtkWidget *dock_widget = self->expander;
+	#else
+	GtkWidget *dock_widget = (GtkWidget *) self->notebook;
+	#endif
+
+	GtkWidget *parent = gtk_widget_get_parent(dock_widget);
+	g_object_ref(dock_widget);
+	gtk_widget_show(dock_widget);
+	gtk_container_remove(GTK_CONTAINER(parent), dock_widget);
+	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), dock_widget, TRUE, TRUE, 0);
 	gtk_widget_destroy(parent);
 
 	self->dock_idx = g_settings_get_strv(settings, EINA_DOCK_WIDGET_ORDER_KEY);
@@ -262,6 +275,7 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 	g_free(items);
 }
 
+#if !OSX_SYSTEM
 static void
 expander_activate_cb(GtkExpander *wi, EinaDock *self)
 {
@@ -298,20 +312,32 @@ expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self)
 
 	return FALSE;
 }
+#endif
 
 static void
 settings_changed_cb(GSettings *settings, gchar *key, EinaDock *self)
 {
+	#if !OSX_SYSTEM
 	if (g_str_equal(key, EINA_DOCK_EXPANDED_KEY))
 	{
 		gtk_expander_set_expanded((GtkExpander *) self->expander, g_settings_get_boolean(settings, key));
+		return;
 	}
+	#endif
 
-	else if (g_str_equal(key, EINA_DOCK_WIDGET_ORDER_KEY))
+	if (g_str_equal(key, EINA_DOCK_WIDGET_ORDER_KEY))
 	{
 		g_strfreev(self->dock_idx);
 		self->dock_idx = gel_strv_copy(g_settings_get_strv(settings, key), TRUE);
 		dock_reorder(self);
+		return;
+	}
+
+	if (g_str_equal(key, EINA_DOCK_WINDOW_W_KEY) ||
+	    g_str_equal(key, EINA_DOCK_WINDOW_H_KEY))
+	{
+		g_warning(N_("Unimplemented feature: resize window"));
+		return;
 	}
 
 	else
