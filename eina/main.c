@@ -111,12 +111,13 @@ gint main
 #endif
 	gint            i = 0;
 	gchar          *modules[] = {
+		"lomo",
 #if HAVE_IGE
-	"ige",
+		"ige",
 #endif
 
-	// "Top-level" plugins loaded by default
-	"lomo", "dbus" , "player", "playlist", "plugins",  "vogon", 
+		// "Top-level" plugins loaded by default
+		"dbus" , "player", "playlist", "plugins",  "vogon", 
 
 	NULL };
 

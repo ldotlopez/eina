@@ -63,6 +63,29 @@ ige_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	g_signal_connect_swapped((GObject *) ui_mng, "actions-changed", (GCallback) ige_sync_menu, self);
 
+	gchar     *path = NULL;
+	GdkPixbuf *pb   = NULL;
+	GError    *err  = NULL;
+
+	if ((path = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, "eina.svg")) &&
+	   (pb = gdk_pixbuf_new_from_file_at_size(path, 512, 512, &err)))
+	{
+		gtk_osxapplication_set_dock_icon_pixbuf(self->osxapp, pb);
+		g_object_unref(pb);
+		g_free(path);
+	}
+	else
+	{
+		if (!path)
+			gel_warn(N_("Cannot locate %s"), "eina.svg");
+		if (path && !pb)
+		{
+			gel_warn(N_("Cannot load '%s': '%s'"), path, err->message);
+			g_error_free(err);
+			g_free(path);
+		}
+	}
+
 	gel_plugin_set_data(plugin, self);
 #if 0
 	// Build dock item (in 10.5+ Cocoa apps automaticaly get icon from app
@@ -151,13 +174,11 @@ ige_sync_menu(EinaIge *self, GtkUIManager *ui_mng)
 		else if (g_str_equal(paths[i], "/Main/Help/About") && !(self->flags & ABOUT_MENU))
 		{
 			self->flags |= ABOUT_MENU;
-			gtk_widget_hide(widget);
 			gtk_osxapplication_add_app_menu_item(self->osxapp, self->about_gr, (GtkMenuItem *) widget);
 		}
 		else if (g_str_equal(paths[i], "/Main/Edit/Preferences") && !(self->flags & PREFS_MENU))
 		{
 			self->flags |= PREFS_MENU;
-			gtk_widget_hide(widget);
 			gtk_osxapplication_add_app_menu_item(self->osxapp, self->prefs_gr, (GtkMenuItem *) widget);
 		}
 	}
