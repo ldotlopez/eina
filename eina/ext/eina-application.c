@@ -49,6 +49,10 @@ static GtkWindow *
 create_window(GtkApplication *application);
 static void
 action_activated_cb(GtkAction *action, EinaApplication *self);
+static void
+engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, EinaApplication *self);
+static void
+engine_unload_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, EinaApplication *self);
 
 static gchar *ui_mng_str =
 "<ui>"
@@ -122,6 +126,9 @@ eina_application_init (EinaApplication *self)
 		NULL };
 
 	priv->engine = peas_engine_new("Eina", NULL, (const gchar **) search_paths);
+
+	g_signal_connect(priv->engine, "load-plugin",   (GCallback) engine_load_plugin_cb,   self);
+	g_signal_connect(priv->engine, "unload-plugin", (GCallback) engine_unload_plugin_cb, self);
 }
 
 static GVariant *
@@ -337,5 +344,17 @@ action_activated_cb(GtkAction *action, EinaApplication *self)
 	}
 
 	g_warning(N_("Ignoring unknow action '%s'"), name);
+}
+
+static void
+engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, EinaApplication *self)
+{
+	g_warning("Loaded plugin: %s", peas_plugin_info_get_name(info));
+}
+
+static void
+engine_unload_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, EinaApplication *self)
+{
+	g_warning("Unloaded plugin: %s", peas_plugin_info_get_name(info));
 }
 

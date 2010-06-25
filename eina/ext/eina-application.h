@@ -22,6 +22,7 @@
 #ifndef _EINA_APPLICATION
 #define _EINA_APPLICATION
 
+#include <config.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
