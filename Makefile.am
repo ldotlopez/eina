@@ -66,6 +66,7 @@ gel_include_HEADERS = \
     gel/gel-io.h                \
     gel/gel-ui.h                \
     gel/gel-ui-application.h    \
+	gel/gel-ui-plugin-manager.h \
     gel/gel-ui-utils.h
 
 gel_libgel_1_0_la_SOURCES = \
@@ -88,17 +89,21 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-io-recurse-tree.c   \
 	gel/gel-io-scanner.c        \
     gel/gel-ui-application.c    \
+	gel/gel-ui-plugin-manager.c \
     gel/gel-ui-utils.c
+
 
 EXTRA_DIST += \
 	gel/gel-app-marshallers.list \
-	gel/gel-io-marshallers.list
+	gel/gel-io-marshallers.list  \
+	gel/gel-ui-plugin-manager.ui
 
 BUILT_SOURCES += \
 	gel/gel-app-marshallers.h \
 	gel/gel-app-marshallers.c \
 	gel/gel-io-marshallers.h  \
-	gel/gel-io-marshallers.c
+	gel/gel-io-marshallers.c  \
+	gel/gel-ui-plugin-manager-ui.h
 
 gel/gel-app-marshallers.h: gel/gel-app-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header > $@
@@ -111,6 +116,9 @@ gel/gel-io-marshallers.h: gel/gel-io-marshallers.list
 
 gel/gel-io-marshallers.c: gel/gel-io-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header --body > $@
+
+gel/gel-ui-plugin-manager-ui.h: gel/gel-ui-plugin-manager.ui
+	$(top_srcdir)/tools/ui2h $< ui_xml > $@
 
 #
 # liblomo
