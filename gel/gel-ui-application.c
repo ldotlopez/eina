@@ -18,16 +18,19 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
+#define HAVE_PEAS 0
+
 #include <glib/gi18n.h>
+#include "gel-ui.h"
+
+#if HAVE_PEAS
+#include <girepository.h>
 #include <libpeas/peas-engine.h>
 #include <libpeas/peas-extension-set.h>
 #include <libpeas/peas-activatable.h>
 #include <libpeasui/peas-ui-plugin-manager.h>
-#include <girepository.h>
-#include <gel/gel.h>
-#include "gel-ui-application.h"
 #include "gel-ui-pluggable.h"
+#endif
 
 G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
 
@@ -37,8 +40,10 @@ G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
 typedef struct _GelUIApplicationPrivate GelUIApplicationPrivate;
 
 struct _GelUIApplicationPrivate {
+	#if HAVE_PEAS
 	PeasEngine       *engine;
 	PeasExtensionSet *es;
+	#endif
 
 	GHashTable     *settings, *shared;
 
@@ -53,6 +58,7 @@ create_window(GtkApplication *application);
 static void
 action_activated_cb(GtkAction *action, GelUIApplication *self);
 
+#if HAVE_PEAS
 static void
 engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, GelUIApplication *self);
 static void
@@ -61,6 +67,7 @@ static void
 engine_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, GelUIApplication *self);
 static void
 engine_extension_added_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, GelUIApplication *self);
+#endif
 
 static gchar *ui_mng_str =
 "<ui>"
@@ -97,9 +104,11 @@ gel_ui_application_dispose (GObject *object)
 
 	GelUIApplicationPrivate *priv = GET_PRIVATE((GelUIApplication *) object);
 	g_return_if_fail(priv != NULL);
-
-	gel_free_and_invalidate(priv->engine,     NULL, g_object_unref);
 	
+	#if HAVE_PEAS
+	gel_free_and_invalidate(priv->engine,     NULL, g_object_unref);
+	#endif
+
 	gel_free_and_invalidate(priv->ag,         NULL, g_object_unref);
 	gel_free_and_invalidate(priv->ui_manager, NULL, g_object_unref);
 	gel_free_and_invalidate(priv->settings,   NULL, g_hash_table_destroy);
@@ -127,6 +136,7 @@ gel_ui_application_init (GelUIApplication *self)
 	priv->settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 	priv->shared   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 
+	#if HAVE_PEAS
 	gchar const * const search_paths[] = {
 		/* Uninstalled plugins */
 		"./plugins/",
@@ -145,6 +155,7 @@ gel_ui_application_init (GelUIApplication *self)
 	priv->es = peas_extension_set_new(priv->engine, GEL_UI_TYPE_PLUGGABLE);
 	g_signal_connect(priv->es, "extension-added",   (GCallback) engine_extension_added_cb,   self);
 	g_signal_connect(priv->es, "extension-removed", (GCallback) engine_extension_removed_cb, self);
+	#endif
 }
 
 static GVariant *
@@ -424,6 +435,7 @@ action_activated_cb(GtkAction *action, GelUIApplication *self)
 
 	if (g_str_equal(name, "PluginManagerItem"))
 	{
+		#if HAVE_PEAS
 		GtkDialog *dialog = (GtkDialog *) gtk_dialog_new();
 		gtk_container_add(
 			(GtkContainer *) gtk_dialog_get_content_area(dialog),
@@ -431,12 +443,14 @@ action_activated_cb(GtkAction *action, GelUIApplication *self)
 		gtk_widget_show_all((GtkWidget *) dialog);
 		gtk_dialog_run(dialog);
 		gtk_widget_destroy((GtkWidget *) dialog);
+		#endif
 		return;
 	}
 
 	g_warning(N_("Ignoring unknow action '%s'"), name);
 }
 
+#if HAVE_PEAS
 static void
 engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, GelUIApplication *self)
 {
@@ -478,4 +492,5 @@ engine_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExt
 {
 	g_warning("Extension removed for %s", peas_plugin_info_get_name(info));
 }
+#endif
 

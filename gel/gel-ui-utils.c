@@ -1,5 +1,5 @@
 /*
- * gel/gel-ui.c
+ * gel/gel-ui-utils.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Gel"
+#define GEL_DOMAIN "GelUI"
 #include "gel-ui.h"
 #include <glib/gi18n.h>
 
@@ -33,10 +33,10 @@ gel_ui_quark(void)
 /*
  * UI creation
  */
-GelUI *
+GtkBuilder *
 gel_ui_load_resource(gchar *ui_filename, GError **error)
 {
-	GelUI *ret = NULL;
+	GtkBuilder *ret = NULL;
 	gchar *ui_pathname;
 	gchar *tmp;
 
@@ -66,7 +66,7 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
  * Signal handling
  */
 gboolean
-gel_ui_signal_connect_from_def(GelUI *ui, GelUISignalDef def, gpointer data, GError **error)
+gel_ui_signal_connect_from_def(GtkBuilder *ui, GelUISignalDef def, gpointer data, GError **error)
 {
 	GObject *object;
 
@@ -83,7 +83,7 @@ gel_ui_signal_connect_from_def(GelUI *ui, GelUISignalDef def, gpointer data, GEr
 }
 
 gboolean
-gel_ui_signal_connect_from_def_multiple(GelUI *ui, GelUISignalDef defs[], gpointer data, guint *count)
+gel_ui_signal_connect_from_def_multiple(GtkBuilder *ui, GelUISignalDef defs[], gpointer data, guint *count)
 {
 	guint _count = 0;
 	gboolean ret = TRUE;

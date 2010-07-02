@@ -1,5 +1,5 @@
 /*
- * gel/gel-ui.h
+ * gel/gel-ui-utils.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,15 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GEL_UI_H
-#define _GEL_UI_H
+#ifndef _GEL_UI_UTILS_H
+#define _GEL_UI_UTILS_H
 
-#include <gtk/gtk.h>
-#include <gel/gel.h>
+#include <gel/gel-ui.h>
 
 G_BEGIN_DECLS
 
-#define GelUI GtkBuilder
+// #define GelUI GtkBuilder
 
 typedef struct GelUISignalDef
 {
@@ -52,17 +51,17 @@ enum {
 /*
  * UI creation
  */
-GelUI *
+GtkBuilder *
 gel_ui_load_resource(gchar *ui_filename, GError **error);
 
 /*
  * Signal handling
  */
 gboolean
-gel_ui_signal_connect_from_def(GelUI *ui, GelUISignalDef def, gpointer data, GError **error);
+gel_ui_signal_connect_from_def(GtkBuilder *ui, GelUISignalDef def, gpointer data, GError **error);
 
 gboolean
-gel_ui_signal_connect_from_def_multiple(GelUI *ui, GelUISignalDef defs[], gpointer data, guint *count);
+gel_ui_signal_connect_from_def_multiple(GtkBuilder *ui, GelUISignalDef defs[], gpointer data, guint *count);
 
 /*
  * Images on UI's
@@ -71,10 +70,10 @@ GdkPixbuf *
 gel_ui_load_pixbuf_from_imagedef(GelUIImageDef def, GError **error);
 
 gboolean
-gel_ui_load_image_from_def(GelUI *ui, GelUIImageDef *def, GError **error);
+gel_ui_load_image_from_def(GtkBuilder *ui, GelUIImageDef *def, GError **error);
 
 gboolean
-gel_ui_load_image_from_def_multiple(GelUI *ui, GelUIImageDef defs[], guint *count);
+gel_ui_load_image_from_def_multiple(GtkBuilder *ui, GelUIImageDef defs[], guint *count);
 
 /*
  * Widget utils
