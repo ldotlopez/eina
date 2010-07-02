@@ -4,6 +4,8 @@
 .DS_Store
 COPYING
 .*.swp
+*.orig
+*.rej
 
 # Build procress
 *.o
@@ -19,6 +21,16 @@ COPYING
 # i18n generated stuff
 *.gmo
 po/eina.pot
+
+# GSettings stuff
+data/gschemas.compiled
+*.gschema.valid
+*.gschema.xml
+*.gschema.xml.in
+
+# gobject-introspection
+*.gir
+*.typelib
 
 # Autotools stuff
 Makefile
@@ -62,14 +74,13 @@ m4/
 eina/ext/*-ui.h
 eina/ext/eina-cover-image-mask.h
 
-bindings/
-
 # Output data
 eina/lomo-player-dbus-glue.h
 data/eina-0.9.pc
 data/eina.desktop
 
 tools/plugins/
+tools/schemas/
 
 # Doc files
 docs/gtk-doc.make
