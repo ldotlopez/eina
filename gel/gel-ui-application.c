@@ -30,6 +30,8 @@
 #include <libpeas/peas-activatable.h>
 #include <libpeasui/peas-ui-plugin-manager.h>
 #include "gel-ui-pluggable.h"
+#else
+#include <gel/gel-plugin-engine.h>
 #endif
 
 G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
@@ -43,6 +45,8 @@ struct _GelUIApplicationPrivate {
 	#if HAVE_PEAS
 	PeasEngine       *engine;
 	PeasExtensionSet *es;
+	#else
+	GelPluginEngine *engine;
 	#endif
 
 	GHashTable     *settings, *shared;
@@ -104,10 +108,8 @@ gel_ui_application_dispose (GObject *object)
 
 	GelUIApplicationPrivate *priv = GET_PRIVATE((GelUIApplication *) object);
 	g_return_if_fail(priv != NULL);
-	
-	#if HAVE_PEAS
+
 	gel_free_and_invalidate(priv->engine,     NULL, g_object_unref);
-	#endif
 
 	gel_free_and_invalidate(priv->ag,         NULL, g_object_unref);
 	gel_free_and_invalidate(priv->ui_manager, NULL, g_object_unref);
@@ -155,6 +157,8 @@ gel_ui_application_init (GelUIApplication *self)
 	priv->es = peas_extension_set_new(priv->engine, GEL_UI_TYPE_PLUGGABLE);
 	g_signal_connect(priv->es, "extension-added",   (GCallback) engine_extension_added_cb,   self);
 	g_signal_connect(priv->es, "extension-removed", (GCallback) engine_extension_removed_cb, self);
+	#else
+	priv->engine = gel_plugin_engine_new();
 	#endif
 }
 

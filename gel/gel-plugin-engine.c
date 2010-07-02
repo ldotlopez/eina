@@ -1,5 +1,5 @@
 /*
- * gel/gel-app.c
+ * gel/gel-plugin-engine.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,22 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Gel::Plugin"
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif
-#include <glib.h>
-#include <glib/gprintf.h>
+#define GEL_DOMAIN "Gel::PluginEngine"
+#include "gel-plugin-engine.h"
 #include <glib/gi18n.h>
-#include <gmodule.h>
-#include <gel/gel-misc.h>
-#include <gel/gel-app.h>
-#include <gel/gel-app-marshallers.h>
 
 G_DEFINE_TYPE (GelPluginEngine, gel_plugin_engine, G_TYPE_OBJECT)
 
 #define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_TYPE_APP, GelPluginEnginePrivate))
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_TYPE_PLUGIN_ENGINE, GelPluginEnginePrivate))
 
 GEL_DEFINE_QUARK_FUNC(app)
 
@@ -103,8 +95,6 @@ gel_plugin_engine_dispose (GObject *object)
 	}
 	gel_free_and_invalidate(self->priv->stack, NULL, g_queue_free);
 
-	gel_free_and_invalidate(self->priv->settings, NULL, g_hash_table_destroy);
-
 	G_OBJECT_CLASS (gel_plugin_engine_parent_class)->dispose (object);
 }
 
@@ -151,8 +141,6 @@ gel_plugin_engine_init (GelPluginEngine *self)
 
 	priv->dispose_func = priv->dispose_data = NULL;
 	priv->paths  = NULL;
-	priv->settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
-	priv->shared   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->lookup   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->stack    = g_queue_new();
 	gel_plugin_engine_scan_plugins(self);
@@ -161,7 +149,7 @@ gel_plugin_engine_init (GelPluginEngine *self)
 GelPluginEngine*
 gel_plugin_engine_new (void)
 {
-	return g_object_new (GEL_TYPE_APP, NULL);
+	return g_object_new (GEL_TYPE_PLUGIN_ENGINE, NULL);
 }
 
 void
@@ -283,7 +271,7 @@ gel_plugin_engine_scan_plugins(GelPluginEngine *app)
 GelPlugin *
 gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError **error)
 {
- 	g_return_val_if_fail(GEL_IS_APP(self), NULL);
+ 	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
  	g_return_val_if_fail(info, NULL);
  
  	gel_warn("BEGIN LOAD '%s'", info->name);
@@ -319,7 +307,7 @@ gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError
  	}
 
 	// Load plugin itself
-	if (!(plugin = gel_plugin_new(self, info, error)))
+	if (!(plugin = gel_plugin_new_for_engine(self, info, error)))
  	{
  		gel_warn("[!] %s", info->name);
  		gel_warn("END LOAD '%s'", info->name);
@@ -407,7 +395,7 @@ gboolean
 gel_plugin_engine_unload_plugin(GelPluginEngine *self, GelPlugin *plugin, GError **error)
 {
 	const GelPluginInfo *info = NULL;
-	if (!GEL_IS_APP(self) || !plugin || !(info = gel_plugin_get_info(plugin)))
+	if (!GEL_IS_PLUGIN_ENGINE(self) || !plugin || !(info = gel_plugin_get_info(plugin)))
 	{
 		g_set_error(error, app_quark(), GEL_PLUGIN_ENGINE_ERROR_INVALID_ARGUMENTS, N_("Invalid arguments"));
 		return FALSE;

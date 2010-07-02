@@ -29,24 +29,30 @@ typedef struct _GelPluginEngine GelPluginEngine;
 #include <gel/gel-plugin.h>
 #include <gel/gel-plugin-info.h>
 
-#define GEL_TYPE_APP gel_plugin_engine_get_type()
+#define GEL_TYPE_PLUGIN_ENGINE gel_plugin_engine_get_type()
 
 #define GEL_PLUGIN_ENGINE(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), GEL_TYPE_APP, GelPluginEngine))
+	(G_TYPE_CHECK_INSTANCE_CAST ((obj), GEL_TYPE_PLUGIN_ENGINE, GelPluginEngine))
 
 #define GEL_PLUGIN_ENGINE_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), GEL_TYPE_APP, GelPluginEngineClass))
+	(G_TYPE_CHECK_CLASS_CAST ((klass), GEL_TYPE_PLUGIN_ENGINE, GelPluginEngineClass))
 
-#define GEL_IS_APP(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEL_TYPE_APP))
+#define GEL_IS_PLUGIN_ENGINE(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEL_TYPE_PLUGIN_ENGINE))
 
-#define GEL_IS_APP_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), GEL_TYPE_APP))
+#define GEL_IS_PLUGIN_ENGINE_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE ((klass), GEL_TYPE_PLUGIN_ENGINE))
 
 #define GEL_PLUGIN_ENGINE_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), GEL_TYPE_APP, GelPluginEngineClass))
+	(G_TYPE_INSTANCE_GET_CLASS ((obj), GEL_TYPE_PLUGIN_ENGINE, GelPluginEngineClass))
 
 typedef struct _GelPluginEnginePrivate GelPluginEnginePriv;
+
+typedef enum {
+	GEL_PLUGIN_ENGINE_NO_ERROR = 0,
+	GEL_PLUGIN_ENGINE_MISSING_PLUGIN_DEPS,
+	GEL_PLUGIN_ENGINE_ERROR_INVALID_ARGUMENTS
+} GelPluginEngineError;
 
 struct _GelPluginEngine {
 	GObject parent;
@@ -59,11 +65,6 @@ typedef struct {
 	void (*plugin_fini)   (GelPluginEngine *self, GelPlugin *plugin);
 } GelPluginEngineClass;
 typedef void (*GelPluginEngineDisposeFunc) (GelPluginEngine *self, gpointer data);
-
-enum {
-	GEL_PLUGIN_ENGINE_NO_ERROR = 0,
-
-};
 
 GType gel_plugin_engine_get_type (void);
 

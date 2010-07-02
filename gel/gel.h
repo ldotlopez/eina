@@ -23,6 +23,7 @@
 #include <gel/gel-app.h>
 #include <gel/gel-bind.h>
 #include <gel/gel-plugin.h>
+#include <gel/gel-plugin-engine.h>
 #include <gel/gel-plugin-info.h>
 #include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>

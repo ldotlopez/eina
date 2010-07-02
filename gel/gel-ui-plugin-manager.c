@@ -167,7 +167,7 @@ eina_plugin_dialog_init (GelUIPluginManager *self)
 	g_object_unref(builder);
 
 	// priv->info  = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_INFO, GEL_UI_PLUGIN_MANAGER_RESPONSE_INFO);
-	priv->close = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
+	// priv->close = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 }
 
 GelUIPluginManager*
