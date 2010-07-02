@@ -54,6 +54,7 @@ gel_include_HEADERS = \
     gel/gel-str-parser.h        \
     gel/gel-job-queue.h         \
     gel/gel-plugin.h            \
+	gel/gel-plugin-engine.h     \
     gel/gel-plugin-info.h       \
     gel/gel-app.h               \
     gel/gel-io-misc.h           \
@@ -63,7 +64,9 @@ gel_include_HEADERS = \
     gel/gel-io-recurse-tree.h   \
 	gel/gel-io-scanner.h        \
     gel/gel-io.h                \
-    gel/gel-ui.h
+    gel/gel-ui.h                \
+    gel/gel-ui-application.h    \
+    gel/gel-ui-utils.h
 
 gel_libgel_1_0_la_SOURCES = \
     gel/gel-bind.c              \
@@ -74,6 +77,7 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-app-marshallers.c   \
 	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \
+	gel/gel-plugin-engine.h     \
     gel/gel-plugin-info.c       \
     gel/gel-app.c               \
 	gel/gel-io-marshallers.c    \
@@ -83,7 +87,8 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-io-ops.c            \
     gel/gel-io-recurse-tree.c   \
 	gel/gel-io-scanner.c        \
-    gel/gel-ui.c
+    gel/gel-ui-application.c    \
+    gel/gel-ui-utils.c
 
 EXTRA_DIST += \
 	gel/gel-app-marshallers.list \
@@ -152,7 +157,6 @@ eina_ext_libeinaext_la_CFLAGS = @EINA_CFLAGS@
 eina_ext_libeina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
-	eina/ext/eina-application.h         \
     eina/ext/eina-cover.h               \
     eina/ext/eina-cover-image.h         \
     eina/ext/eina-file-chooser-dialog.h \
@@ -166,7 +170,6 @@ eina_ext_libeina_include_HEADERS = \
 
 eina_ext_libeinaext_la_SOURCES = \
     eina/ext/curl-engine.c              \
-	eina/ext/eina-application.c         \
     eina/ext/eina-cover.c               \
     eina/ext/eina-cover-image.c         \
     eina/ext/eina-file-chooser-dialog.c \
@@ -202,6 +205,7 @@ eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
 #
 eina_eina_CFLAGS  = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_vogon_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+
 eina_eina_app_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
 eina_eina_app_LDFLAGS = \
 	@EINA_LIBS@ \
@@ -267,9 +271,7 @@ eina_vogon_SOURCES = \
     eina/vogon-app.c
 
 eina_eina_app_SOURCES = \
-	eina/ext/eina-application.c \
-	eina/ext/eina-application.h \
-    eina/eina-app.c
+	eina/eina-app.c
 
 if BUILD_DBUS 
 eina_eina_SOURCES += \
@@ -351,6 +353,13 @@ data_applications_DATA = data/eina.desktop
 gsettings_SCHEMAS += data/net.sourceforge.eina.gschema.xml 
 
 if BUILD_PLUGINS
+
+#plugins_playerdir = $(pkglibdir)/player
+#plugins_player_LTLIBRARIES = plugins/player/libplayer.la
+#plugins_player_DATA = plugins/player/player.eina-plugin 
+#plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
+#plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@
+#plugins_player_libplayer_la_SOURCES = plugins/player/player.c
 
 #
 # Adb plugin
