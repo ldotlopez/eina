@@ -21,7 +21,6 @@
 #include "eina-cover-image.h"
 #include "eina-cover-image-mask.h"
 #include <glib/gi18n.h>
-#include <glib/gprintf.h>
 
 G_DEFINE_TYPE (EinaCoverImage, eina_cover_image, GTK_TYPE_DRAWING_AREA)
 
@@ -123,17 +122,14 @@ eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
 		cairo_pattern_destroy(f);
 	}
 
-	GdkRectangle *rects = NULL;
-	gint n_rects;
-	gdk_region_get_rectangles(ev->region, &rects, &n_rects);
-
-	gint i;
-	for (i = 0; i < n_rects; i++)
+	gint n_rects = cairo_region_num_rectangles(ev->region);
+	for (gint i = 0; i < n_rects; i++)
 	{
-		cairo_rectangle(cr, rects[i].x, rects[i].y, rects[i].width, rects[i].height);
+		cairo_rectangle_int_t rect;
+		cairo_region_get_rectangle(ev->region, i, &rect);
+		cairo_rectangle(cr, rect.x, rect.y, rect.width, rect.height);
 		cairo_paint(cr);
 	}
-	g_free(rects);
 
 	cairo_destroy(cr);
 
