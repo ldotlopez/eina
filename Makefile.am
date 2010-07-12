@@ -29,13 +29,14 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DPACKAGE_PREFIX=\""$(prefix)"\" \
 	-DPACKAGE_LIB_DIR=\"$(libdir)/$(PACKAGE)\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)/$(PACKAGE)"\"
+	-DPACKAGE_DATA_DIR=\""$(datadir)/$(PACKAGE)"\" \
+	-DHAVE_PEAS=0
 EINA_LIBS += $(INTLLIBS)
 
 gsettings_SCHEMAS =
 
 # Version X.Y must be specified
-bin_PROGRAMS = eina/eina eina/vogon eina/eina-app
+bin_PROGRAMS = eina/eina eina/vogon
 lib_LTLIBRARIES = gel/libgel-1.0.la lomo/liblomo-1.0.la
 noinst_LTLIBRARIES = eina/ext/libeinaext.la
 
@@ -54,7 +55,6 @@ gel_include_HEADERS = \
     gel/gel-str-parser.h        \
     gel/gel-job-queue.h         \
     gel/gel-plugin.h            \
-	gel/gel-plugin-engine.h     \
     gel/gel-plugin-info.h       \
     gel/gel-app.h               \
     gel/gel-io-misc.h           \
@@ -65,8 +65,6 @@ gel_include_HEADERS = \
 	gel/gel-io-scanner.h        \
     gel/gel-io.h                \
     gel/gel-ui.h                \
-    gel/gel-ui-application.h    \
-	gel/gel-ui-plugin-manager.h \
     gel/gel-ui-utils.h
 
 gel_libgel_1_0_la_SOURCES = \
@@ -78,7 +76,6 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-app-marshallers.c   \
 	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \
-	gel/gel-plugin-engine.h     \
     gel/gel-plugin-info.c       \
     gel/gel-app.c               \
 	gel/gel-io-marshallers.c    \
@@ -88,10 +85,19 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-io-ops.c            \
     gel/gel-io-recurse-tree.c   \
 	gel/gel-io-scanner.c        \
-    gel/gel-ui-application.c    \
-	gel/gel-ui-plugin-manager.c \
     gel/gel-ui-utils.c
 
+if GEL_UI_ENABLE_APPLICATION
+gel_include_HEADERS += \
+	gel/gel-plugin-engine.h     \
+	gel/gel-ui-application.h    \
+	gel/gel-ui-plugin-manager.h
+
+gel_libgel_1_0_la_SOURCES += \
+	gel/gel-plugin-engine.c     \
+	gel/gel-ui-application.c    \
+	gel/gel-ui-plugin-manager.c
+endif
 
 EXTRA_DIST += \
 	gel/gel-app-marshallers.list \
@@ -211,29 +217,6 @@ eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
 #
 # eina
 #
-eina_eina_CFLAGS  = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
-eina_vogon_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
-
-eina_eina_app_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
-eina_eina_app_LDFLAGS = \
-	@EINA_LIBS@ \
-	-L$(top_builddir)/gel/.libs  \
-	-L$(top_builddir)/lomo/.libs \
-	-lgel-1.0 -llomo-1.0
-
-eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
-	@EINA_LIBS@ \
-	-L$(top_builddir)/gel/.libs  \
-	-L$(top_builddir)/lomo/.libs \
-	-lgel-1.0 -llomo-1.0
-eina_eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
-
-eina_vogon_LDFLAGS = -export-dynamic  -module -avoid-version \
-	@EINA_LIBS@ \
-	-L$(top_builddir)/gel/.libs  \
-	-L$(top_builddir)/lomo/.libs \
-	-lgel-1.0 -llomo-1.0
-eina_vogon_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 
 eina_eina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 eina_eina_include_HEADERS = \
@@ -245,7 +228,14 @@ eina_eina_include_HEADERS = \
     eina/preferences.h \
     eina/window.h
 
-# template.{c,h} are template files to create Eina components
+eina_eina_CFLAGS  = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
+eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
+	@EINA_LIBS@ \
+	-L$(top_builddir)/gel/.libs  \
+	-L$(top_builddir)/lomo/.libs \
+	-lgel-1.0 -llomo-1.0
+eina_eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
+
 eina_eina_SOURCES = \
     eina/about.c            \
     eina/about.h            \
@@ -270,27 +260,15 @@ eina_eina_SOURCES = \
     eina/vogon.h            \
     eina/window.c
 
-eina_vogon_SOURCES = \
-    eina/eina-obj.c   \
-    eina/about.c      \
-    eina/lomo.c       \
-    eina/fs.c         \
-    eina/vogon.c      \
-    eina/vogon-app.c
-
-eina_eina_app_SOURCES = \
-	eina/eina-app.c
-
 if BUILD_DBUS 
+eina_eina_CFLAGS  += @DBUS_GLIB_CFLAGS@
+eina_eina_LDFLAGS += @DBUS_GLIB_LIBS@
 eina_eina_SOURCES += \
 	eina/dbus.c \
 	eina/dbus.h \
 	eina/lomo-player-dbus-glue.h \
 	eina/dbus-marshallers.c \
 	eina/dbus-marshallers.h
-
-eina_eina_CFLAGS  += @DBUS_GLIB_CFLAGS@
-eina_eina_LDFLAGS += @DBUS_GLIB_LIBS@
 
 eina/lomo-player-dbus-glue.h: eina/lomo-player-dbus-glue.xml
 	$(DBUS_BINDING_TOOL) --mode=glib-server --prefix=lomo_player $< > $@
@@ -311,6 +289,40 @@ if BUILD_IGE
 eina_eina_SOURCES += eina/eina-ige.c
 eina_eina_CFLAGS  += @IGE_CFLAGS@
 eina_eina_LDFLAGS += @IGE_LIBS@
+endif
+
+
+#
+# vogon
+#
+eina_vogon_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_vogon_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
+eina_vogon_LDFLAGS = -export-dynamic  -module -avoid-version \
+	@EINA_LIBS@ \
+	-L$(top_builddir)/gel/.libs  \
+	-L$(top_builddir)/lomo/.libs \
+	-lgel-1.0 -llomo-1.0
+
+eina_vogon_SOURCES = \
+    eina/eina-obj.c   \
+    eina/about.c      \
+    eina/lomo.c       \
+    eina/fs.c         \
+    eina/vogon.c      \
+    eina/vogon-app.c
+
+if GEL_UI_ENABLE_APPLICATION
+bin_PROGRAMS += eina/eina-app
+eina_eina_app_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_eina_app_LDFLAGS = \
+	@EINA_LIBS@ \
+	-L$(top_builddir)/gel/.libs  \
+	-L$(top_builddir)/lomo/.libs \
+	-lgel-1.0 -llomo-1.0
+
+eina_eina_app_SOURCES = \
+	eina/eina-app.c
+
 endif
 
 EXTRA_DIST += \

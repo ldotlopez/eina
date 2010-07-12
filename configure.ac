@@ -75,6 +75,14 @@ AC_SEARCH_LIBS([strerror],[cposix])
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h])
 
+# Detect OSX
+#AC_LANG_PUSH([Objective C])
+#OLD_AM_CFLAGS="$AM_CFLAGS"
+#AM_CFLAGS="$AM_CFLAGS -framework Cocoa"
+#AC_CHECK_HEADERS([/System/Library/Frameworks/Cocoa.framework/Headers/Cocoa.h], [HAVE_COCOA_H="yes"], [HAVE_COCOA_H="no"])
+#AM_CFLAGS="$OLD_AM_CFLAGS"
+#AC_LANG_POP([Objective C])
+
 #
 # checks for types
 #
@@ -160,7 +168,6 @@ COMMON_CFLAGS="\
 
 GLIB_VERSION="2.25.9"
 GTK_VERSION="2.90"
-PEASUI_VERSION="0.5.0"
 GSTREAMER_VERSION="0.10"
 glib_modules="\
 	glib-2.0 >= $GLIB_VERSION,    \
@@ -170,17 +177,16 @@ glib_modules="\
 gtk_modules="\
 	gtk+-3.0 >= $GTK_VERSION \
 	"
-peasui_modules="\
-	libpeasui-1.0 >= $PEASUI_VERSION \
-	"
 gstreamer_modules="\
 	gstreamer-0.10 >= $GSTREAMER_VERSION \
 	"
 
 PKG_CHECK_MODULES(GLIB,      $glib_modules)
 PKG_CHECK_MODULES(GTK,       $gtk_modules)
-PKG_CHECK_MODULES(PEASUI,    $peasui_modules)
 PKG_CHECK_MODULES(GSTREAMER, $gstreamer_modules)
+
+GDK_QUARTZ_BACKEND="`pkg-config --variable=target gdk-3.0`"
+AC_DEFINE([GDK_QUARTZ_BACKEND], [1], [Define if GDK is using the quartz backend])
 
 AC_PATH_PROG(CURL_CONFIG, curl-config)
 if test x$CURL_CONFIG = 'x'; then
@@ -196,7 +202,6 @@ AC_SUBST(CURL_LIBS)
 EINA_CFLAGS="\
 	$GLIB_CFLAGS        \
 	$GTK_CFLAGS         \
-	$PEASUI_CFLAGS      \
 	$GSTREAMER_CFLAGS   \
 	$CURL_CFLAGS        \
 	$COMMON_CFLAGS      \
@@ -206,7 +211,6 @@ EINA_CFLAGS="\
 EINA_LIBS="\
 	$GLIB_LIBS      \
 	$GTK_LIBS       \
-	$PEASUI_LIBS    \
 	$GSTREAMER_LIBS \
 	$CURL_LIBS      \
 	$COMMON_LIBS    \
@@ -394,6 +398,7 @@ fi
 dnl
 dnl Conditionals
 dnl
+AM_CONDITIONAL(GEL_UI_ENABLE_APPLICATION, "1" = "0")
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
