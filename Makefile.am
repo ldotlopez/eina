@@ -161,7 +161,6 @@ eina_ext_libeina_include_HEADERS = \
     eina/ext/eina-cover-image.h         \
     eina/ext/eina-file-chooser-dialog.h \
     eina/ext/eina-file-utils.h          \
-    eina/ext/eina-plugin-dialog.h       \
     eina/ext/eina-preferences-dialog.h  \
     eina/ext/eina-preferences-tab.h     \
     eina/ext/eina-seek.h                \
@@ -174,31 +173,22 @@ eina_ext_libeinaext_la_SOURCES = \
     eina/ext/eina-cover-image.c         \
     eina/ext/eina-file-chooser-dialog.c \
     eina/ext/eina-file-utils.c          \
-    eina/ext/eina-plugin-dialog.c       \
     eina/ext/eina-preferences-dialog.c  \
     eina/ext/eina-preferences-tab.c     \
     eina/ext/eina-seek.c                \
     eina/ext/eina-stock.c               \
     eina/ext/eina-window.c
 
-EXTRA_DIST += \
-	eina/ext/eina-plugin-dialog.ui            \
-	eina/ext/eina-plugin-properties.ui
+EXTRA_DIST += 
 
 BUILT_SOURCES += \
-	eina/ext/eina-cover-image-mask.h               \
-	eina/ext/eina-plugin-dialog-ui.h               \
-    eina/ext/eina-plugin-properties-ui.h
+	eina/ext/eina-cover-image-mask.h
 
 eina/ext/eina-cover-image-mask.h: pixmaps/cover-mask.png
 	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask $<  > $@
 
 eina/ext/eina-plugin-dialog-ui.h: eina/ext/eina-plugin-dialog.ui
 	$(top_srcdir)/tools/ui2h $< ui_xml > $@
-
-eina/ext/eina-plugin-properties-ui.h: eina/ext/eina-plugin-properties.ui
-	$(top_srcdir)/tools/ui2h $< ui_xml > $@
-
 
 #
 # eina

@@ -57,7 +57,7 @@ ACLOCAL_AMFLAGS="-I m4 ${ACLOCAL_FLAGS}"
 AC_PROG_CC
 # AC_PROG_CXX
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
-AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource-3.0)
+AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource)
 AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 
@@ -398,7 +398,7 @@ fi
 dnl
 dnl Conditionals
 dnl
-AM_CONDITIONAL(GEL_UI_ENABLE_APPLICATION, "1" = "0")
+AM_CONDITIONAL(GEL_UI_ENABLE_APPLICATION, test "1" = "0")
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")

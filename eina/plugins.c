@@ -23,8 +23,6 @@
 #include <gmodule.h>
 #include <config.h>
 #include <eina/eina-plugin.h>
-#include <eina/ext/eina-plugin-dialog.h>
-#include <eina/ext/eina-plugin-properties.h>
 
 #define EINA_PLUGINS_DOMAIN       EINA_DOMAIN".preferences.plugins"
 #define EINA_PLUGINS_PLUGINS_KEY "plugins"
@@ -226,20 +224,6 @@ response_cb(GtkWidget *w, gint response, EinaPlugins *self)
 	// GelPlugin *plugin;
 	switch (response)
 	{
-	case EINA_PLUGIN_DIALOG_RESPONSE_INFO:
-		#if 0
-		plugin = eina_plugin_dialog_get_selected_plugin(self->widget);
-		if (!plugin)
-		{
-			gel_warn(N_("No plugin selected"));
-			return;
-		}
-		EinaPluginProperties *props = eina_plugin_properties_new(plugin);
-		g_signal_connect(props, "response", (GCallback) gtk_widget_destroy, NULL);
-		gtk_widget_show((GtkWidget *) props);
-		#endif
-		break;
-
 	default:
 		self->widget = NULL;
 		disable_watch(self);
