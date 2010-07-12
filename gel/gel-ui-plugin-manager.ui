@@ -16,7 +16,7 @@
   </object>
   <object class="GtkWindow" id="main-window">
     <child>
-      <object class="GtkNotebook" id="tabs">
+      <object class="GtkNotebook" id="main-widget">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="border_width">5</property>

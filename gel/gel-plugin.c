@@ -18,28 +18,34 @@
  */
 
 #define GEL_DOMAIN "Gel::Plugin"
+#include "gel/gel.h"
+#include <glib/gi18n.h>
+#include <glib/gprintf.h>
+
+/*
 #include <gmodule.h>
 #include <glib/gprintf.h>
 #include <glib/gi18n.h>
 #include <gel/gel-misc.h>
 #include <gel/gel-plugin.h>
 #include <gel/gel-plugin-info.h>
+*/
 
 struct _GelPlugin {
-	GelPluginInfo *info;
-	GelApp        *app;
-	GModule       *module;
-	GList         *references;
-	gchar         *stringified;
-	gboolean (*init) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Init function
-	gboolean (*fini) (GelApp *app, struct _GelPlugin *plugin, GError **error); // Exit function
+	GelPluginInfo   *info;
+	GelPluginEngine *engine;
+	GModule         *module;
+	GList           *references;
+	gchar           *stringified;
+	gboolean (*init) (GelPluginEngine *engine, struct _GelPlugin *plugin, GError **error); // Init function
+	gboolean (*fini) (GelPluginEngine *engine, struct _GelPlugin *plugin, GError **error); // Exit function
 	gpointer data;
 };
 
 GEL_DEFINE_QUARK_FUNC(plugin);
 
 GelPlugin*
-gel_plugin_new(GelApp *app, GelPluginInfo *info, GError **error)
+gel_plugin_new(GelPluginEngine *engine, GelPluginInfo *info, GError **error)
 {
 	if (!g_module_supported())
 	{
@@ -88,18 +94,18 @@ gel_plugin_new(GelApp *app, GelPluginInfo *info, GError **error)
 	plugin->info     = gel_plugin_info_dup(info);
 	plugin->init     = init;
 	plugin->fini     = fini;
-	plugin->app      = app;
+	plugin->engine   = engine;
 	plugin->module   = mod;
 	plugin->references = NULL;
 
-	if (!plugin->init(app, plugin, error))
+	if (!plugin->init(engine, plugin, error))
 	{
 		g_module_close(plugin->module);
 		g_free(plugin);
 		return NULL;
 	}
 
-	gel_app_priv_run_init(app, plugin);
+	gel_plugin_engine_priv_run_init(engine, plugin);
 	return plugin;
 }
 
@@ -117,14 +123,14 @@ gel_plugin_free(GelPlugin *self, GError **error)
 		return FALSE;
 	}
 
-	if (self->fini && !self->fini(self->app, self, error))
+	if (self->fini && !self->fini(self->engine, self, error))
 	{	
 		if (error && !*error)
 			g_warning(N_("fini hook failed without a reason"));
 		return FALSE;
 	}
 
-	gel_app_priv_run_fini(self->app, self);
+	gel_plugin_engine_priv_run_fini(self->engine, self);
 
 	gel_free_and_invalidate(self->stringified, NULL, g_free);
 	gel_plugin_info_free(self->info);
@@ -200,10 +206,10 @@ gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 	 gel_warn("[@] '%s' w '%s'", dependant->info->name, self->info->name);
 }
 
-GelApp *
-gel_plugin_get_app(GelPlugin *self)
+GelPluginEngine *
+gel_plugin_get_engine(GelPlugin *self)
 {
-	return self->app;
+	return self->engine;
 }
 
 const gchar *

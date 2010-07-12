@@ -18,7 +18,7 @@
  */
 
 #define GEL_DOMAIN "Gel::PluginEngine"
-#include "gel-plugin-engine.h"
+#include "gel/gel.h"
 #include <glib/gi18n.h>
 
 G_DEFINE_TYPE (GelPluginEngine, gel_plugin_engine, G_TYPE_OBJECT)
@@ -26,21 +26,22 @@ G_DEFINE_TYPE (GelPluginEngine, gel_plugin_engine, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_TYPE_PLUGIN_ENGINE, GelPluginEnginePrivate))
 
-GEL_DEFINE_QUARK_FUNC(app)
+GEL_DEFINE_QUARK_FUNC(plugin_engine)
 
 static GList*
 build_paths(void);
-
-#define is_owned(self,plugin) \
-	((gel_plugin_get_app(plugin) == self) && (g_hash_table_lookup(self->priv->lookup, gel_plugin_stringify(plugin)) != NULL))
 
 struct _GelPluginEnginePrivate {
 	GelPluginEngineDisposeFunc dispose_func;
 	gpointer  dispose_data;
 
+	gpointer   user_data;
+
 	GList      *paths;    // Paths to search plugins
 	GList      *infos;    // Cached GelPluginInfo list
 
+	GHashTable *settings; // Settings table
+	GHashTable *shared;   // Shared memory
 	GHashTable *lookup;   // Fast lookup table
 	GQueue     *stack;
 };
@@ -95,6 +96,8 @@ gel_plugin_engine_dispose (GObject *object)
 	}
 	gel_free_and_invalidate(self->priv->stack, NULL, g_queue_free);
 
+	gel_free_and_invalidate(self->priv->settings, NULL, g_hash_table_destroy);
+
 	G_OBJECT_CLASS (gel_plugin_engine_parent_class)->dispose (object);
 }
 
@@ -140,16 +143,20 @@ gel_plugin_engine_init (GelPluginEngine *self)
 	GelPluginEnginePriv *priv = self->priv = g_new0(GelPluginEnginePriv, 1);
 
 	priv->dispose_func = priv->dispose_data = NULL;
-	priv->paths  = NULL;
+	priv->paths    = NULL;
+	priv->settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	priv->shared   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->lookup   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->stack    = g_queue_new();
 	gel_plugin_engine_scan_plugins(self);
 }
 
 GelPluginEngine*
-gel_plugin_engine_new (void)
+gel_plugin_engine_new (gpointer user_data)
 {
-	return g_object_new (GEL_TYPE_PLUGIN_ENGINE, NULL);
+	GelPluginEngine *self = g_object_new (GEL_TYPE_PLUGIN_ENGINE, NULL);
+	self->priv->user_data = user_data;
+	return self;
 }
 
 void
@@ -295,7 +302,7 @@ gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError
  			GError *err = NULL;
 			if (!gel_plugin_engine_load_plugin_by_name(self, deps[i], &err))
 			{
- 				g_set_error(error, app_quark(), GEL_PLUGIN_ENGINE_MISSING_PLUGIN_DEPS,
+ 				g_set_error(error, plugin_engine_quark(), GEL_PLUGIN_ENGINE_MISSING_PLUGIN_DEPS,
  					N_("Failed to load plugin dependency '%s' for '%s': %s"), deps[i], info->name, err->message);
  				g_error_free(err);
  				g_strfreev(deps);
@@ -307,7 +314,7 @@ gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError
  	}
 
 	// Load plugin itself
-	if (!(plugin = gel_plugin_new_for_engine(self, info, error)))
+	if (!(plugin = gel_plugin_new(self, info, error)))
  	{
  		gel_warn("[!] %s", info->name);
  		gel_warn("END LOAD '%s'", info->name);
@@ -377,7 +384,7 @@ gel_plugin_engine_load_plugin_by_name(GelPluginEngine *self, gchar *name, GError
 	// Try to load from NULL
 	if ((info == NULL) && !(info = gel_plugin_info_new(NULL, name, NULL)))
 	{
-		g_set_error(error, app_quark(), GEL_PLUGIN_INFO_NOT_FOUND,
+		g_set_error(error, plugin_engine_quark(), GEL_PLUGIN_ENGINE_INFO_NOT_FOUND,
 			N_("GelPluginInfo for '%s' not found"), name);
 		return NULL;
 	}
@@ -397,7 +404,7 @@ gel_plugin_engine_unload_plugin(GelPluginEngine *self, GelPlugin *plugin, GError
 	const GelPluginInfo *info = NULL;
 	if (!GEL_IS_PLUGIN_ENGINE(self) || !plugin || !(info = gel_plugin_get_info(plugin)))
 	{
-		g_set_error(error, app_quark(), GEL_PLUGIN_ENGINE_ERROR_INVALID_ARGUMENTS, N_("Invalid arguments"));
+		g_set_error(error, plugin_engine_quark(), GEL_PLUGIN_ENGINE_ERROR_INVALID_ARGUMENTS, N_("Invalid arguments"));
 		return FALSE;
 	}
 
@@ -441,6 +448,57 @@ gel_plugin_engine_purge(GelPluginEngine *app)
 	}
 	g_list_free(plugins);
 #endif
+}
+
+// --
+// Shared memory management
+// --
+gboolean gel_plugin_engine_shared_set
+(GelPluginEngine *self, gchar *name, gpointer data)
+{
+	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), FALSE);
+	g_return_val_if_fail(name != NULL, FALSE);
+	g_return_val_if_fail(g_hash_table_lookup(self->priv->shared, name) == NULL, FALSE);
+
+	g_hash_table_insert(self->priv->shared, g_strdup(name), data);
+	return TRUE;
+}
+
+gpointer gel_plugin_engine_shared_get
+(GelPluginEngine *self, gchar *name)
+{
+	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), FALSE);
+	g_return_val_if_fail(name != NULL, FALSE);
+
+	gpointer ret = g_hash_table_lookup(self->priv->shared, name);
+	g_return_val_if_fail(ret != NULL, FALSE);
+
+	return ret;
+}
+
+void
+gel_plugin_engine_shared_free(GelApp *self, gchar *name)
+{
+	g_return_if_fail(GEL_IS_PLUGIN_ENGINE(self));
+	g_return_if_fail(name != NULL);
+
+	g_warn_if_fail(g_hash_table_lookup(self->priv->shared, name) != NULL);
+	g_hash_table_remove(self->priv->shared, name);
+}
+
+GSettings *
+gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain)
+{
+	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
+	g_return_val_if_fail(domain, NULL);
+
+	GSettings *settings = g_hash_table_lookup(self->priv->settings, domain);
+	if (!settings)
+	{
+		settings = g_settings_new(domain);
+		g_hash_table_insert(self->priv->settings, g_strdup(domain), settings);
+	}
+	return G_SETTINGS(settings);
 }
 
 // --

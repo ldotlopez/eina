@@ -1,5 +1,5 @@
 /*
- * gel/gel-app.h
+ * gel/gel-plugin-engine.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -20,14 +20,13 @@
 #ifndef _GEL_PLUGIN_ENGINE_H
 #define _GEL_PLUGIN_ENGINE_H
 
-#include <glib-object.h>
+#include <glib.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
 
 typedef struct _GelPluginEngine GelPluginEngine;
 #include <gel/gel-plugin.h>
-#include <gel/gel-plugin-info.h>
 
 #define GEL_TYPE_PLUGIN_ENGINE gel_plugin_engine_get_type()
 
@@ -51,7 +50,8 @@ typedef struct _GelPluginEnginePrivate GelPluginEnginePriv;
 typedef enum {
 	GEL_PLUGIN_ENGINE_NO_ERROR = 0,
 	GEL_PLUGIN_ENGINE_MISSING_PLUGIN_DEPS,
-	GEL_PLUGIN_ENGINE_ERROR_INVALID_ARGUMENTS
+	GEL_PLUGIN_ENGINE_ERROR_INVALID_ARGUMENTS,
+	GEL_PLUGIN_ENGINE_INFO_NOT_FOUND
 } GelPluginEngineError;
 
 struct _GelPluginEngine {
@@ -68,7 +68,7 @@ typedef void (*GelPluginEngineDisposeFunc) (GelPluginEngine *self, gpointer data
 
 GType gel_plugin_engine_get_type (void);
 
-GelPluginEngine* gel_plugin_engine_new (void);
+GelPluginEngine* gel_plugin_engine_new (gpointer user_data);
 
 void gel_plugin_engine_set_dispose_callback(GelPluginEngine *self, GelPluginEngineDisposeFunc callback, gpointer user_data);
 
@@ -86,10 +86,42 @@ GList     *gel_plugin_engine_query_plugins(GelPluginEngine *app);
 gboolean   gel_plugin_engine_unload_plugin(GelPluginEngine *self, GelPlugin *plugin, GError **error);
 void       gel_plugin_engine_purge(GelPluginEngine *self);
 
+void     gel_plugin_engine_shared_free(GelPluginEngine *self, gchar *name);
+gboolean gel_plugin_engine_shared_set(GelPluginEngine *self, gchar *name, gpointer data);
+gpointer gel_plugin_engine_shared_get(GelPluginEngine *self, gchar *name);
+
+GSettings *gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain);
+
 #if (defined GEL_COMPILATION) && (defined _GEL_PLUGIN_H)
 void gel_plugin_engine_priv_run_init(GelPluginEngine *self, GelPlugin *plugin);
 void gel_plugin_engine_priv_run_fini(GelPluginEngine *self, GelPlugin *plugin);
 #endif
+
+
+// GelApp compatibility
+typedef GelPluginEngine GelApp;
+typedef GelPluginEngineDisposeFunc GelAppDisposeFunc;
+#define GEL_APP(o)    GEL_PLUGIN_ENGINE(o)
+#define GEL_IS_APP(o) GEL_IS_PLUGIN_ENGINE(o)
+#define GEL_TYPE_APP  GEL_TYPE_PLUGIN_ENGINE
+
+#define gel_app_new()                gel_plugin_engine_new(NULL)
+#define gel_app_load_plugin_by_name(o,n,e)     gel_plugin_engine_load_plugin_by_name(o,n,e)
+#define gel_app_load_plugin_by_pathname(o,n,e) gel_plugin_engine_load_plugin_by_pathname(o,n,e)
+#define gel_app_load_plugin(o,i,e)   gel_plugin_engine_load_plugin(o,i,e)
+#define gel_app_unload_plugin(o,p,e) gel_plugin_engine_unload_plugin(o,p,e)
+
+#define gel_app_query_plugins(o)     gel_plugin_engine_query_plugins(o)
+#define gel_app_get_plugins(o)       gel_plugin_engine_get_plugins(o)
+#define gel_app_scan_plugins(o)      gel_plugin_engine_scan_plugins(o)
+#define gel_app_get_plugin(o,i)      gel_plugin_engine_get_plugin(o,i)
+
+#define gel_app_set_dispose_callback(o,c,d) gel_plugin_engine_set_dispose_callback(o,c,d)
+
+#define gel_app_shared_get(o,k)      gel_plugin_engine_shared_get(o,k)
+#define gel_app_shared_set(o,k,p)    gel_plugin_engine_shared_set(o,k,p)
+#define gel_app_shared_free(o,k)     gel_plugin_engine_shared_free(o,k)
+#define gel_app_get_settings(o,d)    gel_plugin_engine_get_settings(o,d)
 
 G_END_DECLS
 

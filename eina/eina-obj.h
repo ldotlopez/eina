@@ -71,9 +71,10 @@ eina_obj_strip(EinaObj *self, EinaObjFlag flags);
 // Prefered way of access internals
 #define EINA_OBJ(s)    ((EinaObj *)s)
 #define eina_obj_get_app(self)    gel_plugin_get_app(eina_obj_get_plugin(self))
+#define eina_obj_get_engine(self) gel_plugin_get_engine(eina_obj_get_plugin(self))
 #define eina_obj_get_plugin(self) EINA_OBJ(self)->plugin
 #define eina_obj_get_ui(self)     EINA_OBJ(self)->ui
-#define eina_obj_get_settings(self,domain) gel_app_get_settings(eina_obj_get_app(self), domain)
+#define eina_obj_get_settings(self,domain) gel_plugin_engine_get_settings(eina_obj_get_engine(self), domain)
 #define eina_obj_get_object(self,name)     gtk_builder_get_object(eina_obj_get_ui(self),name)
 #define eina_obj_get_typed(self,type,name) type(eina_obj_get_object(self,name))
 #define eina_obj_get_widget(self,name)     eina_obj_get_typed(self,GTK_WIDGET,name)

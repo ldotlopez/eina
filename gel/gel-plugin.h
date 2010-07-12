@@ -21,13 +21,17 @@
 #define _GEL_PLUGIN_H
 
 #include <glib.h>
+/*
+ * We cant include gel/gel.h because GelPluginEngine and GelPlugin have
+ * mutual deps. We use a dirty trick after G_BEGIN_DECLS
+ */
 
 G_BEGIN_DECLS
 
 typedef struct _GelPlugin       GelPlugin;
 
-#include <gel/gel-app.h>
 #include <gel/gel-plugin-info.h>
+#include <gel/gel-plugin-engine.h>
 #include <gel/gel-misc.h>
 
 #define GEL_PLUGIN(p)     ((GelPlugin *) p)
@@ -49,7 +53,7 @@ typedef enum {
 } GelPluginError;
 
 #ifdef GEL_COMPILATION
-GelPlugin* gel_plugin_new (GelApp *app, GelPluginInfo *info, GError **error);
+GelPlugin* gel_plugin_new (GelPluginEngine *engine, GelPluginInfo *info, GError **error);
 gboolean   gel_plugin_free(GelPlugin *plugin, GError **error);
 
 void     gel_plugin_add_reference(GelPlugin *plugin, GelPlugin *dependant);
@@ -63,7 +67,7 @@ void                 gel_plugin_set_data(GelPlugin *plugin, gpointer data);
 gboolean gel_plugin_is_in_use(GelPlugin *plugin);
 guint    gel_plugin_get_usage(GelPlugin *plugin);
 
-GelApp*      gel_plugin_get_app     (GelPlugin *plugin);
+GelPluginEngine* gel_plugin_get_engine  (GelPlugin *plugin);
 const gchar* gel_plugin_stringify   (GelPlugin *plugin);
 gboolean     gel_plugin_is_enabled  (GelPlugin *plugin);
 
@@ -81,6 +85,8 @@ gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 #ifdef GEL_PLUGIN_DATA_TYPE
 #define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) gel_plugin_get_data(GEL_PLUGIN(p)))
 #endif
+
+#define gel_plugin_get_app(o) gel_plugin_get_engine(o)
 
 #endif
 

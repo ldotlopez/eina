@@ -36,8 +36,8 @@ typedef struct {
 	GtkActionGroup *action_group;
 	guint           ui_mng_merge;
 
-	EinaPluginDialog *widget;
-	gboolean watching;
+	GtkDialog *widget;
+	gboolean   watching;
 } EinaPlugins;
 
 static void
@@ -197,8 +197,22 @@ action_activated_cb(GtkAction *action, EinaPlugins *self)
 
 	if (g_str_equal(name, "plugins-action"))
 	{
-		self->widget = eina_plugin_dialog_new(eina_obj_get_app(EINA_OBJ(self)));
-		gtk_widget_show((GtkWidget *) self->widget);
+		self->widget = (GtkDialog *) gtk_dialog_new_with_buttons(
+			N_("Select plugins"),
+			GTK_WINDOW(eina_obj_get_window(self)),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
+			NULL);
+		gtk_container_add(
+			GTK_CONTAINER(gtk_dialog_get_content_area(self->widget)),
+			GTK_WIDGET(gel_ui_plugin_manager_new(eina_obj_get_app(self))));
+
+		GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(self->widget));
+		gint w = gdk_screen_get_width(screen)  / 4;
+		gint h = gdk_screen_get_height(screen) / 2;
+		gtk_window_resize(GTK_WINDOW(self->widget), w, h);
+		gtk_widget_show_all((GtkWidget *) self->widget);
+
 		enable_watch(self);
 		g_signal_connect(self->widget, "response", (GCallback) response_cb, self);
 	}

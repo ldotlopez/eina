@@ -20,14 +20,16 @@
 #ifndef _GEL_H
 #define _GEL_H
 
-#include <gel/gel-app.h>
-#include <gel/gel-bind.h>
+#include <glib.h>
+#include <glib-object.h>
+#include <gmodule.h>
+
+#include <gel/gel-job-queue.h>
+#include <gel/gel-misc.h>
 #include <gel/gel-plugin.h>
 #include <gel/gel-plugin-engine.h>
 #include <gel/gel-plugin-info.h>
 #include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>
-#include <gel/gel-job-queue.h>
-#include <gel/gel-misc.h>
 
 #endif // _GEL_H

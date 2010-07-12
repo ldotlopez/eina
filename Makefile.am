@@ -49,14 +49,13 @@ gel_libgel_1_0_la_CFLAGS = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@
 gel_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel
 gel_include_HEADERS = \
 	gel/gel.h                   \
-    gel/gel-bind.h              \
     gel/gel-misc.h              \
     gel/gel-string.h            \
     gel/gel-str-parser.h        \
     gel/gel-job-queue.h         \
     gel/gel-plugin.h            \
+	gel/gel-plugin-engine.h     \
     gel/gel-plugin-info.h       \
-    gel/gel-app.h               \
     gel/gel-io-misc.h           \
     gel/gel-io-tree.h           \
     gel/gel-io-op-result.h      \
@@ -65,19 +64,17 @@ gel_include_HEADERS = \
 	gel/gel-io-scanner.h        \
     gel/gel-io.h                \
     gel/gel-ui.h                \
+	gel/gel-ui-plugin-manager.h \
     gel/gel-ui-utils.h
 
 gel_libgel_1_0_la_SOURCES = \
-    gel/gel-bind.c              \
     gel/gel-misc.c              \
     gel/gel-string.c            \
     gel/gel-str-parser.c        \
     gel/gel-job-queue.c         \
-    gel/gel-app-marshallers.c   \
-	gel/gel-app-marshallers.h   \
     gel/gel-plugin.c            \
+	gel/gel-plugin-engine.c     \
     gel/gel-plugin-info.c       \
-    gel/gel-app.c               \
 	gel/gel-io-marshallers.c    \
     gel/gel-io-misc.c           \
     gel/gel-io-tree.c           \
@@ -85,37 +82,26 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-io-ops.c            \
     gel/gel-io-recurse-tree.c   \
 	gel/gel-io-scanner.c        \
+	gel/gel-plugin-engine.h     \
+	gel/gel-ui-plugin-manager.c \
     gel/gel-ui-utils.c
 
 if GEL_UI_ENABLE_APPLICATION
 gel_include_HEADERS += \
-	gel/gel-plugin-engine.h     \
-	gel/gel-ui-application.h    \
-	gel/gel-ui-plugin-manager.h
+	gel/gel-ui-application.h
 
 gel_libgel_1_0_la_SOURCES += \
-	gel/gel-plugin-engine.c     \
-	gel/gel-ui-application.c    \
-	gel/gel-ui-plugin-manager.c
+	gel/gel-ui-application.c
 endif
 
 EXTRA_DIST += \
-	gel/gel-app-marshallers.list \
 	gel/gel-io-marshallers.list  \
 	gel/gel-ui-plugin-manager.ui
 
 BUILT_SOURCES += \
-	gel/gel-app-marshallers.h \
-	gel/gel-app-marshallers.c \
 	gel/gel-io-marshallers.h  \
 	gel/gel-io-marshallers.c  \
 	gel/gel-ui-plugin-manager-ui.h
-
-gel/gel-app-marshallers.h: gel/gel-app-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header > $@
-
-gel/gel-app-marshallers.c: gel/gel-app-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=gel_app_marshal --header --body > $@
 
 gel/gel-io-marshallers.h: gel/gel-io-marshallers.list
 	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header > $@

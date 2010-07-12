@@ -17,17 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GEL_MISC_H_
-#define _GEL_MISC_H_
+#ifndef __GEL_MISC_H__
+#define __GEL_MISC_H__
 
-#include <glib.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
 
-// --
-// Types
-// --
 typedef enum GelDebugLevel
 {
 	GEL_DEBUG_LEVEL_SEVERE  = 0,
@@ -254,5 +250,5 @@ gel_debug_real  (const gchar *domain, GelDebugLevel level, const char *func, con
 
 G_END_DECLS
 
-#endif // _GEL_MISC_H
+#endif // __GEL_MISC_H__
 

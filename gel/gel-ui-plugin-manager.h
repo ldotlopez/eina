@@ -32,11 +32,11 @@ G_BEGIN_DECLS
 #define GEL_UI_PLUGIN_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GEL_UI_TYPE_PLUGIN_MANAGER, GelUIPluginManagerClass))
 
 typedef struct {
-	GtkWidget parent;
+	GtkBox parent;
 } GelUIPluginManager;
 
 typedef struct {
-	GtkWidgetClass parent_class;
+	GtkBoxClass parent_class;
 } GelUIPluginManagerClass;
 
 enum {
@@ -46,7 +46,7 @@ enum {
 GType gel_ui_plugin_manager_get_type (void);
 
 GelUIPluginManager *
-gel_ui_plugin_manager_new (GelApp *app);
+gel_ui_plugin_manager_new (GelPluginEngine *engine);
 
 GelPluginEngine *
 gel_ui_plugin_manager_get_engine(GelUIPluginManager *self);

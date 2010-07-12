@@ -22,7 +22,7 @@
 #include "gel-ui-plugin-manager.h"
 #include "gel-ui-plugin-manager-ui.h"
 
-G_DEFINE_TYPE (GelUIPluginManager, eina_plugin_dialog, GTK_TYPE_WIDGET)
+G_DEFINE_TYPE (GelUIPluginManager, gel_ui_plugin_manager, GTK_TYPE_BOX)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_UI_TYPE_PLUGIN_MANAGER, GelUIPluginManagerPrivate))
@@ -30,7 +30,7 @@ G_DEFINE_TYPE (GelUIPluginManager, eina_plugin_dialog, GTK_TYPE_WIDGET)
 typedef struct _GelUIPluginManagerPrivate GelUIPluginManagerPrivate;
 
 struct _GelUIPluginManagerPrivate {
-	GelPluginEngine *app;
+	GelPluginEngine *engine;
 
 	GList       *infos;
 	GtkTreeView *tv;
@@ -50,7 +50,7 @@ enum {
 };
 
 static void
-set_engine(GelUIPluginManager *self, GelPluginEngine *app);
+set_engine(GelUIPluginManager *self, GelPluginEngine *engine);
 
 static void
 insert_info(GelUIPluginManager *self, GtkListStore *model, GtkTreeIter *iter, GelPluginInfo *info);
@@ -63,12 +63,12 @@ get_iter_from_info(GelUIPluginManager *self, GtkTreeIter *iter, GelPluginInfo *i
 static void
 enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, GelUIPluginManager *self);
 static void
-plugin_init_cb(GelPluginEngine *app, GelPlugin *plugin, GelUIPluginManager *self);
+plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, GelUIPluginManager *self);
 static void
-plugin_fini_cb(GelPluginEngine *app, GelPlugin *plugin, GelUIPluginManager *self);
+plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, GelUIPluginManager *self);
 
 static void
-eina_plugin_dialog_get_property (GObject *object, guint property_id,
+gel_ui_plugin_manager_get_property (GObject *object, guint property_id,
 		                          GValue *value, GParamSpec *pspec)
 {
 	GelUIPluginManager *self = GEL_UI_PLUGIN_MANAGER(object);
@@ -84,7 +84,7 @@ eina_plugin_dialog_get_property (GObject *object, guint property_id,
 }
 
 static void
-eina_plugin_dialog_set_property (GObject *object, guint property_id,
+gel_ui_plugin_manager_set_property (GObject *object, guint property_id,
 		                          const GValue *value, GParamSpec *pspec)
 {
 	GelUIPluginManager *self = GEL_UI_PLUGIN_MANAGER(object);
@@ -100,16 +100,16 @@ eina_plugin_dialog_set_property (GObject *object, guint property_id,
 }
 
 static void
-eina_plugin_dialog_dispose (GObject *object)
+gel_ui_plugin_manager_dispose (GObject *object)
 {
 	GelUIPluginManager *self = GEL_UI_PLUGIN_MANAGER(object);
 	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
 	
-	if (priv->app)
+	if (priv->engine)
 	{
-		g_signal_handlers_disconnect_by_func(priv->app, plugin_init_cb, self);
-		g_signal_handlers_disconnect_by_func(priv->app, plugin_fini_cb, self);
-		priv->app = NULL;
+		g_signal_handlers_disconnect_by_func(priv->engine, plugin_init_cb, self);
+		g_signal_handlers_disconnect_by_func(priv->engine, plugin_fini_cb, self);
+		priv->engine = NULL;
 	}
 
 	if (priv->infos)
@@ -118,33 +118,33 @@ eina_plugin_dialog_dispose (GObject *object)
 		priv->infos = NULL;
 	}
 
-	G_OBJECT_CLASS (eina_plugin_dialog_parent_class)->dispose (object);
+	G_OBJECT_CLASS (gel_ui_plugin_manager_parent_class)->dispose (object);
 }
 
 static void
-eina_plugin_dialog_class_init (GelUIPluginManagerClass *klass)
+gel_ui_plugin_manager_class_init (GelUIPluginManagerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GelUIPluginManagerPrivate));
 
-	object_class->get_property = eina_plugin_dialog_get_property;
-	object_class->set_property = eina_plugin_dialog_set_property;
-	object_class->dispose = eina_plugin_dialog_dispose;
+	object_class->get_property = gel_ui_plugin_manager_get_property;
+	object_class->set_property = gel_ui_plugin_manager_set_property;
+	object_class->dispose = gel_ui_plugin_manager_dispose;
 
 	g_object_class_install_property(object_class, PROPERTY_APP,
-		g_param_spec_object("app", "Gel App", "GelPluginEngine object to handleto display",
-		GEL_TYPE_APP, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT
+		g_param_spec_object("engine", "Gel Plugin Engine", "GelPluginEngine object to handleto display",
+		GEL_TYPE_PLUGIN_ENGINE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT
 		));
 }
 
 static void
-eina_plugin_dialog_init (GelUIPluginManager *self)
+gel_ui_plugin_manager_init (GelUIPluginManager *self)
 {
 	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
 
 	// Build UI
-	gchar *objs[] = { "tabs", "liststore", NULL };
+	gchar *objs[] = { "main-widget", "liststore", NULL };
 	GError *error = NULL;
 	GtkBuilder *builder = gtk_builder_new();
 	if (gtk_builder_add_objects_from_string(builder, ui_xml, -1, objs, &error) == 0)
@@ -155,14 +155,13 @@ eina_plugin_dialog_init (GelUIPluginManager *self)
 	}
 
 	gtk_container_add(
-		(GtkContainer *) gtk_dialog_get_content_area((GtkDialog *) self),
-		(GtkWidget    *)  gtk_builder_get_object(builder, "tabs"));
+		GTK_CONTAINER(self),
+		GTK_WIDGET(gtk_builder_get_object(builder, "main-widget")));
 
 	priv->tv = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview"));
-	priv->tabs = GTK_NOTEBOOK(gtk_builder_get_object(builder, "tabs"));
+	priv->tabs = GTK_NOTEBOOK(gtk_builder_get_object(builder, "main-widget"));
 
 	g_signal_connect(gtk_builder_get_object(builder, "enabled-renderer"), "toggled", (GCallback) enabled_renderer_toggled_cb, self);
-	g_object_set(self, "title", N_("Select plugins"), NULL);
 
 	g_object_unref(builder);
 
@@ -171,31 +170,31 @@ eina_plugin_dialog_init (GelUIPluginManager *self)
 }
 
 GelUIPluginManager*
-eina_plugin_dialog_new (GelPluginEngine *app)
+gel_ui_plugin_manager_new (GelPluginEngine *engine)
 {
-	return g_object_new (GEL_UI_TYPE_PLUGIN_MANAGER, "app", app, NULL);
+	return g_object_new (GEL_UI_TYPE_PLUGIN_MANAGER, "engine", engine, NULL);
 }
 
 GelPluginEngine *
-eina_plugin_dialog_get_app(GelUIPluginManager *self)
+gel_ui_plugin_manager_get_engine(GelUIPluginManager *self)
 {
-	return GET_PRIVATE(self)->app;
+	return GET_PRIVATE(self)->engine;
 }
 
 static void
-set_engine(GelUIPluginManager *self, GelPluginEngine *app)
+set_engine(GelUIPluginManager *self, GelPluginEngine *engine)
 {
 	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
-	g_return_if_fail(priv->app == NULL);
-	g_return_if_fail(app != NULL);
+	g_return_if_fail(priv->engine == NULL);
+	g_return_if_fail(engine != NULL);
 
-	priv->app = app;
+	priv->engine = engine;
 
 	// Get Infos
 	gel_list_deep_free(priv->infos, gel_plugin_info_free);
 
-	gel_plugin_engine_scan_plugins(priv->app);
-	priv->infos = g_list_sort(gel_plugin_engine_query_plugins(priv->app), (GCompareFunc) gel_plugin_info_cmp);
+	gel_plugin_engine_scan_plugins(priv->engine);
+	priv->infos = g_list_sort(gel_plugin_engine_query_plugins(priv->engine), (GCompareFunc) gel_plugin_info_cmp);
 
 	// Tabs
 	gtk_notebook_set_show_tabs(priv->tabs, FALSE);
@@ -223,20 +222,14 @@ set_engine(GelUIPluginManager *self, GelPluginEngine *app)
 		l = l->next;
 	}
 
-	// Set appropiate size
-	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(self));
-	gint w = gdk_screen_get_width(screen)  / 4;
-	gint h = gdk_screen_get_height(screen) / 2;
-	gtk_window_resize(GTK_WINDOW(self), w, h);
-
 	// Watch in/out plugins
-	g_signal_connect(app,  "plugin-init", (GCallback) plugin_init_cb, self);
-	g_signal_connect(app,  "plugin-fini", (GCallback) plugin_fini_cb, self);
+	g_signal_connect(engine,  "plugin-init", (GCallback) plugin_init_cb, self);
+	g_signal_connect(engine,  "plugin-fini", (GCallback) plugin_fini_cb, self);
 }
 
 
 GelPlugin *
-eina_plugin_dialog_get_selected_plugin(GelUIPluginManager *self)
+gel_ui_plugin_manager_get_selected_plugin(GelUIPluginManager *self)
 {
 	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
 
@@ -293,7 +286,7 @@ insert_info(GelUIPluginManager *self, GtkListStore *model, GtkTreeIter *iter, Ge
 		);
 
 	gtk_list_store_set(model, iter,
-		COLUMN_ENABLED, (gel_plugin_engine_get_plugin(GET_PRIVATE(self)->app, info) != NULL), 
+		COLUMN_ENABLED, (gel_plugin_engine_get_plugin(GET_PRIVATE(self)->engine, info) != NULL), 
 		COLUMN_ICON,    pb,
 		COLUMN_MARKUP,  markup,
 		COLUMN_INFO,    info,
@@ -334,15 +327,15 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, GelUIPlu
 		COLUMN_INFO, &info,
 		-1);
 
-	GelPlugin *plugin = gel_plugin_engine_get_plugin(priv->app, info);
+	GelPlugin *plugin = gel_plugin_engine_get_plugin(priv->engine, info);
 	if (plugin)
 	{
-		gel_plugin_engine_unload_plugin(priv->app, plugin, NULL);
+		gel_plugin_engine_unload_plugin(priv->engine, plugin, NULL);
 	}
 	else
 	{
 		GError *error = NULL;
-		if (!gel_plugin_engine_load_plugin(priv->app, info, &error))
+		if (!gel_plugin_engine_load_plugin(priv->engine, info, &error))
 		{
 			g_warning(N_("Cannot load plugin %s: %s"), info->name, error->message);
 			g_error_free(error);
@@ -351,13 +344,13 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, GelUIPlu
 }
 
 static void
-plugin_init_cb(GelPluginEngine *app, GelPlugin *plugin, GelUIPluginManager *self)
+plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, GelUIPluginManager *self)
 {
 	update_info(self, (GelPluginInfo *) gel_plugin_get_info(plugin), TRUE);
 }
 
 static void
-plugin_fini_cb(GelPluginEngine *app, GelPlugin *plugin, GelUIPluginManager *self)
+plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, GelUIPluginManager *self)
 {
 	update_info(self, (GelPluginInfo *) gel_plugin_get_info(plugin), FALSE);
 }
