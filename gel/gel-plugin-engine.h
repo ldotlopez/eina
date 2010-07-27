@@ -68,7 +68,7 @@ typedef void (*GelPluginEngineDisposeFunc) (GelPluginEngine *self, gpointer data
 
 GType gel_plugin_engine_get_type (void);
 
-GelPluginEngine* gel_plugin_engine_new (gpointer user_data);
+GelPluginEngine* gel_plugin_engine_new(gint *argc, gchar ***argv);
 
 void gel_plugin_engine_set_dispose_callback(GelPluginEngine *self, GelPluginEngineDisposeFunc callback, gpointer user_data);
 
@@ -86,11 +86,18 @@ GList     *gel_plugin_engine_query_plugins(GelPluginEngine *app);
 gboolean   gel_plugin_engine_unload_plugin(GelPluginEngine *self, GelPlugin *plugin, GError **error);
 void       gel_plugin_engine_purge(GelPluginEngine *self);
 
+gboolean gel_plugin_engine_set_interface(GelPluginEngine *self, gchar *name, gpointer data);
+gpointer gel_plugin_engine_get_interface(GelPluginEngine *self, gchar *name);
+#define gel_plugin_engine_shared_set(s,n,d) gel_plugin_engine_set_interface(s,n,d)
+#define gel_plugin_engine_shared_get(s,n)   gel_plugin_engine_get_interface(s,n)
 void     gel_plugin_engine_shared_free(GelPluginEngine *self, gchar *name);
-gboolean gel_plugin_engine_shared_set(GelPluginEngine *self, gchar *name, gpointer data);
-gpointer gel_plugin_engine_shared_get(GelPluginEngine *self, gchar *name);
 
-GSettings *gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain);
+GSettings *
+gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain);
+
+
+gint    *gel_plugin_engine_get_argc(GelPluginEngine *self);
+gchar ***gel_plugin_engine_get_argv(GelPluginEngine *self);
 
 #if (defined GEL_COMPILATION) && (defined _GEL_PLUGIN_H)
 void gel_plugin_engine_priv_run_init(GelPluginEngine *self, GelPlugin *plugin);
@@ -105,7 +112,7 @@ typedef GelPluginEngineDisposeFunc GelAppDisposeFunc;
 #define GEL_IS_APP(o) GEL_IS_PLUGIN_ENGINE(o)
 #define GEL_TYPE_APP  GEL_TYPE_PLUGIN_ENGINE
 
-#define gel_app_new()                gel_plugin_engine_new(NULL)
+#define gel_app_new()                gel_plugin_engine_new(NULL, NULL)
 #define gel_app_load_plugin_by_name(o,n,e)     gel_plugin_engine_load_plugin_by_name(o,n,e)
 #define gel_app_load_plugin_by_pathname(o,n,e) gel_plugin_engine_load_plugin_by_pathname(o,n,e)
 #define gel_app_load_plugin(o,i,e)   gel_plugin_engine_load_plugin(o,i,e)

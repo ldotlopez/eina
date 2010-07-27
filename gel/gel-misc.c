@@ -53,6 +53,7 @@ _gel_atexit(void)
 void
 gel_init(gchar *name, gchar *lib_dir, gchar *data_dir)
 {
+	g_set_prgname(name);
 	_gel_package_name     = g_strdup(name);
 	_gel_package_lib_dir  = g_strdup(lib_dir);
 	_gel_package_data_dir = g_strdup(data_dir);

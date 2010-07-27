@@ -35,7 +35,8 @@ struct _GelPluginEnginePrivate {
 	GelPluginEngineDisposeFunc dispose_func;
 	gpointer  dispose_data;
 
-	gpointer   user_data;
+	gint*       argc;
+	gchar***    argv;
 
 	GList      *paths;    // Paths to search plugins
 	GList      *infos;    // Cached GelPluginInfo list
@@ -152,10 +153,11 @@ gel_plugin_engine_init (GelPluginEngine *self)
 }
 
 GelPluginEngine*
-gel_plugin_engine_new (gpointer user_data)
+gel_plugin_engine_new (gint *argc, gchar ***argv)
 {
 	GelPluginEngine *self = g_object_new (GEL_TYPE_PLUGIN_ENGINE, NULL);
-	self->priv->user_data = user_data;
+	self->priv->argc = argc;
+	self->priv->argv = argv;
 	return self;
 }
 
@@ -453,8 +455,8 @@ gel_plugin_engine_purge(GelPluginEngine *app)
 // --
 // Shared memory management
 // --
-gboolean gel_plugin_engine_shared_set
-(GelPluginEngine *self, gchar *name, gpointer data)
+gboolean
+gel_plugin_engine_set_interface (GelPluginEngine *self, gchar *name, gpointer data)
 {
 	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), FALSE);
 	g_return_val_if_fail(name != NULL, FALSE);
@@ -464,8 +466,8 @@ gboolean gel_plugin_engine_shared_set
 	return TRUE;
 }
 
-gpointer gel_plugin_engine_shared_get
-(GelPluginEngine *self, gchar *name)
+gpointer
+gel_plugin_engine_get_interface (GelPluginEngine *self, gchar *name)
 {
 	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), FALSE);
 	g_return_val_if_fail(name != NULL, FALSE);
@@ -499,6 +501,20 @@ gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain)
 		g_hash_table_insert(self->priv->settings, g_strdup(domain), settings);
 	}
 	return G_SETTINGS(settings);
+}
+
+gint *
+gel_plugin_engine_get_argc(GelPluginEngine *self)
+{
+	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
+	return self->priv->argc;
+}
+
+gchar ***
+gel_plugin_engine_get_argv(GelPluginEngine *self)
+{
+	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
+	return self->priv->argv;
 }
 
 // --

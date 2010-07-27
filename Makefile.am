@@ -64,6 +64,7 @@ gel_include_HEADERS = \
 	gel/gel-io-scanner.h        \
     gel/gel-io.h                \
     gel/gel-ui.h                \
+	gel/gel-ui-application.h    \
 	gel/gel-ui-plugin-manager.h \
     gel/gel-ui-utils.h
 
@@ -83,16 +84,9 @@ gel_libgel_1_0_la_SOURCES = \
     gel/gel-io-recurse-tree.c   \
 	gel/gel-io-scanner.c        \
 	gel/gel-plugin-engine.h     \
+	gel/gel-ui-application.c    \
 	gel/gel-ui-plugin-manager.c \
     gel/gel-ui-utils.c
-
-if GEL_UI_ENABLE_APPLICATION
-gel_include_HEADERS += \
-	gel/gel-ui-application.h
-
-gel_libgel_1_0_la_SOURCES += \
-	gel/gel-ui-application.c
-endif
 
 EXTRA_DIST += \
 	gel/gel-io-marshallers.list  \
@@ -287,7 +281,6 @@ eina_vogon_SOURCES = \
     eina/vogon.c      \
     eina/vogon-app.c
 
-if GEL_UI_ENABLE_APPLICATION
 bin_PROGRAMS += eina/eina-app
 eina_eina_app_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
 eina_eina_app_LDFLAGS = \
@@ -298,8 +291,6 @@ eina_eina_app_LDFLAGS = \
 
 eina_eina_app_SOURCES = \
 	eina/eina-app.c
-
-endif
 
 EXTRA_DIST += \
 	eina/dbus-marshallers.list \
@@ -350,12 +341,28 @@ gsettings_SCHEMAS += data/net.sourceforge.eina.gschema.xml
 
 if BUILD_PLUGINS
 
-#plugins_playerdir = $(pkglibdir)/player
-#plugins_player_LTLIBRARIES = plugins/player/libplayer.la
-#plugins_player_DATA = plugins/player/player.eina-plugin 
-#plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
-#plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@
-#plugins_player_libplayer_la_SOURCES = plugins/player/player.c
+#
+# Application plugin
+#
+plugins_applicationdir = $(pkglibdir)/application
+plugins_application_LTLIBRARIES = plugins/application/libapplication.la
+plugins_application_libapplication_la_CFLAGS  = @EINA_CFLAGS@
+plugins_application_libapplication_la_LDFLAGS = @EINA_LIBS@
+plugins_application_libapplication_la_SOURCES = plugins/application/application.c
+plugins_application_DATA = plugins/application/application.ini
+
+#
+# Player plugin
+#
+plugins_playerdir = $(pkglibdir)/player
+plugins_player_LTLIBRARIES = plugins/player/libplayer.la
+plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
+plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@
+plugins_player_libplayer_la_SOURCES = \
+	plugins/player/eina-player.c \
+	plugins/player/eina-player.h \
+	plugins/player/player.c
+plugins_player_DATA = plugins/player/player.ini
 
 #
 # Adb plugin

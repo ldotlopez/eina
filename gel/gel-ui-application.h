@@ -63,9 +63,6 @@ GtkVBox*         gel_ui_application_get_window_content_area(GelUIApplication *se
 
 GSettings*       gel_ui_application_get_settings           (GelUIApplication *self, gchar *subdomain);
 
-gboolean         gel_ui_application_set_shared(GelUIApplication *self, gchar *key, gpointer data);
-gpointer         gel_ui_application_get_shared(GelUIApplication *self, gchar *key);
-
 G_END_DECLS
 
 #endif 

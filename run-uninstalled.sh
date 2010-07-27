@@ -1,63 +1,73 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH="`dirname $0`/gel/.libs:`dirname $0`/lomo/.libs"
-export DYLD_LIBRARY_PATH="`dirname $0`/gel/.libs:`dirname $0`/lomo/.libs"
+D="$(dirname -- "$0")"
+if [ "${D:0:1}" != "/" ]; then
+	D="$PWD/$D"
+fi
+
+R="$D/tools/run"
+[ -e "$R" ] && rm -rf -- "$R"
+
+# Setup path for libs
+export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$LD_LIBRARY_PATH"
 
 # Resource handling (gel-related)
-export EINA_UI_PATH="`dirname $0`/ui"
-export EINA_PIXMAP_PATH="`dirname $0`/pixmaps"
-export EINA_LIB_PATH="`dirname $0`/tools/plugins"
+export EINA_UI_PATH="$D/ui"
+export EINA_PIXMAP_PATH="$D/pixmaps"
+export EINA_LIB_PATH="$R/plugins"
 
 # Eina specific
-export EINA_THEME_DIR="`dirname $0`/icons"
+export EINA_THEME_DIR="$D/icons"
 
-rm -rf -- "`dirname $0`/tools/plugins"
-mkdir -p "`dirname $0`/tools/plugins"
-for PLUGIN_DIR in $(find "`dirname $0`/plugins" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | grep -v svn)
-do
-	D="$(dirname -- $0)/tools/plugins"
-	B="$(basename -- $PLUGIN_DIR)"
-	[ -e "$PLUGIN_DIR/.libs/lib$B.so" ] || continue
-	mkdir -p "$D/$B"
-	for SO in $(find $PLUGIN_DIR/.libs -type f -name '*.so' 2>/dev/null)
+[ -e "$R" ] && rm -rf "$R"
+
+# Schemas
+if [ ! -z "$(which glib-compile-schemas)" ]; then
+	mkdir -p "$R/schemas"
+	for schema in $(find "$D/data" "$D/plugins" -name '*gschema.valid' | sed -e 's,.valid$,.xml,')
 	do
-		ln -fs "../../../plugins/$B/.libs/$(basename -- "$SO")" "$D/$B"
+		echo "[*] Added schema $(basename -- $schema)"
+		ln -s "$schema" "$R/schemas/$(basename -- $schema)"
 	done
-	for F in $(find $PLUGIN_DIR -maxdepth 1 | tail -n +2)
+
+	export GSETTINGS_SCHEMA_DIR="$R/schemas"
+	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
+fi
+
+# Plugins
+IFS="
+"
+for plugindir in $(find "$D/plugins" -maxdepth 1 -type d | tail -n +2)
+do
+	plugin=$(basename -- "$plugindir")
+
+	mkdir -p "$R/plugins/$plugin"
+	for ext in so ui png jpg gif ini
 	do
-		ln -fs "../../../plugins/$B/$(basename -- "$F")" "$D/$B"
+		for obj in $(find "$plugindir" -name "*.$ext")
+		do
+			[ "$ext" = "so" ] && echo "[*] Detected plugin $plugin"
+			ln -s $obj "$R/plugins/$plugin"
+		done
 	done
 done
 
-if [ ! -z "$(which glib-compile-schemas)" ]; then
-	[ -d "`dirname $0`/tools/schemas" ] && rm -rf -- "`dirname $0`/tools/schemas"
-	mkdir -p "`dirname $0`/tools/schemas"
-	for i in $(find `dirname -- $0`/data `dirname -- $0`/tools/plugins -name '*gschema.valid' | sed -e 's,.valid$,.xml,')
-	do
-		ln -s "$PWD/`dirname -- $0`/$i" tools/schemas/$(basename -- "$i")
-	done
-
-	export GSETTINGS_SCHEMA_DIR="`dirname $0`/tools/schemas"
-	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
-
-fi
+# Find real binary
+P=${P:="eina"}
 
 BIN=""
-for i in eina/eina eina/.libs/eina
+for i in $(find "$D/eina" -name "$P")
 do
-	MIME="$(file -ib "$i" 2>&1 | cut -d ";" -f 1)"
-	if [ \
-		\( "$MIME" = "application/octet-stream" \) -o \
-		\( "$MIME" = "application/x-executable" \) \
-		]; then
-			BIN="$i"
-			break
+	if [ "$(file -ib "$i" | cut -d ';' -f 1)" = "application/x-executable" ]; then
+		BIN="$i"
+		break;
 	fi
 done
-if [ -z "$BIN" ]; then
-	echo "No binary found"
+if [ ! -x  "$BIN" ]; then
+	echo "Unable to find executable"
 	exit 1
 fi
+echo "[*] Found binary $BIN"
 
 if [ ! -z "$1" ]; then
 	case "$1" in
@@ -67,21 +77,21 @@ if [ ! -z "$1" ]; then
 
 		ltrace)
 			shift
-			ltrace "`dirname $0`/$BIN" "$@"
+			ltrace "$BIN" "$@"
 			;;
 		strace)
 			shift
-			strace "`dirname $0`/$BIN" "$@"
+			strace "$BIN" "$@"
 			;;
 		gdb)
 			shift
-			gdb --args "`dirname $0`/$BIN" "$@"
+			gdb --args "$BIN" "$@"
 			;;
 		*)
-			"`dirname $0`/$BIN" "$@"
+			"$BIN" "$@"
 			;;
 	esac
 else 
-	"`dirname $0`/$BIN" "$@"
+	"$BIN" "$@"
 fi
 

@@ -57,6 +57,7 @@ ACLOCAL_AMFLAGS="-I m4 ${ACLOCAL_FLAGS}"
 AC_PROG_CC
 # AC_PROG_CXX
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
+AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource)
 AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`

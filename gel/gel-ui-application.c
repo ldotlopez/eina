@@ -1,5 +1,5 @@
 /*
- * gel_ui/ext/gel_ui-application.c
+ * gel/gel-ui-application.c
  *
  * Copyright (C) 2004-2010 GelUI
  *
@@ -18,21 +18,8 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#define HAVE_PEAS 0
-
 #include <glib/gi18n.h>
 #include "gel-ui.h"
-
-#if HAVE_PEAS
-#include <girepository.h>
-#include <libpeas/peas-engine.h>
-#include <libpeas/peas-extension-set.h>
-#include <libpeas/peas-activatable.h>
-#include <libpeasui/peas-ui-plugin-manager.h>
-#include "gel-ui-pluggable.h"
-#else
-#include <gel/gel-plugin-engine.h>
-#endif
 
 G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
 
@@ -42,14 +29,7 @@ G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
 typedef struct _GelUIApplicationPrivate GelUIApplicationPrivate;
 
 struct _GelUIApplicationPrivate {
-	#if HAVE_PEAS
-	PeasEngine       *engine;
-	PeasExtensionSet *es;
-	#else
-	GelPluginEngine *engine;
-	#endif
-
-	GHashTable     *settings, *shared;
+	GHashTable     *settings;
 
 	GtkWindow      *default_window;
 	GtkBox         *container;
@@ -61,17 +41,6 @@ static GtkWindow *
 create_window(GtkApplication *application);
 static void
 action_activated_cb(GtkAction *action, GelUIApplication *self);
-
-#if HAVE_PEAS
-static void
-engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, GelUIApplication *self);
-static void
-engine_unload_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, GelUIApplication *self);
-static void
-engine_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, GelUIApplication *self);
-static void
-engine_extension_added_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, GelUIApplication *self);
-#endif
 
 static gchar *ui_mng_str =
 "<ui>"
@@ -109,12 +78,9 @@ gel_ui_application_dispose (GObject *object)
 	GelUIApplicationPrivate *priv = GET_PRIVATE((GelUIApplication *) object);
 	g_return_if_fail(priv != NULL);
 
-	gel_free_and_invalidate(priv->engine,     NULL, g_object_unref);
-
 	gel_free_and_invalidate(priv->ag,         NULL, g_object_unref);
 	gel_free_and_invalidate(priv->ui_manager, NULL, g_object_unref);
 	gel_free_and_invalidate(priv->settings,   NULL, g_hash_table_destroy);
-	gel_free_and_invalidate(priv->shared,     NULL, g_hash_table_destroy);
 
 	G_OBJECT_CLASS (gel_ui_application_parent_class)->dispose (object);
 }
@@ -136,50 +102,6 @@ gel_ui_application_init (GelUIApplication *self)
 {
 	GelUIApplicationPrivate *priv = GET_PRIVATE(self);
 	priv->settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
-	priv->shared   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-
-	#if HAVE_PEAS
-	gchar const * const search_paths[] = {
-		/* Uninstalled plugins */
-		"./plugins/",
-		"./plugins/",
-		NULL };
-
-	g_irepository_prepend_search_path ("/opt/gnome" "/lib/girepository-1.0");
-	g_irepository_prepend_search_path (g_get_current_dir());
-	g_irepository_require(g_irepository_get_default (), "GelUI", "1.0", 0, NULL);
-	g_irepository_require(g_irepository_get_default (), "Peas", "1.0", 0, NULL);
-	priv->engine = peas_engine_new("Eina", NULL, (const gchar **) search_paths);
-
-	g_signal_connect(priv->engine, "load-plugin",   (GCallback) engine_load_plugin_cb,   self);
-	g_signal_connect(priv->engine, "unload-plugin", (GCallback) engine_unload_plugin_cb, self);
-
-	priv->es = peas_extension_set_new(priv->engine, GEL_UI_TYPE_PLUGGABLE);
-	g_signal_connect(priv->es, "extension-added",   (GCallback) engine_extension_added_cb,   self);
-	g_signal_connect(priv->es, "extension-removed", (GCallback) engine_extension_removed_cb, self);
-	#else
-	priv->engine = gel_plugin_engine_new();
-	#endif
-}
-
-static GVariant *
-variant_from_argv (int argc, char **argv)
-{
-	GVariantBuilder builder;
-	int i;
-
-	g_variant_builder_init (&builder, G_VARIANT_TYPE ("aay"));
-
-	for (i = 1; i < argc; i++)
-	{
-		guint8 *argv_bytes;
-
-		argv_bytes = (guint8*) argv[i];
-		g_variant_builder_add_value (&builder,
-		g_variant_new_byte_array (argv_bytes, -1));
-	}
-
-	return g_variant_builder_end (&builder);
 }
 
 /*
@@ -212,8 +134,7 @@ gel_ui_application_new (gchar *application_id, gint *argc, gchar ***argv)
 	else
 		argv_for_app = NULL;
 
-	argv_variant = variant_from_argv (argc_for_app, argv_for_app);
-
+	argv_variant = g_variant_new_bytestring_array ((const gchar * const*) argv_for_app, argc_for_app);
 
 	GError *error = NULL;
 	GelUIApplication *self = g_initable_new(GEL_UI_TYPE_APPLICATION, NULL,
@@ -380,52 +301,6 @@ gel_ui_application_get_settings(GelUIApplication *application, gchar *subdomain)
 	return ret;
 }
 
-/*
- * gel_ui_application_set_shared:
- *
- * @self: (inout) (transfer none): the #GelUIApplication
- * @key: (in) (transfer none): key to set
- * @data: (in) (transfer none): data to store
- *
- * Stores data into self using key
- *
- * Returns: %TRUE if data was stored, %FALSE otherwise
- */
-gboolean
-gel_ui_application_set_shared(GelUIApplication *self, gchar *key, gpointer data)
-{
-	g_return_val_if_fail(GEL_UI_IS_APPLICATION(self), FALSE);
-	GelUIApplicationPrivate *priv = GET_PRIVATE(self);
-
-	g_return_val_if_fail(key != NULL, FALSE);
-	g_return_val_if_fail(g_hash_table_lookup(priv->shared, key) == NULL, FALSE);
-
-	g_hash_table_insert(priv->shared, g_strdup(key), data);
-	return TRUE;
-}
-
-/*
- * gel_ui_application_get_shared:
- *
- * @self: (inout) (transfer none): the #GelUIApplication
- * @key: (in) (transfer none): key to get
- *
- * Retrieves the key from self
- *
- * Returns: (transfer none): data if found, %NULL otherwise
- */
-gpointer
-gel_ui_application_get_shared(GelUIApplication *self, gchar *key)
-{
-	g_return_val_if_fail(GEL_UI_IS_APPLICATION(self), NULL);
-	g_return_val_if_fail(key != NULL, NULL);
-
-	gpointer ret = g_hash_table_lookup(GET_PRIVATE(self)->shared, key);
-	g_return_val_if_fail(ret != NULL, NULL);
-
-	return ret;
-}
-
 static void
 action_activated_cb(GtkAction *action, GelUIApplication *self)
 {
@@ -437,64 +312,7 @@ action_activated_cb(GtkAction *action, GelUIApplication *self)
 		return;
 	}
 
-	if (g_str_equal(name, "PluginManagerItem"))
-	{
-		#if HAVE_PEAS
-		GtkDialog *dialog = (GtkDialog *) gtk_dialog_new();
-		gtk_container_add(
-			(GtkContainer *) gtk_dialog_get_content_area(dialog),
-			peas_ui_plugin_manager_new(GET_PRIVATE(self)->engine));
-		gtk_widget_show_all((GtkWidget *) dialog);
-		gtk_dialog_run(dialog);
-		gtk_widget_destroy((GtkWidget *) dialog);
-		#endif
-		return;
-	}
-
 	g_warning(N_("Ignoring unknow action '%s'"), name);
 }
 
-#if HAVE_PEAS
-static void
-engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, GelUIApplication *self)
-{
-	// g_warning("Loaded plugin: %s", peas_plugin_info_get_name(info));
-}
-
-static void
-engine_unload_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, GelUIApplication *self)
-{
-	// g_warning("Unloaded plugin: %s", peas_plugin_info_get_name(info));
-}
-
-static void
-engine_extension_added_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, GelUIApplication *self)
-{
-	// g_warning("Extension added for %s", peas_plugin_info_get_name(info));
-	// g_warning("Provides activatable: %s", peas_engine_provides_extension(GET_PRIVATE(self)->engine, info, PEAS_TYPE_ACTIVATABLE) ? "yes" : "no");
-	// g_warning("Provides pulgon: %s", peas_engine_provides_extension(GET_PRIVATE(self)->engine, info, GEL_UI_TYPE_PULGON) ? "yes" : "no");
-
-	g_return_if_fail(peas_engine_provides_extension(GET_PRIVATE(self)->engine, info, GEL_UI_TYPE_PLUGGABLE));
-
-	GError *error = NULL;
-	g_warning("Sending gerror as %p", &error);
-	peas_extension_call(exten, "init", self, &error);
-	if (error)
-	{
-		g_warning("Got error from %s.init: %s, force unload: %s",
-			peas_plugin_info_get_name(info), error ? error->message : "",
-			peas_engine_unload_plugin(GET_PRIVATE(self)->engine, info) ? "TRUE": "FALSE");
-		g_error_free(error);
-	}
-	else
-		g_warning("OK");
-	// g_warning("Return: %s", r ? "TRUE" : "FALSE");
-}
-
-static void
-engine_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, GelUIApplication *self)
-{
-	g_warning("Extension removed for %s", peas_plugin_info_get_name(info));
-}
-#endif
 
