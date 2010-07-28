@@ -13,17 +13,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License
- * along with this program.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef _EINA_PLAYER
 #define _EINA_PLAYER
 
 #include <glib-object.h>
-#include <gtk/gtk.h>
+#include <gel/gel-ui.h>
 
 G_BEGIN_DECLS
 
@@ -45,17 +43,16 @@ G_BEGIN_DECLS
   (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PLAYER, EinaPlayerClass))
 
 typedef struct {
-	GtkBox parent;
+	GelUIGeneric parent;
 } EinaPlayer;
 
 typedef struct {
-	GtkBoxClass parent_class;
+	GelUIGenericClass parent_class;
 } EinaPlayerClass;
 
 GType eina_player_get_type (void);
 
-GtkWidget*
-eina_player_new (void);
+GtkWidget* eina_player_new (void);
 
 G_END_DECLS
 

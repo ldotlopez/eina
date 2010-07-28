@@ -13,15 +13,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License
- * along with this program.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "eina-player.h"
+#include "eina-player.ui.h"
 
-G_DEFINE_TYPE (EinaPlayer, eina_player, GTK_TYPE_BOX)
+G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_PLAYER, EinaPlayerPrivate))
@@ -33,8 +32,7 @@ struct _EinaPlayerPrivate {
 };
 
 static void
-eina_player_get_property (GObject *object, guint property_id,
-		                          GValue *value, GParamSpec *pspec)
+eina_player_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
 	default:
@@ -43,8 +41,7 @@ eina_player_get_property (GObject *object, guint property_id,
 }
 
 static void
-eina_player_set_property (GObject *object, guint property_id,
-		                          const GValue *value, GParamSpec *pspec)
+eina_player_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
 	default:
@@ -73,12 +70,11 @@ eina_player_class_init (EinaPlayerClass *klass)
 static void
 eina_player_init (EinaPlayer *self)
 {
-	gtk_box_pack_start (GTK_BOX(self), (GtkWidget *) gtk_label_new("Test"), TRUE, TRUE, 0);
 }
 
-GtkWidget *
+GtkWidget*
 eina_player_new (void)
 {
-	return g_object_new (EINA_TYPE_PLAYER, NULL);
+	return g_object_new (EINA_TYPE_PLAYER, "xml-string", xml_ui_string);
 }
 
