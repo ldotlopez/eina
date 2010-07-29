@@ -49,44 +49,44 @@ gel_libgel_1_0_la_CFLAGS = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@
 gel_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel
 gel_include_HEADERS = \
 	gel/gel.h                   \
-    gel/gel-misc.h              \
-    gel/gel-string.h            \
-    gel/gel-str-parser.h        \
-    gel/gel-job-queue.h         \
-    gel/gel-plugin.h            \
+	gel/gel-misc.h              \
+	gel/gel-string.h            \
+	gel/gel-str-parser.h        \
+	gel/gel-job-queue.h         \
+	gel/gel-plugin.h            \
 	gel/gel-plugin-engine.h     \
-    gel/gel-plugin-info.h       \
-    gel/gel-io-misc.h           \
-    gel/gel-io-tree.h           \
-    gel/gel-io-op-result.h      \
-    gel/gel-io-ops.h            \
-    gel/gel-io-recurse-tree.h   \
+	gel/gel-plugin-info.h       \
+	gel/gel-io-misc.h           \
+	gel/gel-io-tree.h           \
+	gel/gel-io-op-result.h      \
+	gel/gel-io-ops.h            \
+	gel/gel-io-recurse-tree.h   \
 	gel/gel-io-scanner.h        \
-    gel/gel-io.h                \
-    gel/gel-ui.h                \
+	gel/gel-io.h                \
+	gel/gel-ui.h                \
 	gel/gel-ui-application.h    \
 	gel/gel-ui-plugin-manager.h \
-    gel/gel-ui-utils.h
+	gel/gel-ui-utils.h
 
 gel_libgel_1_0_la_SOURCES = \
-    gel/gel-misc.c              \
-    gel/gel-string.c            \
-    gel/gel-str-parser.c        \
-    gel/gel-job-queue.c         \
-    gel/gel-plugin.c            \
+	gel/gel-misc.c              \
+	gel/gel-string.c            \
+	gel/gel-str-parser.c        \
+	gel/gel-job-queue.c         \
+	gel/gel-plugin.c            \
 	gel/gel-plugin-engine.c     \
-    gel/gel-plugin-info.c       \
+	gel/gel-plugin-info.c       \
 	gel/gel-io-marshallers.c    \
-    gel/gel-io-misc.c           \
-    gel/gel-io-tree.c           \
-    gel/gel-io-op-result.c      \
-    gel/gel-io-ops.c            \
-    gel/gel-io-recurse-tree.c   \
+	gel/gel-io-misc.c           \
+	gel/gel-io-tree.c           \
+	gel/gel-io-op-result.c      \
+	gel/gel-io-ops.c            \
+	gel/gel-io-recurse-tree.c   \
 	gel/gel-io-scanner.c        \
 	gel/gel-plugin-engine.h     \
 	gel/gel-ui-application.c    \
 	gel/gel-ui-plugin-manager.c \
-    gel/gel-ui-utils.c
+	gel/gel-ui-utils.c
 
 EXTRA_DIST += \
 	gel/gel-io-marshallers.list  \
@@ -114,21 +114,21 @@ lomo_liblomo_1_0_la_CFLAGS = -DLIBLOMO_COMPILATION @GSTREAMER_CFLAGS@
 
 lomo_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/lomo
 lomo_include_HEADERS = \
-    lomo/lomo-player.h           \
-    lomo/lomo-metadata-parser.h  \
-    lomo/lomo-stream.h           \
-    lomo/lomo-util.h
+	lomo/lomo-player.h           \
+	lomo/lomo-metadata-parser.h  \
+	lomo/lomo-stream.h           \
+	lomo/lomo-util.h
 
 lomo_liblomo_1_0_la_SOURCES = \
 	lomo/lomo-marshallers.c     \
 	lomo/lomo-marshallers.h     \
-    lomo/lomo-metadata-parser.c \
-    lomo/lomo-metadata-parser.h \
-    lomo/lomo-player.c          \
-    lomo/lomo-playlist.c        \
-    lomo/lomo-playlist.h        \
-    lomo/lomo-stream.c          \
-    lomo/lomo-util.c
+	lomo/lomo-metadata-parser.c \
+	lomo/lomo-metadata-parser.h \
+	lomo/lomo-player.c          \
+	lomo/lomo-playlist.c        \
+	lomo/lomo-playlist.h        \
+	lomo/lomo-stream.c          \
+	lomo/lomo-util.c
 
 EXTRA_DIST += \
 	lomo/lomo-marshallers.list
@@ -151,27 +151,27 @@ eina_ext_libeinaext_la_CFLAGS = @EINA_CFLAGS@
 eina_ext_libeina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 eina_ext_libeina_include_HEADERS = \
 	eina/ext/curl-engine.h              \
-    eina/ext/eina-cover.h               \
-    eina/ext/eina-cover-image.h         \
-    eina/ext/eina-file-chooser-dialog.h \
-    eina/ext/eina-file-utils.h          \
-    eina/ext/eina-preferences-dialog.h  \
-    eina/ext/eina-preferences-tab.h     \
-    eina/ext/eina-seek.h                \
-    eina/ext/eina-stock.h               \
-    eina/ext/eina-window.h
+	eina/ext/eina-cover.h               \
+	eina/ext/eina-cover-image.h         \
+	eina/ext/eina-file-chooser-dialog.h \
+	eina/ext/eina-file-utils.h          \
+	eina/ext/eina-preferences-dialog.h  \
+	eina/ext/eina-preferences-tab.h     \
+	eina/ext/eina-seek.h                \
+	eina/ext/eina-stock.h               \
+	eina/ext/eina-window.h
 
 eina_ext_libeinaext_la_SOURCES = \
-    eina/ext/curl-engine.c              \
-    eina/ext/eina-cover.c               \
-    eina/ext/eina-cover-image.c         \
-    eina/ext/eina-file-chooser-dialog.c \
-    eina/ext/eina-file-utils.c          \
-    eina/ext/eina-preferences-dialog.c  \
-    eina/ext/eina-preferences-tab.c     \
-    eina/ext/eina-seek.c                \
-    eina/ext/eina-stock.c               \
-    eina/ext/eina-window.c
+	eina/ext/curl-engine.c              \
+	eina/ext/eina-cover.c               \
+	eina/ext/eina-cover-image.c         \
+	eina/ext/eina-file-chooser-dialog.c \
+	eina/ext/eina-file-utils.c          \
+	eina/ext/eina-preferences-dialog.c  \
+	eina/ext/eina-preferences-tab.c     \
+	eina/ext/eina-seek.c                \
+	eina/ext/eina-stock.c               \
+	eina/ext/eina-window.c
 
 EXTRA_DIST += 
 
@@ -191,12 +191,12 @@ eina/ext/eina-plugin-dialog-ui.h: eina/ext/eina-plugin-dialog.ui
 eina_eina_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 eina_eina_include_HEADERS = \
 	eina/art.h         \
-    eina/eina-obj.h    \
-    eina/eina-plugin.h \
-    eina/fs.h          \
-    eina/lomo.h        \
-    eina/preferences.h \
-    eina/window.h
+	eina/eina-obj.h    \
+	eina/eina-plugin.h \
+	eina/fs.h          \
+	eina/lomo.h        \
+	eina/preferences.h \
+	eina/window.h
 
 eina_eina_CFLAGS  = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
@@ -207,28 +207,28 @@ eina_eina_LDFLAGS = -export-dynamic  -module -avoid-version \
 eina_eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 
 eina_eina_SOURCES = \
-    eina/about.c            \
-    eina/about.h            \
-    eina/art.c              \
-    eina/dock.c             \
-    eina/dock.h             \
-    eina/eina-obj.c         \
-    eina/eina-plugin.c      \
-    eina/fs.c               \
-    eina/log.c              \
-    eina/lomo.c             \
-    eina/main.c             \
-    eina/player.c           \
-    eina/player.h           \
-    eina/playlist.c         \
-    eina/playlist.h         \
-    eina/plugins.c          \
-    eina/preferences.c      \
-    eina/template.c         \
-    eina/template.h         \
-    eina/vogon.c            \
-    eina/vogon.h            \
-    eina/window.c
+	eina/about.c            \
+	eina/about.h            \
+	eina/art.c              \
+	eina/dock.c             \
+	eina/dock.h             \
+	eina/eina-obj.c         \
+	eina/eina-plugin.c      \
+	eina/fs.c               \
+	eina/log.c              \
+	eina/lomo.c             \
+	eina/main.c             \
+	eina/player.c           \
+	eina/player.h           \
+	eina/playlist.c         \
+	eina/playlist.h         \
+	eina/plugins.c          \
+	eina/preferences.c      \
+	eina/template.c         \
+	eina/template.h         \
+	eina/vogon.c            \
+	eina/vogon.h            \
+	eina/window.c
 
 if BUILD_DBUS 
 eina_eina_CFLAGS  += @DBUS_GLIB_CFLAGS@
@@ -274,12 +274,12 @@ eina_vogon_LDFLAGS = -export-dynamic  -module -avoid-version \
 	-lgel-1.0 -llomo-1.0
 
 eina_vogon_SOURCES = \
-    eina/eina-obj.c   \
-    eina/about.c      \
-    eina/lomo.c       \
-    eina/fs.c         \
-    eina/vogon.c      \
-    eina/vogon-app.c
+	eina/eina-obj.c   \
+	eina/about.c      \
+	eina/lomo.c       \
+	eina/fs.c         \
+	eina/vogon.c      \
+	eina/vogon-app.c
 
 bin_PROGRAMS += eina/eina-app
 eina_eina_app_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
@@ -302,11 +302,11 @@ EXTRA_DIST += \
 uidir = $(pkgdatadir)/ui
 ui_DATA = \
 	ui/dock.ui \
-    ui/log.ui \
-    ui/player-preferences.ui \
-    ui/player.ui \
-    ui/playlist.ui \
-    ui/plugins.ui
+	ui/log.ui \
+	ui/player-preferences.ui \
+	ui/player.ui \
+	ui/playlist.ui \
+	ui/plugins.ui
 
 EXTRA_DIST += $(ui_DATA)
 
