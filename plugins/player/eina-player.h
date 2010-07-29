@@ -22,6 +22,7 @@
 
 #include <glib-object.h>
 #include <gel/gel-ui.h>
+#include <lomo/lomo-player.h>
 
 G_BEGIN_DECLS
 
@@ -53,6 +54,9 @@ typedef struct {
 GType eina_player_get_type (void);
 
 GtkWidget* eina_player_new (void);
+
+void
+eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo);
 
 G_END_DECLS
 

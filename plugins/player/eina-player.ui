@@ -43,6 +43,7 @@
                     <property name="label" translatable="yes">&lt;span size="x-large" weight="bold"&gt;%t&lt;/span&gt;
 &lt;span size="x-large" weight="normal"&gt;{%a}&lt;/span&gt;</property>
                     <property name="use_markup">True</property>
+                    <property name="wrap">True</property>
                     <property name="selectable">True</property>
                     <property name="ellipsize">middle</property>
                   </object>

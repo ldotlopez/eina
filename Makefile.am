@@ -4,6 +4,10 @@ AUTOMAKE_OPTIONS = subdir-objects
 # Subdirs
 #
 
+# Rule for build .ui.h files from gtkbuilder definitions
+%.ui.h: %.ui
+	$(top_srcdir)/tools/ui2h $< xml_ui_string > $@
+
 # Some non-code subdirs follow a recursive schema for convenience
 SUBDIRS = \
 	.       \
@@ -65,6 +69,7 @@ gel_include_HEADERS = \
     gel/gel-io.h                \
     gel/gel-ui.h                \
 	gel/gel-ui-application.h    \
+	gel/gel-ui-generic.h        \
 	gel/gel-ui-plugin-manager.h \
     gel/gel-ui-utils.h
 
@@ -85,6 +90,7 @@ gel_libgel_1_0_la_SOURCES = \
 	gel/gel-io-scanner.c        \
 	gel/gel-plugin-engine.h     \
 	gel/gel-ui-application.c    \
+	gel/gel-ui-generic.c        \
 	gel/gel-ui-plugin-manager.c \
     gel/gel-ui-utils.c
 
@@ -359,10 +365,12 @@ plugins_player_LTLIBRARIES = plugins/player/libplayer.la
 plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
 plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@
 plugins_player_libplayer_la_SOURCES = \
-	plugins/player/eina-player.c \
-	plugins/player/eina-player.h \
+	plugins/player/eina-player.c    \
+	plugins/player/eina-player.h    \
+	plugins/player/eina-player.ui.h \
 	plugins/player/player.c
 plugins_player_DATA = plugins/player/player.ini
+BUILT_SOURCES += plugins/player/eina-player.ui.h
 
 #
 # Adb plugin
