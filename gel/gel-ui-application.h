@@ -61,7 +61,7 @@ GtkUIManager*    gel_ui_application_get_window_ui_manager  (GelUIApplication *se
 GtkActionGroup*  gel_ui_application_get_window_action_group(GelUIApplication *self);
 GtkVBox*         gel_ui_application_get_window_content_area(GelUIApplication *self);
 
-GSettings*       gel_ui_application_get_settings           (GelUIApplication *self, gchar *subdomain);
+GSettings*       gel_ui_application_get_settings           (GelUIApplication *self, gchar *domain);
 
 G_END_DECLS
 

@@ -296,6 +296,14 @@ eina_eina_app_LDFLAGS = \
 	-lgel-1.0 -llomo-1.0
 
 eina_eina_app_SOURCES = \
+	eina/ext/eina-file-utils.c \
+	eina/ext/eina-file-utils.h \
+	eina/ext/eina-stock.c \
+	eina/ext/eina-stock.h \
+	eina/ext/eina-file-chooser-dialog.c \
+	eina/ext/eina-file-chooser-dialog.h \
+	eina/fs.c \
+	eina/fs.h \
 	eina/eina-app.c
 
 EXTRA_DIST += \
@@ -358,6 +366,15 @@ plugins_application_libapplication_la_SOURCES = plugins/application/application.
 plugins_application_DATA = plugins/application/application.ini
 
 #
+# Lomo plugin
+#
+plugins_lomodir = $(pkglibdir)/lomo
+plugins_lomo_LTLIBRARIES = plugins/lomo/liblomo.la
+plugins_lomo_liblomo_la_CFLAGS  = @EINA_CFLAGS@
+plugins_lomo_liblomo_la_LDFLAGS = @EINA_LIBS@
+plugins_lomo_liblomo_la_SOURCES = plugins/lomo/lomo.c
+
+#
 # Player plugin
 #
 plugins_playerdir = $(pkglibdir)/player
@@ -365,6 +382,8 @@ plugins_player_LTLIBRARIES = plugins/player/libplayer.la
 plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
 plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@
 plugins_player_libplayer_la_SOURCES = \
+	plugins/player/eina-seek.c      \
+	plugins/player/eina-seek.h      \
 	plugins/player/eina-player.c    \
 	plugins/player/eina-player.h    \
 	plugins/player/eina-player.ui.h \

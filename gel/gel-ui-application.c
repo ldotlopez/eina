@@ -274,15 +274,14 @@ gel_ui_application_get_window_content_area(GelUIApplication *self)
  * gel_ui_application_get_settings:
  *
  * @self: (inout) (transfer none): the #GelUIApplication
- * @subdomain: (in) (transfer none): string representing a subdomain
+ * @domain: (in) (transfer none): string representing a domain
  *
- * Gets a GSettings for the subdomain, if it's not present it gets created.
- * p.ex. Use preferences for org.gnome.test.preferences
+ * Gets a GSettings for the domain, if it's not present it gets created.
  *
  * Returns: (transfer none): The #GSettings object
  */
 GSettings*
-gel_ui_application_get_settings(GelUIApplication *application, gchar *subdomain)
+gel_ui_application_get_settings(GelUIApplication *application, gchar *domain)
 {
 	GelUIApplicationPrivate *priv = GET_PRIVATE(application);
 
@@ -290,12 +289,11 @@ gel_ui_application_get_settings(GelUIApplication *application, gchar *subdomain)
 	g_object_get(application, "application-id", &app_id, NULL);
 	g_return_val_if_fail(app_id != NULL, NULL);
 
-	gchar *domain = g_strconcat(app_id, ".", subdomain, NULL);
 	GSettings *ret = g_hash_table_lookup(priv->settings, domain);
 	if (ret == NULL)
 	{
 		ret = g_settings_new(domain);
-		g_hash_table_insert(priv->settings, domain, ret);
+		g_hash_table_insert(priv->settings, g_strdup(domain), ret);
 	}
 
 	return ret;
