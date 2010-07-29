@@ -368,15 +368,15 @@ plugins_application_DATA = plugins/application/application.ini
 #
 # Dock plugin
 #
-plugins_dockdir = $(pkglibdir)/dock
-plugins_dock_LTLIBRARIES = plugins/dock/libdock.la
-plugins_dock_libdock_la_CFLAGS  = @EINA_CFLAGS@
-plugins_dock_libdock_la_LDFLAGS = @EINA_LIBS@
-plugins_dock_libdock_la_SOURCES = \
-	plugins/dock/eina-dock.c \
-	plugins/dock/eina-dock.h \
-	plugins/dock/dock.c
-plugins_dock_DATA = plugins/dock/dock.ini
+#plugins_dockdir = $(pkglibdir)/dock
+#plugins_dock_LTLIBRARIES = plugins/dock/libdock.la
+#plugins_dock_libdock_la_CFLAGS  = @EINA_CFLAGS@
+#plugins_dock_libdock_la_LDFLAGS = @EINA_LIBS@
+#plugins_dock_libdock_la_SOURCES = \
+#	plugins/dock/eina-dock.c \
+#	plugins/dock/eina-dock.h \
+#	plugins/dock/dock.c
+#plugins_dock_DATA = plugins/dock/dock.ini
 
 #
 # Lomo plugin
@@ -385,7 +385,9 @@ plugins_lomodir = $(pkglibdir)/lomo
 plugins_lomo_LTLIBRARIES = plugins/lomo/liblomo.la
 plugins_lomo_liblomo_la_CFLAGS  = @EINA_CFLAGS@
 plugins_lomo_liblomo_la_LDFLAGS = @EINA_LIBS@
-plugins_lomo_liblomo_la_SOURCES = plugins/lomo/lomo.c
+plugins_lomo_liblomo_la_SOURCES = \
+	plugins/lomo/lomo.h \
+	plugins/lomo/lomo.c
 
 #
 # Player plugin
