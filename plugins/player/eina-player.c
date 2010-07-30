@@ -112,6 +112,7 @@ eina_player_class_init (EinaPlayerClass *klass)
 static void
 eina_player_init (EinaPlayer *self)
 {
+	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
 #if 0
 	g_object_set(self, "xml-string", xml_ui_string, NULL);
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);

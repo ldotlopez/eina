@@ -55,8 +55,14 @@ GType gel_ui_generic_get_type (void);
 GtkWidget  *gel_ui_generic_new (gchar *xml_string);
 GtkBuilder *gel_ui_generic_get_builder(GelUIGeneric *self);
 
-#define gel_ui_generic_get_typed(object,type_macro,name) \
-	type_macro(gtk_builder_get_object(gel_ui_generic_get_builder(GEL_UI_GENERIC(object)),name))
+#define gel_ui_generic_get_typed(self,type_macro,name) \
+	type_macro(gtk_builder_get_object(gel_ui_generic_get_builder(GEL_UI_GENERIC(self)),name))
+
+#define gel_ui_generic_get_object(self,name) \
+	gel_ui_generic_get_typed(self,G_OBJECT,name)
+
+#define gel_ui_generic_get_widget(self,name) \
+	gel_ui_generic_get_typed(self,GTK_WIDGET,name)
 
 G_END_DECLS
 

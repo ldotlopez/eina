@@ -65,9 +65,9 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		else
 			g_signal_connect(action, "activate", (GCallback) action_activated_cb, engine);
 	}
-
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, player);
-
+	gel_plugin_engine_set_interface(engine, "player", player);
+	
 	return TRUE;
 }
 

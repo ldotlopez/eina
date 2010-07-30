@@ -385,7 +385,9 @@ plugins_lomodir = $(pkglibdir)/lomo
 plugins_lomo_LTLIBRARIES = plugins/lomo/liblomo.la
 plugins_lomo_liblomo_la_CFLAGS  = @EINA_CFLAGS@
 plugins_lomo_liblomo_la_LDFLAGS = @EINA_LIBS@
-plugins_lomo_liblomo_la_SOURCES = plugins/lomo/lomo.c
+plugins_lomo_liblomo_la_SOURCES = \
+	plugins/lomo/lomo.h \
+	plugins/lomo/lomo.c
 
 #
 # Player plugin
@@ -403,6 +405,21 @@ plugins_player_libplayer_la_SOURCES = \
 	plugins/player/player.c
 plugins_player_DATA = plugins/player/player.ini
 BUILT_SOURCES += plugins/player/eina-player.ui.h
+
+#
+# Playlist plugin
+#
+plugins_playlistdir = $(pkglibdir)/playlist
+plugins_playlist_LTLIBRARIES = plugins/playlist/libplaylist.la
+plugins_playlist_libplaylist_la_CFLAGS  = @EINA_CFLAGS@
+plugins_playlist_libplaylist_la_LDFLAGS = @EINA_LIBS@
+plugins_playlist_libplaylist_la_SOURCES = \
+	plugins/playlist/eina-playlist.h \
+	plugins/playlist/eina-playlist.c \
+	plugins/playlist/eina-playlist.ui.h \
+	plugins/playlist/playlist.c
+plugins_playlist_DATA = plugins/playlist/playlist.ini
+BUILT_SOURCES += plugins/playlist/eina-playlist.ui.h
 
 #
 # Adb plugin
