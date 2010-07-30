@@ -54,6 +54,9 @@ GType eina_dock_get_type (void);
 
 EinaDock  *eina_dock_new (void);
 
+gchar  **eina_dock_get_page_order(EinaDock *self);
+void     eina_dock_set_page_order(EinaDock *self, gchar **order);
+
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
 gboolean eina_dock_add_widget   (EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *widget);

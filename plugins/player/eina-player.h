@@ -55,8 +55,7 @@ GType eina_player_get_type (void);
 
 GtkWidget* eina_player_new (void);
 
-void
-eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo);
+void eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo);
 
 G_END_DECLS
 

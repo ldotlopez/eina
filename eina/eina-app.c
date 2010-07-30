@@ -12,7 +12,7 @@ gint main(gint argc, gchar *argv[])
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
 	GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
 
-	gchar *plugins[] = { "application", "player" };
+	gchar *plugins[] = { "player", "playlist" };
 	guint  n_plugins = G_N_ELEMENTS(plugins);
 	guint  i;
 	for (i = 0; i < n_plugins; i++)

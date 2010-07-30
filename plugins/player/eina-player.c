@@ -100,6 +100,7 @@ eina_player_class_init (EinaPlayerClass *klass)
 static void
 eina_player_init (EinaPlayer *self)
 {
+	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
 #if 0
 	g_object_set(self, "xml-string", xml_ui_string, NULL);
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
@@ -178,6 +179,8 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
+
+	g_object_notify((GObject *) self, "lomo-player");
 }
 
 static void

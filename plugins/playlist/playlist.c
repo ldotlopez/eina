@@ -1,5 +1,5 @@
 /*
- * plugins/dock/dock.c
+ * plugins/playlist/playlist.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -18,23 +18,15 @@
  */
 
 #include "eina/eina-plugin2.h"
-#include "eina-dock.h"
-#include "plugins/player/eina-player.h"
 
 G_MODULE_EXPORT gboolean
-dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	GtkWidget *dock = (GtkWidget *) eina_dock_new();
-	EinaPlayer *player = gel_plugin_engine_get_interface(engine, "player");
-
-	gtk_box_pack_start(GTK_BOX(player), dock, TRUE, TRUE, 0);
-	gtk_widget_show(dock);
-
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
-dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+playlist_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	return TRUE;
 }

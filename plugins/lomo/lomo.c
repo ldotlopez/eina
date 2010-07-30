@@ -73,13 +73,12 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	gint    argsc = *argc;
 	gchar **argsv = *argv;
 
-	GList *uris = NULL;
 	for (guint i = 1; i <= argsc && argsv[i] && argsv[i][0]; i++)
 	{
-		g_warning("+ '%s'", argsv[i]);
-		uris = g_list_prepend(uris, lomo_create_uri(argsv[i]));
+		gchar *uri = lomo_create_uri(argsv[i]);
+		g_warning("+ '%s'", uri);
+		lomo_player_append_uri(lomo, uri);
 	}
-	eina_fs_load_from_uri_multiple(engine, g_list_reverse(uris));
 
 	return TRUE;
 }

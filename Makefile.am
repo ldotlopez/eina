@@ -368,15 +368,15 @@ plugins_application_DATA = plugins/application/application.ini
 #
 # Dock plugin
 #
-#plugins_dockdir = $(pkglibdir)/dock
-#plugins_dock_LTLIBRARIES = plugins/dock/libdock.la
-#plugins_dock_libdock_la_CFLAGS  = @EINA_CFLAGS@
-#plugins_dock_libdock_la_LDFLAGS = @EINA_LIBS@
-#plugins_dock_libdock_la_SOURCES = \
-#	plugins/dock/eina-dock.c \
-#	plugins/dock/eina-dock.h \
-#	plugins/dock/dock.c
-#plugins_dock_DATA = plugins/dock/dock.ini
+plugins_dockdir = $(pkglibdir)/dock
+plugins_dock_LTLIBRARIES = plugins/dock/libdock.la
+plugins_dock_libdock_la_CFLAGS  = @EINA_CFLAGS@
+plugins_dock_libdock_la_LDFLAGS = @EINA_LIBS@
+plugins_dock_libdock_la_SOURCES = \
+	plugins/dock/eina-dock.c \
+	plugins/dock/eina-dock.h \
+	plugins/dock/dock.c
+plugins_dock_DATA = plugins/dock/dock.ini
 
 #
 # Lomo plugin
@@ -405,6 +405,21 @@ plugins_player_libplayer_la_SOURCES = \
 	plugins/player/player.c
 plugins_player_DATA = plugins/player/player.ini
 BUILT_SOURCES += plugins/player/eina-player.ui.h
+
+#
+# Playlist plugin
+#
+plugins_playlistdir = $(pkglibdir)/playlist
+plugins_playlist_LTLIBRARIES = plugins/playlist/libplaylist.la
+plugins_playlist_libplaylist_la_CFLAGS  = @EINA_CFLAGS@
+plugins_playlist_libplaylist_la_LDFLAGS = @EINA_LIBS@
+plugins_playlist_libplaylist_la_SOURCES = \
+	plugins/playlist/eina-playlist.h \
+	plugins/playlist/eina-playlist.c \
+	plugins/playlist/eina-playlist.ui.h \
+	plugins/playlist/playlist.c
+plugins_playlist_DATA = plugins/playlist/playlist.ini
+BUILT_SOURCES += plugins/playlist/eina-playlist.ui.h
 
 #
 # Adb plugin
