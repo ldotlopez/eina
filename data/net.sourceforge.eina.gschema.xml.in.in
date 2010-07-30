@@ -76,7 +76,7 @@
   </schema>
 
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.playlist" path="/apps/@PACKAGE@/preferences/playlist/">
-    <key name="stream-fmt" type="s">
+    <key name="stream-markup" type="s">
       <default>'{%a -} %t'</default>
       <_summary>Format to use for display stream title's</_summary>
     </key>

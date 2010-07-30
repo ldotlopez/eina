@@ -34,21 +34,17 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player);
 G_MODULE_EXPORT gboolean
 player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
+	GSettings *settings = gel_plugin_engine_get_settings(engine, EINA_PLAYER_PREFERENCES_DOMAIN);
 	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
-	GtkVBox *content = gel_ui_application_get_window_content_area(application);
 
 	GtkWidget *player = eina_player_new();
-	gtk_box_pack_start ((GtkBox *) content, player, TRUE, TRUE, 0);
-	gtk_widget_show_all(player);
-
-	GSettings *settings = gel_plugin_engine_get_settings(engine, EINA_PLAYER_PREFERENCES_DOMAIN);
-
 	g_object_set(player,
 		"lomo-player",   gel_plugin_engine_get_interface(engine, "lomo"),
 		"stream-markup", g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
 		NULL);
 
 	// Connect actions
+	// XXX: This has to be removed once actions are exported
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) player);
 	const gchar *actions[] = {
 		"prev-action",
@@ -66,8 +62,17 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 			g_signal_connect(action, "activate", (GCallback) action_activated_cb, engine);
 	}
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, player);
+
+	// Export
 	gel_plugin_engine_set_interface(engine, "player", player);
-	
+
+	// Pack and show
+	gtk_box_pack_start (
+		(GtkBox *) gel_ui_application_get_window_content_area(application),
+		player,
+		TRUE, TRUE, 0);
+	gtk_widget_show_all(player);
+
 	return TRUE;
 }
 

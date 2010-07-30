@@ -397,6 +397,8 @@ plugins_player_LTLIBRARIES = plugins/player/libplayer.la
 plugins_player_libplayer_la_CFLAGS  = @EINA_CFLAGS@
 plugins_player_libplayer_la_LDFLAGS = @EINA_LIBS@
 plugins_player_libplayer_la_SOURCES = \
+	plugins/player/eina-player-marshallers.c \
+	plugins/player/eina-player-marshallers.h \
 	plugins/player/eina-seek.c      \
 	plugins/player/eina-seek.h      \
 	plugins/player/eina-player.c    \
@@ -404,7 +406,17 @@ plugins_player_libplayer_la_SOURCES = \
 	plugins/player/eina-player.ui.h \
 	plugins/player/player.c
 plugins_player_DATA = plugins/player/player.ini
-BUILT_SOURCES += plugins/player/eina-player.ui.h
+plugins_player_GAGA =
+	plugins/player/eina-player-marshallers.c \
+	plugins/player/eina-player-marshallers.h \
+	plugins/player/eina-player.ui.h
+plugins/player/eina-player-marshallers.h: plugins/player/eina-player-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_player_marshall --header > $@
+plugins/player/eina-player-marshallers.c: plugins/player/eina-player-marshallers.list
+	$(GLIB_GENMARSHAL) $< --prefix=eina_player_marshall --header --body > $@
+EXTRA_DIST += $(plugins_player_GAGA)
+CLEANFILES += $(plugins_player_GAGA)
+BUILT_SOURCES += $(plugins_player_GAGA)
 
 #
 # Playlist plugin

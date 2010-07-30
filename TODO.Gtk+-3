@@ -1,8 +1,8 @@
 [Core,Dock,Player,Playlist]
-* Check dispose methods
+* Player should not ellipsize title if no stream is loaded
+* Check dispose methods and notify signals (Done: Player, Playlist)
 * Stock icons not working
-* Player doesnt update sensitivity of buttons
-* Neither Player or Playlist respect stream-markup property
 * EinaCover must be ported
 * Signals for actions must be proxied
 * Externalize file loading
+* GSettings sync review (needs dconf)

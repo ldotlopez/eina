@@ -30,10 +30,11 @@ G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 typedef struct _EinaPlayerPrivate EinaPlayerPrivate;
 
 struct _EinaPlayerPrivate {
+	// Props.
 	LomoPlayer *lomo;
-	EinaSeek   *seek;
-
 	gchar *stream_mrkp;
+
+	EinaSeek *seek;
 };
 
 enum {
@@ -48,14 +49,17 @@ player_update_sensitive(EinaPlayer *self);
 static void
 player_update_information(EinaPlayer *self);
 
+static void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
+static void
+lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
-static gboolean
-binding_volume_int_to_double(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
-static gboolean
-binding_volume_double_to_int(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 
-GEL_DEFINE_WEAK_REF_CALLBACK(eina_player)
+static gboolean
+binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
+static gboolean
+binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 
 static void
 eina_player_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
@@ -86,6 +90,12 @@ eina_player_set_property (GObject *object, guint property_id, const GValue *valu
 static void
 eina_player_dispose (GObject *object)
 {
+	EinaPlayer *player = EINA_PLAYER(object);
+	EinaPlayerPrivate *priv = GET_PRIVATE(player);
+
+	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
+	gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
+	
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
 }
 
@@ -136,17 +146,11 @@ eina_player_init (EinaPlayer *self)
 GtkWidget*
 eina_player_new (void)
 {
-	GtkWidget *self = g_object_new (EINA_TYPE_PLAYER, 
-		#if 1
-		"xml-string", xml_ui_string,
-		#endif
-		 NULL);
-
+	GtkWidget *self = g_object_new (EINA_TYPE_PLAYER, "xml-string", xml_ui_string, NULL);
 	EinaPlayerPrivate *priv = GET_PRIVATE(self);
 
 	// Seek widget
-	priv->seek = eina_seek_new();
-	g_object_set(priv->seek,
+	g_object_set(priv->seek = eina_seek_new(),
 		"current-label",   gel_ui_generic_get_typed(self, GTK_LABEL, "time-current-label"),
 		"remaining-label", gel_ui_generic_get_typed(self, GTK_LABEL, "time-remaining-label"),
 		"total-label",     gel_ui_generic_get_typed(self, GTK_LABEL, "time-total-label"),
@@ -157,44 +161,62 @@ eina_player_new (void)
 		GTK_WIDGET(priv->seek));
 	gtk_widget_show(GTK_WIDGET(priv->seek));
 
+	// Cover widget
+
 	return self;
 }
 
 void
 eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 {
+	const struct {
+		gchar *signal;
+		GCallback callback;
+		gboolean swapped;
+	} callback_defs[] = {
+		{ "play",     G_CALLBACK(player_update_state),       TRUE  },
+		{ "pause",    G_CALLBACK(player_update_state),       TRUE  },
+		{ "stop",     G_CALLBACK(player_update_state),       TRUE  },
+		{ "change",   G_CALLBACK(player_update_information), TRUE  },
+		{ "random",   G_CALLBACK(player_update_sensitive),   TRUE  },
+		{ "repeat",   G_CALLBACK(player_update_sensitive),   TRUE  },
+		{ "clear",    G_CALLBACK(lomo_clear_cb),             FALSE },
+		{ "all-tags", G_CALLBACK(lomo_all_tags_cb),          FALSE }
+	};
 	g_return_if_fail(EINA_IS_PLAYER(self));
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	EinaPlayerPrivate *priv = GET_PRIVATE(self);
 	if (priv->lomo)
 	{
-		g_object_weak_unref ((GObject *) priv->lomo, eina_player_weak_ref_cb, NULL);
-		g_object_unref      ((GObject *) priv->lomo);
+		for (guint i = 0 ; i < G_N_ELEMENTS(callback_defs); i++)
+			g_signal_handlers_disconnect_by_func(priv->lomo, callback_defs[i].callback, self);
+		g_object_unref((GObject *) priv->lomo);
 	}
 
-	priv->lomo = lomo;
-	g_object_weak_ref ((GObject *) priv->lomo, eina_player_weak_ref_cb, NULL);
-	g_object_ref      ((GObject *) priv->lomo);
+	priv->lomo = g_object_ref(lomo);
+
+	for (guint i = 0 ; i < G_N_ELEMENTS(callback_defs); i++)
+		if (callback_defs[i].swapped)
+			g_signal_connect_swapped(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
+		else
+			g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
 	g_object_bind_property_full(
 		lomo, "volume",
 		gtk_builder_get_object(builder, "volume-button"), "value",
 		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE,
-		(GBindingTransformFunc) binding_volume_int_to_double,
-		(GBindingTransformFunc) binding_volume_double_to_int,
+		(GBindingTransformFunc) binding_volume_int_to_double_cb,
+		(GBindingTransformFunc) binding_volume_double_to_int_cb,
 		NULL, NULL);
 
 	g_object_set(priv->seek, "lomo-player", lomo, NULL);
 
-	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
-	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
-	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
-	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
-
 	player_update_state(self);
 	player_update_information(self);
+
+	g_object_notify((GObject *) self, "lomo-player");
 }
 
 void
@@ -205,11 +227,12 @@ eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup)
 
 	EinaPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if (priv->stream_mrkp)
-		g_free(priv->stream_mrkp);
-
+	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
 	priv->stream_mrkp = g_strdup(stream_markup);
+
 	player_update_information(self);
+
+	g_object_notify((GObject *) self, "stream-markup");
 }
 
 static void
@@ -309,6 +332,22 @@ player_update_information(EinaPlayer *self)
 	g_free(title);
 }
 
+// --
+// Signals
+// --
+static void
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
+{
+	if (stream == lomo_player_get_current_stream(lomo))
+		player_update_information(self);
+}
+
+static void
+lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
+{
+	player_update_information(self);
+}
+
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream)
 {
@@ -332,14 +371,14 @@ stream_info_parser_cb(gchar key, LomoStream *stream)
 }
 
 static gboolean
-binding_volume_int_to_double(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
+binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
 	g_value_set_double(dst, CLAMP(g_value_get_int(src) / (gdouble) 100, 0, 1));
 	return TRUE;
 }
 
 static gboolean
-binding_volume_double_to_int(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
+binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
 	g_value_set_int(dst, (gint) CLAMP(g_value_get_double(src) * 100, 0, 100));
 	return TRUE;

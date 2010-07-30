@@ -32,7 +32,7 @@ typedef struct _EinaPlaylistPrivate EinaPlaylistPrivate;
 struct _EinaPlaylistPrivate {
 	// Props.
 	LomoPlayer *lomo;
-	gchar *stream_fmt;
+	gchar *stream_mrkp;
 
 	// Internals
 	GtkTreeView  *tv;
@@ -170,6 +170,9 @@ static void
 eina_playlist_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
+	case PROP_STREAM_MARKUP:
+		g_value_set_string(value, eina_playlist_get_stream_markup((EinaPlaylist *) object));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -179,6 +182,12 @@ static void
 eina_playlist_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
+	case PROP_LOMO_PLAYER:
+		eina_playlist_set_lomo_player((EinaPlaylist *) object, g_value_get_object(value));
+		break;
+	case PROP_STREAM_MARKUP:
+		eina_playlist_set_stream_markup((EinaPlaylist *) object, (gchar *) g_value_get_string(value));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -187,6 +196,12 @@ eina_playlist_set_property (GObject *object, guint property_id, const GValue *va
 static void
 eina_playlist_dispose (GObject *object)
 {
+	EinaPlaylist *self = EINA_PLAYLIST(object);
+	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
+
+	gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
+	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
+
 	G_OBJECT_CLASS (eina_playlist_parent_class)->dispose (object);
 }
 
@@ -237,8 +252,6 @@ eina_playlist_new (void)
 		 _playlist_signals, self, NULL);
 	g_signal_connect(self, "key-press-event", G_CALLBACK(key_press_event_cb), self);
 
-	playlist_update_tab(self);
-
 #if ENABLE_EXPERIMENTAL
 	gtk_widget_show(gel_ui_generic_get_widget(self, "search-separator"));
 	gtk_widget_show(gel_ui_generic_get_widget(self, "search-frame"));
@@ -287,21 +300,6 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	for (guint i = 0; i < G_N_ELEMENTS(callback_defs); i++)
 		g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 	
-/* 
-	g_signal_connect(eina_obj_get_lomo(self), "insert",   G_CALLBACK(lomo_insert_cb),       self);
-	g_signal_connect(eina_obj_get_lomo(self), "remove",   G_CALLBACK(lomo_remove_cb),       self);
-	g_signal_connect(eina_obj_get_lomo(self), "queue",    G_CALLBACK(lomo_queue_cb),        self);
-	g_signal_connect(eina_obj_get_lomo(self), "dequeue",  G_CALLBACK(lomo_dequeue_cb),      self);
-	g_signal_connect(eina_obj_get_lomo(self), "change",   G_CALLBACK(lomo_change_cb),       self);
-	g_signal_connect(eina_obj_get_lomo(self), "clear",    G_CALLBACK(lomo_clear_cb),        self);
-	g_signal_connect(eina_obj_get_lomo(self), "play",     G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "stop",     G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "pause",    G_CALLBACK(lomo_state_change_cb), self);
-	g_signal_connect(eina_obj_get_lomo(self), "eos",      G_CALLBACK(lomo_eos_cb),          self);
-	g_signal_connect(eina_obj_get_lomo(self), "all-tags", G_CALLBACK(lomo_all_tags_cb),     self);
-	g_signal_connect(eina_obj_get_lomo(self), "error",    G_CALLBACK(lomo_error_cb),        self);
-*/
-
 	g_object_notify((GObject *) self, "lomo-player");
 }
 
@@ -312,9 +310,8 @@ eina_playlist_set_stream_markup(EinaPlaylist *self, gchar *markup)
 	g_return_if_fail(markup != NULL);
 
 	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
-	if (priv->stream_fmt)
-		g_free(priv->stream_fmt);
-	priv->stream_fmt = g_strdup(markup);
+	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
+	priv->stream_mrkp = g_strdup(markup);
 
 	g_object_notify((GObject *) self, "stream-markup");
 }
@@ -323,9 +320,8 @@ gchar*
 eina_playlist_get_stream_markup(EinaPlaylist *self)
 {
 	g_return_val_if_fail(EINA_IS_PLAYLIST(self), NULL);
-	return GET_PRIVATE(self)->stream_fmt;
+	return g_strdup(GET_PRIVATE(self)->stream_mrkp);
 }
-
 
 /*
 // Keybindings
@@ -976,7 +972,7 @@ static void lomo_insert_cb
 	g_return_if_fail(EINA_IS_PLAYLIST(self));
 	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
 
-	gchar *text = format_stream(stream, priv->stream_fmt);
+	gchar *text = format_stream(stream, priv->stream_mrkp);
 	gchar *v = g_markup_escape_text(text, -1);
 	g_free(text);
 
@@ -1198,7 +1194,7 @@ static void lomo_all_tags_cb
 	}
 	gtk_tree_path_free(treepath);
 
-	gchar *text = format_stream(stream, priv->stream_fmt);
+	gchar *text = format_stream(stream, priv->stream_mrkp);
 	gchar *v = g_markup_escape_text(text, -1);
 	g_free(text);
 

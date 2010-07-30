@@ -21,11 +21,20 @@
 #include "plugins/playlist/playlist.h"
 #include "plugins/dock/dock.h"
 
+#define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"                     
+#define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"
+
 G_MODULE_EXPORT gboolean
 playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
+	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
+	GSettings        *settings    = gel_ui_application_get_settings(application, EINA_PLAYLIST_PREFERENCES_DOMAIN);
+
 	EinaPlaylist *playlist = eina_playlist_new();
-	eina_playlist_set_lomo_player(playlist, gel_plugin_engine_get_interface(engine, "lomo"));
+	g_object_set(playlist,
+		"lomo-player", gel_plugin_engine_get_interface(engine, "lomo"),
+		"stream-markup", g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
+		NULL);
 	gtk_widget_show((GtkWidget *) playlist);
 
 	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
