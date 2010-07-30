@@ -36,7 +36,7 @@ enum {
 struct _EinaDockPrivate {
 	GtkNotebook *notebook;
 	GHashTable  *dock_items;
-	gchar     **dock_idx;
+	gchar      **dock_idx;
 
 	gint         w, h;
 };
@@ -93,9 +93,15 @@ static void
 eina_dock_init (EinaDock *self)
 {
 	EinaDockPrivate *priv = GET_PRIVATE(self);
+
 	priv->notebook = (GtkNotebook *) gtk_notebook_new();
+	gtk_notebook_set_show_tabs(priv->notebook, FALSE);
+	gtk_widget_show_all((GtkWidget *) priv->notebook);
+
+	priv->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 
 	gtk_expander_set_use_markup(GTK_EXPANDER(self), TRUE);
+	gtk_container_add(GTK_CONTAINER(self), (GtkWidget *) priv->notebook);
 }
 
 EinaDock*
@@ -205,10 +211,10 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 
 	EinaDockPrivate *priv = GET_PRIVATE(self);
 
-	g_return_val_if_fail(g_hash_table_lookup(priv->dock_items, id) != NULL, FALSE);
+	g_return_val_if_fail(g_hash_table_lookup(priv->dock_items, id) == NULL, FALSE);
 
 	gint pos = 0;
-	while (priv->dock_idx[pos] != NULL)
+	while (priv->dock_idx && (priv->dock_idx[pos] != NULL))
 		if (g_str_equal(id, priv->dock_idx[pos]))
 			break;
 		else

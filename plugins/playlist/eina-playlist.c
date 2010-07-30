@@ -30,8 +30,11 @@ G_DEFINE_TYPE (EinaPlaylist, eina_playlist, GEL_UI_TYPE_GENERIC)
 typedef struct _EinaPlaylistPrivate EinaPlaylistPrivate;
 
 struct _EinaPlaylistPrivate {
+	// Props.
 	LomoPlayer *lomo;
-    gchar *stream_fmt;
+	gchar *stream_fmt;
+
+	// Internals
 	GtkTreeView  *tv;
 	GtkTreeModel *model; // Model, tv has a filter attached
 };
@@ -228,9 +231,7 @@ eina_playlist_new (void)
 		"ellipsize-set", TRUE,
 		"ellipsize", PANGO_ELLIPSIZE_END,
 		NULL);
-	g_object_set(gtk_tree_view_get_selection(priv->tv),
-		"mode", GTK_SELECTION_MULTIPLE,
-		NULL);
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
 	gel_ui_signal_connect_from_def_multiple(gel_ui_generic_get_builder(GEL_UI_GENERIC(self)),
 		 _playlist_signals, self, NULL);
