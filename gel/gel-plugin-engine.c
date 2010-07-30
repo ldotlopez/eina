@@ -460,7 +460,9 @@ gel_plugin_engine_set_interface (GelPluginEngine *self, gchar *name, gpointer da
 {
 	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), FALSE);
 	g_return_val_if_fail(name != NULL, FALSE);
-	g_return_val_if_fail(g_hash_table_lookup(self->priv->shared, name) == NULL, FALSE);
+
+	if (data)
+		g_return_val_if_fail(g_hash_table_lookup(self->priv->shared, name) == NULL, FALSE);
 
 	g_hash_table_insert(self->priv->shared, g_strdup(name), data);
 	return TRUE;

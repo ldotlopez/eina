@@ -57,6 +57,8 @@ GtkWidget* eina_player_new (void);
 
 void
 eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo);
+void
+eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup);
 
 G_END_DECLS
 

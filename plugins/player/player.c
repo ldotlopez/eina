@@ -21,11 +21,15 @@
 #include "eina-player.h"
 #include "eina/fs.h"
 
+#define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
+#define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
 #define BUGS_URI ""
 #define HELP_URI ""
 
 static void
 action_activated_cb(GtkAction *action, GelPluginEngine *engine);
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player);
 
 G_MODULE_EXPORT gboolean
 player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
@@ -37,8 +41,12 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	gtk_box_pack_start ((GtkBox *) content, player, TRUE, TRUE, 0);
 	gtk_widget_show_all(player);
 
-	// Lomo
-	eina_player_set_lomo_player ((EinaPlayer *) player, gel_plugin_engine_get_interface(engine, "lomo"));
+	GSettings *settings = gel_plugin_engine_get_settings(engine, EINA_PLAYER_PREFERENCES_DOMAIN);
+
+	g_object_set(player,
+		"lomo-player",   gel_plugin_engine_get_interface(engine, "lomo"),
+		"stream-markup", g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
+		NULL);
 
 	// Connect actions
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) player);
@@ -57,6 +65,8 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		else
 			g_signal_connect(action, "activate", (GCallback) action_activated_cb, engine);
 	}
+
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, player);
 
 	return TRUE;
 }
@@ -123,6 +133,20 @@ action_activated_cb(GtkAction *action, GelPluginEngine *engine)
 		g_error_free(error);
 	}
 
+}
+
+static void
+settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player)
+{
+	if (g_str_equal(key, EINA_PLAYER_STREAM_MARKUP_KEY))
+	{
+		eina_player_set_stream_markup(player, g_settings_get_string(settings, key));
+	}
+
+	else
+	{
+		g_warning(N_("Unhanded key '%s'"), key);
+	}
 }
 
 EINA_PLUGIN_INFO_SPEC(player,

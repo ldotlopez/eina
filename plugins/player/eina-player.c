@@ -32,19 +32,24 @@ typedef struct _EinaPlayerPrivate EinaPlayerPrivate;
 struct _EinaPlayerPrivate {
 	LomoPlayer *lomo;
 	EinaSeek   *seek;
+
+	gchar *stream_mrkp;
 };
 
 enum {
-	PROP_LOMO_PLAYER = 1
+	PROP_LOMO_PLAYER = 1,
+	PROP_STREAM_MARKUP
 };
 
 static void
 player_update_state(EinaPlayer *self);
-#if 0
 static void
 player_update_sensitive(EinaPlayer *self);
-#endif
+static void
+player_update_information(EinaPlayer *self);
 
+static gchar *
+stream_info_parser_cb(gchar key, LomoStream *stream);
 static gboolean
 binding_volume_int_to_double(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 static gboolean
@@ -67,6 +72,10 @@ eina_player_set_property (GObject *object, guint property_id, const GValue *valu
 	switch (property_id) {
 	case PROP_LOMO_PLAYER:
 		eina_player_set_lomo_player((EinaPlayer *) object, (LomoPlayer *) g_value_get_object(value));
+		return;
+
+	case PROP_STREAM_MARKUP:
+		eina_player_set_stream_markup((EinaPlayer *) object, (gchar *) g_value_get_string(value));
 		return;
 
 	default:
@@ -95,6 +104,9 @@ eina_player_class_init (EinaPlayerClass *klass)
 		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
 		LOMO_TYPE_PLAYER, G_PARAM_WRITABLE
 		));
+	g_object_class_install_property(object_class, PROP_STREAM_MARKUP,
+		g_param_spec_string("stream-markup", "stream-markup", "stream-markup",
+		"%t", G_PARAM_WRITABLE));
 }
 
 static void
@@ -178,6 +190,25 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 	g_signal_connect_swapped(lomo, "play",   (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "pause",  (GCallback) player_update_state, self);
 	g_signal_connect_swapped(lomo, "stop",   (GCallback) player_update_state, self);
+	g_signal_connect_swapped(lomo, "change", (GCallback) player_update_information, self);
+
+	player_update_state(self);
+	player_update_information(self);
+}
+
+void
+eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup)
+{
+	g_return_if_fail(EINA_IS_PLAYER(self));
+	g_return_if_fail(stream_markup != NULL);
+
+	EinaPlayerPrivate *priv = GET_PRIVATE(self);
+
+	if (priv->stream_mrkp)
+		g_free(priv->stream_mrkp);
+
+	priv->stream_mrkp = g_strdup(stream_markup);
+	player_update_information(self);
 }
 
 static void
@@ -207,7 +238,6 @@ player_update_state(EinaPlayer *self)
 	gtk_image_set_from_stock(image, stock, GTK_ICON_SIZE_BUTTON);
 }
 
-#if 0
 static void
 player_update_sensitive(EinaPlayer *self)
 {
@@ -226,7 +256,79 @@ player_update_sensitive(EinaPlayer *self)
 		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       FALSE);
 	}
 }
-#endif
+
+static void
+player_update_information(EinaPlayer *self)
+{
+	g_return_if_fail(EINA_IS_PLAYER(self));
+	EinaPlayerPrivate *priv = GET_PRIVATE(self);
+
+	gchar *info  = 
+		"<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n"
+		"<span size=\"x-large\" weight=\"normal\">\u200B</span>";
+
+	GtkWidget *label   = gel_ui_generic_get_typed(self, GTK_WIDGET, "stream-info-label");
+	LomoStream *stream = lomo_player_get_current_stream(priv->lomo);
+
+	GtkWindow *window = (GtkWindow *) gtk_widget_get_toplevel((GtkWidget *) self);
+	if (window && (!GTK_IS_WINDOW(window) || !gtk_widget_is_toplevel((GtkWidget *) window)))
+		window = NULL;
+
+	// Buttons' sensitiviness
+	player_update_sensitive(self);
+
+	if (!stream)
+	{
+		g_object_set(label,
+			"selectable", FALSE,
+			"use-markup", TRUE,
+			"label", info,
+			NULL);
+		gtk_window_set_title(window, N_("Eina player"));
+		return;
+	}
+
+	info = gel_str_parser(priv->stream_mrkp, (GelStrParserFunc) stream_info_parser_cb, stream);
+	g_object_set(label,
+		"selectable", TRUE,
+		"use-markup", TRUE,
+		"label", info,
+		NULL);
+	g_free(info);
+
+	gchar *title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
+	if (title == NULL)
+	{
+		gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+		title =  g_uri_unescape_string(tmp, NULL);
+		g_free(tmp);
+	}
+
+	gtk_window_set_title(window, title);
+	g_free(title);
+}
+
+static gchar *
+stream_info_parser_cb(gchar key, LomoStream *stream)
+{
+	gchar *ret = NULL;
+	gchar *tag_str = lomo_stream_get_tag_by_id(stream, key);
+
+	if (tag_str != NULL)
+	{
+		ret = g_markup_escape_text(tag_str, -1);
+		g_free(tag_str);
+	}
+
+	if ((key == 't') && (ret == NULL))
+	{
+		const gchar *tmp = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+		gchar *tmp2 = g_uri_unescape_string(tmp, NULL);
+		ret = g_path_get_basename(tmp2);
+		g_free(tmp2);
+	}
+	return ret;
+}
 
 static gboolean
 binding_volume_int_to_double(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
