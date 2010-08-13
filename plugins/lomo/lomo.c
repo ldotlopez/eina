@@ -73,7 +73,7 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	gint    argsc = *argc;
 	gchar **argsv = *argv;
 
-	for (guint i = 1; i <= argsc && argsv[i] && argsv[i][0]; i++)
+	for (guint i = 1; (i <= argsc) && argsv && argsv[i] && argsv[i][0]; i++)
 	{
 		gchar *uri = lomo_create_uri(argsv[i]);
 		g_warning("+ '%s'", uri);

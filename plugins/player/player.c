@@ -26,8 +26,8 @@
 #define BUGS_URI ""
 #define HELP_URI ""
 
-static void
-action_activated_cb(GtkAction *action, GelPluginEngine *engine);
+static gboolean
+action_activated_cb(EinaPlayer *player, GtkAction *action, GelPluginEngine *engine);
 static void
 settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player);
 
@@ -44,24 +44,8 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		NULL);
 
 	// Connect actions
-	// XXX: This has to be removed once actions are exported
-	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) player);
-	const gchar *actions[] = {
-		"prev-action",
-		"next-action",
-		"play-action",
-		"pause-action",
-		"open-action"
-		};
-	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
-	{
-		GtkAction *action = NULL;
-		if (!(action = GTK_ACTION(gtk_builder_get_object(builder, actions[i]))))
-			g_warning(N_("Action '%s' not found in widget"), actions[i]);
-		else
-			g_signal_connect(action, "activate", (GCallback) action_activated_cb, engine);
-	}
-	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, player);
+	g_signal_connect(player,   "action-activated", (GCallback) action_activated_cb, engine);
+	g_signal_connect(settings, "changed",          (GCallback) settings_changed_cb, player);
 
 	// Export
 	gel_plugin_engine_set_interface(engine, "player", player);
@@ -82,62 +66,32 @@ player_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-static void
-action_activated_cb(GtkAction *action, GelPluginEngine *engine)
+static gboolean
+action_activated_cb(EinaPlayer *player, GtkAction *action, GelPluginEngine *engine)
 {
 	const gchar *name = gtk_action_get_name(action);
 
-	LomoPlayer *lomo = gel_plugin_engine_get_interface(engine, "lomo");
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+	LomoPlayer *lomo = eina_player_get_lomo_player(player);
+	g_return_val_if_fail(LOMO_IS_PLAYER(lomo), FALSE);
 
 	GError *error = NULL;
-	if (g_str_equal(name, "play-action"))
-		lomo_player_play(lomo, &error);
 
-	else if (g_str_equal(name, "pause-action"))
-		lomo_player_pause(lomo, &error);
-
-	else if (g_str_equal(name, "next-action"))
-		lomo_player_go_next(lomo, &error);
-
-	else if (g_str_equal(name, "prev-action"))
-		lomo_player_go_prev(lomo, &error);
-
-	else if (g_str_equal(name, "open-action"))
+	// Handle action
+	if (g_str_equal(name, "open-action"))
 		eina_fs_load_from_default_file_chooser(engine);
 
-	else if (g_str_equal(name, "quit-action"))
-		gtk_application_quit(gel_plugin_engine_get_interface(engine, "application"));
-
-	else if (g_str_equal(name, "help-action"))
-#if OSX_SYSTEM
-		g_spawn_command_line_async(OSX_OPEN_PATH " " HELP_URI, &error);
-#else
-		gtk_show_uri(NULL, HELP_URI, GDK_CURRENT_TIME, &error);
-#endif
-
-	else if (g_str_equal(name, "bug-action"))
-#if OSX_SYSTEM
-		g_spawn_command_line_async(OSX_OPEN_PATH " " BUGS_URI, &error);
-#else
-		gtk_show_uri(NULL, BUGS_URI, GDK_CURRENT_TIME, &error);
-#endif
-#if 0
-	else if (g_str_equal(name, "about-action"))
-		eina_about_show(eina_obj_get_about((EinaObj *) self));
-#endif
+	// Action is unknow to us, return FALSE
 	else
-	{
-		g_warning(N_("Unknow action: %s"), name);
-		return;
-	}
+		return FALSE;
 
+	// Show errors if any
 	if (error != NULL)
 	{
 		g_warning(N_("Unable to complete action '%s': %s"), name, error->message);
 		g_error_free(error);
 	}
-
+	// Successful or not, we try to handle it, return TRUE
+	return TRUE;
 }
 
 static void

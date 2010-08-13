@@ -19,6 +19,7 @@
 
 #include <glib/gi18n.h>
 #include "eina-player.h"
+#include "eina-player-marshallers.h"
 #include "eina-player.ui.h"
 #include "eina-seek.h"
 
@@ -42,6 +43,12 @@ enum {
 	PROP_STREAM_MARKUP
 };
 
+enum {
+	ACTION_ACTIVATED,
+	LAST_SIGNAL
+};
+guint eina_player_signals[LAST_SIGNAL] = { 0 };
+
 static void
 player_update_state(EinaPlayer *self);
 static void
@@ -53,9 +60,11 @@ static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
+
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
-
+static void
+action_activated_cb(GtkAction *action, EinaPlayer *self);
 static gboolean
 binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 static gboolean
@@ -65,6 +74,10 @@ static void
 eina_player_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
+	case PROP_LOMO_PLAYER:
+		g_value_set_object(value, G_OBJECT(eina_player_get_lomo_player((EinaPlayer *) object)));
+		return;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -99,6 +112,13 @@ eina_player_dispose (GObject *object)
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
 }
 
+static GObject*
+eina_player_constructor(GType type, guint n_params, GObjectConstructParam *construct_params)
+{
+	GObject *object = G_OBJECT_CLASS(eina_player_parent_class)->constructor(type, n_params, construct_params);
+	return object;
+}
+
 static void
 eina_player_class_init (EinaPlayerClass *klass)
 {
@@ -106,6 +126,7 @@ eina_player_class_init (EinaPlayerClass *klass)
 
 	g_type_class_add_private (klass, sizeof (EinaPlayerPrivate));
 
+	object_class->constructor  = eina_player_constructor;
 	object_class->get_property = eina_player_get_property;
 	object_class->set_property = eina_player_set_property;
 	object_class->dispose = eina_player_dispose;
@@ -117,36 +138,30 @@ eina_player_class_init (EinaPlayerClass *klass)
 	g_object_class_install_property(object_class, PROP_STREAM_MARKUP,
 		g_param_spec_string("stream-markup", "stream-markup", "stream-markup",
 		"%t", G_PARAM_WRITABLE));
+
+	eina_player_signals[ACTION_ACTIVATED] =
+		g_signal_new ("action-activated",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (EinaPlayerClass, action_activated),
+			NULL, NULL,
+			eina_player_marshall_BOOLEAN__POINTER,
+			G_TYPE_BOOLEAN,
+			1,
+			GTK_TYPE_ACTION);
 }
 
 static void
 eina_player_init (EinaPlayer *self)
 {
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
-#if 0
-	g_object_set(self, "xml-string", xml_ui_string, NULL);
-	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
-	const gchar *actions[] = {
-		"prev-action",
-		"next-action",
-		"play-action",
-		"pause-action"
-		};
-	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
-	{
-		GtkAction *a = GTK_ACTION(gtk_builder_get_object(builder, actions[i]));
-		if (!a)
-			g_warning(N_("Action '%s' not found in widget"), actions[i]);
-		else
-			g_signal_connect(a, "activated", (GCallback) action_activated_cb, self);
-	}
-#endif
 }
 
 GtkWidget*
 eina_player_new (void)
 {
 	GtkWidget *self = g_object_new (EINA_TYPE_PLAYER, "xml-string", xml_ui_string, NULL);
+
 	EinaPlayerPrivate *priv = GET_PRIVATE(self);
 
 	// Seek widget
@@ -163,7 +178,32 @@ eina_player_new (void)
 
 	// Cover widget
 
+	// Actions
+	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
+	const gchar *actions[] = {
+		"prev-action",
+		"next-action",
+		"play-action",
+		"pause-action",
+		"open-action"
+		};
+	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
+	{
+		GtkAction *a = GTK_ACTION(gtk_builder_get_object(builder, actions[i]));
+		if (!a)
+			g_warning(N_("Action '%s' not found in widget"), actions[i]);
+		else
+			g_signal_connect(a, "activate", (GCallback) action_activated_cb, self);
+	}
+
 	return self;
+}
+
+LomoPlayer *
+eina_player_get_lomo_player(EinaPlayer *self)
+{
+	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
+	return GET_PRIVATE(self)->lomo;
 }
 
 void
@@ -308,7 +348,8 @@ player_update_information(EinaPlayer *self)
 			"use-markup", TRUE,
 			"label", info,
 			NULL);
-		gtk_window_set_title(window, N_("Eina player"));
+		if (window)
+			gtk_window_set_title(window, N_("Eina player"));
 		return;
 	}
 
@@ -328,7 +369,8 @@ player_update_information(EinaPlayer *self)
 		g_free(tmp);
 	}
 
-	gtk_window_set_title(window, title);
+	if (window)
+		gtk_window_set_title(window, title);
 	g_free(title);
 }
 
@@ -370,6 +412,37 @@ stream_info_parser_cb(gchar key, LomoStream *stream)
 	return ret;
 }
 
+static void
+action_activated_cb(GtkAction *action, EinaPlayer *self)
+{
+	gboolean ret = FALSE;
+	g_signal_emit(self, eina_player_signals[ACTION_ACTIVATED], 0, action, &ret);
+
+	if (ret)
+		return;
+
+	const gchar *name = gtk_action_get_name(action);
+	LomoPlayer  *lomo = GET_PRIVATE(self)->lomo;
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+
+	GError *error = NULL;
+
+	if (g_str_equal(name, "play-action"))
+		lomo_player_play(lomo, &error);
+
+	else if (g_str_equal(name, "pause-action"))
+		lomo_player_pause(lomo, &error);
+
+	else if (g_str_equal(name, "next-action"))
+		lomo_player_go_next(lomo, &error);
+
+	else if (g_str_equal(name, "prev-action"))
+		lomo_player_go_prev(lomo, &error);
+
+	else
+		g_warning(N_("Action %s was not handled"), name);
+}
+
 static gboolean
 binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
@@ -383,3 +456,4 @@ binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *ds
 	g_value_set_int(dst, (gint) CLAMP(g_value_get_double(src) * 100, 0, 100));
 	return TRUE;
 }
+

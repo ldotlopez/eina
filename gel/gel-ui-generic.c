@@ -40,6 +40,26 @@ struct _GelUIGenericPrivate {
 static void
 set_xml_string(GelUIGeneric *self, gchar *xml_string);
 
+static GObject*
+gel_ui_generic_constructor(GType type, guint n_construct_params, GObjectConstructParam *construct_params)
+{
+	GObject *object = G_OBJECT_CLASS (gel_ui_generic_parent_class)->constructor (type, n_construct_params, construct_params);
+	g_return_val_if_fail(object != NULL, NULL);
+
+	for (guint i = 0; i < n_construct_params; i++)
+	{
+		GParamSpec *pspec = construct_params[i].pspec;
+		GValue     *value = construct_params[i].value;
+	
+		if (pspec->owner_type != GEL_UI_TYPE_GENERIC)
+			continue;
+
+		if (g_str_equal(pspec->name, "xml-string"))
+			set_xml_string((GelUIGeneric *) object, (gchar *) g_value_get_string(value));
+	}
+	return object;
+}
+
 static void
 gel_ui_generic_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
@@ -52,9 +72,11 @@ gel_ui_generic_get_property (GObject *object, guint property_id, GValue *value, 
 static void
 gel_ui_generic_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
+	if (pspec->flags & G_PARAM_CONSTRUCT_ONLY)
+		return;
+
 	switch (property_id) {
 	case PROP_XML_STRING:
-		set_xml_string((GelUIGeneric *) object, (gchar *) g_value_get_string(value));
 		return;
 
 	default:
@@ -80,6 +102,7 @@ gel_ui_generic_class_init (GelUIGenericClass *klass)
 
 	object_class->get_property = gel_ui_generic_get_property;
 	object_class->set_property = gel_ui_generic_set_property;
+	object_class->constructor = gel_ui_generic_constructor;
 	object_class->dispose = gel_ui_generic_dispose;
 
 	g_object_class_install_property(object_class, PROP_XML_STRING, 
@@ -95,6 +118,7 @@ gel_ui_generic_init (GelUIGeneric *self)
 GtkWidget*
 gel_ui_generic_new (gchar *xml_string)
 {
+	g_assert(xml_string != NULL);
 	return g_object_new (GEL_UI_TYPE_GENERIC, "xml-string", xml_string, NULL);
 }
 

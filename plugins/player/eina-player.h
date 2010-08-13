@@ -49,6 +49,7 @@ typedef struct {
 
 typedef struct {
 	GelUIGenericClass parent_class;
+	gboolean (*action_activated) (EinaPlayer *self, GtkAction *action);
 } EinaPlayerClass;
 
 GType eina_player_get_type (void);
@@ -57,6 +58,8 @@ GtkWidget* eina_player_new (void);
 
 void
 eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo);
+LomoPlayer *
+eina_player_get_lomo_player(EinaPlayer *self);
 void
 eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup);
 
