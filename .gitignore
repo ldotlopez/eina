@@ -57,13 +57,18 @@ stamp-h1
 .dirstamp
 compile
 mkinstalldirs
+stamp-marshal
+stamp-ui2h
 
 # Eina bundle for OSX
 bundle/build
 bundle/Info.plist
 bundle/Eina-*
+
+# Binaries
 eina/eina
 eina/vogon
+eina/vogon-app
 m4/
 
 # Generated marshallers
@@ -71,7 +76,7 @@ m4/
 *-marshallers.h
 
 # Generated header files
-eina/ext/*-ui.h
+*-ui.h
 eina/ext/eina-cover-image-mask.h
 
 # Output data

@@ -147,7 +147,7 @@ gel_ui_plugin_manager_init (GelUIPluginManager *self)
 	gchar *objs[] = { "main-widget", "liststore", NULL };
 	GError *error = NULL;
 	GtkBuilder *builder = gtk_builder_new();
-	if (gtk_builder_add_objects_from_string(builder, ui_xml, -1, objs, &error) == 0)
+	if (gtk_builder_add_objects_from_string(builder, __gel_ui_plugin_manager_ui_xml, -1, objs, &error) == 0)
 	{
 		g_warning("%s", error->message);
 		g_error_free(error);

@@ -67,7 +67,7 @@ gel_plugin_new(GelPluginEngine *engine, GelPluginInfo *info, GError **error)
 	if ((mod = g_module_open(mod_filename, G_MODULE_BIND_LAZY)) == NULL)
 	{
 		g_set_error(error, plugin_quark(), GEL_PLUGIN_ERROR_MODULE_NOT_LOADABLE,
-			N_("%s is not loadable"), info->pathname);
+			N_("%s is not loadable: %s"), info->pathname, g_module_error());
 		g_free(mod_filename);
 		return NULL;
 	}
