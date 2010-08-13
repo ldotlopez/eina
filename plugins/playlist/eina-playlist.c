@@ -18,7 +18,8 @@
  */
 
 #include "eina-playlist.h"
-#include "eina-playlist.ui.h"
+#include "eina-playlist-marshallers.h"
+#include "eina-playlist-ui.h"
 #include <glib/gi18n.h>
 #include <gdk/gdkkeysyms.h>
 
@@ -37,8 +38,13 @@ struct _EinaPlaylistPrivate {
 	// Internals
 	GtkTreeView  *tv;
 	GtkTreeModel *model; // Model, tv has a filter attached
+
+	GBinding *bind_random, *bind_repeat;
 };
 
+/*
+ * Some enums
+ */
 enum {
 	PROP_LOMO_PLAYER = 1,
 	PROP_STREAM_MARKUP
@@ -46,11 +52,17 @@ enum {
 #define PROP_STREAM_MARKUP_DEFAULT "{%a - }%t"
 
 enum {
+	ACTION_ACTIVATED,
+	LAST_SIGNAL
+};
+guint eina_playlist_signals[LAST_SIGNAL] = { 0 };
+
+enum {
 	TAB_PLAYLIST_EMPTY = 0,
 	TAB_PLAYLIST_NON_EMPTY
 };
 
-typedef enum
+enum
 {
 	PLAYLIST_COLUMN_STREAM = 0,
 	PLAYLIST_COLUMN_STATE,
@@ -58,11 +70,11 @@ typedef enum
 	PLAYLIST_COLUMN_MARKUP,
 	PLAYLIST_COLUMN_INDEX,
 	PLAYLIST_COLUMN_QUEUE_STR,
+};
 
-	PLAYLIST_N_COLUMNS
-} EinaPlaylistColumn;
-
-// API
+/*
+ * Internal API
+ */
 static void
 playlist_set_valist_from_stream(EinaPlaylist *self, LomoStream *stream, ...);
 gboolean
@@ -85,7 +97,9 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 #define eina_playlist_update_current_item(self,...) \
 	eina_playlist_update_item(self, NULL,lomo_player_get_current(GET_PRIVATE(self)->lomo),__VA_ARGS__)
 
-// UI Callbacks
+/*
+ * UI Callbacks
+ */
 static gboolean
 key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self);
 void
@@ -95,7 +109,9 @@ treeview_button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaPlaylist *s
 void
 action_activate_cb(GtkAction *action, EinaPlaylist *self);
 
-// Lomo callbacks
+/*
+ * Lomo callbacks
+ */
 static void lomo_state_change_cb
 (LomoPlayer *lomo, EinaPlaylist *self);
 static void lomo_insert_cb
@@ -141,30 +157,6 @@ static void search_entry_changed_cb
 (GtkWidget *w, EinaPlaylist *self);
 static void search_entry_icon_press_cb
 (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, EinaPlaylist *self);
-
-/* Signal definitions */
-GelUISignalDef _playlist_signals[] = {
-	{ "playlist-treeview",   "row-activated",
-	G_CALLBACK(dock_row_activated_cb) },
-	{ "playlist-treeview",   "size-allocate",
-	G_CALLBACK(playlist_treeview_size_allocate_cb) },
-
-	{ "playlist-search-entry", "changed",
-	G_CALLBACK(search_entry_changed_cb) },
-	{ "playlist-search-entry", "icon-press",
-	G_CALLBACK(search_entry_icon_press_cb) },
-	{ "playlist-search-entry", "activate",
-	G_CALLBACK(gtk_widget_grab_focus) },
-	{ "playlist-search-entry", "focus-in-event",
-	G_CALLBACK(widget_focus_in_event_cb) },
-	{ "playlist-search-entry", "focus-out-event",
-	G_CALLBACK(widget_focus_out_event_cb) },
-
-	{ "playlist-treeview", "button-press-event",
-	G_CALLBACK(treeview_button_press_event_cb) },
-
-	GEL_UI_SIGNAL_DEF_NONE
-};
 
 static void
 eina_playlist_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
@@ -223,19 +215,57 @@ eina_playlist_class_init (EinaPlaylistClass *klass)
 	g_object_class_install_property(object_class, PROP_STREAM_MARKUP,
 		g_param_spec_string("stream-markup", "stream-markup", "stream-markup",
 			PROP_STREAM_MARKUP_DEFAULT, G_PARAM_WRITABLE | G_PARAM_READABLE));
+
+	eina_playlist_signals[ACTION_ACTIVATED] = 
+		g_signal_new("action-activated",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (EinaPlaylistClass, action_activated),
+			NULL, NULL,
+			eina_playlist_marshall_BOOLEAN__POINTER,
+			G_TYPE_BOOLEAN,
+			1,
+			GTK_TYPE_ACTION);
 }
 
 static void
 eina_playlist_init (EinaPlaylist *self)
 {
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
-
 }
 
 EinaPlaylist*
 eina_playlist_new (void)
 {
- 	EinaPlaylist *self = g_object_new (EINA_TYPE_PLAYLIST, "xml-string", xml_ui_string, NULL);
+	static struct {
+		gchar     *object;
+		gchar     *signal;
+		GCallback  callback;
+	} signals[] = 
+	{
+		{ "playlist-treeview",   "row-activated", G_CALLBACK(dock_row_activated_cb)              },
+		{ "playlist-treeview",   "size-allocate", G_CALLBACK(playlist_treeview_size_allocate_cb) },
+ 
+		{ "playlist-search-entry", "changed",         G_CALLBACK(search_entry_changed_cb)    },
+		{ "playlist-search-entry", "icon-press",      G_CALLBACK(search_entry_icon_press_cb) },
+		{ "playlist-search-entry", "activate",        G_CALLBACK(gtk_widget_grab_focus)      },
+		{ "playlist-search-entry", "focus-in-event",  G_CALLBACK(widget_focus_in_event_cb)   },
+		{ "playlist-search-entry", "focus-out-event", G_CALLBACK(widget_focus_out_event_cb)  },
+	
+		{ "playlist-treeview",     "button-press-event", G_CALLBACK(treeview_button_press_event_cb) }
+	};
+	static gchar *actions[] =
+	{
+		"random-action",
+		"repeat-action",
+		"add-action",
+		"remove-action"
+		"clear-action",
+		"queue-action",
+		"dequeue-action",
+	};
+
+ 	EinaPlaylist *self = g_object_new (EINA_TYPE_PLAYLIST, "xml-string", __ui_xml, NULL);
 
  	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
 	priv->tv    = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_VIEW,  "playlist-treeview");
@@ -248,8 +278,10 @@ eina_playlist_new (void)
 		NULL);
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
-	gel_ui_signal_connect_from_def_multiple(gel_ui_generic_get_builder(GEL_UI_GENERIC(self)),
-		 _playlist_signals, self, NULL);
+	for (guint i = 0; i < G_N_ELEMENTS(signals); i++)
+		g_signal_connect(gel_ui_generic_get_object((GelUIGeneric *) self, signals[i].object), signals[i].signal, signals[i].callback, self);
+	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
+		g_signal_connect(gel_ui_generic_get_object((GelUIGeneric *) self, actions[i]), "activate", (GCallback) action_activate_cb, self);
 	g_signal_connect(self, "key-press-event", G_CALLBACK(key_press_event_cb), self);
 
 #if ENABLE_EXPERIMENTAL
@@ -299,7 +331,7 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	priv->lomo = g_object_ref(lomo);
 	for (guint i = 0; i < G_N_ELEMENTS(callback_defs); i++)
 		g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
-	
+
 	g_object_notify((GObject *) self, "lomo-player");
 }
 
@@ -1232,13 +1264,14 @@ void action_activate_cb
 
 	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
 
+	gboolean ret = FALSE;
+	g_signal_emit(self, eina_playlist_signals[ACTION_ACTIVATED], 0, action, &ret);
+	if (ret)
+		return;
+
 	const gchar *name = gtk_action_get_name(action);
 
-	/*
-	if (g_str_equal("add-action", name))
-		eina_fs_load_from_default_file_chooser(eina_obj_get_app(self));
-
-	else */ if (g_str_equal("remove-action", name))
+	if (g_str_equal("remove-action", name))
 		playlist_remove_selected(self);
 	
 	else if (g_str_equal("clear-action", name))
@@ -1250,7 +1283,13 @@ void action_activate_cb
 	else if (g_str_equal("dequeue-action", name))
 		playlist_dequeue_selected(self);
 
+	else if (g_str_equal("repeat-action", name))
+		lomo_player_set_repeat(priv->lomo, gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
+
+	else if (g_str_equal("random-action", name))
+		lomo_player_set_random(priv->lomo, gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)));
+
 	else
-		g_warning(N_("Unknow action %s"), name);
+		g_warning(N_("Unhandled action %s"), name);
 }
 

@@ -65,7 +65,7 @@ GType lomo_stream_get_type (void);
 
 LomoStream* lomo_stream_new (gchar *uri);
 
-#ifdef LIBLOMO_COMPILATION
+#ifdef LOMO_COMPILATION
 void lomo_stream_set_all_tags_flag(LomoStream *self, gboolean val);
 void lomo_stream_set_failed_flag  (LomoStream *self, gboolean val);
 #endif

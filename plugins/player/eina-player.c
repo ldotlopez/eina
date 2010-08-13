@@ -20,7 +20,7 @@
 #include <glib/gi18n.h>
 #include "eina-player.h"
 #include "eina-player-marshallers.h"
-#include "eina-player.ui.h"
+#include "eina-player-ui.h"
 #include "eina-seek.h"
 
 G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
@@ -160,7 +160,7 @@ eina_player_init (EinaPlayer *self)
 GtkWidget*
 eina_player_new (void)
 {
-	GtkWidget *self = g_object_new (EINA_TYPE_PLAYER, "xml-string", xml_ui_string, NULL);
+	GtkWidget *self = g_object_new (EINA_TYPE_PLAYER, "xml-string", __eina_player_ui_xml, NULL);
 
 	EinaPlayerPrivate *priv = GET_PRIVATE(self);
 

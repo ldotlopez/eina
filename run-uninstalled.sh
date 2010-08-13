@@ -12,7 +12,7 @@ R="$D/tools/run"
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$LD_LIBRARY_PATH"
 
 # Resource handling (gel-related)
-export EINA_UI_PATH="$D/ui"
+# export EINA_UI_PATH="$D/ui"
 export EINA_PIXMAP_PATH="$D/pixmaps"
 export EINA_LIB_PATH="$R/plugins"
 

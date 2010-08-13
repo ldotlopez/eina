@@ -32,6 +32,7 @@ typedef struct {
 
 typedef struct {
 	GelUIGenericClass parent_class;
+	gboolean (*action_activated) (EinaPlaylist *self, GtkAction *action);
 } EinaPlaylistClass;
 
 GType eina_playlist_get_type (void);

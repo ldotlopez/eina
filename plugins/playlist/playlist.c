@@ -20,9 +20,13 @@
 #include "eina/eina-plugin2.h"
 #include "plugins/playlist/playlist.h"
 #include "plugins/dock/dock.h"
+#include "eina/fs.h"
 
 #define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"                     
 #define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"
+
+static gboolean
+action_activated_cb(EinaPlaylist *playlist, GtkAction *action, GelPluginEngine *engine);
 
 G_MODULE_EXPORT gboolean
 playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
@@ -35,6 +39,8 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		"lomo-player", gel_plugin_engine_get_interface(engine, "lomo"),
 		"stream-markup", g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
 		NULL);
+	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, engine);
+	
 	gtk_widget_show((GtkWidget *) playlist);
 
 	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
@@ -49,3 +55,15 @@ playlist_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+static gboolean
+action_activated_cb(EinaPlaylist *playlist, GtkAction *action, GelPluginEngine *engine)
+{
+	const gchar *name = gtk_action_get_name(action);
+
+	if (g_str_equal("add-action", name))
+		eina_fs_load_from_default_file_chooser(engine);
+	else
+		return FALSE;
+
+	return TRUE;
+}
