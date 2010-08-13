@@ -54,7 +54,7 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	gtk_box_pack_start (
 		(GtkBox *) gel_ui_application_get_window_content_area(application),
 		player,
-		TRUE, TRUE, 0);
+		FALSE, FALSE, 0);
 	gtk_widget_show_all(player);
 
 	return TRUE;

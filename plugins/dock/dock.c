@@ -26,9 +26,9 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	GtkWidget *dock = (GtkWidget *) eina_dock_new();
 
-	EinaPlayer *player = gel_plugin_engine_get_interface(engine, "player");
+	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
 
-	gtk_box_pack_start(GTK_BOX(player), dock, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(gel_ui_application_get_window_content_area(application)), dock, TRUE, TRUE, 0);
 	gtk_widget_show(dock);
 
 	gel_plugin_engine_set_interface(engine, "dock", dock);
