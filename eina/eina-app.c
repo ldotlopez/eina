@@ -12,6 +12,7 @@ gint main(gint argc, gchar *argv[])
 {
 	g_type_init();
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
+	gtk_init(&argc, &argv);
 
 	// Initialize stock icons stuff
 	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
@@ -21,7 +22,6 @@ gint main(gint argc, gchar *argv[])
 	if ((themedir = (gchar*) g_getenv("EINA_THEME_DIR")) != NULL)
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
-
 
 	GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
 
