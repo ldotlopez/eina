@@ -88,6 +88,8 @@ void       gel_plugin_engine_purge(GelPluginEngine *self);
 
 gboolean gel_plugin_engine_set_interface(GelPluginEngine *self, gchar *name, gpointer data);
 gpointer gel_plugin_engine_get_interface(GelPluginEngine *self, gchar *name);
+gpointer gel_plugin_engine_steal_interface(GelPluginEngine *self, gchar *name);
+
 #define gel_plugin_engine_shared_set(s,n,d) gel_plugin_engine_set_interface(s,n,d)
 #define gel_plugin_engine_shared_get(s,n)   gel_plugin_engine_get_interface(s,n)
 void     gel_plugin_engine_shared_free(GelPluginEngine *self, gchar *name);

@@ -480,6 +480,19 @@ gel_plugin_engine_get_interface (GelPluginEngine *self, gchar *name)
 	return ret;
 }
 
+gpointer
+gel_plugin_engine_steal_interface(GelPluginEngine *self, gchar *name)
+{
+	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), FALSE);
+	g_return_val_if_fail(name != NULL, FALSE);
+
+	gpointer ret = gel_plugin_engine_get_interface(self, name);
+	g_return_val_if_fail(ret, NULL);
+
+	gel_plugin_engine_set_interface(self, name, NULL);
+	return ret;
+}
+
 void
 gel_plugin_engine_shared_free(GelApp *self, gchar *name)
 {
