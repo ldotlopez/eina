@@ -19,7 +19,6 @@
 
 #include <glib/gi18n.h>
 #include "eina-player.h"
-#include "eina-player-marshallers.h"
 #include "eina-player-ui.h"
 #include "eina-seek.h"
 #include "eina-cover.h"

@@ -19,6 +19,9 @@
 
 #define GEL_DOMAIN "Eina::Fs"
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <gel/gel-io.h>
@@ -27,7 +30,6 @@
 #include <eina/ext/eina-file-utils.h>
 #include <eina/ext/eina-stock.h>
 #include <eina/fs.h>
-#include <eina/lomo.h>
 
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
@@ -71,7 +73,7 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 	}
 	uris = g_list_reverse(uris);
 
-	LomoPlayer *lomo = gel_app_get_lomo(app);
+	LomoPlayer *lomo = gel_plugin_engine_get_interface(app, "lomo");
 	lomo_player_append_uri_multi(lomo, uris);
 
 	gel_list_deep_free(uris, (GFunc) g_free);
@@ -126,7 +128,7 @@ eina_fs_load_from_file_chooser(GelApp *app, EinaFileChooserDialog *dialog)
 		if (uris == NULL)
 			continue;
 
-		LomoPlayer *lomo = gel_app_get_lomo(app);
+		LomoPlayer *lomo = gel_plugin_engine_get_interface(app, "lomo");
 		if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
 		{
 			run = FALSE;

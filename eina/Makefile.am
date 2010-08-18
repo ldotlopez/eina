@@ -18,13 +18,11 @@ include_HEADERS = \
 eina_gtk3_SOURCES = \
 	fs.c \
 	fs.h \
+	eina-marshallers.c \
+	eina-marshallers.h \
 	eina-app.c
-#	ext/eina-file-utils.c \
-#	ext/eina-file-utils.h \
-#	ext/eina-stock.c \
-#	ext/eina-stock.h \
-#	ext/eina-file-chooser-dialog.c \
-#	ext/eina-file-chooser-dialog.h \
-#	art.c \
-#	art.h
+
+glib_marshallers_list = eina-marshallers.list
+glib_marshallers_prefix = eina_marshall
+include $(top_srcdir)/build/Makefile.am.marshallers
 

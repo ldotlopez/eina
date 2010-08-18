@@ -12,8 +12,6 @@ libplayer_la_SOURCES = \
 	eina-seek.c \
 	eina-seek.h \
 	eina-player-ui.h \
-	eina-player-marshallers.h \
-	eina-player-marshallers.c \
 	eina-player.c \
 	eina-player.h \
 	eina-player-ui.h \
@@ -44,9 +42,5 @@ libplayer_la_SOURCES += $(png_h_files)
 eina_ui2h_ui = eina-player.ui
 eina_ui2h_name = __eina_player_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
-
-glib_marshallers_list = eina-player-marshallers.list
-glib_marshallers_prefix = eina_player_marshall
-include $(top_srcdir)/build/Makefile.am.marshallers
 
 EXTRA_DIST += player.ini

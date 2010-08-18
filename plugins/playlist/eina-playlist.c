@@ -18,7 +18,6 @@
  */
 
 #include "eina-playlist.h"
-#include "eina-playlist-marshallers.h"
 #include "eina-playlist-ui.h"
 #include <glib/gi18n.h>
 #include <gdk/gdkkeysyms.h>
