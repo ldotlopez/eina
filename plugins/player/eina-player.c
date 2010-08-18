@@ -148,7 +148,7 @@ eina_player_class_init (EinaPlayerClass *klass)
 			G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET (EinaPlayerClass, action_activated),
 			NULL, NULL,
-			eina_player_marshall_BOOLEAN__POINTER,
+			gel_marshal_BOOLEAN__OBJECT,
 			G_TYPE_BOOLEAN,
 			1,
 			GTK_TYPE_ACTION);

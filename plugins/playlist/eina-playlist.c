@@ -221,7 +221,7 @@ eina_playlist_class_init (EinaPlaylistClass *klass)
 			G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET (EinaPlaylistClass, action_activated),
 			NULL, NULL,
-			eina_playlist_marshall_BOOLEAN__POINTER,
+			gel_marshal_BOOLEAN__OBJECT,
 			G_TYPE_BOOLEAN,
 			1,
 			GTK_TYPE_ACTION);

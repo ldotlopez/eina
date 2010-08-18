@@ -10,7 +10,6 @@
 #include <gel/gel-ui.h>
 #include <eina/ext/eina-stock.h>
 #include <eina/fs.h>
-#include <eina/eina-marshallers.h>
 
 // Redefine some types and enums
 #define EinaPluginInfo GelPluginInfo
