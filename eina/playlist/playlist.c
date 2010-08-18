@@ -18,8 +18,8 @@
  */
 
 #include "eina/eina-plugin2.h"
-#include "plugins/playlist/playlist.h"
-#include "plugins/dock/dock.h"
+#include "eina/playlist/playlist.h"
+#include "eina/dock/dock.h"
 #include "eina/fs.h"
 
 #define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"                     

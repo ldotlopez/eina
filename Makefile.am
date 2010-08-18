@@ -3,7 +3,6 @@ SUBDIRS = \
 	gel     \
 	lomo    \
 	eina    \
-	plugins \
 	pixmaps \
 	data    \
 	docs    \

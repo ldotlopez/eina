@@ -1,6 +1,12 @@
 include $(top_srcdir)/build/Makefile.am.common
 
-SUBDIRS = ext
+SUBDIRS = ext   \
+	application \
+	art         \
+	dock        \
+	lomo        \
+	player      \
+	playlist
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la

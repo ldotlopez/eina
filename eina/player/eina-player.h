@@ -23,7 +23,7 @@
 #include <glib-object.h>
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
-#include <plugins/player/eina-cover.h>
+#include <eina/player/eina-cover.h>
 
 G_BEGIN_DECLS
 

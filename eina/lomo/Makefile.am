@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/lomo
 plugin_LTLIBRARIES = liblomo.la
 
-includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/plugins/lomo
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/lomo
 include_HEADERS = \
 	lomo.h
 

@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/art
 plugin_LTLIBRARIES = libart.la
 
-includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/plugins/art
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/art
 include_HEADERS = \
 	art.h
 

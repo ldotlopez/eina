@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/player
 plugin_LTLIBRARIES = libplayer.la
 
-includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/plugins/player
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/player
 include_HEADERS = \
 	eina-cover.h       \
 	eina-cover-image.h \

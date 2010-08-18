@@ -19,7 +19,7 @@
 
 #include "eina/eina-plugin2.h"
 #include "eina-dock.h"
-#include "plugins/player/eina-player.h"
+#include "eina/player/eina-player.h"
 
 typedef struct {
 	GtkWidget *dock;

@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/dock
 plugin_LTLIBRARIES = libdock.la
 
-includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/plugins/dock
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/dock
 include_HEADERS = \
 	eina-dock.h \
 	dock.h

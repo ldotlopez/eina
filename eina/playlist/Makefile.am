@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/playlist
 plugin_LTLIBRARIES = libplaylist.la
 
-includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/plugins/playlist
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/playlist
 include_HEADERS = \
 	eina-playlist.h \
 	playlist.h
