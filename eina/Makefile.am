@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 SUBDIRS = ext
 
 bin_PROGRAMS = eina-gtk3
-eina_gtk3_LDDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
+eina_gtk3_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 eina_gtk3_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
 eina_gtk3_LDFLAGS = \
 	@EINA_LIBS@ \
