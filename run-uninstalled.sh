@@ -54,7 +54,7 @@ do
 done
 
 # Find real binary
-P=${P:="eina"}
+P=${P:="eina-gtk3"}
 
 BIN=""
 for i in $(find "$D/eina" -name "$P")

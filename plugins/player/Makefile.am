@@ -16,6 +16,7 @@ libplayer_la_SOURCES = \
 	eina-player-marshallers.c \
 	eina-player.c \
 	eina-player.h \
+	eina-player-ui.h \
 	player.c
 
 plugin_DATA = player.ini

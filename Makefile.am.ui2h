@@ -17,7 +17,7 @@
 
 ui2h_h = $(eina_ui2h_ui:.ui=-ui.h)
 
-CLEANFILES += stamp-marshal
+CLEANFILES += stamp-ui2h
 DISTCLEANFILES += $(ui2h_h)
 BUILT_SOURCES += $(ui2h_h)
 EXTRA_DIST += $(eina_ui2h_ui)

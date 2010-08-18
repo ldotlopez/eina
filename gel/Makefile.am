@@ -15,13 +15,13 @@ include_HEADERS = \
 	gel-plugin.h            \
 	gel-plugin-engine.h     \
 	gel-plugin-info.h       \
+	gel-io.h                \
 	gel-io-misc.h           \
 	gel-io-tree.h           \
 	gel-io-op-result.h      \
 	gel-io-ops.h            \
 	gel-io-recurse-tree.h   \
 	gel-io-scanner.h        \
-	gel-io.h                \
 	gel-ui.h                \
 	gel-ui-application.h    \
 	gel-ui-generic.h        \
@@ -47,6 +47,7 @@ libgel_1_0_la_SOURCES = \
 	gel-ui-application.c    \
 	gel-ui-generic.c        \
 	gel-ui-plugin-manager.c \
+	gel-ui-plugin-manager-ui.h \
 	gel-ui-utils.c
 
 glib_marshallers_list = gel-marshallers.list

@@ -67,8 +67,8 @@ bundle/Eina-*
 
 # Binaries
 eina/eina
+eina/eina-gtk3
 eina/vogon
-eina/vogon-app
 m4/
 
 # Generated marshallers
