@@ -413,7 +413,7 @@ build/Makefile
 bundle/build
 bundle/Info.plist
 data/eina.desktop
-data/eina-0.9.pc
+data/eina-0.10.pc
 data/net.sourceforge.eina.gschema.xml.in
 gel/Makefile
 lomo/Makefile
