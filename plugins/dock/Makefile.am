@@ -11,3 +11,4 @@ libdock_la_SOURCES = \
 
 plugin_DATA = dock.ini
 
+EXTRA_DIST = dock.ini

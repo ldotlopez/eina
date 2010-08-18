@@ -11,6 +11,10 @@ eina_gtk3_LDFLAGS = \
 	-L$(top_builddir)/lomo/.libs \
 	-lgel-1.0 -llomo-1.0
 
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
+include_HEADERS = \
+	eina-plugin2.h
+
 eina_gtk3_SOURCES = \
 	fs.c \
 	fs.h \

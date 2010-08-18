@@ -49,3 +49,4 @@ glib_marshallers_list = eina-player-marshallers.list
 glib_marshallers_prefix = eina_player_marshall
 include $(top_srcdir)/build/Makefile.am.marshallers
 
+EXTRA_DIST += player.ini
