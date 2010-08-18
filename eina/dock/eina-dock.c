@@ -95,8 +95,11 @@ eina_dock_init (EinaDock *self)
 	EinaDockPrivate *priv = GET_PRIVATE(self);
 
 	priv->notebook = (GtkNotebook *) gtk_notebook_new();
-	gtk_notebook_set_show_tabs(priv->notebook, FALSE);
-	gtk_widget_show_all((GtkWidget *) priv->notebook);
+	g_object_set((GObject *) priv->notebook,
+		"show-border", FALSE,
+		"show-tabs", FALSE,
+		NULL);
+	gtk_widget_show((GtkWidget *) priv->notebook);
 
 	priv->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 
@@ -117,12 +120,17 @@ gchar **
 eina_dock_get_page_order(EinaDock *self)
 {
 	g_return_val_if_fail(EINA_IS_DOCK(self), NULL);
+	g_warning(N_("Function %s not implemented"), __FUNCTION__);
 	return NULL;
 }
 
 void
 eina_dock_set_page_order(EinaDock *self, gchar **order)
 {	
+	g_return_if_fail(EINA_IS_DOCK(self));
+	g_return_if_fail(order);
+
+	g_warning(N_("Function %s not implemented"), __FUNCTION__);
 	g_object_notify((GObject *) self, "page-order");
 }
 
@@ -226,9 +234,9 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 		g_warning(N_("Cannot add widget to dock"));
 		return FALSE;
 	}
+	gtk_notebook_set_tab_reorderable(priv->notebook, dock_widget, TRUE);
 	g_hash_table_insert(priv->dock_items, g_strdup(id), (gpointer) dock_widget);
 
-	gtk_notebook_set_tab_reorderable(priv->notebook, dock_widget, TRUE);
 	if (pos > -1)
 	{
 		gtk_notebook_reorder_child(priv->notebook, dock_widget, pos);
@@ -236,11 +244,15 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 			gtk_notebook_set_current_page(priv->notebook, pos);
 	}
 
-	if (gtk_notebook_get_n_pages(priv->notebook) > 1)
-	{
+	// Set some properties based on multiple pages
+	gboolean multiple_pages = gtk_notebook_get_n_pages(priv->notebook) > 1;
+	g_object_set((GObject *) priv->notebook,
+		"show-tabs", multiple_pages,
+		"show-border", multiple_pages,
+		NULL);
+
+	if (multiple_pages)
 		gtk_expander_set_label(GTK_EXPANDER(self), DOCK_DEFAULT_LABEL);
-		gtk_notebook_set_show_tabs(priv->notebook, TRUE);
-	}
 	else
 	{
 		gchar *markup = g_strconcat("<big><b>", id, "</b></big>", NULL);
