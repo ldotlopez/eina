@@ -81,7 +81,7 @@ eina/ext/eina-cover-image-mask.h
 
 # Output data
 eina/lomo-player-dbus-glue.h
-data/eina-0.9.pc
+data/eina-0.10.pc
 data/eina.desktop
 
 tools/plugins/
