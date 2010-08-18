@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.9.4],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.10.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -20,8 +20,8 @@ GOBJECT_INTROSPECTION_CHECK([0.6.7])
 # Package information
 #
 GETTEXT_PACKAGE="eina"
-EINA_API_VERSION="0.9"
-EINA_VERSION="$EINA_API_VERSION.4"
+EINA_API_VERSION="0.10"
+EINA_VERSION="$EINA_API_VERSION.0"
 EINA_CODENAME="Trained"                   # Najwa
 EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
 EINA_CODENAME_0_9_2="Pagan poetry"        # Björk
