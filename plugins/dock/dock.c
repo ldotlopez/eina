@@ -21,17 +21,29 @@
 #include "eina-dock.h"
 #include "plugins/player/eina-player.h"
 
+typedef struct {
+	GtkWidget *dock;
+	gboolean   resizable;
+} DockData;
+
 G_MODULE_EXPORT gboolean
 dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	GtkWidget *dock = (GtkWidget *) eina_dock_new();
-
 	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
+	g_return_val_if_fail(GEL_UI_IS_APPLICATION(application), FALSE);
 
-	gtk_box_pack_start(GTK_BOX(gel_ui_application_get_window_content_area(application)), dock, TRUE, TRUE, 0);
-	gtk_widget_show(dock);
+	DockData *data = g_new0(DockData, 1);
+	gel_plugin_set_data(plugin, data);
 
-	gel_plugin_engine_set_interface(engine, "dock", dock);
+	data->dock = (GtkWidget *) eina_dock_new();
+	gtk_box_pack_start(GTK_BOX(gel_ui_application_get_window_content_area(application)), data->dock, TRUE, TRUE, 0);
+	gtk_widget_show(data->dock);
+
+	GtkWindow *win = GTK_WINDOW(gel_ui_application_get_window(application));
+	data->resizable = gtk_window_get_resizable(win);
+	gtk_window_set_resizable(win, TRUE);
+
+	gel_plugin_engine_set_interface(engine, "dock", data->dock);
 
 	return TRUE;
 }
@@ -39,6 +51,24 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT gboolean
 dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
+	DockData *data = gel_plugin_get_data(plugin);
+	g_return_val_if_fail(EINA_IS_DOCK(data->dock), FALSE);
+
+	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
+	g_return_val_if_fail(GEL_UI_IS_APPLICATION(application), FALSE);
+
+	GtkWindow *win = gel_ui_application_get_window(application);
+	g_return_val_if_fail(GTK_IS_WINDOW(win), FALSE);
+
+	GtkContainer *content_area = (GtkContainer *) gel_ui_application_get_window_content_area(application);
+	g_return_val_if_fail(GTK_IS_CONTAINER(content_area), FALSE);
+
+	gel_plugin_engine_set_interface(engine, "dock", NULL);
+
+	gtk_container_remove(content_area, data->dock);
+	gtk_window_set_resizable(win, data->resizable);
+	g_free(data);
+
 	return TRUE;
 }
 

@@ -33,10 +33,10 @@ libgel_1_0_la_SOURCES = \
 	gel-string.c            \
 	gel-str-parser.c        \
 	gel-job-queue.c         \
+	gel-marshallers.c       \
 	gel-plugin.c            \
 	gel-plugin-engine.c     \
 	gel-plugin-info.c       \
-	gel-io-marshallers.c    \
 	gel-io-misc.c           \
 	gel-io-tree.c           \
 	gel-io-op-result.c      \
@@ -49,29 +49,12 @@ libgel_1_0_la_SOURCES = \
 	gel-ui-plugin-manager.c \
 	gel-ui-utils.c
 
-glib_marshallers_list = gel-io-marshallers.list
-glib_marshallers_prefix = gel_io_marshal
+glib_marshallers_list = gel-marshallers.list
+glib_marshallers_prefix = gel_marshal
 include $(top_srcdir)/Makefile.am.marshallers
 
 eina_ui2h_ui = gel-ui-plugin-manager.ui
 eina_ui2h_name = __gel_ui_plugin_manager_ui_xml
 include $(top_srcdir)/Makefile.am.ui2h
 
-#EXTRA_DIST = \
-#	gel-io-marshallers.list  \
-#	gel-ui-plugin-manager.ui
-#
-#BUILT_SOURCES = \
-#	gel-io-marshallers.h  \
-#	gel-io-marshallers.c  \
-#	gel-ui-plugin-manager-ui.h
-
-#gel-io-marshallers.h: gel-io-marshallers.list
-#	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header > $@
-#
-#gel-io-marshallers.c: gel-io-marshallers.list
-#	$(GLIB_GENMARSHAL) $< --prefix=gel_io_marshal --header --body > $@
-#
-#gel-ui-plugin-manager-ui.h: gel-ui-plugin-manager.ui
-#	$(top_srcdir)/tools/ui2h $< ui_xml > $@
 

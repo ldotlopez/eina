@@ -9,6 +9,7 @@ R="$D/tools/run"
 [ -e "$R" ] && rm -rf -- "$R"
 
 # Setup path for libs
+unset GTK_MODULES
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$LD_LIBRARY_PATH"
 
 # Resource handling (gel-related)

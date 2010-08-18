@@ -420,6 +420,7 @@ eina/Makefile
 eina/ext/Makefile
 plugins/Makefile
 plugins/application/Makefile
+plugins/art/Makefile
 plugins/dock/Makefile
 plugins/lomo/Makefile
 plugins/player/Makefile

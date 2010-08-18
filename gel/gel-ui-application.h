@@ -50,6 +50,7 @@ typedef struct {
 
 typedef struct {
 	GtkApplicationClass parent_class;
+	gboolean (*action_activate) (GelUIApplication *application, GtkAction *action);
 } GelUIApplicationClass;
 
 GType gel_ui_application_get_type (void);
@@ -58,10 +59,10 @@ GelUIApplication* gel_ui_application_new (gchar *application_id, gint *argc, gch
 
 GtkWindow*       gel_ui_application_get_window             (GelUIApplication *self);
 GtkUIManager*    gel_ui_application_get_window_ui_manager  (GelUIApplication *self);
-GtkActionGroup*  gel_ui_application_get_window_action_group(GelUIApplication *self);
 GtkVBox*         gel_ui_application_get_window_content_area(GelUIApplication *self);
 
 GSettings*       gel_ui_application_get_settings           (GelUIApplication *self, gchar *domain);
+
 
 G_END_DECLS
 

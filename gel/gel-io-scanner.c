@@ -19,8 +19,8 @@
 
 
 #include <gel/gel-io-scanner.h>
+#include <gel/gel-marshallers.h>
 #include <string.h>
-#include <gel/gel-io-marshallers.h>
 
 G_DEFINE_TYPE (GelIOScanner, gel_io_scanner, G_TYPE_OBJECT)
 
@@ -128,7 +128,7 @@ gel_io_scanner_class_init (GelIOScannerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (GelIOScannerClass, error),
 			    NULL, NULL,
-			    gel_io_marshal_VOID__OBJECT_POINTER,
+			    gel_marshal_VOID__OBJECT_POINTER,
 			    G_TYPE_NONE,
 			    2,
 				G_TYPE_OBJECT,

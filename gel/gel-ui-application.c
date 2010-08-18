@@ -20,6 +20,7 @@
 
 #include <glib/gi18n.h>
 #include "gel-ui.h"
+#include "gel/gel-marshallers.h"
 
 G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
 
@@ -37,6 +38,12 @@ struct _GelUIApplicationPrivate {
 	GtkActionGroup *ag;
 };
 
+enum {
+	ACTION_ACTIVATE,
+	LAST_SIGNAL
+};
+guint application_signals[LAST_SIGNAL] = { 0 };
+
 static GtkWindow *
 create_window(GtkApplication *application);
 static void
@@ -45,29 +52,24 @@ action_activated_cb(GtkAction *action, GelUIApplication *self);
 static gchar *ui_mng_str =
 "<ui>"
 "  <menubar name='Main' >"
-"    <menu name='File' action='FileMenu' >"
-"      <menuitem name='Quit' action='QuitItem' />"
-"    </menu>"
-"    <menu name='Plugins' action='PluginsMenu' >"
-"      <menuitem name='PluginManager' action='PluginManagerItem' />"
+"    <menu name='File' action='file-menu' >"
+"      <menuitem name='Quit' action='quit-action' />"
 "    </menu>"
 /*
-"    <menu name='Edit'    action='EditMenu'    />"
-"    <menu name='Help'    action='HelpMenu'    />"
+"    <menu name='Plugins' action='plugins-menu' >"
+"      <menuitem name='PluginManager' action='plugin-manager-action' />"
+"    </menu>"
 */
 "  </menubar>"
 "</ui>";
 
 static GtkActionEntry ui_mng_actions[] = {
-	{ "FileMenu",     NULL,           N_("_File"), "<alt>f", NULL, NULL},
-		{ "QuitItem", GTK_STOCK_QUIT, NULL,        NULL,     NULL, (GCallback) action_activated_cb },
-
-	{ "PluginsMenu",           NULL, N_("_Add-ons"),        "<alt>a",     NULL, NULL},
-		{ "PluginManagerItem", NULL, N_("Select pl_ugins"), "<control>u", NULL,  (GCallback) action_activated_cb }
-	/*
-	{ "EditMenu",    NULL, N_("_Edit"),    "<alt>e", NULL, NULL},
-	{ "HelpMenu",    NULL, N_("_Help"),    "<alt>h", NULL, NULL},
-	*/
+	{ "file-menu",     NULL,           N_("_File"), "<alt>f", NULL, NULL},
+		{ "quit-action", GTK_STOCK_QUIT, NULL,        NULL,     NULL, (GCallback) action_activated_cb },
+/*
+	{ "plugins-menu",           NULL, N_("_Add-ons"),        "<alt>a",     NULL, NULL},
+		{ "plugin-manager-action", NULL, N_("Select pl_ugins"), "<control>u", NULL,  (GCallback) action_activated_cb }
+		*/
 };
 
 static void
@@ -95,6 +97,17 @@ gel_ui_application_class_init (GelUIApplicationClass *klass)
 
 	object_class->dispose = gel_ui_application_dispose;
 	application_class->create_window = create_window;
+
+    application_signals[ACTION_ACTIVATE] =
+		g_signal_new ("action-activate",
+		G_OBJECT_CLASS_TYPE (object_class),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET (GelUIApplicationClass, action_activate),
+		NULL, NULL,
+		gel_marshal_BOOLEAN__OBJECT,
+		G_TYPE_BOOLEAN,
+		1,
+		G_TYPE_OBJECT);
 }
 
 static void
@@ -102,6 +115,8 @@ gel_ui_application_init (GelUIApplication *self)
 {
 	GelUIApplicationPrivate *priv = GET_PRIVATE(self);
 	priv->settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	priv->ag = gtk_action_group_new("_default");
+	gtk_application_set_action_group((GtkApplication *) self, priv->ag);
 }
 
 /*
@@ -176,40 +191,26 @@ create_window(GtkApplication *application)
 	gtk_ui_manager_insert_action_group(priv->ui_manager, priv->ag, 0);
 	gtk_ui_manager_ensure_update(priv->ui_manager);
 
+	GtkBox *tmpbox = (GtkBox *) gtk_vbox_new(FALSE, 0);
+
 	gtk_container_add(
 		(GtkContainer *) priv->default_window,
-		(GtkWidget *) (priv->container = (GtkBox *) gtk_vbox_new(FALSE, 0))
+		(GtkWidget *) tmpbox
 		);
 
 	gtk_box_pack_start(
-		priv->container,
+		tmpbox,
 		gtk_ui_manager_get_widget(priv->ui_manager, "/Main"),
-		FALSE, TRUE, 0
+        FALSE, TRUE, 0
+		);
+	gtk_box_pack_start(
+		tmpbox,
+		(GtkWidget *) (priv->container = (GtkBox *) gtk_vbox_new(FALSE, 0)),
+		TRUE, TRUE, 0
 		);
 
-	gtk_widget_show_all((GtkWidget *) priv->container);
+	gtk_widget_show_all((GtkWidget *) tmpbox);
 	gtk_window_add_accel_group(priv->default_window, gtk_ui_manager_get_accel_group(priv->ui_manager));
-
-	gchar     *icon_path = NULL;
-	GdkPixbuf *icon_pb   = NULL; 
-	GError    *err       = NULL;
-	if ((icon_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "gel_ui.svg")) &&
-	    (icon_pb = gdk_pixbuf_new_from_file_at_size(icon_path, 64, 64, &err)))
-	{
-		gtk_window_set_default_icon(icon_pb);
-		g_object_unref(icon_pb);
-	}
-	else
-	{
-		if (!icon_path)
-			g_warning(N_("Unable to locate resource '%s'"), "gel_ui.svg");
-		else if (!icon_pb)
-		{
-			g_warning(N_("Unable to load resource '%s': %s"), icon_path, err->message);
-			g_error_free(err);
-			gel_free_and_invalidate(icon_path, NULL, g_free);
-		}
-	}
 
 	return priv->default_window;
 }
@@ -240,20 +241,6 @@ gel_ui_application_get_window_ui_manager  (GelUIApplication *self)
 {
 	g_return_val_if_fail(GEL_UI_IS_APPLICATION(self), NULL);
 	return GET_PRIVATE(self)->ui_manager;
-}
-
-/*
- * gel_ui_application_get_window_action_group:
- *
- * @self: (transfer none) (inout): the #GelUIApplication
- *
- * Returns: (transfer none): #GtkActionGroup for default window of #GelUIApplication
- */
-GtkActionGroup*
-gel_ui_application_get_window_action_group(GelUIApplication *self)
-{
-	g_return_val_if_fail(GEL_UI_IS_APPLICATION(self), NULL);
-	return GET_PRIVATE(self)->ag;
 }
 
 /*
@@ -302,15 +289,24 @@ gel_ui_application_get_settings(GelUIApplication *application, gchar *domain)
 static void
 action_activated_cb(GtkAction *action, GelUIApplication *self)
 {
+	g_return_if_fail(GEL_UI_IS_APPLICATION(self));
+	g_return_if_fail(GTK_IS_ACTION(action));
+
+	gboolean ret = FALSE;
+	g_signal_emit(self, application_signals[ACTION_ACTIVATE], 0, action, &ret);
+
+	if (ret)
+		return;
+
 	const gchar *name = gtk_action_get_name(action);
 
-	if (g_str_equal(name, "QuitItem"))
+	if (g_str_equal(name, "quit-action"))
 	{
 		gtk_application_quit((GtkApplication *) self);
 		return;
 	}
 
-	g_warning(N_("Ignoring unknow action '%s'"), name);
+	g_warning(N_("Unhandled unknow action '%s'"), name);
 }
 
 

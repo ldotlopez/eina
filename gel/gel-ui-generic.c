@@ -118,7 +118,6 @@ gel_ui_generic_init (GelUIGeneric *self)
 GtkWidget*
 gel_ui_generic_new (gchar *xml_string)
 {
-	g_assert(xml_string != NULL);
 	return g_object_new (GEL_UI_TYPE_GENERIC, "xml-string", xml_string, NULL);
 }
 
@@ -155,9 +154,7 @@ set_xml_string(GelUIGeneric *self, gchar *xml_string)
 		return;
 	}
 
-	GtkWidget *p = gtk_widget_get_parent(w);
 	gtk_widget_reparent(w, (GtkWidget *) self);
 	gtk_box_set_child_packing ((GtkBox *) self, w, TRUE, TRUE, 0, GTK_PACK_START);
-	g_object_unref(p);
 }
 

@@ -36,15 +36,16 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	EinaPlaylist *playlist = eina_playlist_new();
 	g_object_set(playlist,
-		"lomo-player", gel_plugin_engine_get_interface(engine, "lomo"),
-		"stream-markup", g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
+		"lomo-player",    gel_plugin_engine_get_interface(engine, "lomo"),
+		"stream-markup",  g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
 		NULL);
 	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, engine);
-	
 	gtk_widget_show((GtkWidget *) playlist);
 
 	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
 		N_("Playlist"), gtk_label_new(N_("Playlist")), (GtkWidget *) playlist);
+
+	gel_plugin_set_data(plugin, playlist);
 
 	return TRUE;
 }
@@ -52,6 +53,11 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT gboolean
 playlist_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
+	EinaPlaylist *playlist = (EinaPlaylist *) gel_plugin_get_data(plugin);
+	g_return_val_if_fail(EINA_IS_PLAYLIST(playlist), FALSE);
+
+	eina_dock_remove_widget(gel_plugin_engine_get_interface(engine, "dock"), N_("Playlist"));
+
 	return TRUE;
 }
 

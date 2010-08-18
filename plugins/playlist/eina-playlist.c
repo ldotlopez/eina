@@ -259,7 +259,7 @@ eina_playlist_new (void)
 		"random-action",
 		"repeat-action",
 		"add-action",
-		"remove-action"
+		"remove-action",
 		"clear-action",
 		"queue-action",
 		"dequeue-action",
@@ -279,9 +279,21 @@ eina_playlist_new (void)
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
 	for (guint i = 0; i < G_N_ELEMENTS(signals); i++)
-		g_signal_connect(gel_ui_generic_get_object((GelUIGeneric *) self, signals[i].object), signals[i].signal, signals[i].callback, self);
+	{
+		GObject *o = gel_ui_generic_get_object((GelUIGeneric *) self, signals[i].object);
+		if (!o || !G_IS_OBJECT(o))
+			g_warning(N_("Missing object '%s'"), signals[i].object);
+		else
+			g_signal_connect(gel_ui_generic_get_object((GelUIGeneric *) self, signals[i].object), signals[i].signal, signals[i].callback, self);
+	}
 	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
-		g_signal_connect(gel_ui_generic_get_object((GelUIGeneric *) self, actions[i]), "activate", (GCallback) action_activate_cb, self);
+	{
+		GObject *a = gel_ui_generic_get_object((GelUIGeneric *) self, actions[i]);
+		if (!a || !GTK_IS_ACTION(a))
+			g_warning(N_("Missing action '%s'"), actions[i]);
+		else
+			g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
+	}
 	g_signal_connect(self, "key-press-event", G_CALLBACK(key_press_event_cb), self);
 
 #if ENABLE_EXPERIMENTAL

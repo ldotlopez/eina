@@ -25,6 +25,7 @@
 #include <gmodule.h>
 
 #include <gel/gel-job-queue.h>
+#include <gel/gel-marshallers.h>
 #include <gel/gel-misc.h>
 #include <gel/gel-plugin.h>
 #include <gel/gel-plugin-engine.h>

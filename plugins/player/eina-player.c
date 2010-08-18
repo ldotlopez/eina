@@ -22,6 +22,9 @@
 #include "eina-player-marshallers.h"
 #include "eina-player-ui.h"
 #include "eina-seek.h"
+#include "eina-cover.h"
+#include "eina-cover-image.h"
+#include "plugins/art/art.h"
 
 G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 
@@ -36,6 +39,7 @@ struct _EinaPlayerPrivate {
 	gchar *stream_mrkp;
 
 	EinaSeek *seek;
+	EinaCover *cover;
 };
 
 enum {
@@ -177,6 +181,34 @@ eina_player_new (void)
 	gtk_widget_show(GTK_WIDGET(priv->seek));
 
 	// Cover widget
+	priv->cover = g_object_new(EINA_TYPE_COVER,
+		"art",      art_new(),
+		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE, NULL),
+		NULL);
+	GtkContainer *cover_container = gel_ui_generic_get_typed(self, GTK_CONTAINER, "cover-container");
+	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
+	gtk_box_pack_start(GTK_BOX(cover_container), GTK_WIDGET(priv->cover), TRUE, TRUE, 0);
+	gtk_widget_show(GTK_WIDGET(priv->cover));
+
+
+	#if 0
+	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
+	GdkPixbuf *loa_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-loading.png"), NULL);
+	EinaCover *cover = g_object_new(EINA_TYPE_COVER,
+		"art", eina_obj_get_art(self),
+		"lomo-player", eina_obj_get_lomo(self),
+		"default-pixbuf", def_pb,
+		"loading-pixbuf", loa_pb,
+		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE,
+			"cover", def_pb,
+			NULL),
+		NULL);
+	
+	GtkContainer *cover_container = eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
+	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
+	gtk_box_pack_start(GTK_BOX(cover_container), GTK_WIDGET(cover), TRUE, TRUE, 0);
+	gtk_widget_show(GTK_WIDGET(cover));
+	#endif
 
 	// Actions
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
@@ -252,6 +284,7 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 		NULL, NULL);
 
 	g_object_set(priv->seek, "lomo-player", lomo, NULL);
+	g_object_set(priv->cover, "lomo-player", lomo, NULL);
 
 	player_update_state(self);
 	player_update_information(self);
@@ -273,6 +306,12 @@ eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup)
 	player_update_information(self);
 
 	g_object_notify((GObject *) self, "stream-markup");
+}
+
+EinaCover *
+eina_player_get_cover_widget(EinaPlayer *self)
+{
+	return GET_PRIVATE(self)->cover;
 }
 
 static void

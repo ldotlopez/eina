@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
+#include <plugins/player/eina-cover.h>
 
 G_BEGIN_DECLS
 
@@ -62,6 +63,9 @@ LomoPlayer *
 eina_player_get_lomo_player(EinaPlayer *self);
 void
 eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup);
+
+EinaCover *
+eina_player_get_cover_widget(EinaPlayer *self);
 
 G_END_DECLS
 

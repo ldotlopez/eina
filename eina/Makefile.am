@@ -17,6 +17,8 @@ eina_app_SOURCES = \
 	ext/eina-stock.h \
 	ext/eina-file-chooser-dialog.c \
 	ext/eina-file-chooser-dialog.h \
+	art.c \
+	art.h \
 	fs.c \
 	fs.h \
 	eina-app.c

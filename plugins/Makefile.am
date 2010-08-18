@@ -1,5 +1,6 @@
 SUBDIRS = \
 	application \
+	art         \
 	dock        \
 	lomo        \
 	player      \
