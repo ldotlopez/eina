@@ -11,3 +11,4 @@ libart_la_SOURCES = \
 plugin_DATA = art.ini
 
 EXTRA_DIST = art.ini
+EXTRA_DIST += art.ini

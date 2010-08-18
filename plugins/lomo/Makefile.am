@@ -11,3 +11,4 @@ liblomo_la_SOURCES = \
 plugin_DATA = lomo.ini
 
 EXTRA_DIST = lomo.ini
+EXTRA_DIST += lomo.ini
