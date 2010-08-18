@@ -2,19 +2,22 @@ include $(top_srcdir)/build/Makefile.am.common
 
 plugindir = $(pkglibdir)/player
 plugin_LTLIBRARIES = libplayer.la
+
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/plugins/player
+include_HEADERS = \
+	eina-cover.h       \
+	eina-cover-image.h \
+	eina-seek.h        \
+	eina-player.h
+
 libplayer_la_CFLAGS  = @EINA_CFLAGS@
 libplayer_la_LDFLAGS = @EINA_LIBS@
 libplayer_la_SOURCES = \
-	eina-cover.c \
-	eina-cover.h \
+	$(include_HEADERS) \
+	eina-cover.c       \
 	eina-cover-image.c \
-	eina-cover-image.h \
-	eina-seek.c \
-	eina-seek.h \
-	eina-player-ui.h \
-	eina-player.c \
-	eina-player.h \
-	eina-player-ui.h \
+	eina-seek.c        \
+	eina-player.c      \
 	player.c
 
 plugin_DATA = player.ini
@@ -43,5 +46,4 @@ eina_ui2h_ui = eina-player.ui
 eina_ui2h_name = __eina_player_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
-EXTRA_DIST += player.ini
 EXTRA_DIST += player.ini

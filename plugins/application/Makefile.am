@@ -8,5 +8,4 @@ libapplication_la_SOURCES = application.c
 
 plugin_DATA = application.ini
 
-EXTRA_DIST = application.ini
 EXTRA_DIST += application.ini
