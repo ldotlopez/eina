@@ -26,7 +26,11 @@ eina-cover-default-cover.h: $(top_srcdir)/pixmaps/cover-default.png
 eina-cover-loading-cover.h: $(top_srcdir)/pixmaps/cover-loading.png
 	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_loading_png $<  > $@
 
+eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
+	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask_png $<  > $@
+
 png_h_files = \
+	eina-cover-image-mask.h \
 	eina-cover-default-cover.h \
 	eina-cover-loading-cover.h
 CLEANFILES += $(png_h_files)
