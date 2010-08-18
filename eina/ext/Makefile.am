@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 noinst_LTLIBRARIES = libeinaext.la
 
@@ -28,10 +28,4 @@ libeinaext_la_SOURCES = \
 	eina-seek.c                \
 	eina-stock.c               \
 	eina-window.c
-
-BUILT_SOURCES += \
-	eina-cover-image-mask.h
-
-eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
-	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask $<  > $@
 

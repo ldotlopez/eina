@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 # :r ! /bin/ls -1 | grep -v Makefile | sed -e 's/^\(.*\)$/\t\1 \\/'
 pixmapsdir = $(pkgdatadir)/pixmaps

@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 plugindir = $(pkglibdir)/player
 plugin_LTLIBRARIES = libplayer.la
@@ -43,9 +43,9 @@ libplayer_la_SOURCES += $(png_h_files)
 
 eina_ui2h_ui = eina-player.ui
 eina_ui2h_name = __eina_player_ui_xml
-include $(top_srcdir)/Makefile.am.ui2h
+include $(top_srcdir)/build/Makefile.am.ui2h
 
 glib_marshallers_list = eina-player-marshallers.list
 glib_marshallers_prefix = eina_player_marshall
-include $(top_srcdir)/Makefile.am.marshallers
+include $(top_srcdir)/build/Makefile.am.marshallers
 

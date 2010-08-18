@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = liblomo-1.0.la
 liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic @GSTREAMER_LIBS@
@@ -25,5 +25,5 @@ liblomo_1_0_la_SOURCES = \
 
 glib_marshallers_list = lomo-marshallers.list
 glib_marshallers_prefix = lomo_marshal
-include $(top_srcdir)/Makefile.am.marshallers
+include $(top_srcdir)/build/Makefile.am.marshallers
 

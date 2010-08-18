@@ -409,6 +409,7 @@ AM_CONDITIONAL(BUILD_NTFY,     test 0 -eq 1)
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([
+build/Makefile
 bundle/build
 bundle/Info.plist
 data/eina.desktop
@@ -418,6 +419,7 @@ gel/Makefile
 lomo/Makefile
 eina/Makefile
 eina/ext/Makefile
+pixmaps/Makefile
 plugins/Makefile
 plugins/application/Makefile
 plugins/art/Makefile
@@ -425,7 +427,6 @@ plugins/dock/Makefile
 plugins/lomo/Makefile
 plugins/player/Makefile
 plugins/playlist/Makefile
-pixmaps/Makefile
 data/Makefile
 Makefile
 docs/Makefile

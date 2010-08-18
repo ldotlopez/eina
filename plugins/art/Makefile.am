@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 plugindir = $(pkglibdir)/art
 plugin_LTLIBRARIES = libart.la

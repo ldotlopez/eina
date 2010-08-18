@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 plugindir = $(pkglibdir)/playlist
 plugin_LTLIBRARIES = libplaylist.la
@@ -16,9 +16,9 @@ plugin_DATA = playlist.ini
 
 glib_marshallers_list = eina-playlist-marshallers.list
 glib_marshallers_prefix = eina_playlist_marshall
-include $(top_srcdir)/Makefile.am.marshallers
+include $(top_srcdir)/build/Makefile.am.marshallers
 
 eina_ui2h_ui = eina-playlist.ui
 eina_ui2h_name = __ui_xml
-include $(top_srcdir)/Makefile.am.ui2h
+include $(top_srcdir)/build/Makefile.am.ui2h
 

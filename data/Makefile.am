@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 # pkgconfig files
 data_pkgconfigdir = $(libdir)/pkgconfig

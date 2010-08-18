@@ -1,8 +1,9 @@
 SUBDIRS = \
+	build   \
 	gel     \
 	lomo    \
-	plugins \
 	eina    \
+	plugins \
 	pixmaps \
 	data    \
 	docs    \
@@ -12,24 +13,10 @@ SUBDIRS = \
 EXTRA_DIST = \
 	run-uninstalled.sh \
 	intltool-extract.in intltool-merge.in intltool-update.in \
-	AUTHORS BUGS COPYING INSTALL NEWS README \
-	m4/introspection.m4
+	AUTHORS BUGS COPYING INSTALL NEWS README
 
 ACLOCAL_AMFLAGS = -I m4
 DISTCHECK_CONFIGURE_FLAGS = --enable-instrospection --enable-gtk-doc
-
-#
-# ui
-#
-uidir = $(pkgdatadir)/ui
-ui_DATA = \
-	ui/dock.ui \
-	ui/log.ui \
-	ui/player-preferences.ui \
-	ui/player.ui \
-	ui/playlist.ui \
-	ui/plugins.ui
-EXTRA_DIST += $(ui_DATA)
 
 #
 # Introspection support
@@ -40,7 +27,6 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
-#introspection_sources = $(lomo_liblomo_1_0_la_SOURCES)
 introspection_sources = \
 	lomo/lomo-stream.c \
 	lomo/lomo-stream.h \
@@ -61,5 +47,4 @@ typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES = $(gir_DATA) $(typelib_DATA)
 endif # End introspection
-
 

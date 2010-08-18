@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.am.common
+include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = libgel-1.0.la
 libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic @GLIB_LIBS@ @GTK_LIBS@
@@ -52,10 +52,10 @@ libgel_1_0_la_SOURCES = \
 
 glib_marshallers_list = gel-marshallers.list
 glib_marshallers_prefix = gel_marshal
-include $(top_srcdir)/Makefile.am.marshallers
+include $(top_srcdir)/build/Makefile.am.marshallers
 
 eina_ui2h_ui = gel-ui-plugin-manager.ui
 eina_ui2h_name = __gel_ui_plugin_manager_ui_xml
-include $(top_srcdir)/Makefile.am.ui2h
+include $(top_srcdir)/build/Makefile.am.ui2h
 
 
