@@ -27,6 +27,7 @@
 G_BEGIN_DECLS
 
 #define gel_plugin_engine_get_art(engine) gel_plugin_engine_get_interface(engine, "art")
+#define gel_plugin_get_art(plugin)        gel_plugin_engine_get_art(gel_plugin_get_engine(plugin))
 
 typedef struct _Art        Art;
 typedef struct _ArtBackend ArtBackend;

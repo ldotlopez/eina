@@ -111,6 +111,9 @@ eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version);
 gboolean
 eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], GError **error);
 
+sqlite3*
+eina_adb_get_handler(EinaAdb *self);
+
 G_END_DECLS
 
 #endif /* _EINA_ADB */

@@ -425,6 +425,8 @@ eina/dock/Makefile
 eina/lomo/Makefile
 eina/player/Makefile
 eina/playlist/Makefile
+eina/adb/Makefile
+eina/recently/Makefile
 pixmaps/Makefile
 data/Makefile
 Makefile

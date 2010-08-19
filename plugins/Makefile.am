@@ -4,4 +4,5 @@ SUBDIRS = \
 	dock        \
 	lomo        \
 	player      \
-	playlist
+	playlist    \
+	adb

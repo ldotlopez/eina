@@ -17,18 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Plugin::ADB"
-#define EINA_PLUGIN_DATA_TYPE Adb
-
+#if HAVE_CONFIG_H
 #include <config.h>
-#include <eina/eina-plugin.h>
+#endif
+
+#include "eina/eina-plugin2.h"
 #include "eina-adb.h"
 #include "register.h"
+#include "eina/lomo/lomo.h"
 
 GEL_DEFINE_QUARK_FUNC(adb)
 
 G_MODULE_EXPORT gboolean
-adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
+adb_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	EinaAdb *adb = eina_adb_new();
 
@@ -52,27 +53,26 @@ adb_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	g_free(db_path);
 
 	// Register into App
-	if (!gel_app_shared_set(app, "adb", adb))
+	if (!gel_plugin_engine_set_interface(engine, "adb", adb))
 	{
 		g_set_error(error, adb_quark(), 1,
-			N_("Cannot register ADB object into GelApp"));
+			N_("Cannot register ADB interface"));
 		g_object_unref(adb);
 		return FALSE;
 	}
 
-	adb_register_start(adb, eina_plugin_get_lomo(plugin));
+	adb_register_start(adb, gel_plugin_get_lomo(plugin));
 
 	return ret;
 }
 
 G_MODULE_EXPORT gboolean
-adb_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
+adb_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
-	EinaAdb *adb = gel_app_shared_get(app, "adb");
-	gel_app_shared_free(app, "adb");
-	adb_register_stop(adb, lomo);
+	LomoPlayer *lomo = gel_plugin_engine_get_lomo(engine);
+	EinaAdb *adb = gel_plugin_engine_steal_interface(engine, "adb");
 
+	adb_register_stop(adb, lomo);
 	g_object_unref(adb);
 
 	return TRUE;

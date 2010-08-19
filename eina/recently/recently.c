@@ -17,15 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #define GEL_DOMAIN "Eina::Plugin::Recently"
 #define EINA_PLUGIN_DATA_TYPE "Recently"
 #define EINA_PLUGIN_NAME "Recently"
 
 #include <string.h>
-#include <eina/eina-plugin.h>
-#include <plugins/adb/adb.h>
+#include <eina/eina-plugin2.h>
+#include <eina/adb/adb.h>
+#include <eina/art/art.h>
+#include <eina/dock/dock.h>
+#include <eina/lomo/lomo.h>
 
 typedef struct {
 	GelApp       *app;
@@ -159,22 +164,22 @@ queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Rec
 // --
 // ADB utils
 // --
-gboolean
-adb_upgrade_0(Adb *adb, Recently *self, GError **error);
+static gboolean
+adb_upgrade_0(EinaAdb *adb, GError **error);
 static gchar *
-adb_get_summary_from_timestamp(Adb *adb, gchar *timestamp, guint how_many);
+adb_get_summary_from_timestamp(EinaAdb *adb, gchar *timestamp, guint how_many);
 static LomoStream*
-adb_get_stream_from_timestamp(Adb *adb, gchar *timestamp);
+adb_get_stream_from_timestamp(EinaAdb *adb, gchar *timestamp);
 static gchar*
-adb_get_title_for_timestamp(Adb *adb, gchar *timestamp);
+adb_get_title_for_timestamp(EinaAdb *adb, gchar *timestamp);
 static gchar**
-adb_get_n_timestamps(Adb *adb, gint n);
+adb_get_n_timestamps(EinaAdb *adb, gint n);
 static gchar**
-adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp);
+adb_get_playlist_from_timestamp(EinaAdb *adb, gchar *timestamp);
 static void
-adb_delete_playlist_from_timestamp(Adb *Adb, gchar *timestamp);
+adb_delete_playlist_from_timestamp(EinaAdb *EinaAdb, gchar *timestamp);
 static LomoStream*
-adb_get_stream_from_uri(Adb *adb, gchar *uri);
+adb_get_stream_from_uri(EinaAdb *adb, gchar *uri);
 
 // --
 // Lomo callbacks
@@ -297,7 +302,6 @@ static GtkWidget *
 dock_create(Recently *self)
 {
 	// Get GtkBuilder interface
-	// gchar *xml_path = gel_plugin_build_resource_path(self->plugin, "dock.ui");
 	gchar *xml_path = gel_plugin_get_resource(self->plugin, GEL_RESOURCE_UI, "dock.ui");
 	GtkBuilder *xml_ui = gtk_builder_new();
 
@@ -463,12 +467,12 @@ dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
 	// Search tip
 	if ((len >= 1) && (len < 3))
 	{
-		if (!GTK_WIDGET_VISIBLE(self->search_tip))
+		if (!gtk_widget_get_visible((GtkWidget *) self->search_tip))
 			gtk_widget_show((GtkWidget *) self->search_tip);
 	}
 	else
 	{
-		if (GTK_WIDGET_VISIBLE(self->search_tip))
+		if (gtk_widget_get_visible((GtkWidget *) self->search_tip))
 			gtk_widget_hide((GtkWidget *) self->search_tip);
 	}
 
@@ -522,7 +526,7 @@ dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
 static gboolean
 recently_refresh(Recently *self)
 {
-	Adb *adb = (Adb*) gel_app_shared_get(self->app, "adb");
+	EinaAdb *adb = (EinaAdb*) gel_app_shared_get(self->app, "adb");
 	g_return_val_if_fail(adb != NULL, FALSE);
 
 	gtk_list_store_clear(GTK_LIST_STORE(self->pls_model));
@@ -541,7 +545,7 @@ recently_refresh(Recently *self)
 		ArtSearch *search = NULL;
 		LomoStream *fake_stream = adb_get_stream_from_timestamp(adb, timestamps[i]);
 		if (fake_stream)
-			search = art_search(GEL_APP_GET_ART(self->app), fake_stream, (ArtFunc) recently_search_cb, self);
+			search = art_search(gel_plugin_engine_get_art(self->app), fake_stream, (ArtFunc) recently_search_cb, self);
 
 		GtkTreeIter iter;
 		gtk_list_store_append((GtkListStore *) self->pls_model, &iter);
@@ -571,7 +575,7 @@ recently_row_activated_cb(GtkWidget *w,
 	GtkTreeIter iter;
 	gchar *ts;
 
-	Adb *adb = (Adb *) gel_app_shared_get(self->app, "adb");
+	EinaAdb *adb = (EinaAdb *) gel_app_shared_get(self->app, "adb");
 	LomoPlayer *lomo = (LomoPlayer *) gel_app_shared_get(self->app, "lomo");
 	g_return_if_fail((adb != NULL) && (lomo != NULL));
 
@@ -637,8 +641,8 @@ recently_markup_edited_cb(GtkWidget *w,
 	gchar *new_text,
 	Recently *self)
 {
-	// If Adb is not present changes could not be saved, so abort
-	Adb *adb = GEL_APP_GET_ADB(self->app);
+	// If EinaAdb is not present changes could not be saved, so abort
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
 	g_return_if_fail(adb != NULL);
 
 	// Try to get data from model
@@ -679,7 +683,7 @@ recently_markup_edited_cb(GtkWidget *w,
 	}
 
 	// Update DB
-	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+	if (sqlite3_exec(eina_adb_get_handler(adb), q, NULL, NULL, &err) != SQLITE_OK)
 	{
 		gel_error("Cannot delete alias for %s: %s", ts, err);
 		sqlite3_free(err);
@@ -711,7 +715,7 @@ recently_search_cb(Art *art, ArtSearch *search, Recently *self)
 // ADB
 // --
 gboolean
-adb_upgrade_0(Adb *adb, Recently *self, GError **error)
+adb_upgrade_0(EinaAdb *adb, GError **error)
 {
 	gchar *q[] = {
 		"DROP TABLE IF EXISTS playlist_aliases;",
@@ -724,11 +728,11 @@ adb_upgrade_0(Adb *adb, Recently *self, GError **error)
 
 		NULL
 		};
-	return adb_exec_queryes(adb, q, NULL, error);
+	return eina_adb_query_block_exec(adb, q, error);
 }
 
 static LomoStream*
-adb_get_stream_from_timestamp(Adb *adb, gchar *timestamp)
+adb_get_stream_from_timestamp(EinaAdb *adb, gchar *timestamp)
 {
 	char *q = sqlite3_mprintf("SELECT uri,key,value FROM streams JOIN metadata USING(sid) WHERE "
 	"sid = (SELECT sid FROM playlist_history WHERE timestamp = '%q' ORDER BY random() LIMIT 1)"
@@ -736,7 +740,7 @@ adb_get_stream_from_timestamp(Adb *adb, gchar *timestamp)
 	timestamp);
 	
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	if (sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL) != SQLITE_OK)
 	{
 		gel_error("Cannot select a fake stream using query %s", q);
 		sqlite3_free(q);
@@ -771,7 +775,7 @@ adb_get_stream_from_timestamp(Adb *adb, gchar *timestamp)
 }
 
 static gchar *
-adb_get_summary_from_timestamp(Adb *adb, gchar *timestamp, guint how_many)
+adb_get_summary_from_timestamp(EinaAdb *adb, gchar *timestamp, guint how_many)
 {
 	sqlite3_stmt *stmt = NULL;
 	char *q = sqlite3_mprintf(
@@ -779,9 +783,9 @@ adb_get_summary_from_timestamp(Adb *adb, gchar *timestamp, guint how_many)
 	"	SELECT sid,uri FROM"
 	"		playlist_history AS pl JOIN streams USING(sid) WHERE pl.timestamp='%q') JOIN"
 	"		metadata USING(sid) WHERE key='artist' GROUP BY value ORDER BY count desc LIMIT %d", timestamp, how_many);
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	if (sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL) != SQLITE_OK)
 	{
-		gel_warn("Cannot summaryze %s: %s", timestamp, sqlite3_errmsg(adb->db));
+		gel_warn("Cannot summaryze %s: %s", timestamp, sqlite3_errmsg(eina_adb_get_handler(adb)));
 		return NULL;
 	}
 
@@ -816,13 +820,13 @@ adb_get_summary_from_timestamp(Adb *adb, gchar *timestamp, guint how_many)
 }
 
 static gchar*
-adb_get_title_for_timestamp(Adb *adb, gchar *timestamp)
+adb_get_title_for_timestamp(EinaAdb *adb, gchar *timestamp)
 {
 	gchar *title = NULL;
 
 	char *q = sqlite3_mprintf("SELECT alias FROM playlist_aliases where timestamp='%q'", timestamp);
 	sqlite3_stmt *stmt_alias = NULL;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt_alias, NULL) == SQLITE_OK)
+	if (sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt_alias, NULL) == SQLITE_OK)
 	{
 		if (stmt_alias && (sqlite3_step(stmt_alias) == SQLITE_ROW))
 			title = g_strdup((gchar*) sqlite3_column_text(stmt_alias, 0));
@@ -837,7 +841,7 @@ adb_get_title_for_timestamp(Adb *adb, gchar *timestamp)
 }
 
 static gchar**
-adb_get_n_timestamps(Adb *adb, gint n)
+adb_get_n_timestamps(EinaAdb *adb, gint n)
 {
 	g_return_val_if_fail(adb != NULL, NULL);
 	n = CLAMP(n, -1, G_MAXINT);
@@ -847,7 +851,7 @@ adb_get_n_timestamps(Adb *adb, gint n)
 		"ORDER BY timestamp DESC "
 		"LIMIT %d;", n);
 	sqlite3_stmt *stmt = NULL;
-	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
+	int code = sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL);
 	if (code != SQLITE_OK)
 	{
 		gel_error("Cannot fetch playlist_history data: %d", code);
@@ -870,17 +874,17 @@ adb_get_n_timestamps(Adb *adb, gint n)
 }
 
 static gchar **
-adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp)
+adb_get_playlist_from_timestamp(EinaAdb *adb, gchar *timestamp)
 {
 	char *q = sqlite3_mprintf(
 		"SELECT uri FROM streams WHERE sid IN ("
 		"SELECT sid FROM playlist_history WHERE timestamp='%q'" 
 		") ORDER BY sid DESC;", timestamp);
 	sqlite3_stmt *stmt = NULL;
-	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
+	int code = sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL);
 	if (code != SQLITE_OK)
 	{
-		gel_warn(N_("Error %d with query %s: %s"), code, q, sqlite3_errmsg(adb->db));
+		gel_warn(N_("Error %d with query %s: %s"), code, q, sqlite3_errmsg(eina_adb_get_handler(adb)));
 		sqlite3_free(q);
 		return NULL;
 	}
@@ -897,11 +901,11 @@ adb_get_playlist_from_timestamp(Adb *adb, gchar *timestamp)
 }
 
 static void
-adb_delete_playlist_from_timestamp(Adb *adb, gchar *timestamp)
+adb_delete_playlist_from_timestamp(EinaAdb *adb, gchar *timestamp)
 {
 	char *q = sqlite3_mprintf("DELETE FROM playlist_history WHERE timestamp='%q'", timestamp);
 	char *err = NULL;
-	if (sqlite3_exec(adb->db, q, NULL, NULL, &err) != SQLITE_OK)
+	if (sqlite3_exec(eina_adb_get_handler(adb), q, NULL, NULL, &err) != SQLITE_OK)
 	{
 		gel_error("Cannot delete playlist %s form history: %s", timestamp, err);
 		sqlite3_free(err);
@@ -910,17 +914,17 @@ adb_delete_playlist_from_timestamp(Adb *adb, gchar *timestamp)
 }
 
 static LomoStream*
-adb_get_stream_from_uri(Adb *adb, gchar *uri)
+adb_get_stream_from_uri(EinaAdb *adb, gchar *uri)
 {
 	char *q = sqlite3_mprintf(
 		"SELECT key,value FROM metadata "
 		"WHERE sid = (SELECT sid FROM streams WHERE uri = '%q');", uri);
 
 	sqlite3_stmt *stmt = NULL;
-	int code = sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL);
+	int code = sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL);
 	if (code != SQLITE_OK)
 	{
-		gel_error(N_("Cannot prepare query %s: (%d) %s"), q, code, sqlite3_errmsg(adb->db));
+		gel_error(N_("Cannot prepare query %s: (%d) %s"), q, code, sqlite3_errmsg(eina_adb_get_handler(adb)));
 		sqlite3_free(q);
 		return NULL;
 	}
@@ -952,8 +956,8 @@ adb_get_stream_from_uri(Adb *adb, gchar *uri)
 static void
 queryer_fill_model_for_query(Recently *self, gchar *input)
 {
-	Adb *adb = GEL_APP_GET_ADB(self->app);
-	Art *art = GEL_APP_GET_ART(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
+	Art *art = gel_plugin_engine_get_art(self->app);
 
 	gtk_list_store_clear(self->queryer_results);
 
@@ -992,9 +996,9 @@ queryer_fill_model_for_query(Recently *self, gchar *input)
 		char *q = NULL;
 		q = sqlite3_mprintf(base_q, keys[i], input);
 		sqlite3_stmt *stmt = NULL;
-		if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+		if (sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL) != SQLITE_OK)
 		{
-			gel_error(N_("Cannot prepare query %s: %s"), q, sqlite3_errmsg(adb->db));
+			gel_error(N_("Cannot prepare query %s: %s"), q, sqlite3_errmsg(eina_adb_get_handler(adb)));
 			sqlite3_free(q);
 			continue;
 		}
@@ -1058,9 +1062,9 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 		"	(SELECT sid FROM metadata WHERE key='%q' AND value='%q');",
 		keys[matchtype], fullmatch);
 
-	Adb *adb = GEL_APP_GET_ADB(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
 	sqlite3_stmt *stmt = NULL;
-	if (sqlite3_prepare_v2(adb->db, q, -1, &stmt, NULL) != SQLITE_OK)
+	if (sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL) != SQLITE_OK)
 	{
 		gel_error("Cannot prepare query %s", q);
 		sqlite3_free(q);
@@ -1072,14 +1076,14 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 	sqlite3_finalize(stmt);
 
 	uris = g_list_reverse(uris);
-	lomo_player_append_uri_multi(GEL_APP_GET_LOMO(self->app), uris);
+	lomo_player_append_uri_multi(gel_plugin_engine_get_lomo(self->app), uris);
 	gel_list_deep_free(uris, (GFunc) g_free);
 }
 
 static void
 queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self)
 {
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(self->app);
+	LomoPlayer *lomo = gel_plugin_engine_get_lomo(self->app);
 	g_return_if_fail(lomo != NULL);
 
 	GList *s = gtk_icon_view_get_selected_items(search_view);
@@ -1158,7 +1162,7 @@ queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Rec
 static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 {
-	Adb *adb = GEL_APP_GET_ADB(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
 	g_return_if_fail(adb != NULL);
 
 	gchar **timestamps = adb_get_n_timestamps(adb, 1);
@@ -1174,7 +1178,7 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 	ArtSearch *search = NULL;
 	LomoStream *stream = adb_get_stream_from_timestamp(adb, ts);
 	if (stream)
-		search = art_search(GEL_APP_GET_ART(self->app), stream, (ArtFunc) recently_search_cb, self);
+		search = art_search(gel_plugin_engine_get_art(self->app), stream, (ArtFunc) recently_search_cb, self);
 
 	GtkTreeIter iter;
 	if (!gtk_tree_model_get_iter_first((GtkTreeModel*) self->pls_model, &iter))
@@ -1205,17 +1209,18 @@ gboolean
 recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 {
 	// Upgrade database
-	Adb *adb;
-	if ((adb = GEL_APP_GET_ADB(app)) == NULL)
+	EinaAdb *adb;
+	if ((adb = gel_plugin_engine_get_adb(app)) == NULL)
 	{
-		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_FETCH_ADB, N_("Cannot fetch Adb object"));
+		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_FETCH_ADB, N_("Cannot fetch EinaAdb object"));
 		return FALSE;
 	}
 
-	gpointer upgrades[] = {
+	EinaAdbFunc upgrades[] = {
 		adb_upgrade_0, NULL
 	};
-	if (!adb_schema_upgrade(adb, "recently", upgrades, NULL, error))
+
+	if (!eina_adb_upgrade_schema(adb, "recently", upgrades, error))
 		return FALSE;
 
 	// Create dock
@@ -1226,31 +1231,20 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), self->dock);
 
 	// Signals
-	g_signal_connect(GEL_APP_GET_LOMO(app), "clear", (GCallback) lomo_clear_cb, self);
+	g_signal_connect(gel_plugin_engine_get_lomo(app), "clear", (GCallback) lomo_clear_cb, self);
 
-	plugin->data = self;
+	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
 gboolean
 recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = GEL_APP_GET_LOMO(app);
+	LomoPlayer *lomo = gel_plugin_engine_get_lomo(app);
 	if (lomo)
 		g_signal_handlers_disconnect_by_func(lomo, "clear", lomo_clear_cb);
 	eina_plugin_remove_dock_widget(plugin, "recently");
-	g_free(plugin->data);
+	g_free(gel_plugin_get_data(plugin));
 	return TRUE;
 }
-
-EINA_PLUGIN_SPEC(recently,
-	PACKAGE_VERSION, "dock,adb",
-	NULL, NULL,
-
-	N_("Stores your recent playlists"),
-	N_("Recently plugin. ADB based version"),
-	"adb.png",
-
-	recently_plugin_init, recently_plugin_fini
-	);
 

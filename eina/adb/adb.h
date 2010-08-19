@@ -22,11 +22,11 @@
 
 G_BEGIN_DECLS
 
-#include "eina-adb.h"
+#include <eina/eina-plugin2.h>
+#include <eina/adb/eina-adb.h>
 
-#define gel_app_get_adb(app)        EINA_ADB(gel_app_shared_get(app, "adb"))
-#define eina_plugin_get_adb(plugin) gel_app_get_adb(gel_plugin_get_app(plugin))
-#define eina_obj_get_adb(obj)       gel_app_get_adb(eina_obj_get_app(obj))
+#define gel_plugin_engine_get_adb(engine)   gel_plugin_engine_get_interface(engine, "adb")
+#define gel_plugin_get_adb(plugin)          gel_plugin_engine_get_adb(gel_plugin_get_engine(plugin))
 
 G_END_DECLS
 

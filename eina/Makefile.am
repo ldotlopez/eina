@@ -8,6 +8,15 @@ SUBDIRS = ext   \
 	player      \
 	playlist
 
+if BUILD_ADB
+SUBDIRS += adb recently
+endif
+
+DIST_SUBDIRS = \
+	$(SUBDIRS) \
+	adb        \
+	recently
+
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 

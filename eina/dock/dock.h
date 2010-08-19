@@ -19,6 +19,15 @@
 
 #ifndef _DOCK_H
 #define _DOCK_H
-#include "eina-dock.h"
+#include <eina/eina-plugin2.h>
+#include <eina/dock/eina-dock.h>
+
+void
+eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget);
+void
+eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id);
+void
+eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id);
+
 #endif
 

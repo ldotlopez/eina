@@ -72,3 +72,21 @@ dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
+void
+eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id)
+{
+	g_warning(N_("Function %s not implemented"), __FUNCTION__);
+}
+
+void
+eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id)
+{
+	g_warning(N_("Function %s not implemented"), __FUNCTION__);
+}
+
+void
+eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget)
+{
+	g_warning(N_("Function %s not implemented"), __FUNCTION__);
+}
+
