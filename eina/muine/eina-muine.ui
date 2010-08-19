@@ -102,6 +102,7 @@
               <object class="GtkTreeView" id="list-view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="model">model-filter</property>
                 <property name="headers_visible">False</property>
                 <property name="headers_clickable">False</property>
                 <property name="search_column">1</property>
@@ -144,6 +145,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="related_action">play-action</property>
                 <property name="use_action_appearance">True</property>
                 <property name="use_stock">True</property>
               </object>
@@ -158,6 +160,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="related_action">queue-action</property>
                 <property name="use_action_appearance">True</property>
                 <property name="use_stock">True</property>
               </object>
