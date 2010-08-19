@@ -218,9 +218,6 @@ EINA_LIBS="\
 	$DEBUG_LIBS     \
 	$EXPERIMENTAL_LIBS  \
 	"
-AC_SUBST(EINA_LIBS)
-AC_SUBST(EINA_CFLAGS)
-
 GLIB_CFLAGS+=" $COMMON_CFLAGS"
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
@@ -242,6 +239,14 @@ GLIB_GSETTINGS
 
 dnl
 dnl Optional deps: clutter, notify, ige-mac-integration, dbus-glib, sqlite3, unique, uuid
+dnl
+
+AC_SUBST(EINA_LIBS)
+AC_SUBST(EINA_CFLAGS)
+
+dnl
+dnl =====================================================================
+dnl =====================================================================
 dnl
 
 dnl
@@ -352,24 +357,6 @@ if test x"$HAVE_SQLITE3" = "xyes"; then
 else
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_SQLITE3=0"
 fi
-
-dnl
-dnl unique (core)
-dnl
-UNIQUE_VERSION="9.1.0"
-unique_modules="unique-1.0 >= $UNIQUE_VERSION"
-PKG_CHECK_MODULES(UNIQUE, $unique_modules,
-[
-	AC_SUBST(UNIQUE_CFLAGS)
-	AC_SUBST(UNIQUE_LIBS)
-	HAVE_UNIQUE=yes
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS $UNIQUE_CFLAGS -DHAVE_UNIQUE=1"
-	PACKAGE_LIBS="$PACKAGE_LIBS $UNIQUE_LIBS"
-],
-[
-	PACKAGE_CFLAGS="$PACKAGE_CFLAGS -DHAVE_UNIQUE=0"
-	HAVE_UNIQUE=no
-])
 
 
 dnl

@@ -55,21 +55,12 @@ static gchar *ui_mng_str =
 "    <menu name='File' action='file-menu' >"
 "      <menuitem name='Quit' action='quit-action' />"
 "    </menu>"
-/*
-"    <menu name='Plugins' action='plugins-menu' >"
-"      <menuitem name='PluginManager' action='plugin-manager-action' />"
-"    </menu>"
-*/
 "  </menubar>"
 "</ui>";
 
 static GtkActionEntry ui_mng_actions[] = {
-	{ "file-menu",     NULL,           N_("_File"), "<alt>f", NULL, NULL},
-		{ "quit-action", GTK_STOCK_QUIT, NULL,        NULL,     NULL, (GCallback) action_activated_cb },
-/*
-	{ "plugins-menu",           NULL, N_("_Add-ons"),        "<alt>a",     NULL, NULL},
-		{ "plugin-manager-action", NULL, N_("Select pl_ugins"), "<control>u", NULL,  (GCallback) action_activated_cb }
-		*/
+	{ "file-menu",   NULL,           N_("_File"), "<alt>f", NULL, NULL},
+	{ "quit-action", GTK_STOCK_QUIT, NULL,        NULL,     NULL, (GCallback) action_activated_cb },
 };
 
 static void

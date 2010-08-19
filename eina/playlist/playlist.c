@@ -40,7 +40,6 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		"stream-markup",  g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
 		NULL);
 	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, engine);
-	gtk_widget_show((GtkWidget *) playlist);
 
 	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
 		N_("Playlist"), gtk_label_new(N_("Playlist")), (GtkWidget *) playlist);

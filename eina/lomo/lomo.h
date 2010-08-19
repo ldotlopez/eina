@@ -21,6 +21,8 @@
 #define _EINA_LOMO_H
 
 #include <eina/eina-plugin2.h>
+#include <lomo/lomo-player.h>
+#include <lomo/lomo-util.h>
 
 G_BEGIN_DECLS
 
