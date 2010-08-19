@@ -18,7 +18,7 @@
  */
 
 #include "eina/eina-plugin2.h"
-#include "eina-dock.h"
+#include "dock.h"
 #include "eina/player/eina-player.h"
 
 typedef struct {
@@ -72,21 +72,31 @@ dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-void
-eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id)
-{
-	g_warning(N_("Function %s not implemented"), __FUNCTION__);
-}
-
-void
-eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id)
-{
-	g_warning(N_("Function %s not implemented"), __FUNCTION__);
-}
-
-void
+gboolean
 eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget)
 {
-	g_warning(N_("Function %s not implemented"), __FUNCTION__);
+	EinaDock *dock = eina_plugin_get_dock(plugin);
+	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
+
+	return eina_dock_add_widget(dock, id, label, widget);
 }
+
+gboolean
+eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id)
+{
+	EinaDock *dock = eina_plugin_get_dock(plugin);
+	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
+
+	return eina_dock_switch_widget(dock, id);
+}
+
+gboolean
+eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id)
+{
+	EinaDock *dock = eina_plugin_get_dock(plugin);
+	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
+
+	return eina_dock_remove_widget(dock, id);
+}
+
 

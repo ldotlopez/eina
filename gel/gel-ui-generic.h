@@ -20,7 +20,6 @@
 #ifndef _GEL_UI_GENERIC
 #define _GEL_UI_GENERIC
 
-#include <glib-object.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS

@@ -234,6 +234,8 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 		g_warning(N_("Cannot add widget to dock"));
 		return FALSE;
 	}
+	gtk_widget_show(label);
+	gtk_widget_show(dock_widget);
 	gtk_notebook_set_tab_reorderable(priv->notebook, dock_widget, TRUE);
 	g_hash_table_insert(priv->dock_items, g_strdup(id), (gpointer) dock_widget);
 

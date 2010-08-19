@@ -426,6 +426,7 @@ eina/lomo/Makefile
 eina/player/Makefile
 eina/playlist/Makefile
 eina/adb/Makefile
+eina/muine/Makefile
 eina/recently/Makefile
 pixmaps/Makefile
 data/Makefile
@@ -435,7 +436,6 @@ icons/Makefile
 icons/hicolor/Makefile
 po/Makefile.in
 plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
-plugins/muine/net.sourceforge.eina.plugins.muine.gschema.xml.in
 ])
 AC_OUTPUT
 

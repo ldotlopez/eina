@@ -26,7 +26,7 @@ G_BEGIN_DECLS
 #include <eina/adb/eina-adb.h>
 
 #define gel_plugin_engine_get_adb(engine)   gel_plugin_engine_get_interface(engine, "adb")
-#define gel_plugin_get_adb(plugin)          gel_plugin_engine_get_adb(gel_plugin_get_engine(plugin))
+#define eina_plugin_get_adb(plugin)         gel_plugin_engine_get_adb(gel_plugin_get_engine(plugin))
 
 G_END_DECLS
 

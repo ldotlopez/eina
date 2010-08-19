@@ -17,11 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Plugin::Muine"
-#define GEL_PLUGIN_DATA_TYPE EinaMuine
+#if HAVE_CONFIG_H
 #include <config.h>
-#include <eina/eina-plugin.h>
-#include <plugins/adb/adb.h>
+#endif
+
+#include <eina/eina-plugin2.h>
+#include <eina/adb/adb.h>
+#include <eina/art/art.h>
+#include <eina/dock/dock.h>
 
 #define EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.plugins.muine"
 #define EINA_PLUGIN_MUINE_GROUP_BY_KEY "group-by"
@@ -51,8 +54,6 @@ enum {
 };
 
 struct _EinaMuine {
-	EinaObj  parent;
-
 	GtkWidget *dock;
 
 	GtkTreeView  *view;
@@ -101,12 +102,11 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaMuine *self);
 static gboolean
 muine_init(EinaMuine *self, GError **error)
 {
-	self->dock  = eina_obj_get_typed(self, GTK_WIDGET, "main-widget");
-	self->view  = eina_obj_get_typed(self, GTK_TREE_VIEW, "list-view");
-	self->model = eina_obj_get_typed(self, GTK_LIST_STORE, "model");
-	self->filter = eina_obj_get_typed(self, GTK_TREE_MODEL_FILTER, "model-filter");
-	self->search = eina_obj_get_typed(self, GTK_ENTRY, "search-entry");
-	self->mode_view = eina_obj_get_typed(self, GTK_COMBO_BOX, "mode-view");
+	self->view  = gel_ui_generic_get_typed(self->dock, GTK_TREE_VIEW, "list-view");
+	self->model = gel_ui_generic_get_typed(self->dock, GTK_LIST_STORE, "model");
+	self->filter = gel_ui_generic_get_typed(self->dock, GTK_TREE_MODEL_FILTER, "model-filter");
+	self->search = gel_ui_generic_get_typed(self->dock, GTK_ENTRY, "search-entry");
+	self->mode_view = gel_ui_generic_get_typed(self->dock, GTK_COMBO_BOX, "mode-view");
 
 	GError *err = NULL;
 	gchar *icon_path = NULL;
@@ -115,12 +115,12 @@ muine_init(EinaMuine *self, GError **error)
 	{
 		if (err)
 		{
-			gel_warn(N_("Cannot load resource %s: %s"), icon_path, err->message);
+			g_warning(N_("Cannot load resource %s: %s"), icon_path, err->message);
 			g_error_free(err);
 		}
 
 		if (!icon_path)
-			gel_warn(N_("Cannot locate resource %s"), "eina.svg");
+			g_warning(N_("Cannot locate resource %s"), "eina.svg");
 		else
 			g_free(icon_path);
 	}
@@ -132,7 +132,7 @@ muine_init(EinaMuine *self, GError **error)
 			self->dock, self->view, self->model, self->filter, self->mode_view);
 		return FALSE;
 	}
-	g_object_set(eina_obj_get_object(self, "markup-renderer"), "yalign", 0.0f, NULL);
+	g_object_set(gel_ui_generic_get_object(self->dock, "markup-renderer"), "yalign", 0.0f, NULL);
 	g_signal_connect(self->view, "row-activated", (GCallback) row_activated_cb, self);
 	g_signal_connect(self->search, "changed", (GCallback) search_changed_cb, self);
 	g_signal_connect(self->search, "icon-press", (GCallback) search_icon_press_cb, self);
@@ -147,11 +147,11 @@ muine_init(EinaMuine *self, GError **error)
 	gchar *actions[] = { "play-action", "queue-action", NULL };
 	for (i = 0; actions[i] != NULL; i++)
 	{
-		GObject *a = eina_obj_get_object(self, actions[i]);
+		GObject *a = gel_ui_generic_get_object(self->dock, actions[i]);
 		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
 	}
 
-	GSettings *settings = eina_obj_get_settings(self, EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN);
+	GSettings *settings = g_settings_new(EINA_PLUGIN_MUINE_PREFERENCES_DOMAIN);
 	g_settings_bind(settings, EINA_PLUGIN_MUINE_GROUP_BY_KEY, self->mode_view, "active", G_SETTINGS_BIND_DEFAULT);
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
@@ -164,9 +164,9 @@ muine_init(EinaMuine *self, GError **error)
 	gtk_widget_unparent(self->dock);
 	gtk_widget_show(self->dock);
 
-	EinaDock *dock = eina_obj_get_dock(self);
 	g_object_ref(self->dock);
-	eina_dock_add_widget(dock, "muine", gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_SMALL_TOOLBAR), self->dock);
+	//FIXME: Get EinaDock from somewhere
+	eina_dock_add_widget(NULL, "muine", gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_SMALL_TOOLBAR), self->dock);
 	return TRUE;
 }
 
@@ -259,7 +259,7 @@ muine_model_refresh(EinaMuine *self)
 	EinaAdbResult *r = eina_adb_query(adb, q, NULL);
 	if (!r)
 	{
-		gel_warn("Query failed");
+		g_warning("Query failed");
 		return;
 	}
 	muine_model_clear(self);
@@ -275,7 +275,7 @@ muine_model_refresh(EinaMuine *self)
 			2, G_TYPE_STRING, &db_album,
 			-1))
 		{
-			gel_warn("Cannot get row results");
+			g_warning("Cannot get row results");
 			continue;
 		}
 
@@ -381,7 +381,7 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	EinaAdbResult *r = eina_adb_query(adb, q, id);
 	if (r == NULL)
 	{
-		gel_warn(N_("Unable to build query '%s'"), q);
+		g_warning(N_("Unable to build query '%s'"), q);
 		return NULL;
 	}
 
@@ -441,7 +441,7 @@ muine_modify_func(GtkTreeModel *model, GtkTreeIter *iter, GValue *value, gint co
 			column, &markup,
 			-1);
 		out = (self->search_str == NULL) ? markup :  g_strconcat("> ", markup, NULL);
-		// gel_warn("'%s' -> '%s'", markup, out);
+		// g_warning("'%s' -> '%s'", markup, out);
 		g_value_set_string(value, out);
 		g_free(markup);
 		if (self->search_str)
@@ -488,7 +488,7 @@ search_changed_cb(GtkWidget *w, EinaMuine *self)
 	if ((self->search_str == NULL) && (search_str != NULL))
 	{
 		self->search_str = g_utf8_casefold(search_str, -1);
-		// gel_warn("Enable filter with '%s'", self->search_str);
+		// g_warning("Enable filter with '%s'", self->search_str);
 		gtk_tree_model_filter_refilter(self->filter);
 	}
 
@@ -497,20 +497,20 @@ search_changed_cb(GtkWidget *w, EinaMuine *self)
 	{
 		g_free(self->search_str);
 		self->search_str = g_utf8_casefold(search_str, -1);
-		// gel_warn("Refine filter with '%s'", self->search_str);
+		// g_warning("Refine filter with '%s'", self->search_str);
 		gtk_tree_model_filter_refilter(self->filter);
 	}
 
 	// From search to no search
 	else if ((self->search_str != NULL) && (search_str == NULL))
 	{
-		// gel_warn("Disable search");
+		// g_warning("Disable search");
 		gel_free_and_invalidate(self->search_str, NULL, g_free);
 		gtk_tree_model_filter_refilter(self->filter);
 	}
 
 	else
-		gel_warn(N_("Unhandled situation"));
+		g_warning(N_("Unhandled situation"));
 }
 
 static void
@@ -583,16 +583,25 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaMuine *self)
 G_MODULE_EXPORT gboolean
 muine_plugin_init(GelApp *app, GelPlugin *plugin, GError **error)
 {
-	EinaMuine *self;
+	gchar *ui_xml_path = gel_plugin_resource_locate(plugin, GEL_RESOURCE_UI, "muine.ui");
+	g_return_val_if_fail(ui_xml_path, FALSE);
 
-	self = g_new0(EinaMuine, 1);
-	if (!eina_obj_init(EINA_OBJ(self), plugin, "muine", EINA_OBJ_GTK_UI, error))
-		return FALSE;
+	gchar *ui_xml_str = NULL;
+	g_file_get_contents(ui_xml_path, &ui_xml_str, -1, NULL);
+	g_return_val_if_fail(ui_xml_str, FALSE);
+
+	EinaMuine *self = g_new0(EinaMuine, 1);
+	self->dock = gel_ui_generic_new(ui_xml_str);
+	g_free(ui_xml_path);
+	g_free(ui_xml_str);
+
 	gel_plugin_set_data(plugin, self);
 
 	if (!muine_init(self, error))
 	{
-		eina_obj_fini((EinaObj *) self);
+		gel_plugin_set_data(plugin, NULL);
+		g_object_unref(self->dock);
+		g_free(self);
 		return FALSE;
 	}
 

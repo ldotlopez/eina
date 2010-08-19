@@ -61,7 +61,7 @@ adb_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	adb_register_start(adb, gel_plugin_get_lomo(plugin));
+	adb_register_start(adb, eina_plugin_get_lomo(plugin));
 
 	return ret;
 }

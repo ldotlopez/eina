@@ -43,7 +43,7 @@ typedef enum {
 } EinaLomoError; 
 
 #define gel_plugin_engine_get_lomo(engine) gel_plugin_engine_get_interface(engine,"lomo")
-#define gel_plugin_get_lomo(plugin)        gel_plugin_engine_get_lomo(gel_plugin_get_engine(plugin))
+#define eina_plugin_get_lomo(plugin)        gel_plugin_engine_get_lomo(gel_plugin_get_engine(plugin))
 
 gpointer
 eina_plugin_lomo_add_handlers(EinaPlugin *plugin, ...);

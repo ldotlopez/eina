@@ -19,14 +19,19 @@
 
 #ifndef _DOCK_H
 #define _DOCK_H
+
 #include <eina/eina-plugin2.h>
 #include <eina/dock/eina-dock.h>
 
-void
+#define gel_plugin_engine_get_dock(engine) gel_plugin_engine_get_interface(engine, "dock")
+#define gel_plugin_get_dock(plugin)        gel_plugin_engine_get_dock(gel_plugin_get_engine(plugin))
+#define eina_plugin_get_dock(plugin)       gel_plugin_get_dock(plugin)
+
+gboolean
 eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget);
-void
+gboolean
 eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id);
-void
+gboolean
 eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id);
 
 #endif

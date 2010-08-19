@@ -9,12 +9,16 @@ SUBDIRS = ext   \
 	playlist
 
 if BUILD_ADB
-SUBDIRS += adb recently
+SUBDIRS +=   \
+	adb      \
+	muine    \
+	recently
 endif
 
 DIST_SUBDIRS = \
 	$(SUBDIRS) \
 	adb        \
+	muine      \
 	recently
 
 bin_PROGRAMS = eina

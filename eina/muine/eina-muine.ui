@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkListStore" id="model">
+    <columns>
+      <!-- column-name icon -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name markup -->
+      <column type="gchararray"/>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+      <!-- column-name search -->
+      <column type="gpointer"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <!-- column-name mode -->
+      <column type="guint"/>
+      <!-- column-name markup -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">0</col>
+        <col id="1" translatable="yes">album</col>
+      </row>
+      <row>
+        <col id="0">1</col>
+        <col id="1" translatable="yes">artist</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkTreeModelFilter" id="model-filter">
+    <property name="child_model">model</property>
+  </object>
+  <object class="GtkWindow" id="main-window">
+    <child>
+      <object class="GtkVBox" id="main-widget">
+        <property name="visible">True</property>
+        <property name="border_width">5</property>
+        <property name="spacing">5</property>
+        <child>
+          <object class="GtkHBox" id="hbox1">
+            <property name="visible">True</property>
+            <property name="spacing">5</property>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Group by</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBox" id="mode-view">
+                <property name="visible">True</property>
+                <property name="model">liststore1</property>
+                <property name="active">0</property>
+                <child>
+                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                  <attributes>
+                    <attribute name="markup">1</attribute>
+                  </attributes>
+                </child>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="search-entry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x25CF;</property>
+            <property name="primary_icon_stock">gtk-find</property>
+            <property name="secondary_icon_stock">gtk-clear</property>
+            <property name="primary_icon_sensitive">True</property>
+            <property name="secondary_icon_sensitive">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolledwindow1">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
+            <child>
+              <object class="GtkTreeView" id="list-view">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
+                <property name="search_column">1</property>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="title">column</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1"/>
+                      <attributes>
+                        <attribute name="pixbuf">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+                    <property name="title">column</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="markup-renderer"/>
+                      <attributes>
+                        <attribute name="markup">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHButtonBox" id="hbuttonbox1">
+            <property name="visible">True</property>
+            <property name="spacing">5</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button2">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkAction" id="play-action">
+    <property name="label">Play</property>
+    <property name="short_label">Play</property>
+    <property name="stock_id">gtk-media-play</property>
+  </object>
+  <object class="GtkAction" id="queue-action">
+    <property name="label">Enqueue</property>
+    <property name="short_label">Enqueue</property>
+    <property name="stock_id">queue</property>
+  </object>
+</interface>
