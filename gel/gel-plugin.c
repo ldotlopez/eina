@@ -158,6 +158,16 @@ gel_plugin_set_data(GelPlugin *plugin, gpointer data)
 	plugin->data = data;
 }
 
+gpointer
+gel_plugin_steal_data(GelPlugin *plugin)
+{
+	gpointer ret = plugin->data;
+	g_return_val_if_fail(ret, NULL);
+
+	plugin->data = NULL;
+	return ret;
+}
+
 const GList*
 gel_plugin_get_dependants(GelPlugin *plugin)
 {

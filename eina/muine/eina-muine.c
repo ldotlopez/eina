@@ -22,6 +22,8 @@ struct _EinaMuinePrivate {
 	GtkTreeView        *listview;
 	GtkTreeModelFilter *filter;
 	GtkListStore       *model;
+	GtkEntry           *search;
+	gchar              *search_str;
 };
 
 enum {
@@ -49,9 +51,17 @@ static void
 muine_update_icon(EinaMuine *self, ArtSearch *search);
 static GList *
 muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter);
+static gboolean
+muine_filter_func(GtkTreeModel *model, GtkTreeIter *iter, EinaMuine *self);
 
 static void
 row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self);
+static void
+search_changed_cb(GtkWidget *w, EinaMuine *self);
+static void
+search_icon_press_cb(GtkWidget *w, GtkEntryIconPosition pos, GdkEvent *ev, EinaMuine *self);
+static void
+action_activate_cb(GtkAction *action, EinaMuine *self);
 static void
 search_cb(Art *art, ArtSearch *search, EinaMuine *self);
 
@@ -133,6 +143,10 @@ eina_muine_class_init (EinaMuineClass *klass)
 	g_object_class_install_property(object_class, PROP_ART,
 		g_param_spec_pointer("art", "art", "art", G_PARAM_WRITABLE | G_PARAM_READABLE)
 		);
+
+	g_object_class_install_property(object_class, PROP_MODE,
+		g_param_spec_int("mode", "mode", "mode", 0, 1, EINA_MUINE_MODE_ALBUM, G_PARAM_WRITABLE | G_PARAM_READABLE)
+		);
 }
 
 static void
@@ -148,16 +162,26 @@ eina_muine_new (void)
 	GelUIGeneric *ui_generic = GEL_UI_GENERIC(self);
 	EinaMuinePrivate *priv = GET_PRIVATE(self);
 
-	priv->listview = gel_ui_generic_get_typed(ui_generic, GTK_TREE_VIEW, "list-view");
+	priv->listview = gel_ui_generic_get_typed(ui_generic, GTK_TREE_VIEW,         "list-view");
 	priv->filter   = gel_ui_generic_get_typed(ui_generic, GTK_TREE_MODEL_FILTER, "model-filter");
-	priv->model    = gel_ui_generic_get_typed(ui_generic, GTK_LIST_STORE, "model");
+	priv->model    = gel_ui_generic_get_typed(ui_generic, GTK_LIST_STORE,        "model");
+	priv->search   = gel_ui_generic_get_typed(ui_generic, GTK_ENTRY,             "search-entry");
 
-	gtk_tree_view_set_model(priv->listview, (GtkTreeModel *) priv->model);
 	g_object_set(gel_ui_generic_get_object(ui_generic, "markup-renderer"),
 		"yalign", 0.0f,
 		NULL);
+	gtk_tree_model_filter_set_visible_func(priv->filter, (GtkTreeModelFilterVisibleFunc) muine_filter_func, self, NULL);
+	g_object_bind_property(self, "mode", gel_ui_generic_get_object(ui_generic, "mode-view"), "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 
+	gchar *actions[] = { "play-action", "queue-action" };
+	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
+	{
+		GObject *a = gel_ui_generic_get_object(ui_generic, actions[i]);
+		g_signal_connect(a, "activate", (GCallback) action_activate_cb, self);
+	}
 	g_signal_connect(priv->listview, "row-activated", (GCallback) row_activated_cb, self);
+	g_signal_connect(priv->search,   "changed",       (GCallback) search_changed_cb, self);
+	g_signal_connect(priv->search,   "icon-press",    (GCallback) search_icon_press_cb, self);
 	return self;
 }
 
@@ -237,7 +261,7 @@ EinaMuineMode
 eina_muine_get_mode(EinaMuine *self)
 {
 	g_return_val_if_fail(EINA_IS_MUINE(self), EINA_MUINE_MODE_INVALID);
-	return EINA_MUINE_MODE_ALBUM;
+	return GET_PRIVATE(self)->mode ;
 }
 
 // --
@@ -431,6 +455,28 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	return g_list_reverse(uris);
 }
 
+static gboolean
+muine_filter_func(GtkTreeModel *model, GtkTreeIter *iter, EinaMuine *self)
+{
+	EinaMuinePrivate *priv = GET_PRIVATE(self);
+	if (priv->search_str == NULL)
+		return TRUE;
+
+	gchar *markup = NULL;
+	gtk_tree_model_get(model, iter,
+		COMBO_COLUMN_MARKUP, &markup,
+		-1
+		);
+	g_return_val_if_fail(markup != NULL, FALSE);
+
+	gchar *haystack = g_utf8_casefold(markup, -1);
+	g_free(markup);
+
+	gboolean ret = (strstr(haystack, priv->search_str) != NULL);
+	g_free(haystack);
+	return ret;
+}
+
 static void
 row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, EinaMuine *self)
 {
@@ -452,6 +498,83 @@ row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, Ein
 	lomo_player_clear(lomo);
 	lomo_player_append_uri_multi(lomo, uris);
 
+	gel_list_deep_free(uris, g_free);
+}
+
+static void
+search_changed_cb(GtkWidget *w, EinaMuine *self)
+{
+	EinaMuinePrivate *priv = GET_PRIVATE(self);
+
+	const gchar *search_str = gtk_entry_get_text(GTK_ENTRY(w));
+	if (search_str && (search_str[0] == '\0'))
+		search_str = NULL;
+
+	// From no-search to search
+	if ((priv->search_str == NULL) && (search_str != NULL))
+	{
+		priv->search_str = g_utf8_casefold(search_str, -1);
+		gtk_tree_model_filter_refilter(muine_get_filter(self));
+	}
+
+	// From search to more complex search
+	else if ((priv->search_str != NULL) && (search_str != NULL))
+	{
+		g_free(priv->search_str);
+		priv->search_str = g_utf8_casefold(search_str, -1);
+		gtk_tree_model_filter_refilter(muine_get_filter(self));
+	}
+
+	// From search to no search
+	else if ((priv->search_str != NULL) && (search_str == NULL))
+	{
+		gel_free_and_invalidate(priv->search_str, NULL, g_free);
+		gtk_tree_model_filter_refilter(muine_get_filter(self));
+	}
+
+	else
+		g_warning(N_("Unhandled situation"));
+}
+
+static void
+search_icon_press_cb(GtkWidget *w, GtkEntryIconPosition pos, GdkEvent *ev, EinaMuine *self)
+{
+	if (pos == GTK_ENTRY_ICON_SECONDARY)
+		gtk_entry_set_text(GTK_ENTRY(w), "");
+}
+
+static void
+action_activate_cb(GtkAction *action, EinaMuine *self)
+{
+	const gchar *name = gtk_action_get_name(action);
+	gboolean do_clear = FALSE;
+
+	if (g_str_equal(name, "play-action"))
+		do_clear = TRUE;
+	else if (g_str_equal(name, "queue-action"))
+		do_clear = FALSE;
+	else
+	{
+		g_warning(N_("Unknow action %s"), name);
+		return;
+	}
+
+	GtkTreeSelection *sel = gtk_tree_view_get_selection(GET_PRIVATE(self)->listview);
+	if (!sel)
+		return;
+
+	GtkTreeIter iter;
+	if (!gtk_tree_selection_get_selected(sel, NULL, &iter))
+		return;
+
+	GList *uris = muine_get_uris_from_tree_iter(self, &iter);
+	if (!uris)
+		return;
+
+	LomoPlayer *lomo = eina_muine_get_lomo_player(self);
+	if (do_clear)
+		lomo_player_clear(lomo);
+	lomo_player_append_uri_multi(lomo, uris);
 	gel_list_deep_free(uris, g_free);
 }
 

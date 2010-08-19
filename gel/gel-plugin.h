@@ -63,6 +63,7 @@ void     gel_plugin_remove_reference(GelPlugin *plugin, GelPlugin *dependant);
 const GelPluginInfo* gel_plugin_get_info(GelPlugin *plugin);
 gpointer             gel_plugin_get_data(GelPlugin *plugin);
 void                 gel_plugin_set_data(GelPlugin *plugin, gpointer data);
+gpointer             gel_plugin_steal_data(GelPlugin *plugin);
 
 gboolean gel_plugin_is_in_use(GelPlugin *plugin);
 guint    gel_plugin_get_usage(GelPlugin *plugin);
