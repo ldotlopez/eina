@@ -35,6 +35,11 @@ if [ ! -z "$(which glib-compile-schemas)" ]; then
 	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
 fi
 
+# DConf
+if [ -x "$(dirname $(which gtk3-demo))/../libexec/dconf-service" -a -z "$(pidof dconf-service)" ]; then
+	$(dirname $(which gtk3-demo))/../libexec/dconf-service &
+fi
+
 # Plugins
 IFS="
 "
