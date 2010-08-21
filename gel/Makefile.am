@@ -2,7 +2,7 @@ include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = libgel-1.0.la
 libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic @GLIB_LIBS@ @GTK_LIBS@
-libgel_1_0_la_CFLAGS = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@
+libgel_1_0_la_CFLAGS = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@ @DEBUG_CFLAGS@
 geldir = $(prefix)/lib
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel

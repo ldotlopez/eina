@@ -2,7 +2,7 @@ include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = liblomo-1.0.la
 liblomo_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic @GSTREAMER_LIBS@
-liblomo_1_0_la_CFLAGS = -DLOMO_COMPILATION @GSTREAMER_CFLAGS@
+liblomo_1_0_la_CFLAGS = -DLOMO_COMPILATION @GSTREAMER_CFLAGS@ @DEBUG_CFLAGS@
 lomodir = $(prefix)/lib
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/lomo

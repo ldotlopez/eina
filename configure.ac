@@ -137,8 +137,9 @@ AC_ARG_ENABLE(experimental,  [  --enable-experimental       Compile with experim
 if test x$release_build = 'xyes'; then
 	DEBUG_CFLAGS="-O2"
 else
-	DEBUG_CFLAGS="-g -O0"
+	DEBUG_CFLAGS="-ggdb -O0"
 fi
+AC_SUBST(DEBUG_CFLAGS)
 
 if test x$enable_experimental = 'xyes'; then
 	EXPERIMENTAL_CFLAGS="-DENABLE_EXPERIMENTAL=1"
