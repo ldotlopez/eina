@@ -20,7 +20,6 @@ static const GOptionEntry opt_entries[] =
 	{ NULL }
 };
 
-
 gint main(gint argc, gchar *argv[])
 {
 	g_type_init();
@@ -67,10 +66,6 @@ gint main(gint argc, gchar *argv[])
 	gchar *plugins[] =
 	{
 	"player", "playlist"
-
-	#if HAVE_SQLITE3
-	, "muine"
-	#endif
 	};
 	guint  n_plugins = G_N_ELEMENTS(plugins);
 	guint  i;
@@ -87,6 +82,16 @@ gint main(gint argc, gchar *argv[])
 
 	if (i == n_plugins)
 	{
+		GList *l = NULL;
+		for (guint u = 0; opt_uris && opt_uris[u]; u++)
+		{
+			gchar *uri = lomo_create_uri(opt_uris[u]);
+			if (uri)
+				l = g_list_prepend(l, uri);
+		}
+		l = g_list_reverse(l);
+		eina_fs_load_from_uri_multiple(engine, l);
+		gel_list_deep_free(l, (GFunc) g_free);
 		gtk_application_run((GtkApplication *) application);
 	}
 

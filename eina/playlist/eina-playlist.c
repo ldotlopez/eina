@@ -313,6 +313,7 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
+	g_warning("=> priv area is %p", priv);
 
 	const struct {
 		gchar *signal;
@@ -336,10 +337,18 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	{
 		for (guint i = 0; i < G_N_ELEMENTS(callback_defs); i++)
 			g_signal_handlers_disconnect_by_func(priv->lomo, callback_defs[i].callback, self);
+		g_object_unref(priv->bind_random);
+		g_object_unref(priv->bind_repeat);
 		g_object_unref(priv->lomo);
 	}
 
 	priv->lomo = g_object_ref(lomo);
+
+	priv->bind_repeat = g_object_bind_property(lomo, "repeat", gel_ui_generic_get_object((GelUIGeneric *) self, "repeat-action"), "active",
+		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	priv->bind_random = g_object_bind_property(lomo, "random", gel_ui_generic_get_object((GelUIGeneric *) self, "random-action"), "active",
+		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+
 	for (guint i = 0; i < G_N_ELEMENTS(callback_defs); i++)
 		g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 

@@ -21,6 +21,7 @@
 #include "lomo/lomo-player.h"
 #include "lomo/lomo-util.h"
 #include "eina/fs.h"
+#include "eina/application/application.h"
 
 typedef struct {
 	GList *signals;
@@ -54,8 +55,15 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	}
 	g_object_ref_sink(lomo);
 
-	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
+
+	GelUIApplication *application = eina_plugin_get_application(plugin);
 	GSettings *settings = gel_ui_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
+
+	g_object_set((LomoPlayer *) lomo,
+		"repeat", g_settings_get_boolean(settings, EINA_LOMO_REPEAT_KEY),
+		"random", g_settings_get_boolean(settings, EINA_LOMO_RANDOM_KEY),
+		NULL);
+
 	static gchar *props[] = {
 		EINA_LOMO_VOLUME_KEY,
 		EINA_LOMO_MUTE_KEY,
@@ -100,77 +108,9 @@ lomo_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-void
-lomo_event_handler_group_free(LomoEventHandlerGroup *group)
-{
-	g_list_foreach(group->signals, (GFunc) g_free, NULL);
-	g_list_free(group->signals);
-	g_list_free(group->handlers);
-	g_free(group);
-}
-
-#if 0
-gpointer
-eina_plugin_lomo_add_handlers(EinaPlugin *plugin, ...)
-{
-	g_warning("This function is unsupported");
-	LomoPlayer *lomo = eina_plugin_get_lomo(plugin);
-	g_return_val_if_fail(lomo != NULL, NULL);
-
-	GelPluginEngine *app = gel_plugin_get_app(plugin);
-	GHashTable *handlers = gel_app_shared_get(app, "lomo-event-handlers");
-	if (!handlers)
-	{
-		handlers = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) lomo_event_handler_group_free);
-		gel_app_shared_set(app, "lomo-event-handlers", handlers);
-	}
-
-	LomoEventHandlerGroup *group = g_new0(LomoEventHandlerGroup, 1);
-
-	va_list p;
-	gchar *signal;
-	gpointer callback;
-
-	va_start(p, plugin);
-	signal = va_arg(p, gchar*);
-	while (signal != NULL)
-	{
-		callback = va_arg(p, gpointer);
-		if (callback)
-		{
-			g_signal_connect(lomo, signal, callback, plugin);
-			group->signals  = g_list_prepend(group->signals,  g_strdup(signal));
-			group->handlers = g_list_prepend(group->handlers, callback);
-		}
-		signal = va_arg(p, gchar*);
-	}
-	va_end(p);
-
-	g_hash_table_insert(handlers, group, group);
-	return group;
-}
-
-void
-eina_plugin_lomo_remove_handlers(EinaPlugin *plugin, gpointer handler_pointer)
-{
-	g_warning("This function is unsupported");
-}
-#endif
-
 static void
 lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data)
 {
 	if (value) lomo_player_randomize(lomo);
 }
-
-EINA_PLUGIN_INFO_SPEC(lomo,
-	PACKAGE_VERSION,            // version
-	"",                         // deps
-	NULL,                       // author
-	NULL,                       // url
-
-	N_("Build-in lomo plugin"), // short
-	NULL,                       // long
-	NULL                        // icon
-);
 

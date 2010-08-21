@@ -47,12 +47,6 @@ typedef enum {
 #define gel_plugin_engine_get_lomo(engine) gel_plugin_engine_get_interface(engine,"lomo")
 #define eina_plugin_get_lomo(plugin)        gel_plugin_engine_get_lomo(gel_plugin_get_engine(plugin))
 
-gpointer
-eina_plugin_lomo_add_handlers(EinaPlugin *plugin, ...);
-
-void
-eina_plugin_lomo_remove_handlers(EinaPlugin *plugin, gpointer handler_pointer); 
-
 G_END_DECLS
 
 #endif // _EINA_LOMO_H
