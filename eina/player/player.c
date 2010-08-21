@@ -19,6 +19,7 @@
 
 #include "eina-player.h"
 #include "eina/eina-plugin2.h"
+#include "eina/lomo/lomo.h"
 #include "eina/fs.h"
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
@@ -26,6 +27,8 @@
 #define BUGS_URI ""
 #define HELP_URI ""
 
+static void
+player_dnd_cb(GtkWidget *w, GType type, const guchar *data, GelPluginEngine *engine);
 static gboolean
 player_action_activated_cb(EinaPlayer *player, GtkAction *action, GelPluginEngine *engine);
 static void 
@@ -66,6 +69,7 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		"lomo-player",   gel_plugin_engine_get_interface(engine, "lomo"),
 		"stream-markup", g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
 		NULL);
+	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, engine);
 
 	g_object_set_data((GObject *) player, "eina-engine", engine);
 	g_object_set_data((GObject *) player, "eina-plugin", plugin);
@@ -159,6 +163,20 @@ about_show(EinaPlayer *player)
 
 	g_signal_connect(about, "response", (GCallback) gtk_widget_destroy, NULL);
 	gtk_widget_show(about);
+}
+
+static void
+player_dnd_cb(GtkWidget *w, GType type, const guchar *data, GelPluginEngine *engine)
+{
+	g_return_if_fail(type == G_TYPE_STRING);
+
+	gchar **uris = g_uri_list_extract_uris((gchar *) data);
+	GList *l = gel_strv_to_list(uris, FALSE);
+	if (l)
+		lomo_player_clear(gel_plugin_engine_get_lomo(engine));
+	eina_fs_load_from_uri_multiple(engine, l);
+	g_list_free(l);
+	g_strfreev(uris);
 }
 
 static gboolean

@@ -105,5 +105,14 @@ gel_ui_list_store_set_valist_at_index(GtkListStore *model, gint index, ...);
 void
 gel_ui_list_store_remove_at_index(GtkListStore *model, gint index);
 
+/*
+ * DnD
+ */
+void
+gel_ui_widget_enable_drop(GtkWidget *widget, GCallback callback, gpointer user_data);
+
+void
+gel_ui_widget_disable_drop(GtkWidget *widget);
+
 G_END_DECLS
 #endif // _GEL_UI_H

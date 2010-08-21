@@ -245,4 +245,122 @@ gel_ui_list_store_remove_at_index(GtkListStore *model, gint index)
 	gtk_list_store_remove(model, &iter);
 }
 
+/*
+ * DnD
+ */
+enum {
+//	TARGET_INT32,
+	TARGET_STRING,
+ 	TARGET_ROOTWIN
+};
+
+static const GtkTargetEntry target_list[] = {
+	// { "INTEGER",    0, TARGET_INT32 },
+	{ "STRING",     0, TARGET_STRING },
+	{ "text/plain", 0, TARGET_STRING },
+	{ "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
+};
+
+typedef struct {
+	gpointer user_data;
+	GCallback callback;
+} GelUIDndData;
+
+static gboolean
+__gel_ui_drag_drop_cb(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time, gpointer user_data)
+{
+	/* If the source offers a target */
+	GList *targets = gdk_drag_context_list_targets(context);
+	if (targets)
+	{
+		/* Choose the best target type */
+		GdkAtom target_type = GDK_POINTER_TO_ATOM (g_list_nth_data (targets, TARGET_STRING));
+
+		/* Request the data from the source. */
+		gtk_drag_get_data (
+			widget,         /* will receive 'drag-data-received' signal */
+			context,        /* represents the current state of the DnD */
+			target_type,    /* the target type we want */
+			time            /* time stamp */
+			);
+		return TRUE;
+	}
+	/* No target offered by source => error */
+	else
+		return FALSE;
+}
+
+static void
+__gel_ui_drag_data_received (GtkWidget *widget, GdkDragContext *context, gint x, gint y, GtkSelectionData *selection_data, guint target_type, guint time, gpointer data)
+{
+	gboolean success = FALSE;
+
+	if ((selection_data == NULL) && (gtk_selection_data_get_length(selection_data) <= 0))
+		success = FALSE;
+	else
+	{
+		switch (target_type)
+		{
+		case TARGET_STRING:
+			success = TRUE;
+			break;
+		default:
+			g_warning("Unknow type");
+			success = FALSE;
+			break;
+		}
+
+		void (*callback) (GtkWidget *w, GType type, const guchar *data, gpointer user_data) = g_object_get_data((GObject *) widget, "gel-ui-dnd-callback");
+		gpointer user_data = (gpointer)  g_object_get_data((GObject *) widget, "gel-ui-dnd-user-data");
+		if (callback)
+			callback(widget, G_TYPE_STRING, gtk_selection_data_get_data(selection_data), user_data);
+	}
+	gtk_drag_finish (context, success, FALSE, time);
+}
+
+void
+gel_ui_widget_enable_drop(GtkWidget *widget, GCallback callback, gpointer user_data)
+{
+	g_return_if_fail(GTK_IS_WIDGET(widget));
+
+	if (g_object_get_data((GObject *) widget, "gel-ui-dnd-callback") != NULL)
+	{
+		g_warning(N_("Widget has been already made droppable by GelUI, ignoring."));
+		return;
+	}
+
+	gtk_drag_dest_set (widget, 
+		GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION | GTK_DEST_DEFAULT_HIGHLIGHT,
+		target_list,
+		G_N_ELEMENTS(target_list),
+		GDK_ACTION_COPY
+	);
+
+	g_object_set_data((GObject *) widget, "gel-ui-dnd-callback",  (gpointer) callback);
+	g_object_set_data((GObject *) widget, "gel-ui-dnd-user-data", (gpointer) user_data);
+
+	g_signal_connect(widget, "drag-drop",          (GCallback) __gel_ui_drag_drop_cb, NULL);
+	g_signal_connect(widget, "drag-data-received", (GCallback) __gel_ui_drag_data_received, NULL);
+}
+
+void
+gel_ui_widget_disable_drop(GtkWidget *widget)
+{
+	g_return_if_fail(GTK_IS_WIDGET(widget));
+
+	if (g_object_get_data((GObject *) widget, "gel-ui-dnd-callback") == NULL)
+	{
+		g_warning(N_("Widget has been not made droppable by GelUI, ignoring."));
+		return;
+	}
+
+	gtk_drag_dest_unset(widget);
+
+	g_object_set_data((GObject *) widget, "gel-ui-dnd-callback",  NULL);
+	g_object_set_data((GObject *) widget, "gel-ui-dnd-user-data", NULL);
+
+	g_signal_handlers_disconnect_by_func(widget, __gel_ui_drag_drop_cb, NULL);
+	g_signal_handlers_disconnect_by_func(widget, __gel_ui_drag_data_received, NULL);
+}
+
 G_END_DECLS
