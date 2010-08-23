@@ -416,6 +416,7 @@ eina/playlist/Makefile
 eina/adb/Makefile
 eina/muine/Makefile
 eina/recently/Makefile
+eina/statusicon/Makefile
 pixmaps/Makefile
 data/Makefile
 Makefile

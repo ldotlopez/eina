@@ -6,7 +6,8 @@ SUBDIRS = ext   \
 	dock        \
 	lomo        \
 	player      \
-	playlist
+	playlist    \
+	statusicon
 
 if BUILD_ADB
 SUBDIRS +=   \

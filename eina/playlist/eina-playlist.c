@@ -313,7 +313,6 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
-	g_warning("=> priv area is %p", priv);
 
 	const struct {
 		gchar *signal;
