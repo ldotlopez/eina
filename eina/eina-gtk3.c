@@ -20,6 +20,24 @@ static const GOptionEntry opt_entries[] =
 	{ NULL }
 };
 
+static void
+plugin_changes_cb(GelPluginEngine *self, GelPlugin *plugin, GSettings *settings)
+{
+	GList *plugins = gel_plugin_engine_get_plugins(self);
+	gchar **tmpv = (gchar **) g_new0(gchar **, g_list_length(plugins) + 1);
+
+	GList *iter = plugins;
+	for (guint i = 0; iter != NULL; i++)
+	{
+		const GelPluginInfo *info = gel_plugin_get_info((GelPlugin *) iter->data);
+		tmpv[i] = info->name;
+		iter = iter->next;
+	}
+	g_settings_set_strv(settings, "plugins", (const gchar * const*) tmpv);
+	g_list_free(plugins);
+	g_free(tmpv);
+}
+
 gint main(gint argc, gchar *argv[])
 {
 	g_type_init();
@@ -53,20 +71,12 @@ gint main(gint argc, gchar *argv[])
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
 
-	GelUIApplication *application = NULL;
 	GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
-
-	if (!gel_plugin_engine_load_plugin_by_name(engine, "application", NULL) ||
-		!(application = gel_plugin_engine_get_interface(engine, "application")))
-	{
-		g_warning(N_("Unable to initialize application interface, aborting"));
-		return 1;
-	}
-
 	gchar *plugins[] =
 	{
-	"player", "playlist"
+	"application", "player", "playlist"
 	};
+
 	guint  n_plugins = G_N_ELEMENTS(plugins);
 	guint  i;
 	for (i = 0; i < n_plugins; i++)
@@ -76,25 +86,40 @@ gint main(gint argc, gchar *argv[])
 		{
 			g_warning(N_("Unable to load required plugin '%s': %s"), plugins[i], error->message);
 			g_error_free(error);
-			break;
+			g_object_unref(engine);
+			return 1;
 		}
 	}
 
-	if (i == n_plugins)
+	GList *l = NULL;
+	for (guint u = 0; opt_uris && opt_uris[u]; u++)
 	{
-		GList *l = NULL;
-		for (guint u = 0; opt_uris && opt_uris[u]; u++)
-		{
-			gchar *uri = lomo_create_uri(opt_uris[u]);
-			if (uri)
-				l = g_list_prepend(l, uri);
-		}
-		l = g_list_reverse(l);
-		eina_fs_load_from_uri_multiple(engine, l);
-		gel_list_deep_free(l, (GFunc) g_free);
-		gtk_application_run((GtkApplication *) application);
+		gchar *uri = lomo_create_uri(opt_uris[u]);
+		if (uri)
+			l = g_list_prepend(l, uri);
 	}
+	l = g_list_reverse(l);
+	eina_fs_load_from_uri_multiple(engine, l);
+	gel_list_deep_free(l, (GFunc) g_free);
 
+	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
+	GSettings *settings = gel_ui_application_get_settings(application, EINA_DOMAIN);
+	gchar **plugins_strv = g_settings_get_strv(settings, "plugins");
+	for (guint i = 0; plugins_strv[i]; i++)
+	{
+		GError *err = NULL;
+		if (!gel_plugin_engine_load_plugin_by_name(engine, plugins_strv[i], &err))
+		{
+			g_warning(N_("Unable to load plugin '%s': %s"), plugins_strv[i], err->message);
+			g_error_free(err);
+		}
+	}
+	g_strfreev(plugins_strv);
+
+	g_signal_connect(engine, "plugin-init", (GCallback) plugin_changes_cb, settings);
+	g_signal_connect(engine, "plugin-fini", (GCallback) plugin_changes_cb, settings);
+
+	gtk_application_run((GtkApplication *) application);
 	g_object_unref(engine);
 	return 0;
 }
