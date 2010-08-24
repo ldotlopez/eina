@@ -2,53 +2,25 @@
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina" path="/apps/@PACKAGE@/">
     <child name="preferences" schema="net.sourceforge.eina.preferences"/>
     <child name="states"      schema="net.sourceforge.eina.states"     />
+    <!-- plugins -->
+    <key name="plugins" type="as">
+      <default>[]</default>
+      <_summary>Plugins to load</_summary>
+    </key>
   </schema>
 
+  <!--
+  preferences
+  -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences" path="/apps/@PACKAGE@/preferences/">
-    <child name="lomo"     schema="net.sourceforge.eina.preferences.lomo"     />
     <child name="dock"     schema="net.sourceforge.eina.preferences.dock"     />
-    <child name="playlist" schema="net.sourceforge.eina.preferences.playlist" />
+    <child name="lomo"     schema="net.sourceforge.eina.preferences.lomo"     />
+    <child name="muine"    schema="net.sourceforge.eina.preferences.muine"    />
     <child name="player"   schema="net.sourceforge.eina.preferences.player"   />
-    <child name="plugins"  schema="net.sourceforge.eina.preferences.plugins"  />
+    <child name="playlist" schema="net.sourceforge.eina.preferences.playlist" />
   </schema>
 
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states"      path="/apps/@PACKAGE@/states/">
-    <child name="file-chooser" schema="net.sourceforge.eina.states.file-chooser" />
-  </schema>
-
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lomo" path="/apps/@PACKAGE@/preferences/lomo/">
-    <key name="volume" type="i">
-      <default>50</default>
-      <_summary>Volume</_summary>
-    </key>
-    <key name="mute" type="b">
-      <default>false</default>
-	  <_summary>Set mute</_summary>
-    </key>
-
-    <key name="random" type="b">
-      <default>false</default>
-	  <_summary>Enable random mode</_summary>
-    </key>
-	<key name="repeat" type="b">
-      <default>false</default>
-	  <_summary>Enable repeat mode</_summary>
-    </key>
-
-    <key name="auto-play" type="b">
-      <default>false</default>
-	  <_summary>Automatically play streams</_summary>
-    </key>
-	<key name="auto-parse" type="b">
-      <default>true</default>
-	  <_summary>Automatically parse metadata on streams</_summary>
-    </key>
-	<key name="current-stream" type="i">
-	  <default>0</default>
-	  <_summary>Current stream</_summary>
-	</key>
-  </schema>
-
+  <!-- dock -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.dock" path="/apps/@PACKAGE@/preferences/dock/">
   <key name="expanded" type="b">
       <default>true</default>
@@ -68,6 +40,48 @@
 	</key>
   </schema>
 
+
+  <!-- lomo -->
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lomo" path="/apps/@PACKAGE@/preferences/lomo/">
+    <key name="volume" type="i">
+      <default>50</default>
+      <_summary>Volume</_summary>
+    </key>
+    <key name="mute" type="b">
+      <default>false</default>
+	  <_summary>Set mute</_summary>
+    </key>
+    <key name="random" type="b">
+      <default>false</default>
+	  <_summary>Enable random mode</_summary>
+    </key>
+	<key name="repeat" type="b">
+      <default>false</default>
+	  <_summary>Enable repeat mode</_summary>
+    </key>
+    <key name="auto-play" type="b">
+      <default>false</default>
+	  <_summary>Automatically play streams</_summary>
+    </key>
+	<key name="auto-parse" type="b">
+      <default>true</default>
+	  <_summary>Automatically parse metadata on streams</_summary>
+    </key>
+	<key name="current-stream" type="i">
+	  <default>0</default>
+	  <_summary>Current stream</_summary>
+	</key>
+  </schema>
+
+  <!-- muine -->
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.muine" path="/apps/@PACKAGE@/preferences/muine/">
+    <key name="group-by" type="i">
+      <default>0</default>
+	  <_summary>Group streams based on this field</_summary>
+    </key>
+  </schema>
+
+  <!-- player -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.player" path="/apps/@PACKAGE@/preferences/player/">
     <key name="stream-markup" type="s">
       <default>'&lt;span size="x-large" weight="bold"&gt;%t&lt;/span&gt;\n&lt;span size="x-large" weight="normal"&gt;{%a}&lt;/span&gt;'</default>
@@ -75,6 +89,7 @@
     </key>
   </schema>
 
+  <!-- playlist -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.playlist" path="/apps/@PACKAGE@/preferences/playlist/">
     <key name="stream-markup" type="s">
       <default>'{%a -} %t'</default>
@@ -82,24 +97,18 @@
     </key>
   </schema>
 
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.plugins" path="/apps/@PACKAGE@/preferences/plugins/">
-    <key name="plugins" type="as">
-      <default>[]</default>
-      <_summary>Plugins to load</_summary>
-    </key>
+  <!--
+  states
+  -->
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states"      path="/apps/@PACKAGE@/states/">
+    <child name="file-chooser" schema="net.sourceforge.eina.states.file-chooser" />
   </schema>
 
+  <!-- filechooser -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states.file-chooser" path="/apps/@PACKAGE@/states/file-chooser/">
     <key name="last-folder" type="s">
       <default>''</default>
       <_summary>Last used folder for file chooser</_summary>
-    </key>
-  </schema>
-
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.plugins.muine" path="/apps/@PACKAGE@/preferences/plugins/muine/">
-    <key name="group-by" type="i">
-      <default>0</default>
-	  <_summary>Group streams based on this field</_summary>
     </key>
   </schema>
 
