@@ -42,7 +42,7 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, engine);
 
 	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
-		N_("Playlist"), gtk_label_new(N_("Playlist")), (GtkWidget *) playlist);
+		N_("Playlist"), gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), (GtkWidget *) playlist);
 
 	gel_plugin_set_data(plugin, playlist);
 

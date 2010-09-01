@@ -98,6 +98,7 @@ eina_dock_init (EinaDock *self)
 	g_object_set((GObject *) priv->notebook,
 		"show-border", FALSE,
 		"show-tabs", FALSE,
+		"tab-pos", GTK_POS_LEFT,
 		NULL);
 	gtk_widget_show((GtkWidget *) priv->notebook);
 
@@ -228,6 +229,26 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 		else
 			pos++;
 
+	if (GTK_IS_LABEL(label))
+	{
+		gdouble angle = 0;
+		switch (gtk_notebook_get_tab_pos(priv->notebook))
+		{
+		case GTK_POS_TOP:
+			angle = 0;
+			break;
+		case GTK_POS_RIGHT:
+			angle = 270;
+			break;
+		case GTK_POS_BOTTOM:
+			angle = 0;
+			break;
+		case GTK_POS_LEFT:
+			angle = 90;
+			break;
+		}
+		gtk_label_set_angle(GTK_LABEL(label), angle);
+	}
 	if (gtk_notebook_append_page(priv->notebook, dock_widget, label) == -1)
 	{
 		g_hash_table_remove(priv->dock_items, id);
