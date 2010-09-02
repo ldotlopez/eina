@@ -42,7 +42,9 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, engine);
 
 	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
-		N_("Playlist"), gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU), (GtkWidget *) playlist);
+		N_("Playlist"),
+		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU),
+		(GtkWidget *) g_object_ref(playlist));
 
 	gel_plugin_set_data(plugin, playlist);
 
@@ -52,10 +54,11 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT gboolean
 playlist_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	EinaPlaylist *playlist = (EinaPlaylist *) gel_plugin_get_data(plugin);
+	EinaPlaylist *playlist = (EinaPlaylist *) gel_plugin_steal_data(plugin);
 	g_return_val_if_fail(EINA_IS_PLAYLIST(playlist), FALSE);
 
-	eina_dock_remove_widget(gel_plugin_engine_get_interface(engine, "dock"), N_("Playlist"));
+	eina_dock_remove_widget(gel_plugin_engine_get_interface(engine, "dock"), (GtkWidget *) playlist);
+	g_object_unref(playlist);
 
 	return TRUE;
 }

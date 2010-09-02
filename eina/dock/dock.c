@@ -19,7 +19,8 @@
 
 #include "eina/eina-plugin2.h"
 #include "dock.h"
-#include "eina/player/eina-player.h"
+#include "eina/application/application.h"
+#include "eina/player/player.h"
 
 typedef struct {
 	GtkWidget *dock;
@@ -35,7 +36,12 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	DockData *data = g_new0(DockData, 1);
 	gel_plugin_set_data(plugin, data);
 
+	GSettings *settings = gel_ui_application_get_settings(eina_plugin_get_application(plugin), EINA_DOCK_PREFERENCES_DOMAIN);
+
 	data->dock = (GtkWidget *) eina_dock_new();
+	eina_dock_set_page_order((EinaDock *) data->dock, (gchar **) g_settings_get_strv(settings, EINA_DOCK_ORDER_KEY));
+	g_settings_bind(settings, EINA_DOCK_ORDER_KEY, data->dock, "page-order", G_SETTINGS_BIND_DEFAULT);
+
 	gtk_box_pack_start(GTK_BOX(gel_ui_application_get_window_content_area(application)), data->dock, TRUE, TRUE, 0);
 	gtk_widget_show(data->dock);
 
@@ -91,12 +97,23 @@ eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id)
 }
 
 gboolean
-eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id)
+eina_plugin_remove_dock_widget(EinaPlugin *plugin, GtkWidget *widget)
 {
 	EinaDock *dock = eina_plugin_get_dock(plugin);
 	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
+	g_return_val_if_fail(GTK_IS_WIDGET(widget), FALSE);
 
-	return eina_dock_remove_widget(dock, id);
+	return eina_dock_remove_widget(dock, widget);
+}
+
+gboolean
+eina_plugin_remove_dock_widget_by_id(EinaPlugin *plugin, gchar *id)
+{
+	EinaDock *dock = eina_plugin_get_dock(plugin);
+	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
+	g_return_val_if_fail(id, FALSE);
+
+	return eina_dock_remove_widget_by_id(dock, id);
 }
 
 

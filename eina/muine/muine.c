@@ -37,17 +37,21 @@ muine_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	GSettings *settings = gel_ui_application_get_settings(eina_plugin_get_application(plugin), EINA_MUINE_PREFERENCES_DOMAIN);
 	g_settings_bind(settings, EINA_MUINE_GROUP_BY_KEY, d, "mode", G_SETTINGS_BIND_DEFAULT);
 
-	g_object_ref(d);
+	eina_plugin_add_dock_widget(plugin,
+		N_("Muine"),
+		gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU),
+		(GtkWidget *) g_object_ref(d));
 
-	eina_plugin_add_dock_widget(plugin, N_("Muine"), gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU), (GtkWidget *) d);
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
 muine_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	eina_plugin_remove_dock_widget(plugin, "muine");
-	g_object_unref(gel_plugin_steal_data(plugin));
+	EinaMuine *d = gel_plugin_steal_data(plugin);
+
+	eina_plugin_remove_dock_widget(plugin, (GtkWidget *) d);
+	g_object_unref(d);
 
 	return TRUE;
 }

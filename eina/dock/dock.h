@@ -27,12 +27,17 @@
 #define gel_plugin_get_dock(plugin)        gel_plugin_engine_get_dock(gel_plugin_get_engine(plugin))
 #define eina_plugin_get_dock(plugin)       gel_plugin_get_dock(plugin)
 
+#define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
+#define EINA_DOCK_ORDER_KEY "page-order"
+
 gboolean
 eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget);
 gboolean
 eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id);
 gboolean
-eina_plugin_remove_dock_widget(EinaPlugin *plugin, gchar *id);
+eina_plugin_remove_dock_widget(EinaPlugin *plugin, GtkWidget *widget);
+gboolean
+eina_plugin_remove_dock_widget_by_id(EinaPlugin *plugin, gchar *id);
 
 #endif
 

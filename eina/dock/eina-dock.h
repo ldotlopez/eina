@@ -60,7 +60,8 @@ void     eina_dock_set_page_order(EinaDock *self, gchar **order);
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
 gboolean eina_dock_add_widget   (EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *widget);
-gboolean eina_dock_remove_widget(EinaDock *self, gchar *id);
+gboolean eina_dock_remove_widget(EinaDock *self, GtkWidget *widget);
+gboolean eina_dock_remove_widget_by_id(EinaDock *self, gchar *id);
 gboolean eina_dock_switch_widget(EinaDock *iface, gchar *id);
 
 G_END_DECLS

@@ -1243,7 +1243,7 @@ recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
 	LomoPlayer *lomo = gel_plugin_engine_get_lomo(app);
 	if (lomo)
 		g_signal_handlers_disconnect_by_func(lomo, "clear", lomo_clear_cb);
-	eina_plugin_remove_dock_widget(plugin, "recently");
+	eina_plugin_remove_dock_widget_by_id(plugin, "recently");
 	g_free(gel_plugin_get_data(plugin));
 	return TRUE;
 }
