@@ -38,6 +38,13 @@ plugin_changes_cb(GelPluginEngine *self, GelPlugin *plugin, GSettings *settings)
 	g_free(tmpv);
 }
 
+static gboolean
+application_quit(GelUIApplication *app, GelPluginEngine *self)
+{
+	g_signal_handlers_disconnect_by_func(self, plugin_changes_cb, gel_ui_application_get_settings(app, EINA_DOMAIN));
+	return FALSE;
+}
+
 gint main(gint argc, gchar *argv[])
 {
 	g_type_init();
@@ -118,6 +125,7 @@ gint main(gint argc, gchar *argv[])
 
 	g_signal_connect(engine, "plugin-init", (GCallback) plugin_changes_cb, settings);
 	g_signal_connect(engine, "plugin-fini", (GCallback) plugin_changes_cb, settings);
+	g_signal_connect(application, "quit",   (GCallback) application_quit,  engine);
 
 	gtk_application_run((GtkApplication *) application);
 	g_object_unref(engine);

@@ -38,7 +38,7 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	GSettings *settings = gel_ui_application_get_settings(eina_plugin_get_application(plugin), EINA_DOCK_PREFERENCES_DOMAIN);
 
-	data->dock = (GtkWidget *) eina_dock_new();
+	data->dock = (GtkWidget *) g_object_ref(eina_dock_new());
 	eina_dock_set_page_order((EinaDock *) data->dock, (gchar **) g_settings_get_strv(settings, EINA_DOCK_ORDER_KEY));
 	g_settings_bind(settings, EINA_DOCK_ORDER_KEY, data->dock, "page-order", G_SETTINGS_BIND_DEFAULT);
 
@@ -73,6 +73,7 @@ dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	gtk_container_remove(content_area, data->dock);
 	gtk_window_set_resizable(win, data->resizable);
+	g_object_unref(data->dock);
 	g_free(data);
 
 	return TRUE;

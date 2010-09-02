@@ -47,6 +47,14 @@ static GtkActionEntry ui_mng_actions[] = {
 };
 
 
+static gboolean
+window_delete_event_cb(GtkWidget *w, GdkEvent *ev, GtkApplication *app)
+{
+	gtk_widget_hide(w);
+	gtk_application_quit(GTK_APPLICATION(app));
+	return TRUE;
+}
+
 G_MODULE_EXPORT gboolean
 application_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
@@ -91,6 +99,7 @@ application_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **err
 		"title", N_("Eina music player"),
 		"resizable", FALSE,
 		NULL);
+	g_signal_connect(w, "delete-event", (GCallback) window_delete_event_cb, application);
 
 	GtkContainer *content_area = GTK_CONTAINER(gel_ui_application_get_window_content_area(application));
 	gtk_container_set_border_width(content_area, BORDER_WIDTH);
