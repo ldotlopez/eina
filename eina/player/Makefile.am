@@ -8,7 +8,8 @@ include_HEADERS = \
 	eina-cover.h       \
 	eina-cover-image.h \
 	eina-seek.h        \
-	eina-player.h
+	eina-player.h      \
+	player.h
 
 libplayer_la_CFLAGS  = @EINA_CFLAGS@
 libplayer_la_LDFLAGS = @EINA_LIBS@

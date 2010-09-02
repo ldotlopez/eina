@@ -19,6 +19,7 @@
 
 #include "eina-dock.h"
 #include <glib/gi18n.h>
+#include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaDock, eina_dock, GTK_TYPE_EXPANDER)
 
@@ -29,14 +30,26 @@ G_DEFINE_TYPE (EinaDock, eina_dock, GTK_TYPE_EXPANDER)
 
 typedef struct _EinaDockPrivate EinaDockPrivate;
 
+static void
+dock_update_properties(EinaDock *self);
+static void
+dock_reorder_pages(EinaDock *self);
+static gint
+dock_get_position_for_id(EinaDock *self, gchar *id);
+
+static void
+page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
+
 enum {
 	PROP_PAGE_ORDER = 1
 };
 
 struct _EinaDockPrivate {
 	GtkNotebook *notebook;
-	GHashTable  *dock_items;
-	gchar      **dock_idx;
+	GHashTable  *id2widget; // gchar* -> GtkWidget
+	GHashTable  *widget2id; // GtkWidget -> gchar*
+
+	gchar      **page_order;   // Prop->page-order
 
 	gint         w, h;
 };
@@ -46,7 +59,7 @@ eina_dock_get_property (GObject *object, guint property_id, GValue *value, GPara
 {
 	switch (property_id) {
 	case PROP_PAGE_ORDER:
-		g_value_set_static_boxed(value, eina_dock_get_page_order((EinaDock *) object));
+		g_value_set_boxed(value, eina_dock_get_page_order((EinaDock *) object));
 		return;
 
 	default:
@@ -70,6 +83,13 @@ eina_dock_set_property (GObject *object, guint property_id, const GValue *value,
 static void
 eina_dock_dispose (GObject *object)
 {
+	EinaDock *self = EINA_DOCK(object);
+	EinaDockPrivate *priv = GET_PRIVATE(self);
+
+	gel_free_and_invalidate(priv->id2widget, NULL, g_hash_table_destroy);
+	gel_free_and_invalidate(priv->widget2id, NULL, g_hash_table_destroy);
+	gel_free_and_invalidate(priv->page_order, NULL, g_strfreev);
+
 	G_OBJECT_CLASS (eina_dock_parent_class)->dispose (object);
 }
 
@@ -101,10 +121,15 @@ eina_dock_init (EinaDock *self)
 		NULL);
 	gtk_widget_show((GtkWidget *) priv->notebook);
 
-	priv->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-
+	priv->id2widget = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+	priv->widget2id = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+	priv->page_order = NULL;
+	
 	gtk_expander_set_use_markup(GTK_EXPANDER(self), TRUE);
 	gtk_container_add(GTK_CONTAINER(self), (GtkWidget *) priv->notebook);
+
+	dock_update_properties(self);
+	g_signal_connect(priv->notebook, "page-reordered", G_CALLBACK(page_reorder_cb), self);
 }
 
 EinaDock*
@@ -120,8 +145,7 @@ gchar **
 eina_dock_get_page_order(EinaDock *self)
 {
 	g_return_val_if_fail(EINA_IS_DOCK(self), NULL);
-	g_warning(N_("Function %s not implemented"), __FUNCTION__);
-	return NULL;
+	return gel_strv_copy(GET_PRIVATE(self)->page_order, TRUE);
 }
 
 void
@@ -130,85 +154,48 @@ eina_dock_set_page_order(EinaDock *self, gchar **order)
 	g_return_if_fail(EINA_IS_DOCK(self));
 	g_return_if_fail(order);
 
-	g_warning(N_("Function %s not implemented"), __FUNCTION__);
+	EinaDockPrivate *priv = GET_PRIVATE(self);
+	g_strfreev(priv->page_order);
+	priv->page_order = gel_strv_copy(order, TRUE);
+
+	dock_reorder_pages(self);
+
 	g_object_notify((GObject *) self, "page-order");
 }
 
-#if 0
-static void 
-dock_reorder(EinaDock *self);
-
 static void
-page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
-#if !OSX_SYSTEM
-static void
-expander_activate_cb(GtkExpander *wi, EinaDock *self);
-static gboolean
-expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self);
-#endif
+dock_update_properties(EinaDock *self)
+{
+	g_return_if_fail(EINA_IS_DOCK(self));
+	
+	EinaDockPrivate *priv = GET_PRIVATE(self);
+	guint n_pages = gtk_notebook_get_n_pages(priv->notebook);
 
-static void
-settings_changed_cb(GSettings *setting, gchar *key, EinaDock *self);
-#endif
-
-#if 0
-	self->expander = eina_obj_get_widget(self, "dock-expander");
-	priv->notebook = eina_obj_get_typed(self, GTK_NOTEBOOK, "dock-notebook");
-
-	/*
-	 * Setup dock
-	 */
-	GSettings *settings = gel_app_get_settings(app, EINA_DOCK_PREFERENCES_DOMAIN);
-	#if !OSX_SYSTEM
-	gboolean expanded = g_settings_get_boolean(settings, EINA_DOCK_EXPANDED_KEY);
-	g_object_set((GObject *) self->expander,
-		"expanded", expanded,
+	gboolean visible = FALSE;
+	gboolean show_tabs = FALSE;
+	switch (n_pages)
+	{
+	case 0:
+		visible = FALSE;
+		break;
+	case 1:
+		visible = TRUE;
+		show_tabs = FALSE;
+		break;
+	default:
+		visible   = TRUE;
+		show_tabs = TRUE;
+		break;
+	}
+	if (visible)
+		gtk_widget_show(GTK_WIDGET(self));
+	else
+		gtk_widget_hide(GTK_WIDGET(self));
+	g_object_set((GObject *) priv->notebook,
+		"show-tabs", show_tabs,
+		"show-border", show_tabs,
 		NULL);
-	g_object_set((GObject *) gel_app_get_window(app),
-		"resizable", expanded,
-		NULL);
-	g_signal_connect(self->expander, "activate", (GCallback) expander_activate_cb, self);
-	#else
-	g_object_set((GObject *) gel_app_get_window(app), "resizable", TRUE, NULL);
-	#endif
-
-	/*
-	 * Setup tab ordering
-	 */
-	gtk_widget_realize(GTK_WIDGET(priv->notebook));
-
-	// Remove preexistent tabs
-	gint i;
-	for (i = 0; i < gtk_notebook_get_n_pages(priv->notebook); i++)
-		gtk_notebook_remove_page(priv->notebook, i);
-	self->dock_items = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-	gtk_notebook_set_show_tabs(priv->notebook, FALSE);
-
-	// Transfer widget to player
-	#if !OSX_SYSTEM
-	GtkWidget *dock_widget = self->expander;
-	#else
-	GtkWidget *dock_widget = (GtkWidget *) priv->notebook;
-	#endif
-
-	GtkWidget *parent = gtk_widget_get_parent(dock_widget);
-	g_object_ref(dock_widget);
-	gtk_widget_show(dock_widget);
-	gtk_container_remove(GTK_CONTAINER(parent), dock_widget);
-	eina_window_add_widget(EINA_OBJ_GET_WINDOW(self), dock_widget, TRUE, TRUE, 0);
-	gtk_widget_destroy(parent);
-
-	self->dock_idx = g_settings_get_strv(settings, EINA_DOCK_WIDGET_ORDER_KEY);
-	g_signal_connect(priv->notebook, "page-reordered", G_CALLBACK(page_reorder_cb), self);
-
-	/*
-	 * Listen settings changes
-	 */
-	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
-
-	return TRUE;
 }
-#endif
 
 gboolean
 eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *dock_widget)
@@ -218,37 +205,23 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 	g_return_val_if_fail(GTK_IS_WIDGET(label) && GTK_IS_WIDGET(dock_widget), FALSE);
 
 	EinaDockPrivate *priv = GET_PRIVATE(self);
+	g_return_val_if_fail(g_hash_table_lookup(priv->id2widget, id) == NULL, FALSE);
 
-	g_return_val_if_fail(g_hash_table_lookup(priv->dock_items, id) == NULL, FALSE);
-
-	gint pos = 0;
-	while (priv->dock_idx && (priv->dock_idx[pos] != NULL))
-		if (g_str_equal(id, priv->dock_idx[pos]))
-			break;
-		else
-			pos++;
-
-	if (gtk_notebook_append_page(priv->notebook, dock_widget, label) == -1)
+	if (gtk_notebook_insert_page(priv->notebook, dock_widget, label, dock_get_position_for_id(self, id)) == -1)
 	{
-		g_hash_table_remove(priv->dock_items, id);
 		g_warning(N_("Cannot add widget to dock"));
 		return FALSE;
 	}
-	gtk_notebook_reorder_child(priv->notebook, dock_widget, -1);
+	g_hash_table_insert(priv->id2widget, g_strdup(id), dock_widget);
+	g_hash_table_insert(priv->widget2id, dock_widget, g_strdup(id));
 
 	gtk_widget_show(label);
 	gtk_widget_show(dock_widget);
-	gtk_notebook_set_tab_reorderable(priv->notebook, dock_widget, TRUE);
-	g_hash_table_insert(priv->dock_items, g_strdup(id), (gpointer) dock_widget);
 
-	if (pos > -1)
-	{
-		gtk_notebook_reorder_child(priv->notebook, dock_widget, pos);
-		if (pos <= gtk_notebook_get_current_page(priv->notebook))
-			gtk_notebook_set_current_page(priv->notebook, pos);
-	}
+	gtk_notebook_set_tab_reorderable(priv->notebook, dock_widget, TRUE);
 
 	// Set some properties based on multiple pages
+	#if 0
 	gboolean multiple_pages = gtk_notebook_get_n_pages(priv->notebook) > 1;
 	g_object_set((GObject *) priv->notebook,
 		"show-tabs", multiple_pages,
@@ -263,24 +236,30 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 		gtk_expander_set_label(GTK_EXPANDER(self), markup);
 		g_free(markup);
 	}
+	#endif
+	dock_update_properties(self);
 
 	return TRUE;
 }
 
 gboolean
-eina_dock_remove_widget(EinaDock *self, gchar *id)
+eina_dock_remove_widget_for_w(EinaDock *self, GtkWidget *w)
 {
 	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
-	g_return_val_if_fail(id != NULL, FALSE);
+	g_return_val_if_fail(GTK_IS_WIDGET(self), FALSE);
 
 	EinaDockPrivate *priv = GET_PRIVATE(self);
 
-	GtkWidget *dock_item = g_hash_table_lookup(priv->dock_items, id);
-	g_return_val_if_fail(dock_item != NULL, FALSE);
+	gchar *id = (gchar *) g_hash_table_lookup(priv->widget2id, w);
+	g_return_val_if_fail(id == NULL, FALSE);
 
-	gtk_notebook_remove_page(GTK_NOTEBOOK(priv->notebook), gtk_notebook_page_num(GTK_NOTEBOOK(priv->notebook), dock_item));
 
-	GList *ids;
+	gtk_notebook_remove_page(priv->notebook, gtk_notebook_page_num(priv->notebook, w));
+	g_hash_table_remove(priv->id2widget, id);
+	g_hash_table_remove(priv->widget2id, w);
+
+	#if 0
+	GList *ids = NULL;
 	gchar *markup;
 	switch (gtk_notebook_get_n_pages(priv->notebook) <= 1)
 	{
@@ -289,7 +268,7 @@ eina_dock_remove_widget(EinaDock *self, gchar *id)
 		break;
 
 	case 1:
-		ids = g_hash_table_get_keys(priv->dock_items);
+		ids = g_hash_table_get_keys(priv->id2widget);
 		markup = g_strconcat("<big><b>", (gchar *) ids->data, "</b></big>", NULL);
 		gtk_expander_set_label(GTK_EXPANDER(self), markup);
 		g_list_free(ids);
@@ -299,8 +278,18 @@ eina_dock_remove_widget(EinaDock *self, gchar *id)
 	default:
 		break;
 	}
+	#endif
+	dock_update_properties(self);
 
-	return g_hash_table_remove(priv->dock_items, id);
+	return TRUE;
+}
+
+gboolean
+eina_dock_remove_widget(EinaDock *self, gchar *id)
+{
+	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
+	g_return_val_if_fail(id, FALSE);
+	return eina_dock_remove_widget_for_w(self, g_hash_table_lookup(GET_PRIVATE(self)->id2widget, id));
 }
 
 gboolean
@@ -311,7 +300,7 @@ eina_dock_switch_widget(EinaDock *self, gchar *id)
 
 	EinaDockPrivate *priv = GET_PRIVATE(self);
 
-	GtkWidget *dock_item = g_hash_table_lookup(priv->dock_items, (gpointer) id);
+	GtkWidget *dock_item = g_hash_table_lookup(priv->id2widget, (gpointer) id);
 	g_return_val_if_fail(dock_item != NULL, FALSE);
 
 	gint page_num = gtk_notebook_page_num(GTK_NOTEBOOK(priv->notebook), dock_item);
@@ -321,20 +310,43 @@ eina_dock_switch_widget(EinaDock *self, gchar *id)
 	return TRUE;
 }
 
-#if 0
-static void 
-dock_reorder(EinaDock *self)
+static void
+dock_reorder_pages(EinaDock *self)
 {
-	for (guint i = 0; self->dock_idx[i] != NULL; i++)
+	g_return_if_fail(EINA_IS_DOCK(self));
+	EinaDockPrivate *priv = GET_PRIVATE(self);
+
+	gint pos = 0;
+	for (guint i = 0; priv->page_order && priv->page_order[i]; i++)
 	{
-		GtkWidget *tab = gtk_notebook_get_nth_page(priv->notebook, i);
-		gtk_notebook_reorder_child(priv->notebook, tab, i);
+		GtkWidget *w = GTK_WIDGET(g_hash_table_lookup(priv->id2widget, priv->page_order[i]));
+		if (w)
+			gtk_notebook_reorder_child(priv->notebook, w, pos++);
 	}
+}
+
+static gint
+dock_get_position_for_id(EinaDock *self, gchar *id)
+{
+	g_return_val_if_fail(EINA_IS_DOCK(self), -1);
+	EinaDockPrivate *priv = GET_PRIVATE(self);
+
+	if (!priv->page_order)
+		return -1;
+
+	for (guint i = 0; priv->page_order[i]; i++)
+	{
+		if (g_str_equal(id, priv->page_order[i]) || !GTK_WIDGET(g_hash_table_lookup(priv->id2widget, priv->page_order[i])))
+			return i;
+	}
+	return -1;
 }
 
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 {
+	EinaDockPrivate *priv = GET_PRIVATE(self);
+
 	gint n_tabs = gtk_notebook_get_n_pages(w);
 	
 	gchar **items = g_new0(gchar *, n_tabs + 1);
@@ -346,22 +358,24 @@ page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 		GHashTableIter iter;
 		gchar *id;
 		gpointer _tab;
-		g_hash_table_iter_init(&iter, self->dock_items);
+		g_hash_table_iter_init(&iter, priv->id2widget);
 		while (g_hash_table_iter_next(&iter, (gpointer *) &id, &_tab))
 		{
 			if (tab == _tab)
 			{
-				items[j++] = id;
+				items[j++] = g_strdup(id);
 				break;
 			}
 		}
 	}
 
-	GSettings *s = eina_obj_get_settings(self, EINA_DOCK_PREFERENCES_DOMAIN);
-	g_settings_set_strv(s, EINA_DOCK_WIDGET_ORDER_KEY, (const gchar * const*) items);
-	g_free(items);
+	g_strfreev(priv->page_order);
+	priv->page_order = items;
+
+	g_object_notify((GObject *) self, "page-order");
 }
 
+#if 0
 #if !OSX_SYSTEM
 static void
 expander_activate_cb(GtkExpander *wi, EinaDock *self)
@@ -400,36 +414,5 @@ expander_expose_event(GtkExpander *wi, GdkEventExpose *ev, EinaDock *self)
 	return FALSE;
 }
 #endif
-
-static void
-settings_changed_cb(GSettings *settings, gchar *key, EinaDock *self)
-{
-	#if !OSX_SYSTEM
-	if (g_str_equal(key, EINA_DOCK_EXPANDED_KEY))
-	{
-		gtk_expander_set_expanded((GtkExpander *) self->expander, g_settings_get_boolean(settings, key));
-		return;
-	}
-	#endif
-
-	if (g_str_equal(key, EINA_DOCK_WIDGET_ORDER_KEY))
-	{
-		g_strfreev(self->dock_idx);
-		self->dock_idx = gel_strv_copy(g_settings_get_strv(settings, key), TRUE);
-		dock_reorder(self);
-		return;
-	}
-
-	if (g_str_equal(key, EINA_DOCK_WINDOW_W_KEY) ||
-	    g_str_equal(key, EINA_DOCK_WINDOW_H_KEY))
-	{
-		g_warning(N_("Unimplemented feature: resize window"));
-		return;
-	}
-
-	else
-	{
-		g_warning(N_("Unhanded key '%s'"), key);
-	}
-}
 #endif
+
