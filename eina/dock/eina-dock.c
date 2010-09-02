@@ -209,25 +209,6 @@ dock_update_properties(EinaDock *self)
 			g_free(markup);
 		}
 	}
-
-// Set some properties based on multiple pages
-	#if 0
-	gboolean multiple_pages = gtk_notebook_get_n_pages(priv->notebook) > 1;
-	g_object_set((GObject *) priv->notebook,
-		"show-tabs", multiple_pages,
-		"show-border", multiple_pages,
-		NULL);
-
-	if (multiple_pages)
-		gtk_expander_set_label(GTK_EXPANDER(self), DOCK_DEFAULT_LABEL);
-	else
-	{
-		gchar *markup = g_strconcat("<big><b>", id, "</b></big>", NULL);
-		gtk_expander_set_label(GTK_EXPANDER(self), markup);
-		g_free(markup);
-	}
-	#endif
-
 }
 
 gboolean
@@ -282,23 +263,6 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 
 	gtk_notebook_set_tab_reorderable(priv->notebook, dock_widget, TRUE);
 
-	// Set some properties based on multiple pages
-	#if 0
-	gboolean multiple_pages = gtk_notebook_get_n_pages(priv->notebook) > 1;
-	g_object_set((GObject *) priv->notebook,
-		"show-tabs", multiple_pages,
-		"show-border", multiple_pages,
-		NULL);
-
-	if (multiple_pages)
-		gtk_expander_set_label(GTK_EXPANDER(self), DOCK_DEFAULT_LABEL);
-	else
-	{
-		gchar *markup = g_strconcat("<big><b>", id, "</b></big>", NULL);
-		gtk_expander_set_label(GTK_EXPANDER(self), markup);
-		g_free(markup);
-	}
-	#endif
 	dock_update_properties(self);
 
 	return TRUE;
@@ -314,33 +278,11 @@ eina_dock_remove_widget(EinaDock *self, GtkWidget *w)
 
 	gchar *id = (gchar *) g_hash_table_lookup(priv->widget2id, w);
 	g_return_val_if_fail(id != NULL, FALSE);
-	g_warning("Got id %s", id);
 
 	gtk_notebook_remove_page(priv->notebook, gtk_notebook_page_num(priv->notebook, w));
 	g_hash_table_remove(priv->id2widget, id);
 	g_hash_table_remove(priv->widget2id, w);
 
-	#if 0
-	GList *ids = NULL;
-	gchar *markup;
-	switch (gtk_notebook_get_n_pages(priv->notebook) <= 1)
-	{
-	case 0:
-		gtk_widget_hide((GtkWidget *) self);
-		break;
-
-	case 1:
-		ids = g_hash_table_get_keys(priv->id2widget);
-		markup = g_strconcat("<big><b>", (gchar *) ids->data, "</b></big>", NULL);
-		gtk_expander_set_label(GTK_EXPANDER(self), markup);
-		g_list_free(ids);
-		g_free(markup);
-		gtk_notebook_set_show_tabs(priv->notebook, FALSE);
-		break;
-	default:
-		break;
-	}
-	#endif
 	dock_update_properties(self);
 
 	return TRUE;
