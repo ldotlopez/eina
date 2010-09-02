@@ -118,6 +118,7 @@ eina_dock_init (EinaDock *self)
 	g_object_set((GObject *) priv->notebook,
 		"show-border", FALSE,
 		"show-tabs", FALSE,
+		"tab-pos", GTK_POS_LEFT,
 		NULL);
 	gtk_widget_show((GtkWidget *) priv->notebook);
 
@@ -207,11 +208,42 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 	EinaDockPrivate *priv = GET_PRIVATE(self);
 	g_return_val_if_fail(g_hash_table_lookup(priv->id2widget, id) == NULL, FALSE);
 
-	if (gtk_notebook_insert_page(priv->notebook, dock_widget, label, dock_get_position_for_id(self, id)) == -1)
+	g_return_val_if_fail(g_hash_table_lookup(priv->dock_items, id) == NULL, FALSE);
+
+	gint pos = 0;
+	while (priv->dock_idx && (priv->dock_idx[pos] != NULL))
+		if (g_str_equal(id, priv->dock_idx[pos]))
+			break;
+		else
+			pos++;
+
+	if (gtk_notebook_append_page(priv->notebook, dock_widget, label) == -1)
 	{
 		g_warning(N_("Cannot add widget to dock"));
 		return FALSE;
 	}
+
+	if (GTK_IS_LABEL(label))
+	{
+		gdouble angle = 0;
+		switch (gtk_notebook_get_tab_pos(priv->notebook))
+		{
+		case GTK_POS_TOP:
+			angle = 0;
+			break;
+		case GTK_POS_RIGHT:
+			angle = 270;
+			break;
+		case GTK_POS_BOTTOM:
+			angle = 0;
+			break;
+		case GTK_POS_LEFT:
+			angle = 90;
+			break;
+		}
+		gtk_label_set_angle(GTK_LABEL(label), angle);
+	}
+
 	g_hash_table_insert(priv->id2widget, g_strdup(id), dock_widget);
 	g_hash_table_insert(priv->widget2id, dock_widget, g_strdup(id));
 

@@ -39,7 +39,7 @@ muine_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	g_object_ref(d);
 
-	eina_plugin_add_dock_widget(plugin, "muine", gtk_label_new(N_("Muine")), (GtkWidget *) d);
+	eina_plugin_add_dock_widget(plugin, N_("Muine"), gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU), (GtkWidget *) d);
 	return TRUE;
 }
 
