@@ -88,6 +88,32 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		lomo_player_append_uri(lomo, uri);
 	}
 
+	if (lomo_player_get_playlist(lomo) == NULL)
+	{
+		gchar *output = g_build_filename(g_get_user_config_dir(), PACKAGE, "playlist", NULL);
+		if (g_file_test(output, G_FILE_TEST_IS_REGULAR))
+		{
+			gchar *buffer = NULL;
+			GError *err = NULL;
+			if (!g_file_get_contents(output, &buffer, NULL, &err))
+			{
+				g_warning(N_("Unable to recover previous playlist: %s"), err->message);
+				g_error_free(err);
+			}
+			else
+			{
+				gchar **v = g_uri_list_extract_uris(buffer);
+				g_free(buffer);
+
+				for (guint i = 0; v && v[i]; i++)
+					lomo_player_append_uri(lomo, v[i]);
+
+				g_strfreev(v);
+			}
+		}
+		gel_free_and_invalidate(output, NULL, g_free);
+	}
+
 	return TRUE;
 }
 
@@ -101,6 +127,32 @@ lomo_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 	gel_plugin_engine_set_interface(engine, "lomo", NULL);
+
+	GString *gs = g_string_new(NULL);
+	GList *i = (GList *) lomo_player_get_playlist(lomo);
+	while (i)
+	{
+		gs = g_string_append(gs, lomo_stream_get_tag(LOMO_STREAM(i->data), LOMO_TAG_URI));
+		gs = g_string_append_c(gs, '\n');
+		i = i->next;
+	}
+	gchar *output = g_build_filename(g_get_user_config_dir(), PACKAGE, "playlist", NULL);
+	gchar *bname = g_path_get_dirname(output);
+
+	if (!g_file_test(bname, G_FILE_TEST_IS_DIR))
+	{
+		if (g_mkdir_with_parents(bname, 0755) == -1)
+		{
+			g_warning(N_("Can't create dir '%s': %s"), bname, strerror(errno));
+			gel_free_and_invalidate(bname,  NULL, g_free);
+			gel_free_and_invalidate(output, NULL, g_free);
+		}
+	}
+
+	GError *err = NULL;
+	if (!output || !g_file_set_contents(output, gs->str, -1, &err))
+		g_warning(N_("Unble to save playlist: %s"), err ? err->message : N_("Missing parent directory"));
+	g_string_free(gs, TRUE);
 
 	g_signal_handlers_disconnect_by_func(lomo, lomo_random_cb, NULL);
 	g_object_unref(G_OBJECT(lomo));
