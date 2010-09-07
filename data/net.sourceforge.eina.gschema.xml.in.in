@@ -34,7 +34,7 @@
       <default>1</default>
       <_summary>Main window height</_summary>
     </key>
-	<key name="widget-order" type="as">
+	<key name="page-order" type="as">
 		<default>[]</default>
 		<_summary>Order for dock widgets</_summary>
 	</key>
