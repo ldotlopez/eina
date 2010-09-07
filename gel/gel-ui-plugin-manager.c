@@ -154,9 +154,10 @@ gel_ui_plugin_manager_init (GelUIPluginManager *self)
 		return;
 	}
 
-	gtk_container_add(
-		GTK_CONTAINER(self),
-		GTK_WIDGET(gtk_builder_get_object(builder, "main-widget")));
+	gtk_box_pack_start(
+		GTK_BOX(self),
+		GTK_WIDGET(gtk_builder_get_object(builder, "main-widget")),
+		TRUE, TRUE, 0);
 
 	priv->tv = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview"));
 	priv->tabs = GTK_NOTEBOOK(gtk_builder_get_object(builder, "main-widget"));
