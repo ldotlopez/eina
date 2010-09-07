@@ -351,6 +351,16 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	for (guint i = 0; i < G_N_ELEMENTS(callback_defs); i++)
 		g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 
+	lomo_clear_cb(priv->lomo, self);
+	gint i = 0;
+	GList *items = (GList *) lomo_player_get_playlist(priv->lomo);
+	while (items)
+	{
+		lomo_insert_cb(priv->lomo, LOMO_STREAM(items->data), i, self);
+		i++;
+		items = items->next;
+	}
+
 	g_object_notify((GObject *) self, "lomo-player");
 }
 
@@ -829,7 +839,7 @@ eina_playlist_update_item(EinaPlaylist *self, GtkTreeIter *iter, gint item, ...)
 	if (iter == NULL)
 	{
 		treepath = gtk_tree_path_new_from_indices(item, -1);
-		gtk_tree_model_get_iter(priv->model, &_iter, treepath);
+		g_return_if_fail(gtk_tree_model_get_iter(priv->model, &_iter, treepath));
 		gtk_tree_path_free(treepath);
 		iter = &_iter;
 	}
