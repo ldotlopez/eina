@@ -3,6 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 SUBDIRS = ext   \
 	application \
 	art         \
+	dbus        \
 	dock        \
 	lomo        \
 	player      \

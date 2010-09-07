@@ -81,7 +81,7 @@ gint main(gint argc, gchar *argv[])
 	GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
 	gchar *plugins[] =
 	{
-	"application", "player", "playlist"
+	"dbus", "application", "player", "playlist"
 	};
 
 	guint  n_plugins = G_N_ELEMENTS(plugins);

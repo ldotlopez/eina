@@ -399,6 +399,7 @@ eina/Makefile
 eina/ext/Makefile
 eina/application/Makefile
 eina/art/Makefile
+eina/dbus/Makefile
 eina/dock/Makefile
 eina/lomo/Makefile
 eina/player/Makefile
