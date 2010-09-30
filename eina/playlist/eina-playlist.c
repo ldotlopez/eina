@@ -540,11 +540,11 @@ key_press_event_cb(GtkWidget *widget, GdkEvent  *event, EinaPlaylist *self)
 
 	switch (event->key.keyval)
 	{
-	case GDK_q:
+	case GDK_KEY_q:
 		playlist_queue_selected(self);
 		break;
 
-	case GDK_Delete:
+	case GDK_KEY_Delete:
 		playlist_remove_selected(self);
 		break;
 

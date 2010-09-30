@@ -80,58 +80,46 @@ eina_cover_image_dispose (GObject *object)
 }
 
 static gboolean
-eina_cover_image_expose_event(GtkWidget *widget, GdkEventExpose *ev)
+eina_cover_image_draw(GtkWidget *widget, cairo_t *_cr)
 {
 	EinaCoverImage        *self = EINA_COVER_IMAGE(widget);
 	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
 	if (!priv->pixbuf)
 		return TRUE;
 
-	cairo_t *cr = gdk_cairo_create(gtk_widget_get_window(widget));
-
-	// Paint cover
-	cairo_scale(cr, priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
-	gdk_cairo_set_source_pixbuf(cr, priv->pixbuf, 0, 0);
-	cairo_paint(cr);
+	cairo_scale(_cr, priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
+	gdk_cairo_set_source_pixbuf(_cr, priv->pixbuf, 0, 0);
+	cairo_paint(_cr);
 
 	if (!priv->as_is && priv->mask)
 	{
 		// Create mask
-		cairo_push_group(cr);
-		cairo_identity_matrix(cr);
-		cairo_scale(cr,
+		cairo_push_group(_cr);
+		cairo_identity_matrix(_cr);
+		cairo_scale(_cr,
 			priv->allocation.width  / (gfloat) priv->m_w,
 			priv->allocation.height / (gfloat) priv->m_h);
-		gdk_cairo_set_source_pixbuf(cr, priv->mask, 0, 0);
-		cairo_paint(cr);
-		cairo_pattern_t *mask = cairo_pop_group(cr);
+		gdk_cairo_set_source_pixbuf(_cr, priv->mask, 0, 0);
+		cairo_paint(_cr);
+		cairo_pattern_t *mask = cairo_pop_group(_cr);
 
 		// Create new combined pattern
-		cairo_push_group(cr);
+		cairo_push_group(_cr);
 		GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(widget))->bg[GTK_STATE_NORMAL];
-		cairo_set_source_rgb(cr,
+		cairo_set_source_rgb(_cr,
 			color.red   / (gfloat) 65535,
 			color.green / (gfloat) 65535,
 			color.blue  / (gfloat) 65535);
-		cairo_mask(cr, mask);
-		cairo_pattern_t *f = cairo_pop_group(cr);
+		cairo_mask(_cr, mask);
+		cairo_pattern_t *f = cairo_pop_group(_cr);
 		cairo_pattern_destroy(mask);
 	
 		// Apply all
-		cairo_set_source(cr, f);
+		cairo_set_source(_cr, f);
 		cairo_pattern_destroy(f);
-	}
 
-	gint n_rects = cairo_region_num_rectangles(ev->region);
-	for (gint i = 0; i < n_rects; i++)
-	{
-		cairo_rectangle_int_t rect;
-		cairo_region_get_rectangle(ev->region, i, &rect);
-		cairo_rectangle(cr, rect.x, rect.y, rect.width, rect.height);
-		cairo_paint(cr);
+		cairo_paint(_cr);
 	}
-
-	cairo_destroy(cr);
 
 	return TRUE;
 }
@@ -158,7 +146,7 @@ eina_cover_image_class_init (EinaCoverImageClass *klass)
 	object_class->set_property = eina_cover_image_set_property;
 	object_class->dispose = eina_cover_image_dispose;
 
-	widget_class->expose_event = eina_cover_image_expose_event;
+	widget_class->draw = eina_cover_image_draw;
 	widget_class->configure_event = eina_cover_image_configure_event;
 
     g_object_class_install_property(object_class, PROPERTY_COVER,
