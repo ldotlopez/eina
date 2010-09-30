@@ -47,6 +47,8 @@
 #include <eina/fs.h>
 #include <eina/window.h>
 
+#include "player.h"
+
 #define TAB_PLAYLIST_EMPTY 0
 #define TAB_PLAYLIST_NON_EMPTY 1
 
@@ -1245,42 +1247,6 @@ static void
 drag_leave_cb
 (GtkWidget *widget, GdkDragContext *context, guint time, gpointer user_data)
 {
-}
-
-static gboolean
-drag_drop_cb
-(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
-	gpointer user_data)
-{
-	gboolean        is_valid_drop_site;
-	GdkAtom         target_type;
-
-	/* Check to see if (x,y) is a valid drop site within widget */
-	is_valid_drop_site = TRUE;
-
-	/* If the source offers a target */
-	if (context-> targets)
-	{
-		/* Choose the best target type */
-		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (context->targets, DND_TARGET_STRING));
-
-		/* Request the data from the source. */
-		gtk_drag_get_data
-		(
-			widget,         /* will receive 'drag-data-received' signal */
-			context,        /* represents the current state of the DnD */
-			target_type,    /* the target type we want */
-			time            /* time stamp */
-		);
-	}
-
-	/* No target offered by source => error */
-	else
-	{
-		is_valid_drop_site = FALSE;
-	}
-
-	return  is_valid_drop_site;
 }
 
 static void

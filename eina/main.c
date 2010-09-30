@@ -52,7 +52,7 @@ static const GOptionEntry opt_entries[] =
 // --
 // UniqueApp stuff 
 // --
-enum
+enum EinaUniqueCommands
 {
 	COMMAND_0,
 	COMMAND_PLAY,
@@ -304,7 +304,7 @@ unique_message_received_cb (UniqueApp *unique,
 	// --
 	// Handle play or enqueue with usable uris
 	// --
-	if ((((command == COMMAND_PLAY) || command == COMMAND_ENQUEUE)) &&
+	if ((((gint) command == (gint) COMMAND_PLAY || (gint) command == (gint) COMMAND_ENQUEUE)) &&
 		(uris = unique_message_data_get_uris(message)))
 	{
 		gint i;

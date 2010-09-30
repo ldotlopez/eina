@@ -32,6 +32,10 @@ G_BEGIN_DECLS
 
 typedef struct _EinaPlayer EinaPlayer;
 GtkContainer* eina_player_get_cover_container(EinaPlayer* self);
+gboolean
+drag_drop_cb
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
+	gpointer user_data);
 
 G_END_DECLS
 

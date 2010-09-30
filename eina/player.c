@@ -567,22 +567,23 @@ drag_leave_cb
  * itself to return true if the operation should continue. Next choose the
  * target type it wishes to ask the source for. Finally call gtk_drag_get_data
  * which will emit "drag-data-get" on the source. */
-static gboolean
+gboolean
 drag_drop_cb
 (GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
 	gpointer user_data)
 {
 	gboolean        is_valid_drop_site;
 	GdkAtom         target_type;
+        GList           *targets;
 
 	/* Check to see if (x,y) is a valid drop site within widget */
 	is_valid_drop_site = TRUE;
 
 	/* If the source offers a target */
-	if (context-> targets)
+	if ((targets=gdk_drag_context_list_targets (context)))
 	{
 		/* Choose the best target type */
-		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (context->targets, DND_TARGET_STRING));
+		target_type = GDK_POINTER_TO_ATOM(g_list_nth_data (targets, DND_TARGET_STRING));
 
 		/* Request the data from the source. */
 		gtk_drag_get_data
