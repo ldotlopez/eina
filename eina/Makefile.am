@@ -5,6 +5,7 @@ SUBDIRS = ext   \
 	art         \
 	dbus        \
 	dock        \
+	lastfm      \
 	lomo        \
 	player      \
 	playlist    \
