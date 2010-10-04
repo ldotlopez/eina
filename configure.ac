@@ -401,6 +401,7 @@ AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BIN
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
 AM_CONDITIONAL(BUILD_UNIQUE,   test x"$HAVE_UNIQUE"      = "xyes")
+AM_CONDITIONAL(BUILD_VOGON,    test x"a"      = "xb")
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([

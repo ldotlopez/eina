@@ -2,7 +2,13 @@ include $(top_srcdir)/build/Makefile.am.common
 
 SUBDIRS = ext
 
-bin_PROGRAMS = eina vogon
+bin_PROGRAMS = eina
+
+BUILD_VOGON = 0
+if BUILD_VOGON
+bin_PROGRAMS += vogon
+endif
+
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
 eina_LDFLAGS = \
@@ -61,6 +67,8 @@ vogon_SOURCES = \
 	fs.c \
 	lomo.c \
 	settings.c \
+	vogon.c \
+	window.c \
 	vogon-app.c
 
 EXTRA_DIST += dbus-marshallers.list
