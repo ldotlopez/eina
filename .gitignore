@@ -45,6 +45,8 @@ stamp-h1
 .dirstamp
 compile
 mkinstalldirs
+*-stamp
+stamp-*
 
 # Eina bundle for OSX
 bundle/build

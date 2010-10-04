@@ -463,12 +463,12 @@ dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
 	// Search tip
 	if ((len >= 1) && (len < 3))
 	{
-		if (!GTK_WIDGET_VISIBLE(self->search_tip))
+		if (!gtk_widget_get_visible(GTK_WIDGET(self->search_tip)))
 			gtk_widget_show((GtkWidget *) self->search_tip);
 	}
 	else
 	{
-		if (GTK_WIDGET_VISIBLE(self->search_tip))
+		if (gtk_widget_get_visible(GTK_WIDGET(self->search_tip)))
 			gtk_widget_hide((GtkWidget *) self->search_tip);
 	}
 

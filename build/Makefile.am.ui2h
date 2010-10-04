@@ -1,0 +1,33 @@
+# Rules for generating -ui.h files using ui2h
+#
+# Define:
+# 	eina_ui2h_ui = GtkBuilder compatible interface definition file
+# 	eina_ui2h_name = name for the variable
+#
+# before including Makefile.am.ui2h. You will also need to have
+# the following targets already defined:
+#
+# 	CLEANFILES
+#	DISTCLEANFILES
+#	BUILT_SOURCES
+#	EXTRA_DIST
+#
+# Author: Luis Lopez <luis.lopez@cuarentaydos.com>
+# (based on Makefile.am.marshal from Emmanuele Bassi <ebassi@linux.intel.com>)
+
+ui2h_h = $(eina_ui2h_ui:.ui=-ui.h)
+
+CLEANFILES += stamp-ui2h
+DISTCLEANFILES += $(ui2h_h)
+BUILT_SOURCES += $(ui2h_h)
+EXTRA_DIST += $(eina_ui2h_ui)
+
+stamp-ui2h: $(eina_ui2h_ui)
+	$(QUIET_GEN)$(top_srcdir)/build/ui2h $(eina_ui2h_ui) $(eina_ui2h_name) > xgen-mh \
+	&& (cmp -s xgen-mh $(ui2h_h) || cp -f xgen-mh $(ui2h_h)) \
+	&& rm -f xgen-mh \
+	&& echo timestamp > $(@F)
+
+$(ui2h_h): stamp-ui2h
+	@true
+
