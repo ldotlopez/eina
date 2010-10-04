@@ -44,9 +44,9 @@ include_HEADERS += eina-cover-clutter.h
 endif
 
 EXTRA_DIST += \
-eina-plugin-dialog.ui \
-eina-plugin-properties.ui \
-eina-preferences-dialog-marshallers.list
+	eina-plugin-dialog.ui \
+	eina-plugin-properties.ui \
+	eina-preferences-dialog-marshallers.list
 
 BUILT_SOURCES += \
 	eina-cover-image-mask.h \
@@ -55,18 +55,16 @@ BUILT_SOURCES += \
 	eina-plugin-dialog-ui.h \
 	eina-plugin-properties-ui.h
 
-eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
-	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask $< > $@
-
-eina-preferences-dialog-marshallers.h: eina-preferences-dialog-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header > $@
-
-eina-preferences-dialog-marshallers.c: eina-preferences-dialog-marshallers.list
-	$(GLIB_GENMARSHAL) $< --prefix=eina_preferences_dialog_marshal --header --body > $@
+glib_marshallers_list = eina-preferences-dialog-marshallers.list
+glib_marshallers_prefix = eina_preferences_dialog_marshal
+include $(top_srcdir)/build/Makefile.am.marshallers
 
 eina-plugin-dialog-ui.h: eina-plugin-dialog.ui
-	$(top_srcdir)/tools/ui2h $< ui_xml > $@
-
+	$(top_srcdir)/build/ui2h $< ui_xml > $@
+ 
 eina-plugin-properties-ui.h: eina-plugin-properties.ui
-	$(top_srcdir)/tools/ui2h $< ui_xml > $@
+	$(top_srcdir)/build/ui2h $< ui_xml > $@
+
+eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
+	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask $< > $@
 

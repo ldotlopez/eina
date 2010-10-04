@@ -22,7 +22,20 @@ vogon_LDFLAGS = \
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS = \
-	eina-plugin.h
+	about.h       \
+	art.h         \
+	dbus.h        \
+	dock.h        \
+	eina-obj.h    \
+	eina-plugin.h \
+	fs.h          \
+	lomo.h        \
+	player.h      \
+	playlist.h    \
+	preferences.h \
+	settings.h    \
+	vogon.h       \
+	window.h
 
 eina_SOURCES = \
 	about.c            \
@@ -49,6 +62,8 @@ vogon_SOURCES = \
 	lomo.c \
 	settings.c \
 	vogon-app.c
+
+EXTRA_DIST += dbus-marshallers.list
 
 if BUILD_DBUS
 eina_SOURCES += \

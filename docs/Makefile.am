@@ -74,8 +74,8 @@ expand_content_files=
 # signals and properties.
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
-GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(PACKAGE_CFLAGS)
-GTKDOC_LIBS=$(PACKAGE_LIBS) $(top_builddir)/lomo/liblomo-1.0.la
+GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(EINA_CFLAGS)
+GTKDOC_LIBS=$(EINA_LIBS) $(top_builddir)/lomo/liblomo-1.0.la
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/docs/gtk-doc.make
