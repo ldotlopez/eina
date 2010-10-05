@@ -344,8 +344,9 @@ static void
 emit_signal(EinaPreferencesDialog *self, GtkWidget *w, GValue *value)
 {
 	EinaPreferencesDialogPrivate *priv = GET_PRIVATE(self);
-	const gchar *group = gtk_widget_get_name(gtk_notebook_get_nth_page(priv->notebook, gtk_notebook_get_current_page(priv->notebook)));
-	const gchar *name  = gtk_widget_get_name((GtkWidget *) w);
+
+	const gchar *group = gtk_buildable_get_name(GTK_BUILDABLE(gtk_notebook_get_nth_page(priv->notebook, gtk_notebook_get_current_page(priv->notebook))));
+	const gchar *name  = gtk_buildable_get_name(GTK_BUILDABLE(w));
 
 	g_signal_emit(self, eina_preferences_dialog_signals[VALUE_CHANGED], 0, group, name, value);
 	g_value_unset(value);

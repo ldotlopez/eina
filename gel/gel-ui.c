@@ -154,7 +154,6 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 	{
 		GtkWidget *child = (GtkWidget *) iter->data;
 		const gchar *c_name = gtk_buildable_get_name(GTK_BUILDABLE(child));
-		gel_warn("'%s' vs '%s'", c_name, name);
 		if (c_name && g_str_equal(c_name, name))
 			ret = child;
 
