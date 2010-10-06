@@ -38,3 +38,5 @@ EXTRA_DIST += lastfm.png lastfm.ui logo.gif \
 	$(lastfmsubmitd_DATA) \
 	$(lastfmsubmitdlib_DATA)
 
+install-data-hook:
+	chmod +x $(DESTDIR)/$(plugindir)/lastfmsubmitd/lastfmsubmitd

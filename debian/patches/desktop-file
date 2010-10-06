@@ -4,9 +4,9 @@ diff -ur a/data/eina.desktop.in b/data/eina.desktop.in
 @@ -3,7 +3,7 @@
  GenericName=Music player
  Comment=Play songs
- X-GNOME-FullName=Eina music player
+ X-GNOME-FullName=@PACKAGE_NAME@ music player
 -Exec=eina %U
-+Exec=eina-player %U
++Exec=@PACKAGE@ %U
  Icon=@prefix@/share/@PACKAGE@/pixmaps/eina.svg
  Terminal=false
  Type=Application

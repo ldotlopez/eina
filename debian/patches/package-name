@@ -1,21 +1,21 @@
 diff -Nru a/configure.ac b/configure.ac
---- a/configure.ac	2010-04-05 20:29:52.624644265 +0200
-+++ b/configure.ac	2010-04-05 20:30:14.137149083 +0200
+--- a/configure.ac	2010-10-05 13:36:04.000000000 +0200
++++ b/configure.ac	2010-10-05 13:36:20.000000000 +0200
 @@ -1,7 +1,7 @@
  #
  # Init package
  #
--AC_INIT([Eina],[0.9.3],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
-+AC_INIT([Eina],[0.9.3],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
+-AC_INIT([Eina],[0.9.4],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
++AC_INIT([Eina],[0.9.4],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
  AC_CONFIG_HEADERS([config.h])
  
  #
-@@ -17,7 +17,7 @@
+@@ -18,7 +18,7 @@
  #
  # Package information
  #
 -GETTEXT_PACKAGE="eina"
 +GETTEXT_PACKAGE="eina-player"
  EINA_API_VERSION="0.9"
- EINA_VERSION="$EINA_API_VERSION.3"
- EINA_CODENAME="White rabbit"              # Jefferson airplane
+ EINA_VERSION="$EINA_API_VERSION.4"
+ EINA_CODENAME="Trained"                   # Najwa

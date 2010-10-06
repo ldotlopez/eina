@@ -5,12 +5,12 @@ includedir=${prefix}/include
 datarootdir=${prefix}/share
 datadir=${datarootdir}
 sysconfdir=/etc
-pluginsdir=${exec_prefix}/lib/eina
+pluginsdir=${exec_prefix}/lib/@PACKAGE@
 
-Name: Eina
-Description: Eina music player
+Name: @PACKAGE_NAME@
+Description: @PACKAGE_NAME@ music player
 Version: @EINA_VERSION@
 Requires: gtk+-2.0 gstremer-0.10
-Cflags: -I${includedir}/@PACKAGE_NAME@-@EINA_API_VERSION@
-Libs: -L${libdir} -llomo-1.0 -lgel
+Cflags: -I${includedir}/@PACKAGE@-@EINA_API_VERSION@
+Libs: -L${libdir} -llomo-1.0 -lgel-1.0
 

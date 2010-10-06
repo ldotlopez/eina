@@ -20,7 +20,7 @@ GTK_DOC_CHECK(1.9)
 #
 GETTEXT_PACKAGE="eina"
 EINA_API_VERSION="0.9"
-EINA_VERSION="$EINA_API_VERSION.0"
+EINA_VERSION="$EINA_API_VERSION.4"
 EINA_CODENAME="Trained"                   # Najwa
 EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
 EINA_CODENAME_0_9_2="Pagan poetry"        # Björk
@@ -409,7 +409,7 @@ build/Makefile
 bundle/build
 bundle/Info.plist
 data/eina.desktop
-data/eina-0.9.pc
+data/eina.pc
 gel/Makefile
 lomo/Makefile
 eina/Makefile

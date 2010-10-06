@@ -68,7 +68,7 @@ bindings/
 
 # Output data
 eina/lomo-player-dbus-glue.h
-data/eina-0.9.pc
+data/eina.pc
 data/eina.desktop
 
 tools/plugins/

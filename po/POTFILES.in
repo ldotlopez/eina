@@ -4,6 +4,7 @@ gel/gel-io-misc.c
 gel/gel-io-op-result.c
 gel/gel-io-ops.c
 gel/gel-io-recurse-tree.c
+gel/gel-io-scanner.c
 gel/gel-io-tree.c
 gel/gel-job-queue.c
 gel/gel-misc.c
@@ -21,18 +22,19 @@ lomo/lomo-util.c
 eina/ext/curl-engine.c
 eina/ext/eina-conf-file.c
 eina/ext/eina-cover.c
-eina/ext/eina-cover-image.c
 eina/ext/eina-cover-clutter.c
+eina/ext/eina-cover-image.c
 eina/ext/eina-file-chooser-dialog.c
+eina/ext/eina-file-utils.c
 eina/ext/eina-plugin-dialog.c
-eina/ext/eina-plugin-dialog.ui
 eina/ext/eina-plugin-properties.c
-eina/ext/eina-plugin-properties.ui
 eina/ext/eina-preferences-dialog.c
 eina/ext/eina-seek.c
 eina/ext/eina-stock.c
 eina/ext/eina-volume.c
 eina/ext/eina-window.c
+[type: gettext/glade]eina/ext/eina-plugin-dialog.ui
+[type: gettext/glade]eina/ext/eina-plugin-properties.ui
 
 eina/about.c
 eina/art.c
@@ -50,7 +52,6 @@ eina/playlist.c
 eina/plugins.c
 eina/preferences.c
 eina/settings.c
-eina/template.c
 eina/vogon-app.c
 eina/vogon.c
 eina/window.c
@@ -58,16 +59,23 @@ eina/window.c
 plugins/adb/adb.c
 plugins/adb/iface.c
 plugins/adb/register.c
-plugins/callhome/callhome.c
+
 plugins/coverplus/banshee.c
 plugins/coverplus/iface.c
 plugins/coverplus/infolder-sync.c
-plugins/fieshta/fieshta.c
-plugins/fieshta/fieshta-stage.c
-plugins/fieshta/fieshta-stream.c
+
+plugins/lastfm/artwork.c
+plugins/lastfm/lastfm.c
+plugins/lastfm/submit.c
+[type: gettext/glade]plugins/lastfm/lastfm.ui
+
 plugins/muine/muine.c
+[type: gettext/glade]plugins/muine/muine.ui
+
 plugins/ntfy/ntfy.c
+
 plugins/recently/recently.c
+[type: gettext/glade]plugins/recently/dock.ui
 
 [type: gettext/glade]ui/dock.ui
 [type: gettext/glade]ui/log.ui
@@ -75,8 +83,4 @@ plugins/recently/recently.c
 [type: gettext/glade]ui/player.ui
 [type: gettext/glade]ui/playlist.ui
 [type: gettext/glade]ui/plugins.ui
-
-[type: gettext/glade]plugins/lastfm/lastfm.ui
-[type: gettext/glade]plugins/muine/muine.ui
-[type: gettext/glade]plugins/recently/dock.ui
 
