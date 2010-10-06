@@ -22,7 +22,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
-#include <eina/ext/eina-preferences-tab.h>
+#include <eina/preferences/eina-preferences-tab.h>
 
 G_BEGIN_DECLS
 

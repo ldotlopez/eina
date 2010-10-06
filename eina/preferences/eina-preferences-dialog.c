@@ -18,7 +18,7 @@
  */
 
 #define GEL_DOMAIN "Eina::EinaPreferencesDialog"
-#include "eina/ext/eina-preferences-dialog.h"
+#include "eina-preferences-dialog.h"
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <gel/gel-ui.h>

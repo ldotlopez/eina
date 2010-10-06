@@ -9,6 +9,7 @@ SUBDIRS = ext   \
 	lomo        \
 	player      \
 	playlist    \
+	preferences \
 	statusicon
 
 if BUILD_ADB

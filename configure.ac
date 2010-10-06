@@ -406,6 +406,7 @@ eina/lastfm/Makefile
 eina/lomo/Makefile
 eina/player/Makefile
 eina/playlist/Makefile
+eina/preferences/Makefile
 eina/muine/Makefile
 eina/recently/Makefile
 eina/statusicon/Makefile
