@@ -23,7 +23,7 @@ BUILT_SOURCES += $(marshal_h) $(marshal_c)
 EXTRA_DIST += $(glib_marshallers_list)
 
 stamp-marshal: $(glib_marshallers_list)
-	$(QUIET_GEN)$(GLIB_GENMARSHAL) \
+	$(AM_V_GEN)$(GLIB_GENMARSHAL) \
 		--prefix=$(glib_marshallers_prefix) \
 		--header \
 	$(glib_marshallers_list) > xgen-mh \
@@ -35,7 +35,7 @@ $(marshal_h): stamp-marshal
 	@true
 
 $(marshal_c): $(marshal_h)
-	$(QUIET_GEN)(echo "#include \"$(marshal_h)\"" ; \
+	$(AM_V_GEN)(echo "#include \"$(marshal_h)\"" ; \
 	$(GLIB_GENMARSHAL) \
 		--prefix=$(glib_marshallers_prefix) \
 		--body \

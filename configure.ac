@@ -161,7 +161,7 @@ COMMON_CFLAGS="\
 	"
 
 GLIB_VERSION="2.25.9"
-GTK_VERSION="2.90"
+GTK_VERSION="2.91.1"
 GSTREAMER_VERSION="0.10"
 glib_modules="\
 	glib-2.0 >= $GLIB_VERSION,    \
@@ -391,20 +391,21 @@ build/Makefile
 bundle/build
 bundle/Info.plist
 data/eina.desktop
-data/eina-0.10.pc
+data/eina.pc
 data/net.sourceforge.eina.gschema.xml.in
 gel/Makefile
 lomo/Makefile
 eina/Makefile
 eina/ext/Makefile
+eina/adb/Makefile
 eina/application/Makefile
 eina/art/Makefile
 eina/dbus/Makefile
 eina/dock/Makefile
+eina/lastfm/Makefile
 eina/lomo/Makefile
 eina/player/Makefile
 eina/playlist/Makefile
-eina/adb/Makefile
 eina/muine/Makefile
 eina/recently/Makefile
 eina/statusicon/Makefile

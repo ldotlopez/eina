@@ -8,5 +8,5 @@ liblastfm_la_SOURCES = \
 	lastfm.c
 
 plugin_DATA = lastfm.ini
+EXTRA_DIST += $(plugin_DATA)
 
-EXTRA_DIST += lastfm.ini
