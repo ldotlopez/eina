@@ -38,6 +38,8 @@ dock_reorder_pages(EinaDock *self);
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self);
 
+GEL_DEFINE_WEAK_REF_CALLBACK(eina_dock)
+
 enum {
 	PROP_PAGE_ORDER = 1
 };
@@ -233,6 +235,7 @@ eina_dock_add_widget(EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *doc
 		g_warning(N_("Cannot add widget to dock"));
 		return FALSE;
 	}
+	g_object_weak_ref((GObject *) dock_widget, eina_dock_weak_ref_cb, NULL);
 
 	if (GTK_IS_LABEL(label))
 	{
@@ -277,8 +280,13 @@ eina_dock_remove_widget(EinaDock *self, GtkWidget *w)
 	EinaDockPrivate *priv = GET_PRIVATE(self);
 
 	gchar *id = (gchar *) g_hash_table_lookup(priv->widget2id, w);
-	g_return_val_if_fail(id != NULL, FALSE);
+	if (id == NULL)
+	{
+		g_warning(N_("Unable to find id for widget %p of type %s"), w, G_OBJECT_TYPE_NAME(w));
+		g_return_val_if_fail(id != NULL, FALSE);
+	}
 
+	g_object_weak_unref((GObject *) w, eina_dock_weak_ref_cb, NULL);
 	gtk_notebook_remove_page(priv->notebook, gtk_notebook_page_num(priv->notebook, w));
 	g_hash_table_remove(priv->id2widget, id);
 	g_hash_table_remove(priv->widget2id, w);
