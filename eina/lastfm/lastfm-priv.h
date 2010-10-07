@@ -25,8 +25,9 @@ typedef struct {
 
 	LomoPlayer *lomo;
 
-	gboolean submit_enabled;
-	gchar *username, *password;
+	GSettings *settings;
+
+	guint config_update_id;
 } EinaLastFM;
 
 G_END_DECLS

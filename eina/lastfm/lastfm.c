@@ -1,32 +1,33 @@
 #define _POSIX_SOURCE
 
 #include <eina/eina-plugin2.h>
-#include <eina/application/application.h>
 #include <eina/lomo/lomo.h>
 #include "lastfm-priv.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
 
-void
-lastfm_plugin_build_preferences(GelPlugin *plugin);
+#define SCHED_TIMEOUT 5
+#define DEBUG_DAEMON  0
 
-static gboolean 
-lastfm_submit_enable(EinaLastFM *self, GError **error);
-static gboolean 
-lastfm_submit_disable(EinaLastFM *self, GError **error);
-static gboolean
-lastfm_submit_write_config(EinaLastFM *self);
-static void
-lastfm_submit_submit(EinaLastFM *self);
+static void     lastfm_plugin_build_preferences(GelPlugin *plugin);
 
-static void
-settings_changed_cb(GSettings *settings, const gchar *key, EinaLastFM *self);
+static gboolean lastfm_submit_enable      (EinaLastFM *self);
+static gboolean lastfm_submit_disable     (EinaLastFM *self);
+static void     lastfm_submit_submit      (EinaLastFM *self);
+static gboolean lastfm_submit_write_config(EinaLastFM *self);
 
-static gboolean
-lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaLastFM *self);
+static void     lastfm_submit_sched_write_config  (EinaLastFM *self);
+static gboolean lastfm_submit_write_config_wrapper(EinaLastFM *self);
 
-GEL_DEFINE_QUARK_FUNC(lastfm)
+static gchar *  str_parser_cb(gchar key, LomoStream *stream);
+#if DEBUG_DAEMON
+static gboolean io_watch_cb(GIOChannel *io, GIOCondition cond, EinaLastFM *self);
+#endif
+
+static void settings_changed_cb(GSettings *settings, const gchar *key, EinaLastFM *self);
+
+static gboolean lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaLastFM *self);
 
 gboolean
 lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
@@ -37,21 +38,15 @@ lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	data->lomo = eina_plugin_get_lomo(plugin);
 	lomo_player_hook_add(data->lomo, (LomoPlayerHook) lomo_hook_cb, data);
 
-	GelUIApplication *app = eina_plugin_get_application(plugin);
-	GSettings *settings = gel_ui_application_get_settings(app, LASTFM_PREFERENCES_DOMAIN);
-
+	data->settings   = g_settings_new(LASTFM_PREFERENCES_DOMAIN);
 	data->daemonpath = g_build_filename(gel_plugin_get_lib_dir(plugin), "lastfmsubmitd", "lastfmsubmitd", NULL);
 
-	data->submit_enabled = g_settings_get_boolean(settings, LASTFM_SUBMIT_ENABLED_KEY);
-	data->username = g_settings_get_string(settings, LASTFM_USERNAME_KEY);
-	data->password = g_settings_get_string(settings, LASTFM_PASSWORD_KEY);
+	lastfm_plugin_build_preferences(plugin);
 
 	lastfm_submit_write_config(data);
-	lastfm_submit_enable(data, NULL);
+	lastfm_submit_enable(data);
 
-	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, data);
 
-	lastfm_plugin_build_preferences(plugin);
 	return TRUE;
 }
 
@@ -66,7 +61,7 @@ lastfm_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-void
+static void
 lastfm_plugin_build_preferences(GelPlugin *plugin)
 {
 	EinaLastFM *self = (EinaLastFM *) gel_plugin_get_data(plugin);
@@ -93,134 +88,82 @@ lastfm_plugin_build_preferences(GelPlugin *plugin)
 		settings, LASTFM_USERNAME_KEY, LASTFM_USERNAME_KEY, "text",
 		settings, LASTFM_PASSWORD_KEY, LASTFM_PASSWORD_KEY, "text",
 		NULL);
+	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
 	EinaPreferences *preferences = eina_plugin_get_preferences(plugin);
 	eina_preferences_add_tab(preferences, self->prefs_tab);
-	
 }
+
+// **********
+// * Submit *
+// **********
 
 // --
-// Submit
+// Start daemon
 // --
-static gchar *
-str_parser_cb(gchar key, LomoStream *stream)
-{
-	LomoTag tag = LOMO_TAG_INVALID;
-	switch (key)
-	{
-	case 'a':
-		tag = LOMO_TAG_ARTIST;
-		break;
-	case 't':
-		tag = LOMO_TAG_TITLE;
-		break;
-	case 'b':
-		tag = LOMO_TAG_ALBUM;
-		break;
-	default:
-		return NULL;
-	}
-	gchar *ret = lomo_stream_get_tag(stream, tag);
-	return ret ? g_strdup(ret) : NULL;
-}
-
 static gboolean
-io_watch_cb(GIOChannel *io, GIOCondition cond, EinaLastFM *self)
+lastfm_submit_enable(EinaLastFM *self)
 {
-	gchar *buff;
-	gsize  size;
+	if (self->daemonpid)
+		return TRUE;
 
-	if ((cond & G_IO_IN) || (cond & G_IO_PRI))
-	{
-		GError *error = NULL;
-		GIOStatus status = g_io_channel_read_line(io, &buff, &size, NULL, &error);
-		switch (status)
-		{
-		case G_IO_STATUS_NORMAL:
-			if (size > 0)
-			{
-				buff[size-1] = '\0';
-				if (io == self->io_err)
-					g_warning("%s", buff);
-				g_free(buff);
-				return TRUE;
-			}
-			if (error)
-			{
-				g_warning("%s", error->message);
-				g_error_free(error);
-				lastfm_submit_disable(self, NULL);
-				return FALSE;
-			}
-			return TRUE;
-				
-		default:
-			lastfm_submit_disable(self, NULL);
-			return FALSE;
-		}
-	}
-	else if ((cond & (G_IO_ERR | G_IO_HUP | G_IO_NVAL)))
-	{
-		lastfm_submit_disable(self, NULL);
-		return FALSE;
-	}
-	else
-	{
-		lastfm_submit_disable(self, NULL);
-		return FALSE;
-	}
-}
-
-static gboolean
-lastfm_submit_enable(EinaLastFM *self, GError **error)
-{
-	if (self->daemonpid != 0)
-	{
-		g_set_error(error, lastfm_quark(), EINA_LASTFM_ERROR_START_DAEMON,
-			N_("There is a daemon running with PID: %d"), self->daemonpid);
-		return FALSE;
-	}
-
-	// Folders
+	// Create folders
+	GError *error = NULL;
 	gchar *spool = g_build_filename(eina_fs_get_cache_dir(), "lastfmsubmitd", "spool", NULL);
-
-	if (!eina_fs_mkdir(spool, 0700, error))
+	if (!eina_fs_mkdir(spool, 0700, &error))
 	{
-		g_warning(N_("Cannot create spool folder '%s': %s"), spool, (*error)->message);
+		g_warning(N_("Cannot create spool folder '%s': %s"), spool, error->message);
+		g_error_free(error);
 		g_free(spool);
 		return FALSE;
 	}
 	g_free(spool);
 
+	// Launch and watch daemon
+	#if DEBUG_DAEMON
 	gint outfd, errfd;
+	#endif
 	GError *err = NULL;
-	gchar *cmdl[] = { self->daemonpath, "--debug", "--no-daemon", NULL }; 
-	if (!g_spawn_async_with_pipes(g_get_current_dir(), cmdl, NULL,
+	gchar *cmdl[] = { "python", self->daemonpath, "--debug", "--no-daemon", NULL }; 
+	if (!
+		#if DEBUG_DAEMON
+		g_spawn_async_with_pipes
+		#else
+		g_spawn_async
+		#endif
+		(g_get_current_dir(), cmdl, NULL,
 		G_SPAWN_SEARCH_PATH,
 		NULL, NULL,
 		&(self->daemonpid),
-		NULL, &outfd, &errfd, &err))
+		#if DEBUG_DAEMON
+		NULL, &outfd, &errfd,
+		#endif
+		&err))
 	{
-		g_set_error(error, lastfm_quark(), EINA_LASTFM_ERROR_START_DAEMON,
-			N_("Cannot spawn daemon (%s): %s"), self->daemonpath, err->message);
+		g_warning(N_("Cannot spawn daemon (%s): %s"), self->daemonpath, err->message);
 		g_error_free(err);
 		return FALSE;
 	}
 	else
 	{
 		g_warning("Daemon started as %d", self->daemonpid);
+		#if DEBUG_DAEMON
 		self->io_out = g_io_channel_unix_new(outfd);
 		self->io_err = g_io_channel_unix_new(errfd);
 		g_io_channel_set_close_on_unref(self->io_out, TRUE);
 		g_io_channel_set_close_on_unref(self->io_err, TRUE);
 		self->out_id = g_io_add_watch(self->io_out, G_IO_IN | G_IO_PRI | G_IO_ERR | G_IO_HUP | G_IO_NVAL, (GIOFunc) io_watch_cb, self);
 		self->err_id = g_io_add_watch(self->io_err, G_IO_IN | G_IO_PRI | G_IO_ERR | G_IO_HUP | G_IO_NVAL, (GIOFunc) io_watch_cb, self);
+		#endif
 		return TRUE;
 	}
 }
 
+// --
+// Stop daemon
+// --
 static gboolean
-lastfm_submit_disable(EinaLastFM *self, GError **error)
+lastfm_submit_disable(EinaLastFM *self)
 {
 	if (!self->daemonpid)
 		return TRUE;
@@ -260,55 +203,9 @@ lastfm_submit_disable(EinaLastFM *self, GError **error)
 	return TRUE;
 }
 
-static gboolean
-lastfm_submit_write_config(EinaLastFM *self)
-{
-	if ((self->username == NULL) || (self->password == NULL))
-		return FALSE;
-
-	gchar *template =
-		"[paths]\n"
-		"spool=%s/%s/lastfmsubmitd/spool\n"
-		"pidfile=%s/%s/lastfmsubmitd/pid\n"
-		"log=%s/%s/lastfmsubmitd/log\n"
-		"\n"
-		"[account]\n"
-		"user=%s\n"
-		"password=%s\n";
-	const gchar *cache   = g_get_user_cache_dir();
-
-	gchar *dirname = g_build_filename(g_get_home_dir(), ".lastfmsubmitd", NULL);
-	GError *err = NULL;
-	if (!eina_fs_mkdir(dirname, 0700, &err))
-	{
-		g_warning("Cannot create conffile: %s", err->message);
-		g_error_free(err);
-		g_free(dirname);
-		return FALSE;
-	}
-	
-	gchar *pathname = g_build_filename(dirname, "conf", NULL);
-	g_free(dirname);
-
-	gchar *contents = g_strdup_printf(template,
-		cache, PACKAGE,
-		cache, PACKAGE,
-		cache, PACKAGE,
-		self->username, self->password);
-	GError *error = NULL;
-	if (!g_file_set_contents(pathname, contents, -1, &error))
-	{
-		g_warning("Cannot create conffile %s: %s", pathname, error->message);
-		g_error_free(error);
-		g_free(pathname);
-		g_free(contents);
-		return FALSE;
-	}
-	g_free(pathname);
-	g_free(contents);
-	return TRUE;
-}
-
+// --
+// Submit song
+// --
 static void
 lastfm_submit_submit(EinaLastFM *self)
 {
@@ -357,9 +254,188 @@ lastfm_submit_submit(EinaLastFM *self)
 	g_free(spoolfile);
 }
 
+// --
+// Create config for lastfmsubmitd
+// --
+static gboolean
+lastfm_submit_write_config(EinaLastFM *self)
+{
+	const gchar *username = g_settings_get_string(self->settings, LASTFM_USERNAME_KEY);
+	const gchar *password = g_settings_get_string(self->settings, LASTFM_PASSWORD_KEY);
+	if (!username || !password)
+	{
+		lastfm_submit_disable(self);
+		return FALSE;
+	}
+
+	// Build contents
+	const gchar *cache = g_get_user_cache_dir();
+	gchar *contents = g_strdup_printf(
+		"[paths]\n"
+		"spool=%s/%s/lastfmsubmitd/spool\n"
+		"pidfile=%s/%s/lastfmsubmitd/pid\n"
+		"log=%s/%s/lastfmsubmitd/log\n"
+		"\n"
+		"[account]\n"
+		"user=%s\n"
+		"password=%s\n",
+		cache, PACKAGE,
+		cache, PACKAGE,
+		cache, PACKAGE,
+		username, password);
+
+	// Write file
+	gchar *dirname = g_build_filename(g_get_home_dir(), ".lastfmsubmitd", NULL);
+	GError *err = NULL;
+	if (!eina_fs_mkdir(dirname, 0700, &err))
+	{
+		g_warning("Cannot create conffile: %s", err->message);
+		g_error_free(err);
+		g_free(dirname);
+		lastfm_submit_disable(self);
+		return FALSE;
+	}
+
+	gchar *pathname = g_build_filename(dirname, "conf", NULL);
+	g_free(dirname);
+
+	GError *error = NULL;
+	if (!g_file_set_contents(pathname, contents, -1, &error))
+	{
+		g_warning("Cannot create conffile %s: %s", pathname, error->message);
+		g_error_free(error);
+		g_free(pathname);
+		g_free(contents);
+		return FALSE;
+	}
+	g_free(pathname);
+	g_free(contents);
+
+	// (Re)Start daemon if enabled
+	if (g_settings_get_boolean(self->settings, LASTFM_SUBMIT_ENABLED_KEY))
+	{
+		lastfm_submit_disable(self);
+		lastfm_submit_enable(self);
+	}
+
+	return TRUE;
+}
+
+// --
+// Scheduling updates
+// --
+static void
+lastfm_submit_sched_write_config(EinaLastFM *self)
+{
+	if (self->config_update_id > 0)
+		g_source_remove(self->config_update_id);
+	self->config_update_id = g_timeout_add_seconds(5, (GSourceFunc) lastfm_submit_write_config_wrapper, self);
+}
+
+static gboolean
+lastfm_submit_write_config_wrapper(EinaLastFM *self)
+{
+	if (self->config_update_id > 0)
+		g_source_remove(self->config_update_id);
+	self->config_update_id = 0;
+	lastfm_submit_write_config(self);
+	return FALSE;
+}
+
+// --
+// Callbacks
+// --
+
+static gchar *
+str_parser_cb(gchar key, LomoStream *stream)
+{
+	LomoTag tag = LOMO_TAG_INVALID;
+	switch (key)
+	{
+	case 'a':
+		tag = LOMO_TAG_ARTIST;
+		break;
+	case 't':
+		tag = LOMO_TAG_TITLE;
+		break;
+	case 'b':
+		tag = LOMO_TAG_ALBUM;
+		break;
+	default:
+		return NULL;
+	}
+	gchar *ret = lomo_stream_get_tag(stream, tag);
+	return ret ? g_strdup(ret) : NULL;
+}
+
+#if DEBUG_DAEMON
+static gboolean
+io_watch_cb(GIOChannel *io, GIOCondition cond, EinaLastFM *self)
+{
+	gchar *buff;
+	gsize  size;
+
+	if ((cond & G_IO_IN) || (cond & G_IO_PRI))
+	{
+		GError *error = NULL;
+		GIOStatus status = g_io_channel_read_line(io, &buff, &size, NULL, &error);
+		switch (status)
+		{
+		case G_IO_STATUS_NORMAL:
+			if (size > 0)
+			{
+				buff[size-1] = '\0';
+				if (io == self->io_err)
+					g_warning("%s", buff);
+				g_free(buff);
+				return TRUE;
+			}
+			if (error)
+			{
+				g_warning("%s", error->message);
+				g_error_free(error);
+				lastfm_submit_disable(self);
+				return FALSE;
+			}
+			return TRUE;
+				
+		default:
+			lastfm_submit_disable(self);
+			return FALSE;
+		}
+	}
+	else if ((cond & (G_IO_ERR | G_IO_HUP | G_IO_NVAL)))
+	{
+		lastfm_submit_disable(self);
+		return FALSE;
+	}
+	else
+	{
+		lastfm_submit_disable(self);
+		return FALSE;
+	}
+}
+#endif
+
 static void
 settings_changed_cb(GSettings *settings, const gchar *key, EinaLastFM *self)
 {
+	if (g_str_equal(key, LASTFM_SUBMIT_ENABLED_KEY))
+	{
+		if (g_settings_get_boolean(settings, key))
+			lastfm_submit_enable(self);
+		else
+			lastfm_submit_disable(self);
+	}
+
+	else if (g_str_equal(key, LASTFM_USERNAME_KEY) ||
+	         g_str_equal(key, LASTFM_PASSWORD_KEY))
+	{
+		lastfm_submit_sched_write_config(self);
+	}
+
+	else
+		g_warning(N_("Unknow key '%s'"), key);
 }
 
 static gboolean
