@@ -304,50 +304,6 @@ gel_resource_locate(GelResourceType type, gchar *resource)
 	return gel_plugin_get_resource((GelPlugin *) 0x1, type, resource);
 }
 
-gchar *
-gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_parents, gint mode)
-{
-	gchar *ret, *dirname;
-
-	ret = g_strconcat(
-		g_get_home_dir(),
-		G_DIR_SEPARATOR_S, ".", appname,
-		G_DIR_SEPARATOR_S, filename,
-		NULL);
-
-	if (create_parents)
-	{
-		dirname = g_path_get_dirname(ret);
-		g_mkdir_with_parents(dirname, mode);
-		g_free(dirname);
-	}
-
-	return ret;
-}
-
-gchar *
-gel_app_build_config_filename(gchar *name, gboolean create_path, gint dir_mode, GError **error)
-{
-	const gchar *conf_dir = g_get_user_config_dir();
-	if (conf_dir == NULL)
-		conf_dir = ".config";
-
-	gchar *ret = g_build_filename(conf_dir, _gel_package_name, name, NULL);
-	gchar *dirname = g_path_get_dirname(ret);
-	if (!g_file_test(dirname, G_FILE_TEST_EXISTS))
-	{
-		if (g_mkdir_with_parents(dirname, dir_mode) == -1)
-		{
-			g_set_error_literal(error, G_FILE_ERROR, g_file_error_from_errno(errno), g_strerror(errno));
-			g_free(dirname);
-			g_free(ret);
-		return NULL;
-		}
-	}
-	g_free(dirname);
-	return ret;
-}
-
 // --
 // File system utilities
 // --

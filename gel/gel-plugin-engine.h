@@ -80,8 +80,8 @@ GList     *gel_plugin_engine_get_plugins(GelPluginEngine *self);
 GelPlugin *gel_plugin_engine_get_plugin (GelPluginEngine *self, GelPluginInfo *info);
 GelPlugin *gel_plugin_engine_get_plugin_by_name(GelPluginEngine *self, gchar *name);
 
-void       gel_plugin_engine_scan_plugins(GelPluginEngine *app);
-GList     *gel_plugin_engine_query_plugins(GelPluginEngine *app);
+void       gel_plugin_engine_scan_plugins(GelPluginEngine *self);
+GList     *gel_plugin_engine_query_plugins(GelPluginEngine *self);
 
 gboolean   gel_plugin_engine_unload_plugin(GelPluginEngine *self, GelPlugin *plugin, GError **error);
 void       gel_plugin_engine_purge(GelPluginEngine *self);
@@ -94,10 +94,6 @@ gpointer gel_plugin_engine_steal_interface(GelPluginEngine *self, gchar *name);
 #define gel_plugin_engine_shared_get(s,n)   gel_plugin_engine_get_interface(s,n)
 void     gel_plugin_engine_shared_free(GelPluginEngine *self, gchar *name);
 
-GSettings *
-gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain);
-
-
 gint    *gel_plugin_engine_get_argc(GelPluginEngine *self);
 gchar ***gel_plugin_engine_get_argv(GelPluginEngine *self);
 
@@ -105,32 +101,6 @@ gchar ***gel_plugin_engine_get_argv(GelPluginEngine *self);
 void gel_plugin_engine_priv_run_init(GelPluginEngine *self, GelPlugin *plugin);
 void gel_plugin_engine_priv_run_fini(GelPluginEngine *self, GelPlugin *plugin);
 #endif
-
-
-// GelApp compatibility
-typedef GelPluginEngine GelApp;
-typedef GelPluginEngineDisposeFunc GelAppDisposeFunc;
-#define GEL_APP(o)    GEL_PLUGIN_ENGINE(o)
-#define GEL_IS_APP(o) GEL_IS_PLUGIN_ENGINE(o)
-#define GEL_TYPE_APP  GEL_TYPE_PLUGIN_ENGINE
-
-#define gel_app_new()                gel_plugin_engine_new(NULL, NULL)
-#define gel_app_load_plugin_by_name(o,n,e)     gel_plugin_engine_load_plugin_by_name(o,n,e)
-#define gel_app_load_plugin_by_pathname(o,n,e) gel_plugin_engine_load_plugin_by_pathname(o,n,e)
-#define gel_app_load_plugin(o,i,e)   gel_plugin_engine_load_plugin(o,i,e)
-#define gel_app_unload_plugin(o,p,e) gel_plugin_engine_unload_plugin(o,p,e)
-
-#define gel_app_query_plugins(o)     gel_plugin_engine_query_plugins(o)
-#define gel_app_get_plugins(o)       gel_plugin_engine_get_plugins(o)
-#define gel_app_scan_plugins(o)      gel_plugin_engine_scan_plugins(o)
-#define gel_app_get_plugin(o,i)      gel_plugin_engine_get_plugin(o,i)
-
-#define gel_app_set_dispose_callback(o,c,d) gel_plugin_engine_set_dispose_callback(o,c,d)
-
-#define gel_app_shared_get(o,k)      gel_plugin_engine_shared_get(o,k)
-#define gel_app_shared_set(o,k,p)    gel_plugin_engine_shared_set(o,k,p)
-#define gel_app_shared_free(o,k)     gel_plugin_engine_shared_free(o,k)
-#define gel_app_get_settings(o,d)    gel_plugin_engine_get_settings(o,d)
 
 G_END_DECLS
 

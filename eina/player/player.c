@@ -57,14 +57,14 @@ static GtkActionEntry ui_mng_actions[] = {
 	{ "about-action", GTK_STOCK_ABOUT, N_("_About"),               NULL,    NULL, (GCallback) action_activated_cb }
 };
 
-static guint ui_merge_id = 0;
-
-static EinaPreferencesTab *prefs_tab = NULL;
+static guint __ui_merge_id = 0;
+static GSettings *__settings = NULL;
+static EinaPreferencesTab *__prefs_tab = NULL;
 
 G_MODULE_EXPORT gboolean
 player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	GSettings *settings = gel_plugin_engine_get_settings(engine, EINA_PLAYER_PREFERENCES_DOMAIN);
+	GSettings *settings = g_settings_new(EINA_PLAYER_PREFERENCES_DOMAIN);
 	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
 
 	GtkWidget *player = eina_player_new();
@@ -94,7 +94,7 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	// Attach menus
 	GtkUIManager *ui_mng = gel_ui_application_get_window_ui_manager(application);
 	GError *e = NULL;
-	if ((ui_merge_id = gtk_ui_manager_add_ui_from_string (ui_mng, ui_mng_xml, -1 , &e)) == 0)
+	if ((__ui_merge_id = gtk_ui_manager_add_ui_from_string (ui_mng, ui_mng_xml, -1 , &e)) == 0)
 	{
 		g_warning(N_("Unable to add UI to window GtkUIManager: '%s'"), e->message);
 		g_error_free(e);
@@ -107,14 +107,14 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	GtkWidget *widget = gel_ui_generic_new_from_file(prefs_ui_file);
 	g_free(prefs_ui_file);
 
-	prefs_tab = eina_preferences_tab_new();
-	g_object_set(G_OBJECT(prefs_tab),
+	__prefs_tab = eina_preferences_tab_new();
+	g_object_set(G_OBJECT(__prefs_tab),
 		"label-text", N_("Player"),
 		"widget", widget,
 		NULL);
 	
 	GSettings *lomo_sets = gel_ui_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
-	eina_preferences_tab_bindv(prefs_tab,
+	eina_preferences_tab_bindv(__prefs_tab,
 		lomo_sets, "repeat", "repeat", "active",
 		lomo_sets, "random", "random", "active",
 		lomo_sets, "auto-play", "auto-play", "active",
@@ -122,7 +122,7 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		NULL);
 
 	EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
-	eina_preferences_add_tab(prefs, prefs_tab);
+	eina_preferences_add_tab(prefs, __prefs_tab);
 
 	return TRUE;
 }
@@ -130,16 +130,17 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT gboolean
 player_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	if (ui_merge_id > 0)
+	gel_free_and_invalidate(__settings, NULL, g_object_unref);
+	if (__ui_merge_id > 0)
 	{
 		GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
 		GtkUIManager *ui_mng = gel_ui_application_get_window_ui_manager(application);
-		gtk_ui_manager_remove_ui(ui_mng, ui_merge_id);
+		gtk_ui_manager_remove_ui(ui_mng, __ui_merge_id);
 	}
-	if (prefs_tab)
+	if (__prefs_tab)
 	{
 		EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
-		eina_preferences_remove_tab(prefs, prefs_tab);
+		eina_preferences_remove_tab(prefs, __prefs_tab);
 	}
 	return TRUE;
 }

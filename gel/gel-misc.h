@@ -153,12 +153,6 @@ gel_resource_type_get_system_dir(GelResourceType type);
 gchar *
 gel_resource_locate(GelResourceType type, gchar *resource);
 
-
-gchar *
-gel_app_userdir_get_pathname(gchar *appname, gchar *filename, gboolean create_parents, gint mode);
-gchar *
-gel_app_build_config_filename(gchar *name, gboolean create_path, gint dir_mode, GError **error);
-
 // --
 // File system utilities
 // --

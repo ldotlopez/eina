@@ -212,7 +212,7 @@ GelPlugin *gel_plugin_engine_get_plugin_by_name(GelPluginEngine *self, gchar *na
 }
 
 GList *
-gel_plugin_engine_query_plugins(GelPluginEngine *app)
+gel_plugin_engine_query_plugins(GelPluginEngine *self)
 {
 	GList *ret = NULL;
 	GList *iter = app->priv->infos;
@@ -225,7 +225,7 @@ gel_plugin_engine_query_plugins(GelPluginEngine *app)
 }
 
 void
-gel_plugin_engine_scan_plugins(GelPluginEngine *app)
+gel_plugin_engine_scan_plugins(GelPluginEngine *self)
 {
 	if (app->priv->infos)
 	{
@@ -419,7 +419,7 @@ gel_plugin_engine_unload_plugin(GelPluginEngine *self, GelPlugin *plugin, GError
 // Usefull to cleanup a GelPluginEngine after a query_plugins call
 // --
 void
-gel_plugin_engine_purge(GelPluginEngine *app)
+gel_plugin_engine_purge(GelPluginEngine *engine)
 {
 	gel_warn(__FUNCTION__);
 #if 0
@@ -494,28 +494,13 @@ gel_plugin_engine_steal_interface(GelPluginEngine *self, gchar *name)
 }
 
 void
-gel_plugin_engine_shared_free(GelApp *self, gchar *name)
+gel_plugin_engine_shared_free(GelPluginEngine *self, gchar *name)
 {
 	g_return_if_fail(GEL_IS_PLUGIN_ENGINE(self));
 	g_return_if_fail(name != NULL);
 
 	g_warn_if_fail(g_hash_table_lookup(self->priv->shared, name) != NULL);
 	g_hash_table_remove(self->priv->shared, name);
-}
-
-GSettings *
-gel_plugin_engine_get_settings(GelPluginEngine *self, gchar *domain)
-{
-	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
-	g_return_val_if_fail(domain, NULL);
-
-	GSettings *settings = g_hash_table_lookup(self->priv->settings, domain);
-	if (!settings)
-	{
-		settings = g_settings_new(domain);
-		g_hash_table_insert(self->priv->settings, g_strdup(domain), settings);
-	}
-	return G_SETTINGS(settings);
 }
 
 gint *

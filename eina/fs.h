@@ -28,12 +28,12 @@
 #define EINA_FS_LAST_FOLDER_KEY "last-folder"
 
 void
-eina_fs_load_from_uri_multiple(GelApp *app, GList *uris);
+eina_fs_load_from_uri_multiple(GelPluginEngine *engine, GList *uris);
 
 void
-eina_fs_load_from_default_file_chooser(GelApp *app);
+eina_fs_load_from_default_file_chooser(GelPluginEngine *engine);
 void
-eina_fs_load_from_file_chooser(GelApp *app, EinaFileChooserDialog *dialog);
+eina_fs_load_from_file_chooser(GelPluginEngine *engine, EinaFileChooserDialog *dialog);
 
 GSList*
 eina_fs_files_from_uri_strv(gchar **uris);

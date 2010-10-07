@@ -33,7 +33,7 @@
 #include <eina/lomo/lomo.h>
 
 typedef struct {
-	GelApp       *app;
+	GelPluginEngine *engine;
 	GelPlugin    *plugin;
 
 	// Dock
@@ -526,7 +526,7 @@ dock_search_entry_changed_cb(Recently *self, GtkEntry *w)
 static gboolean
 recently_refresh(Recently *self)
 {
-	EinaAdb *adb = (EinaAdb*) gel_app_shared_get(self->app, "adb");
+	EinaAdb *adb = (EinaAdb*) gel_plugin_engine_get_adb(self->engine);
 	g_return_val_if_fail(adb != NULL, FALSE);
 
 	gtk_list_store_clear(GTK_LIST_STORE(self->pls_model));
@@ -545,7 +545,7 @@ recently_refresh(Recently *self)
 		ArtSearch *search = NULL;
 		LomoStream *fake_stream = adb_get_stream_from_timestamp(adb, timestamps[i]);
 		if (fake_stream)
-			search = art_search(gel_plugin_engine_get_art(self->app), fake_stream, (ArtFunc) recently_search_cb, self);
+			search = art_search(gel_plugin_engine_get_art(self->engine), fake_stream, (ArtFunc) recently_search_cb, self);
 
 		GtkTreeIter iter;
 		gtk_list_store_append((GtkListStore *) self->pls_model, &iter);
@@ -575,8 +575,8 @@ recently_row_activated_cb(GtkWidget *w,
 	GtkTreeIter iter;
 	gchar *ts;
 
-	EinaAdb *adb = (EinaAdb *) gel_app_shared_get(self->app, "adb");
-	LomoPlayer *lomo = (LomoPlayer *) gel_app_shared_get(self->app, "lomo");
+	EinaAdb *adb = (EinaAdb *) gel_plugin_engine_get_adb(self->engine);
+	LomoPlayer *lomo = (LomoPlayer *) gel_plugin_engine_get_lomo(self->engine);
 	g_return_if_fail((adb != NULL) && (lomo != NULL));
 
 	GList *columns = gtk_tree_view_get_columns(GTK_TREE_VIEW(w));
@@ -642,7 +642,7 @@ recently_markup_edited_cb(GtkWidget *w,
 	Recently *self)
 {
 	// If EinaAdb is not present changes could not be saved, so abort
-	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->engine);
 	g_return_if_fail(adb != NULL);
 
 	// Try to get data from model
@@ -956,8 +956,8 @@ adb_get_stream_from_uri(EinaAdb *adb, gchar *uri)
 static void
 queryer_fill_model_for_query(Recently *self, gchar *input)
 {
-	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
-	Art *art = gel_plugin_engine_get_art(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->engine);
+	Art *art = gel_plugin_engine_get_art(self->engine);
 
 	gtk_list_store_clear(self->queryer_results);
 
@@ -1062,7 +1062,7 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 		"	(SELECT sid FROM metadata WHERE key='%q' AND value='%q');",
 		keys[matchtype], fullmatch);
 
-	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->engine);
 	sqlite3_stmt *stmt = NULL;
 	if (sqlite3_prepare_v2(eina_adb_get_handler(adb), q, -1, &stmt, NULL) != SQLITE_OK)
 	{
@@ -1076,14 +1076,14 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch)
 	sqlite3_finalize(stmt);
 
 	uris = g_list_reverse(uris);
-	lomo_player_append_uri_multi(gel_plugin_engine_get_lomo(self->app), uris);
+	lomo_player_append_uri_multi(gel_plugin_engine_get_lomo(self->engine), uris);
 	gel_list_deep_free(uris, (GFunc) g_free);
 }
 
 static void
 queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self)
 {
-	LomoPlayer *lomo = gel_plugin_engine_get_lomo(self->app);
+	LomoPlayer *lomo = gel_plugin_engine_get_lomo(self->engine);
 	g_return_if_fail(lomo != NULL);
 
 	GList *s = gtk_icon_view_get_selected_items(search_view);
@@ -1162,7 +1162,7 @@ queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Rec
 static void
 lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 {
-	EinaAdb *adb = gel_plugin_engine_get_adb(self->app);
+	EinaAdb *adb = gel_plugin_engine_get_adb(self->engine);
 	g_return_if_fail(adb != NULL);
 
 	gchar **timestamps = adb_get_n_timestamps(adb, 1);
@@ -1178,7 +1178,7 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 	ArtSearch *search = NULL;
 	LomoStream *stream = adb_get_stream_from_timestamp(adb, ts);
 	if (stream)
-		search = art_search(gel_plugin_engine_get_art(self->app), stream, (ArtFunc) recently_search_cb, self);
+		search = art_search(gel_plugin_engine_get_art(self->engine), stream, (ArtFunc) recently_search_cb, self);
 
 	GtkTreeIter iter;
 	if (!gtk_tree_model_get_iter_first((GtkTreeModel*) self->pls_model, &iter))
@@ -1206,11 +1206,11 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 // Eina Plugin interface
 // --
 gboolean
-recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
+recently_plugin_init(GelPluginEngine *engine, EinaPlugin *plugin, GError **error)
 {
 	// Upgrade database
 	EinaAdb *adb;
-	if ((adb = gel_plugin_engine_get_adb(app)) == NULL)
+	if ((adb = gel_plugin_engine_get_adb(engine)) == NULL)
 	{
 		g_set_error(error, recently_quark(), RECENTLY_ERROR_CANNOT_FETCH_ADB, N_("Cannot fetch EinaAdb object"));
 		return FALSE;
@@ -1225,22 +1225,22 @@ recently_plugin_init(GelApp *app, EinaPlugin *plugin, GError **error)
 
 	// Create dock
 	Recently *self = g_new0(Recently, 1);
-	self->app    = app;
+	self->engine  = engine;
 	self->plugin = plugin;
 	self->dock   = dock_create(self);
 	eina_plugin_add_dock_widget(plugin, "recently", gtk_image_new_from_stock(GTK_STOCK_UNDO, GTK_ICON_SIZE_MENU), self->dock);
 
 	// Signals
-	g_signal_connect(gel_plugin_engine_get_lomo(app), "clear", (GCallback) lomo_clear_cb, self);
+	g_signal_connect(gel_plugin_engine_get_lomo(engine), "clear", (GCallback) lomo_clear_cb, self);
 
 	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
 gboolean
-recently_plugin_fini(GelApp *app, EinaPlugin *plugin, GError **error)
+recently_plugin_fini(GelPluginEngine *engine, EinaPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = gel_plugin_engine_get_lomo(app);
+	LomoPlayer *lomo = gel_plugin_engine_get_lomo(engine);
 	if (lomo)
 		g_signal_handlers_disconnect_by_func(lomo, "clear", lomo_clear_cb);
 	eina_plugin_remove_dock_widget_by_id(plugin, "recently");
