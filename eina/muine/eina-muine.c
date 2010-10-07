@@ -330,7 +330,6 @@ muine_update(EinaMuine *self)
 		}
 
 		LomoStream *fake_stream = NULL;
-		ArtSearch *search = NULL;
 		
 		if (art && (db_artist || db_album))
 			fake_stream = lomo_stream_new("file:///dev/null");
@@ -349,9 +348,6 @@ muine_update(EinaMuine *self)
 				lomo_stream_set_tag(fake_stream, LOMO_TAG_ALBUM,  db_album);
 		}
 
-		if (art)
-			search = art_search(art, fake_stream, (ArtFunc) search_cb, self);
-
 		gchar *markup = NULL;
 		switch (mode)
 		{
@@ -363,10 +359,11 @@ muine_update(EinaMuine *self)
 			markup = g_strdup_printf(markup_fmt, artist, count);
 			break;
 		}
-		gtk_list_store_insert_with_values(model, NULL, 0,
+		GtkTreeIter iter;
+		gtk_list_store_insert_with_values(model, &iter, 0,
 			COMBO_COLUMN_MARKUP, markup,
 			COMBO_COLUMN_ID,     (mode == EINA_MUINE_MODE_ALBUM) ? db_album : db_artist,
-			COMBO_COLUMN_SEARCH, search,
+			COMBO_COLUMN_SEARCH, art ? art_search(art, fake_stream, (ArtFunc) search_cb, self) : NULL,
 			// COMBO_COLUMN_ICON,   self->default_icon,
 			-1);
 		g_free(markup);
@@ -410,7 +407,6 @@ muine_update_icon(EinaMuine *self, ArtSearch *search)
 			return;
 		}
 	} while (gtk_tree_model_iter_next(model, &iter));
-	g_warning("Search NOT found");
 }
 
 static GList *
