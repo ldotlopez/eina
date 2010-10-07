@@ -59,6 +59,7 @@ preferences_plugin_init (GelPluginEngine *app, GelPlugin *plugin, GError **error
 	EinaPreferences *self = g_new0(EinaPreferences, 1);
 	self->plugin = plugin;
 	gel_plugin_set_data(plugin, self);
+	gel_plugin_engine_set_interface(app, "preferences", self);
 
 	return TRUE;
 }
@@ -139,15 +140,15 @@ static void
 preferences_attach_menu(EinaPreferences *self)
 {
 	const GtkActionEntry action_entries[] = {
-		{ "Preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
+		{ "preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
 		"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
 	};
 
 	const gchar *ui_xml = 
 		"<ui>"
 		"<menubar name=\"Main\">"
-		"<menu name=\"Edit\" action=\"EditMenu\">"
-		"  <menuitem name=\"Preferences\" action=\"Preferences\" />"
+		"<menu name=\"Edit\" action=\"edit-menu\">"
+		"  <menuitem name=\"Preferences\" action=\"preferences\" />"
 		"</menu>"
 		"</menubar>"
 		"</ui>";
@@ -194,7 +195,7 @@ preferences_deattach_menu(EinaPreferences *self)
 static void
 menu_activate_cb(GtkAction *action, EinaPreferences *self)
 {
-	if (g_str_equal(gtk_action_get_name(action), "Preferences"))
+	if (g_str_equal(gtk_action_get_name(action), "preferences"))
 	{
 		build_dialog(self);
 		gtk_dialog_run(GTK_DIALOG(self->dialog));
@@ -235,12 +236,3 @@ delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self)
 	return FALSE;
 }
 
-EINA_PLUGIN_INFO_SPEC(preferences,
-	NULL,
-	"window",
-	NULL,
-	NULL,
-	N_("Build-in preferences plugin"),
-	NULL,
-	NULL
-	);

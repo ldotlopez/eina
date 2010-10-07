@@ -20,7 +20,6 @@
 #ifndef _EINA_PREFERENCES_DIALOG
 #define _EINA_PREFERENCES_DIALOG
 
-#include <glib-object.h>
 #include <gtk/gtk.h>
 #include <eina/preferences/eina-preferences-tab.h>
 
@@ -44,12 +43,11 @@ G_BEGIN_DECLS
   (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PREFERENCES_DIALOG, EinaPreferencesDialogClass))
 
 typedef struct {
-  GtkDialog parent;
+	GtkDialog parent;
 } EinaPreferencesDialog;
 
 typedef struct {
-  GtkDialogClass parent_class;
-  void (*value_changed)  (EinaPreferencesDialog *self, const gchar *key, GValue *value);
+	GtkDialogClass parent_class;
 } EinaPreferencesDialogClass;
 
 GType eina_preferences_dialog_get_type (void);

@@ -245,7 +245,10 @@ eina_preferences_tab_set_widget(EinaPreferencesTab *self, GtkWidget *widget)
 	g_list_free(children);
 
 	if (widget)
+	{
+		gtk_widget_show(widget);
 		gtk_box_pack_start((GtkBox *) self, widget, FALSE, FALSE, 0);
+	}
 }
 
 void
@@ -298,27 +301,36 @@ eina_preferences_tab_get_label_widget(EinaPreferencesTab *self)
 }
 
 void
-eina_preferences_tab_bindv(EinaPreferencesTab *self, gchar *domain, ...)
+eina_preferences_tab_bindv(EinaPreferencesTab *self, ...)
 {
-	EinaPreferencesTabPrivate *priv = GET_PRIVATE(self);
-
-	g_return_if_fail(domain);
-
-	GSettings *settings = g_settings_new(domain);
-	g_return_if_fail(settings);
-
 	va_list args;
-	va_start(args, domain);
+	va_start(args, self);
 
-	gchar *key = NULL;
-	while ((key = va_arg(args, gchar*)) != NULL)
+	GSettings *sets = NULL;
+	while ((sets = va_arg(args, GSettings *)) != NULL)
 	{
-		EinaPreferencesTabBindDef *def = g_new0(EinaPreferencesTabBindDef, 1);
-		def->domain   = g_strdup(domain); 
-		def->key      = g_strdup(key); 
-		def->obj_name = g_strdup(va_arg(args, gchar*));
-		def->property = g_strdup(va_arg(args, gchar*));
-		priv->bind_defs = g_list_prepend(priv->bind_defs, def);
+		if (!G_IS_SETTINGS(sets))
+		{
+			g_warning(N_("Invalid GSettings parameter"));
+			break;
+		}
+
+		gchar *key      = va_arg(args, gchar*);
+		gchar *obj_name = va_arg(args, gchar*);
+		gchar *prop     = va_arg(args, gchar*);
+
+		if (!key || !obj_name || !prop )
+		{
+			g_warning(N_("Invalid parameters"));
+			break;
+		}
+		GObject *obj = G_OBJECT(gel_ui_container_find_widget(GTK_CONTAINER(self), obj_name));
+		if (!obj || !G_IS_OBJECT(obj))
+		{
+			g_warning(N_("Invalid object '%s'"), obj_name);
+			break;
+		}
+		g_settings_bind(sets, key, obj, prop, G_SETTINGS_BIND_DEFAULT);
 	}
 	va_end(args);
 }

@@ -17,11 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::EinaPreferencesDialog"
 #include "eina-preferences-dialog.h"
 #include <glib/gi18n.h>
-#include <gel/gel.h>
-#include <gel/gel-ui.h>
 
 #define EINA_HIG_BOX_SPACING 5
 
@@ -33,13 +30,6 @@ G_DEFINE_TYPE (EinaPreferencesDialog, eina_preferences_dialog, GTK_TYPE_DIALOG)
 typedef struct {
 	GtkNotebook *notebook;
 } EinaPreferencesDialogPrivate;
-
-enum {
-	SIGNAL_VALUE_CHANGED,
-	LAST_SIGNAL
-};
-
-guint preferences_dialog_signals[LAST_SIGNAL] = { 0 };
 
 static void
 eina_preferences_dialog_dispose (GObject *object)

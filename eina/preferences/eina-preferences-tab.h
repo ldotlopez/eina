@@ -29,56 +29,42 @@ G_BEGIN_DECLS
 #define EINA_TYPE_PREFERENCES_TAB eina_preferences_tab_get_type()
 
 #define EINA_PREFERENCES_TAB(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTab))
+	(G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTab))
 
 #define EINA_PREFERENCES_TAB_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTabClass))
+	(G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTabClass))
 
 #define EINA_IS_PREFERENCES_TAB(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_PREFERENCES_TAB))
+	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_PREFERENCES_TAB))
 
 #define EINA_IS_PREFERENCES_TAB_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_PREFERENCES_TAB))
+	(G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_PREFERENCES_TAB))
 
 #define EINA_PREFERENCES_TAB_GET_CLASS(obj) \
-  (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTabClass))
+	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTabClass))
 
 typedef struct {
-  GtkVBox parent;
+	GtkVBox parent;
 } EinaPreferencesTab;
 
 typedef struct {
-  GtkVBoxClass parent_class;
-  void (*changed) (const gchar *key, GValue *value);
+	GtkVBoxClass parent_class;
+	void (*changed) (const gchar *key, GValue *value);
 } EinaPreferencesTabClass;
 
 GType eina_preferences_tab_get_type (void);
 
 EinaPreferencesTab* eina_preferences_tab_new (void);
 
+void       eina_preferences_tab_set_label_widget(EinaPreferencesTab *self, GtkWidget *label_widget);
+void       eina_preferences_tab_set_label_image (EinaPreferencesTab *self, GtkImage *label_widget);
+void       eina_preferences_tab_set_label_text  (EinaPreferencesTab *self, gchar *text);
+void       eina_preferences_tab_set_widget      (EinaPreferencesTab *self, GtkWidget *widget);
+void       eina_preferences_tab_set_ui_string   (EinaPreferencesTab *self, gchar *ui_string);
+GtkWidget* eina_preferences_tab_get_widget      (EinaPreferencesTab *self, gchar *name);
+GtkWidget* eina_preferences_tab_get_label_widget(EinaPreferencesTab *self);
 void
-eina_preferences_tab_set_label_widget(EinaPreferencesTab *self, GtkWidget *label_widget);
-
-void
-eina_preferences_tab_set_label_image(EinaPreferencesTab *self, GtkImage *label_widget);
-
-void
-eina_preferences_tab_set_label_text(EinaPreferencesTab *self, gchar *text);
-
-void
-eina_preferences_tab_set_widget(EinaPreferencesTab *self, GtkWidget *widget);
-
-void
-eina_preferences_tab_set_ui_string(EinaPreferencesTab *self, gchar *ui_string);
-
-GtkWidget*
-eina_preferences_tab_get_widget(EinaPreferencesTab *self, gchar *name);
-
-GtkWidget *
-eina_preferences_tab_get_label_widget(EinaPreferencesTab *self);
-
-void
-eina_preferences_tab_bindv(EinaPreferencesTab *self, gchar *domain, ...);
+eina_preferences_tab_bindv(EinaPreferencesTab *self, ...);
 
 G_END_DECLS
 
