@@ -328,3 +328,12 @@ gel_plugin_stringify(GelPlugin *self)
 	return self->stringified;
 }
 
+gchar *
+gel_plugin_get_lib_dir(GelPlugin *plugin)
+{
+	const GelPluginInfo *info = gel_plugin_get_info(plugin);
+	if (info->pathname == NULL)
+		return g_strdup(gel_get_package_lib_dir());
+	else
+		return g_path_get_dirname(info->pathname);
+}
