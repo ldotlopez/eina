@@ -7,8 +7,10 @@ liblastfm_la_LDFLAGS = @EINA_LIBS@
 liblastfm_la_SOURCES = \
 	lastfm.c
 
-plugin_DATA = lastfm.ini
-
+plugin_DATA = \
+	lastfm.ini     \
+	preferences.ui \
+	lastfm.png
 EXTRA_DIST += lastfm.ini
 
 

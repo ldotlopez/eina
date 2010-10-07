@@ -76,11 +76,17 @@ lastfm_plugin_build_preferences(GelPlugin *plugin)
 	}
 	g_free(prefs_ui_path);
 
+	gchar *icon_filename = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, "lastfm.png");
+	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(icon_filename, 16, 16, TRUE, NULL);
+	gel_free_and_invalidate(icon_filename, NULL, g_free);
+
 	self->prefs_tab = eina_preferences_tab_new();
 	g_object_set(self->prefs_tab,
 		"widget", prefs_ui,
 		"label-text", N_("Last FM"),
+		"label-image", gtk_image_new_from_pixbuf(pb),
 		NULL);
+	gel_free_and_invalidate(pb, NULL, g_object_unref);
 
 	GSettings *settings = g_settings_new(LASTFM_PREFERENCES_DOMAIN);
 	eina_preferences_tab_bindv(self->prefs_tab,
