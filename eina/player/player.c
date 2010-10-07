@@ -20,6 +20,7 @@
 #include "eina-player.h"
 #include "eina/eina-plugin2.h"
 #include "eina/lomo/lomo.h"
+#include "eina/preferences/preferences.h"
 #include "eina/fs.h"
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
@@ -57,6 +58,8 @@ static GtkActionEntry ui_mng_actions[] = {
 };
 
 static guint ui_merge_id = 0;
+
+static EinaPreferencesTab *prefs_tab = NULL;
 
 G_MODULE_EXPORT gboolean
 player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
@@ -100,6 +103,27 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	gtk_action_group_add_actions(ag, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions), player);
 	gtk_ui_manager_insert_action_group(ui_mng, ag, G_MAXINT);
 
+	gchar *prefs_ui_file = g_build_filename(gel_plugin_get_data_dir(plugin), "preferences.ui", NULL);
+	GtkWidget *widget = gel_ui_generic_new_from_file(prefs_ui_file);
+	g_free(prefs_ui_file);
+
+	prefs_tab = eina_preferences_tab_new();
+	g_object_set(G_OBJECT(prefs_tab),
+		"label-text", N_("Player"),
+		"widget", widget,
+		NULL);
+	
+	GSettings *lomo_sets = gel_ui_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
+	eina_preferences_tab_bindv(prefs_tab,
+		lomo_sets, "repeat", "repeat", "active",
+		lomo_sets, "random", "random", "active",
+		lomo_sets, "auto-play", "auto-play", "active",
+		lomo_sets, "auto-parse", "auto-parse", "active",
+		NULL);
+
+	EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
+	eina_preferences_add_tab(prefs, prefs_tab);
+
 	return TRUE;
 }
 
@@ -111,6 +135,11 @@ player_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
 		GtkUIManager *ui_mng = gel_ui_application_get_window_ui_manager(application);
 		gtk_ui_manager_remove_ui(ui_mng, ui_merge_id);
+	}
+	if (prefs_tab)
+	{
+		EinaPreferences *prefs = eina_plugin_get_preferences(plugin);
+		eina_preferences_remove_tab(prefs, prefs_tab);
 	}
 	return TRUE;
 }
