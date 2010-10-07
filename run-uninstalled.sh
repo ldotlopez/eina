@@ -36,7 +36,8 @@ if [ ! -z "$(which glib-compile-schemas)" ]; then
 fi
 
 # DConf
-if [ -x "$(dirname $(which gtk3-demo))/../libexec/dconf-service" -a -z "$(pidof dconf-service)" ]; then
+GTK3_DEMO="$(which gtk3-demo)"
+if [ ! -z "$GTK3_DEMO" -a -x "$(dirname -- "$GTK3_DEMO")/../libexec/dconf-service" -a -z "$(pidof dconf-service)" ]; then
 	$(dirname $(which gtk3-demo))/../libexec/dconf-service &
 fi
 
@@ -56,6 +57,10 @@ do
 			[ "$ext" = "so" ] && echo "[*] Detected plugin $plugin"
 			ln -s $obj "$R/plugins/$plugin"
 		done
+	done
+	for d in $(find "$plugindir" -maxdepth 1 -type d | tail -n +2)
+	do
+		ln -s "$d" "$R/plugins/$plugin"
 	done
 done
 
@@ -88,7 +93,7 @@ if [ ! -z "$1" ]; then
 			;;
 		strace)
 			shift
-			strace "$BIN" "$@"
+			strace -f "$BIN" "$@"
 			;;
 		gdb)
 			shift
