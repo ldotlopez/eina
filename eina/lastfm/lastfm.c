@@ -8,14 +8,8 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#define LASTFM_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.lastfm"
-#define LASTFM_SUBMIT_ENABLED_KEY "submit-enabled"
-#define LASTFM_USERNAME_KEY       "username"
-#define LASTFM_PASSWORD_KEY       "password"
-
-enum {
-	EINA_LASTFM_ERROR_START_DAEMON = 1
-};
+void
+lastfm_plugin_build_preferences(GelPlugin *plugin);
 
 static gboolean 
 lastfm_submit_enable(EinaLastFM *self, GError **error);
@@ -46,9 +40,7 @@ lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	GelUIApplication *app = eina_plugin_get_application(plugin);
 	GSettings *settings = gel_ui_application_get_settings(app, LASTFM_PREFERENCES_DOMAIN);
 
-	gchar *libdir = gel_plugin_get_lib_dir(plugin);
-	data->daemonpath = g_build_filename(libdir, "lastfmsubmitd", "lastfmsubmitd", NULL);
-	g_free(libdir);
+	data->daemonpath = g_build_filename(gel_plugin_get_lib_dir(plugin), "lastfmsubmitd", "lastfmsubmitd", NULL);
 
 	data->submit_enabled = g_settings_get_boolean(settings, LASTFM_SUBMIT_ENABLED_KEY);
 	data->username = g_settings_get_string(settings, LASTFM_USERNAME_KEY);
@@ -59,6 +51,7 @@ lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, data);
 
+	lastfm_plugin_build_preferences(plugin);
 	return TRUE;
 }
 
@@ -71,6 +64,39 @@ lastfm_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_free(data);
 
 	return TRUE;
+}
+
+void
+lastfm_plugin_build_preferences(GelPlugin *plugin)
+{
+	EinaLastFM *self = (EinaLastFM *) gel_plugin_get_data(plugin);
+
+	gchar *prefs_ui_path = g_build_filename(gel_plugin_get_data_dir(plugin), "preferences.ui", NULL);
+	GtkWidget *prefs_ui = gel_ui_generic_new_from_file(prefs_ui_path);
+	if (!prefs_ui)
+	{
+		g_warning(N_("Cannot create preferences UI"));
+		g_free(prefs_ui_path);
+		return;
+	}
+	g_free(prefs_ui_path);
+
+	self->prefs_tab = eina_preferences_tab_new();
+	g_object_set(self->prefs_tab,
+		"widget", prefs_ui,
+		"label-text", N_("Last FM"),
+		NULL);
+
+	GSettings *settings = g_settings_new(LASTFM_PREFERENCES_DOMAIN);
+	eina_preferences_tab_bindv(self->prefs_tab,
+		settings, LASTFM_SUBMIT_ENABLED_KEY,  LASTFM_SUBMIT_ENABLED_KEY,  "active",
+		settings, LASTFM_USERNAME_KEY, LASTFM_USERNAME_KEY, "text",
+		settings, LASTFM_PASSWORD_KEY, LASTFM_PASSWORD_KEY, "text",
+		NULL);
+
+	EinaPreferences *preferences = eina_plugin_get_preferences(plugin);
+	eina_preferences_add_tab(preferences, self->prefs_tab);
+	
 }
 
 // --

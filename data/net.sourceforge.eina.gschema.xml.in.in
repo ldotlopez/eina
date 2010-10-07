@@ -14,6 +14,7 @@
   -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences" path="/apps/@PACKAGE@/preferences/">
     <child name="dock"     schema="net.sourceforge.eina.preferences.dock"     />
+    <child name="lastfm"   schema="net.sourceforge.eina.preferences.lastfm"   />
     <child name="lomo"     schema="net.sourceforge.eina.preferences.lomo"     />
     <child name="muine"    schema="net.sourceforge.eina.preferences.muine"    />
     <child name="player"   schema="net.sourceforge.eina.preferences.player"   />
@@ -40,6 +41,21 @@
 	</key>
   </schema>
 
+  <!-- lastfm -->
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lastfm" path="/apps/@PACKAGE@/preferences/lastfm/">
+    <key name="submit-enabled" type="b">
+      <default>false</default>
+      <_summary>Enable submission to LastFM</_summary>
+    </key>
+    <key name="username" type="s">
+      <default>''</default>
+      <_summary>LastFM username</_summary>
+    </key>
+    <key name="password" type="s">
+      <default>''</default>
+      <_summary>LastFM password</_summary>
+    </key>
+  </schema>
 
   <!-- lomo -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lomo" path="/apps/@PACKAGE@/preferences/lomo/">
