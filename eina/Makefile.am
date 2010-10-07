@@ -71,7 +71,7 @@ vogon_SOURCES = \
 	window.c \
 	vogon-app.c
 
-EXTRA_DIST += dbus-marshallers.list
+EXTRA_DIST += dbus-marshallers.list lomo-player-dbus-glue.xml
 
 if BUILD_DBUS
 eina_SOURCES += \
@@ -95,7 +95,7 @@ dbus-marshallers.c: dbus-marshallers.list
 
 BUILT_SOURCES += \
 	dbus-marshallers.c \
-	dbus-marshallers.h
+	dbus-marshallers.h \
 	lomo-player-dbus-glue.h 
 endif
 
