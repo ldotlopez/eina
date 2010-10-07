@@ -301,6 +301,30 @@ eina_preferences_tab_get_label_widget(EinaPreferencesTab *self)
 }
 
 void
+eina_preferences_tab_bind(EinaPreferencesTab *self, GSettings *settings, gchar *settings_key, gchar *object_name, gchar *property)
+{
+	g_return_if_fail(EINA_IS_PREFERENCES_TAB(self));
+	g_return_if_fail(G_IS_SETTINGS(settings));
+	g_return_if_fail(settings_key);
+	g_return_if_fail(property);
+
+	if (!object_name)
+		object_name = settings_key;
+
+	GObject *obj = G_OBJECT(gel_ui_container_find_widget(GTK_CONTAINER(self), object_name));
+	g_return_if_fail(obj && G_IS_OBJECT(obj));
+
+	g_settings_bind(settings, settings_key, obj, property, G_SETTINGS_BIND_DEFAULT);
+}
+
+void
+eina_preferences_tab_bind_entries(EinaPreferencesTab *self, GSettings *settings, guint n_entries, EinaPreferencesTabEntry entries[])
+{
+	for (guint i = 0; i < n_entries; i++)
+		eina_preferences_tab_bind(self, settings, entries[i].settings_key, entries[i].object_name, entries[i].property);
+}
+
+void
 eina_preferences_tab_bindv(EinaPreferencesTab *self, ...)
 {
 	va_list args;
@@ -315,22 +339,15 @@ eina_preferences_tab_bindv(EinaPreferencesTab *self, ...)
 			break;
 		}
 
-		gchar *key      = va_arg(args, gchar*);
-		gchar *obj_name = va_arg(args, gchar*);
-		gchar *prop     = va_arg(args, gchar*);
-
-		if (!key || !obj_name || !prop )
+		EinaPreferencesTabEntry entry[1];
+		if (!(entry[0].settings_key = va_arg(args, gchar*)) ||
+		    !(entry[0].object_name  = va_arg(args, gchar*)) ||
+			!(entry[0].property     = va_arg(args, gchar*)))
 		{
 			g_warning(N_("Invalid parameters"));
 			break;
 		}
-		GObject *obj = G_OBJECT(gel_ui_container_find_widget(GTK_CONTAINER(self), obj_name));
-		if (!obj || !G_IS_OBJECT(obj))
-		{
-			g_warning(N_("Invalid object '%s'"), obj_name);
-			break;
-		}
-		g_settings_bind(sets, key, obj, prop, G_SETTINGS_BIND_DEFAULT);
+		eina_preferences_tab_bind_entries(self, sets, 1, entry);
 	}
 	va_end(args);
 }

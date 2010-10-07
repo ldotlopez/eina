@@ -52,6 +52,12 @@ typedef struct {
 	void (*changed) (const gchar *key, GValue *value);
 } EinaPreferencesTabClass;
 
+typedef struct {
+	gchar *settings_key;
+	gchar *object_name;
+	gchar *property;
+} EinaPreferencesTabEntry;
+
 GType eina_preferences_tab_get_type (void);
 
 EinaPreferencesTab* eina_preferences_tab_new (void);
@@ -63,8 +69,10 @@ void       eina_preferences_tab_set_widget      (EinaPreferencesTab *self, GtkWi
 void       eina_preferences_tab_set_ui_string   (EinaPreferencesTab *self, gchar *ui_string);
 GtkWidget* eina_preferences_tab_get_widget      (EinaPreferencesTab *self, gchar *name);
 GtkWidget* eina_preferences_tab_get_label_widget(EinaPreferencesTab *self);
-void
-eina_preferences_tab_bindv(EinaPreferencesTab *self, ...);
+
+void eina_preferences_tab_bind(EinaPreferencesTab *self, GSettings *settings, gchar *settings_key, gchar *object_name, gchar *property);
+void eina_preferences_tab_bind_entries(EinaPreferencesTab *self, GSettings *settings, guint n_entries, EinaPreferencesTabEntry entries[]);
+void eina_preferences_tab_bindv(EinaPreferencesTab *self, ...);
 
 G_END_DECLS
 
