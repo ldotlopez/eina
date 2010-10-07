@@ -22,6 +22,7 @@
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include <errno.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <gel/gel-io.h>
@@ -35,6 +36,8 @@ static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelApp *app);
 static void
 load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, GelApp *app);
+
+GEL_DEFINE_QUARK_FUNC(eina_fs)
 
 /*
  * eina_fs_load_from_uri_multiple:
@@ -336,3 +339,22 @@ gboolean eina_fs_file_test(gchar *utf8_path, GFileTest test)
 	return ret;
 }
 
+gboolean
+eina_fs_mkdir(gchar *pathname, gint mode, GError **error)
+{
+	if (g_mkdir_with_parents(pathname, mode) == -1)
+	{
+		g_set_error_literal(error, eina_fs_quark(), errno, strerror(errno));
+		return FALSE;
+	}
+	return TRUE;
+}
+
+const gchar*
+eina_fs_get_cache_dir(void)
+{
+	const gchar *ret = NULL;
+	if (!ret)
+		ret = g_build_filename(g_get_user_cache_dir(), gel_get_package_name(), NULL);
+	return ret;
+}
