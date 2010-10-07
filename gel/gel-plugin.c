@@ -22,15 +22,6 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
-/*
-#include <gmodule.h>
-#include <glib/gprintf.h>
-#include <glib/gi18n.h>
-#include <gel/gel-misc.h>
-#include <gel/gel-plugin.h>
-#include <gel/gel-plugin-info.h>
-*/
-
 struct _GelPlugin {
 	GelPluginInfo   *info;
 	GelPluginEngine *engine;
@@ -40,6 +31,9 @@ struct _GelPlugin {
 	gboolean (*init) (GelPluginEngine *engine, struct _GelPlugin *plugin, GError **error); // Init function
 	gboolean (*fini) (GelPluginEngine *engine, struct _GelPlugin *plugin, GError **error); // Exit function
 	gpointer data;
+
+	gchar *libdir;
+	gchar *datadir;
 };
 
 GEL_DEFINE_QUARK_FUNC(plugin);
@@ -133,6 +127,8 @@ gel_plugin_free(GelPlugin *self, GError **error)
 	gel_plugin_engine_priv_run_fini(self->engine, self);
 
 	gel_free_and_invalidate(self->stringified, NULL, g_free);
+	gel_free_and_invalidate(self->datadir,     NULL, g_free);
+	gel_free_and_invalidate(self->libdir,      NULL, g_free);
 	gel_plugin_info_free(self->info);
 	g_module_close(self->module);
 	g_free(self);
@@ -328,12 +324,31 @@ gel_plugin_stringify(GelPlugin *self)
 	return self->stringified;
 }
 
-gchar *
+const gchar *
 gel_plugin_get_lib_dir(GelPlugin *plugin)
 {
-	const GelPluginInfo *info = gel_plugin_get_info(plugin);
-	if (info->pathname == NULL)
-		return g_strdup(gel_get_package_lib_dir());
-	else
-		return g_path_get_dirname(info->pathname);
+	if (!plugin->libdir)
+	{
+		const GelPluginInfo *info = gel_plugin_get_info(plugin);
+		if (info->pathname == NULL)
+			plugin->libdir = g_strdup(gel_get_package_lib_dir());
+		else
+			plugin->libdir = g_path_get_dirname(info->pathname);
+	}
+	return (const gchar *) plugin->libdir;
 }
+
+const gchar *
+gel_plugin_get_data_dir(GelPlugin *plugin)
+{
+	if (!plugin->datadir)
+	{
+		const GelPluginInfo *info = gel_plugin_get_info(plugin);
+		if (info->pathname)
+			plugin->datadir = g_strdup(info->dirname);
+		else
+			plugin->datadir = g_strdup(gel_get_package_data_dir());
+	}
+	return (const gchar *) plugin->datadir;
+}
+

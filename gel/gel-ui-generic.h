@@ -52,6 +52,7 @@ typedef struct {
 GType gel_ui_generic_get_type (void);
 
 GtkWidget  *gel_ui_generic_new (gchar *xml_string);
+GtkWidget  *gel_ui_generic_new_from_file (gchar *filename);
 GtkBuilder *gel_ui_generic_get_builder(GelUIGeneric *self);
 
 #define gel_ui_generic_get_typed(self,type_macro,name) \

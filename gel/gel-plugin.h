@@ -82,7 +82,8 @@ gel_plugin_get_resource(GelPlugin *plugin, GelResourceType type, gchar *resource
 const GList* gel_plugin_get_dependants(GelPlugin *plugin);
 gchar*       gel_plugin_stringify_dependants(GelPlugin *plugin);
 
-gchar *gel_plugin_get_lib_dir(GelPlugin *plugin);
+const gchar* gel_plugin_get_lib_dir (GelPlugin *plugin);
+const gchar* gel_plugin_get_data_dir(GelPlugin *plugin);
 
 // Access to plugin's data if defined
 #ifdef GEL_PLUGIN_DATA_TYPE

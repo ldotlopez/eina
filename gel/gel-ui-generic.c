@@ -121,6 +121,22 @@ gel_ui_generic_new (gchar *xml_string)
 	return g_object_new (GEL_UI_TYPE_GENERIC, "xml-string", xml_string, NULL);
 }
 
+GtkWidget*
+gel_ui_generic_new_from_file (gchar *filename)
+{
+	gchar *buffer = NULL;
+	GError *err = NULL;
+	if (!g_file_get_contents(filename, &buffer, NULL, &err))
+	{
+		g_warning(N_("Cannot load widget from file '%s': %s"), filename, err->message);
+		g_error_free(err);
+		return NULL;
+	}
+	GtkWidget *self = gel_ui_generic_new(buffer);
+	g_free(buffer);
+	return self;
+}
+
 GtkBuilder*
 gel_ui_generic_get_builder(GelUIGeneric *self)
 {
