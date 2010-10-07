@@ -35,14 +35,14 @@ action_activate_cb(GtkAction *action, GelPluginEngine *engine);
 static gchar *ui_mng_xml =
 "<ui>"
 "  <menubar name='Main'>"
-"    <menu name='Plugins' action='plugins-menu' >"
+"    <menu name='Edit' action='edit-menu' >"
 "      <menuitem name='PluginManager' action='plugin-manager-action' />"
 "    </menu>"
 "  </menubar>"
 "</ui>";
 
 static GtkActionEntry ui_mng_actions[] = {
-	{ "plugins-menu",          NULL,              N_("_Add-ons"),        "<alt>a",     NULL, NULL},
+	{ "edit-menu",          NULL,              N_("_Edit"),        "<alt>e",     NULL, NULL},
 	{ "plugin-manager-action", EINA_STOCK_PLUGIN, N_("Select pl_ugins"), "<control>u", NULL, (GCallback) action_activate_cb }
 };
 
