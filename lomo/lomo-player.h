@@ -316,6 +316,7 @@ void lomo_player_randomize(LomoPlayer *self);
 void lomo_player_print_pl(LomoPlayer *self);
 void lomo_player_print_random_pl(LomoPlayer *self);
 
+gint64 lomo_player_stats_get_stream_time_played(LomoPlayer *self);
 
 G_END_DECLS
 

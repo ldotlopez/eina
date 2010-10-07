@@ -18,6 +18,8 @@ liblomo_1_0_la_SOURCES = \
 	lomo-metadata-parser.c \
 	lomo-metadata-parser.h \
 	lomo-player.c          \
+	lomo-stats.c           \
+	lomo-stats.h           \
 	lomo-playlist.c        \
 	lomo-playlist.h        \
 	lomo-stream.c          \

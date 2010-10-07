@@ -23,6 +23,7 @@
 #include "lomo-playlist.h"
 #include "lomo-metadata-parser.h"
 #include "lomo-stream.h"
+#include "lomo-stats.h"
 #include "lomo-util.h"
 
 G_DEFINE_TYPE (LomoPlayer, lomo_player, G_TYPE_OBJECT)
@@ -45,6 +46,7 @@ struct _LomoPlayerPrivate {
 	GQueue             *queue;
 	LomoMetadataParser *meta;
 	LomoStream         *stream;
+	LomoStats          *stats;
 
 	gint          volume;
 	gboolean      mute;
@@ -700,6 +702,7 @@ lomo_player_init (LomoPlayer *self)
 	priv->pl      = lomo_playlist_new();
 	priv->meta    = lomo_metadata_parser_new();
 	priv->queue   = g_queue_new();
+	priv->stats   = lomo_stats_watch(self);
 
 	g_signal_connect(priv->meta, "tag", (GCallback) tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) all_tags_cb, self);
@@ -2000,6 +2003,20 @@ void
 lomo_player_print_random_pl(LomoPlayer *self)
 {
 	lomo_playlist_print_random(GET_PRIVATE(self)->pl);
+}
+
+/**
+ * lomo_player_stats_get_stream_time_played:
+ * @self: a #LomoPlayer
+ *
+ * Returns: Microseconds stream was played
+ */
+gint64 lomo_player_stats_get_stream_time_played(LomoPlayer *self)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), -1);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+
+	return lomo_stats_get_time_played(priv->stats);
 }
 
 // --
