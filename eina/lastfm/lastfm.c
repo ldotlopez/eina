@@ -450,7 +450,9 @@ lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaLastFM 
 
 	gint total  = lomo_nanosecs_to_secs(lomo_player_length_time(lomo));
 	gint played = lomo_nanosecs_to_secs(lomo_player_stats_get_stream_time_played(lomo));
+	#if DEBUG_DAEMON
 	g_warning("Got change. Played: %d:%02d (%d:%02d)", played / 60 , played % 60, total / 60 , total % 60);
+	#endif
 
 	if (total < 30)
 		return FALSE;
@@ -459,7 +461,9 @@ lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaLastFM 
 
 	// Submit!
 	lastfm_submit_submit(self);
+	#if DEBUG_DAEMON
 	g_warning("Submit to LastFM!");
+	#endif
 
 	return FALSE;
 }
