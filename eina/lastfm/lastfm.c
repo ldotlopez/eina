@@ -11,6 +11,7 @@
 #define DEBUG_DAEMON  0
 
 static void     lastfm_plugin_build_preferences(GelPlugin *plugin);
+// static void     lastfm_plugin_unbuild_preferences(GelPlugin *plugin);
 
 static gboolean lastfm_submit_enable      (EinaLastFM *self);
 static gboolean lastfm_submit_disable     (EinaLastFM *self);
@@ -46,15 +47,18 @@ lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	lastfm_submit_write_config(data);
 	lastfm_submit_enable(data);
 
-
 	return TRUE;
 }
 
 gboolean
 lastfm_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
+	// lastfm_plugin_unbuild_preferences(plugin);
 	EinaLastFM *data = gel_plugin_steal_data(plugin);
+
+	lastfm_submit_disable(data);
 	lomo_player_hook_remove(data->lomo, (LomoPlayerHook) lomo_hook_cb);
+
 	g_free(data->daemonpath);
 	g_free(data);
 
@@ -100,6 +104,20 @@ lastfm_plugin_build_preferences(GelPlugin *plugin)
 	eina_preferences_add_tab(preferences, self->prefs_tab);
 }
 
+/*
+static void
+lastfm_plugin_unbuild_preferences(GelPlugin *plugin)
+{
+	EinaLastFM *self = gel_plugin_get_data(plugin);
+
+	EinaPreferences *preferences = eina_plugin_get_preferences(plugin);
+	
+	g_object_weak_unref((GObject *) self->prefs_tab, (GWeakNotify) lastfm_weak_ref_cb, NULL);
+	eina_preferences_remove_tab(preferences, self->prefs_tab);
+	g_object_unref(self->prefs_tab);
+	self->prefs_tab = NULL;
+}
+*/
 // **********
 // * Submit *
 // **********
@@ -126,24 +144,20 @@ lastfm_submit_enable(EinaLastFM *self)
 	g_free(spool);
 
 	// Launch and watch daemon
-	#if DEBUG_DAEMON
 	gint outfd, errfd;
-	#endif
 	GError *err = NULL;
 	gchar *cmdl[] = { "python", self->daemonpath, "--debug", "--no-daemon", NULL }; 
 	if (!
 		#if DEBUG_DAEMON
 		g_spawn_async_with_pipes
 		#else
-		g_spawn_async
+		g_spawn_async_with_pipes
 		#endif
 		(g_get_current_dir(), cmdl, NULL,
 		G_SPAWN_SEARCH_PATH,
 		NULL, NULL,
 		&(self->daemonpid),
-		#if DEBUG_DAEMON
 		NULL, &outfd, &errfd,
-		#endif
 		&err))
 	{
 		g_warning(N_("Cannot spawn daemon (%s): %s"), self->daemonpath, err->message);
@@ -152,14 +166,17 @@ lastfm_submit_enable(EinaLastFM *self)
 	}
 	else
 	{
-		g_warning("Daemon started as %d", self->daemonpid);
 		#if DEBUG_DAEMON
+		g_warning("Daemon started as %d", self->daemonpid);
 		self->io_out = g_io_channel_unix_new(outfd);
 		self->io_err = g_io_channel_unix_new(errfd);
 		g_io_channel_set_close_on_unref(self->io_out, TRUE);
 		g_io_channel_set_close_on_unref(self->io_err, TRUE);
 		self->out_id = g_io_add_watch(self->io_out, G_IO_IN | G_IO_PRI | G_IO_ERR | G_IO_HUP | G_IO_NVAL, (GIOFunc) io_watch_cb, self);
 		self->err_id = g_io_add_watch(self->io_err, G_IO_IN | G_IO_PRI | G_IO_ERR | G_IO_HUP | G_IO_NVAL, (GIOFunc) io_watch_cb, self);
+		#else
+		close(outfd);
+		close(errfd);
 		#endif
 		return TRUE;
 	}
@@ -180,7 +197,9 @@ lastfm_submit_disable(EinaLastFM *self)
 		GPid pid = self->daemonpid;
 		self->daemonpid = 0;
 		kill(pid, 15);
+		#if DEBUG_DAEMON
 		g_warning("Daemon stopped");
+		#endif
 	}
 
 	// Remove watchers

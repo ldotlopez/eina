@@ -387,19 +387,21 @@ preferences_tab_redo_widget(EinaPreferencesTab *self)
 	#if 0
 	if (!image)
 		priv->label_image = image = g_object_ref_sink((GtkImage *) gtk_image_new_from_stock(GTK_STOCK_PREFERENCES, GTK_ICON_SIZE_SMALL_TOOLBAR));
-	#endif
 	if (!text)
 		priv->label_text = text = g_strdup("(null)");
-
-	GtkLabel *label = (GtkLabel *) gtk_label_new(text);
-	gtk_widget_show((GtkWidget *) image);
-	gtk_widget_show((GtkWidget *) label);
+	#endif
 
 	gel_free_and_invalidate(priv->label_widget, NULL, gtk_widget_destroy);
 
+	GtkLabel *label = (GtkLabel *) gtk_label_new(text);
+	gtk_widget_show((GtkWidget *) label);
+
 	priv->label_widget = gtk_hbox_new(FALSE, 5);
 	if (priv->label_image)
+	{
+		gtk_widget_show((GtkWidget *) image);
 		gtk_box_pack_start((GtkBox *) priv->label_widget, (GtkWidget *) image, FALSE, TRUE, 0);
+	}
 	gtk_box_pack_start((GtkBox *) priv->label_widget, (GtkWidget *) label, FALSE, TRUE, 0);
 	g_object_ref_sink(priv->label_widget);
 }

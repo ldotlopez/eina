@@ -9,11 +9,11 @@ eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], G
 
 	gint schema_version = eina_adb_schema_get_version(self, schema);
 
-	g_warning("Current '%s' schema: %d", schema, schema_version);
+	// g_warning("Current '%s' schema: %d", schema, schema_version);
 	gint i;
 	for (i = schema_version + 1; callbacks[i] != NULL; i++)
 	{
-		g_warning("Use callbacks from callbacks[%d]", i);
+		g_warning("Upgrade ADB from DB schema #%d to #%d. Using callbacks from callbacks[%d]", i, i+1, i);
 		if (!callbacks[i](self, error))
 			break;
 		eina_adb_schema_set_version(self, schema, i);

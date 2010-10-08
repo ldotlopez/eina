@@ -30,15 +30,18 @@ dbus_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	DBusData *data = g_new0(DBusData, 1);
 	data->engine = engine;
-	if (!(data->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
+	data->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
 		NULL,
 		BUS_NAME, OBJECT, INTERFACE,
 		NULL,
 		error
-		)))
-		goto init_failure;
-	g_signal_connect (data->mmkeys_proxy, "g-signal", G_CALLBACK (proxy_signal_cb), data);
+		);
+	g_warn_if_fail(data->mmkeys_proxy != NULL);
+	if (data->mmkeys_proxy)
+		g_signal_connect (data->mmkeys_proxy, "g-signal", G_CALLBACK (proxy_signal_cb), data);
+	else
+		g_warn_if_fail(data->mmkeys_proxy!= NULL);
 
 	data->server_id = g_bus_own_name(G_BUS_TYPE_SESSION,
 		SERVER_BUS_NAME,
@@ -48,15 +51,10 @@ dbus_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		(GBusNameLostCallback) server_name_lost_cb,
 		data,
 		NULL);
-	g_warning("Bus ID: %d", data->server_id);
+	g_warn_if_fail(data->server_id > 0);
 
 	gel_plugin_set_data(plugin, data);
 	return TRUE;
-
-init_failure:
-	gel_free_and_invalidate(data->mmkeys_proxy, NULL, g_object_unref);
-	gel_free_and_invalidate(data, NULL, g_free);
-	return FALSE;
 }
 
 gboolean
@@ -66,6 +64,7 @@ dbus_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_return_val_if_fail(data != NULL, FALSE);
 
 	gel_free_and_invalidate(data->mmkeys_proxy, NULL, g_object_unref);
+	gel_free_and_invalidate(data->server_id,    0,    g_bus_unown_name);
 	return TRUE;
 }
 
@@ -95,7 +94,7 @@ proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVari
 		lomo_player_go_prev(lomo, NULL);
 
 	else
-		g_warning(N_("Unhandled action: %s"), action);
+		g_warning(N_("Unknow action: %s"), action);
 }
 
 #if SERVER
@@ -186,7 +185,7 @@ static const GDBusInterfaceVTable interface_vtable =
 static void
 server_bus_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData *data)
 {
-	g_warning("%s: %s", __FUNCTION__, name);
+	// g_warning("%s: %s", __FUNCTION__, name);
 	GError *err = NULL;
 	GDBusNodeInfo *info = g_dbus_node_info_new_for_xml(lomo_player_instrospection_data, &err);
 	if (!info)
@@ -215,12 +214,12 @@ server_bus_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData 
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData *data)
 {
-	g_warning("%s: %s", __FUNCTION__, name);
+	// g_warning("%s: %s", __FUNCTION__, name);
 }
 
 static void
 server_name_lost_cb(GDBusConnection *connection, const gchar *name, DBusData *data)
 {
-	g_warning("%s: %s", __FUNCTION__, name);
+	g_warning(N_("DBus server name %s lost"), name);
 }
 
