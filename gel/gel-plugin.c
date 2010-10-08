@@ -22,6 +22,13 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
+#define DEBUG 0
+#if DEBUG
+#define debug(...) gel_warn(__VA_ARGS__)
+#else
+#define debug(...) do { ; } while(0)
+#endif
+
 struct _GelPlugin {
 	GelPluginInfo   *info;
 	GelPluginEngine *engine;
@@ -192,7 +199,7 @@ gel_plugin_add_reference(GelPlugin *self, GelPlugin *dependant)
 	}
 
 	self->references = g_list_prepend(self->references, dependant);
-	gel_warn("[@] '%s' -> '%s'", dependant->info->name, self->info->name);
+	debug("[@] '%s' -> '%s'", dependant->info->name, self->info->name);
 }
 
 void
@@ -209,7 +216,7 @@ gel_plugin_remove_reference(GelPlugin *self, GelPlugin *dependant)
 	self->references = g_list_remove_link(self->references, p);
 	g_list_free(p);
 
-	 gel_warn("[@] '%s' w '%s'", dependant->info->name, self->info->name);
+	debug("[@] '%s' w '%s'", dependant->info->name, self->info->name);
 }
 
 GelPluginEngine *

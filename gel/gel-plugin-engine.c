@@ -21,6 +21,13 @@
 #include "gel/gel.h"
 #include <glib/gi18n.h>
 
+#define DEBUG 0
+#if DEBUG
+#define debug(...) gel_warn(__VA_ARGS__)
+#else
+#define debug(...) do {;} while(0)
+#endif
+
 G_DEFINE_TYPE (GelPluginEngine, gel_plugin_engine, G_TYPE_OBJECT)
 
 #define GET_PRIVATE(o) \
@@ -79,10 +86,11 @@ gel_plugin_engine_dispose (GObject *object)
 		GError *error = NULL;
 		const GelPluginInfo *info = gel_plugin_get_info(plugin);
 
-		gel_warn("Must unload %s", info->name);
+		debug("Must unload %s", info->name);
+
 		if (!gel_plugin_engine_unload_plugin(self, plugin, &error))
 		{
-			gel_warn(N_("Plugin '%s' cannot be unloaded: %s"),
+			gel_error(N_("Plugin '%s' cannot be unloaded: %s"),
 				info->name, error ? error->message : N_("No error"));
 			g_error_free(error);
 			break;
@@ -215,7 +223,7 @@ GList *
 gel_plugin_engine_query_plugins(GelPluginEngine *self)
 {
 	GList *ret = NULL;
-	GList *iter = app->priv->infos;
+	GList *iter = self->priv->infos;
 	while (iter)
 	{
 		ret = g_list_prepend(ret, gel_plugin_info_dup((GelPluginInfo *) iter->data));
@@ -227,14 +235,14 @@ gel_plugin_engine_query_plugins(GelPluginEngine *self)
 void
 gel_plugin_engine_scan_plugins(GelPluginEngine *self)
 {
-	if (app->priv->infos)
+	if (self->priv->infos)
 	{
-		g_list_foreach(app->priv->infos, (GFunc) gel_plugin_info_free, NULL);
-		g_list_free(app->priv->infos);
-		app->priv->infos = NULL;
+		g_list_foreach(self->priv->infos, (GFunc) gel_plugin_info_free, NULL);
+		g_list_free(self->priv->infos);
+		self->priv->infos = NULL;
 	}
 
-	GList *paths = gel_plugin_engine_get_paths(app);
+	GList *paths = gel_plugin_engine_get_paths(self);
 	GList *iter = paths;
 	while (iter)
 	{
@@ -258,8 +266,8 @@ gel_plugin_engine_scan_plugins(GelPluginEngine *self)
 			}
 			else
 			{
-				gel_warn(N_("Plugin file %s loaded"), infopath);
-				app->priv->infos = g_list_prepend(app->priv->infos, info);
+				debug(N_("Plugin file %s loaded"), infopath);
+				self->priv->infos = g_list_prepend(self->priv->infos, info);
 			}
 			g_free(infopath);
 			g_free(p2);
@@ -283,21 +291,21 @@ gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError
  	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
  	g_return_val_if_fail(info, NULL);
  
- 	gel_warn("BEGIN LOAD '%s'", info->name);
+ 	debug("BEGIN LOAD '%s'", info->name);
  
  	// Check if plugin is already loaded
  	GelPlugin *plugin = (GelPlugin *) g_hash_table_lookup(self->priv->lookup, info->name);
  	if (plugin)
   	{
- 		gel_warn("[~] %s", info->name);
- 		gel_warn("END LOAD '%s'", info->name);
+ 		debug("[~] %s", info->name);
+ 		debug("END LOAD '%s'", info->name);
  		return plugin;
  	}
  
  	// Load deps
  	if (info->depends && info->depends[0])
  	{
- 		gel_warn("[?] '%s': %s", info->name, info->depends);
+ 		debug("[?] '%s': %s", info->name, info->depends);
  		gchar **deps = g_strsplit(info->depends, ",", 0);
  		for (gint i = 0; deps[i] && deps[i][0]; i++)
  		{
@@ -308,7 +316,7 @@ gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError
  					N_("Failed to load plugin dependency '%s' for '%s': %s"), deps[i], info->name, err->message);
  				g_error_free(err);
  				g_strfreev(deps);
- 				gel_warn("END LOAD '%s'", info->name);
+ 				debug("END LOAD '%s'", info->name);
  				return NULL;
  			}
  		}
@@ -318,14 +326,14 @@ gel_plugin_engine_load_plugin(GelPluginEngine *self, GelPluginInfo *info, GError
 	// Load plugin itself
 	if (!(plugin = gel_plugin_new(self, info, error)))
  	{
- 		gel_warn("[!] %s", info->name);
- 		gel_warn("END LOAD '%s'", info->name);
+ 		debug("[!] %s", info->name);
+ 		debug("END LOAD '%s'", info->name);
  
  		return NULL;
  	}
  
- 	gel_warn("[+] %s", info->name);
- 	gel_warn("END LOAD '%s'", info->name);
+ 	debug("[+] %s", info->name);
+ 	debug("END LOAD '%s'", info->name);
  
  	return plugin;
 }
