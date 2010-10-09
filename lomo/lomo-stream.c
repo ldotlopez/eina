@@ -116,6 +116,28 @@ lomo_stream_new (gchar *uri)
 	return self;
 }
 
+gchar *
+lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
+{
+	gchar *ret = NULL;
+	gchar *tag_str = lomo_stream_get_tag_by_id(self, tag_key);
+
+	if (tag_str != NULL)
+	{
+		ret = g_markup_escape_text(tag_str, -1);
+		g_free(tag_str);
+	}
+
+	if ((tag_key == 't') && (ret == NULL))
+	{
+		const gchar *tmp = lomo_stream_get_tag(self, LOMO_TAG_URI);
+		gchar *tmp2 = g_uri_unescape_string(tmp, NULL);
+		ret = g_path_get_basename(tmp2);
+		g_free(tmp2);
+	}
+	return ret;
+}
+
 /**
  * lomo_stream_get_tag:
  * @stream: a #LomoStream
