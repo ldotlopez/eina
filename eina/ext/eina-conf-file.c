@@ -301,11 +301,9 @@ void eina_conf_load(EinaConf *self) {
 	GError *error = NULL;
 	
 	EinaConfPrivate *priv = GET_PRIVATE(self);
-	if (!g_file_get_contents(priv->filename, &buff, NULL, &error)) {
-		gel_error("Error loading '%s': %s\n", priv->filename, error->message);
-	   	g_error_free(error);
+	
+	if (!g_file_get_contents(priv->filename, &buff, NULL, &error))
 		return;
-	}
 
 	lines = g_strsplit_set(buff, "\r\n", 0);
 	g_free(buff);
