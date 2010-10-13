@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "eina/eina-plugin2.h"
 #include "dock.h"
-#include "eina/application/application.h"
-#include "eina/player/player.h"
+#include <eina/eina-plugin2.h>
+#include <eina/application/application.h>
+#include <eina/player/player.h>
 
 typedef struct {
 	GtkWidget *dock;
@@ -47,7 +47,7 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	GtkWindow *win = GTK_WINDOW(gel_ui_application_get_window(application));
 	data->resizable = gtk_window_get_resizable(win);
-	gtk_window_set_resizable(win, TRUE);
+	g_object_bind_property(data->dock, "expanded", win, "resizable", G_BINDING_BIDIRECTIONAL|G_BINDING_BIDIRECTIONAL);
 
 	gel_plugin_engine_set_interface(engine, "dock", data->dock);
 
