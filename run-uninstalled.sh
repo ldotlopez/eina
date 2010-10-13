@@ -13,12 +13,17 @@ unset GTK_MODULES
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$LD_LIBRARY_PATH"
 
 # Resource handling (gel-related)
-# export EINA_UI_PATH="$D/ui"
 export EINA_PIXMAP_PATH="$D/pixmaps"
 export EINA_LIB_PATH="$R/plugins"
 
 # Eina specific
 export EINA_THEME_DIR="$D/icons"
+
+# Copy EINA vars to VACA (for testing)
+export VACA_PIXMAP_PATH="$EINA_PIXMAP_PATH"
+export VACA_LIB_PATH="$EINA_LIB_PATH"
+export VACA_THEME_PATH="$EINA_UI_PATH"
+
 
 [ -e "$R" ] && rm -rf "$R"
 
