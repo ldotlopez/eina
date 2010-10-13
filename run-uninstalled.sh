@@ -11,6 +11,12 @@ export EINA_LIB_PATH="`dirname $0`/tools/plugins"
 # Eina specific
 export EINA_THEME_DIR="`dirname $0`/icons"
 
+# Copy EINA vars to VACA (for testing)
+export VACA_UI_PATH="$EINA_UI_PATH"
+export VACA_PIXMAP_PATH="$EINA_PIXMAP_PATH"
+export VACA_LIB_PATH="$EINA_LIB_PATH"
+export VACA_THEME_PATH="$EINA_UI_PATH"
+
 rm -rf -- "`dirname $0`/tools/plugins"
 mkdir -p "`dirname $0`/tools/plugins"
 for PLUGIN_DIR in $(find "`dirname $0`/plugins" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | grep -v svn)
