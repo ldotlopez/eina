@@ -28,7 +28,8 @@
 #define eina_plugin_get_dock(plugin)       gel_plugin_get_dock(plugin)
 
 #define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
-#define EINA_DOCK_ORDER_KEY "page-order"
+#define EINA_DOCK_ORDER_KEY    "page-order"
+#define EINA_DOCK_EXPANDED_KEY "expanded"
 
 gboolean
 eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget);
