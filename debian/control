@@ -1,25 +1,37 @@
 Source: eina-player
 Section: sound
 Priority: extra
-Maintainer: Luis Lopez <xuzo@cuarentaydos.com>
-Build-Depends: debhelper (>= 7), quilt, autotools-dev, intltool, libtool, pkg-config, python2.6, libgstreamer0.10-dev, libgtk2.0-dev, libdbus-glib-1-dev, libunique-dev, libsqlite3-dev, libcurl4-gnutls-dev, uuid-dev, libnotify-dev, libclutter-gtk-0.10-dev, gtk-doc-tools
-Standards-Version: 3.7.3
+Maintainer: Luis Lopez <luis.lopez@cuarentaydos.com>
+Build-Depends: debhelper (>= 7.0.50~),
+               quilt (>= 0.46-7~),
+               autotools-dev, intltool, libtool, pkg-config, python2.6,
+               libgstreamer0.10-dev, libgtk2.0-dev (>= 2.22), libcurl4-gnutls-dev, libunique-dev, gtk-doc-tools,
+               libdbus-glib-1-dev, libsqlite3-dev, libnotify-dev
+Standards-Version: 3.9.1
+Homepage: http://eina.sourceforge.net/
 
 Package: eina-player
 Architecture: any
-Depends: libc6, libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk2.0-0 (>= 2.12.0), libdbus-glib-1-2, libunique-1.0-0, libsqlite3-0, libcurl3-gnutls, libuuid1, libclutter-gtk-0.10-0
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python:Depends}
+X-Depends: libc6 (>= 2.7),
+           libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk2.0-0 (>= 2.12.0), libcurl3-gnutls, libunique-1.0-0,
+           libdbus-glib-1-2, libsqlite3-0, python
 Recommends: gstreamer0.10-ffmpeg, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-ugly
 Replaces: liblomo1, eina
 Conflicts: liblomo1, eina
 Provides: liblomo1, eina
 Description: Music player based on gtk+-2.0 and gstreamer
  Eina is a classic player for the modern era. It features a small screen
- footprint, network capabilites and extensible functionality through plugins.
+ footprint, network capabilities and extensible functionality through plugins.
 
 Package: eina-player-dev
 Section: devel
 Architecture: any
-Depends: libc6-dev, eina (= ${Source-Version}), libgtk2.0-dev (>= 2.12.0), libgstreamer0.10-0 (>= 0.10.0), libsqlite3-dev, libclutter-gtk-0.10-dev
+Depends: libc6-dev (>= 2.7), eina (= ${Source-Version}),
+         libgtk2.0-dev (>= 2.12.0), libgstreamer0.10-0 (>= 0.10.0),
+         libsqlite3-dev
 Replaces: liblomo-dev, eina-dev
 Conflicts: liblomo-dev, eina-dev
 Provides: liblomo-dev, eina-dev
@@ -29,6 +41,7 @@ Description: Music player based on liblomo and gtk+-2.0 - development files
  the main eina package. Install this if you wish to compile your own plugins.
 
 Package: eina-player-doc
+Section: doc
 Architecture: all
 Replaces: eina-doc
 Conflicts: eina-doc
@@ -36,23 +49,24 @@ Provides: eina-doc
 Depends: lynx | www-browser
 Description: Music player based on gtk+-2.0 and gstreamer - Documentation
  Eina is a classic player for the modern era. It features a small screen
- footprint, network capabilites and extensible functionality through plugins.
+ footprint, network capabilities and extensible functionality through plugins.
 
 Package: eina
 Architecture: all
 Depends: eina-player
 Description: Dummy package for eina -> eina-player
- Dummy package for eina -> eina-player
+ Dummy package for eina -> eina-player. It's safe to remove it.
 
 Package: eina-dev
 Architecture: all
 Depends: eina-player-dev
 Description: Dummy package for eina-dev -> eina-player-dev
- Dummy package for eina-dev -> eina-player-dev
+ Dummy package for eina-dev -> eina-player-dev. It's safe to remove it.
 
 Package: eina-doc
+Section: doc
 Architecture: all
 Depends: eina-player-doc
 Description: Dummy package for eina -> eina-player-doc
- Dummy package for eina-doc -> eina-player-doc
+ Dummy package for eina-doc -> eina-player-doc. It's safe to remove it.
 
