@@ -38,10 +38,10 @@ libeinaext_la_SOURCES = \
 	eina-volume.c \
 	eina-window.c
 
-if USE_CLUTTER_GTK
-libeinaext_la_SOURCES += eina-cover-clutter.c
-include_HEADERS += eina-cover-clutter.h
-endif
+#if USE_CLUTTER_GTK
+#libeinaext_la_SOURCES += eina-cover-clutter.c
+#include_HEADERS += eina-cover-clutter.h
+#endif
 
 EXTRA_DIST += \
 	eina-plugin-dialog.ui \
