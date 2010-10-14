@@ -17,3 +17,6 @@ SUBDIRS += \
 	recently
 endif
 
+if BUILD_NTFY
+SUBDIRS += ntfy
+endif
