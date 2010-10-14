@@ -28,7 +28,7 @@ usr/lib/eina-player/muine/muine.ui
 usr/lib/eina-player/muine/libmuine.so
 usr/lib/eina-player/ntfy
 usr/lib/eina-player/ntfy/libntfy.so
-usr/lib/eina-player/ntfy/libntfy.png
+usr/lib/eina-player/ntfy/ntfy.png
 usr/lib/eina-player/recently
 usr/lib/eina-player/recently/go-back.png
 usr/lib/eina-player/recently/librecently.so
