@@ -69,10 +69,6 @@
                         <property name="focus_on_click">False</property>
                         <property name="orientation">vertical</property>
                         <property name="size">large-toolbar</property>
-                        <property name="icons">audio-volume-muted
-audio-volume-high
-audio-volume-low
-audio-volume-medium</property>
                       </object>
                     </child>
                   </object>
