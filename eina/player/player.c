@@ -85,6 +85,11 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	gel_plugin_engine_set_interface(engine, "player", player);
 
 	// Pack and show
+	g_object_set(G_OBJECT(player),
+		"hexpand", TRUE,
+		"vexpand", FALSE,
+		NULL);
+
 	gtk_box_pack_start (
 		(GtkBox *) gel_ui_application_get_window_content_area(application),
 		player,

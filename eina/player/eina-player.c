@@ -184,11 +184,16 @@ eina_player_new (void)
 		"art",      art_new(),
 		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE, NULL),
 		NULL);
-	GtkContainer *cover_container = gel_ui_generic_get_typed(self, GTK_CONTAINER, "cover-container");
-	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
-	gtk_box_pack_start(GTK_BOX(cover_container), GTK_WIDGET(priv->cover), TRUE, TRUE, 0);
-	gtk_widget_show(GTK_WIDGET(priv->cover));
 
+	GtkContainer *cover_container = gel_ui_generic_get_typed(self, GTK_CONTAINER, "cover-container");
+	g_object_set((GObject *) cover_container,
+		"hexpand", FALSE,
+		"vexpand", FALSE,
+		NULL);
+
+	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
+	gtk_container_add(cover_container, (GtkWidget *) priv->cover);
+	gtk_widget_show(GTK_WIDGET(priv->cover));
 
 	#if 0
 	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
