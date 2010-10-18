@@ -387,6 +387,8 @@ art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self)
 	self->search = NULL;
 
 	gpointer data = art_search_get_result(search);
+	if (!data)
+		return;
 	g_return_if_fail(data && GDK_IS_PIXBUF(data));
 
 	self->cover = (GdkPixbuf *) data;
