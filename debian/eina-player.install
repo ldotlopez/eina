@@ -7,8 +7,7 @@ usr/lib/liblomo-1.0.so.1.0.0
 usr/lib/eina-player/adb
 usr/lib/eina-player/adb/adb.png
 usr/lib/eina-player/adb/libadb.so
-usr/lib/eina-player/coverplus/libcoverplus.so.0.0.0
-usr/lib/eina-player/coverplus/libcoverplus.so.0
+usr/lib/eina-player/coverplus/libcoverplus.so
 usr/lib/eina-player/lastfm
 usr/lib/eina-player/lastfm/lastfm.png
 usr/lib/eina-player/lastfm/lastfm.ui
