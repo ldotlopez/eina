@@ -22,7 +22,6 @@ lomo/lomo-util.c
 eina/ext/curl-engine.c
 eina/ext/eina-conf-file.c
 eina/ext/eina-cover.c
-eina/ext/eina-cover-clutter.c
 eina/ext/eina-cover-image.c
 eina/ext/eina-file-chooser-dialog.c
 eina/ext/eina-file-utils.c
