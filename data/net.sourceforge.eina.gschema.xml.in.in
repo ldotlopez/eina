@@ -17,6 +17,7 @@
     <child name="lastfm"   schema="net.sourceforge.eina.preferences.lastfm"   />
     <child name="lomo"     schema="net.sourceforge.eina.preferences.lomo"     />
     <child name="muine"    schema="net.sourceforge.eina.preferences.muine"    />
+    <child name="ntfy"     schema="net.sourceforge.eina.preferences.ntfy"     />
     <child name="player"   schema="net.sourceforge.eina.preferences.player"   />
     <child name="playlist" schema="net.sourceforge.eina.preferences.playlist" />
   </schema>
@@ -96,6 +97,15 @@
 	  <_summary>Group streams based on this field</_summary>
     </key>
   </schema>
+
+  <!-- ntfy -->
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.ntft" path="/apps/@PACKAGE@/preferences/ntfy/">
+    <key name="enabled" type="b">
+      <default>true</default>
+	  <_summary>Enable notifications</_summary>
+    </key>
+  </schema>
+
 
   <!-- player -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.player" path="/apps/@PACKAGE@/preferences/player/">

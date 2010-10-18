@@ -79,11 +79,17 @@ preferences_plugin_fini (GelPluginEngine *engine, GelPlugin *plugin, GError **er
 
 	if (self->tabs)
 	{
-		preferences_deattach_menu(self);
-		g_list_foreach(self->tabs, (GFunc) g_object_unref, NULL);
+		GList *iter = self->tabs;
+		while (iter)
+		{
+			eina_preferences_remove_tab(self, EINA_PREFERENCES_TAB(iter->data));
+			iter = self->tabs;
+		}
 		g_list_free(self->tabs);
 		self->tabs = NULL;
+		// Edit/Preferences menu is deattached automatically after remove last tab
 	}
+
 
 	g_free(self);
 	return TRUE;
@@ -196,10 +202,20 @@ preferences_deattach_menu(EinaPreferences *self)
 		return;
 	}
 
-	gtk_ui_manager_remove_action_group(ui_manager, self->ag);
-	g_object_unref(self->ag);
+	g_warn_if_fail(self->ui_merge_id > 0);
+	if (self->ui_merge_id)
+	{
+		gtk_ui_manager_remove_ui(ui_manager, self->ui_merge_id);
+		self->ui_merge_id = 0;
+	}
 
-	gtk_ui_manager_remove_ui(ui_manager, self->ui_merge_id);
+	g_warn_if_fail(self->ag != NULL);
+	if (self->ag)
+	{
+		gtk_ui_manager_remove_action_group(ui_manager, self->ag);
+		g_object_unref(self->ag);
+		self->ag = NULL;
+	}
 }
 
 static void

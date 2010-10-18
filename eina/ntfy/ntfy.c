@@ -17,24 +17,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Plugin::Ntfy"
-#define GEL_PLUGIN_DATA_TYPE EinaNtfy
+#include <eina/eina-plugin2.h>
+#include "ntfy.h"
+// #include <eina/eina/vogon.h>
+#include <eina/lomo/lomo.h>
+#include <eina/art/art.h>
 #include <libnotify/notify.h>
-#include <eina/eina-plugin.h>
-#include <eina/vogon.h>
-#include <plugins/ntfy/ntfy.h>
+
+#define HAVE_VOGON 0
 
 #define SETTINGS_PATH "/ntfy"
 #define ACTION_NAME   "Notifications"
 #define ACTION_PATH   "/Main/PluginsPlaceholder/Notifications"
 
 struct _EinaNtfy {
-	EinaObj  parent;
+	GelPlugin      *plugin;
+	GSettings      *settings;
 	gboolean        enabled;
 
+	#if HAVE_VOGON
 	gboolean        vogon_enabled;
 	GtkActionGroup *vogon_ag;
 	guint           vogon_merge_id;
+	#endif
 
 	GtkStatusIcon *status_icon;
 	
@@ -51,19 +56,21 @@ struct _EinaNtfy {
 
 // Init/fini plugin
 gboolean
-ntfy_init(GelApp *app, GelPlugin *plugin, GError **error);
+ntfy_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
 gboolean
-ntfy_fini(GelApp *app, GelPlugin *plugin, GError **error);
+ntfy_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
 
 // Mini API
 static gboolean
 ntfy_enable(EinaNtfy *self, GError **error);
 static void
 ntfy_disable(EinaNtfy *self);
+#if HAVE_VOGON
 static gboolean
 vogon_enable(EinaNtfy *self);
 static gboolean
 vogon_disable(EinaNtfy *self);
+#endif
 
 static void
 ntfy_reset(EinaNtfy *self);
@@ -71,89 +78,82 @@ static void
 ntfy_sync(EinaNtfy *self);
 
 // Callback
+#if HAVE_VOGON
 static void
-app_plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self);
+engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self);
 static void
-app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self);
+engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self);
+static void
+action_activate_cb(GtkAction *action, EinaNtfy *self);
+#endif
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self);
 static void
 art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self);
-static void
-action_activate_cb(GtkAction *action, EinaNtfy *self);
 
 static void
-settings_changed_cb(GSettings *settings, gchar *key, EinaNtfy *self);
+settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self);
 
-GEL_AUTO_QUARK_FUNC(ntfy)
+// GEL_AUTO_QUARK_FUNC(ntfy)
 
 // ------------------
 // Init / fini plugin
 // ------------------
 
 G_MODULE_EXPORT gboolean
-ntfy_init(GelApp *app, GelPlugin *plugin, GError **error)
+ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	EinaNtfy *self;
 
 	self = g_new0(EinaNtfy, 1);
-	if(!eina_obj_init(EINA_OBJ(self), plugin, "ntfy", EINA_OBJ_NONE, error))
-	{
-		gel_error("Cannot create component");
-		return FALSE;
-	}
-
-	// Load conf
-	EinaConf *conf = EINA_OBJ_GET_SETTINGS(self);
-	if (conf == NULL)
-	{
-		g_set_error(error, ntfy_quark(), EINA_NTFY_SETTINGS_ERROR,
-			N_("Cannot get settings object"));
-		eina_obj_fini(EINA_OBJ(self));
-		return FALSE;
-	}
+	self->plugin = plugin;
 
 	// Enable if needed (by default on)
-	GSettings *settings = gel_app_get_gsettings(app, EINA_PLUGIN_NTFY_PREFERENCES_DOMAIN);
-	if (g_settings_get_boolean(settings, EINA_PLUGIN_NTFY_ENABLED_KEY))
+	GSettings *settings = g_settings_new(EINA_NTFY_PREFERENCES_DOMAIN);
+	if (g_settings_get_boolean(settings, EINA_NTFY_ENABLED_KEY))
 	{
 		if (!ntfy_enable(self, error))
 		{
-			ntfy_fini(app, plugin, NULL);
+			ntfy_fini(engine, plugin, NULL);
 			return FALSE;
 		}
 	}
 	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
 
 	// Try to enable vogon integration
+	#if HAVE_VOGON
 	GelPlugin *vogon = gel_app_get_plugin_by_name(app, "vogon");
 	if (vogon && gel_plugin_is_enabled(vogon))
 		if (!vogon_enable(self))
 			gel_warn("Cannot enable vogon integration");
 
-	g_signal_connect(app, "plugin-init", (GCallback) app_plugin_init_cb, self);
-	g_signal_connect(app, "plugin-fini", (GCallback) app_plugin_init_cb, self);
+	g_signal_connect(app, "plugin-init", (GCallback) engine_plugin_init_cb, self);
+	g_signal_connect(app, "plugin-fini", (GCallback) engine_plugin_init_cb, self);
+	#endif
 
 	gel_plugin_set_data(plugin, self);
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
-ntfy_fini(GelApp *app, GelPlugin *plugin, GError **error)
+ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	EinaNtfy *self = GEL_PLUGIN_DATA(plugin);
+	EinaNtfy *self = (EinaNtfy *) gel_plugin_steal_data(plugin);
 
-	g_signal_handlers_disconnect_by_func(app, app_plugin_init_cb, self);
-	g_signal_handlers_disconnect_by_func(app, app_plugin_fini_cb, self);
+	#if HAVE
+	g_signal_handlers_disconnect_by_func(engine, engine_plugin_init_cb, self);
+	g_signal_handlers_disconnect_by_func(engine, engine_plugin_fini_cb, self);
 
 	// Try to disable vogon integration
 	GelPlugin *vogon = gel_app_get_plugin_by_name(app, "vogon");
 	if (vogon && gel_plugin_is_enabled(vogon))
 		if (!vogon_disable(self))
 			gel_warn("Cannot disable vogon integration");
+	#endif
 
 	ntfy_disable(self);
-	eina_obj_fini((EinaObj *) self);
+	gel_free_and_invalidate(self->settings, NULL, g_object_unref);
+	g_free(self);
 
 	return TRUE;
 }
@@ -168,17 +168,18 @@ ntfy_enable(EinaNtfy *self, GError **error)
 		notify_init("Eina");
 
 	self->enabled = TRUE;
-	self->ntfy = notify_notification_new(N_("Now playing"), NULL, NULL, NULL);
+	self->ntfy = notify_notification_new(N_("Now playing"), NULL, NULL);
 
-	g_signal_connect_swapped(eina_obj_get_lomo(self), "play",     (GCallback) ntfy_sync, self);
-	g_signal_connect_swapped(eina_obj_get_lomo(self), "change",   (GCallback) ntfy_reset, self);
-	g_signal_connect(eina_obj_get_lomo(self), "all-tags", (GCallback) lomo_all_tags_cb, self);
+	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
+	g_signal_connect_swapped(lomo, "play",     (GCallback) ntfy_sync, self);
+	g_signal_connect_swapped(lomo, "change",   (GCallback) ntfy_reset, self);
+	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
 
 	gchar *path = NULL;
 	if (!(path = gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png")) ||
 	    !(self->default_cover = gdk_pixbuf_new_from_file_at_scale(path, 64, 64, TRUE, NULL)))
 	{
-		gel_error(N_("Cannot load resource %s. Cover art will be disabled."), "cover-default.png");
+		g_warning(N_("Cannot load resource %s. Cover art will be disabled."), "cover-default.png");
 	}
 
 	gel_free_and_invalidate(path, NULL, g_free);
@@ -193,9 +194,10 @@ ntfy_disable(EinaNtfy *self)
 		return;
 	self->enabled = FALSE;
 
-	g_signal_handlers_disconnect_by_func(eina_obj_get_lomo(self), (GCallback) ntfy_reset, self);
-	g_signal_handlers_disconnect_by_func(eina_obj_get_lomo(self), (GCallback) ntfy_sync, self);
-	g_signal_handlers_disconnect_by_func(eina_obj_get_lomo(self), (GCallback) lomo_all_tags_cb, self);
+	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
+	g_signal_handlers_disconnect_by_func(lomo, (GCallback) ntfy_reset, self);
+	g_signal_handlers_disconnect_by_func(lomo, (GCallback) ntfy_sync, self);
+	g_signal_handlers_disconnect_by_func(lomo, (GCallback) lomo_all_tags_cb, self);
 
 	self->stream = NULL;
 	self->all_tags  = FALSE;
@@ -210,11 +212,12 @@ ntfy_disable(EinaNtfy *self)
 
 	if (self->search)
 	{
-		art_cancel(EINA_OBJ_GET_ART(self), self->search);
+		art_cancel(eina_plugin_get_art(self->plugin), self->search);
 		self->search = NULL;
 	}
 }
 
+#if HAVE_VOGON
 static gboolean
 vogon_enable(EinaNtfy *self)
 {
@@ -307,7 +310,7 @@ vogon_disable(EinaNtfy *self)
 
 	return TRUE;
 }
-
+#endif
 
 // -------------
 static void
@@ -319,7 +322,7 @@ ntfy_reset(EinaNtfy *self)
 	gel_free_and_invalidate(self->cover, NULL, g_object_unref);
 	if (self->search)
 	{
-		art_cancel(eina_obj_get_art(self), self->search);
+		art_cancel(eina_plugin_get_art(self->plugin), self->search);
 		self->search = NULL;
 	}
 }
@@ -327,7 +330,7 @@ ntfy_reset(EinaNtfy *self)
 static void
 ntfy_sync(EinaNtfy *self)
 {
-	LomoPlayer *lomo     = eina_obj_get_lomo(self);
+	LomoPlayer *lomo     = eina_plugin_get_lomo(self->plugin);
 	LomoStream *stream   = lomo_player_get_current_stream(lomo);
 	gboolean    all_tags = lomo_stream_get_all_tags_flag(stream);
 
@@ -359,7 +362,7 @@ ntfy_sync(EinaNtfy *self)
 
 	// Check cover
 	if (all_tags)
-		self->search = art_search(eina_obj_get_art(self), self->stream, (ArtFunc ) art_search_cb, self);
+		self->search = art_search(eina_plugin_get_art(self->plugin), self->stream, (ArtFunc ) art_search_cb, self);
 
 	GdkPixbuf *cover = self->cover ? self->cover : self->default_cover;
 	notify_notification_update(self->ntfy, N_("Playing now"), body, NULL);
@@ -369,8 +372,9 @@ ntfy_sync(EinaNtfy *self)
 }
 // -------------
 
+#if HAVE_VOGON
 static void
-app_plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self)
+engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self)
 {
 	if (!g_str_equal(gel_plugin_get_info(plugin)->name, "vogon"))
 		return;
@@ -378,13 +382,13 @@ app_plugin_init_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self)
 }
 
 static void
-app_plugin_fini_cb(GelApp *app, GelPlugin *plugin, EinaNtfy *self)
+engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self)
 {
 	if (!g_str_equal(gel_plugin_get_info(plugin)->name, "vogon"))
 		return;
 	vogon_disable(self);
 }
-
+#endif
 
 static void
 art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self)
@@ -404,7 +408,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self)
 	if (stream != self->stream)
 		return;
 	
-	Art *art = eina_obj_get_art(self);
+	Art *art = eina_plugin_get_art(self->plugin);
 	// Start search
 	if (self->search)
 		art_cancel(art, self->search);
@@ -413,6 +417,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self)
 	ntfy_sync(self);
 }
 
+#if HAVE_VOGON
 static void
 action_activate_cb(GtkAction *action, EinaNtfy *self)
 {
@@ -420,11 +425,7 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 	if (g_str_equal(ACTION_NAME, name))
 	{
 		// FIXME: Check if callback is called
-		g_settings_set_boolean(
-			eina_obj_get_gsettings(self, EINA_PLUGIN_NTFY_PREFERENCES_DOMAIN),
-			EINA_PLUGIN_NTFY_ENABLED_KEY,
-			gtk_toggle_action_get_active((GtkToggleAction*) action)
-			);
+		g_settings_set_boolean(self->settings, EINA_NTFY_ENABLED_KEY, gtk_toggle_action_get_active((GtkToggleAction*) action));
 		/*
 		gboolean active = gtk_toggle_action_get_active((GtkToggleAction*) action);
 		if (active)
@@ -437,11 +438,12 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 		*/
 	}
 }
+#endif
 
 static void
-settings_changed_cb(GSettings *settings, gchar *key, EinaNtfy *self)
+settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self)
 {
-	if (g_str_equal(key, EINA_PLUGIN_NTFY_ENABLED_KEY))
+	if (g_str_equal(key, EINA_NTFY_ENABLED_KEY))
 	{
 		if (g_settings_get_boolean(settings, key))
 			ntfy_enable(self, NULL);
@@ -452,16 +454,4 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaNtfy *self)
 
 	g_warning(N_("Unhanded key '%s'"), key);
 }
-
-EINA_PLUGIN_INFO_SPEC(ntfy,
-	"0.1.0",
-	"lomo,art,settings",
-
-	NULL,
-	NULL,
-
-	N_("Notifications plugin"),
-	NULL,
-	"ntfy.png"
-);
 

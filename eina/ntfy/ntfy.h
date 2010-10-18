@@ -22,8 +22,8 @@
 #include <config.h>
 #include <glib.h>
 
-#define EINA_PLUGIN_NTFY_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.plugins.ntfy"
-#define EINA_PLUGIN_NTFY_ENABLED_KEY        "enabled"
+#define EINA_NTFY_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.ntfy"
+#define EINA_NTFY_ENABLED_KEY        "enabled"
 
 typedef struct _EinaNtfy EinaNtfy;
 

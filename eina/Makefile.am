@@ -19,10 +19,15 @@ SUBDIRS +=   \
 	recently
 endif
 
+if BUILD_NTFY
+SUBDIRS += ntfy
+endif
+
 DIST_SUBDIRS = \
 	$(SUBDIRS) \
 	adb        \
 	muine      \
+	ntfy       \
 	recently
 
 bin_PROGRAMS = eina

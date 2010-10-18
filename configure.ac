@@ -14,7 +14,7 @@ IT_PROG_INTLTOOL([0.40.0])
 LT_INIT
 AM_GLIB_GNU_GETTEXT
 GTK_DOC_CHECK(1.9)
-GOBJECT_INTROSPECTION_CHECK([0.6.7])
+#GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
 # Package information
@@ -268,7 +268,7 @@ AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 dnl
 dnl notify (ntfy)
 dnl
-NOTIFY_VERSION="9.4.0"
+NOTIFY_VERSION="0.6.0"
 notify_modules="libnotify >= $NOTIFY_VERSION"
 PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 [
@@ -383,7 +383,7 @@ AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
 AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
-AM_CONDITIONAL(BUILD_NTFY,     test 0 -eq 1)
+AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([
@@ -408,6 +408,7 @@ eina/player/Makefile
 eina/playlist/Makefile
 eina/preferences/Makefile
 eina/muine/Makefile
+eina/ntfy/Makefile
 eina/recently/Makefile
 eina/statusicon/Makefile
 pixmaps/Makefile

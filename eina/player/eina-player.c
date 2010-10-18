@@ -404,17 +404,13 @@ player_update_information(EinaPlayer *self)
 		NULL);
 	g_free(info);
 
-	gchar *title = g_strdup(lomo_stream_get_tag(stream, LOMO_TAG_TITLE));
-	if (title == NULL)
-	{
-		gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
-		title =  g_uri_unescape_string(tmp, NULL);
-		g_free(tmp);
-	}
 
 	if (window)
+	{
+		gchar *title = gel_str_parser("{%a - }%t", (GelStrParserFunc) lomo_stream_string_parser_cb, stream); 
 		gtk_window_set_title(window, title);
-	g_free(title);
+		g_free(title);
+	}
 }
 
 // --
