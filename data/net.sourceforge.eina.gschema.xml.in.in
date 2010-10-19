@@ -99,7 +99,7 @@
   </schema>
 
   <!-- ntfy -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.ntft" path="/apps/@PACKAGE@/preferences/ntfy/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.ntfy" path="/apps/@PACKAGE@/preferences/ntfy/">
     <key name="enabled" type="b">
       <default>true</default>
 	  <_summary>Enable notifications</_summary>
