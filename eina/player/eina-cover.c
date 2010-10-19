@@ -35,14 +35,14 @@ typedef struct _EinaCoverPrivate EinaCoverPrivate;
 
 struct _EinaCoverPrivate {
 	LomoPlayer *lomo;      // <Extern object, used for monitor changes
-	Art        *art;       // <Extern object, used for search covers
+	EinaArt    *art;       // <Extern object, used for search covers
 	GtkWidget  *renderer;  // <Renderer
 
 	GdkPixbuf *default_pb; // <Default pixbuf to use if no cover is found
 	GdkPixbuf *loading_pb; // <Pixbuf for used while search is performed
 	GdkPixbuf *curr_pb;    // <Pointer alias for current pixbuf
 
-	ArtSearch *search;     // <Search in progress
+	EinaArtSearch *search; // <Search in progress
 
 	guint loading_timeout; // <Used to draw a loading cover after a timeout
 	gboolean got_cover;    // <Flag to indicate if cover was found
@@ -266,12 +266,12 @@ eina_cover_get_renderer(EinaCover *self)
 }
 
 void
-eina_cover_set_art(EinaCover *self, Art *art)
+eina_cover_set_art(EinaCover *self, EinaArt *art)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 
 	if (priv->search)
-		art_cancel(priv->art, priv->search);
+		eina_art_cancel(priv->art, priv->search);
 	priv->art = art;
 	g_object_notify((GObject *) self, "art");
 }
@@ -394,12 +394,12 @@ cover_set_loading(EinaCover *self)
 }
 
 static void
-search_finish_cb(Art *art, ArtSearch *search, EinaCover *self)
+search_finish_cb(EinaArt *art, EinaArtSearch *search, EinaCover *self)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 	priv->search = NULL;
 
-	GdkPixbuf *pb = art_search_get_result(search);
+	GdkPixbuf *pb = eina_art_search_get_result(search);
 	debug("* Search got result: %p\n", pb);
 	cover_set_pixbuf(self, pb);
 }
@@ -414,7 +414,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (priv->art && priv->search)
 	{
 		debug(" discart running search %p\n", priv->search);
-		art_cancel(priv->art, priv->search);
+		eina_art_cancel(priv->art, priv->search);
 		priv->search = NULL;
 	}
 	if (!priv->renderer)
@@ -436,7 +436,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 		return;
 	}
 
-	priv->search = art_search(priv->art, stream, (ArtFunc) search_finish_cb, self);
+	priv->search = eina_art_search(priv->art, stream, (EinaArtFunc) search_finish_cb, self);
 	debug(" new search started: %p\n", priv->search);
 	if (priv->search)
 	{

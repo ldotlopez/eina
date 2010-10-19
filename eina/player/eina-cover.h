@@ -24,7 +24,7 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 #include <lomo/lomo-player.h>
-#include <eina/art/art.h>
+#include <eina/art/ea.h>
 
 G_BEGIN_DECLS
 
@@ -59,7 +59,7 @@ EinaCover* eina_cover_new (void);
 void       eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer);
 GtkWidget* eina_cover_get_renderer(EinaCover *self);
 
-void       eina_cover_set_art(EinaCover *self, Art *art);
+void       eina_cover_set_art(EinaCover *self, EinaArt *art);
 void       eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo);
 void       eina_cover_set_default_pixbuf(EinaCover *self, GdkPixbuf *pixbuf);
 void       eina_cover_set_loading_pixbuf(EinaCover *self, GdkPixbuf *pixbuf);

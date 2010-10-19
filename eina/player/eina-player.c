@@ -181,7 +181,7 @@ eina_player_new (void)
 
 	// Cover widget
 	priv->cover = g_object_new(EINA_TYPE_COVER,
-		"art",      art_new(),
+		"art",      eina_art_new(),
 		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE, NULL),
 		NULL);
 
