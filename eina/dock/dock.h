@@ -30,6 +30,8 @@
 #define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
 #define EINA_DOCK_ORDER_KEY    "page-order"
 #define EINA_DOCK_EXPANDED_KEY "expanded"
+#define EINA_DOCK_WINDOW_H_KEY "window-height"
+#define EINA_DOCK_WINDOW_W_KEY "window-width"
 
 gboolean
 eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget);
