@@ -1,6 +1,5 @@
-#ifndef _EINA_ART
-#define _EINA_ART
+#ifndef _ART
+#define _ART
 #include <eina/art/art.h>
-#define EinaArt Art
 #endif
 

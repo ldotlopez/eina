@@ -5,6 +5,7 @@ plugin_LTLIBRARIES = libart.la
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/art
 include_HEADERS = \
+	ea.h \
 	eina-art.h \
 	art.h
 
@@ -12,6 +13,7 @@ libart_la_CFLAGS  = @EINA_CFLAGS@
 libart_la_LDFLAGS = @EINA_LIBS@
 libart_la_SOURCES = \
 	$(include_HEADERS) \
+	ea.c \
 	art.c
 
 plugin_DATA = art.ini
