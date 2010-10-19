@@ -29,6 +29,8 @@ typedef struct {
 	gchar *dirname, *pathname;
 	gchar *version, *depends, *author, *url;
 	gchar *short_desc, *long_desc, *icon_pathname;
+
+	gboolean hidden;
 } GelPluginInfo;
 
 enum {

@@ -102,6 +102,13 @@ gel_plugin_info_new(const gchar *filename, const gchar *name, GError **error)
 		info->short_desc = g_key_file_get_locale_string(kf, "Eina Plugin", "short-description", NULL, NULL);
 		info->long_desc  = g_key_file_get_locale_string(kf, "Eina Plugin", "long-description",  NULL, NULL);
 		info->icon_pathname = g_key_file_get_string(kf, "Eina Plugin", "icon", NULL);
+
+		gchar *hidden_str = g_key_file_get_string(kf, "Eina Plugin", "hidden", NULL);
+		if (!hidden_str || g_str_equal(hidden_str,"false") || g_str_equal(hidden_str, "FALSE") || g_str_equal(hidden_str, "0"))
+			info->hidden = FALSE;
+		else
+			info->hidden = TRUE;
+		g_free(hidden_str);
 	}
 
 	if (info->icon_pathname && !g_path_is_absolute(info->icon_pathname))
@@ -159,6 +166,8 @@ gel_plugin_info_copy(const GelPluginInfo *src, GelPluginInfo *dst)
 	dst->short_desc = src->short_desc ? g_strdup(src->short_desc) : NULL;
 	dst->long_desc  = src->long_desc  ? g_strdup(src->long_desc)  : NULL;
 	dst->icon_pathname = src->icon_pathname ? g_strdup(src->icon_pathname) : NULL;
+
+	dst->hidden = src->hidden;
 }
 
 GelPluginInfo *

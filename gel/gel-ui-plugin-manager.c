@@ -214,7 +214,7 @@ set_engine(GelUIPluginManager *self, GelPluginEngine *engine)
 	{
 		GelPluginInfo *info = (GelPluginInfo *) l->data;
 
-		if (info->pathname)
+		if (info->pathname && !info->hidden)
 		{
 			gtk_list_store_append(model, &iter);
 			insert_info(self, model, &iter, (GelPluginInfo *) l->data);
