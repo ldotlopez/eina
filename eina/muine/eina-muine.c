@@ -14,7 +14,7 @@ typedef struct _EinaMuinePrivate EinaMuinePrivate;
 struct _EinaMuinePrivate {
 	// Props
 	EinaAdb    *adb;
-	EinaArt    *art;
+	Art    *art;
 	LomoPlayer *lomo;
 	gint        mode;
 
@@ -229,7 +229,7 @@ eina_muine_get_lomo_player(EinaMuine *self)
 }
 
 void
-eina_muine_set_art(EinaMuine *self, EinaArt *art)
+eina_muine_set_art(EinaMuine *self, Art *art)
 {
 	g_return_if_fail(EINA_IS_MUINE(self));
 
@@ -239,7 +239,7 @@ eina_muine_set_art(EinaMuine *self, EinaArt *art)
 	g_object_notify((GObject *) self, "art");
 }
 
-EinaArt*
+Art*
 eina_muine_get_art(EinaMuine *self)
 {
 	g_return_val_if_fail(EINA_IS_MUINE(self), NULL);

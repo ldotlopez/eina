@@ -54,8 +54,8 @@ LomoPlayer*
 eina_muine_get_lomo_player(EinaMuine *lomo);
 
 void
-eina_muine_set_art(EinaMuine *self, EinaArt *art);
-EinaArt*
+eina_muine_set_art(EinaMuine *self, Art *art);
+Art*
 eina_muine_get_art(EinaMuine *self);
 
 void
