@@ -165,10 +165,14 @@ action_activate_cb(GtkAction *action, GelPluginEngine *engine)
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 			NULL);
-	
+
 		gtk_container_add(
 			(GtkContainer *) gtk_dialog_get_content_area (dialog),
 			(GtkWidget    *) gel_ui_plugin_manager_new(engine));
+		gint w, h;
+		gtk_window_get_size(gel_ui_application_get_window(application),&w ,&h);
+		gtk_window_resize((GtkWindow *) dialog, w * 3 / 4 , h * 3 / 4);
+
 		gtk_widget_show_all((GtkWidget *) dialog);
 		gtk_dialog_run(dialog);
 		gtk_widget_destroy((GtkWidget *) dialog);
