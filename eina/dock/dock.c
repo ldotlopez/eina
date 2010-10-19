@@ -165,11 +165,16 @@ dock_activate_cb(GtkExpander *expander, DockData *self)
 		g_settings_set_int(self->settings, EINA_DOCK_WINDOW_W_KEY, w);
 		g_settings_set_int(self->settings, EINA_DOCK_WINDOW_H_KEY, h);
 		g_signal_handlers_disconnect_by_func(self->dock, dock_draw_cb, self);
+
+		GdkWindowState state = gdk_window_get_state(gtk_widget_get_window((GtkWidget *) window));
+		if (state & (GDK_WINDOW_STATE_MAXIMIZED|GDK_WINDOW_STATE_FULLSCREEN))
+		{
+			gtk_window_unmaximize(window);
+			gtk_window_unfullscreen(window);
+		}
 	}
 	else
-	{
 		g_signal_connect(self->dock, "draw", (GCallback) dock_draw_cb, self);
-	}
 }
 
 static gboolean
