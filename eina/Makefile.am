@@ -12,16 +12,16 @@ SUBDIRS = ext   \
 	preferences \
 	statusicon
 
-if BUILD_ADB
-SUBDIRS +=   \
-	adb      \
-	muine    \
-	recently
-endif
+#if BUILD_ADB
+#SUBDIRS +=   \
+#	adb      \
+#	muine    \
+#	recently
+#endif
 
-if BUILD_NTFY
-SUBDIRS += ntfy
-endif
+#if BUILD_NTFY
+#SUBDIRS += ntfy
+#endif
 
 DIST_SUBDIRS = \
 	$(SUBDIRS) \
