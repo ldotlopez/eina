@@ -271,7 +271,7 @@ eina_cover_set_art(EinaCover *self, EinaArt *art)
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 
 	if (priv->search)
-		eina_art_cancel(priv->art, priv->search);
+		g_object_unref(priv->art);
 	priv->art = art;
 	g_object_notify((GObject *) self, "art");
 }
@@ -394,14 +394,18 @@ cover_set_loading(EinaCover *self)
 }
 
 static void
-search_finish_cb(EinaArt *art, EinaArtSearch *search, EinaCover *self)
+search_finish_cb(EinaArtSearch *search, EinaCover *self)
 {
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 	priv->search = NULL;
 
+	g_warning("=> %s", (gchar *) eina_art_search_get_result(search));
+	cover_set_pixbuf(self, NULL);
+	/*
 	GdkPixbuf *pb = eina_art_search_get_result(search);
 	debug("* Search got result: %p\n", pb);
 	cover_set_pixbuf(self, pb);
+	*/
 }
 
 static void
@@ -414,7 +418,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (priv->art && priv->search)
 	{
 		debug(" discart running search %p\n", priv->search);
-		eina_art_cancel(priv->art, priv->search);
+		g_object_unref(priv->search);
 		priv->search = NULL;
 	}
 	if (!priv->renderer)
@@ -436,7 +440,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 		return;
 	}
 
-	priv->search = eina_art_search(priv->art, stream, (EinaArtFunc) search_finish_cb, self);
+	priv->search = eina_art_search(priv->art, stream, (EinaArtSearchCallback) search_finish_cb, self);
 	debug(" new search started: %p\n", priv->search);
 	if (priv->search)
 	{
