@@ -1,4 +1,6 @@
-#include "e-search.h"
+#define GEL_DOMAIN "EinaArtSearch"
+#include "eina-art-search.h"
+#include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 
@@ -7,7 +9,7 @@ G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 
 #define ENABLE_DEBUG 1
 #if ENABLE_DEBUG
-#define debug(...) g_warning(__VA_ARGS__)
+#define debug(...) gel_warn(__VA_ARGS__)
 #else
 #define debug(...) ;
 #endif
@@ -150,7 +152,9 @@ eina_art_search_stringify(EinaArtSearch *search)
 
 	if (!priv->stringify)
 	{
-		priv->stringify = g_path_get_basename(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI));
+		gchar *unescape = g_uri_unescape_string(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI), NULL);
+		priv->stringify = g_path_get_basename(unescape);
+		g_free(unescape);
 		g_return_val_if_fail(priv->stringify, NULL);
 	}
 	return priv->stringify;

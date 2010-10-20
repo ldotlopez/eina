@@ -2,7 +2,7 @@
 #define _EINA_ART_BACKEND
 
 #include <glib-object.h>
-#include <eina/art/e-search.h>
+#include <eina/art/eina-art-search.h>
 
 G_BEGIN_DECLS
 

@@ -1,4 +1,6 @@
-#include "e-art.h"
+#define GEL_DOMAIN "EinaArt"
+#include "eina-art.h"
+#include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaArt, eina_art, G_TYPE_OBJECT)
 
@@ -7,7 +9,7 @@ G_DEFINE_TYPE (EinaArt, eina_art, G_TYPE_OBJECT)
 
 #define ENABLE_DEBUG 1
 #if ENABLE_DEBUG
-#define debug(...) g_warning(__VA_ARGS__)
+#define debug(...) gel_warn(__VA_ARGS__)
 #else
 #define debug(...) ;
 #endif
@@ -94,6 +96,7 @@ eina_art_class_try_next_backend(EinaArtClass *art_class, EinaArtSearch *search)
 	if (!link || !g_list_find(art_class->priv->backends, link->data))
 	{
 		g_warning("Search %p is not in our universe, reporting failure", search);
+		eina_art_search_set_bpointer(search, NULL);
 		eina_art_search_run_callback(search);
 		g_object_unref(search);
 		return;
@@ -107,6 +110,7 @@ eina_art_class_try_next_backend(EinaArtClass *art_class, EinaArtSearch *search)
 			eina_art_backend_get_name(EINA_ART_BACKEND(link->data)),
 			eina_art_backend_get_name(EINA_ART_BACKEND(link->next->data)));
 		EinaArtBackend *backend = EINA_ART_BACKEND(link->next->data);
+		eina_art_search_set_bpointer(search, NULL);
 		eina_art_search_set_bpointer(search, g_list_next(link));
 		eina_art_backend_run(backend, search);
 		return;
@@ -118,6 +122,7 @@ eina_art_class_try_next_backend(EinaArtClass *art_class, EinaArtSearch *search)
 	EinaArtPrivate *priv = GET_PRIVATE(art);
 	priv->searches = g_list_remove(priv->searches, search);
 
+	eina_art_search_set_bpointer(search, NULL);
 	eina_art_search_run_callback(search);
 	g_object_unref(search);
 }
@@ -129,6 +134,7 @@ eina_art_search(EinaArt *art, LomoStream *stream, EinaArtSearchCallback callback
 
 	EinaArtSearch *search = eina_art_search_new(stream, callback, data);
 	g_return_val_if_fail(search != NULL, NULL);
+	eina_art_search_set_domain(search, (GObject *) art);
 
 	EinaArtPrivate *priv = GET_PRIVATE(art);
 	priv->searches = g_list_append(priv->searches, search);
@@ -161,8 +167,11 @@ backend_finish_cb(EinaArtBackend *backend, EinaArtSearch *search, EinaArtClass *
 	{
 		EinaArt *art = EINA_ART(eina_art_search_get_domain(search));
 		EinaArtPrivate *priv = GET_PRIVATE(art);
-		priv->searches = g_list_remove(priv->searches, search);
 
+		priv->searches = g_list_remove(priv->searches, search);
+		eina_art_search_set_bpointer(search, NULL);
+
+		debug("Backend '%s' successfull", eina_art_backend_get_name(backend));
 		eina_art_search_run_callback(search);
 		g_object_unref(search);
 		return;

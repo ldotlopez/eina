@@ -1,4 +1,4 @@
-#include "e-test-backends.h"
+#include "eina-art-test-backends.h"
 
 void
 eina_art_null_backend_search(EinaArtBackend *backend, EinaArtSearch *search, gpointer data)
@@ -8,7 +8,7 @@ eina_art_null_backend_search(EinaArtBackend *backend, EinaArtSearch *search, gpo
 }
 
 void
-eina_art_null_random_search(EinaArtBackend *backend, EinaArtSearch *search, gpointer data)
+eina_art_random_backend_search(EinaArtBackend *backend, EinaArtSearch *search, gpointer data)
 {
 	gboolean s = g_random_boolean();
 	g_warning("Random backend here: %s!", s ? "success" : "faling");
