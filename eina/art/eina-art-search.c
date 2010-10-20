@@ -87,6 +87,12 @@ eina_art_search_new (LomoStream *stream, EinaArtSearchCallback callback, gpointe
 	return search;
 }
 
+LomoStream *
+eina_art_search_get_stream(EinaArtSearch *search)
+{
+	return GET_PRIVATE(search)->stream;
+}
+
 void
 eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer)
 {

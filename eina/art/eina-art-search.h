@@ -39,6 +39,9 @@ EinaArtSearch* eina_art_search_new (LomoStream *stream, EinaArtSearchCallback ca
 const gchar*
 eina_art_search_stringify(EinaArtSearch *search);
 
+LomoStream *
+eina_art_search_get_stream(EinaArtSearch *search);
+
 void
 eina_art_search_set_domain(EinaArtSearch *search, GObject *domain);
 GObject *
