@@ -42,6 +42,8 @@ eina_art_backend_get_name(EinaArtBackend *backend);
 
 void
 eina_art_backend_run(EinaArtBackend *backend, EinaArtSearch *search);
+void
+eina_art_backend_finish(EinaArtBackend *backend, EinaArtSearch *search);
 
 G_END_DECLS
 

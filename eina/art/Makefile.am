@@ -8,6 +8,7 @@ include_HEADERS = \
 	e-art.h \
 	e-backend.h \
 	e-search.h \
+	e-test-backends.h \
 	eina-art.h \
 	art.h
 
@@ -18,6 +19,7 @@ libart_la_SOURCES = \
 	e-art.c \
 	e-search.c \
 	e-backend.c \
+	e-test-backends.c \
 	art.c
 
 plugin_DATA = art.ini

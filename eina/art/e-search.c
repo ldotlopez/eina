@@ -5,6 +5,13 @@ G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_SEARCH, EinaArtSearchPrivate))
 
+#define ENABLE_DEBUG 1
+#if ENABLE_DEBUG
+#define debug(...) g_warning(__VA_ARGS__)
+#else
+#define debug(...) ;
+#endif
+
 typedef struct _EinaArtSearchPrivate EinaArtSearchPrivate;
 
 struct _EinaArtSearchPrivate {
@@ -12,8 +19,12 @@ struct _EinaArtSearchPrivate {
 	EinaArtSearchCallback callback;
 	gpointer data;
 
+	gchar *stringify;
+
+	GObject *domain;
 	gpointer bpointer;
-	GObject *owner;
+
+	gpointer result;
 };
 
 static void
@@ -32,6 +43,12 @@ eina_art_search_dispose (GObject *object)
 	{
 		g_object_unref(priv->stream);
 		priv->stream = NULL;
+	}
+
+	if (priv->stringify)
+	{
+		g_free(priv->stringify);
+		priv->stringify = NULL;
 	}
 
 	G_OBJECT_CLASS (eina_art_search_parent_class)->dispose (object);
@@ -69,16 +86,6 @@ eina_art_search_new (LomoStream *stream, EinaArtSearchCallback callback, gpointe
 }
 
 void
-eina_art_search_run_callback(EinaArtSearch *self)
-{
-	g_return_if_fail(EINA_IS_ART_SEARCH(self));
-
-	EinaArtSearchPrivate *priv = GET_PRIVATE(self);
-	if (priv->callback)
-		priv->callback(self, priv->data);
-}
-
-void
 eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer)
 {
 	g_return_if_fail(EINA_IS_ART_SEARCH(search));
@@ -97,20 +104,77 @@ eina_art_search_get_bpointer(EinaArtSearch *search)
 }
 
 void
-eina_art_search_set_owner(EinaArtSearch *search, GObject *owner)
+eina_art_search_set_domain(EinaArtSearch *search, GObject *domain)
 {
 	g_return_if_fail(EINA_IS_ART_SEARCH(search));
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
-	if (owner)
-		g_return_if_fail(priv->owner == NULL);
+	if (domain)
+		g_return_if_fail(priv->domain == NULL);
 
-	GET_PRIVATE(search)->owner = owner;
+	// FIXME: Add weak ref here
+	GET_PRIVATE(search)->domain = domain;
 }
 
-GObject*
-eina_art_search_get_owner(EinaArtSearch *search)
+GObject *
+eina_art_search_get_domain(EinaArtSearch *search)
 {
-	return GET_PRIVATE(search)->owner;
+	return GET_PRIVATE(search)->domain;
+}
+
+void
+eina_art_search_set_result(EinaArtSearch *search, gpointer result)
+{
+	g_return_if_fail(EINA_IS_ART_SEARCH(search));
+	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
+
+	if (result)
+		g_return_if_fail(priv->result == NULL);
+
+	// FIXME: Add weak ref here
+	GET_PRIVATE(search)->result = result;
+}
+
+gpointer
+eina_art_search_get_result(EinaArtSearch *search)
+{
+	return GET_PRIVATE(search)->result;
+}
+
+
+const gchar*
+eina_art_search_stringify(EinaArtSearch *search)
+{
+	g_return_val_if_fail(EINA_IS_ART_SEARCH(search), NULL);
+	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
+
+	if (!priv->stringify)
+	{
+		priv->stringify = g_path_get_basename(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI));
+		g_return_val_if_fail(priv->stringify, NULL);
+	}
+	return priv->stringify;
+}
+
+void
+eina_art_search_run_callback(EinaArtSearch *search)
+{
+	g_return_if_fail(EINA_IS_ART_SEARCH(search));
+
+	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
+
+	g_return_if_fail(priv->bpointer == NULL);
+
+	if (!priv->callback)
+	{
+		g_warning("%s has been called multiple times on %s, ignoring.",
+			__FUNCTION__,
+			eina_art_search_stringify(search));
+		return;
+	}
+
+	debug("Run callback for search %s", eina_art_search_stringify(search));
+	priv->callback(search, priv->data);
+	priv->callback = NULL;
 }
 

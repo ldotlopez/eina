@@ -5,6 +5,13 @@ G_DEFINE_TYPE (EinaArt, eina_art, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART, EinaArtPrivate))
 
+#define ENABLE_DEBUG 1
+#if ENABLE_DEBUG
+#define debug(...) g_warning(__VA_ARGS__)
+#else
+#define debug(...) ;
+#endif
+
 typedef struct _EinaArtPrivate EinaArtPrivate;
 
 struct _EinaArtClassPrivate {
@@ -16,7 +23,7 @@ struct _EinaArtPrivate {
 };
 
 static void
-backend_finish_cb(EinaArtBackend *backend, EinaArtSearch *search, gpointer data);
+backend_finish_cb(EinaArtBackend *backend, EinaArtSearch *search, EinaArtClass *art_class);
 
 static void
 eina_art_dispose (GObject *object)
@@ -95,14 +102,19 @@ eina_art_class_try_next_backend(EinaArtClass *art_class, EinaArtSearch *search)
 	// Jump to the next backend
 	if (link->next && link->next->data)
 	{
+		debug("Moving search %s (%s -> %s)",
+			eina_art_search_stringify(search),
+			eina_art_backend_get_name(EINA_ART_BACKEND(link->data)),
+			eina_art_backend_get_name(EINA_ART_BACKEND(link->next->data)));
 		EinaArtBackend *backend = EINA_ART_BACKEND(link->next->data);
 		eina_art_search_set_bpointer(search, g_list_next(link));
-		eina_art_backend_run(backend, backend);
+		eina_art_backend_run(backend, search);
 		return;
 	}
 
 	// No more backends, report and remove
-	EinaArt *art = eina_art_search_get_domain(search);
+	debug("Search %s has failed, reporting to caller", eina_art_search_stringify(search));
+	EinaArt *art = EINA_ART(eina_art_search_get_domain(search));
 	EinaArtPrivate *priv = GET_PRIVATE(art);
 	priv->searches = g_list_remove(priv->searches, search);
 
@@ -147,8 +159,9 @@ backend_finish_cb(EinaArtBackend *backend, EinaArtSearch *search, EinaArtClass *
 	// Got results
 	if (result)
 	{
-		EinaArt *art = eina_art_search_get_domain(search);
-		art->searches = g_list_remove(art->searches, search);
+		EinaArt *art = EINA_ART(eina_art_search_get_domain(search));
+		EinaArtPrivate *priv = GET_PRIVATE(art);
+		priv->searches = g_list_remove(priv->searches, search);
 
 		eina_art_search_run_callback(search);
 		g_object_unref(search);

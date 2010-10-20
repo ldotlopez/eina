@@ -103,12 +103,15 @@ eina_art_backend_run(EinaArtBackend *backend, EinaArtSearch *search)
 {
 	g_return_if_fail(EINA_IS_ART_BACKEND(backend));
 	g_return_if_fail(EINA_IS_ART_SEARCH(search));
-	g_return_if_fail(eina_art_search_get_owner(search) == NULL);
 
+	GList *link = (GList *) eina_art_search_get_bpointer(search);
+	g_return_if_fail(link != NULL);
+
+	EinaArtBackend *search_backend = EINA_ART_BACKEND(link->data);
+	g_return_if_fail(search_backend == backend);
+
+	// Fire it.
 	EinaArtBackendPrivate *priv = GET_PRIVATE(backend);
-
-	// Link and fire it.
-	eina_art_search_set_owner(search, (GObject *) backend);
 	priv->search(backend, search, priv->data);
 }
 
@@ -117,10 +120,12 @@ eina_art_backend_finish(EinaArtBackend *backend, EinaArtSearch *search)
 {
 	g_return_if_fail(EINA_IS_ART_BACKEND(backend));
 	g_return_if_fail(EINA_IS_ART_SEARCH(search));
-	g_return_if_fail((EinaArtBackend *) eina_art_search_get_owner(search) == backend);
 
-	// EinaArtBackendPrivate *priv = GET_PRIVATE(backend);
-	eina_art_search_set_owner(search, NULL);
+	GList *link = (GList *) eina_art_search_get_bpointer(search);
+	g_return_if_fail(link != NULL);
+
+	EinaArtBackend *search_backend = EINA_ART_BACKEND(link->data);
+	g_return_if_fail(search_backend == backend);
 
 	g_signal_emit(backend, signals[FINISH], 0, search, NULL);
 }
