@@ -37,7 +37,8 @@ struct _EinaPlayerPrivate {
 	LomoPlayer *lomo;
 	gchar *stream_mrkp;
 
-	EinaSeek *seek;
+	EinaArt   *art;
+	EinaSeek  *seek;
 	EinaCover *cover;
 };
 
@@ -111,6 +112,7 @@ eina_player_dispose (GObject *object)
 
 	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
 	gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
+	gel_free_and_invalidate(priv->art,  NULL, g_object_unref);
 	
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
 }
@@ -181,7 +183,7 @@ eina_player_new (void)
 
 	// Cover widget
 	priv->cover = g_object_new(EINA_TYPE_COVER,
-		"art",      eina_art_new(),
+		"art",      priv->art = eina_art_new(),
 		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE, NULL),
 		NULL);
 

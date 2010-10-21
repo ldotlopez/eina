@@ -414,7 +414,7 @@ cover_set_stream(EinaCover *self, LomoStream *stream)
 	if (priv->art && priv->search)
 	{
 		debug(" discart running search %p\n", priv->search);
-		g_object_unref(priv->search);
+		eina_art_cancel(priv->art, priv->search);
 		priv->search = NULL;
 	}
 	if (!priv->renderer)

@@ -67,6 +67,8 @@ EinaArt* eina_art_new (void);
 
 EinaArtSearch*
 eina_art_search(EinaArt *art, LomoStream *stream, EinaArtSearchCallback callback, gpointer data);
+void
+eina_art_cancel(EinaArt *art, EinaArtSearch *search);
 
 G_END_DECLS
 

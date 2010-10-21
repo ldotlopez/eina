@@ -174,6 +174,26 @@ eina_art_search(EinaArt *art, LomoStream *stream, EinaArtSearchCallback callback
 	return search;
 }
 
+void
+eina_art_cancel(EinaArt *art, EinaArtSearch *search)
+{
+	g_return_if_fail(EINA_IS_ART(art));
+	g_return_if_fail(EINA_IS_ART(search));
+
+	g_return_if_fail(art == EINA_ART(eina_art_search_get_domain(search)));
+
+	EinaArtClass   *art_class = EINA_ART_GET_CLASS(art);
+	EinaArtPrivate *priv      = GET_PRIVATE(art);
+	EinaArtBackend *backend   = EINA_ART_BACKEND(((GList *)eina_art_search_get_bpointer(search))->data);
+
+	g_return_if_fail(EINA_IS_ART_BACKEND(backend));
+	g_return_if_fail(g_list_find(art_class->priv->backends, backend) == NULL);
+
+	eina_art_backend_cancel(backend, search);
+	priv->searches = g_list_remove(priv->searches, search);
+	g_object_unref(search);
+}
+
 static void
 backend_finish_cb(EinaArtBackend *backend, EinaArtSearch *search, EinaArtClass *art_class)
 {
