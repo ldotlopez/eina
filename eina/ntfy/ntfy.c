@@ -51,7 +51,8 @@ struct _EinaNtfy {
 	GdkPixbuf *cover;
 	GdkPixbuf *default_cover;
 
-	ArtSearch *search;
+	EinaArt       *art;
+	EinaArtSearch *search;
 };
 
 // Init/fini plugin
@@ -89,7 +90,7 @@ action_activate_cb(GtkAction *action, EinaNtfy *self);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self);
 static void
-art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self);
+art_search_cb(EinaArtSearch *search, EinaNtfy *self);
 
 static void
 settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self);
@@ -107,6 +108,8 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	self = g_new0(EinaNtfy, 1);
 	self->plugin = plugin;
+
+	self->art = eina_art_new();
 
 	// Enable if needed (by default on)
 	GSettings *settings = g_settings_new(EINA_NTFY_PREFERENCES_DOMAIN);
@@ -152,6 +155,7 @@ ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	#endif
 
 	ntfy_disable(self);
+	gel_free_and_invalidate(self->art,      NULL, g_object_unref);
 	gel_free_and_invalidate(self->settings, NULL, g_object_unref);
 	g_free(self);
 
@@ -210,9 +214,9 @@ ntfy_disable(EinaNtfy *self)
 	if (notify_is_initted())
 		notify_uninit();
 
-	if (self->search)
+	if (self->art && self->search)
 	{
-		art_cancel(eina_plugin_get_art(self->plugin), self->search);
+		eina_art_cancel(self->art, self->search);
 		self->search = NULL;
 	}
 }
@@ -320,9 +324,9 @@ ntfy_reset(EinaNtfy *self)
 	self->all_tags = FALSE;
 	self->got_cover = FALSE;
 	gel_free_and_invalidate(self->cover, NULL, g_object_unref);
-	if (self->search)
+	if (self->art && self->search)
 	{
-		art_cancel(eina_plugin_get_art(self->plugin), self->search);
+		eina_art_cancel(self->art, self->search);
 		self->search = NULL;
 	}
 }
@@ -362,7 +366,7 @@ ntfy_sync(EinaNtfy *self)
 
 	// Check cover
 	if (all_tags)
-		self->search = art_search(eina_plugin_get_art(self->plugin), self->stream, (ArtFunc ) art_search_cb, self);
+		self->search = eina_art_search(self->art, self->stream, (EinaArtSearchCallback) art_search_cb, self);
 
 	GdkPixbuf *cover = self->cover ? self->cover : self->default_cover;
 	notify_notification_update(self->ntfy, N_("Playing now"), body, NULL);
@@ -391,11 +395,11 @@ engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self
 #endif
 
 static void
-art_search_cb(Art *art, ArtSearch *search, EinaNtfy *self)
+art_search_cb(EinaArtSearch *search, EinaNtfy *self)
 {
 	self->search = NULL;
 
-	gpointer data = art_search_get_result(search);
+	gpointer data = eina_art_search_get_result(search);
 	if (!data)
 		return;
 
@@ -411,12 +415,11 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self)
 	if (stream != self->stream)
 		return;
 	
-	Art *art = eina_plugin_get_art(self->plugin);
 	// Start search
-	if (self->search)
-		art_cancel(art, self->search);
+	if (self->art && self->search)
+		eina_art_cancel(self->art, self->search);
 
-	self->search = art_search(art, self->stream, (ArtFunc) art_search_cb, self);
+	self->search = eina_art_search(self->art, self->stream, (EinaArtSearchCallback) art_search_cb, self);
 	ntfy_sync(self);
 }
 
