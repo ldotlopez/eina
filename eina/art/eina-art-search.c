@@ -1,5 +1,6 @@
 #define GEL_DOMAIN "EinaArtSearch"
 #include "eina-art-search.h"
+#include <glib/gi18n.h>
 #include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
@@ -17,17 +18,27 @@ G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 typedef struct _EinaArtSearchPrivate EinaArtSearchPrivate;
 
 struct _EinaArtSearchPrivate {
-	LomoStream *stream;
-	EinaArtSearchCallback callback;
-	gpointer data;
+	GObject               *domain;
+	LomoStream            *stream;
+	EinaArtSearchCallback  callback;
+	gpointer               callback_data;
 
 	gchar *stringify;
 
-	GObject *domain;
 	gpointer bpointer;
 
 	gpointer result;
 };
+
+static void eina_art_search_weak_notify_cb(EinaArtSearch *search, GObject *old)
+{
+	g_return_if_fail(EINA_IS_ART_SEARCH(search));
+	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
+
+	g_warning(N_("Referenced %s from search '%s' was destroyed."),
+		(old == priv->domain) ? "domain" : "stream",
+		eina_art_search_stringify(search));
+}
 
 static void
 eina_art_search_dispose (GObject *object)
@@ -35,14 +46,28 @@ eina_art_search_dispose (GObject *object)
 	EinaArtSearch *search = EINA_ART_SEARCH(object);
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
+	if (priv->bpointer)
+	{
+		g_warning(N_("Search '%s' is running at dispose phase, calling callback and expect problems."), eina_art_search_stringify(search));
+		priv->bpointer = NULL;
+	}
+
 	if (priv->callback)
 	{
 		eina_art_search_run_callback(search);
 		priv->callback = NULL;
 	}
 
+	if (priv->domain)
+	{
+		g_object_weak_unref((GObject *) priv->domain, (GWeakNotify) eina_art_search_weak_notify_cb, search);
+		g_object_unref(priv->domain);
+		priv->domain = NULL;
+	}
+
 	if (priv->stream)
 	{
+		g_object_weak_unref((GObject *) priv->stream, (GWeakNotify) eina_art_search_weak_notify_cb, search);
 		g_object_unref(priv->stream);
 		priv->stream = NULL;
 	}
@@ -72,19 +97,30 @@ eina_art_search_init (EinaArtSearch *self)
 }
 
 EinaArtSearch*
-eina_art_search_new (LomoStream *stream, EinaArtSearchCallback callback, gpointer data)
+eina_art_search_new (GObject *domain, LomoStream *stream, EinaArtSearchCallback callback, gpointer callback_data)
 {
+	g_return_val_if_fail(G_IS_OBJECT(domain), NULL);
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), NULL);
 	g_return_val_if_fail(callback, NULL);
 
 	EinaArtSearch *search = g_object_new (EINA_TYPE_ART_SEARCH, NULL);
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
+	priv->domain = g_object_ref(domain);
 	priv->stream = g_object_ref(stream);
 	priv->callback = callback;
-	priv->data = data;
+	priv->callback_data = callback_data;
+
+	g_object_weak_ref((GObject *) priv->stream, (GWeakNotify) eina_art_search_weak_notify_cb, search);
+	g_object_weak_ref((GObject *) priv->domain, (GWeakNotify) eina_art_search_weak_notify_cb, search);
 
 	return search;
+}
+
+GObject *
+eina_art_search_get_domain(EinaArtSearch *search)
+{
+	return GET_PRIVATE(search)->domain;
 }
 
 LomoStream *
@@ -100,7 +136,11 @@ eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer)
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
 	if (bpointer)
+	{
+		g_warning(N_("Trying to set a bpointer while search '%s' already has a bpointer, this is a bug. You should set bpointer to NULL before trying to do this."),
+			eina_art_search_stringify(search));
 		g_return_if_fail(priv->bpointer == NULL);
+	}
 
 	GET_PRIVATE(search)->bpointer = bpointer;
 }
@@ -112,34 +152,18 @@ eina_art_search_get_bpointer(EinaArtSearch *search)
 }
 
 void
-eina_art_search_set_domain(EinaArtSearch *search, GObject *domain)
-{
-	g_return_if_fail(EINA_IS_ART_SEARCH(search));
-	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
-
-	if (domain)
-		g_return_if_fail(priv->domain == NULL);
-
-	// FIXME: Add weak ref here
-	GET_PRIVATE(search)->domain = domain;
-}
-
-GObject *
-eina_art_search_get_domain(EinaArtSearch *search)
-{
-	return GET_PRIVATE(search)->domain;
-}
-
-void
 eina_art_search_set_result(EinaArtSearch *search, gpointer result)
 {
 	g_return_if_fail(EINA_IS_ART_SEARCH(search));
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
 	if (result)
+	{
+		g_warning(N_("Trying to set a result in search '%s' while it already has one, this is a bug and will be ignored"),
+			eina_art_search_stringify(search));
 		g_return_if_fail(priv->result == NULL);
+	}
 
-	// FIXME: Add weak ref here
 	GET_PRIVATE(search)->result = result;
 }
 
@@ -184,7 +208,7 @@ eina_art_search_run_callback(EinaArtSearch *search)
 	}
 
 	debug("Run callback for search %s", eina_art_search_stringify(search));
-	priv->callback(search, priv->data);
+	priv->callback(search, priv->callback_data);
 	priv->callback = NULL;
 }
 

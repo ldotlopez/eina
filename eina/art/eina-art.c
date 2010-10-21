@@ -132,9 +132,8 @@ eina_art_search(EinaArt *art, LomoStream *stream, EinaArtSearchCallback callback
 {
 	g_return_val_if_fail(EINA_IS_ART(art), NULL);
 
-	EinaArtSearch *search = eina_art_search_new(stream, callback, data);
+	EinaArtSearch *search = eina_art_search_new((GObject *) art, stream, callback, data);
 	g_return_val_if_fail(search != NULL, NULL);
-	eina_art_search_set_domain(search, (GObject *) art);
 
 	EinaArtPrivate *priv = GET_PRIVATE(art);
 	priv->searches = g_list_append(priv->searches, search);

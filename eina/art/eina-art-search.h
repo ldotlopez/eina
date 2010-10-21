@@ -34,28 +34,22 @@ typedef struct {
 GType eina_art_search_get_type (void);
 
 typedef void (*EinaArtSearchCallback) (EinaArtSearch *search, gpointer data);
-EinaArtSearch* eina_art_search_new (LomoStream *stream, EinaArtSearchCallback callback, gpointer data);
 
-const gchar*
-eina_art_search_stringify(EinaArtSearch *search);
+EinaArtSearch* eina_art_search_new (GObject *domain,
+                                    LomoStream *stream,
+                                    EinaArtSearchCallback callback,
+                                    gpointer callback_data);
 
-LomoStream *
-eina_art_search_get_stream(EinaArtSearch *search);
+const gchar *eina_art_search_stringify(EinaArtSearch *search);
 
-void
-eina_art_search_set_domain(EinaArtSearch *search, GObject *domain);
-GObject *
-eina_art_search_get_domain(EinaArtSearch *search);
+LomoStream  *eina_art_search_get_stream(EinaArtSearch *search);
+GObject     *eina_art_search_get_domain(EinaArtSearch *search);
 
-void
-eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer);
-gpointer
-eina_art_search_get_bpointer(EinaArtSearch *search);
+void     eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer);
+gpointer eina_art_search_get_bpointer(EinaArtSearch *search);
 
-gpointer
-eina_art_search_get_result(EinaArtSearch *search);
-void
-eina_art_search_set_result(EinaArtSearch *search, gpointer result);
+gpointer eina_art_search_get_result(EinaArtSearch *search);
+void     eina_art_search_set_result(EinaArtSearch *search, gpointer result);
 
 void
 eina_art_search_run_callback(EinaArtSearch *search);
