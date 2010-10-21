@@ -21,29 +21,34 @@
 #include "art.h"
 #include "eina-art-test-backends.h"
 
-EinaArtClass *art_class;
 EinaArt *art;
-EinaArtBackend *b1, *b2, *b3;
+EinaArtBackend *null_backend, *infolder_backend;
 
 G_MODULE_EXPORT gboolean
 art_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	art = eina_art_new();
 
-	art_class = EINA_ART_CLASS(G_OBJECT_GET_CLASS(art));
-	b1 = eina_art_class_add_backend(art_class, "null",   eina_art_null_backend_search,   NULL, NULL, NULL);
-	b2 = eina_art_class_add_backend(art_class, "random", eina_art_random_backend_search, NULL, NULL, NULL);
-	b3 = eina_art_class_add_backend(art_class, "infolder", eina_art_infolder_sync_backend_search, NULL, NULL, NULL);
-
+	EinaArtClass *art_class = EINA_ART_CLASS(G_OBJECT_GET_CLASS(art));
+	null_backend = eina_art_class_add_backend(art_class,
+                                              "null",
+                                              eina_art_null_backend_search, NULL,
+                                              NULL, NULL);
+	infolder_backend = eina_art_class_add_backend(art_class,
+                                              "infolder",
+                                              eina_art_infolder_sync_backend_search, NULL,
+                                              NULL, NULL);
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
 art_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
-	eina_art_class_remove_backend(art_class, b1);
-	eina_art_class_remove_backend(art_class, b2);
-	eina_art_class_remove_backend(art_class, b3);
+	EinaArtClass *art_class = EINA_ART_CLASS(G_OBJECT_GET_CLASS(art));
+
+	eina_art_class_remove_backend(art_class, null_backend);
+	eina_art_class_remove_backend(art_class, infolder_backend);
+
 	g_object_unref(art);
 
 	return TRUE;
