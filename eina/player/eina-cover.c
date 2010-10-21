@@ -351,7 +351,7 @@ cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
 	if (!priv->renderer)
 		return;
 
-	if (pb == NULL)
+	if ((pb == NULL) || !GDK_IS_PIXBUF(pb))
 	{
 		debug("Setting pixbuf to NULL (no search result?), using default");
 		pb = priv->default_pb;
@@ -399,13 +399,9 @@ search_finish_cb(EinaArtSearch *search, EinaCover *self)
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 	priv->search = NULL;
 
-	g_warning("=> %s", (gchar *) eina_art_search_get_result(search));
-	cover_set_pixbuf(self, NULL);
-	/*
-	GdkPixbuf *pb = eina_art_search_get_result(search);
+	GdkPixbuf *pb = (GdkPixbuf *) eina_art_search_get_result(search);
 	debug("* Search got result: %p\n", pb);
 	cover_set_pixbuf(self, pb);
-	*/
 }
 
 static void
