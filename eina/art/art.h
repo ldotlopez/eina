@@ -1,5 +1,5 @@
 /*
- * eina/art.h
+ * eina/art/art.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ART_H
-#define _ART_H
+#ifndef _ART
+#define _ART
 
 #include <eina/art/eina-art.h>
 
