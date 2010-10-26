@@ -52,6 +52,7 @@ typedef struct {
 	GtkListStore       *queryer_results;
 	GtkTreeModelFilter *queryer_filter;
 
+	EinaArt *art;
 } Recently;
 
 // Model for playlist 
@@ -81,7 +82,7 @@ enum {
 	QUERYER_COLUMN_SEARCH,     // (gpointer)    Store cover search pointer
 	QUERYER_COLUMN_MATCH_TYPE, // (gint)        Type of the match
 	QUERYER_COLUMN_FULL_MATCH, // (gchar *)     Full match
-	QUERYER_COLUMN_COVER,      // (GdkPixbuf *) Artwork 
+	QUERYER_COLUMN_COVER,      // (GdkPixbuf *) EinaArtwork 
 	QUERYER_COLUMN_TEXT,       // (gchar *)     Text
 
 	QUERYER_N_COLUMNS
@@ -115,7 +116,7 @@ enum {
 // Generic stuff
 // --
 static gboolean
-list_store_get_iter_for_search(GtkListStore *model, gint column, ArtSearch *search, GtkTreeIter *iter);
+list_store_get_iter_for_search(GtkListStore *model, gint column, EinaArtSearch *search, GtkTreeIter *iter);
 static void
 list_store_set_cover(GtkListStore *model, gint column, GtkTreeIter *iter, GdkPixbuf *pixbuf, guint size);
 static const gchar*
@@ -145,7 +146,7 @@ recently_markup_edited_cb(GtkWidget *w,
 	gchar *new_text,
 	Recently *self);
 static void
-recently_search_cb(Art *art, ArtSearch *search, Recently *self);
+recently_search_cb(EinaArtSearch *search, Recently *self);
 
 // --
 // The queryer
@@ -157,7 +158,7 @@ queryer_load_query(Recently *self, gint matchtype, gchar *fullmatch);
 static void
 queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Recently *self);
 static void
-queryer_search_cb(Art *art, ArtSearch *search, Recently *self);
+queryer_search_cb(EinaArt *art, EinaArtSearch *search, Recently *self);
 static gboolean
 queryer_tree_model_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, Recently *self);
 
@@ -205,13 +206,13 @@ GQuark recently_quark(void)
 // Generic stuff
 // --
 static gboolean
-list_store_get_iter_for_search(GtkListStore *model, gint column, ArtSearch *search, GtkTreeIter *iter)
+list_store_get_iter_for_search(GtkListStore *model, gint column, EinaArtSearch *search, GtkTreeIter *iter)
 {
 	g_return_val_if_fail(gtk_tree_model_get_iter_first((GtkTreeModel *) model, iter), FALSE);
 
 	do
 	{
-		ArtSearch *test = NULL;
+		EinaArtSearch *test = NULL;
 		gtk_tree_model_get((GtkTreeModel *) model, iter, column, &test, -1);
 		if (test == search)
 			return TRUE;
@@ -538,14 +539,14 @@ recently_refresh(Recently *self)
 		gchar *title = adb_get_title_for_timestamp(adb, timestamps[i]);
 		gchar *escaped = g_markup_escape_text(title, -1);
 		g_free(title);
-		gchar *markup = g_strdup_printf(N_(RECENTLY_MARKUP), stamp_to_human(timestamps[i]), escaped);
+		gchar *markup = g_strdup_printf(RECENTLY_MARKUP, stamp_to_human(timestamps[i]), escaped);
 		g_free(escaped);
 
 		// Start a search for cover
-		ArtSearch *search = NULL;
+		EinaArtSearch *search = NULL;
 		LomoStream *fake_stream = adb_get_stream_from_timestamp(adb, timestamps[i]);
 		if (fake_stream)
-			search = art_search(gel_plugin_engine_get_art(self->engine), fake_stream, (ArtFunc) recently_search_cb, self);
+			search = eina_art_search(self->art, fake_stream, (EinaArtSearchCallback) recently_search_cb, self);
 
 		GtkTreeIter iter;
 		gtk_list_store_append((GtkListStore *) self->pls_model, &iter);
@@ -702,13 +703,13 @@ recently_markup_edited_cb(GtkWidget *w,
 }
 
 static void
-recently_search_cb(Art *art, ArtSearch *search, Recently *self)
+recently_search_cb(EinaArtSearch *search, Recently *self)
 {
 	GtkTreeIter iter;
 
 	if (list_store_get_iter_for_search(self->pls_model, RECENTLY_COLUMN_SEARCH, search, &iter))
-		list_store_set_cover(self->pls_model, RECENTLY_COLUMN_COVER, &iter, art_search_get_result(search), RECENTLY_COVER_SIZE);
-	g_object_unref(art_search_get_stream(search)); 
+		list_store_set_cover(self->pls_model, RECENTLY_COLUMN_COVER, &iter, eina_art_search_get_result(search), RECENTLY_COVER_SIZE);
+	g_object_unref(eina_art_search_get_stream(search)); 
 }
 
 // --
@@ -957,12 +958,10 @@ static void
 queryer_fill_model_for_query(Recently *self, gchar *input)
 {
 	EinaAdb *adb = gel_plugin_engine_get_adb(self->engine);
-	Art *art = gel_plugin_engine_get_art(self->engine);
 
 	gtk_list_store_clear(self->queryer_results);
 
 	g_return_if_fail(adb != NULL);
-	g_return_if_fail(art != NULL);
 
 	char *keys[] = {
 	//	"uri",
@@ -981,7 +980,7 @@ queryer_fill_model_for_query(Recently *self, gchar *input)
 	gchar *markups[] = {
 		N_("File"),
 		N_("Album"),
-		N_("Artist"),
+		N_("EinaArtist"),
 		N_("Title"),
 		NULL };
 	*/
@@ -1014,7 +1013,7 @@ queryer_fill_model_for_query(Recently *self, gchar *input)
 			switch (match_t[i])
 			{
 			case MATCH_TYPE_ARTIST:
-				markup = g_strdup_printf(N_("<b>%s (Artist)</b>\n %d matches"), escaped, n_matches);
+				markup = g_strdup_printf(N_("<b>%s (EinaArtist)</b>\n %d matches"), escaped, n_matches);
 				break;
 			case MATCH_TYPE_ALBUM:
 				markup = g_strdup_printf(N_("<b>%s (Album)</b>\n %d matches"), escaped, n_matches);
@@ -1029,10 +1028,10 @@ queryer_fill_model_for_query(Recently *self, gchar *input)
 			g_free(escaped);
 
 
-			ArtSearch *search = NULL;
+			EinaArtSearch *search = NULL;
 			LomoStream *stream = adb_get_stream_from_uri(adb, (gchar*) sqlite3_column_text(stmt, 3));
 			if (stream != NULL)
-				search = art_search(art, stream, (ArtFunc) queryer_search_cb, self);
+				search = eina_art_search(self->art, stream, (EinaArtSearchCallback) queryer_search_cb, self);
 
 			GtkTreeIter iter;
 			gtk_list_store_append(GTK_LIST_STORE(self->queryer_results), &iter);
@@ -1123,12 +1122,12 @@ queryer_search_view_selected_cb(GtkIconView *search_view, GtkTreePath *arg1, Rec
 }
 
 static void
-queryer_search_cb(Art *art, ArtSearch *search, Recently *self)
+queryer_search_cb(EinaArt *art, EinaArtSearch *search, Recently *self)
 {
 	GtkTreeIter iter;
 	if (list_store_get_iter_for_search(self->queryer_results, QUERYER_COLUMN_SEARCH, search, &iter))
-		list_store_set_cover(self->queryer_results, QUERYER_COLUMN_COVER, &iter, art_search_get_result(search), QUERYER_COVER_SIZE);
-	g_object_unref(G_OBJECT(art_search_get_stream(search)));
+		list_store_set_cover(self->queryer_results, QUERYER_COLUMN_COVER, &iter, eina_art_search_get_result(search), QUERYER_COVER_SIZE);
+	g_object_unref(G_OBJECT(eina_art_search_get_stream(search)));
 
 }
 
@@ -1175,10 +1174,10 @@ lomo_clear_cb(LomoPlayer *lomo, Recently *self)
 	gchar *markup = g_strdup_printf("<b>%s</b>\n\t%s", stamp_to_human(ts), escaped);
 	g_free(escaped);
 
-	ArtSearch *search = NULL;
+	EinaArtSearch *search = NULL;
 	LomoStream *stream = adb_get_stream_from_timestamp(adb, ts);
 	if (stream)
-		search = art_search(gel_plugin_engine_get_art(self->engine), stream, (ArtFunc) recently_search_cb, self);
+		search = eina_art_search(self->art, stream, (EinaArtSearchCallback) recently_search_cb, self);
 
 	GtkTreeIter iter;
 	if (!gtk_tree_model_get_iter_first((GtkTreeModel*) self->pls_model, &iter))
@@ -1225,6 +1224,7 @@ recently_plugin_init(GelPluginEngine *engine, EinaPlugin *plugin, GError **error
 
 	// Create dock
 	Recently *self = g_new0(Recently, 1);
+	self->art    = eina_art_new();
 	self->engine  = engine;
 	self->plugin = plugin;
 	self->dock   = dock_create(self);
@@ -1244,7 +1244,10 @@ recently_plugin_fini(GelPluginEngine *engine, EinaPlugin *plugin, GError **error
 	if (lomo)
 		g_signal_handlers_disconnect_by_func(lomo, "clear", lomo_clear_cb);
 	eina_plugin_remove_dock_widget_by_id(plugin, "recently");
-	g_free(gel_plugin_get_data(plugin));
+
+	Recently *self = gel_plugin_steal_data(plugin);
+	g_object_unref(self->art);
+	g_free(self);
 	return TRUE;
 }
 
