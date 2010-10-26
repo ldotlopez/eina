@@ -10,7 +10,7 @@ include_HEADERS = \
 	eina-art-search.h  \
 	art.h
 
-libart_la_CFLAGS  = @EINA_CFLAGS@
+libart_la_CFLAGS  = @EINA_CFLAGS@ -DART_DEBUG=0
 libart_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libart_la_SOURCES = \
 	$(include_HEADERS)       \

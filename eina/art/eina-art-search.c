@@ -26,8 +26,7 @@ G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_SEARCH, EinaArtSearchPrivate))
 
-#define ENABLE_DEBUG 1
-#if ENABLE_DEBUG
+#if EINA_ART_DEBUG 
 #define debug(...) gel_warn(__VA_ARGS__)
 #else
 #define debug(...) ;

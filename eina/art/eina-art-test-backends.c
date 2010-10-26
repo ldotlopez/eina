@@ -24,7 +24,6 @@
 void
 eina_art_null_backend_search(EinaArtBackend *backend, EinaArtSearch *search, gpointer data)
 {
-	g_warning("Null backend here, failing!");
 	eina_art_backend_finish(backend, search);
 }
 
@@ -75,6 +74,12 @@ eina_art_infolder_sync_backend_search(EinaArtBackend *backend, EinaArtSearch *se
 	LomoStream *stream = eina_art_search_get_stream(search);
 	const gchar *uri = lomo_stream_get_tag(stream, LOMO_TAG_URI);
 
+	if (g_str_equal(uri,"file:///nonexistent"))
+	{
+		eina_art_backend_finish(backend, search);
+		return;
+	}
+
 	// Check is stream is local
 	gchar *scheme = g_uri_parse_scheme(uri);
 	if (!g_str_equal(scheme, "file"))
@@ -86,19 +91,16 @@ eina_art_infolder_sync_backend_search(EinaArtBackend *backend, EinaArtSearch *se
 	}
 	g_free(scheme);
 
-	gchar *baseuri = g_path_get_dirname(uri);
+	gchar *filename = g_filename_from_uri(uri, NULL, NULL);
+	gchar *dirname = g_path_get_dirname(filename);
+	g_free(filename);
 
 	// Try to get a list of folder contents
 	GError *error = NULL;
-	gchar *dirname = g_filename_from_uri(baseuri, NULL, NULL);
-	g_free(baseuri);
-
 	GList *children = gel_dir_read(dirname, FALSE, &error);
-	if (error)
+	if (!children)
 	{
-		g_warning("Error reading %s: %s", dirname, error->message);
 		g_free(dirname);
-		g_error_free(error);
 		eina_art_backend_finish(backend, search);
 		return;
 	}

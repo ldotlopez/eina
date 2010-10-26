@@ -4,7 +4,7 @@
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
 #include <eina/adb/eina-adb.h>
-#include <eina/art/eina-art.h>
+#include <eina/art/art.h>
 
 G_BEGIN_DECLS
 
@@ -52,11 +52,6 @@ void
 eina_muine_set_lomo_player(EinaMuine *self, LomoPlayer *lomo);
 LomoPlayer*
 eina_muine_get_lomo_player(EinaMuine *lomo);
-
-void
-eina_muine_set_art(EinaMuine *self, Art *art);
-Art*
-eina_muine_get_art(EinaMuine *self);
 
 void
 eina_muine_set_mode(EinaMuine *self, EinaMuineMode mode);

@@ -25,8 +25,7 @@ G_DEFINE_TYPE (EinaArt, eina_art, G_TYPE_OBJECT)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART, EinaArtPrivate))
 
-#define ENABLE_DEBUG 1
-#if ENABLE_DEBUG
+#if EINA_ART_DEBUG
 #define debug(...) gel_warn(__VA_ARGS__)
 #else
 #define debug(...) ;

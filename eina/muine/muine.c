@@ -28,7 +28,6 @@ muine_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	EinaMuine *d = eina_muine_new();
 	g_object_set((GObject *) d,
-		"art",  eina_plugin_get_art(plugin),
 		"adb",  eina_plugin_get_adb(plugin),
 		"lomo-player", eina_plugin_get_lomo(plugin),
 		NULL);
