@@ -1,0 +1,143 @@
+#!/usr/bin/python
+
+import sys
+import re
+import os
+
+class SourceFile:
+	def __init__(self, filename):
+		self.FILENAME = filename
+		fd = open(filename)
+		self.LINES = fd.readlines()
+		self.CONTENTS = ''.join(self.LINES)
+		fd.close()
+
+		r = re.compile('^#include\s+(["<])(.+)[">"]')
+		self.HEADERS = []
+		for line in self.LINES:
+			m = r.match(line)
+			if not m:
+				continue
+			self.HEADERS.append({'header' : m.group(2), 'absolute' : m.group(1) == '<'})
+
+def check_license_header(self):
+	test = \
+	"/*\n" + \
+	" * " + self.FILENAME + "\n" + \
+	" *\n" + \
+	" * Copyright (C) 2004-2010 Eina\n"
+
+	if re.search('-(marshallers|ui).[ch]$',self.FILENAME):
+		return True
+	if self.CONTENTS.find(test) != 0:
+		return ['GPL Header not found']
+	return True
+
+def check_headers_path(self):
+	e = []
+	for h in self.HEADERS:
+		absolute = h['absolute']
+		header   = h['header']
+
+		# This is header
+		if self.FILENAME[-1] == 'h':
+			return True
+
+		if os.path.isfile(os.path.join(os.path.dirname(self.FILENAME), os.path.basename(header))) and absolute:
+			e.append("Using absolute include for %s" % header)
+
+		if not absolute and header.find('/') > 0 and os.path.dirname(header) == os.path.dirname(self.FILENAME):
+			e.append("Useless / in include %s" % header)
+
+		#if not absolute and os.path.isfile(header):
+		#	e.append("Using absolute include for %s" % header)
+
+	if len(e):
+		return e
+	else:
+		return True
+
+def check_sister_header(sfile):
+	if sfile.FILENAME[-1] != 'c':
+		return True
+	sisterh = os.path.basename(sfile.FILENAME[:-1]) + 'h'
+	
+	# Check if sisterh real path exists
+	sisterpath = os.path.join(os.path.dirname(sfile.FILENAME), sisterh)
+	if not os.path.isfile(sisterpath):
+		return True
+
+	headers = [x['header'] for x in sfile.HEADERS]
+
+	# Check if sisterh is included
+	if not sisterh in headers:
+		return [sisterh + ' os not included']
+
+	if len(headers) and headers[0]:
+		if headers[0] == 'config.h':
+			headers = headers[1:]
+		if headers[0] != sisterh:
+			return [sisterh + ' is not the first include']
+
+	return True
+
+#def check_headers_path(filename, buff):
+#	r = re.compile('^#include\s+(["<])(.+)[">"]')
+#
+#	errors = []
+#
+#	dirname = os.path.dirname(filename)
+#	t = filename[-1]
+#	h = os.path.basename(filename[:-1] + 'h')
+#	n_include = 0
+#	for line in buff.split('\n'):
+#		m = r.match(line)
+#		if not m:
+#			continue
+#		n_include = n_include + 1
+#		relative = m.group(1) == '"'
+#		include = m.group(2)
+#		if relative and include.find('/') > 0 and os.path.dirname(include) == dirname:
+#			errors.append("Useless / in include %s" % include)
+#		
+#		if not relative and os.path.isfile(include):
+#			errors.append("Using absolute include for %s" % include)
+#
+#		if include == h and n_include > 1:
+#			errors.append("Sister header not included as first include")
+#
+#	if len(errors):
+#		return errors
+#	return True
+#
+#checks = {
+#	'headers' : check_headers_path
+#	}
+for file in sys.argv[1:]:
+	print "===[ Source file: %s ]===" % file
+	s = SourceFile(file)
+	funcs = {
+		'license'       : check_license_header,
+		'headers_path'  : check_headers_path  ,
+		'sister_header' : check_sister_header
+	}
+	for (name,f) in funcs.items():
+		e = f(s)
+		if e != True:
+			print '\n'.join(['[!] ' + x for x in e])
+	#print s.check_license_header()
+	#print s.check_headers_path()
+#	try:
+#		fd = open(file)
+#		buffer = ''.join(fd.readlines())
+#		fd.close()
+#	except Exception, ex:
+#		sys.stderr.write("Unable to read %s: %s\n" % (file, ex))
+#	for (k,v) in checks.items():
+#		e = v(file, buffer)
+#		if e == True:
+#			sys.stdout.write('[OK] %s\n' % file)
+#		else:
+#			sys.stdout.write('[FAIL] %s\n%s\n' % (file, '\n'.join([('[!] ' + x) for x in e])))
+
+
