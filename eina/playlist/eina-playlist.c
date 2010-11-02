@@ -1,5 +1,5 @@
 /*
- * plugins/playlist/eina-playlist.c
+ * eina/playlist/eina-playlist.c
  *
  * Copyright (C) 2004-2010 Eina
  *

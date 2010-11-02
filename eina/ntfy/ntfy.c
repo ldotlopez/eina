@@ -1,5 +1,5 @@
 /*
- * plugins/ntfy/ntfy.c
+ * eina/ntfy/ntfy.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,12 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/eina-plugin2.h>
 #include "ntfy.h"
-// #include <eina/eina/vogon.h>
+#include <libnotify/notify.h>
+#include <eina/eina-plugin.h>
 #include <eina/lomo/lomo.h>
 #include <eina/art/art.h>
-#include <libnotify/notify.h>
 
 #define HAVE_VOGON 0
 

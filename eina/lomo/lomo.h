@@ -1,5 +1,5 @@
 /*
- * plugins/lomo/lomo.h
+ * eina/lomo/lomo.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -20,7 +20,7 @@
 #ifndef _EINA_LOMO_H
 #define _EINA_LOMO_H
 
-#include <eina/eina-plugin2.h>
+#include <eina/eina-plugin.h>
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
 

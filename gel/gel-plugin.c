@@ -18,7 +18,10 @@
  */
 
 #define GEL_DOMAIN "Gel::Plugin"
-#include "gel/gel.h"
+
+#include "gel-plugin.h"
+
+#include "gel.h"
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 

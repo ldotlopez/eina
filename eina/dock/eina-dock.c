@@ -1,5 +1,5 @@
 /*
- * plugins/dock/eina-dock.c
+ * eina/dock/eina-dock.c
  *
  * Copyright (C) 2004-2010 Eina
  *

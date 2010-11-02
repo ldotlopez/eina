@@ -1,5 +1,5 @@
 /*
- * plugins/adb/register.c
+ * eina/adb/register.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "register.h"
 #include "eina-adb.h"
 #include <string.h>
 #include <sys/time.h>

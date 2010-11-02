@@ -1,5 +1,5 @@
 /*
- * plugins/player/eina-player.c
+ * eina/player/eina-player.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,13 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
 #include "eina-player.h"
 #include "eina-player-ui.h"
+#include <glib/gi18n.h>
 #include "eina-seek.h"
 #include "eina-cover.h"
 #include "eina-cover-image.h"
-#include "eina/art/art.h"
+#include <eina/art/art.h>
 
 G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 

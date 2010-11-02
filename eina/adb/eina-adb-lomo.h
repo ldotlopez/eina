@@ -1,5 +1,5 @@
 /*
- * plugins/adb/eina-adb-lomo.c
+ * eina/adb/eina-adb-lomo.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_ADB_LOMO_H
-#define _EINA_ADB_LOMO_H
+#ifndef _EINA_ADB_LOMO
+#define _EINA_ADB_LOMO
 
-#include "eina-adb.h"
+#include <eina/adb/eina-adb.h>
 #include <lomo/lomo-player.h>
 
 gint

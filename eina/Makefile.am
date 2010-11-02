@@ -41,10 +41,8 @@ eina_LDFLAGS = \
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS = \
-	eina-plugin2.h
+	eina-plugin.h
 
 eina_SOURCES = \
-	fs.c \
-	fs.h \
-	eina-gtk3.c
+	eina.c
 

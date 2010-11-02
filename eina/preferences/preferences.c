@@ -1,5 +1,5 @@
 /*
- * eina/preferences.c
+ * eina/preferences/preferences.c
  *
  * Copyright (C) 2004-2010 Eina
  *

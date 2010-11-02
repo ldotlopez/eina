@@ -18,8 +18,11 @@
  */
 
 #define GEL_DOMAIN "GelUI"
-#include "gel-ui.h"
+
+#include "gel-ui-utils.h"
+
 #include <glib/gi18n.h>
+#include "gel-ui.h"
 
 static GQuark
 gel_ui_quark(void)

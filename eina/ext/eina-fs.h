@@ -1,5 +1,5 @@
 /*
- * eina/fs.h
+ * eina/ext/eina-fs.h
  *
  * Copyright (C) 2004-2010 Eina
  *

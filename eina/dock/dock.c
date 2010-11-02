@@ -1,5 +1,5 @@
 /*
- * plugins/dock/dock.c
+ * eina/dock/dock.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -18,7 +18,6 @@
  */
 
 #include "dock.h"
-#include <eina/eina-plugin2.h>
 #include <eina/application/application.h>
 #include <eina/player/player.h>
 

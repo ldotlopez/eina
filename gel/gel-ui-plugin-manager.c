@@ -1,7 +1,7 @@
 /*
  * gel/gel-ui-plugin-manager.c
  *
- * Copyright (C) 2004-2010 GelUI
+ * Copyright (C) 2004-2010 Eina
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <glib/gi18n.h>
 #include "gel-ui-plugin-manager.h"
 #include "gel-ui-plugin-manager-ui.h"
+
+#include <string.h>
+#include <glib/gi18n.h>
+#include "gel-ui.h"
 
 G_DEFINE_TYPE (GelUIPluginManager, gel_ui_plugin_manager, GTK_TYPE_BOX)
 

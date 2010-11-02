@@ -7,6 +7,7 @@ lomodir = $(prefix)/lib
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/lomo
 include_HEADERS = \
+	lomo.h                  \
 	lomo-player.h           \
 	lomo-metadata-parser.h  \
 	lomo-stream.h           \

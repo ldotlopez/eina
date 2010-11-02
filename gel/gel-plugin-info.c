@@ -18,11 +18,13 @@
  */
 
 #define GEL_DOMAIN "Gel::PluginInfo"
+
+#include "gel-plugin-info.h"
+
 #include <gmodule.h>
 #include <glib/gprintf.h>
 #include <glib/gi18n.h>
-#include <gel/gel-plugin-info.h>
-#include <gel/gel-misc.h>
+#include "gel-misc.h"
 
 GEL_DEFINE_QUARK_FUNC(plugin_info);
 

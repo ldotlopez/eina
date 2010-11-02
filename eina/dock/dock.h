@@ -1,5 +1,5 @@
 /*
- * plugins/dock/dock.h
+ * eina/dock/dock.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -20,7 +20,7 @@
 #ifndef _DOCK_H
 #define _DOCK_H
 
-#include <eina/eina-plugin2.h>
+#include <eina/eina-plugin.h>
 #include <eina/dock/eina-dock.h>
 
 #define gel_plugin_engine_get_dock(engine) gel_plugin_engine_get_interface(engine, "dock")

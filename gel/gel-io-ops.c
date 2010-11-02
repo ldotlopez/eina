@@ -18,12 +18,12 @@
  */
 
 #define GEL_DOMAIN "Gel::IO::SimpleOps"
+#include "gel-io-ops.h"
 #include <string.h>
 #include <gio/gio.h>
-#include <gel/gel.h>
-#include <gel/gel-io-misc.h>
-#include <gel/gel-io-ops.h>
-#include <gel/gel-io-op-result.h>
+#include "gel.h"
+#include "gel-io-misc.h"
+#include "gel-io-op-result.h"
 
 typedef gboolean (*GelIOOpHook) (GelIOOp *self);
 

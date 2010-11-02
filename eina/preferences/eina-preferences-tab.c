@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-preferences-tab.c
+ * eina/preferences/eina-preferences-tab.c
  *
  * Copyright (C) 2004-2010 Eina
  *

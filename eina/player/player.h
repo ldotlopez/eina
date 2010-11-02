@@ -1,5 +1,5 @@
 /*
- * plugins/player/player.h
+ * eina/player/player.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -20,7 +20,7 @@
 #ifndef _PLAYER_H
 #define _PLAYER_H
 
-#include <eina/eina-plugin2.h>
+#include <eina/eina-plugin.h>
 #include <eina/player/eina-player.h>
 
 #define gel_plugin_engine_get_player(engine) gel_plugin_engine_get_interface(engine, "player")

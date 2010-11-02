@@ -1,5 +1,5 @@
 /*
- * plugins/playlist/playlist.c
+ * eina/playlist/playlist.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,10 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "eina/eina-plugin2.h"
-#include "eina/playlist/playlist.h"
-#include "eina/dock/dock.h"
-#include "eina/fs.h"
+#include "playlist.h"
+
+#include <eina/eina-plugin.h>
+#include <eina/dock/dock.h>
+#include <eina/ext/eina-fs.h>
 
 #define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"                     
 #define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/ext/eina-file-utils.h>
+#include "eina-file-utils.h"
 
 gboolean
 eina_file_utils_is_supported_extension(gchar *uri)

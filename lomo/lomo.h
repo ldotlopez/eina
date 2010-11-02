@@ -1,5 +1,5 @@
 /*
- * eina/dbus.h
+ * lomo/lomo.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -13,23 +13,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public
+ * License
+ * along with this program.  If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_DBUS_H
-#define _EINA_DBUS_H
+#ifndef _LOMO_LOMO_H
+#define _LOMO_LOMO_H
 
-#include <glib.h>
-
-G_BEGIN_DECLS
-
-typedef enum { 
-	EINA_DBUS_NO_ERROR = 0, 
-	EINA_DBUS_CANNOT_GET_DBUS_PROXY
-} EinaDBusError; 
-
-G_END_DECLS
+#include <lomo/lomo-player.h>
+#include <lomo/lomo-util.h>
 
 #endif
 

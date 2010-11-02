@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "gel-ui-generic.h"
+
 #include <glib/gi18n.h>
-#include "gel/gel.h"
+#include "gel-ui.h"
 
 G_DEFINE_TYPE (GelUIGeneric, gel_ui_generic, GTK_TYPE_BOX)
 

@@ -1,5 +1,5 @@
 /*
- * plugins/adb/adb.c
+ * eina/adb/adb.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -21,10 +21,9 @@
 #include <config.h>
 #endif
 
-#include "eina/eina-plugin2.h"
-#include "eina-adb.h"
+#include "adb.h"
+#include <eina/lomo/lomo.h>
 #include "register.h"
-#include "eina/lomo/lomo.h"
 
 GEL_DEFINE_QUARK_FUNC(adb)
 

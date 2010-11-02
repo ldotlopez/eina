@@ -1,5 +1,5 @@
 /*
- * eina/preferences.h
+ * eina/preferences/preferences.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -20,7 +20,7 @@
 #ifndef _PREFERENCES_H
 #define _PREFERENCES_H
 
-#include <eina/eina-plugin2.h>
+#include <eina/eina-plugin.h>
 #include <eina/preferences/eina-preferences-dialog.h>
 
 G_BEGIN_DECLS

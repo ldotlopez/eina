@@ -1,5 +1,5 @@
 /*
- * eina/fs.c
+ * eina/ext/eina-fs.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -22,15 +22,17 @@
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include "eina-fs.h"
+
 #include <errno.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 #include <gel/gel-io.h>
-#include <lomo/lomo-util.h>
-#include <eina/ext/eina-file-chooser-dialog.h>
-#include <eina/ext/eina-file-utils.h>
-#include <eina/ext/eina-stock.h>
-#include <eina/fs.h>
+#include <lomo/lomo.h>
+#include "eina-file-chooser-dialog.h"
+#include "eina-file-utils.h"
+#include "eina-stock.h"
 
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelPluginEngine *engine);

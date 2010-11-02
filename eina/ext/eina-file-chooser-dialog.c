@@ -19,14 +19,14 @@
 
 #define GEL_DOMAIN "Eina::FileChooserDialog"
 
+#include "eina-file-chooser-dialog.h"
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include <eina/ext/eina-stock.h>
-#include <eina/ext/eina-file-chooser-dialog.h>
-#include <eina/ext/eina-file-utils.h>
+#include "eina-stock.h"
+#include "eina-file-utils.h"
 
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
 

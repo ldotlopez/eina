@@ -20,8 +20,11 @@
 #define GEL_DOMAIN "Eina::EinaIge"
 #define EINA_PLUGIN_DATA_TYPE EinaIge
 
+#if HAVE_CONFIG_H
 #include <config.h>
-#include <eina/eina-plugin.h>
+#endif
+
+#include "eina-plugin.h"
 #include <eina/window.h>
 #include <igemacintegration/ige-mac-integration.h>
 #include <igemacintegration/gtkosxapplication.h>

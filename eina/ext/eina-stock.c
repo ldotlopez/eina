@@ -17,10 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#include "eina-stock.h"
+
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <eina/ext/eina-stock.h>
 
 static gboolean done = FALSE;
 

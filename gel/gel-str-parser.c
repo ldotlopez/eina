@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gel/gel-str-parser.h>
+#include "gel-str-parser.h"
 #include <string.h>
 
 static gchar *

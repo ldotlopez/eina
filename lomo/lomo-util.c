@@ -1,5 +1,5 @@
 /*
- * lomo/util.c
+ * lomo/lomo-util.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,9 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "lomo-util.h"
+
 #include <glib/gi18n.h>
 #include <gst/gst.h>
-#include <lomo/lomo-util.h>
 
 gboolean
 lomo_format_to_gst(LomoFormat format, GstFormat *gst_format)

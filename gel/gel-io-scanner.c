@@ -18,9 +18,9 @@
  */
 
 
-#include <gel/gel-io-scanner.h>
-#include <gel/gel-marshallers.h>
+#include "gel-io-scanner.h"
 #include <string.h>
+#include "gel-marshallers.h"
 
 G_DEFINE_TYPE (GelIOScanner, gel_io_scanner, G_TYPE_OBJECT)
 

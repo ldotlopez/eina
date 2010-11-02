@@ -1,5 +1,5 @@
 /*
- * plugins/player/plugin.c
+ * eina/player/player.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,11 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "eina-player.h"
-#include "eina/eina-plugin2.h"
-#include "eina/lomo/lomo.h"
-#include "eina/preferences/preferences.h"
-#include "eina/fs.h"
+#include "player.h"
+#include <eina/eina-plugin.h>
+#include <eina/lomo/lomo.h>
+#include <eina/preferences/preferences.h>
+#include <eina/ext/eina-fs.h>
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"

@@ -18,7 +18,7 @@
  */
 
 #define GEL_DOMAIN "Gel::IO::RecurseTree"
-#include <gel/gel-io-recurse-tree.h>
+#include "gel-io-recurse-tree.h"
 
 struct _GelIORecurseTree {
 	guint       refs;

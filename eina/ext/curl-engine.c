@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/ext/curl-engine.h>
+#include "curl-engine.h"
 #include <glib/gi18n.h>
 
 #define ENABLE_DEBUG 0

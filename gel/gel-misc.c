@@ -17,10 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "gel-misc.h"
+
 #include <stdlib.h>
 #include <errno.h>
 #include <glib/gprintf.h>
-#include <gel/gel.h>
+#include "gel.h"
 
 extern int errno;
 

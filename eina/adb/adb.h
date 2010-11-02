@@ -1,5 +1,5 @@
 /*
- * plugins/adb/adb.h 
+ * eina/adb/adb.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,17 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_ADB_H
-#define _EINA_ADB_H
+#ifndef _ADB
+#define _ADB
+
+#include <eina/eina-plugin.h>
+#include <eina/adb/eina-adb.h>
 
 G_BEGIN_DECLS
-
-#include <eina/eina-plugin2.h>
-#include <eina/adb/eina-adb.h>
 
 #define gel_plugin_engine_get_adb(engine)   gel_plugin_engine_get_interface(engine, "adb")
 #define eina_plugin_get_adb(plugin)         gel_plugin_engine_get_adb(gel_plugin_get_engine(plugin))
 
 G_END_DECLS
 
-#endif // _EINA_ADB_H
+#endif // _ADB

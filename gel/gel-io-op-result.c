@@ -18,7 +18,7 @@
  */
 
 #define GEL_DOMAIN "Gel::IO::OpResult"
-#include <gel/gel-io-op-result.h>
+#include "gel-io-op-result.h"
 
 struct _GelIOOpResult {
 	// guint             refs;

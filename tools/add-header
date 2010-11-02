@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! -d "$PWD/.git" ]; then
-	echo "Run from toplevel"
+	echo "$0 must be run from project's toplevel directory"
 	exit 1
 fi
 

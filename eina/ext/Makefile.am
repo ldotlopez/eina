@@ -9,11 +9,13 @@ include_HEADERS = \
 	curl-engine.h              \
 	eina-file-chooser-dialog.h \
 	eina-file-utils.h          \
+	eina-fs.h                  \
 	eina-stock.h
 
 libeinaext_la_SOURCES = \
 	curl-engine.c              \
 	eina-file-chooser-dialog.c \
 	eina-file-utils.c          \
+	eina-fs.c                  \
 	eina-stock.c
 

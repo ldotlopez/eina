@@ -1,5 +1,5 @@
 /*
- * plugins/ntfy/ntfy.h
+ * eina/ntfy/ntfy.h
  *
  * Copyright (C) 2004-2010 Eina
  *

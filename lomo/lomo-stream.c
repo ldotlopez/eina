@@ -17,11 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "lomo-stream.h"
+
 #include <string.h>
-#include <gst/gst.h>
-#include <lomo/lomo-stream.h>
-#include <lomo/lomo-util.h>
 #include <glib/gprintf.h>
+#include <gst/gst.h>
+#include "lomo.h"
 
 G_DEFINE_TYPE (LomoStream, lomo_stream, G_TYPE_OBJECT)
 

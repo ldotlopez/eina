@@ -1,5 +1,5 @@
 /*
- * plugins/application/application.c
+ * eina/application/application.c
  *
  * Copyright (C) 2004-2010 Eina
  *

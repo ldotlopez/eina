@@ -17,10 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <gel/gel-job-queue.h>
+#include "gel-job-queue.h"
 #include <glib/gi18n.h>
-#include <gel/gel-misc.h>
+#include "gel-misc.h"
 
 G_DEFINE_TYPE (GelJobQueue, gel_job_queue, G_TYPE_OBJECT)
 

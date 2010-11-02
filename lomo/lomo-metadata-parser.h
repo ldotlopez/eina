@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOMO_METADATA_PARSER_H
-#define __LOMO_METADATA_PARSER_H
+#ifndef _LOMO_LOMO_METADATA_PARSER_H
+#define _LOMO_LOMO_METADATA_PARSER_H
 
 #include <glib-object.h>
 #include <lomo/lomo-stream.h>

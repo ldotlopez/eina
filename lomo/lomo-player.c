@@ -17,14 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
-#include "lomo-marshallers.h"
 #include "lomo-player.h"
+
+#include <glib/gi18n.h>
+#include "lomo.h"
 #include "lomo-playlist.h"
 #include "lomo-metadata-parser.h"
-#include "lomo-stream.h"
 #include "lomo-stats.h"
-#include "lomo-util.h"
+#include "lomo-marshallers.h"
 
 G_DEFINE_TYPE (LomoPlayer, lomo_player, G_TYPE_OBJECT)
 

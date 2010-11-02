@@ -1,5 +1,5 @@
 /*
- * plugins/lomo/lomo.c
+ * eina/lomo/lomo.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -18,10 +18,10 @@
  */
 
 #include "lomo.h"
-#include "lomo/lomo-player.h"
-#include "lomo/lomo-util.h"
-#include "eina/fs.h"
-#include "eina/application/application.h"
+#include <lomo/lomo-player.h>
+#include <lomo/lomo-util.h>
+#include <eina/ext/eina-fs.h>
+#include <eina/application/application.h>
 
 typedef struct {
 	GList *signals;

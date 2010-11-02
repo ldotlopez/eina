@@ -1,5 +1,5 @@
 /*
- * plugins/player/eina-player.h
+ * eina/player/eina-player.h
  *
  * Copyright (C) 2004-2010 Eina
  *

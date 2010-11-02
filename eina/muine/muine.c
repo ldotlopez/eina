@@ -1,5 +1,5 @@
 /*
- * plugins/muine/muine.c
+ * eina/muine/muine.c
  *
  * Copyright (C) 2004-2010 Eina
  *

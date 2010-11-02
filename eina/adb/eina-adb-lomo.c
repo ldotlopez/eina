@@ -1,5 +1,5 @@
 /*
- * plugins/adb/eina-adb-lomo.c
+ * eina/adb/eina-adb-lomo.c
  *
  * Copyright (C) 2004-2010 Eina
  *

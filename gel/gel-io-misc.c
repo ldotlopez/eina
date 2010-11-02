@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gel/gel-io-misc.h>
+#include "gel-io-misc.h"
 
 GFile *
 gel_io_file_get_child_for_file_info(GFile *parent, GFileInfo *child_info)

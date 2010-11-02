@@ -1,5 +1,5 @@
 /*
- * plugins/recently/recently.c
+ * eina/recently/recently.c
  *
  * Copyright (C) 2004-2010 Eina
  *

@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-seek.c
+ * eina/player/eina-seek.c
  *
  * Copyright (C) 2004-2010 Eina
  *

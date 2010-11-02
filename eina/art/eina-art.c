@@ -1,5 +1,5 @@
 /*
- * eina/eina/eina-art.c
+ * eina/art/eina-art.c
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #define GEL_DOMAIN "EinaArt"
 #include "eina-art.h"
 #include <gel/gel.h>

@@ -1,7 +1,7 @@
 /*
  * gel/gel-ui-application.c
  *
- * Copyright (C) 2004-2010 GelUI
+ * Copyright (C) 2004-2010 Eina
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,11 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "gel-ui-application.h"
+
 #include <glib/gi18n.h>
 #include "gel-ui.h"
-#include "gel/gel-marshallers.h"
+#include "gel-marshallers.h"
 
 G_DEFINE_TYPE (GelUIApplication, gel_ui_application, GTK_TYPE_APPLICATION)
 

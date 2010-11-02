@@ -1,5 +1,5 @@
 /*
- * eina/eina/eina-art-backend.c
+ * eina/art/eina-art-backend.c
  *
  * Copyright (C) 2004-2010 Eina
  *

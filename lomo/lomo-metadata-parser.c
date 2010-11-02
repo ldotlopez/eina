@@ -17,10 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gst/gst.h>
+#include "lomo-metadata-parser.h"
+
 #include <glib/gprintf.h>
-#include <lomo/lomo-metadata-parser.h>
-#include <lomo/lomo-marshallers.h>
+#include <gst/gst.h>
+#include "lomo-marshallers.h"
 
 G_DEFINE_TYPE (LomoMetadataParser, lomo_metadata_parser, G_TYPE_OBJECT)
 

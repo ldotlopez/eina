@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-cover-image.h
+ * eina/player/eina-cover-image.h
  *
  * Copyright (C) 2004-2010 Eina
  *

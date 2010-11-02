@@ -17,9 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "lomo-playlist.h"
+
 #include <glib/gprintf.h>
-#include <lomo/lomo-playlist.h>
-#include <lomo/lomo-util.h>
+#include "lomo.h"
 
 struct _LomoPlaylist {
     GList  *list;

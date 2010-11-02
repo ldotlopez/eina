@@ -1,5 +1,5 @@
 /*
- * plugins/playlist/playlist.h
+ * eina/playlist/playlist.h
  *
  * Copyright (C) 2004-2010 Eina
  *

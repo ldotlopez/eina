@@ -1,5 +1,5 @@
 /*
- * plugins/adb/register.h
+ * eina/adb/register.h
  *
  * Copyright (C) 2004-2010 Eina
  *
@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-G_BEGIN_DECLS
-
 #include "eina-adb.h"
 #include <lomo/lomo-player.h>
+
+G_BEGIN_DECLS
 
 void adb_register_start(EinaAdb *adb, LomoPlayer *lomo);
 void adb_register_stop (EinaAdb *adb, LomoPlayer *lomo);

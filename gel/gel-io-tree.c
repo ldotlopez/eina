@@ -17,9 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <gel/gel-io-tree.h>
-#include <glib/gprintf.h>
+#include "gel-io-tree.h"
 #include <string.h>
 
 struct _GelIOTreeOp {
@@ -211,7 +209,7 @@ query_info_cb(GFile *source, GAsyncResult *res, GelIOTreeOp *self)
 	}
 	else
 	{
-		g_printf("Unknow file type\n");
+		g_warning("Unknow file type");
 		g_object_unref(info);
 		_gel_io_tree_run_queue(self);
 	}

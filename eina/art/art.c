@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/eina-plugin2.h>
 #include "art.h"
+#include <eina/eina-plugin.h>
 #include "eina-art-test-backends.h"
 
 EinaArtBackend *null_backend, *infolder_backend;

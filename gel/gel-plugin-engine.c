@@ -18,7 +18,10 @@
  */
 
 #define GEL_DOMAIN "Gel::PluginEngine"
-#include "gel/gel.h"
+
+#include "gel-plugin-engine.h"
+
+#include "gel.h"
 #include <glib/gi18n.h>
 
 #define DEBUG 0
