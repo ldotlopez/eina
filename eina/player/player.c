@@ -281,12 +281,3 @@ settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player)
 	}
 }
 
-EINA_PLUGIN_INFO_SPEC(player,
-	NULL,
-	"lomo",
-	NULL,
-	NULL,
-	N_("Player plugin"),
-	NULL,
-	NULL
-	);

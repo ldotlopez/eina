@@ -45,18 +45,4 @@
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) gel_plugin_get_data((GelPlugin *) p))
 #endif
 
-// Define a macro for define plugin struct easily
-#define EINA_PLUGIN_INFO_SPEC(name,version,deps,author,url,short_desc,long_desc,icon) \
-	G_MODULE_EXPORT EinaPluginInfo name ## _plugin_info = { \
-		G_STRINGIFY(name), NULL, NULL,                \
-                                                      \
-		version ? version : PACKAGE_VERSION,          \
-		deps,                                         \
-		author ? author : EINA_PLUGIN_GENERIC_AUTHOR, \
-		url    ? url    : EINA_PLUGIN_GENERIC_URL,    \
-                                                      \
-		short_desc, long_desc, icon                   \
-	}
-
-
 #endif
