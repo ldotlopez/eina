@@ -8,6 +8,6 @@ DISTCLEANFILES += $(vala_stamps) $(vala_c_files) $(vala_h_files)
 EXTRA_DIST += $(vala_c_files) $(vala_h_files)
 
 %.vala.stamp: %.vala
-	$(VALAC) --header $(patsubst %.vala,%.h,$<) --use-header $(VALAFLAGS) $< \
+	$(VALAC) --header $(patsubst %.vala,%.h,$<) --use-header --ccode $(VALAFLAGS) $< \
 		&& touch $@
 
