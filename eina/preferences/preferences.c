@@ -155,8 +155,7 @@ static void
 preferences_attach_menu(EinaPreferences *self)
 {
 	const GtkActionEntry action_entries[] = {
-		{ "preferences", GTK_STOCK_PREFERENCES, N_("Preferences"),
-		"<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
+		{ "preferences", GTK_STOCK_PREFERENCES, N_("Preferences"), "<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
 	};
 
 	const gchar *ui_xml = 

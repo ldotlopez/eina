@@ -32,12 +32,21 @@ static gchar *ui_mng_str =
 "    <menu name='File' action='file-menu' >"
 "      <menuitem name='Quit' action='quit-action' />"
 "    </menu>"
+"    <menu name='Edit' action='edit-menu' >"
+"    </menu>"
+"    <menu name='Plugins' action='plugins-menu' >"
+"    </menu>"
+"    <menu name='Help' action='help-menu' >"
+"    </menu>"
 "  </menubar>"
 "</ui>";
 
 static GtkActionEntry ui_mng_actions[] = {
-	{ "file-menu",   NULL,           N_("_File"), "<alt>f", NULL, NULL},
-	{ "quit-action", GTK_STOCK_QUIT, NULL,        NULL,     NULL, (GCallback) action_activated_cb },
+	{ "file-menu",    NULL,           N_("_File"),    "<alt>f", NULL, NULL},
+	{ "edit-menu",    NULL,           N_("_Edit"),    "<alt>e", NULL, NULL},
+	{ "plugins-menu", NULL,           N_("_Plugins"), "<alt>p", NULL, NULL},
+	{ "help-menu",    NULL,           N_("_Help"),    "<alt>h", NULL, NULL},
+	{ "quit-action",  GTK_STOCK_QUIT, NULL,           NULL,     NULL, (GCallback) action_activated_cb }
 };
 
 enum {
@@ -109,6 +118,32 @@ eina_application_init (EinaApplication *self)
 	self->priv = GET_PRIVATE(self);
 	self->priv->interfaces = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	self->priv->settings   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+
+	// Generate iconlist for windows
+	const gint sizes[] = { 16, 32, 48, 64, 128 };
+	GList *icon_list = NULL;
+	gchar *icon_filename = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg");
+	if (icon_filename)
+	{
+		GError *e = NULL;
+		GdkPixbuf *pb = NULL;
+		for (guint i = 0; i < G_N_ELEMENTS(sizes); i++)
+		{
+			if (!(pb = gdk_pixbuf_new_from_file_at_scale(icon_filename, sizes[i], sizes[i], TRUE, &e)))
+			{
+				g_warning(N_("Unable to load resource '%s': %s"), icon_filename, e->message);
+				break;
+			}
+			else
+				icon_list = g_list_prepend(icon_list, pb);
+		}
+		gel_free_and_invalidate(e, NULL, g_error_free);
+
+		gtk_window_set_default_icon_list(icon_list);
+		gel_list_deep_free(icon_list, g_object_unref);
+	}
+	else
+		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
 }
 
 EinaApplication*
