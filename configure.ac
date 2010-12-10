@@ -9,12 +9,12 @@ AC_CONFIG_HEADERS([config.h])
 #
 AC_PREREQ(2.63)
 LT_PREREQ([2.2.6])
-AM_INIT_AUTOMAKE([1.10])
+AM_INIT_AUTOMAKE([1.10 -Wno-portability])
 IT_PROG_INTLTOOL([0.40.0])
 LT_INIT
 AM_GLIB_GNU_GETTEXT
+AM_PROG_VALAC([0.11.0])
 GTK_DOC_CHECK(1.9)
-#GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
 # Package information
@@ -29,6 +29,7 @@ EINA_CODENAME_0_9_1="In muine we believe" #
 EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 
 AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
+AC_DEFINE_UNQUOTED(EINA_API_VERSION,"$EINA_API_VERSION", [Eina API version])
 
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_CODENAME)
@@ -49,7 +50,11 @@ DATADIRNAME="share"
 AC_SUBST(DATADIRNAME)
 
 dnl aclocal flags
+AC_CONFIG_MACRO_DIR([build/m4])
 ACLOCAL_AMFLAGS="-I m4 ${ACLOCAL_FLAGS}"
+
+# Introspection
+GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
 # checks for programs
@@ -174,7 +179,6 @@ gtk_modules="\
 gstreamer_modules="\
 	gstreamer-0.10 >= $GSTREAMER_VERSION \
 	"
-
 PKG_CHECK_MODULES(GLIB,      $glib_modules)
 PKG_CHECK_MODULES(GTK,       $gtk_modules)
 PKG_CHECK_MODULES(GSTREAMER, $gstreamer_modules)
@@ -398,7 +402,6 @@ lomo/Makefile
 eina/Makefile
 eina/ext/Makefile
 eina/adb/Makefile
-eina/application/Makefile
 eina/art/Makefile
 eina/dbus/Makefile
 eina/dock/Makefile

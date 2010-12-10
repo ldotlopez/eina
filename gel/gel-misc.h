@@ -239,6 +239,12 @@ void gel_debug_remove_handler(GelDebugHandler func);
 #define gel_implement(...)  gel_warn("IMPLEMENT-ME -- " __VA_ARGS__)
 #define gel_fix(...)        gel_warn("FIX-ME -- " __VA_ARGS__)
 
+
+void
+gel_object_class_print_properties(GObjectClass *object);
+void
+gel_object_interface_print_properties(gpointer interface);
+
 void
 gel_debug_real  (const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...);
 

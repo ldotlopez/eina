@@ -23,9 +23,8 @@
 #include <eina/eina-plugin.h>
 #include <eina/dock/eina-dock.h>
 
-#define gel_plugin_engine_get_dock(engine) gel_plugin_engine_get_interface(engine, "dock")
-#define gel_plugin_get_dock(plugin)        gel_plugin_engine_get_dock(gel_plugin_get_engine(plugin))
-#define eina_plugin_get_dock(plugin)       gel_plugin_get_dock(plugin)
+#define eina_application_get_dock(app) eina_application_get_interface(app, "dock")
+#define eina_plugin_get_dock(plugin)   eina_application_get_dock(eina_plugin_get_application(plugin))
 
 #define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
 #define EINA_DOCK_ORDER_KEY    "page-order"

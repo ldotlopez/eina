@@ -29,9 +29,9 @@
 #define HELP_URI ""
 
 static void
-player_dnd_cb(GtkWidget *w, GType type, const guchar *data, GelPluginEngine *engine);
+player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app);
 static gboolean
-player_action_activated_cb(EinaPlayer *player, GtkAction *action, GelPluginEngine *engine);
+player_action_activated_cb(EinaPlayer *player, GtkAction *action, EinaApplication *app);
 static void 
 action_activated_cb(GtkAction *action, EinaPlayer *player);
 static void
@@ -62,27 +62,26 @@ static GSettings *__settings = NULL;
 static EinaPreferencesTab *__prefs_tab = NULL;
 
 G_MODULE_EXPORT gboolean
-player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+player_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	GSettings *settings = g_settings_new(EINA_PLAYER_PREFERENCES_DOMAIN);
-	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
 
 	GtkWidget *player = eina_player_new();
 	g_object_set(player,
-		"lomo-player",   gel_plugin_engine_get_interface(engine, "lomo"),
+		"lomo-player",   eina_application_get_interface(app, "lomo"),
 		"stream-markup", g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
 		NULL);
-	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, engine);
+	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, app);
 
-	g_object_set_data((GObject *) player, "eina-engine", engine);
+	g_object_set_data((GObject *) player, "eina-application", app);
 	g_object_set_data((GObject *) player, "eina-plugin", plugin);
 
 	// Connect actions
-	g_signal_connect(player,   "action-activated", (GCallback) player_action_activated_cb, engine);
+	g_signal_connect(player,   "action-activated", (GCallback) player_action_activated_cb, app);
 	g_signal_connect(settings, "changed",          (GCallback) settings_changed_cb, player);
 
 	// Export
-	gel_plugin_engine_set_interface(engine, "player", player);
+	eina_application_set_interface(app, "player", player);
 
 	// Pack and show
 	g_object_set(G_OBJECT(player),
@@ -91,13 +90,13 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		NULL);
 
 	gtk_box_pack_start (
-		(GtkBox *) gel_ui_application_get_window_content_area(application),
+		(GtkBox *) eina_application_get_window_content_area(app),
 		player,
 		FALSE, FALSE, 0);
 	gtk_widget_show_all(player);
 
 	// Attach menus
-	GtkUIManager *ui_mng = gel_ui_application_get_window_ui_manager(application);
+	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
 	GError *e = NULL;
 	if ((__ui_merge_id = gtk_ui_manager_add_ui_from_string (ui_mng, ui_mng_xml, -1 , &e)) == 0)
 	{
@@ -118,7 +117,7 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		"widget", widget,
 		NULL);
 	
-	GSettings *lomo_sets = gel_ui_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
+	GSettings *lomo_sets = eina_application_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	eina_preferences_tab_bindv(__prefs_tab,
 		lomo_sets, "repeat", "repeat", "active",
 		lomo_sets, "random", "random", "active",
@@ -133,13 +132,13 @@ player_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-player_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+player_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	gel_free_and_invalidate(__settings, NULL, g_object_unref);
 	if (__ui_merge_id > 0)
 	{
-		GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
-		GtkUIManager *ui_mng = gel_ui_application_get_window_ui_manager(application);
+		EinaApplication *application = eina_application_get_interface(app, "application");
+		GtkUIManager *ui_mng = eina_application_get_window_ui_manager(application);
 		gtk_ui_manager_remove_ui(ui_mng, __ui_merge_id);
 	}
 	if (__prefs_tab)
@@ -201,21 +200,21 @@ about_show(EinaPlayer *player)
 }
 
 static void
-player_dnd_cb(GtkWidget *w, GType type, const guchar *data, GelPluginEngine *engine)
+player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app)
 {
 	g_return_if_fail(type == G_TYPE_STRING);
 
 	gchar **uris = g_uri_list_extract_uris((gchar *) data);
 	GList *l = gel_strv_to_list(uris, FALSE);
 	if (l)
-		lomo_player_clear(gel_plugin_engine_get_lomo(engine));
-	eina_fs_load_from_uri_multiple(engine, l);
+		lomo_player_clear(eina_application_get_lomo(app));
+	eina_fs_load_from_uri_multiple(app, l);
 	g_list_free(l);
 	g_strfreev(uris);
 }
 
 static gboolean
-player_action_activated_cb(EinaPlayer *player, GtkAction *action, GelPluginEngine *engine)
+player_action_activated_cb(EinaPlayer *player, GtkAction *action, EinaApplication *app)
 {
 	const gchar *name = gtk_action_get_name(action);
 
@@ -226,7 +225,7 @@ player_action_activated_cb(EinaPlayer *player, GtkAction *action, GelPluginEngin
 
 	// Handle action
 	if (g_str_equal(name, "open-action"))
-		eina_fs_load_from_default_file_chooser(engine);
+		eina_fs_load_from_default_file_chooser(app);
 
 	// Action is unknow to us, return FALSE
 	else
@@ -248,11 +247,11 @@ action_activated_cb(GtkAction *action, EinaPlayer *player)
 	g_return_if_fail(GTK_IS_ACTION(action));
 	g_return_if_fail(EINA_IS_PLAYER(player));
 
-	GelPluginEngine *engine = GEL_PLUGIN_ENGINE(g_object_get_data( (GObject *)player, "eina-engine"));
+	EinaApplication *app = EINA_APPLICATION(g_object_get_data((GObject *) player, "eina-application"));
 
 	const gchar *name = gtk_action_get_name(action);
-	if (g_str_equal("open-action", name) && GEL_IS_PLUGIN_ENGINE(engine))
-		eina_fs_load_from_default_file_chooser(engine);
+	if (g_str_equal("open-action", name) && EINA_IS_APPLICATION(app))
+		eina_fs_load_from_default_file_chooser(app);
 
 	else if (g_str_equal("help-action", name))
 		; // gel_ui_application_xdg_open(application, HELP_URL);

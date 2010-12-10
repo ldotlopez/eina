@@ -27,8 +27,8 @@ G_BEGIN_DECLS
 
 typedef struct _EinaPreferences EinaPreferences;
 
-#define gel_plugin_engine_get_preferences(engine)  ((EinaPreferences *) gel_plugin_engine_get_interface(engine, "preferences"))
-#define eina_plugin_get_preferences(plugin) gel_plugin_engine_get_preferences(gel_plugin_get_engine(plugin))
+#define eina_application_get_preferences(engine) ((EinaPreferences *) eina_application_get_interface(engine, "preferences"))
+#define eina_plugin_get_preferences(plugin)      eina_application_get_preferences(eina_plugin_get_application(plugin))
 
 
 void

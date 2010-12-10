@@ -90,7 +90,8 @@ const gchar* gel_plugin_get_data_dir(GelPlugin *plugin);
 #define GEL_PLUGIN_DATA(p) ((GEL_PLUGIN_DATA_TYPE *) gel_plugin_get_data(GEL_PLUGIN(p)))
 #endif
 
-#define gel_plugin_get_app(o) gel_plugin_get_engine(o)
+
+gpointer gel_plugin_get_application(GelPlugin *plugin);
 
 #endif
 

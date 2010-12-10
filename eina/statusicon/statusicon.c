@@ -18,7 +18,6 @@
  */
 
 #include <eina/eina-plugin.h>
-#include <eina/application/application.h>
 #include <eina/lomo/lomo.h>
 
 typedef struct {
@@ -104,9 +103,11 @@ status_icon_data_destroy(StatusIconData *data)
 	gel_free_and_invalidate(data->ag, NULL, g_object_unref);
 	gel_plugin_set_data(data->plugin, NULL);
 
+	EinaApplication *app = eina_plugin_get_application(data->plugin);
+
 	// Disconnect signals
 	g_signal_handlers_disconnect_by_func(eina_plugin_get_lomo(data->plugin), update_ui_manager, data);
-	g_signal_handlers_disconnect_by_func(eina_plugin_get_application_window(data->plugin), update_ui_manager, data);
+	g_signal_handlers_disconnect_by_func(eina_application_get_window(app), update_ui_manager, data);
 
 	// Free/unref objects
 	gel_free_and_invalidate(data->ui_mng, NULL, g_object_unref);
@@ -117,7 +118,7 @@ status_icon_data_destroy(StatusIconData *data)
 }
 
 gboolean
-statusicon_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+statusicon_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	// Systray is broken on OSX using Quartz backend
 	#if OSX_SYSTEM && defined __GDK_X11_H__
@@ -170,7 +171,7 @@ statusicon_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **erro
 	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(update_ui_manager), data);
 	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(update_ui_manager), data);
 
-	GtkWindow *window = eina_plugin_get_application_window(plugin);
+	GtkWindow *window = eina_application_get_window(eina_plugin_get_application(plugin));
 	g_signal_connect_swapped(window, "show",  G_CALLBACK(update_ui_manager), data);
 	g_signal_connect_swapped(window, "hide",  G_CALLBACK(update_ui_manager), data);
 
@@ -184,13 +185,13 @@ statusicon_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **erro
 }
 
 gboolean
-statusicon_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+statusicon_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	StatusIconData *data = (StatusIconData *) gel_plugin_get_data(plugin);
 
 	// Disconnect signals
 	g_signal_handlers_disconnect_by_func(eina_plugin_get_lomo(plugin), update_ui_manager, data);
-	g_signal_handlers_disconnect_by_func(eina_plugin_get_application_window(plugin), update_ui_manager, data);
+	g_signal_handlers_disconnect_by_func(eina_application_get_window(app), update_ui_manager, data);
 
 	// Free/unref objects
 	gel_free_and_invalidate(data->ui_mng, NULL, g_object_unref);
@@ -228,7 +229,8 @@ update_ui_manager(StatusIconData *self)
 	gtk_widget_hide(gtk_ui_manager_get_widget(self->ui_mng, hide));
 	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
 
-	GtkWindow *window = eina_plugin_get_application_window(self->plugin);
+	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	GtkWindow *window = eina_application_get_window(app);
 	if (gtk_widget_get_visible(GTK_WIDGET(window)))
 	{
 		hide = "/Main/Show";
@@ -263,11 +265,13 @@ action_activate_cb(GtkAction *action, StatusIconData *self)
 	GError *error = NULL;
 	const gchar *name = gtk_action_get_name(action);
 
+	EinaApplication *app = eina_plugin_get_application(self->plugin);
+
 	if (g_str_equal(name, "show-action"))
-		gtk_widget_show(GTK_WIDGET(eina_plugin_get_application_window(self->plugin)));
+		gtk_widget_show(GTK_WIDGET(eina_application_get_window(app)));
 
 	else if (g_str_equal(name, "hide-action"))
-		gtk_widget_hide(GTK_WIDGET(eina_plugin_get_application_window(self->plugin)));
+		gtk_widget_hide(GTK_WIDGET(eina_application_get_window(app)));
 
 	else if (g_str_equal(name, "play-action"))
 		lomo_player_play(eina_plugin_get_lomo(self->plugin), &error);
@@ -285,13 +289,14 @@ action_activate_cb(GtkAction *action, StatusIconData *self)
 		lomo_player_go_next(eina_plugin_get_lomo(self->plugin), NULL);
 
 	else if (g_str_equal(name, "open-action"))
-		eina_fs_load_from_default_file_chooser(gel_plugin_get_engine(self->plugin));
+		eina_fs_load_from_default_file_chooser(app);
 
 	else if (g_str_equal(name, "clear-action"))
 		lomo_player_clear(eina_plugin_get_lomo(self->plugin));
 	
 	else if (g_str_equal(name, "quit-action"))
-		gtk_application_quit(eina_plugin_get_application(self->plugin));
+		g_warning("Kill me please, this migration is so painful");
+		// gtk_application_quit(eina_plugin_get_application(self->plugin));
 
 	else
 		g_warning("Unknow action: %s", name);
@@ -306,7 +311,8 @@ action_activate_cb(GtkAction *action, StatusIconData *self)
 static gboolean
 status_icon_destroy_cb(GtkWidget *w, StatusIconData *self)
 {
-	GtkWidget *window = (GtkWidget *) eina_plugin_get_application_window(self->plugin);
+	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	GtkWidget *window = GTK_WIDGET(eina_application_get_window(app));
 
 	if (!gtk_widget_get_visible(window))
 		gtk_widget_show(window);
@@ -320,7 +326,9 @@ static void
 status_icon_activate_cb
 (GtkWidget *w, StatusIconData *self)
 {
-	GtkWindow *window = (GtkWindow *) eina_plugin_get_application_window(self->plugin);
+	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
+
 	if (!window)
 		return;
 

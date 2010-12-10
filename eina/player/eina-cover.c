@@ -131,37 +131,18 @@ eina_cover_dispose (GObject *object)
 }
 
 static void
-eina_cover_size_request (GtkWidget *widget, GtkRequisition *requisition)
-{
-	requisition->width  = 0;
-	requisition->height = 0;
-	// debug("EinaCover size request to %dx%d\n", requisition->width, requisition->height);
-}
-
-static void
-eina_cover_size_allocate (GtkWidget *widget, GtkAllocation *allocation)
-{
-	GList *l = gtk_container_get_children(GTK_CONTAINER(widget));
-	GtkWidget *child = l ? l->data : NULL;
-	g_list_free(l);
-
-	if (child && gtk_widget_get_visible(child))
-	{
-		// Make an square!
-		allocation->width = allocation->height;
-		gtk_widget_set_size_request(widget, allocation->height, allocation->height);
-		gtk_widget_size_allocate(child, allocation);
-		// debug("EinaCover size allcate to  %dx%d\n", allocation->width, allocation->height);
-	}
-}
-
-static void
 eina_cover_add(GtkContainer *container, GtkWidget *widget)
 {
 	GList *l = gtk_container_get_children(container);
 	g_return_if_fail(l == NULL);
 
 	GTK_CONTAINER_CLASS(eina_cover_parent_class)->add(container, widget);
+}
+
+static void
+eina_cover_get_preferred_x_for_x(GtkWidget *widget, gint i, gint *minimum, gint *natural)
+{
+	*minimum = *natural = i;
 }
 
 static void
@@ -176,8 +157,9 @@ eina_cover_class_init (EinaCoverClass *klass)
 	object_class->get_property = eina_cover_get_property;
 	object_class->set_property = eina_cover_set_property;
 	object_class->dispose = eina_cover_dispose;
-	widget_class->size_request = eina_cover_size_request;
-	widget_class->size_allocate = eina_cover_size_allocate;
+	widget_class->get_preferred_width_for_height = eina_cover_get_preferred_x_for_x;
+	widget_class->get_preferred_height_for_width = eina_cover_get_preferred_x_for_x;
+
 	container_class->add = eina_cover_add;
 
 	g_object_class_install_property(object_class, PROPERTY_RENDERER,

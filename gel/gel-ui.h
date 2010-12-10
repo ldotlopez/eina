@@ -21,7 +21,6 @@
 #define _GEL_UI_H
 
 #include <gel/gel.h>
-#include <gel/gel-ui-application.h>
 #include <gel/gel-ui-generic.h>
 #include <gel/gel-ui-plugin-manager.h>
 #include <gel/gel-ui-utils.h>

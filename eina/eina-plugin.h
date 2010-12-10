@@ -29,6 +29,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <gel/gel-ui.h>
+#include <eina/ext/eina-application.h>
 #include <eina/ext/eina-stock.h>
 #include <eina/ext/eina-fs.h>
 
@@ -44,5 +45,7 @@
 #ifdef EINA_PLUGIN_DATA_TYPE
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) gel_plugin_get_data((GelPlugin *) p))
 #endif
+
+#define eina_plugin_get_application(plugin) EINA_APPLICATION(gel_plugin_get_application(plugin))
 
 #endif

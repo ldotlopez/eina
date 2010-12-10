@@ -30,14 +30,13 @@
 #include <gel/gel.h>
 #include <gel/gel-io.h>
 #include <lomo/lomo.h>
-#include "eina-file-chooser-dialog.h"
 #include "eina-file-utils.h"
 #include "eina-stock.h"
 
 static void
-load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelPluginEngine *engine);
+load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaApplication *app);
 static void
-load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, GelPluginEngine *engine);
+load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaApplication *app);
 
 GEL_DEFINE_QUARK_FUNC(eina_fs)
 
@@ -49,15 +48,15 @@ GEL_DEFINE_QUARK_FUNC(eina_fs)
  * Scans and add uris to lomo
  */
 void
-eina_fs_load_from_uri_multiple(GelPluginEngine *engine, GList *uris)
+eina_fs_load_from_uri_multiple(EinaApplication *app, GList *uris)
 {
 	GelIOScanner *scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
-	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, engine);
-	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   engine);
+	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, app);
+	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   app);
 }
 
 static void
-load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, GelPluginEngine *engine)
+load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaApplication *app)
 {
 	GList *flatten = gel_io_scanner_flatten_result(forest);
 	GList *l = flatten;
@@ -78,7 +77,7 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 	}
 	uris = g_list_reverse(uris);
 
-	LomoPlayer *lomo = gel_plugin_engine_get_interface(engine, "lomo");
+	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
 	lomo_player_append_uri_multi(lomo, uris);
 
 	gel_list_deep_free(uris, (GFunc) g_free);
@@ -86,7 +85,7 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 }
 
 static void
-load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, GelPluginEngine *engine)
+load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaApplication *app)
 {
 	gchar *uri = g_file_get_uri(source);
 	gel_warn(N_("'%s' throw an error: %s"), error->message);
@@ -94,7 +93,7 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 }
 
 void
-eina_fs_load_from_default_file_chooser(GelPluginEngine *engine)
+eina_fs_load_from_default_file_chooser(EinaApplication *app)
 {
 
 	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
@@ -107,7 +106,7 @@ eina_fs_load_from_default_file_chooser(GelPluginEngine *engine)
 	if ((prev_folder_uri != NULL) && (prev_folder_uri[0] != '\0'))
 		gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(picker), prev_folder_uri);
 
-	eina_fs_load_from_file_chooser(engine, picker);
+	eina_fs_load_from_file_chooser(app, picker);
 
 	gchar *curr_folder_uri = gtk_file_chooser_get_current_folder_uri(GTK_FILE_CHOOSER(picker));
 	g_settings_set_string(settings, EINA_FS_LAST_FOLDER_KEY, curr_folder_uri);
@@ -118,7 +117,7 @@ eina_fs_load_from_default_file_chooser(GelPluginEngine *engine)
 }
 
 void
-eina_fs_load_from_file_chooser(GelPluginEngine *engine, EinaFileChooserDialog *dialog)
+eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dialog)
 {
 	gboolean run = TRUE;
 	while (run)
@@ -134,7 +133,7 @@ eina_fs_load_from_file_chooser(GelPluginEngine *engine, EinaFileChooserDialog *d
 		if (uris == NULL)
 			continue;
 
-		LomoPlayer *lomo = gel_plugin_engine_get_interface(engine, "lomo");
+		LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
 		if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
 		{
 			run = FALSE;

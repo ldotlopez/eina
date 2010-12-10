@@ -21,7 +21,6 @@
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
 #include <eina/ext/eina-fs.h>
-#include <eina/application/application.h>
 
 typedef struct {
 	GList *signals;
@@ -34,11 +33,11 @@ lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data);
 GEL_DEFINE_QUARK_FUNC(lomo)
 
 gboolean
-lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+lomo_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	LomoPlayer *lomo = NULL;
-	gint    *argc = gel_plugin_engine_get_argc(engine);
-	gchar ***argv = gel_plugin_engine_get_argv(engine);
+	gint    *argc = eina_application_get_argc(app);
+	gchar ***argv = eina_application_get_argv(app);
 
 	lomo_init(argc, argv);
 	if ((lomo = lomo_player_new("audio-output", "autoaudiosink", NULL)) == NULL)
@@ -47,7 +46,7 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	if (!gel_plugin_engine_set_interface(engine, "lomo", lomo))
+	if (!eina_application_set_interface(app, "lomo", lomo))
 	{
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_SET_SHARED, N_("Cannot share engine"));
 		g_object_unref(lomo);
@@ -56,8 +55,8 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_object_ref_sink(lomo);
 
 
-	GelUIApplication *application = eina_plugin_get_application(plugin);
-	GSettings *settings = gel_ui_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
+	EinaApplication *application = eina_plugin_get_application(plugin);
+	GSettings *settings = eina_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
 
 	g_object_set((LomoPlayer *) lomo,
 		"repeat", g_settings_get_boolean(settings, EINA_LOMO_REPEAT_KEY),
@@ -78,8 +77,8 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_signal_connect(lomo, "random", (GCallback) lomo_random_cb, NULL);
 
 	// Quick hack
-	gint    argsc = *argc;
-	gchar **argsv = *argv;
+	gint    argsc = argc ? *argc : 0;
+	gchar **argsv = argv ? *argv : NULL;
 
 	for (guint i = 1; (i <= argsc) && argsv && argsv[i] && argsv[i][0]; i++)
 	{
@@ -118,15 +117,14 @@ lomo_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 }
 
 gboolean
-lomo_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+lomo_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = gel_plugin_engine_get_interface(engine, "lomo");
+	LomoPlayer *lomo = eina_application_steal_interface(app, "lomo");
 	if (!lomo)
 	{
 		g_set_error(error, lomo_quark(), EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
-	gel_plugin_engine_set_interface(engine, "lomo", NULL);
 
 	GString *gs = g_string_new(NULL);
 	GList *i = (GList *) lomo_player_get_playlist(lomo);

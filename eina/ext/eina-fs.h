@@ -22,18 +22,19 @@
 
 #include <glib.h>
 #include <gel/gel.h>
+#include <eina/ext/eina-application.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 
 #define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
 #define EINA_FS_LAST_FOLDER_KEY "last-folder"
 
 void
-eina_fs_load_from_uri_multiple(GelPluginEngine *engine, GList *uris);
+eina_fs_load_from_uri_multiple(EinaApplication *app, GList *uris);
 
 void
-eina_fs_load_from_default_file_chooser(GelPluginEngine *engine);
+eina_fs_load_from_default_file_chooser(EinaApplication *app);
 void
-eina_fs_load_from_file_chooser(GelPluginEngine *engine, EinaFileChooserDialog *dialog);
+eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dialog);
 
 GSList*
 eina_fs_files_from_uri_strv(gchar **uris);

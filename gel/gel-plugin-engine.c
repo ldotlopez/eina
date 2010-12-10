@@ -45,8 +45,7 @@ struct _GelPluginEnginePrivate {
 	GelPluginEngineDisposeFunc dispose_func;
 	gpointer  dispose_data;
 
-	gint*       argc;
-	gchar***    argv;
+	gpointer    application;
 
 	GList      *paths;    // Paths to search plugins
 	GList      *infos;    // Cached GelPluginInfo list
@@ -164,11 +163,10 @@ gel_plugin_engine_init (GelPluginEngine *self)
 }
 
 GelPluginEngine*
-gel_plugin_engine_new (gint *argc, gchar ***argv)
+gel_plugin_engine_new (gpointer application)
 {
 	GelPluginEngine *self = g_object_new (GEL_TYPE_PLUGIN_ENGINE, NULL);
-	self->priv->argc = argc;
-	self->priv->argv = argv;
+	self->priv->application = application;
 	return self;
 }
 
@@ -466,6 +464,7 @@ gel_plugin_engine_purge(GelPluginEngine *engine)
 // --
 // Shared memory management
 // --
+#if 0
 gboolean
 gel_plugin_engine_set_interface (GelPluginEngine *self, gchar *name, gpointer data)
 {
@@ -526,6 +525,13 @@ gel_plugin_engine_get_argv(GelPluginEngine *self)
 {
 	g_return_val_if_fail(GEL_IS_PLUGIN_ENGINE(self), NULL);
 	return self->priv->argv;
+}
+#endif
+
+gpointer
+gel_plugin_engine_get_application(GelPluginEngine *self)
+{
+	return self->priv->application;
 }
 
 // --

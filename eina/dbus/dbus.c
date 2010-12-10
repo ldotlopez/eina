@@ -30,7 +30,7 @@
 
 typedef struct {
 	guint server_id;
-	GelPluginEngine *engine;
+	EinaApplication *app;
 	GDBusProxy      *mmkeys_proxy;
 } DBusData;
 
@@ -44,10 +44,10 @@ static void
 server_name_lost_cb(GDBusConnection *connection, const gchar *name, DBusData *data);
 
 gboolean
-dbus_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+dbus_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	DBusData *data = g_new0(DBusData, 1);
-	data->engine = engine;
+	data->app = app;
 	data->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
 		NULL,
@@ -94,7 +94,7 @@ proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVari
 	GVariant *v_action = g_variant_get_child_value(parameters, 1);
 	const gchar *action = g_variant_get_string(v_action, NULL);
 
-	LomoPlayer *lomo = gel_plugin_engine_get_lomo(data->engine);
+	LomoPlayer *lomo = eina_application_get_lomo(data->app);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	if (g_str_equal("Play", action) || g_str_equal("Pause", action))

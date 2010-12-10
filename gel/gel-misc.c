@@ -502,3 +502,33 @@ gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const
 
 	g_free(buffer);
 }
+
+void
+gel_object_class_print_properties(GObjectClass *klass)
+{
+	guint n_specs;
+	GParamSpec **specs = g_object_class_list_properties(klass, &n_specs);
+	const gchar *class_name = G_OBJECT_CLASS_NAME(klass); 
+	for (guint i = 0; i < n_specs; i++)
+	{
+		g_debug("%s:%s %s", class_name,
+			g_param_spec_get_name(specs[i]),
+			g_type_name(specs[i]->value_type)
+			);
+	} 
+}
+
+void
+gel_object_interface_print_properties(gpointer iface)
+{
+	guint n_specs;
+	GParamSpec **specs = g_object_interface_list_properties(iface, &n_specs);
+	const gchar *class_name = G_OBJECT_CLASS_NAME(iface);
+	for (guint i = 0; i < n_specs; i++)
+	{
+		g_debug("%s:%s %s", class_name,
+			g_param_spec_get_name(specs[i]),
+			g_type_name(specs[i]->value_type)
+			);
+	}
+}

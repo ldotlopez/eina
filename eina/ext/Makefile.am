@@ -7,15 +7,19 @@ libeinaext_la_CFLAGS = @EINA_CFLAGS@
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 include_HEADERS = \
 	curl-engine.h              \
+	eina-application.h         \
 	eina-file-chooser-dialog.h \
 	eina-file-utils.h          \
 	eina-fs.h                  \
 	eina-stock.h
 
 libeinaext_la_SOURCES = \
+	$(include_HEADERS)         \
+	eina-application.c         \
 	curl-engine.c              \
 	eina-file-chooser-dialog.c \
 	eina-file-utils.c          \
 	eina-fs.c                  \
 	eina-stock.c
+
 

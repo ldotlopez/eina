@@ -27,22 +27,21 @@
 #define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"
 
 static gboolean
-action_activated_cb(EinaPlaylist *playlist, GtkAction *action, GelPluginEngine *engine);
+action_activated_cb(EinaPlaylist *playlist, GtkAction *action, EinaApplication *app);
 
 G_MODULE_EXPORT gboolean
-playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+playlist_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
-	GSettings        *settings    = gel_ui_application_get_settings(application, EINA_PLAYLIST_PREFERENCES_DOMAIN);
+	GSettings        *settings    = eina_application_get_settings(app, EINA_PLAYLIST_PREFERENCES_DOMAIN);
 
 	EinaPlaylist *playlist = eina_playlist_new();
 	g_object_set(playlist,
-		"lomo-player",    gel_plugin_engine_get_interface(engine, "lomo"),
+		"lomo-player",    eina_application_get_interface(app, "lomo"),
 		"stream-markup",  g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
 		NULL);
-	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, engine);
+	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, app);
 
-	eina_dock_add_widget(gel_plugin_engine_get_interface(engine, "dock"),
+	eina_dock_add_widget(eina_application_get_interface(app, "dock"),
 		N_("Playlist"),
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU),
 		(GtkWidget *) g_object_ref(playlist));
@@ -53,24 +52,24 @@ playlist_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-playlist_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+playlist_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaPlaylist *playlist = (EinaPlaylist *) gel_plugin_steal_data(plugin);
 	g_return_val_if_fail(EINA_IS_PLAYLIST(playlist), FALSE);
 
-	eina_dock_remove_widget(gel_plugin_engine_get_interface(engine, "dock"), (GtkWidget *) playlist);
+	eina_dock_remove_widget(eina_application_get_interface(app, "dock"), (GtkWidget *) playlist);
 	g_object_unref(playlist);
 
 	return TRUE;
 }
 
 static gboolean
-action_activated_cb(EinaPlaylist *playlist, GtkAction *action, GelPluginEngine *engine)
+action_activated_cb(EinaPlaylist *playlist, GtkAction *action, EinaApplication *app)
 {
 	const gchar *name = gtk_action_get_name(action);
 
 	if (g_str_equal("add-action", name))
-		eina_fs_load_from_default_file_chooser(engine);
+		eina_fs_load_from_default_file_chooser(app);
 	else
 		return FALSE;
 

@@ -91,7 +91,7 @@ eina_cover_image_draw(GtkWidget *widget, cairo_t *_cr)
 	gdk_cairo_set_source_pixbuf(_cr, priv->pixbuf, 0, 0);
 	cairo_paint(_cr);
 
-	if (!priv->as_is && priv->mask)
+	if (FALSE && !priv->as_is && priv->mask)
 	{
 		// Create mask
 		cairo_push_group(_cr);
@@ -105,7 +105,20 @@ eina_cover_image_draw(GtkWidget *widget, cairo_t *_cr)
 
 		// Create new combined pattern
 		cairo_push_group(_cr);
-		GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(widget))->bg[GTK_STATE_NORMAL];
+
+		GtkStyleContext *sc = gtk_widget_get_style_context(GTK_WIDGET(gtk_widget_get_parent(widget)));
+		GValue bg_color;
+		gtk_style_context_get_property(sc,
+			GTK_STYLE_PROPERTY_BACKGROUND_COLOR, 
+			GTK_STATE_FLAG_ACTIVE, &bg_color
+			);
+		g_warning("Type name: %s", G_VALUE_TYPE_NAME(&bg_color));
+		GdkRGBA color = *((GdkRGBA *)g_value_get_boxed(&bg_color));
+		g_warning("=> Got color (%f, %f, %f)", color.red, color.green, color.blue);
+		g_warning("Fix this shit please");
+
+		// GdkColor color = gtk_widget_get_style(gtk_widget_get_parent(widget))->bg[GTK_STATE_NORMAL];
+
 		cairo_set_source_rgb(_cr,
 			color.red   / (gfloat) 65535,
 			color.green / (gfloat) 65535,
@@ -113,7 +126,7 @@ eina_cover_image_draw(GtkWidget *widget, cairo_t *_cr)
 		cairo_mask(_cr, mask);
 		cairo_pattern_t *f = cairo_pop_group(_cr);
 		cairo_pattern_destroy(mask);
-	
+
 		// Apply all
 		cairo_set_source(_cr, f);
 		cairo_pattern_destroy(f);

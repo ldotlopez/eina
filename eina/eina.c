@@ -25,6 +25,7 @@
 #include <gtk/gtk.h>
 #include <gel/gel.h>
 #include <lomo/lomo.h>
+#include "eina/ext/eina-application.h"
 #include "eina/ext/eina-stock.h"
 
 static gboolean opt_enqueue = FALSE;
@@ -38,7 +39,7 @@ static const GOptionEntry opt_entries[] =
 	{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris, NULL, "[FILE...]"},
 	{ NULL }
 };
-
+/*
 static void
 plugin_changes_cb(GelPluginEngine *self, GelPlugin *plugin, GSettings *settings)
 {
@@ -62,6 +63,43 @@ application_quit(GelUIApplication *app, GelPluginEngine *self)
 {
 	g_signal_handlers_disconnect_by_func(self, plugin_changes_cb, gel_ui_application_get_settings(app, EINA_DOMAIN));
 	return FALSE;
+}
+*/
+static void
+app_activate_cb (GApplication *application, gpointer user_data)
+{
+	// Initialize stock icons stuff
+	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
+	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
+	g_free(themedir);
+
+	if ((themedir = (gchar*) g_getenv("EINA_THEME_DIR")) != NULL)
+		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
+	eina_stock_init();
+
+	// GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
+	GelPluginEngine *engine = gel_plugin_engine_new(application);
+
+	gchar *plugins[] =
+	{
+	"dbus", "player", "playlist"
+	};
+
+	guint  n_plugins = G_N_ELEMENTS(plugins);
+	guint  i;
+	for (i = 0; i < n_plugins; i++)
+	{
+		GError *error = NULL;
+		if (!gel_plugin_engine_load_plugin_by_name(engine, plugins[i], &error))
+		{
+			g_warning(N_("Unable to load required plugin '%s': %s"), plugins[i], error->message);
+			g_error_free(error);
+			g_object_unref(engine);
+			return; 
+		}
+	}
+	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
+	g_application_hold(application);
 }
 
 gint main(gint argc, gchar *argv[])
@@ -88,6 +126,19 @@ gint main(gint argc, gchar *argv[])
 	}
 	g_option_context_free(opt_ctx);
 
+	// XXX: Generate an alternative id if we are running in -n mode
+	EinaApplication *app = eina_application_new(EINA_DOMAIN);
+	g_signal_connect(app, "activate", (GCallback) app_activate_cb, NULL);
+
+	gint status = g_application_run (G_APPLICATION (app), argc, argv);
+	g_object_unref(app);
+
+	return status;
+
+	// More fuc*** gcc issues
+	eina_fs_load_from_default_file_chooser(NULL);
+
+#if 0
 	// Initialize stock icons stuff
 	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
 	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
@@ -98,6 +149,7 @@ gint main(gint argc, gchar *argv[])
 	eina_stock_init();
 
 	GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
+
 	gchar *plugins[] =
 	{
 	"dbus", "application", "player", "playlist"
@@ -146,9 +198,10 @@ gint main(gint argc, gchar *argv[])
 	g_signal_connect(engine, "plugin-fini", (GCallback) plugin_changes_cb, settings);
 	g_signal_connect(application, "quit",   (GCallback) application_quit,  engine);
 
-	gtk_application_run((GtkApplication *) application);
+	// gtk_application_run((GtkApplication *) application);
 	g_object_unref(engine);
 	return 0;
+#endif
 }
 
 

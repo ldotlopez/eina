@@ -18,7 +18,6 @@
  */
 
 #include "preferences.h"
-#include <eina/application/application.h>
 
 struct  _EinaPreferences {
 	GelPlugin *plugin;
@@ -55,18 +54,18 @@ enum {
 };
 
 G_MODULE_EXPORT gboolean
-preferences_plugin_init (GelPluginEngine *app, GelPlugin *plugin, GError **error)
+preferences_plugin_init (EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaPreferences *self = g_new0(EinaPreferences, 1);
 	self->plugin = plugin;
 	gel_plugin_set_data(plugin, self);
-	gel_plugin_engine_set_interface(app, "preferences", self);
+	eina_application_set_interface(app, "preferences", self);
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
-preferences_plugin_fini (GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+preferences_plugin_fini (EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaPreferences *self = (EinaPreferences *) gel_plugin_steal_data(plugin);
 
@@ -169,8 +168,8 @@ preferences_attach_menu(EinaPreferences *self)
 		"</menubar>"
 		"</ui>";
 
-	GelUIApplication *application = eina_plugin_get_application(self->plugin);
-	GtkUIManager *ui_manager = gel_ui_application_get_window_ui_manager(application);
+	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	GtkUIManager *ui_manager = eina_application_get_window_ui_manager(app);
 
 	if (ui_manager == NULL)
 	{
@@ -194,8 +193,8 @@ preferences_attach_menu(EinaPreferences *self)
 static void
 preferences_deattach_menu(EinaPreferences *self)
 {
-	GelUIApplication *application = eina_plugin_get_application(self->plugin);
-	GtkUIManager *ui_manager = gel_ui_application_get_window_ui_manager(application);
+	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	GtkUIManager *ui_manager = eina_application_get_window_ui_manager(app);
 	if (ui_manager == NULL)
 	{
 		g_warning(N_("Cannot get GtkUIManager for main menu, unable to deattach preferences menu"));

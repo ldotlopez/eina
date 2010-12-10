@@ -35,6 +35,7 @@
 struct _GelPlugin {
 	GelPluginInfo   *info;
 	GelPluginEngine *engine;
+	gpointer        *application;
 	GModule         *module;
 	GList           *references;
 	gchar           *stringified;
@@ -102,7 +103,7 @@ gel_plugin_new(GelPluginEngine *engine, GelPluginInfo *info, GError **error)
 	plugin->module   = mod;
 	plugin->references = NULL;
 
-	if (!plugin->init(engine, plugin, error))
+	if (!plugin->init(gel_plugin_engine_get_application(engine), plugin, error))
 	{
 		g_module_close(plugin->module);
 		g_free(plugin);
@@ -127,7 +128,7 @@ gel_plugin_free(GelPlugin *self, GError **error)
 		return FALSE;
 	}
 
-	if (self->fini && !self->fini(self->engine, self, error))
+	if (self->fini && !self->fini(gel_plugin_engine_get_application(self->engine), self, error))
 	{	
 		if (error && !*error)
 			g_warning(N_("fini hook failed without a reason"));
@@ -150,6 +151,12 @@ const GelPluginInfo*
 gel_plugin_get_info(GelPlugin *plugin)
 {
 	return (const GelPluginInfo *) plugin->info;
+}
+
+gpointer
+gel_plugin_get_application(GelPlugin *plugin)
+{
+	return gel_plugin_engine_get_application(plugin->engine);
 }
 
 gpointer

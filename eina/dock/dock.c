@@ -18,7 +18,6 @@
  */
 
 #include "dock.h"
-#include <eina/application/application.h>
 #include <eina/player/player.h>
 
 typedef struct {
@@ -38,10 +37,9 @@ dock_draw_cb(GtkWidget *widget, cairo_t *cr, DockData *self);
 #endif
 
 G_MODULE_EXPORT gboolean
-dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
-	g_return_val_if_fail(GEL_UI_IS_APPLICATION(application), FALSE);
+	g_return_val_if_fail(EINA_IS_APPLICATION(app), FALSE);
 
 	DockData *data = g_new0(DockData, 1);
 	gel_plugin_set_data(plugin, data);
@@ -54,7 +52,7 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_settings_bind(data->settings, EINA_DOCK_ORDER_KEY, data->dock, "page-order", G_SETTINGS_BIND_DEFAULT);
 
 	// Insert into applicatin
-	gtk_box_pack_start(GTK_BOX(gel_ui_application_get_window_content_area(application)), data->dock, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(eina_application_get_window_content_area(app)), data->dock, TRUE, TRUE, 0);
 	gtk_widget_show(data->dock);
 
 	// Setup dock widget 'expanded' prop and bind it to settings
@@ -62,7 +60,7 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_settings_bind(data->settings, EINA_DOCK_EXPANDED_KEY, data->dock, "expanded", G_SETTINGS_BIND_DEFAULT);
 
 	// Setup window 'resizable' prop and bind it.
-	GtkWindow *window = GTK_WINDOW(gel_ui_application_get_window(application));
+	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
 	data->resizable = gtk_window_get_resizable(window);
 
 	gtk_window_set_resizable(window, gtk_expander_get_expanded(GTK_EXPANDER(data->dock)));
@@ -79,13 +77,13 @@ dock_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_signal_connect(data->dock, "activate", (GCallback) dock_activate_cb, data);
 	#endif
 
-	gel_plugin_engine_set_interface(engine, "dock", data->dock);
+	eina_application_set_interface(app, "dock", data->dock);
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
-dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+dock_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	DockData *data = gel_plugin_get_data(plugin);
 	g_return_val_if_fail(EINA_IS_DOCK(data->dock), FALSE);
@@ -96,7 +94,7 @@ dock_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	GtkWindow *window = (GtkWindow *) gtk_widget_get_toplevel(data->dock);
 	g_return_val_if_fail(window && GTK_IS_WINDOW(window), FALSE);
 
-	gel_plugin_engine_set_interface(engine, "dock", NULL);
+	eina_application_set_interface(app, "dock", NULL);
 	gel_plugin_set_data(plugin, NULL);
 
 	g_object_unref(data->window_bind);

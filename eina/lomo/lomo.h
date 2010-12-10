@@ -44,8 +44,8 @@ typedef enum {
 	EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE 
 } EinaLomoError; 
 
-#define gel_plugin_engine_get_lomo(engine) gel_plugin_engine_get_interface(engine,"lomo")
-#define eina_plugin_get_lomo(plugin)        gel_plugin_engine_get_lomo(gel_plugin_get_engine(plugin))
+#define eina_application_get_lomo(app) eina_application_get_interface(app,"lomo")
+#define eina_plugin_get_lomo(plugin)   eina_application_get_lomo(eina_plugin_get_application(plugin))
 
 G_END_DECLS
 

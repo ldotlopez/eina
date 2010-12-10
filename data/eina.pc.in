@@ -12,5 +12,5 @@ Description: @PACKAGE_NAME@ music player
 Version: @EINA_VERSION@
 Requires: gtk+-3.0 gstremer-0.10
 Cflags: -I${includedir}/@PACKAGE_NAME@-@EINA_API_VERSION@
-Libs: -L${libdir} -llomo-1.0 -lgel
+Libs: -L${libdir} -llomo-1.0 -lgel-1.0 -lgel-ui-1.0
 
