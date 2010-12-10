@@ -43,8 +43,9 @@ playlist_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 
 	eina_dock_add_widget(eina_application_get_interface(app, "dock"),
 		N_("Playlist"),
+		(GtkWidget *) g_object_ref(playlist),
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU),
-		(GtkWidget *) g_object_ref(playlist));
+		EINA_DOCK_DEFAULT);
 
 	gel_plugin_set_data(plugin, playlist);
 

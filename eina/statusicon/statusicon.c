@@ -171,7 +171,7 @@ statusicon_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(update_ui_manager), data);
 	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(update_ui_manager), data);
 
-	GtkWindow *window = eina_application_get_window(eina_plugin_get_application(plugin));
+	GtkWindow *window = (GtkWindow *) eina_application_get_window(eina_plugin_get_application(plugin));
 	g_signal_connect_swapped(window, "show",  G_CALLBACK(update_ui_manager), data);
 	g_signal_connect_swapped(window, "hide",  G_CALLBACK(update_ui_manager), data);
 
@@ -230,7 +230,7 @@ update_ui_manager(StatusIconData *self)
 	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
 
 	EinaApplication *app = eina_plugin_get_application(self->plugin);
-	GtkWindow *window = eina_application_get_window(app);
+	GtkWindow *window = (GtkWindow *) eina_application_get_window(app);
 	if (gtk_widget_get_visible(GTK_WIDGET(window)))
 	{
 		hide = "/Main/Show";

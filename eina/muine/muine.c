@@ -19,27 +19,27 @@
 
 #include "muine.h"
 #include <eina/adb/adb.h>
-#include <eina/application/application.h>
 #include <eina/dock/dock.h>
 #include <eina/lomo/lomo.h>
 
 G_MODULE_EXPORT gboolean
-muine_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+muine_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaMuine *d = eina_muine_new();
 	g_object_set((GObject *) d,
-		"adb",  eina_plugin_get_adb(plugin),
-		"lomo-player", eina_plugin_get_lomo(plugin),
+		"adb",         eina_application_get_interface(app, "adb"),
+		"lomo-player", eina_application_get_interface(app, "lomo"),
 		NULL);
 	gel_plugin_set_data(plugin, d);
 
-	GSettings *settings = gel_ui_application_get_settings(eina_plugin_get_application(plugin), EINA_MUINE_PREFERENCES_DOMAIN);
+	GSettings *settings = eina_application_get_settings(app, EINA_MUINE_PREFERENCES_DOMAIN);
 	g_settings_bind(settings, EINA_MUINE_GROUP_BY_KEY, d, "mode", G_SETTINGS_BIND_DEFAULT);
 
 	eina_plugin_add_dock_widget(plugin,
 		N_("Muine"),
+		(GtkWidget *) g_object_ref(d),
 		gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU),
-		(GtkWidget *) g_object_ref(d));
+		EINA_DOCK_DEFAULT);
 
 	return TRUE;
 }

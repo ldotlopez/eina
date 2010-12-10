@@ -32,8 +32,8 @@
 #define EINA_DOCK_WINDOW_H_KEY "window-height"
 #define EINA_DOCK_WINDOW_W_KEY "window-width"
 
-gboolean
-eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget);
+EinaDockTab*
+eina_plugin_add_dock_widget(EinaPlugin *plugin, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
 gboolean
 eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id);
 gboolean

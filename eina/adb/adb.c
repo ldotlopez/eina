@@ -28,7 +28,7 @@
 GEL_DEFINE_QUARK_FUNC(adb)
 
 G_MODULE_EXPORT gboolean
-adb_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+adb_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaAdb *adb = eina_adb_new();
 
@@ -52,7 +52,7 @@ adb_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_free(db_path);
 
 	// Register into App
-	if (!gel_plugin_engine_set_interface(engine, "adb", adb))
+	if (!eina_application_set_interface(app, "adb", adb))
 	{
 		g_set_error(error, adb_quark(), 1,
 			N_("Cannot register ADB interface"));
@@ -60,16 +60,16 @@ adb_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 		return FALSE;
 	}
 
-	adb_register_start(adb, eina_plugin_get_lomo(plugin));
+	adb_register_start(adb, eina_application_get_interface(app, "lomo"));
 
 	return ret;
 }
 
 G_MODULE_EXPORT gboolean
-adb_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+adb_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	LomoPlayer *lomo = gel_plugin_engine_get_lomo(engine);
-	EinaAdb *adb = gel_plugin_engine_steal_interface(engine, "adb");
+	EinaAdb *adb = eina_application_get_interface(app, "adb");
+	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
 
 	adb_register_stop(adb, lomo);
 	g_object_unref(adb);

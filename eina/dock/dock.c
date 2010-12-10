@@ -27,7 +27,7 @@ typedef struct {
 	GBinding  *window_bind;
 } DockData;
 
-#define RESIZE_WINDOW 1
+#define RESIZE_WINDOW 0
 
 #if RESIZE_WINDOW
 static void
@@ -52,15 +52,17 @@ dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	g_settings_bind(data->settings, EINA_DOCK_ORDER_KEY, data->dock, "page-order", G_SETTINGS_BIND_DEFAULT);
 
 	// Insert into applicatin
-	gtk_box_pack_start(GTK_BOX(eina_application_get_window_content_area(app)), data->dock, TRUE, TRUE, 0);
+	// gtk_box_pack_start(GTK_BOX(eina_application_get_window_content_area(app)), data->dock, TRUE, TRUE, 0);
+	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
+	gtk_container_add(GTK_CONTAINER(window), data->dock);
 	gtk_widget_show(data->dock);
 
 	// Setup dock widget 'expanded' prop and bind it to settings
-	gtk_expander_set_expanded(GTK_EXPANDER(data->dock), g_settings_get_boolean(data->settings, EINA_DOCK_EXPANDED_KEY));
+/*	gtk_expander_set_expanded(GTK_EXPANDER(data->dock), g_settings_get_boolean(data->settings, EINA_DOCK_EXPANDED_KEY));
 	g_settings_bind(data->settings, EINA_DOCK_EXPANDED_KEY, data->dock, "expanded", G_SETTINGS_BIND_DEFAULT);
-
+*/
 	// Setup window 'resizable' prop and bind it.
-	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
+/*
 	data->resizable = gtk_window_get_resizable(window);
 
 	gtk_window_set_resizable(window, gtk_expander_get_expanded(GTK_EXPANDER(data->dock)));
@@ -69,6 +71,7 @@ dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 		window, "resizable",
 		G_BINDING_BIDIRECTIONAL);
 
+*/
 	#if RESIZE_WINDOW
 	if (gtk_window_get_resizable(window))
 		gtk_window_resize(window,
@@ -109,13 +112,13 @@ dock_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-gboolean
-eina_plugin_add_dock_widget(EinaPlugin *plugin, gchar *id, GtkWidget *label, GtkWidget *widget)
+EinaDockTab*
+eina_plugin_add_dock_widget(EinaPlugin *plugin, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags)
 {
 	EinaDock *dock = eina_plugin_get_dock(plugin);
 	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
 
-	return eina_dock_add_widget(dock, id, label, widget);
+	return eina_dock_add_widget(dock, id, widget, label, flags);
 }
 
 gboolean

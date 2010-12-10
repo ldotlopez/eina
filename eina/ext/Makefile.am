@@ -11,7 +11,8 @@ include_HEADERS = \
 	eina-file-chooser-dialog.h \
 	eina-file-utils.h          \
 	eina-fs.h                  \
-	eina-stock.h
+	eina-stock.h               \
+	eina-window.h
 
 libeinaext_la_SOURCES = \
 	$(include_HEADERS)         \
@@ -20,6 +21,6 @@ libeinaext_la_SOURCES = \
 	eina-file-chooser-dialog.c \
 	eina-file-utils.c          \
 	eina-fs.c                  \
-	eina-stock.c
-
+	eina-stock.c               \
+	eina-window.c
 

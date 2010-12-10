@@ -20,8 +20,8 @@
 #include "player.h"
 #include <eina/eina-plugin.h>
 #include <eina/lomo/lomo.h>
+#include <eina/dock/dock.h>
 #include <eina/preferences/preferences.h>
-#include <eina/ext/eina-fs.h>
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
@@ -88,12 +88,15 @@ player_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 		"hexpand", TRUE,
 		"vexpand", FALSE,
 		NULL);
-
+/*
 	gtk_box_pack_start (
 		(GtkBox *) eina_application_get_window_content_area(app),
 		player,
 		FALSE, FALSE, 0);
 	gtk_widget_show_all(player);
+*/
+
+	eina_plugin_add_dock_widget(plugin, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
 
 	// Attach menus
 	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);

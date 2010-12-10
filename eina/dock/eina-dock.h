@@ -22,6 +22,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
+#include <eina/dock/eina-dock-tab.h>
 
 G_BEGIN_DECLS
 
@@ -42,13 +43,21 @@ G_BEGIN_DECLS
 #define EINA_DOCK_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_DOCK, EinaDockClass))
 
+typedef struct _EinaDockPrivate EinaDockPrivate;
 typedef struct {
-	GtkExpander parent;
+	GtkBox parent;
+	EinaDockPrivate *priv;
 } EinaDock;
 
 typedef struct {
-	GtkExpanderClass parent_class;
+	GtkBoxClass parent_class;
 } EinaDockClass;
+
+typedef enum
+{
+	EINA_DOCK_DEFAULT = 0,
+	EINA_DOCK_PRIMARY = 1
+} EinaDockFlags;
 
 GType eina_dock_get_type (void);
 
@@ -59,10 +68,10 @@ void     eina_dock_set_page_order(EinaDock *self, gchar **order);
 
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
-gboolean eina_dock_add_widget   (EinaDock *self, gchar *id, GtkWidget *label, GtkWidget *widget);
-gboolean eina_dock_remove_widget(EinaDock *self, GtkWidget *widget);
+EinaDockTab *eina_dock_add_widget (EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+gboolean eina_dock_remove_widget      (EinaDock *self, GtkWidget *widget);
 gboolean eina_dock_remove_widget_by_id(EinaDock *self, gchar *id);
-gboolean eina_dock_switch_widget(EinaDock *iface, gchar *id);
+gboolean eina_dock_switch_widget      (EinaDock *self, gchar *id);
 
 G_END_DECLS
 
