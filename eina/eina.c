@@ -133,10 +133,12 @@ gint main(gint argc, gchar *argv[])
 	gint status = g_application_run (G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
 
+	// Fuc*** gcc issues
+	if (app == (EinaApplication *)0xdeadbeef)
+		eina_fs_load_from_default_file_chooser(NULL);
+	
 	return status;
 
-	// More fuc*** gcc issues
-	eina_fs_load_from_default_file_chooser(NULL);
 
 #if 0
 	// Initialize stock icons stuff
