@@ -188,11 +188,6 @@ eina_player_new (void)
 		NULL);
 
 	GtkContainer *cover_container = gel_ui_generic_get_typed(self, GTK_CONTAINER, "cover-container");
-	g_object_set((GObject *) cover_container,
-		"hexpand", FALSE,
-		"vexpand", FALSE,
-		NULL);
-
 	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
 	gtk_container_add(cover_container, (GtkWidget *) priv->cover);
 	gtk_widget_show(GTK_WIDGET(priv->cover));

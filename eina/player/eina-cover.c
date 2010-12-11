@@ -28,6 +28,8 @@ G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_COVER, EinaCoverPrivate))
 
+#define SIZE_HACKS 0
+
 // #define debug(...) g_warning(__VA_ARGS__)
 #define debug(...) ;
 
@@ -46,6 +48,8 @@ struct _EinaCoverPrivate {
 
 	guint loading_timeout; // <Used to draw a loading cover after a timeout
 	gboolean got_cover;    // <Flag to indicate if cover was found
+
+	guint x;
 };
 
 enum {
@@ -131,7 +135,7 @@ eina_cover_dispose (GObject *object)
 }
 
 static void
-eina_cover_add(GtkContainer *container, GtkWidget *widget)
+eina_cover_container_add(GtkContainer *container, GtkWidget *widget)
 {
 	GList *l = gtk_container_get_children(container);
 	g_return_if_fail(l == NULL);
@@ -139,28 +143,62 @@ eina_cover_add(GtkContainer *container, GtkWidget *widget)
 	GTK_CONTAINER_CLASS(eina_cover_parent_class)->add(container, widget);
 }
 
+#if SIZE_HACKS
 static void
-eina_cover_get_preferred_x_for_x(GtkWidget *widget, gint i, gint *minimum, gint *natural)
+eina_cover_get_preferred_h_for_w(GtkWidget *widget, gint i, gint *minimum, gint *natural)
 {
+	g_debug("%s", __FUNCTION__);
+	g_debug("  Proposed ↑↓ %d", i);
 	*minimum = *natural = i;
 }
+
+static void
+eina_cover_get_preferred_w_for_h(GtkWidget *widget, gint i, gint *minimum, gint *natural)
+{
+	g_debug("%s", __FUNCTION__);
+	g_debug("  Proposed ←→ %d", i);
+	*minimum = *natural = i;
+}
+
+static GtkSizeRequestMode
+eina_cover_get_request_mode(GtkWidget *widget)
+{
+	return GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT;
+}
+
+static void
+eina_cover_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
+{
+	GList *children = gtk_container_get_children((GtkContainer *) widget);
+	GtkWidget *child = children ? (GtkWidget *) children->data : NULL;
+
+	if (child && gtk_widget_get_visible(child))
+		gtk_widget_size_allocate(child, allocation);
+}
+#endif
 
 static void
 eina_cover_class_init (EinaCoverClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 	GtkContainerClass *container_class = GTK_CONTAINER_CLASS(klass);
+	#if SIZE_HACKS
+	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+	#endif
 
 	g_type_class_add_private (klass, sizeof (EinaCoverPrivate));
 
 	object_class->get_property = eina_cover_get_property;
 	object_class->set_property = eina_cover_set_property;
 	object_class->dispose = eina_cover_dispose;
-	widget_class->get_preferred_width_for_height = eina_cover_get_preferred_x_for_x;
-	widget_class->get_preferred_height_for_width = eina_cover_get_preferred_x_for_x;
+	container_class->add = eina_cover_container_add;
 
-	container_class->add = eina_cover_add;
+	#if SIZE_HACKS
+	widget_class->size_allocate = eina_cover_size_allocate;
+	widget_class->get_preferred_width_for_height = eina_cover_get_preferred_w_for_h;
+	widget_class->get_preferred_height_for_width = eina_cover_get_preferred_h_for_w;
+	widget_class->get_request_mode               = eina_cover_get_request_mode;
+	#endif
 
 	g_object_class_install_property(object_class, PROPERTY_RENDERER,
 		g_param_spec_object("renderer", "Renderer object", "Widget used to render images",

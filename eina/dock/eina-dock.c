@@ -114,6 +114,11 @@ eina_dock_init (EinaDock *self)
 	EinaDockPrivate *priv =	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_DOCK, EinaDockPrivate));
 
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
+	g_object_set((GObject *) self,
+		"spacing", 0,
+		"border-width", 5,
+		"homogeneous", FALSE,
+		NULL);
 
 	// Setup subwidgets
 	g_object_set((GObject *) (priv->expander = (GtkExpander *) gtk_expander_new(NULL)),
@@ -281,6 +286,8 @@ eina_dock_remove_widget(EinaDock *self, GtkWidget *w)
 {
 	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
 	g_return_val_if_fail(GTK_IS_WIDGET(w), FALSE);
+
+	g_warning(N_("This function (%s) is buggy, fix it"), __FUCNTION__);
 
 	EinaDockPrivate *priv = self->priv;
 
