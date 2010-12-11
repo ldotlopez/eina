@@ -287,7 +287,7 @@ eina_dock_remove_widget(EinaDock *self, GtkWidget *w)
 	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
 	g_return_val_if_fail(GTK_IS_WIDGET(w), FALSE);
 
-	g_warning(N_("This function (%s) is buggy, fix it"), __FUCNTION__);
+	g_warning(N_("This function (%s) is buggy, fix it"), __FUNCTION__);
 
 	EinaDockPrivate *priv = self->priv;
 
