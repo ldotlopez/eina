@@ -69,6 +69,7 @@ typedef void (*GelPluginEngineDisposeFunc) (GelPluginEngine *self, gpointer data
 GType gel_plugin_engine_get_type (void);
 
 GelPluginEngine* gel_plugin_engine_new(gpointer application);
+GelPluginEngine* gel_plugin_engine_get_default(void);
 
 void gel_plugin_engine_set_dispose_callback(GelPluginEngine *self, GelPluginEngineDisposeFunc callback, gpointer user_data);
 

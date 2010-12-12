@@ -40,6 +40,7 @@ GEL_DEFINE_QUARK_FUNC(plugin_engine)
 
 static GList*
 build_paths(void);
+static GelPluginEngine *_default_engine;
 
 struct _GelPluginEnginePrivate {
 	GelPluginEngineDisposeFunc dispose_func;
@@ -160,6 +161,8 @@ gel_plugin_engine_init (GelPluginEngine *self)
 	priv->lookup   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	priv->stack    = g_queue_new();
 	gel_plugin_engine_scan_plugins(self);
+	if (_default_engine == NULL)
+		_default_engine = self;
 }
 
 GelPluginEngine*
@@ -168,6 +171,13 @@ gel_plugin_engine_new (gpointer application)
 	GelPluginEngine *self = g_object_new (GEL_TYPE_PLUGIN_ENGINE, NULL);
 	self->priv->application = application;
 	return self;
+}
+
+GelPluginEngine*
+gel_plugin_engine_get_default(void)
+{
+	g_return_val_if_fail(_default_engine != NULL, NULL);
+	return _default_engine;
 }
 
 void
