@@ -235,10 +235,14 @@ void gel_debug_remove_handler(GelDebugHandler func);
 #define gel_info(...)       _gel_debug(GEL_DEBUG_LEVEL_INFO,    __VA_ARGS__)
 #define gel_warn(...)       _gel_debug(GEL_DEBUG_LEVEL_WARN,    __VA_ARGS__)
 #define gel_error(...)      _gel_debug(GEL_DEBUG_LEVEL_ERROR,   __VA_ARGS__)
-#define gel_apocalipse(...) _gel_debug(GEL_DEBUG_LEVEL_SEVERE,  __VA_ARGS__)
-#define gel_implement(...)  gel_warn("IMPLEMENT-ME -- " __VA_ARGS__)
-#define gel_fix(...)        gel_warn("FIX-ME -- " __VA_ARGS__)
 
+/*
+ * gel_warn_fix_implementation:
+ *
+ * Warns about some buggy method
+ */
+#define gel_warn_fix_implementation() \
+	g_warning(_("%s needs to be fixed. Method is incomplete, buggy or does not match documentation."), __FUNCTION__)
 
 void
 gel_object_class_print_properties(GObjectClass *object);
