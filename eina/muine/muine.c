@@ -30,16 +30,18 @@ muine_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 		"adb",         eina_application_get_interface(app, "adb"),
 		"lomo-player", eina_application_get_interface(app, "lomo"),
 		NULL);
-	gel_plugin_set_data(plugin, d);
 
 	GSettings *settings = eina_application_get_settings(app, EINA_MUINE_PREFERENCES_DOMAIN);
 	g_settings_bind(settings, EINA_MUINE_GROUP_BY_KEY, d, "mode", G_SETTINGS_BIND_DEFAULT);
 
-	eina_plugin_add_dock_widget(plugin,
+	EinaDockTab *tab = eina_plugin_add_dock_widget(plugin,
 		N_("Muine"),
 		(GtkWidget *) g_object_ref(d),
 		gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU),
 		EINA_DOCK_DEFAULT);
+	g_object_set_data((GObject *) d, "x-muine-dock-tab", tab);
+
+	gel_plugin_set_data(plugin, d);
 
 	return TRUE;
 }
@@ -49,7 +51,9 @@ muine_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	EinaMuine *d = gel_plugin_steal_data(plugin);
 
-	eina_plugin_remove_dock_widget(plugin, (GtkWidget *) d);
+	EinaDockTab *tab = (EinaDockTab *) g_object_get_data((GObject *) d, "x-muine-dock-tab");
+	eina_plugin_remove_dock_widget(plugin, tab);
+
 	g_object_unref(d);
 
 	return TRUE;

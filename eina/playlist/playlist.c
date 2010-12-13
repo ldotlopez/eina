@@ -41,11 +41,12 @@ playlist_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 		NULL);
 	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, app);
 
-	eina_dock_add_widget(eina_application_get_interface(app, "dock"),
+	EinaDockTab *tab = eina_plugin_add_dock_widget(plugin,
 		N_("Playlist"),
 		(GtkWidget *) g_object_ref(playlist),
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU),
 		EINA_DOCK_DEFAULT);
+	g_object_set_data((GObject *) playlist, "x-playlist-dock-tab", tab);
 
 	gel_plugin_set_data(plugin, playlist);
 
@@ -58,7 +59,11 @@ playlist_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 	EinaPlaylist *playlist = (EinaPlaylist *) gel_plugin_steal_data(plugin);
 	g_return_val_if_fail(EINA_IS_PLAYLIST(playlist), FALSE);
 
-	eina_dock_remove_widget(eina_application_get_interface(app, "dock"), (GtkWidget *) playlist);
+	EinaDockTab *tab = (EinaDockTab *) g_object_get_data((GObject *) playlist, "x-playlist-dock-tab");
+	g_return_val_if_fail(EINA_IS_DOCK_TAB(tab), FALSE);
+	
+	eina_plugin_remove_dock_widget(plugin, tab);
+
 	g_object_unref(playlist);
 
 	return TRUE;
