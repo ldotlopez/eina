@@ -1,6 +1,7 @@
 #include "eina-window.h"
 #include <glib/gi18n.h>
-#include <gel/gel.h>
+#include <gel/gel-ui.h>
+#include <eina/ext/eina-stock.h>
 
 G_DEFINE_TYPE (EinaWindow, eina_window, GTK_TYPE_WINDOW)
 
@@ -24,8 +25,9 @@ static gchar *ui_mng_str =
 "      <menuitem name='Quit' action='quit-action' />"
 "    </menu>"
 "    <menu name='Edit' action='edit-menu' >"
+"      <menuitem name='Addons' action='plugins-action' />"
 "    </menu>"
-"    <menu name='Plugins' action='plugins-menu' >"
+"    <menu name='Tools' action='plugins-menu' >"
 "    </menu>"
 "    <menu name='Help' action='help-menu' >"
 "    </menu>"
@@ -37,7 +39,9 @@ static GtkActionEntry ui_mng_actions[] = {
 	{ "edit-menu",    NULL,           N_("_Edit"),    "<alt>e", NULL, NULL},
 	{ "plugins-menu", NULL,           N_("_Plugins"), "<alt>p", NULL, NULL},
 	{ "help-menu",    NULL,           N_("_Help"),    "<alt>h", NULL, NULL},
-	{ "quit-action",  GTK_STOCK_QUIT, NULL,           NULL,     NULL, (GCallback) action_activated_cb }
+
+	{ "plugins-action", EINA_STOCK_PLUGIN, N_("_Plugins"), "<control>u", NULL, (GCallback) action_activated_cb },
+	{ "quit-action",    GTK_STOCK_QUIT,    NULL,           NULL,         NULL, (GCallback) action_activated_cb }
 };
 
 enum {
@@ -73,6 +77,11 @@ eina_window_class_init (EinaWindowClass *klass)
 
 	g_type_class_add_private (klass, sizeof (EinaWindowPrivate));
 
+	/*
+	 * EinaWindow::activate:
+	 *
+	 * Emitted if some action is activated
+	 */
 	window_signals[ACTION_ACTIVATE] =
 		g_signal_new ("action-activate",
 		G_OBJECT_CLASS_TYPE (object_class),
@@ -168,6 +177,30 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 		GtkApplication *app = gtk_window_get_application((GtkWindow *) self);
 		gtk_application_remove_window(app, (GtkWindow *) self);
 		g_application_release(G_APPLICATION(app));
+		return;
+	}
+
+	else if (g_str_equal(name, "plugins-action"))
+	{
+		GtkWidget *dialog = gtk_dialog_new_with_buttons(_("Select plugins"),
+			(GtkWindow *) self,
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
+			NULL);
+		GtkWidget *pm = (GtkWidget *) gel_ui_plugin_manager_new(gel_plugin_engine_get_default());
+		gtk_box_pack_start((GtkBox*) gtk_dialog_get_content_area((GtkDialog *) dialog),
+			pm,
+			TRUE, TRUE, 0);
+
+		GdkScreen *screen = gtk_window_get_screen((GtkWindow *) dialog);
+		gint w = gdk_screen_get_width(screen)  / 4;
+		gint h = gdk_screen_get_height(screen) / 2;
+		gtk_window_resize((GtkWindow *) dialog, w, h);
+
+		gtk_widget_show(pm);
+		gtk_dialog_run((GtkDialog *) dialog);
+		gtk_widget_destroy(dialog);
+
 		return;
 	}
 
