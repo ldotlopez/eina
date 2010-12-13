@@ -51,6 +51,8 @@ typedef struct {
 
 typedef struct {
 	GtkBoxClass parent_class;
+	void (*widget_add)    (EinaDock *self, const gchar *id);
+	void (*widget_remove) (EinaDock *self, const gchar *id);
 } EinaDockClass;
 
 typedef enum
@@ -63,15 +65,15 @@ GType eina_dock_get_type (void);
 
 EinaDock  *eina_dock_new (void);
 
-gchar  **eina_dock_get_page_order(EinaDock *self);
+gboolean eina_dock_get_resizable(EinaDock *self);
+gchar**  eina_dock_get_page_order(EinaDock *self);
 void     eina_dock_set_page_order(EinaDock *self, gchar **order);
 
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
 EinaDockTab *eina_dock_add_widget (EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
-gboolean eina_dock_remove_widget      (EinaDock *self, GtkWidget *widget);
-gboolean eina_dock_remove_widget_by_id(EinaDock *self, gchar *id);
-gboolean eina_dock_switch_widget      (EinaDock *self, gchar *id);
+gboolean eina_dock_remove_widget  (EinaDock *self, EinaDockTab *tab);
+gboolean eina_dock_switch_widget  (EinaDock *self, EinaDockTab *tab);
 
 G_END_DECLS
 

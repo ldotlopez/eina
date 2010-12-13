@@ -34,12 +34,12 @@
 
 EinaDockTab*
 eina_plugin_add_dock_widget(EinaPlugin *plugin, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+
 gboolean
-eina_plugin_switch_dock_widget(EinaPlugin *plugin, gchar *id);
+eina_plugin_switch_dock_widget(EinaPlugin *plugin, EinaDockTab *tab);
+
 gboolean
-eina_plugin_remove_dock_widget(EinaPlugin *plugin, GtkWidget *widget);
-gboolean
-eina_plugin_remove_dock_widget_by_id(EinaPlugin *plugin, gchar *id);
+eina_plugin_remove_dock_widget(EinaPlugin *plugin, EinaDockTab *tab);
 
 #endif
 
