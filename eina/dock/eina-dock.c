@@ -181,7 +181,7 @@ eina_dock_class_init (EinaDockClass *klass)
 static void
 eina_dock_init (EinaDock *self)
 {
-	EinaDockPrivate *priv =	priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_DOCK, EinaDockPrivate));
+	EinaDockPrivate *priv =	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_DOCK, EinaDockPrivate));
 
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
 	g_object_set((GObject *) self,
@@ -209,8 +209,6 @@ eina_dock_init (EinaDock *self)
 	priv->tabs = NULL;
 	priv->n_tabs = 0;
 	priv->page_order = NULL;
-
-	dock_update_properties(self);
 
 	g_signal_connect_after(priv->expander, "notify::expanded", G_CALLBACK(expander_notify_cb), self);
 	g_signal_connect(priv->notebook, "page-reordered", G_CALLBACK(page_reorder_cb), self);
@@ -358,7 +356,8 @@ eina_dock_set_page_order(EinaDock *self, gchar **order)
 	g_return_if_fail(order);
 
 	EinaDockPrivate *priv = self->priv;
-	g_strfreev(priv->page_order);
+
+	gel_free_and_invalidate(priv->page_order, NULL, g_strfreev);
 	priv->page_order = gel_strv_copy(order, TRUE);
 
 	dock_reorder_pages(self);
@@ -560,6 +559,8 @@ expander_notify_cb(GtkExpander *w, GParamSpec *pspec, EinaDock *self)
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 {
+	gel_warn_fix_implementation();
+
 #if 0
 	EinaDockPrivate *priv = self->priv;
 

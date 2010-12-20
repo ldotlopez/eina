@@ -25,21 +25,70 @@ typedef struct {
 	gboolean   resizable;
 	GSettings *settings;
 	GBinding  *window_bind;
+
+	gint w, h;
 } DockData;
 
-#define RESIZE_WINDOW 0
-
-#if RESIZE_WINDOW
-static void
-dock_activate_cb(GtkExpander *expander, DockData *self);
 static gboolean
-dock_draw_cb(GtkWidget *widget, cairo_t *cr, DockData *self);
-#endif
+dock_save_current_size(DockData *self)
+{
+	GtkAllocation alloc;
+	gtk_widget_get_allocation(self->dock, &alloc);
+	g_warning("Current size: %dx%d", alloc.width, alloc.height);
+	self->w = alloc.width;
+	self->h = alloc.height;
+
+	return FALSE;
+}
 
 static gboolean
-dock_configure_event_cb(EinaDock *widget, GdkEventConfigure *ev, DockData *self);
+dock_configure_event_cb(GdkWindow *win, GdkEventConfigure *ev, DockData *self)
+{
+	g_idle_add((GSourceFunc) dock_save_current_size, self);
+	return FALSE;
+}
+
 static void
-dock_notify_cb(EinaDock *widget, GParamSpec *pspec, DockData *self);
+dock_widget_add(EinaDock *dock, const gchar *id, DockData *self)
+{
+	g_warning("Restore expandable after add the first widget (id: %s)", id);
+	g_signal_handlers_disconnect_by_func(dock, dock_widget_add, self);
+}
+
+static gboolean
+dock_enable_configure_event_watcher(DockData *self)
+{
+	return FALSE;
+}
+
+static void
+dock_notify_cb(GtkWidget *dock, GParamSpec *pspec, DockData *self)
+{
+	if (g_str_equal(pspec->name, "resizable"))
+	{
+		gboolean v = eina_dock_get_resizable(EINA_DOCK(dock));
+		GtkWidget *window = gtk_widget_get_toplevel(dock);
+		if (v)
+		{
+			g_warning("Restoring previous size %dx%d", self->w, self->h);
+
+			gint border = gtk_container_get_border_width(GTK_CONTAINER(self->dock));
+			gtk_widget_set_size_request(self->dock, self->w + border*2, self->h + border*2);
+
+			gtk_widget_queue_resize(self->dock);
+ 			g_signal_connect(gtk_widget_get_toplevel(self->dock), "configure-event", (GCallback) dock_configure_event_cb, self);
+			if (0) g_idle_add((GSourceFunc) dock_enable_configure_event_watcher, self);
+		}
+		else
+		{
+			gtk_widget_set_size_request(self->dock, 1, 1);
+			g_signal_handlers_disconnect_by_func(window, dock_configure_event_cb, self);
+		}
+	}
+
+	else
+		g_warning(_("Unhandled notify::%s"), pspec->name);
+}
 
 G_MODULE_EXPORT gboolean
 dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
@@ -57,49 +106,14 @@ dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	g_settings_bind(data->settings, EINA_DOCK_ORDER_KEY, data->dock, "page-order", G_SETTINGS_BIND_DEFAULT);
 
 	// Insert into applicatin
-	// gtk_box_pack_start(GTK_BOX(eina_application_get_window_content_area(app)), data->dock, TRUE, TRUE, 0);
 	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
 	gtk_container_add(GTK_CONTAINER(window), data->dock);
 	gtk_widget_show(data->dock);
 
-	// Setup dock widget 'expanded' prop and bind it to settings
-	if (eina_dock_get_resizable((EinaDock *) data->dock))
-	{
-		GtkAllocation alloc;
-		gtk_widget_get_allocation(data->dock, &alloc);
-		g_settings_set_int(data->settings, EINA_DOCK_WINDOW_W_KEY, alloc.width);
-		g_settings_set_int(data->settings, EINA_DOCK_WINDOW_H_KEY, alloc.height);
-	}
-	g_settings_bind(data->settings, EINA_DOCK_EXPANDED_KEY, data->dock, "resizable", 0);
-	
-	// Setup window for configure-event
-	gtk_widget_realize(data->dock);
-	gdk_window_set_events(gtk_widget_get_window(data->dock),
-		GDK_STRUCTURE_MASK|gdk_window_get_events(gtk_widget_get_window(data->dock)));
-	g_signal_connect(data->dock, "configure-event", (GCallback) dock_configure_event_cb, data);
-	g_signal_connect(data->dock, "notify::resizable", (GCallback) dock_notify_cb, data);
-	g_object_bind_property(data->dock, "resizable", window, "resizable", G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
-/*	gtk_expander_set_expanded(GTK_EXPANDER(data->dock), g_settings_get_boolean(data->settings, EINA_DOCK_EXPANDED_KEY));
-	g_settings_bind(data->settings, EINA_DOCK_EXPANDED_KEY, data->dock, "expanded", G_SETTINGS_BIND_DEFAULT);
-*/
-	// Setup window 'resizable' prop and bind it.
-/*
-	data->resizable = gtk_window_get_resizable(window);
+	g_object_bind_property(data->dock, "resizable", window, "resizable", 0);
 
-	gtk_window_set_resizable(window, gtk_expander_get_expanded(GTK_EXPANDER(data->dock)));
-	data->window_bind = g_object_bind_property(
-		data->dock, "expanded",
-		window, "resizable",
-		G_BINDING_BIDIRECTIONAL);
-
-*/
-	#if RESIZE_WINDOW
-	if (gtk_window_get_resizable(window))
-		gtk_window_resize(window,
-			g_settings_get_int(data->settings, EINA_DOCK_WINDOW_W_KEY),
-			g_settings_get_int(data->settings, EINA_DOCK_WINDOW_H_KEY));
-	g_signal_connect(data->dock, "activate", (GCallback) dock_activate_cb, data);
-	#endif
+	g_signal_connect(data->dock, "widget-add",        (GCallback) dock_widget_add, data);
+	g_signal_connect(data->dock, "notify::resizable", (GCallback) dock_notify_cb,  data);
 
 	eina_application_set_interface(app, "dock", data->dock);
 
@@ -160,37 +174,6 @@ eina_plugin_remove_dock_widget(EinaPlugin *plugin, EinaDockTab *tab)
 	g_return_val_if_fail(EINA_IS_DOCK_TAB(tab), FALSE);
 
 	return eina_dock_remove_widget(dock, tab);
-}
-
-static gboolean
-dock_configure_event_cb(EinaDock *widget, GdkEventConfigure *ev, DockData *self)
-{
-	if (ev->type != GDK_CONFIGURE)
-		return FALSE;
-	
-	GtkAllocation alloc;
-	gtk_widget_get_allocation((GtkWidget *) widget, &alloc);
-	g_settings_set_int(self->settings, EINA_DOCK_WINDOW_W_KEY, alloc.width);
-	g_settings_set_int(self->settings, EINA_DOCK_WINDOW_H_KEY, alloc.height);
-	g_debug("Saved allocation of %dx%d", alloc.width, alloc.height);
-	return FALSE;
-}
-
-static void
-dock_notify_cb(EinaDock *widget, GParamSpec *pspec, DockData *self)
-{
-	if (g_str_equal("resizable", pspec->name))
-	{
-		if (eina_dock_get_resizable(widget))
-		{
-			gtk_window_resize((GtkWindow *) gtk_widget_get_toplevel((GtkWidget *) widget),
-				g_settings_get_int(self->settings, EINA_DOCK_WINDOW_W_KEY),
-				g_settings_get_int(self->settings, EINA_DOCK_WINDOW_H_KEY)
-				);
-		}
-	}
-	else
-		g_warning(_("Unhanded notify::%s"), pspec->name);
 }
 
 #if RESIZE_WINDOW
