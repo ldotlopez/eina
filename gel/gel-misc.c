@@ -150,6 +150,37 @@ gel_list_join(const gchar *separator, GList *list)
 	return ret;
 }
 
+gchar**
+gel_strv_concat(gchar **strv_a, ...)
+{
+	g_return_val_if_fail(strv_a != NULL, NULL);
+
+	gchar **ret = NULL;
+	va_list strvs;
+	va_start(strvs, strv_a);
+
+	guint i = 0;
+
+	gchar **strv = strv_a;
+	do
+	{
+		guint l = g_strv_length(strv);
+
+		ret = g_realloc_n(ret, i + l + 1, sizeof(gchar*));
+		for (guint j = 0; j < l; j++)
+		{
+			ret[i++] = g_strdup(strv[j]);
+		}
+		ret[i] = NULL;
+
+		strv = va_arg(strvs, gchar**);
+	} while (strv && strv[0]);
+
+	va_end(strvs);
+
+	return ret;
+}
+
 void
 gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data)
 {

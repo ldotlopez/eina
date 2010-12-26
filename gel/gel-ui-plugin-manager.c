@@ -340,7 +340,14 @@ enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, GelUIPlu
 		GError *error = NULL;
 		if (!gel_plugin_engine_load_plugin(priv->engine, info, &error))
 		{
-			g_warning(N_("Cannot load plugin %s: %s"), info->name, error->message);
+			gchar *title = _("Error loading plugin");
+			gchar *message = g_strdup_printf(_("Cannot load plugin '%s'"), info->name);
+			gel_ui_dialog_error(gtk_widget_get_toplevel((GtkWidget *) self),
+				title,
+				message,
+				error->message,
+				TRUE);
+			g_free(message);
 			g_error_free(error);
 		}
 	}

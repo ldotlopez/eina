@@ -203,6 +203,16 @@ gel_plugin_engine_get_paths(GelPluginEngine *self)
 	return g_list_reverse(ret);
 }
 
+/*
+ * gel_plugin_engine_get_plugins:
+ *
+ * @self: A #GelPluginEngine
+ *
+ * Get loaded plugins
+ *
+ * Returns: a #GList with the plugins. Note that the plugin themselves are nor
+ * copied or referenced, you do NOT have to free them.
+ */
 GList*
 gel_plugin_engine_get_plugins(GelPluginEngine *self)
 {
