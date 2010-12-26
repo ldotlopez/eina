@@ -68,12 +68,15 @@ EinaDock  *eina_dock_new (void);
 gboolean eina_dock_get_resizable(EinaDock *self);
 gchar**  eina_dock_get_page_order(EinaDock *self);
 void     eina_dock_set_page_order(EinaDock *self, gchar **order);
+gboolean eina_dock_get_expanded(EinaDock *self);
+void     eina_dock_set_expanded(EinaDock *self, gboolean expanded);
 
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
 EinaDockTab *eina_dock_add_widget (EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
 gboolean eina_dock_remove_widget  (EinaDock *self, EinaDockTab *tab);
 gboolean eina_dock_switch_widget  (EinaDock *self, EinaDockTab *tab);
+guint    eina_dock_get_n_widgets  (EinaDock *self);
 
 G_END_DECLS
 

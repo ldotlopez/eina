@@ -22,19 +22,19 @@
 
 typedef struct {
 	GtkWidget *dock;
-	gboolean   resizable;
 	GSettings *settings;
-	GBinding  *window_bind;
 
 	gint w, h;
+	gboolean pre_resizable;
 } DockData;
 
 static gboolean
-dock_save_current_size(DockData *self)
+dock_save_size_in_idle(DockData *self)
 {
+	GtkWidget *window = gtk_widget_get_toplevel(self->dock);
+
 	GtkAllocation alloc;
-	gtk_widget_get_allocation(self->dock, &alloc);
-	g_warning("Current size: %dx%d", alloc.width, alloc.height);
+	gtk_widget_get_allocation(window, &alloc);
 	self->w = alloc.width;
 	self->h = alloc.height;
 
@@ -44,21 +44,31 @@ dock_save_current_size(DockData *self)
 static gboolean
 dock_configure_event_cb(GdkWindow *win, GdkEventConfigure *ev, DockData *self)
 {
-	g_idle_add((GSourceFunc) dock_save_current_size, self);
+	g_idle_add((GSourceFunc) dock_save_size_in_idle, self);
+	return FALSE;
+}
+
+static gboolean
+dock_restore_size_in_idle(DockData *self)
+{
+	GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(self->dock));
+	if (window)
+		gtk_window_resize(window, self->w, self->h);
 	return FALSE;
 }
 
 static void
 dock_widget_add(EinaDock *dock, const gchar *id, DockData *self)
 {
-	g_warning("Restore expandable after add the first widget (id: %s)", id);
-	g_signal_handlers_disconnect_by_func(dock, dock_widget_add, self);
-}
-
-static gboolean
-dock_enable_configure_event_watcher(DockData *self)
-{
-	return FALSE;
+	if (eina_dock_get_n_widgets(dock) == 2)
+	{
+		// Restore expanded property and schedule the resize
+		gboolean expanded = g_settings_get_boolean(self->settings, EINA_DOCK_EXPANDED_KEY);
+		gtk_window_set_resizable(GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(dock))), expanded);
+		eina_dock_set_expanded(dock, g_settings_get_boolean(self->settings, EINA_DOCK_EXPANDED_KEY));
+		if (expanded)
+			g_idle_add((GSourceFunc) dock_restore_size_in_idle, self);
+	}
 }
 
 static void
@@ -70,18 +80,12 @@ dock_notify_cb(GtkWidget *dock, GParamSpec *pspec, DockData *self)
 		GtkWidget *window = gtk_widget_get_toplevel(dock);
 		if (v)
 		{
-			g_warning("Restoring previous size %dx%d", self->w, self->h);
-
-			gint border = gtk_container_get_border_width(GTK_CONTAINER(self->dock));
-			gtk_widget_set_size_request(self->dock, self->w + border*2, self->h + border*2);
-
-			gtk_widget_queue_resize(self->dock);
+			g_idle_add((GSourceFunc) dock_restore_size_in_idle, self);
  			g_signal_connect(gtk_widget_get_toplevel(self->dock), "configure-event", (GCallback) dock_configure_event_cb, self);
-			if (0) g_idle_add((GSourceFunc) dock_enable_configure_event_watcher, self);
 		}
 		else
 		{
-			gtk_widget_set_size_request(self->dock, 1, 1);
+			gtk_window_resize(GTK_WINDOW(window), 1, 1);
 			g_signal_handlers_disconnect_by_func(window, dock_configure_event_cb, self);
 		}
 	}
@@ -108,7 +112,13 @@ dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	// Insert into applicatin
 	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
 	gtk_container_add(GTK_CONTAINER(window), data->dock);
+	data->pre_resizable = gtk_window_get_resizable(window);
+	gtk_window_set_resizable(window, FALSE);
 	gtk_widget_show(data->dock);
+
+	// Load previous size
+	data->w = g_settings_get_int(data->settings, EINA_DOCK_WINDOW_W_KEY);
+	data->h = g_settings_get_int(data->settings, EINA_DOCK_WINDOW_H_KEY);
 
 	g_object_bind_property(data->dock, "resizable", window, "resizable", 0);
 
@@ -135,8 +145,7 @@ dock_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 	eina_application_set_interface(app, "dock", NULL);
 	gel_plugin_set_data(plugin, NULL);
 
-	g_object_unref(data->window_bind);
-	gtk_window_set_resizable(window, data->resizable);
+	gtk_window_set_resizable(window, data->pre_resizable);
 
 	gtk_container_remove(container, data->dock);
 
@@ -176,42 +185,4 @@ eina_plugin_remove_dock_widget(EinaPlugin *plugin, EinaDockTab *tab)
 	return eina_dock_remove_widget(dock, tab);
 }
 
-#if RESIZE_WINDOW
-static void
-dock_activate_cb(GtkExpander *expander, DockData *self)
-{
-	gboolean resizable = !gtk_expander_get_expanded(expander);
 
-	if (!resizable)
-	{
-		gint w, h;
-		GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel((GtkWidget *) expander));
-
-		gtk_window_get_size(window, &w, &h);
-		g_settings_set_int(self->settings, EINA_DOCK_WINDOW_W_KEY, w);
-		g_settings_set_int(self->settings, EINA_DOCK_WINDOW_H_KEY, h);
-		g_signal_handlers_disconnect_by_func(self->dock, dock_draw_cb, self);
-
-		GdkWindowState state = gdk_window_get_state(gtk_widget_get_window((GtkWidget *) window));
-		if (state & (GDK_WINDOW_STATE_MAXIMIZED|GDK_WINDOW_STATE_FULLSCREEN))
-		{
-			gtk_window_unmaximize(window);
-			gtk_window_unfullscreen(window);
-		}
-	}
-	else
-		g_signal_connect(self->dock, "draw", (GCallback) dock_draw_cb, self);
-}
-
-static gboolean
-dock_draw_cb(GtkWidget *widget, cairo_t *cr, DockData *self)
-{
-	gtk_window_resize(GTK_WINDOW(gtk_widget_get_toplevel(widget)),
-		g_settings_get_int(self->settings, EINA_DOCK_WINDOW_W_KEY),
-		g_settings_get_int(self->settings, EINA_DOCK_WINDOW_H_KEY));
-	g_signal_handlers_disconnect_by_func(self->dock, dock_draw_cb, self);
-
-	return FALSE;
-}
-
-#endif

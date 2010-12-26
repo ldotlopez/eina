@@ -33,6 +33,7 @@ G_DEFINE_TYPE (EinaDock, eina_dock, GTK_TYPE_BOX)
 enum
 {
 	PROP_PAGE_ORDER = 1,
+	PROP_EXPANDED,
 	PROP_RESIZABLE
 };
 
@@ -79,6 +80,10 @@ eina_dock_get_property (GObject *object, guint property_id, GValue *value, GPara
 		g_value_set_boxed(value, eina_dock_get_page_order((EinaDock *) object));
 		return;
 
+	case PROP_EXPANDED:
+		g_value_set_boolean(value, eina_dock_get_expanded((EinaDock *) object));
+		return;
+
 	case PROP_RESIZABLE:
 		g_value_set_boolean(value, eina_dock_get_resizable((EinaDock *) object));
 		return;
@@ -95,6 +100,9 @@ eina_dock_set_property (GObject *object, guint property_id, const GValue *value,
 	case PROP_PAGE_ORDER:
 		eina_dock_set_page_order((EinaDock *) object, g_value_get_boxed(value));
 		return;
+
+	case PROP_EXPANDED:
+		eina_dock_set_expanded((EinaDock *) object, g_value_get_boolean(value));
 
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -130,17 +138,26 @@ eina_dock_class_init (EinaDockClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROP_PAGE_ORDER,
 		g_param_spec_boxed("page-order", "page-order", "page-order",
-		G_TYPE_STRV, G_PARAM_READABLE | G_PARAM_WRITABLE));
+		G_TYPE_STRV, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/*
 	 * EinaDock::resizable:
 	 *
-	 * Whatever the dock is resizable or not. Matches the expander property
-	 * from the internat #GtkNotebook
+	 * Whatever the dock is resizable or not. It only implies that is
+	 * posible to expand the internal expander and fill more space.
 	 */
 	g_object_class_install_property(object_class, PROP_RESIZABLE,
 		g_param_spec_boolean("resizable", "resizable", "resizable",
-		FALSE, G_PARAM_READABLE));
+		FALSE, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/*
+	 * EinaDock::expanded:
+	 *
+	 * Whatever the widget is expanded or not
+	 */
+	g_object_class_install_property(object_class, PROP_EXPANDED,
+		g_param_spec_boolean("expanded", "expanded", "expanded",
+		FALSE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/*
 	 * EinaDock::widget-add:
@@ -308,22 +325,6 @@ dock_reorder_pages(EinaDock *self)
 }
 
 /*
- * eina_dock_get_resizable:
- *
- * @self: The #EinaDock object
- *
- * Gets the value of the property 'resizable'
- *
- * Returns: the resizable property value
- */
-gboolean
-eina_dock_get_resizable(EinaDock *self)
-{
-	g_return_val_if_fail(EINA_IS_DOCK(self), TRUE);
-	return self->priv->resizable;
-}
-
-/*
  * eina_dock_get_page_order:
  *
  * @self: The #EinaDock object
@@ -363,6 +364,47 @@ eina_dock_set_page_order(EinaDock *self, gchar **order)
 	dock_reorder_pages(self);
 
 	g_object_notify((GObject *) self, "page-order");
+}
+
+/*
+ * eina_dock_get_expanded:
+ *
+ * @self: The #EinaDock object.
+ *
+ * Get the value of property 'expanded'
+ *
+ * Returns: the expanded property value
+ */
+gboolean
+eina_dock_get_expanded(EinaDock *self)
+{
+	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
+	return gtk_expander_get_expanded(self->priv->expander);
+}
+
+void
+eina_dock_set_expanded(EinaDock *self, gboolean expanded)
+{
+	g_return_if_fail(EINA_IS_DOCK(self));
+	g_return_if_fail(self->priv->n_tabs >= 2);
+
+	gtk_expander_set_expanded(self->priv->expander, expanded);
+}
+
+/*
+ * eina_dock_get_resizable:
+ *
+ * @self: The #EinaDock object
+ *
+ * Gets the value of the property 'resizable'
+ *
+ * Returns: the resizable property value
+ */
+gboolean
+eina_dock_get_resizable(EinaDock *self)
+{
+	g_return_val_if_fail(EINA_IS_DOCK(self), TRUE);
+	return self->priv->resizable;
 }
 
 /*
@@ -544,12 +586,24 @@ eina_dock_switch_widget(EinaDock *self, EinaDockTab *tab)
 	#endif
 }
 
+/*
+ * eina_dock_get_n_widgets:
+ * @self: The #EinaDock object
+ *
+ * Gets the number of widgets in the dock
+ *
+ * Returns: Number of widgets in the dock
+ */
+guint eina_dock_get_n_widgets(EinaDock *self)
+{
+	return self->priv->n_tabs;
+}
+
 static void
 expander_notify_cb(GtkExpander *w, GParamSpec *pspec, EinaDock *self)
 {
 	if (g_str_equal("expanded", pspec->name))
 	{
-		g_debug("Expanded is %s", gtk_expander_get_expanded(w) ? "open" : "close");
 		g_idle_add((GSourceFunc) dock_update_property_resizable_idle, self);
 	}
 	else
