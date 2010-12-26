@@ -65,6 +65,36 @@ application_quit(GelUIApplication *app, GelPluginEngine *self)
 	return FALSE;
 }
 */
+
+static void
+engine_plugin_signal_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
+{
+	GList *visible = NULL;
+
+	GList *current_plugins = gel_plugin_engine_get_plugins(engine);
+	GList *l = current_plugins;
+	while (l)
+	{
+		GelPlugin *plugin = GEL_PLUGIN(l->data);
+		const GelPluginInfo *info = gel_plugin_get_info(plugin);
+		if (!info->hidden)
+			visible = g_list_prepend(visible, g_strdup(info->name));
+		l = l->next;
+	}
+	gel_free_and_invalidate(current_plugins, NULL, g_list_free);
+
+	if (visible)
+	{
+		visible = g_list_reverse(visible);
+		gchar **visible_strv = gel_list_to_strv(visible, FALSE);
+		g_list_free(visible);
+
+		g_settings_set_strv(eina_application_get_settings(app, EINA_DOMAIN), "plugins", (const gchar * const*) visible_strv);
+		g_strfreev(visible_strv);
+	}
+
+}
+
 static void
 app_activate_cb (GApplication *application, gpointer user_data)
 {
@@ -77,15 +107,20 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
 
-	// GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
 	GelPluginEngine *engine = gel_plugin_engine_new(application);
 
-	gchar *plugins[] =
-	{
-	"dbus", "player", "playlist"
-	};
+	gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
+	gchar **opt_plugins = g_settings_get_strv(
+			eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
+			"plugins");
 
-	guint  n_plugins = G_N_ELEMENTS(plugins);
+	gchar **plugins = gel_strv_concat(
+		req_plugins,
+		opt_plugins,
+		NULL);
+	g_strfreev(opt_plugins);
+
+	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
 	for (i = 0; i < n_plugins; i++)
 	{
@@ -94,10 +129,13 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		{
 			g_warning(N_("Unable to load required plugin '%s': %s"), plugins[i], error->message);
 			g_error_free(error);
-			g_object_unref(engine);
-			return; 
 		}
 	}
+	g_strfreev(plugins);
+
+	g_signal_connect(engine, "plugin-init", (GCallback) engine_plugin_signal_cb, application);
+	g_signal_connect(engine, "plugin-fini", (GCallback) engine_plugin_signal_cb, application);
+
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
 	g_application_hold(application);
 }
