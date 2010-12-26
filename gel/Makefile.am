@@ -31,6 +31,7 @@ libgel_include_HEADERS = \
 libgel_ui_includedir = $(common_includedir)
 libgel_ui_include_HEADERS = \
 	gel-ui.h                \
+	gel-ui-dialogs.h        \
 	gel-ui-generic.h        \
 	gel-ui-plugin-manager.h \
 	gel-ui-utils.h
@@ -58,6 +59,7 @@ libgel_1_0_la_SOURCES = \
 libgel_uidir = $(common_geldir)
 libgel_ui_1_0_la_SOURCES = \
 	$(libgel_ui_include_HEADERS) \
+	gel-ui-dialogs.c             \
 	gel-ui-generic.c             \
 	gel-ui-plugin-manager.c      \
 	gel-ui-plugin-manager-ui.h   \
