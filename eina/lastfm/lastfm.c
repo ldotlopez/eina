@@ -99,7 +99,7 @@ lastfm_plugin_build_preferences(GelPlugin *plugin)
 	}
 	g_free(prefs_ui_path);
 
-	gchar *icon_filename = gel_plugin_get_resource(plugin, GEL_RESOURCE_IMAGE, "lastfm.png");
+	gchar *icon_filename = gel_plugin_get_resource(plugin, GEL_RESOURCE_TYPE_IMAGE, "lastfm.png");
 	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(icon_filename, 16, 16, TRUE, NULL);
 	gel_free_and_invalidate(icon_filename, NULL, g_free);
 
@@ -408,8 +408,8 @@ str_parser_cb(gchar key, LomoStream *stream)
 	default:
 		return NULL;
 	}
-	gchar *ret = lomo_stream_get_tag(stream, tag);
-	return ret ? g_strdup(ret) : NULL;
+	const gchar *ret = lomo_stream_get_tag(stream, tag);
+	return (gchar *) ret ? g_strdup(ret) : NULL;
 }
 
 #if DEBUG_DAEMON

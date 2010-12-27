@@ -179,7 +179,7 @@ ntfy_enable(EinaNtfy *self, GError **error)
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
 
 	gchar *path = NULL;
-	if (!(path = gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png")) ||
+	if (!(path = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "cover-default.png")) ||
 	    !(self->default_cover = gdk_pixbuf_new_from_file_at_scale(path, 64, 64, TRUE, NULL)))
 	{
 		g_warning(N_("Cannot load resource %s. Cover art will be disabled."), "cover-default.png");
@@ -357,8 +357,8 @@ ntfy_sync(EinaNtfy *self)
 	gchar *bname = g_uri_unescape_string(tmp, NULL);
 	g_free(tmp);
 
-	gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-	gchar *title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+	const gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+	const gchar *title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
 	gchar *body = g_strdup_printf("<b>%s</b>\n%s", title ? title : bname, artist ? artist : "");
 
 	gel_free_and_invalidate(bname, NULL, g_free);

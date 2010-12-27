@@ -52,7 +52,7 @@ eina_application_init (EinaApplication *self)
 	// Generate iconlist for windows
 	const gint sizes[] = { 16, 32, 48, 64, 128 };
 	GList *icon_list = NULL;
-	gchar *icon_filename = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg");
+	gchar *icon_filename = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "eina.svg");
 	if (icon_filename)
 	{
 		GError *e = NULL;

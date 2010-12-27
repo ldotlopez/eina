@@ -92,7 +92,7 @@ static const GtkToggleActionEntry ui_toggle_actions[] = {
 	{ "repeat-action", NULL, N_("Repeat"), "<alt>r", N_("Repeat playlist"), NULL }
 };
 
-GEL_AUTO_QUARK_FUNC(status_icon)
+GEL_DEFINE_QUARK_FUNC(status_icon)
 
 static void
 status_icon_data_destroy(StatusIconData *data)

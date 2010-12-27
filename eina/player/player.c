@@ -172,7 +172,7 @@ about_show(EinaPlayer *player)
 	"You should have received a copy of the GNU General Public License along with Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.");
 
 	GdkPixbuf *logo_pb = NULL;
-	gchar *logo_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "eina.svg");
+	gchar *logo_path = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "eina.svg");
 	if (!logo_path)
 		g_warning(N_("Missing resource: %s"), "eina.svg");
 	else
