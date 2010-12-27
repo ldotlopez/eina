@@ -14,7 +14,6 @@ DOC_MODULE=lomo
 # Uncomment for versioned docs and specify the version of the module, e.g. '2'.
 #DOC_MODULE_VERSION=2
 
-
 # The top-level SGML file. You can change this if you want to.
 DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 
@@ -29,7 +28,7 @@ SCANGOBJ_OPTIONS=
 
 # Extra options to supply to gtkdoc-scan.
 # e.g. SCAN_OPTIONS=--deprecated-guards="GTK_DISABLE_DEPRECATED"
-SCAN_OPTIONS=--deprecated-guards="LOMO_DISABLE_DEPRECATED"
+SCAN_OPTIONS=--deprecated-guards="GEL_DISABLE_DEPRECATED"
 
 # Extra options to supply to gtkdoc-mkdb.
 # e.g. MKDB_OPTIONS=--sgml-mode --output-format=xml
@@ -54,7 +53,7 @@ CFILE_GLOB=$(top_srcdir)/lomo/*.h
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES=lomo-playlist.h lomo-marshallers.h
+IGNORE_HFILES=lomo-playlist.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
@@ -75,7 +74,7 @@ expand_content_files=
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GSTREAMER_CFLAGS)
-GTKDOC_LIBS=$(GSTREAMER_LIBS) $(top_builddir)/lomo/liblomo-1.0.la
+GTKDOC_LIBS=$(GSTREAMER_LIBS) $(top_builddir)/lomo/liblomo-1.0.la 
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/docs/gtk-doc.make
