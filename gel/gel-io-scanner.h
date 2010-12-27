@@ -28,23 +28,16 @@ G_BEGIN_DECLS
 
 #define GEL_IO_TYPE_SCANNER gel_io_scanner_get_type()
 
-#define GEL_IO_SCANNER(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), GEL_IO_TYPE_SCANNER, GelIOScanner))
+#define GEL_IO_SCANNER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEL_IO_TYPE_SCANNER, GelIOScanner))
+#define GEL_IO_SCANNER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  GEL_IO_TYPE_SCANNER, GelIOScannerClass))
+#define GEL_IO_IS_SCANNER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEL_IO_TYPE_SCANNER))
+#define GEL_IO_IS_SCANNER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GEL_IO_TYPE_SCANNER))
+#define GEL_IO_SCANNER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GEL_IO_TYPE_SCANNER, GelIOScannerClass))
 
-#define GEL_IO_SCANNER_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), GEL_IO_TYPE_SCANNER, GelIOScannerClass))
-
-#define GEL_IO_IS_SCANNER(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEL_IO_TYPE_SCANNER))
-
-#define GEL_IO_IS_SCANNER_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), GEL_IO_TYPE_SCANNER))
-
-#define GEL_IO_SCANNER_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), GEL_IO_TYPE_SCANNER, GelIOScannerClass))
-
+typedef struct _GelIOScannerPrivate GelIOScannerPrivate;
 typedef struct {
 	GObject parent;
+	GelIOScannerPrivate *priv;
 } GelIOScanner;
 
 typedef struct {

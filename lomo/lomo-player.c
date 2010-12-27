@@ -653,21 +653,48 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PARSE,
 		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
 		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	
+
+	/**
+	 * LomoPlayer:auto-play:
+	 *
+	 * Control if #LomoPlayer should auto start play when any stream is
+	 * available
+	 **/
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PLAY,
 		g_param_spec_boolean("auto-play", "auto-play", "Auto play added streams",
 		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 
+	/**
+	 * LomoPlayer:volume:
+	 *
+	 * Volume value, from 0 to 100.
+	 **/
 	g_object_class_install_property(object_class, PROPERTY_VOLUME,
 		g_param_spec_int("volume", "volume", "Volume",
 		0, 100, 50, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	
+	/**
+	 * LomoPlayer:mute:
+	 *
+	 * Mute value, %TRUE or %FALSE
+	 **/
 	g_object_class_install_property(object_class, PROPERTY_MUTE,
 		g_param_spec_boolean("mute", "mute", "Mute",
 		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 
+	/**
+	 * LomoPlayer:random:
+	 *
+	 * Enables or disables random mode
+	 **/ 
 	g_object_class_install_property(object_class, PROPERTY_RANDOM,
 		g_param_spec_boolean("random", "random", "Random",
 		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	/**
+	 * LomoPlayer:repeat:
+	 *
+	 * Enables or disables repeat mode
+	 **/ 
 	g_object_class_install_property(object_class, PROPERTY_REPEAT,
 		g_param_spec_boolean("repeat", "repeat", "Repeat",
 		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
@@ -711,7 +738,7 @@ lomo_player_init (LomoPlayer *self)
 /**
  * lomo_player_new:
  * @option_name: First option name
- * @Varargs: A NULL-terminated pairs of option-name,option-value
+ * @Varargs: A %NULL-terminated pairs of option-name,option-value
  *
  * Creates a new #LomoPlayer with options
  *
@@ -747,7 +774,7 @@ lomo_player_new (gchar *option_name, ...)
 
 /**
  * lomo_player_get_auto_parse:
- * @lomo: a #LomoPlayer
+ * @self: a #LomoPlayer
  *
  * Gets the auto-parse property value.
  *
@@ -761,7 +788,7 @@ lomo_player_get_auto_parse(LomoPlayer *self)
 
 /**
  * lomo_player_set_auto_parse:
- * @lomo: a #LomoPlayer
+ * @self: a #LomoPlayer
  * @auto_parse: new value for auto-parse property
  *
  * Sets the auto-parse property value.
@@ -775,7 +802,7 @@ lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse)
 
 /**
  * lomo_player_get_auto_play:
- * @lomo: a #LomoPlayer
+ * @self: a #LomoPlayer
  *
  * Gets the auto-play property value.
  *
@@ -789,8 +816,8 @@ lomo_player_get_auto_play(LomoPlayer *self)
 
 /**
  * lomo_player_set_auto_play:
- * @lomo: a #LomoPlayer
- * @auto_parse: new value for auto-play property
+ * @self: a #LomoPlayer
+ * @auto_play: new value for auto-play property
  *
  * Sets the auto-play property value.
  */
@@ -803,7 +830,7 @@ lomo_player_set_auto_play(LomoPlayer *self, gboolean auto_play)
 
 
 static gboolean
-lomo_player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
+player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
 {
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 	
@@ -894,7 +921,7 @@ lomo_player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, .
 }
 
 /**
- * lomo_player_play_uri
+ * lomo_player_play_uri:
  * @self: a #LomoPlayer
  * @uri: URI to play
  * @error: Return location for an error
@@ -911,9 +938,9 @@ lomo_player_play_uri(LomoPlayer *self, gchar *uri, GError **error)
 }
 
 /**
- * lomo_player_play_stream
+ * lomo_player_play_stream:
  * @self: a #LomoPlayer
- * @uri: #LomoStream to play
+ * @stream: #LomoStream to play
  * @error: Return location for an error
  *
  * Play a #LomoStream clearing any previous playlist.
@@ -1165,7 +1192,7 @@ lomo_player_seek(LomoPlayer *self, LomoFormat format, gint64 val)
 
 	// Call hooks
 	gboolean ret = FALSE;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_SEEK, &ret, old_pos, val))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_SEEK, &ret, old_pos, val))
 		return ret;
 
 	// Exec action
@@ -1247,7 +1274,7 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 
 	// Call hooks
 	gboolean ret = FALSE;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_VOLUME, &ret, val))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_VOLUME, &ret, val))
 		return ret;
 
 	// Exec action
@@ -1291,7 +1318,7 @@ gint lomo_player_get_volume(LomoPlayer *self)
 /**
  * lomo_player_set_mute:
  * @self: a #LomoPlayer
- * @val: new value for mute 
+ * @mute: new value for mute 
  *
  * Sets mute
  *
@@ -1308,7 +1335,7 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 
 	// Run hooks
 	gboolean ret = FALSE;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_MUTE, &ret, mute))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_MUTE, &ret, mute))
 		return ret;
 
 	if (priv->pipeline == NULL)
@@ -1366,8 +1393,8 @@ gboolean lomo_player_get_mute(LomoPlayer *self)
  * @self: a #LomoPlayer
  * @stream: a #LomoStream which will be owner by @self
  * @pos: position to insert the element, If this is negative, or is larger than
- * the number of elements in the list, the new element is added on to the end
- * of the list.
+ *       the number of elements in the list, the new element is added on to the end
+ *       of the list.
  *
  * Inserts a #LomoStream in the internal playlist
  */
@@ -1382,10 +1409,10 @@ lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
 /**
  * lomo_player_insert_uri_multi:
  * @self: a #LomoPlayer
- * @uris: a #GList of gchar*
+ * @uris: (element-type utf8) (transfer none): a #GList of gchar*
  * @pos: position to insert the elements, If this is negative, or is larger than
- * the number of elements in the list, the new elements are added on to the end
- * of the list.
+ *       the number of elements in the list, the new elements are added on to the end
+ *       of the list.
  *
  * Inserts multiple URIs in the internal playlist
  */
@@ -1493,7 +1520,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		stream = (LomoStream *) l->data;
 
 		// Run hooks
-		if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_INSERT, NULL, stream, pos))
+		if (player_run_hooks(self, LOMO_PLAYER_HOOK_INSERT, NULL, stream, pos))
 		{
 			l = l->next;
 			continue;
@@ -1506,7 +1533,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 		g_signal_emit(G_OBJECT(self), lomo_player_signals[INSERT], 0, stream, pos);
 	
 		// Emit change if its first stream and hooks dont catch change
-		if (emit_change && !lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
+		if (emit_change && !player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
 		{
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, -1, 0);
 			GError *err = NULL;
@@ -1533,7 +1560,7 @@ lomo_player_insert_multi(LomoPlayer *self, GList *streams, gint pos)
 /**
  * lomo_player_del:
  * @self: a #LomoPlayer
- * @position: position of the #LomoStream to remove
+ * @pos: position of the #LomoStream to remove
  *
  * Removes a #LomoStream from the internal playlist using and index
  * This also implies a reference decrease on the element
@@ -1552,7 +1579,7 @@ gboolean lomo_player_del(LomoPlayer *self, gint pos)
 
 	// Call hooks
 	gboolean ret = FALSE;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_REMOVE, &ret, stream, pos))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_REMOVE, &ret, stream, pos))
 		return ret;
 
 	// Exec action
@@ -1606,7 +1633,7 @@ gint lomo_player_queue(LomoPlayer *self, gint pos)
 
 	// Run hooks
 	gint ret = -1;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_QUEUE, &ret, stream, g_queue_get_length(priv->queue)))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_QUEUE, &ret, stream, g_queue_get_length(priv->queue)))
 		return ret;
 
 	// Exec action
@@ -1634,7 +1661,7 @@ gboolean lomo_player_dequeue(LomoPlayer *self, gint queue_pos)
 
 	// Run hooks
 	gboolean ret = FALSE;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_DEQUEUE, &ret, stream, queue_pos))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_DEQUEUE, &ret, stream, queue_pos))
 		return ret;
 
 	// Exec action
@@ -1686,7 +1713,7 @@ lomo_player_queue_nth(LomoPlayer *self, guint queue_pos)
 void lomo_player_queue_clear(LomoPlayer *self)
 {
 	// Run hooks
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_QUEUE_CLEAR, NULL))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_QUEUE_CLEAR, NULL))
 		return;
 
 	// Exec action
@@ -1816,7 +1843,7 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 
 	// Call hook
 	gboolean ret = FALSE;
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, prev, pos))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, prev, pos))
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_HOOK_BLOCK, N_("Action blocked by hook"));
 		return ret;
@@ -1888,7 +1915,7 @@ void lomo_player_clear(LomoPlayer *self)
 		return;
 
 	// Run hook
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_CLEAR, NULL))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CLEAR, NULL))
 		return;
 
 	// Exec action
@@ -1909,7 +1936,7 @@ void lomo_player_clear(LomoPlayer *self)
 void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 {
 	// Run hook
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_REPEAT, NULL, val))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_REPEAT, NULL, val))
 		return;
 
 	// Exec action
@@ -1945,7 +1972,7 @@ gboolean lomo_player_get_repeat(LomoPlayer *self)
 void lomo_player_set_random(LomoPlayer *self, gboolean val)
 {
 	// Run hook
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_RANDOM, NULL, val))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_RANDOM, NULL, val))
 		return;
 
 	// Exec action
@@ -2026,7 +2053,7 @@ static void
 tag_cb(LomoMetadataParser *parser, LomoStream *stream, LomoTag tag, LomoPlayer *self)
 {
 	// Run hook
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_TAG, NULL, stream, tag))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_TAG, NULL, stream, tag))
 		return;
 
 	// Exec signal
@@ -2037,7 +2064,7 @@ static void
 all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self)
 {
 	// Run hook
-	if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_ALL_TAGS, NULL, stream))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_ALL_TAGS, NULL, stream))
 		return;
 
 	// Exec action
@@ -2057,7 +2084,7 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			stream = lomo_player_get_stream(self);
 
 			// Call hook
-			if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_ERROR, NULL, stream, err))
+			if (player_run_hooks(self, LOMO_PLAYER_HOOK_ERROR, NULL, stream, err))
 			{
 				g_error_free(err);
 				g_free(debug);
@@ -2075,7 +2102,7 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 
 		case GST_MESSAGE_EOS:
 			// g_printf("===> %"G_GINT64_FORMAT" (%"G_GINT64_FORMAT" secs)\n", lomo_player_tell_time(self), lomo_nanosecs_to_secs(lomo_player_tell_time(self)));
-			if (lomo_player_run_hooks(self, LOMO_PLAYER_HOOK_EOS, NULL))
+			if (player_run_hooks(self, LOMO_PLAYER_HOOK_EOS, NULL))
 				break;
 
 			g_signal_emit(G_OBJECT(self), lomo_player_signals[EOS], 0);
@@ -2129,7 +2156,7 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			// Filter repeated events
 			if (signal != last_signal)
 			{
-				if (!lomo_player_run_hooks(self, hook, NULL))
+				if (!player_run_hooks(self, hook, NULL))
 				{
 					// g_printf("Emit signal %s\n", gst_state_to_str(newstate));
 					g_signal_emit(G_OBJECT(self), signal, 0);

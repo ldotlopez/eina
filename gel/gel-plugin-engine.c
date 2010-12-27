@@ -564,7 +564,7 @@ build_paths(void)
 	//   2.1 Add user's dir
 	//   2.2 Add system dir
 
-	const gchar *envdir = gel_resource_type_get_env(GEL_RESOURCE_SHARED);
+	const gchar *envdir = gel_resource_type_get_env(GEL_RESOURCE_TYPE_SHARED);
 	if (envdir)
 	{
 		gchar **paths = g_strsplit(envdir, ":", -1);
@@ -577,10 +577,10 @@ build_paths(void)
 		return g_list_reverse(ret);
 	}
 
-	gchar *userdir = gel_resource_type_get_user_dir(GEL_RESOURCE_SHARED);
+	gchar *userdir = gel_resource_type_get_user_dir(GEL_RESOURCE_TYPE_SHARED);
 	if (userdir)
 		ret = g_list_prepend(ret, userdir);
-	gchar *systemdir = gel_resource_type_get_system_dir(GEL_RESOURCE_SHARED);
+	gchar *systemdir = gel_resource_type_get_system_dir(GEL_RESOURCE_TYPE_SHARED);
 	if (systemdir)
 		ret = g_list_prepend(ret, systemdir);
 

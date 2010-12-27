@@ -48,6 +48,7 @@ typedef struct {
 } LomoPlayer;
 
 typedef struct {
+	/*< private >*/
 	GObjectClass parent_class;
 
 	void (*play)        (LomoPlayer *self);
@@ -107,7 +108,30 @@ enum {
 	LOMO_PLAYER_HOOK_BLOCK
 };
 
-/* LomoPlayer hook-type and hook-event */
+/**
+ * LomoPlayerHookType:
+ * @LOMO_PLAYER_HOOK_PLAY: Play hook
+ * @LOMO_PLAYER_HOOK_PAUSE: Pause hook
+ * @LOMO_PLAYER_HOOK_STOP: Stop hook
+ * @LOMO_PLAYER_HOOK_SEEK: Seek hook
+ * @LOMO_PLAYER_HOOK_VOLUME: Volume hook
+ * @LOMO_PLAYER_HOOK_MUTE: Mute hook
+ * @LOMO_PLAYER_HOOK_INSERT: Insert hook
+ * @LOMO_PLAYER_HOOK_REMOVE : Remove hook
+ * @LOMO_PLAYER_HOOK_QUEUE: Queue hook
+ * @LOMO_PLAYER_HOOK_DEQUEUE: Dequeue hook
+ * @LOMO_PLAYER_HOOK_QUEUE_CLEAR: Queue clear hook
+ * @LOMO_PLAYER_HOOK_CHANGE: Changed hook
+ * @LOMO_PLAYER_HOOK_CLEAR: Clear hook
+ * @LOMO_PLAYER_HOOK_REPEAT: Repeat hook
+ * @LOMO_PLAYER_HOOK_RANDOM: Random hook
+ * @LOMO_PLAYER_HOOK_EOS: EOS hook
+ * @LOMO_PLAYER_HOOK_ERROR: Error hook
+ * @LOMO_PLAYER_HOOK_TAG: Tag hook
+ * @LOMO_PLAYER_HOOK_ALL_TAGS: All tags hook
+ *
+ * Determines the type of hook
+ **/
 typedef enum {
 	LOMO_PLAYER_HOOK_PLAY,
 	LOMO_PLAYER_HOOK_PAUSE,
@@ -130,6 +154,25 @@ typedef enum {
 	LOMO_PLAYER_HOOK_ALL_TAGS
 } LomoPlayerHookType;
 
+/**
+ * LomoPlayerHookEvent:
+ * @type: Type of the event
+ * @old: Old position (seek type event)
+ * @new: New position (seek type event)
+ * @volume: Volumen value (volume type event)
+ * @stream: Stream object (insert, remove, queue, dequeue, tag and all_tags
+ *          event types)
+ * @pos: Position (insert and remove event types)
+ * @queue_pos: Queue position (queue and dequeue event types)
+ * @from: From position (change event type)
+ * @to: From position (change event type)
+ * @tag: Tag value (tag event type)
+ * @value: %TRUE or %FALSE (randonm, repeat and mute event types)
+ * @error: A #GError (error event type)
+ *
+ * Packs relative for a concrete event, depending the type of the event more or
+ * less fields will be set, others will be unconcrete.
+ **/
 typedef struct {
 	LomoPlayerHookType type;
 	gint old, new;      // seek
@@ -145,7 +188,16 @@ typedef struct {
 
 typedef gboolean(*LomoPlayerHook)(LomoPlayer *self, LomoPlayerHookEvent event, gpointer ret, gpointer data);
 
-/* LomoPlayer state-change-return */
+/**
+ * LomoStateChangeReturn:
+ * @LOMO_STATE_CHANGE_SUCCESS: The state has changed
+ * @LOMO_STATE_CHANGE_ASYNC: State change will append async
+ * @LOMO_STATE_CHANGE_NO_PREROLL: See %GST_STATE_CHANGE_NO_PREROLL
+ * @LOMO_STATE_CHANGE_FAILURE: State change has failed.
+ *
+ * Defines how the state change is performed after a lomo_player_set_state()
+ * call
+ **/
 typedef enum {
 	LOMO_STATE_CHANGE_SUCCESS     = GST_STATE_CHANGE_SUCCESS,
 	LOMO_STATE_CHANGE_ASYNC       = GST_STATE_CHANGE_ASYNC,
@@ -153,21 +205,40 @@ typedef enum {
 	LOMO_STATE_CHANGE_FAILURE     = GST_STATE_CHANGE_FAILURE,
 } LomoStateChangeReturn;
 
-/* Lomo state */
+/**
+ * LomoState
+ * @LOMO_STATE_INVALID: Invalid state
+ * @LOMO_STATE_STOP: Stop state
+ * @LOMO_STATE_PLAY: Play state
+ * @LOMO_STATE_PAUSE: Pause state
+ * @LOMO_N_STATES: Helper define
+ *
+ * Defines the state of the #LomoPlayer object
+ **/
 typedef enum {
 	LOMO_STATE_INVALID = -1,
 	LOMO_STATE_STOP    = 0,
 	LOMO_STATE_PLAY    = 1,
 	LOMO_STATE_PAUSE   = 2,
+
+	LOMO_N_STATES
 } LomoState;
 
-/* lomo-format */
+/**
+ * LomoFormat:
+ * @LOMO_FORMAT_INVALID: Invalid format
+ * @LOMO_FORMAT_TIME: Format is time
+ * @LOMO_FORMAT_PERCENT: Format is precent
+ * @LOMO_N_FORMATS: Helper define
+ *
+ * Define in which format data is expressed
+ **/
 typedef enum {
 	LOMO_FORMAT_INVALID = -1,
 	LOMO_FORMAT_TIME    = 0,
 	LOMO_FORMAT_PERCENT = 1,
 
-	LOMO_FORMATS
+	LOMO_N_FORMATS
 } LomoFormat;
 
 GType lomo_player_get_type (void);

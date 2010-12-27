@@ -302,7 +302,7 @@ gel_plugin_get_resource_list(GelPlugin *plugin, GelResourceType type, gchar *res
 	else
 	{
 		gchar *plugindir = g_path_get_dirname(gel_plugin_get_pathname(plugin));
-		const gchar *map_table[GEL_N_RESOURCES] = { "ui", "pixmaps", "lib", "." };
+		const gchar *map_table[GEL_RESOURCE_N_TYPES] = { "ui", "pixmaps", "lib", "." };
 		ret = g_list_prepend(ret, g_build_filename(plugindir, resource, NULL));
 		ret = g_list_prepend(ret, g_build_filename(plugindir, map_table[type], resource, NULL));
 		g_free(plugindir);

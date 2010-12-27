@@ -24,6 +24,22 @@
 
 G_BEGIN_DECLS
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* Data types                                                                */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/**
+ * GelDebugLevel:
+ * @GEL_DEBUG_LEVEL_SEVERE: Severe error code
+ * @GEL_DEBUG_LEVEL_ERROR: 'Normal' error code
+ * @GEL_DEBUG_LEVEL_WARN: Warning code
+ * @GEL_DEBUG_LEVEL_INFO: Detailed information
+ * @GEL_DEBUG_LEVEL_DEBUG: Insane debug
+ *
+ * Codes for the gel debug system 
+ *
+ * Deprecated: 1.2: Use standard glib log system
+ **/
 typedef enum GelDebugLevel
 {
 	GEL_DEBUG_LEVEL_SEVERE  = 0,
@@ -34,32 +50,82 @@ typedef enum GelDebugLevel
 	GEL_N_DEBUG_LEVELS      = 5
 } GelDebugLevel;
 
-enum {
-	GEL_BASENAME,
-	GEL_DIRNAME,
-	GEL_PATHNAME,
-	GEL_N_PATH_STRINGS
-};
-
+/**
+ * GelPathComponent:
+ *
+ * @GEL_PATH_COMPONENT_BASENAME: Basename of a path string
+ * @GEL_PATH_COMPONENT_DIRNAME: Dirname of a path string
+ * @GEL_PATH_COMPONENT_PATHNAME: Full path string
+ * @GEL_PATH_N_COMPONENTS: Helper define
+ *
+ * Used for access returned data from %gel_file_strings
+ **/
 typedef enum {
-	GEL_RESOURCE_UI,     // ui/
-	GEL_RESOURCE_IMAGE,  // pixmaps/
-	GEL_RESOURCE_SHARED, // lib/
-	GEL_RESOURCE_OTHER,  // "./"
+	GEL_PATH_COMPONENT_BASENAME,
+	GEL_PATH_COMPONENT_DIRNAME,
+	GEL_PATH_COMPONENT_PATHNAME,
+	GEL_PATH_N_COMPONENTS
+} GelPathComponent;
 
-	GEL_N_RESOURCES
+/**
+ * GelResourceType:
+ *
+ * @GEL_RESOURCE_TYPE_UI: A .ui file, a UI definition understandable by GtkBuilder
+ * @GEL_RESOURCE_TYPE_IMAGE: An image in any format loadable by Gtk+
+ * @GEL_RESOURCE_TYPE_SHARED: A shared object (.so, .dylib, .dll)
+ * @GEL_RESOURCE_OTHER: Other types
+ *
+ * GelResourceType describes which type of file to locate, each type, except
+ * @GEL_RESOURCE_OTHER, is searched in specific locations, where
+ * @GEL_RESOURCE_OTHER is searched at '.'
+ *
+ * For specific information about search paths you should to read the code of
+ * gel/gel-misc.c.
+ **/
+typedef enum {
+	GEL_RESOURCE_TYPE_UI,     // ui/
+	GEL_RESOURCE_TYPE_IMAGE,  // pixmaps/
+	GEL_RESOURCE_TYPE_SHARED, // lib/
+	GEL_RESOURCE_TYPE_OTHER,  // "./"
+
+	GEL_RESOURCE_N_TYPES
 } GelResourceType;
 
-typedef enum GelFileLoadCode {
-	GEL_FILE_LOAD_CODE_OK,
-	GEL_FILE_LOAD_CODE_NOT_FOUND,
-	GEL_FILE_LOAD_CODE_CANNOT_LOAD,
-} GelFileLoadCode;
+/**
+ * GelPrintFunc:
+ *
+ * @data: (transfer none): gpointer holind data to dump
+ *
+ * Converts @data to printable strings
+ *
+ * Returns: (transfer full): Data in a printable form
+ **/
+typedef gchar*   (*GelPrintFunc)(const gpointer data);
 
-typedef gchar*   (*GelListPrintfFunc)(const gpointer data);
+/**
+ * GelFilterFunc:
+ *
+ * @data: Data to filter or not
+ * @user_data: User data
+ *
+ * Filters out (or not) @data from a larger set of values
+ *
+ * Returns: %TRUE if data is accepted (NOT sure about this, refer to caller
+ *          function documentation)
+ **/
 typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 
-#define GEL_AUTO_QUARK_FUNC(name) GEL_DEFINE_QUARK_FUNC(name)
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* Defines                                                                   */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/**
+ * GEL_DEFINE_QUARK_FUNC:
+ *
+ * @name: Name for use in the quark function, use 'foo' for quark_foo()
+ *
+ * Defines a quark function
+ **/
 #define GEL_DEFINE_QUARK_FUNC(name) \
 	static GQuark name ## _quark(void) \
 	{ \
@@ -69,6 +135,13 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 		return ret; \
 	}
 
+/**
+ * GEL_DEFINE_WEAK_REF_CALLBACK:
+ *
+ * @name: Name for use in the weak ref callback, use 'foo' for foo_weak_ref_cb
+ *
+ * Defines a weak ref function for use with g_object_weak_ref
+ */
 #define GEL_DEFINE_WEAK_REF_CALLBACK(name) \
 	static void \
 	name ## _weak_ref_cb (gpointer data, GObject *_object) \
@@ -77,10 +150,11 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
 	}
 
 // --
-// Initialization and finilization functions
+// Initialization functions
 // --
+
 void
-gel_init(gchar *app_name, gchar *lib_dir, gchar *data_dir);
+gel_init(const gchar *package_name, const gchar *lib_dir, const gchar *data_dir);
 
 const gchar*
 gel_get_package_name(void);
@@ -92,16 +166,19 @@ const gchar*
 gel_get_package_data_dir(void);
 
 // --
-// Gobject
+// GObject functions
 // --
+
 guint
 gel_object_get_ref_count(GObject *object);
+
 const gchar*
 gel_object_get_type_name(GObject *object);
 
 // --
 // Utilities for GList/GSList
 // --
+
 gchar **
 gel_list_to_strv(GList *list, gboolean copy);
 
@@ -114,11 +191,43 @@ gel_list_join(const gchar *separator, GList *list);
 gchar **
 gel_strv_concat(gchar **strv_a, ...);
 
-// GSList are compatibles
-#define gel_slist_deep_free(list,callback) gel_list_deep_free((GList*)list,callback)
+/**
+ * gel_slist_deep_free:
+ * @list: A #GSList
+ * @callback: A #GFunc callback
+ *
+ * See gel_list_deep_free()
+ **/
+#define gel_slist_deep_free(list,callback) gel_list_deep_free((GList*)list, callback)
+
+/**
+ * gel_slist_deep_free_with_data:
+ * @list: A #GSList
+ * @callback: A #GFunc callback
+ * @user_data: User data to pass to @callback as second argument
+ *
+ * See gel_list_deep_free_with_data()
+ **/
 #define gel_slist_deep_free_with_data(list,callback,user_data) gel_list_deep_free_with_data((GList*)list,callback,user_data)
 
+/**
+ * gel_list_deep_free:
+ * @list: A #GList
+ * @callback: A #GFunc callback
+ *
+ * Deep free a #GList. @callback is invoked to free each element of @list
+ **/
 #define gel_list_deep_free(list,callback) gel_list_deep_free_with_data(list,(GFunc)callback,NULL)
+
+/**
+ * gel_list_deep_free_with_data:
+ * @list: A #GList
+ * @callback: A #GFunc callback
+ * @user_data: User data to pass to @callback as second argument
+ *
+ * Deep free a #GList. @callback is invoked to free each element of @list with
+ * @data as second argument
+ **/
 #define gel_list_deep_free_with_data(list,callback,user_data) \
 	do { \
 		if (list != NULL) { \
@@ -127,21 +236,24 @@ gel_strv_concat(gchar **strv_a, ...);
 		} \
 	} while (0)
 
-
 void
 gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data);
 
-// Filter: no data copied, its shared
-#define gel_list_filter(input,callback,user_data) ((GList *) gel_slist_filter((GSList*)input,callback,user_data)); // Compatible
-GSList*
-gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data);
+GList*
+gel_list_filter(GList *input, GelFilterFunc callback, gpointer user_data);
 
 void
 gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data);
 
-#define gel_slist_printf(list,format,func) gel_list_printf((GList*) list, format, func)
 void
-gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func);
+gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func);
+
+/**
+ * gel_slist_printf:
+ *
+ * See gel_list_printf()
+ **/
+#define gel_slist_printf(list,format,func) gel_list_printf((GList*) list, format, func)
 
 // --
 // App resources functions

@@ -21,11 +21,6 @@ libgel_include_HEADERS = \
 	gel-plugin-engine.h     \
 	gel-plugin-info.h       \
 	gel-io.h                \
-	gel-io-misc.h           \
-	gel-io-tree.h           \
-	gel-io-op-result.h      \
-	gel-io-ops.h            \
-	gel-io-recurse-tree.h   \
 	gel-io-scanner.h
 
 libgel_ui_includedir = $(common_includedir)
@@ -49,11 +44,6 @@ libgel_1_0_la_SOURCES = \
 	gel-plugin.c              \
 	gel-plugin-engine.c       \
 	gel-plugin-info.c         \
-	gel-io-misc.c             \
-	gel-io-tree.c             \
-	gel-io-op-result.c        \
-	gel-io-ops.c              \
-	gel-io-recurse-tree.c     \
 	gel-io-scanner.c
 
 libgel_uidir = $(common_geldir)

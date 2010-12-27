@@ -19,24 +19,16 @@
 
 #include "lomo-metadata-parser.h"
 
-#include <glib/gprintf.h>
 #include <gst/gst.h>
 #include "lomo-marshallers.h"
 
 G_DEFINE_TYPE (LomoMetadataParser, lomo_metadata_parser, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) \
-  (G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserPrivate))
-
-typedef struct _LomoMetadataParserPrivate LomoMetadataParserPrivate;
-
 enum {
 	TAG,
 	ALL_TAGS,
-
 	LAST_SIGNAL
 };
-
 guint lomo_metadata_parser_signals[LAST_SIGNAL] = { 0 };
 
 static gboolean
@@ -64,7 +56,8 @@ struct _LomoMetadataParserPrivate {
 static void
 lomo_metadata_parser_dispose (GObject *object)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(object);
+	LomoMetadataParser *self = LOMO_METADATA_PARSER(object);
+	LomoMetadataParserPrivate *priv = self->priv;
 
 	if (priv->pipeline)
 	{
@@ -96,8 +89,7 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 	 */
 	lomo_metadata_parser_signals[TAG] =
 		g_signal_new ("tag",
-			G_OBJECT_CLASS_TYPE (object_class),
-			G_SIGNAL_RUN_LAST,
+			G_OBJECT_CLASS_TYPE (object_class), G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET (LomoMetadataParserClass, tag),
 			NULL, NULL,
 			lomo_marshal_VOID__POINTER_INT,
@@ -132,8 +124,7 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 static void
 lomo_metadata_parser_init (LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
-
+	LomoMetadataParserPrivate *priv = self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserPrivate));
 	priv->pipeline = NULL;
 	priv->queue    = g_queue_new();
 	priv->stream   = NULL;
@@ -155,16 +146,20 @@ lomo_metadata_parser_new (void)
 
 /**
  * lomo_metadata_parser_parse:
- * @self: The parser
- * @stream: (in): The stream to parse
- * @prio: (in): The priority on the queue
+ * @self: The parser.
+ * @stream: The stream to parse.
+ * @prio: The priority on the queue.
  *
  * Adds @stream to @self internal queue with @prio to be parsed
- */
+ **/
 void
 lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMetadataParserPrio prio)
 {
-	LomoMetadataParserPrivate *priv = priv = GET_PRIVATE(self);
+	g_return_if_fail(LOMO_IS_METADATA_PARSER(self));
+	g_return_if_fail(LOMO_IS_STREAM(stream));
+	g_return_if_fail((prio > LOMO_METADATA_PARSER_PRIO_INVALID) && (prio < LOMO_TYPE_METADATA_PARSER_N_PRIO));
+
+	LomoMetadataParserPrivate *priv = self->priv;
 	switch (prio)
 	{
 		case LOMO_METADATA_PARSER_PRIO_INMEDIATE:
@@ -188,13 +183,13 @@ lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMet
  * @self: The parser
  *
  * Clears internal queue and stop any parse in progress
- */
+ **/
 void
 lomo_metadata_parser_clear(LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
-	if (!priv)
-		return;
+	g_return_if_fail(LOMO_IS_METADATA_PARSER(self));
+
+	LomoMetadataParserPrivate *priv = self->priv;
 
 	// Stop the parser and bus
 	if (priv->idle_id > 0)
@@ -202,13 +197,13 @@ lomo_metadata_parser_clear(LomoMetadataParser *self)
 		g_source_remove(priv->idle_id);
 		priv->idle_id = 0;
 	}
+
 	if (priv->bus_id > 0)
 	{
 		g_source_remove(priv->bus_id);
 		priv->bus_id = 0;
 	}
 
-	// Clear pipeline
 	if (priv->pipeline)
 	{
 		gst_element_set_state(priv->pipeline, GST_STATE_NULL);
@@ -216,22 +211,20 @@ lomo_metadata_parser_clear(LomoMetadataParser *self)
 		priv->pipeline = NULL;
 	}
 
-	// Clear queue
 	if (!g_queue_is_empty(priv->queue))
 	{
 		g_queue_foreach(priv->queue, (GFunc) g_object_unref, NULL);
 		g_queue_clear(priv->queue);
 	}
 
-	// Reset flags and pointers
 	priv->failure = priv->got_state_signal = priv->got_new_clock_signal = FALSE;
 	priv->stream = NULL;
 }
 
 static void
-lomo_metadata_parser_reset(LomoMetadataParser *self)
+reset_internals(LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
+	LomoMetadataParserPrivate *priv = self->priv;
 	GstElement *audio, *video;
 
 	if (priv->pipeline)
@@ -261,7 +254,7 @@ lomo_metadata_parser_reset(LomoMetadataParser *self)
 static gboolean
 bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
+	LomoMetadataParserPrivate *priv = self->priv;
 	GstState old, new, pending;
 	GstTagList *tags = NULL;
 
@@ -334,7 +327,7 @@ disconnect:
 static void
 foreach_tag_cb(const GstTagList *list, const gchar *tag, LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
+	LomoMetadataParserPrivate *priv = self->priv;
 	GType     type;
 
 	gchar   *string_tag;
@@ -344,7 +337,7 @@ foreach_tag_cb(const GstTagList *list, const gchar *tag, LomoMetadataParser *sel
 	gboolean bool_tag;
 	gpointer pointer;
 
-	type = lomo_tag_get_g_type(tag);
+	type = lomo_tag_get_gtype(tag);
 
 	switch (type)
 	{
@@ -398,7 +391,7 @@ foreach_tag_cb(const GstTagList *list, const gchar *tag, LomoMetadataParser *sel
 			meta.c:364 Found date but type GstDate is not handled
 			meta.c:364 Found private-id3v2-frame but type GstBuffer is not handled
 
-			g_printf("%s:%d Found %s but type %s is not handled\n",
+			g_debug("%s:%d Found %s but type %s is not handled\n",
 				__FILE__, __LINE__, tag, g_type_name(type));
 			*/
 			break;
@@ -408,11 +401,11 @@ foreach_tag_cb(const GstTagList *list, const gchar *tag, LomoMetadataParser *sel
 static gboolean
 run_queue(LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = GET_PRIVATE(self);
+	LomoMetadataParserPrivate *priv = self->priv;
 	
 	if (!g_queue_is_empty(priv->queue))
 	{
-		lomo_metadata_parser_reset(self);
+		reset_internals(self);
 		priv->stream = g_queue_pop_head(priv->queue);
 		g_object_set(
 			G_OBJECT(priv->pipeline), "uri",

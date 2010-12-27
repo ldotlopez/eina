@@ -19,6 +19,14 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:lomo-stats
+ * @short_description: #LomoPlayer stats
+ * @see_also: #LomoPlayer
+ *
+ * LomoStat provides some statistics from #LomoPlayer
+ **/
+
 #include "lomo-stats.h"
 #include "lomo.h"
 
@@ -34,8 +42,8 @@ struct _LomoStats {
 #define debug(...) do ; while(0)
 // #define debug(...) g_warning(__VA_ARGS__)
 
-void
-lomo_stats_destroy_real(LomoStats *self, gboolean player_is_active);
+static void
+stats_destroy_real(LomoStats *self, gboolean player_is_active);
 static inline void
 stats_reset_counters(LomoStats *self);
 static inline void
@@ -84,11 +92,11 @@ lomo_stats_watch(LomoPlayer *player)
 void
 lomo_stats_destroy(LomoStats *self)
 {
-	lomo_stats_destroy_real(self, TRUE);
+	stats_destroy_real(self, TRUE);
 }
 
 void
-lomo_stats_destroy_real(LomoStats *self, gboolean player_is_active)
+stats_destroy_real(LomoStats *self, gboolean player_is_active)
 {
 	g_return_if_fail(self != NULL);
 	if (player_is_active)
@@ -104,12 +112,19 @@ lomo_stats_destroy_real(LomoStats *self, gboolean player_is_active)
 	g_free(self);
 }
 
+/**
+ * lomo_stats_get_time_played:
+ * @self: A #LomoStats
+ *
+ * Gets how many time current stream has been played
+ *
+ * Returns: Time in microseconds
+ **/
 gint64
 lomo_stats_get_time_played(LomoStats *self)
 {
 	return self->played;
 }
-
 
 static void
 stats_reset_counters(LomoStats *self)
@@ -133,7 +148,7 @@ stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add)
 static void
 lomo_weak_ref_cb(LomoStats *self, LomoPlayer *invalid_player)
 {
-	lomo_stats_destroy_real(self, FALSE);
+	stats_destroy_real(self, FALSE);
 }
 
 static void

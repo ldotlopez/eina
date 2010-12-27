@@ -44,7 +44,7 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 	gchar *tmp;
 
 	tmp = g_strconcat(ui_filename, ".ui", NULL);
-	ui_pathname = gel_resource_locate(GEL_RESOURCE_UI, tmp);
+	ui_pathname = gel_resource_locate(GEL_RESOURCE_TYPE_UI, tmp);
 
 	if (ui_pathname == NULL)
 	{
@@ -113,7 +113,7 @@ gel_ui_load_pixbuf_from_imagedef(GelUIImageDef def, GError **error)
 {
 	GdkPixbuf *ret;
 
-	gchar *pathname = gel_plugin_get_resource(NULL, GEL_RESOURCE_IMAGE, def.image);
+	gchar *pathname = gel_plugin_get_resource(NULL, GEL_RESOURCE_TYPE_IMAGE, def.image);
 	if (pathname == NULL)
 	{
 		// Handle error

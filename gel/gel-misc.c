@@ -40,10 +40,14 @@ static GList *_gel_debug_handlers_data = NULL;
 void
 gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
 
-// --
-// Initialization and finilization functions
-// --
-void
+
+/**
+ * SECTION:gel-initialization
+ *
+ * Initilization of libgel
+ **/
+
+static void
 _gel_atexit(void)
 {
 	gel_free_and_invalidate(_gel_package_name,        NULL, g_free);
@@ -52,11 +56,22 @@ _gel_atexit(void)
 	gel_free_and_invalidate(_gel_debug_handlers_data, NULL, g_list_free);
 }
 
+/**
+ * gel_init:
+ *
+ * @package_name: Name of the package/app using libgel. Something like 'foo' or 'bar'.
+ * @lib_dir: libdir for the app, in most cases something like /usr/local/lib or
+ *           /usr/lib
+ * @data_dir: datadir for the app, in most cases something like
+ *            /usr/local/share or /usr/share
+ *
+ * Initializes the library
+ **/
 void
-gel_init(gchar *name, gchar *lib_dir, gchar *data_dir)
+gel_init(const gchar *package_name, const gchar *lib_dir, const gchar *data_dir)
 {
-	g_set_prgname(name);
-	_gel_package_name     = g_strdup(name);
+	g_set_prgname(package_name);
+	_gel_package_name     = g_strdup(package_name);
 	_gel_package_lib_dir  = g_strdup(lib_dir);
 	_gel_package_data_dir = g_strdup(data_dir);
 	_gel_debug_handlers      = g_list_append(NULL, gel_debug_default_handler);
@@ -64,40 +79,106 @@ gel_init(gchar *name, gchar *lib_dir, gchar *data_dir)
 	atexit(_gel_atexit);
 }
 
+/**
+ * gel_get_package_name:
+ *
+ * Get package name from libgel
+ *
+ * Returns: (transfer none): package name of the app using libgel.
+ *          This string is owned by libgel and should NOT be freeded.
+ **/
 const gchar*
 gel_get_package_name(void)
 {
 	return (const gchar *) _gel_package_name;
 }
 
+/**
+ * gel_get_package_lib_dir:
+ *
+ * Get package libdir from libgel
+ *
+ * Returns: (transfer none): package libdir of the app using libgel
+ *          This string is owned by libgel and should NOT be freeded.
+ **/
 const gchar*
 gel_get_package_lib_dir(void)
 {
 	return (const gchar *) _gel_package_lib_dir;
 }
 
+/**
+ * gel_get_package_data_dir:
+ *
+ * Get package data_dir from libgel
+ *
+ * Returns: (transfer none): package data_dir of the app using libgel
+ *          This string is owned by libgel and should NOT be freeded.
+ **/
 const gchar*
 gel_get_package_data_dir(void)
 {
 	return (const gchar *) _gel_package_data_dir;
 }
 
+/**
+ * SECTION:gel-object
+ * @short_description: Functions handling or embracing #GObject's
+ * @see_also: #GObject
+ *
+ * libgel support to #GObject
+ */
+
+/**
+ * gel_object_get_ref_count:
+ *
+ * @object: A #GObject
+ *
+ * Get the number of references over the object
+ *
+ * Returns: The number of references
+ **/
 guint
 gel_object_get_ref_count(GObject *object)
 {
 	return G_OBJECT(object)->ref_count;
 }
 
+/**
+ * gel_object_get_type_name:
+ *
+ * @object: A #GObject
+ *
+ * Get object's class printable name
+ *
+ * Returns: A string containing the object's class name. This string is owned
+ *          by glib-object and should NOT be freeded.
+ **/
 const gchar*
 gel_object_get_type_name(GObject *object)
 {
 	return G_OBJECT_TYPE_NAME(object);
 }
 
-// --
-// Utilities for GList/GSList
-// --
-//
+/**
+ * SECTION:gel-list
+ * @short_description: GList/GSList support function
+ * @see_also: #GList, #GSList
+ *
+ * libgel support for lists
+ */
+
+/**
+ * gel_list_to_strv:
+ *
+ * @list: A #GList to convert to gchar**
+ * @copy: if %TRUE the data is also copied
+ *
+ * Converts a #GList to a gchar** optionally copying data (a gchar element-type is
+ * assumed)
+ *
+ * Returns: A gchar** with the elements of @list
+ **/
 gchar **
 gel_list_to_strv(GList *list, gboolean copy)
 {
@@ -118,6 +199,16 @@ gel_list_to_strv(GList *list, gboolean copy)
 	return ret;
 }
 
+/**
+ * gel_strv_to_list:
+ *
+ * @strv: A %NULL-terminated array of strings
+ * @copy: if %TRUE the data is also copied
+ *
+ * Coverts a gchar** to a #GList, see also gel_list_to_strv()
+ *
+ * Returns: A #GList with the elements of @strv
+ **/
 GList *
 gel_strv_to_list(gchar **strv, gboolean copy)
 {
@@ -136,8 +227,20 @@ gel_strv_to_list(gchar **strv, gboolean copy)
 	return g_list_reverse(ret);
 }
 
+/**
+ * gel_strlist_join:
+ *
+ * @separator: Separator for use
+ * @list: A #GList to join
+ *
+ * Joins a #GList into a single string using @separator as union, see also
+ * #g_strjoinv
+ *
+ * Returns: A newly allocated string which must be freeded when it is not
+ *          necessary.
+ */
 gchar *
-gel_list_join(const gchar *separator, GList *list)
+gel_strlist_join(const gchar *separator, GList *list)
 {
 	gchar *ret;
 	gchar **tmp = gel_list_to_strv(list, FALSE);
@@ -150,6 +253,17 @@ gel_list_join(const gchar *separator, GList *list)
 	return ret;
 }
 
+/**
+ * gel_strv_concat:
+ *
+ * @strv_a: The first %NULL-terminate array of strings
+ * @Varargs: a %NULL-terminated list of %NULL-terminate array of strings
+ *
+ * Concatenates a set of %NULL-terminate array of strings (commonly refered as
+ * strv) into a single one.
+ *
+ * Returns: (transfer full): the new strv with all the strings copied
+ */
 gchar**
 gel_strv_concat(gchar **strv_a, ...)
 {
@@ -181,6 +295,25 @@ gel_strv_concat(gchar **strv_a, ...)
 	return ret;
 }
 
+/**
+ * gel_list_bisect:
+ *
+ * @input: A #GList to bisect
+ * @accepted: (inout): A #GList to store accepted elements, %NULL is not
+ *                     allowed
+ * @rejected: (inout): A #GList to store rejected elements, %NULL is not
+ *                     allowed
+ * @callback: A #GelFilterFunc
+ * @data: data to pass to @callback
+ *
+ * Bisect (split) a #GList based on the criteria of @callback. Callback is
+ * called in form of callback(element,data). If @callback returns %TRUE
+ * element is stored in accepted, else element is stored in rejected.
+ *
+ * Original list is completly freeded, since all of his elements are moved to
+ * @accepted or @rejected. Neither of @accepted or @rejected can be %NULL
+ * because elements will be leaked.
+ **/
 void
 gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data)
 {
@@ -196,20 +329,41 @@ gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc 
 	}
 }
 
-
-GSList*
-gel_slist_filter(GSList *input, GelFilterFunc callback, gpointer user_data)
+/**
+ * gel_list_filter:
+ *
+ * @input: A #GList to filter
+ * @callback: A #GelFilterFunc used for filtering
+ * @user_data: data to pass to @callback
+ *
+ * Filters @input's elements to return a newly created #GList based on the
+ * criteria of @callback, if %TRUE is returned, element is included in the
+ * returned list.
+ *
+ * Note that elements itself are not copied.
+ *
+ * See also: gel_list_bisect()
+ *
+ * Returns: (transfer container): The filtered list
+ **/
+GList*
+gel_list_filter(GList *input, GelFilterFunc callback, gpointer user_data)
 {
-	GSList *ret = NULL;
+	GList *ret = NULL;
 	while (input)
 	{
 		if (callback(input->data, user_data))
-			ret = g_slist_prepend(ret, input->data);
+			ret = g_list_prepend(ret, input->data);
 		input = input->next;
 	}
-	return g_slist_reverse(ret);
+	return g_list_reverse(ret);
 }
 
+/**
+ * gel_slist_differential_free:
+ *
+ * Deprecated: 1.2
+ **/
 void
 gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data)
 {
@@ -224,8 +378,19 @@ gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GF
 	}
 }
 
+/**
+ * gel_list_printf:
+ * 
+ * @list: A #GList
+ * @format: (allow-none): Format to use for print each the stringified element. By default
+ *                        "%s\n"
+ * @stringify_func: The #GelPrintFunc to use for stringify elements
+ *
+ * Prints a #GList to stdout using @format for each element and @stringify_func
+ * to stringify elements.
+ **/
 void
-gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func)
+gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func)
 {
 	g_printf("Contents of %p\n", list);
 	while (list)
@@ -246,7 +411,7 @@ gel_list_printf(GList *list, gchar *format, GelListPrintfFunc stringify_func)
 const gchar *
 gel_resource_type_get_env(GelResourceType type)
 {
-	const gchar *map_table[GEL_N_RESOURCES] = { "UI", "PIXMAP", "LIB", NULL };
+	const gchar *map_table[GEL_RESOURCE_N_TYPES] = { "UI", "PIXMAP", "LIB", NULL };
 	if (!map_table[type])
 		return NULL;
 
@@ -263,7 +428,7 @@ gel_resource_type_get_env(GelResourceType type)
 gchar *
 gel_resource_type_get_user_dir(GelResourceType type)
 {
-	const gchar *map_table[GEL_N_RESOURCES] = { "ui", "pixmaps", "lib" , "." };
+	const gchar *map_table[GEL_RESOURCE_N_TYPES] = { "ui", "pixmaps", "lib" , "." };
 
 	gchar *ret;
 	const gchar *datadir = g_get_user_data_dir();
@@ -303,22 +468,22 @@ gel_resource_type_get_system_dir(GelResourceType type)
 	gchar *ret = NULL;
 	switch (type)
 	{
-	case GEL_RESOURCE_IMAGE:
+	case GEL_RESOURCE_TYPE_IMAGE:
 		if (data_val)
 			ret = g_build_filename(data_val, g_get_prgname(), "pixmaps", NULL);
 		break;
 		
-	case GEL_RESOURCE_UI:
+	case GEL_RESOURCE_TYPE_UI:
 		if (data_val)
 			ret = g_build_filename(data_val, g_get_prgname(), "ui", NULL);
 		break;
 
-	case GEL_RESOURCE_SHARED:
+	case GEL_RESOURCE_TYPE_SHARED:
 		if (lib_val)
 			ret = g_build_filename(lib_val, g_get_prgname(), NULL);
 		break;
 
-	case GEL_RESOURCE_OTHER:
+	case GEL_RESOURCE_TYPE_OTHER:
 		break;
 
 	default:
@@ -364,10 +529,10 @@ gel_dir_read(gchar *path, gboolean absolute, GError **error)
 gchar **
 gel_file_strings(gchar *pathname)
 {
-	gchar **ret = g_new0(gchar*, GEL_N_PATH_STRINGS);
-	ret[GEL_PATHNAME] = g_strdup(pathname);
-	ret[GEL_BASENAME] = g_path_get_basename(ret[GEL_PATHNAME]);
-	ret[GEL_DIRNAME]  = g_path_get_dirname(ret[GEL_PATHNAME]);
+	gchar **ret = g_new0(gchar*, GEL_PATH_N_COMPONENTS);
+	ret[GEL_PATH_COMPONENT_PATHNAME] = g_strdup(pathname);
+	ret[GEL_PATH_COMPONENT_BASENAME] = g_path_get_basename(pathname);
+	ret[GEL_PATH_COMPONENT_DIRNAME]  = g_path_get_dirname(pathname);
 
 	return ret;
 }

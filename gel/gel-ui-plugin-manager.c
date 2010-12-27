@@ -278,7 +278,7 @@ insert_info(GelUIPluginManager *self, GtkListStore *model, GtkTreeIter *iter, Ge
 
 	if (pb == NULL)
 	{
-		pb_path = gel_resource_locate(GEL_RESOURCE_IMAGE, "plugin.png");
+		pb_path = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "plugin.png");
 		pb = gdk_pixbuf_new_from_file_at_size(pb_path, 64, 64, NULL);
 		g_free(pb_path);
 	}

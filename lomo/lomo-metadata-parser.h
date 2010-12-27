@@ -27,31 +27,32 @@ G_BEGIN_DECLS
 
 #define LOMO_TYPE_METADATA_PARSER lomo_metadata_parser_get_type()
 
-#define LOMO_METADATA_PARSER(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_METADATA_PARSER, LomoMetadataParser))
+#define LOMO_METADATA_PARSER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_METADATA_PARSER, LomoMetadataParser)) 
+#define LOMO_METADATA_PARSER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST  ((klass), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserClass)) 
+#define LOMO_IS_METADATA_PARSER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_METADATA_PARSER))
+#define LOMO_IS_METADATA_PARSER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE  ((klass), LOMO_TYPE_METADATA_PARSER))
+#define LOMO_METADATA_PARSER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS  ((obj), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserClass))
 
-#define LOMO_METADATA_PARSER_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserClass))
-
-#define LOMO_IS_METADATA_PARSER(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_METADATA_PARSER))
-
-#define LOMO_IS_METADATA_PARSER_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), LOMO_TYPE_METADATA_PARSER))
-
-#define LOMO_METADATA_PARSER_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserClass))
+typedef struct _LomoMetadataParserPrivate LomoMetadataParserPrivate;
 
 /**
  * LomoMetadataParser:
- * 
- * Metadata parser
- */
+ *
+ * LomoMetadataParser handles all the stuff related to #LomoStream's metadata
+ **/
 typedef struct {
+	/*< private >*/
 	GObject parent;
+	LomoMetadataParserPrivate *priv;
 } LomoMetadataParser;
 
+/**
+ * LomoMetadataParserClass:
+ *
+ * Object class for #LomoMetadataParser
+ **/
 typedef struct {
+	/*< private >*/
 	GObjectClass parent_class;
 	void (*tag)      (LomoMetadataParser *self, LomoStream *stream, LomoTag tag);
 	void (*all_tags) (LomoMetadataParser *self, LomoStream *stream);
@@ -59,21 +60,26 @@ typedef struct {
 
 /**
  * LomoMetadataParserPrio:
+ * @LOMO_METADATA_PARSER_PRIO_INVALID: Invalid priority
  * @LOMO_METADATA_PARSER_PRIO_INMEDIATE: Parse stream as soon as possible
  * @LOMO_METADATA_PARSER_PRIO_DEFAULT: Parse stream with default priority
+ * @LOMO_TYPE_METADATA_PARSER_N_PRIO: Helper class
  *
  * Define priority for #LomoStream in the #LomoMetadataParser
- */
+ **/
 typedef enum {
+	LOMO_METADATA_PARSER_PRIO_INVALID = -1,
 	LOMO_METADATA_PARSER_PRIO_INMEDIATE,
-	LOMO_METADATA_PARSER_PRIO_DEFAULT
+	LOMO_METADATA_PARSER_PRIO_DEFAULT,
+
+	LOMO_TYPE_METADATA_PARSER_N_PRIO
 } LomoMetadataParserPrio;
 
 GType lomo_metadata_parser_get_type (void);
 
 LomoMetadataParser* lomo_metadata_parser_new(void);
-void                lomo_metadata_parser_parse(LomoMetadataParser *meta, LomoStream *stream, LomoMetadataParserPrio prio);
-void                lomo_metadata_parser_clear(LomoMetadataParser *meta);
+void                lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMetadataParserPrio prio);
+void                lomo_metadata_parser_clear(LomoMetadataParser *self);
 
 G_END_DECLS
 

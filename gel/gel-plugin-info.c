@@ -119,7 +119,7 @@ gel_plugin_info_new(const gchar *filename, const gchar *name, GError **error)
 		if (info->dirname)
 			info->icon_pathname = g_build_filename(info->dirname, old, NULL);
 		else
-			info->icon_pathname = gel_resource_locate(GEL_RESOURCE_IMAGE, old);
+			info->icon_pathname = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, old);
 		g_free(old);
 	}
 

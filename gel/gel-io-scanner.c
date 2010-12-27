@@ -20,25 +20,20 @@
 
 #include "gel-io-scanner.h"
 #include <string.h>
+#include <gel/gel.h>
 #include "gel-marshallers.h"
 
 G_DEFINE_TYPE (GelIOScanner, gel_io_scanner, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_IO_TYPE_SCANNER, GelIOScannerPrivate))
-
-typedef struct _GelIOScannerPrivate GelIOScannerPrivate;
+#define GET_PRIVATE(o) (o->priv)
 
 struct _GelIOScannerPrivate {
-	GList                   *uris;
-	const gchar             *attributes;
-	gboolean                 recurse;
-	// GelIOScannerSuccessFunc  success_cb;
-	// GelIOScannerErrorFunc    error_cb;
-	// gpointer                 userdata;
+	GList    *uris;
+	gchar    *attributes;
+	gboolean  recurse;
 
-	GList *results;
-	GQueue *queue;
+	GList        *results;
+	GQueue       *queue;
 	GCancellable *cancellable;
 };
 
@@ -77,6 +72,9 @@ static void
 gel_io_scanner_dispose (GObject *object)
 {
 	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(object));
+
+	gel_free_and_invalidate(priv->attributes, NULL, g_free);
+
 	if (priv->cancellable)
 	{
 		g_cancellable_cancel(priv->cancellable);
@@ -112,6 +110,14 @@ gel_io_scanner_class_init (GelIOScannerClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GelIOScannerPrivate));
+
+	/**
+	 * GelIOScanner::finish:
+	 * @scanner: The #GelIOScanner
+	 * @results: Results of the operation
+	 *
+	 * Emitted after scan completion
+	 */
 	scanner_signals[FINISH] =
 		g_signal_new ("finish",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -122,6 +128,14 @@ gel_io_scanner_class_init (GelIOScannerClass *klass)
 			    G_TYPE_NONE,
 				1,
 				G_TYPE_POINTER);
+
+	/**
+	 * GelIOScanner::error:
+	 * @scanner: The #GelIOScanner
+	 * @error: A #GError
+	 *
+	 * Emitted if an error is encountered
+	 */
 	scanner_signals[ERROR] =
 		g_signal_new ("error",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -133,6 +147,13 @@ gel_io_scanner_class_init (GelIOScannerClass *klass)
 			    2,
 				G_TYPE_OBJECT,
 				G_TYPE_POINTER);
+
+	/**
+	 * GelIOScanner::cancel:
+	 * @scanner: The #GelIOScanner
+	 *
+	 * Emitted if the scan if canceled
+	 */
 	scanner_signals[CANCEL] =
 		g_signal_new ("cancel",
 			    G_OBJECT_CLASS_TYPE (object_class),
@@ -149,14 +170,33 @@ gel_io_scanner_class_init (GelIOScannerClass *klass)
 static void
 gel_io_scanner_init (GelIOScanner *self)
 {
+	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), GEL_IO_TYPE_SCANNER, GelIOScannerPrivate));
 }
 
+/**
+ * gel_io_scanner_new:
+ *
+ * Creates a new #GelIOScanner
+ *
+ * Returns: (transfer full): The scanner
+ */
 GelIOScanner*
 gel_io_scanner_new (void)
 {
 	return g_object_new (GEL_IO_TYPE_SCANNER, NULL);
 }
 
+/**
+ * gel_io_scanner_new_full:
+ *
+ * @uris: (element-type utf8) (transfer none): URIs to scan (gchar*)
+ * @attributes: Attributes to retrieve from URIs, see #GFileInfo attributes
+ * @recurse: Recurse deep into the uris
+ *
+ * Scans URIs from @uris, retrieving the requested @attributes
+ *
+ * Returns: (transfer full): A new #GelIOScanner in progress
+ */
 GelIOScanner*
 gel_io_scanner_new_full(GList *uris, const gchar *attributes, gboolean recurse)
 {
@@ -165,11 +205,27 @@ gel_io_scanner_new_full(GList *uris, const gchar *attributes, gboolean recurse)
 	return self;
 }
 
+/**
+ * gel_io_scanner_scan:
+ *
+ * @self: A existing #GelIOScanner
+ * @uris: (element-type utf8) (transfer none): A #GList of URIs (gchar*) to * scan
+ * @attributes: Attributes to retrieve from URIs, see #GFileInfo attributes
+ * @recurse: Recurse deep into the uri
+ *
+ * Scans URIs on a existing #GelIOScanner. Fails if @self it is already on scan
+ */
 void
 gel_io_scanner_scan(GelIOScanner *self, GList *uris, const gchar *attributes, gboolean recurse)
 {
-	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
-	priv->attributes = attributes;
+	g_return_if_fail(GEL_IO_IS_SCANNER(self));
+	g_return_if_fail(uris != NULL);
+	g_return_if_fail(attributes != NULL);
+	g_return_if_fail(self->priv->queue == NULL);
+
+	GelIOScannerPrivate *priv = self->priv;
+
+	priv->attributes = g_strdup(attributes);
 	priv->recurse    = recurse;
 	// priv->success_cb = success_cb;
 	// priv->error_cb   = error_cb;
@@ -189,6 +245,17 @@ gel_io_scanner_scan(GelIOScanner *self, GList *uris, const gchar *attributes, gb
 	g_idle_add(_scanner_run_queue_idle_wrapper, self);
 }
 
+/**
+ * gel_io_scanner_flatten_result:
+ * @forest: (transfer none): A #GList of #GNode to flat
+ *
+ * Flatens a forest (a list of trees) of results
+ *
+ * Returns: (transfer container): The forest in a 'flatten' state. Data from
+ * forest is reutilized in the returned #GList. Data from forest is reutilized
+ * in the returned #GList. Data from forest is reutilized in the returned
+ * #GList. Data from forest is reutilized in the returned #GList
+ */
 GList*
 gel_io_scanner_flatten_result(GList *forest)
 {

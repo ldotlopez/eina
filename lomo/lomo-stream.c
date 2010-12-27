@@ -141,16 +141,15 @@ lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
 
 /**
  * lomo_stream_get_tag:
- * @stream: a #LomoStream
+ * @self: a #LomoStream
  * @tag: (in) (type gchar*) (transfer none): a #LomoTag
  *
  * Gets a tag from #LomoStream. The returned value is owned by @stream, and
  * should not be modified (Internally it uses g_object_get_data).
  *
- * Return value: (type gchar*) (transfer none): A pointer to the tag
- * value
+ * Returns: A pointer to the tag value
  */
-gchar*
+const gchar*
 lomo_stream_get_tag(LomoStream *self, LomoTag tag)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
@@ -219,7 +218,7 @@ lomo_stream_get_tags(LomoStream *self)
  * @value: (in): value for flag
  *
  * Sets the all_tags flag to value
- */
+ **/
 void
 lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value)
 {
@@ -297,7 +296,7 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 }
 
 /*
- * lomo_tag_get_type:
+ * lomo_tag_get_gtype:
  * @tag: (in) (transfer none): a #LomoTag
  *
  * Queries for the #GType corresponding for the tag
@@ -305,7 +304,7 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
  * Returns: the #GType for tag
  */
 GType
-lomo_tag_get_g_type(LomoTag tag)
+lomo_tag_get_gtype(LomoTag tag)
 {
 	if (g_str_equal(tag, "uri")) 
 		return G_TYPE_STRING;
