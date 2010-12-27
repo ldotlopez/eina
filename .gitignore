@@ -88,17 +88,17 @@ tools/plugins/
 tools/schemas/
 
 # Doc files
-docs/gtk-doc.make
-docs/lomo-decl-list.txt
-docs/lomo-decl.txt
-docs/lomo-sections.txt
-docs/lomo-undeclared.txt
-docs/lomo-undocumented.txt
-docs/*.stamp
-docs/*.sgml
-docs/html/
-docs/xml
-docs/lomo.*
+#docs/gtk-doc.make
+#docs/lomo-decl-list.txt
+#docs/lomo-decl.txt
+#docs/lomo-sections.txt
+#docs/lomo-undeclared.txt
+#docs/lomo-undocumented.txt
+#docs/*.stamp
+#docs/*.sgml
+#docs/html/
+#docs/xml
+#docs/lomo.*
 
 # Debian files
 debian/tmp
@@ -111,4 +111,18 @@ debian/*.debhelper
 debian/eina-player/
 debian/eina-player-dev/
 debian/eina-player-doc/
-.pc/
+
+docs/*/html
+docs/*/xml
+docs/*.stamp
+docs/*/*.stamp
+docs/*.txt
+docs/*/*.txt
+docs/*/*.sgml
+docs/*/*.args
+docs/*/*.hierarchy
+docs/*/*.interfaces
+docs/*/*.prerequisites
+docs/*/*.signals
+docs/*/*.types
+

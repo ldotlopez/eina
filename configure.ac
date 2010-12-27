@@ -13,7 +13,7 @@ AM_INIT_AUTOMAKE([1.10 -Wno-portability])
 IT_PROG_INTLTOOL([0.40.0])
 LT_INIT
 AM_GLIB_GNU_GETTEXT
-AM_PROG_VALAC([0.11.0])
+AM_PROG_VALAC([0.10.0])
 GTK_DOC_CHECK(1.9)
 
 #
@@ -50,8 +50,9 @@ DATADIRNAME="share"
 AC_SUBST(DATADIRNAME)
 
 dnl aclocal flags
-AC_CONFIG_MACRO_DIR([build/m4])
-ACLOCAL_AMFLAGS="-I m4 ${ACLOCAL_FLAGS}"
+AC_CONFIG_MACRO_DIR([m4])
+# ACLOCAL_AMFLAGS="-I build/m4 ${ACLOCAL_FLAGS}"
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 # Introspection
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
@@ -120,9 +121,6 @@ AC_CHECK_FUNCS([strtol])
 # checks for system services
 #
 
-AC_CONFIG_MACRO_DIR([m4])
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-
 # export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
@@ -170,6 +168,7 @@ GTK_VERSION="2.91.1"
 GSTREAMER_VERSION="0.10"
 glib_modules="\
 	glib-2.0 >= $GLIB_VERSION,    \
+	gobject-2.0 >= $GLIB_VERSION, \
 	gmodule-2.0 >= $GLIB_VERSION, \
 	gio-2.0 >= $GLIB_VERSION      \
 	"
@@ -418,6 +417,8 @@ pixmaps/Makefile
 data/Makefile
 Makefile
 docs/Makefile
+docs/lomo/Makefile
+docs/gel/Makefile
 icons/Makefile
 icons/hicolor/Makefile
 po/Makefile.in
