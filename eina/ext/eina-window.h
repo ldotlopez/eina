@@ -29,7 +29,8 @@ GType eina_window_get_type (void);
 
 EinaWindow*   eina_window_new (void);
 
-GtkUIManager* eina_window_get_ui_manager  (EinaWindow *self);
+GtkUIManager*   eina_window_get_ui_manager  (EinaWindow *self);
+GtkActionGroup* eina_window_get_action_group(EinaWindow *self);
 
 G_END_DECLS
 

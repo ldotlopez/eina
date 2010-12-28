@@ -146,7 +146,6 @@ eina_window_new (void)
 
 /*
  * eina_window_get_window_ui_manager:
- *
  * @self: the #EinaWindow
  *
  * Returns: (transfer none): #GtkUIManager for default window of #EinaWindow
@@ -157,6 +156,20 @@ eina_window_get_ui_manager(EinaWindow *self)
 	g_return_val_if_fail(EINA_IS_WINDOW(self), NULL);
 	return GTK_UI_MANAGER(self->priv->ui_manager);
 }
+
+/*
+ * eina_window_get_window_action_group:
+ * @self: the #EinaWindow
+ *
+ * Returns: (transfer none): #GtkActionGroup for default window of #EinaWindow
+ */
+GtkActionGroup*
+eina_window_get_action_group(EinaWindow *self)
+{
+	g_return_val_if_fail(EINA_IS_WINDOW(self), NULL);
+	return GTK_ACTION_GROUP(self->priv->ag);
+}
+
 
 static void
 action_activated_cb(GtkAction *action, EinaWindow *self)

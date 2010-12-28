@@ -41,11 +41,22 @@
 #define EINA_PLUGIN_GENERIC_URL    "http://eina.sourceforge.net/"
 #define EINA_PLUGIN(p)      GEL_PLUGIN(p)
 
+#define EINA_IS_PLUGIN(p) (p != NULL)
+
 // If EINA_PLUGIN_DATA_TYPE is defined create a macro to easy access
 #ifdef EINA_PLUGIN_DATA_TYPE
 #define EINA_PLUGIN_DATA(p) ((EINA_PLUGIN_DATA_TYPE *) gel_plugin_get_data((GelPlugin *) p))
 #endif
 
 #define eina_plugin_get_application(plugin) EINA_APPLICATION(gel_plugin_get_application(plugin))
+
+guint
+eina_plugin_window_ui_manager_add_from_string(EinaPlugin *plugin,
+	const gchar *ui_mng_str);
+
+void
+eina_plugin_window_action_group_add_toggle_actions(EinaPlugin *plugin,
+	const GtkToggleActionEntry *entries,
+	guint n_entries);
 
 #endif

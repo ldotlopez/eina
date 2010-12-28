@@ -81,7 +81,7 @@ eina_application_new (const gchar *application_id)
 {
 	return g_object_new (EINA_TYPE_APPLICATION,
 		"application-id", application_id,
-		"flags", G_APPLICATION_FLAGS_NONE,
+		"flags", G_APPLICATION_FLAGS_NONE, // | G_APPLICATION_HANDLES_OPEN | G_APPLICATION_HANDLES_COMMAND_LINE,
 		NULL);
 }
 
@@ -200,4 +200,17 @@ eina_application_get_window_ui_manager(EinaApplication *self)
 {
 	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
 	return eina_window_get_ui_manager(self->priv->window);
+}
+
+/*
+ * eina_application_get_window_action_group:
+ * @self: the #EinaApplication
+ *
+ * Returns: (transfer none): #GtkActionGroup for default window of #EinaApplication
+ */
+GtkActionGroup *
+eina_application_get_window_action_group(EinaApplication *self)
+{
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
+	return eina_window_get_action_group(self->priv->window);
 }
