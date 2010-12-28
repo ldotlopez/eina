@@ -22,6 +22,15 @@
 #include <glib/gi18n.h>
 #include <gst/gst.h>
 
+/**
+ * lomo_format_to_gst:
+ * @format: input format
+ * @gst_format: (out): ouput format
+ *
+ * Converts format from liblomo definitions to gstreamer ones
+ *
+ * Returns: %TRUE if conversion was done, %FALSE otherwise
+ */
 gboolean
 lomo_format_to_gst(LomoFormat format, GstFormat *gst_format)
 {
@@ -43,6 +52,15 @@ lomo_format_to_gst(LomoFormat format, GstFormat *gst_format)
 	return TRUE;
 }
 
+/**
+ * lomo_state_to_gst:
+ * @state: input state
+ * @gst_state: (out): ouput state
+ *
+ * Converts state from liblomo definitions to gstreamer ones
+ *
+ * Returns: %TRUE if conversion was done, %FALSE otherwise
+ */
 gboolean
 lomo_state_to_gst(LomoState state, GstState *gst_state)
 {
@@ -68,6 +86,15 @@ lomo_state_to_gst(LomoState state, GstState *gst_state)
 	return TRUE;
 }
 
+/**
+ * lomo_state_from_gst:
+ * @state: input state
+ * @lomo_state: (out): ouput state
+ *
+ * Converts state from gst definitions to lomo ones
+ *
+ * Returns: %TRUE if conversion was done, %FALSE otherwise
+ */
 gboolean
 lomo_state_from_gst(GstState state, LomoState *lomo_state)
 {
@@ -94,6 +121,15 @@ lomo_state_from_gst(GstState state, LomoState *lomo_state)
 	return TRUE;
 }
 
+/**
+ * gst_state_to_str:
+ * @state: #GstState state
+ *
+ * Returns the string corresponding to the @state
+ *
+ * Returns: The string. This string is owner by liblomo and should not be
+ *          freeded
+ **/
 const gchar *
 gst_state_to_str(GstState state)
 {
@@ -113,6 +149,15 @@ gst_state_to_str(GstState state)
 	return NULL;
 }
 
+/**
+ * gst_state_change_return_to_str:
+ * @s: #GstStateChangeReturn state
+ *
+ * Returns the string corresponding to the @s
+ *
+ * Returns: The string. This string is owner by liblomo and should not be
+ *          freeded
+ **/
 const gchar*
 gst_state_change_return_to_str(GstStateChangeReturn s)
 {
@@ -130,18 +175,14 @@ gst_state_change_return_to_str(GstStateChangeReturn s)
 	return NULL;
 }
 
-// --
-// Conversions between LomoStateChangeReturn and GstStateChangeReturn
-// --
-
-/*
+/**
  * lomo_create_uri:
  * @str: A filepath (relative or absolute) or an URI
  *
  * Creates an uri from @str
  *
- * Returns: a newly allocated uri for @str.
- */
+ * Returns: (transfer full): a newly allocated uri for @str.
+ **/
 gchar *
 lomo_create_uri(gchar *str)
 {

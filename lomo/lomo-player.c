@@ -1009,7 +1009,7 @@ lomo_player_destroy_pipeline(LomoPlayer *self, GError **error)
 /**
  * lomo_player_hook_add:
  * @self: a #LomoPlayer
- * @func: a #LomoPlayerHook function
+ * @func: (scope call): a #LomoPlayerHook function
  * @data: data to pass to @func or NULL to ignore
  *
  * Add a hook to the hook system
@@ -1025,7 +1025,7 @@ lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data)
 /**
  * lomo_player_hook_remove:
  * @self: a #LomoPlayer
- * @func: a #LomoPlayerHook function
+ * @func: (scope call): a #LomoPlayerHook function
  *
  * Remove a hook from the hook system
  */
@@ -1050,7 +1050,7 @@ lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func)
  *
  * Gets active stream
  *
- * Returns: the active #LomoStream
+ * Returns: (transfer none): the active #LomoStream
  */
 LomoStream*
 lomo_player_get_stream(LomoPlayer *self)
@@ -1695,7 +1695,7 @@ lomo_player_queue_index(LomoPlayer *self, LomoStream *stream)
  *
  * Gets the #LomoStream at the given position in the queue
  *
- * Returns: the #LomoStream, or %NULL if the position is off the end of the
+ * Returns: (transfer none): the #LomoStream, or %NULL if the position is off the end of the
  * queue
  */
 LomoStream *
@@ -1727,7 +1727,7 @@ void lomo_player_queue_clear(LomoPlayer *self)
  *
  * Gets current playlist
  *
- * Returns: a #GList of #LomoStream. Should not be modified
+ * Returns: (element-type Lomo.Stream) (transfer none): a #GList of #LomoStream. Should not be modified
  */
 const GList *lomo_player_get_playlist(LomoPlayer *self)
 {
@@ -1741,7 +1741,7 @@ const GList *lomo_player_get_playlist(LomoPlayer *self)
  *
  * Gets the #LomoStream at the given position
  *
- * Returns: the #LomoStream, or %NULL if @pos is off the list
+ * Returns: (transfer none): the #LomoStream, or %NULL if @pos is off the list
  */
 LomoStream *lomo_player_nth_stream(LomoPlayer *self, gint pos)
 {

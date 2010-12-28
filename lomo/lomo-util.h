@@ -25,7 +25,24 @@
 
 G_BEGIN_DECLS
 
+/**
+ * lomo_nanosecs_to_secs:
+ * @x: nanoseconds
+ *
+ * Utility macro to convert nanoseconds to secons
+ *
+ * Returns: Nanoseconds converted to seconds
+ **/
 #define lomo_nanosecs_to_secs(x) ((gint64)(x/1000000000L))
+
+/**
+ * lomo_secs_to_nanosecs:
+ * @x: Seconds
+ *
+ * Inverse function of lomo_nanosecs_to_secs()
+ *
+ * Returns: Seconds converted to nanoseconds
+ **/
 #define lomo_secs_to_nanosecs(x) ((gint64)(x*1000000000L))
 
 gboolean lomo_format_to_gst(LomoFormat format, GstFormat *gst_format);
