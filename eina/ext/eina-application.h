@@ -38,8 +38,9 @@ gboolean eina_application_set_interface(EinaApplication *application, const gcha
 gpointer eina_application_get_interface(EinaApplication *application, const gchar *name);
 gpointer eina_application_steal_interface(EinaApplication *application, const gchar *name);
 
-EinaWindow*    eina_application_get_window            (EinaApplication *self);
-GtkUIManager*  eina_application_get_window_ui_manager (EinaApplication *self);
+EinaWindow*     eina_application_get_window             (EinaApplication *self);
+GtkUIManager*   eina_application_get_window_ui_manager  (EinaApplication *self);
+GtkActionGroup* eina_application_get_window_action_group(EinaApplication *self);
 
 GSettings*    eina_application_get_settings(EinaApplication *self, const gchar *domain);
 

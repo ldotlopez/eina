@@ -39,25 +39,8 @@ static const GOptionEntry opt_entries[] =
 	{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris, NULL, "[FILE...]"},
 	{ NULL }
 };
+
 /*
-static void
-plugin_changes_cb(GelPluginEngine *self, GelPlugin *plugin, GSettings *settings)
-{
-	GList *plugins = gel_plugin_engine_get_plugins(self);
-	gchar **tmpv = (gchar **) g_new0(gchar **, g_list_length(plugins) + 1);
-
-	GList *iter = plugins;
-	for (guint i = 0; iter != NULL; i++)
-	{
-		const GelPluginInfo *info = gel_plugin_get_info((GelPlugin *) iter->data);
-		tmpv[i] = info->name;
-		iter = iter->next;
-	}
-	g_settings_set_strv(settings, "plugins", (const gchar * const*) tmpv);
-	g_list_free(plugins);
-	g_free(tmpv);
-}
-
 static gboolean
 application_quit(GelUIApplication *app, GelPluginEngine *self)
 {
@@ -173,10 +156,12 @@ gint main(gint argc, gchar *argv[])
 
 	// Fuc*** gcc issues
 	if (app == (EinaApplication *)0xdeadbeef)
+	{
 		eina_fs_load_from_default_file_chooser(NULL);
+		eina_plugin_window_ui_manager_add_from_string(NULL, NULL);
+	}
 	
 	return status;
-
 
 #if 0
 	// Initialize stock icons stuff
