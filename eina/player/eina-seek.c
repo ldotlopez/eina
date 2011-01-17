@@ -237,7 +237,8 @@ eina_seek_new (void)
 
 	g_object_set(G_OBJECT(self), "draw-value", FALSE, NULL);
 	gtk_range_set_range(GTK_RANGE(self), 0, 1000);
-	gtk_range_set_update_policy(GTK_RANGE(self), GTK_UPDATE_CONTINUOUS);
+	// Removed in gtk3, not sure if removing this creates any regression
+	// gtk_range_set_update_policy(GTK_RANGE(self), GTK_UPDATE_CONTINUOUS);
 	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
 
 	g_signal_connect(self, "value-changed",        G_CALLBACK(value_changed_cb), self);
@@ -411,7 +412,7 @@ eina_seek_fmt_time(EinaSeek *self, gint id, gint64 time, gboolean tempstr)
 	if (time < 0)
 		return NULL;
 
-	gint secs = lomo_nanosecs_to_secs(time);
+	gint secs = LOMO_NANOSECS_TO_SECS(time);
 
 	gchar *ret = NULL;
 	if (tempstr)

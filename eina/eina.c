@@ -135,7 +135,6 @@ gint main(gint argc, gchar *argv[])
 	g_option_context_add_main_entries(opt_ctx, opt_entries, GETTEXT_PACKAGE);
 
 	// Options from underlying libraries
-	g_option_context_add_group(opt_ctx, lomo_get_option_group());
 	g_option_context_add_group(opt_ctx, gtk_get_option_group (TRUE));
 
 	GError *err = NULL;
