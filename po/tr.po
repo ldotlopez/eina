@@ -6,150 +6,65 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-11-10 19:34+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-01-17 14:46+0100\n"
 "PO-Revision-Date: 2010-01-28 19:39+0000\n"
 "Last-Translator: seqizz (gurkanGur) <seqizz@gmail.com>\n"
 "Language-Team: Turkish <tr@li.org>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Launchpad-Export-Date: 2010-04-08 14:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../gel/gel-app.c:108
-#, c-format
-msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
-msgstr ""
-"%d eklentileri çıkışta etkinleştirilir. Bunları kaldırmak için bir yok etme "
-"fonksiyonu kullanın."
-
-#: ../gel/gel-app.c:114
-#, c-format
-msgid "  %s (usage:%d enabled:%d locked:%d %s)"
+#: ../gel/gel-job-queue.c:142
+msgid ""
+"Application called gel_job_queue_run while a job is active. Application has "
+"to call gel_job_queue_cancel before, this IS a bug."
 msgstr ""
 
-#: ../gel/gel-app.c:129
+#.
+#. * gel_warn_fix_implementation:
+#. *
+#. * Warns about some buggy method
+#.
+#: ../gel/gel-misc.h:360
 #, c-format
 msgid ""
-"%d plugins still loaded, will be leaked. Use a dispose func "
-"(gel_app_set_dispose_func) to unload them at exit"
+"%s needs to be fixed. Method is incomplete, buggy or does not match "
+"documentation."
 msgstr ""
 
-#: ../gel/gel-app.c:317
-msgid "Invalid arguments"
-msgstr "Geçersiz parametreler"
-
-#: ../gel/gel-app.c:361
-msgid "Plugin not found"
-msgstr "Eklenti bulunamadı"
-
-#: ../gel/gel-app.c:392
-#, c-format
-msgid "Cannot load %s: %s"
-msgstr "%s: %s yükleyemiyor"
-
-#: ../gel/gel-app.c:426
-#, c-format
-msgid "Dependecy %s for %s not found"
-msgstr ""
-
-#: ../gel/gel-app.c:444
-#, c-format
-msgid "Invalid arguments, set breakpoint on %s to debug"
-msgstr ""
-
-#: ../gel/gel-app.c:460
-#, c-format
-msgid "Plugin %p has NULL name"
-msgstr ""
-
-#: ../gel/gel-app.c:572 ../gel/gel-app.c:574
-#, c-format
-msgid "Cannot unload plugin %s, its used by %d plugins"
-msgstr ""
-"%s eklentisi kaldırılamıyor çünkü %d eklentileri tarafından kullanılıyor"
-
-#: ../gel/gel-app.c:586 ../gel/gel-plugin.c:421
-#, c-format
-msgid "Cannot finalize plugin %s: %s"
-msgstr "%s: %s eklentisi sonlandırılamıyor"
-
-#: ../gel/gel-app.c:601
-#, c-format
-msgid "Dependency %s for plugin %s not found"
-msgstr ""
-
-#: ../gel/gel-app.c:613
-#, c-format
-msgid "Cannot free plugin after all: %s"
-msgstr ""
-
-#: ../gel/gel-app.c:645
-#, c-format
-msgid "Cannot free plugin %s: %s"
-msgstr ""
-
-#: ../gel/gel-plugin.c:62
+#: ../gel/gel-plugin.c:58
 msgid "Module loading is not supported on this platform"
 msgstr "Modül yükleme bu platfomda desteklenmemektedir."
 
-#: ../gel/gel-plugin.c:69
-#, c-format
-msgid "%s is not loadable"
+#: ../gel/gel-plugin.c:75
+#, fuzzy, c-format
+msgid "%s is not loadable: %s"
 msgstr "%s yüklenebilir değil."
 
-#: ../gel/gel-plugin.c:76
-#, c-format
-msgid "Cannot find symbol %s in %s"
-msgstr "%s'de %s sembolü bulunamıyor"
+#: ../gel/gel-plugin.c:92
+#, fuzzy, c-format
+msgid "Plugin '%s' has no init hook"
+msgstr "%s eklentisi yapılandırılmamış"
 
-#: ../gel/gel-plugin.c:84
-#, c-format
-msgid "Invalid serial in object %s:%s (app:%d, plugin:%d)"
-msgstr ""
-
-#: ../gel/gel-plugin.c:99
-#, c-format
-msgid ""
-"%s plugin has no deps, are you sure? if you are sure use GEL_PLUGIN_NO_DEPS"
-msgstr ""
-
-#: ../gel/gel-plugin.c:111
-#, c-format
-msgid "Plugin %s created"
-msgstr "%s eklentisi oluşturuldu"
-
-#: ../gel/gel-plugin.c:124
+#: ../gel/gel-plugin.c:127
 #, c-format
 msgid "Plugin %s is in use"
 msgstr "%s eklentisi şu anda kullanılıyor"
 
-#: ../gel/gel-plugin.c:132
-#, c-format
-msgid "Plugin %s is still enabled"
-msgstr "%s eklentisi hala etkin"
+#: ../gel/gel-plugin.c:134
+msgid "fini hook failed without a reason"
+msgstr ""
 
-#: ../gel/gel-plugin.c:140
-#, c-format
-msgid "Plugin %s is locked"
-msgstr "%s eklentisi kilitli"
-
-#: ../gel/gel-plugin.c:144
-#, c-format
-msgid "Plugin %s destroyed"
-msgstr "%s eklentisi yokedildi"
-
-#: ../gel/gel-plugin.c:201 ../gel/gel-plugin.c:219
+#: ../gel/gel-plugin.c:221
 #, c-format
 msgid "Invalid reference from %s on %s"
 msgstr ""
 
-#: ../gel/gel-plugin.c:209 ../gel/gel-plugin.c:228
-msgid "none"
-msgstr ""
-
-#: ../gel/gel-plugin.c:270
+#: ../gel/gel-plugin.c:250
 #, c-format
 msgid ""
 "You call %s with plugin == NULL, its OK but:\n"
@@ -162,935 +77,1196 @@ msgid ""
 "invocation\n"
 msgstr ""
 
-#: ../gel/gel-plugin.c:367
+#: ../gel/gel-plugin-engine.c:96
 #, c-format
-msgid "Plugin %s already initialized"
-msgstr "%s eklentisi zaten yapılandırılmış"
-
-#: ../gel/gel-plugin.c:374
-#, c-format
-msgid "Plugin %s has not init hook"
+msgid "Plugin '%s' cannot be unloaded: %s"
 msgstr ""
 
-#: ../gel/gel-plugin.c:381
-#, c-format
-msgid "Cannot init plugin %s: %s"
+#: ../gel/gel-plugin-engine.c:97
+#, fuzzy
+msgid "No error"
+msgstr "Bilinmeyen hata"
+
+#: ../gel/gel-plugin-engine.c:106
+msgid "Plugin stack has remaining items, they will be leaked"
 msgstr ""
 
-#: ../gel/gel-plugin.c:386
-#, c-format
-msgid "Cannot init plugin %s, unknow reason"
-msgstr "%s eklentisi yapılandırılamıyor, nedeni bilinmiyor"
+#: ../gel/gel-plugin-engine.c:285
+#, fuzzy, c-format
+msgid "Cannot load plugin file '%s': %s"
+msgstr "%s: %s eklentisi sonlandırılamıyor"
 
-#: ../gel/gel-plugin.c:390
-#, c-format
-msgid "Plugin %s initialized"
-msgstr "%s eklentisi yapılandırıldı"
+#: ../gel/gel-plugin-engine.c:290
+#, fuzzy, c-format
+msgid "Plugin file %s loaded"
+msgstr "%s eklentisi kilitli"
 
-#: ../gel/gel-plugin.c:401
+#: ../gel/gel-plugin-engine.c:337
 #, c-format
-msgid "Plugin %s is not initialized"
-msgstr "%s eklentisi yapılandırılmamış"
+msgid "Failed to load plugin dependency '%s' for '%s': %s"
+msgstr ""
 
-#: ../gel/gel-plugin.c:426
+#: ../gel/gel-plugin-engine.c:419
+#, fuzzy, c-format
+msgid "GelPluginInfo for '%s' not found"
+msgstr "Eklenti bulunamadı"
+
+#: ../gel/gel-plugin-engine.c:438
+msgid "Invalid arguments"
+msgstr "Geçersiz parametreler"
+
+#: ../gel/gel-plugin-engine.c:472
 #, c-format
-msgid "Cannot finalize plugin %s: unknow reason"
-msgstr "%s eklentisi bitirilemiyor, nedeni bilinmiyor"
+msgid "Cannot free plugin %s: %s"
+msgstr ""
 
-#: ../gel/gel-plugin.c:430
+#: ../gel/gel-plugin-engine.c:506
 #, c-format
-msgid "Plugin %s finalized"
-msgstr "%s eklentisi tamamlandı"
+msgid "Missing GelPlugin object '%s', cant add a reference. THIS IS A BUG."
+msgstr ""
 
-#: ../gel/gel-ui.c:49 ../eina/cover.c:356
+#: ../gel/gel-plugin-engine.c:546
+#, c-format
+msgid "Missing GelPlugin object '%s', cant remove a reference. THIS IS A BUG."
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:36
+msgid "A name must be provided if filename is NULL"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:48
+msgid "Unable to introspect NULL"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:56
+#, c-format
+msgid "Symbol '%s' not found"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:77
+msgid "Info file has no group named 'Eina Plugin'"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:87
+#, fuzzy, c-format
+msgid "Missing required key '%s'"
+msgstr "Eksik yöntem %s"
+
+#: ../gel/gel-ui-dialogs.c:81
+msgid "Details"
+msgstr ""
+
+#: ../gel/gel-ui-generic.c:131
+#, fuzzy, c-format
+msgid "Cannot load widget from file '%s': %s"
+msgstr "%s: %s yükleyemiyor"
+
+#: ../gel/gel-ui-generic.c:161
+#, fuzzy, c-format
+msgid "Cannot load xml UI definition: %s"
+msgstr "%s: %s yükleyemiyor"
+
+#: ../gel/gel-ui-generic.c:169
+msgid "Unable to find widget 'main-widget' on xml UI definition"
+msgstr ""
+
+#: ../gel/gel-ui-plugin-manager.c:308
+#, c-format
+msgid "Loaded unknow plugin: %p"
+msgstr ""
+
+#: ../gel/gel-ui-plugin-manager.c:343
+#, fuzzy
+msgid "Error loading plugin"
+msgstr "Sesi ayarlarken hata oluştu"
+
+#: ../gel/gel-ui-plugin-manager.c:344
+#, fuzzy, c-format
+msgid "Cannot load plugin '%s'"
+msgstr "%s: %s yükleyemiyor"
+
+#: ../gel/gel-ui-utils.c:52
 #, c-format
 msgid "Cannot locate resource '%s'"
 msgstr "'%s' kaynağının yeri belirlenemiyor"
 
-#: ../gel/gel-ui.c:153
+#: ../gel/gel-ui-utils.c:195
 #, c-format
 msgid "Invalid GtkTreePath in selection, use %s only with ListModels"
 msgstr ""
 
-#: ../lomo/lomo-player.c:108 ../lomo/lomo-player.c:119
-#: ../lomo/lomo-player.c:121
+#: ../gel/gel-ui-utils.c:331
+msgid "Widget has been already made droppable by GelUI, ignoring."
+msgstr ""
+
+#: ../gel/gel-ui-utils.c:356
+msgid "Widget has been not made droppable by GelUI, ignoring."
+msgstr ""
+
+#: ../lomo/lomo-player.c:115 ../lomo/lomo-player.c:126
+#: ../lomo/lomo-player.c:128
 #, c-format
 msgid "Missing method %s"
 msgstr "Eksik yöntem %s"
 
-#: ../lomo/lomo-player.c:859
+#: ../lomo/lomo-player.c:974
 msgid "Cannot create pipeline for NULL stream"
 msgstr ""
 
-#: ../lomo/lomo-player.c:867
+#: ../lomo/lomo-player.c:982
 #, c-format
 msgid "Cannot create pipeline for stream %s"
 msgstr ""
 
-#: ../lomo/lomo-player.c:966
+#: ../lomo/lomo-player.c:1080
 msgid "Cannot set state: missing pipeline"
 msgstr ""
 
-#: ../lomo/lomo-player.c:983
+#: ../lomo/lomo-player.c:1097
 msgid "Error setting state"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1063
+#: ../lomo/lomo-player.c:1177
 msgid "Player not seekable"
 msgstr "Yürütücü aranabilir değil"
 
-#: ../lomo/lomo-player.c:1071
+#: ../lomo/lomo-player.c:1185
 msgid "Invalid format"
 msgstr "Geçersiz biçim"
 
-#: ../lomo/lomo-player.c:1089
+#: ../lomo/lomo-player.c:1203
 msgid "Error seeking"
 msgstr "Ararken hata oluştu"
 
-#: ../lomo/lomo-player.c:1169
+#: ../lomo/lomo-player.c:1283
 msgid "Error setting volume"
 msgstr "Sesi ayarlarken hata oluştu"
 
-#: ../lomo/lomo-player.c:1199
+#: ../lomo/lomo-player.c:1314
 msgid "Error getting volume"
 msgstr "Sesi alırken hata oluştu"
 
-#: ../lomo/lomo-player.c:1217
+#: ../lomo/lomo-player.c:1332
 msgid "Missing set_mute and set_volume methods, cannot mute"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1248
+#: ../lomo/lomo-player.c:1363
 msgid "Error setting mute"
 msgstr "Sesi kapatırken hata oluştu"
 
-#: ../lomo/lomo-player.c:1426
+#: ../lomo/lomo-player.c:1543
 #, c-format
 msgid "Error creating pipeline: %s"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1709
+#: ../lomo/lomo-player.c:1829
 msgid "Cannot change stream, it's in queue but can't dequeue it"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1728
+#: ../lomo/lomo-player.c:1848
 msgid "Action blocked by hook"
 msgstr ""
 
-#: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
+#: ../eina/ext/curl-engine.c:246
 msgid "Unknow error"
 msgstr "Bilinmeyen hata"
 
-#: ../eina/ext/eina-file-chooser-dialog.c:288
+#: ../eina/ext/eina-application.c:64
+#, fuzzy, c-format
+msgid "Unable to load resource '%s': %s"
+msgstr "'%s' kaynağının yeri belirlenemiyor"
+
+#: ../eina/ext/eina-application.c:76
+#, fuzzy, c-format
+msgid "Unable to locate resource '%s'"
+msgstr "'%s' kaynağının yeri belirlenemiyor"
+
+#: ../eina/ext/eina-file-chooser-dialog.c:244
 msgid "Loading files..."
 msgstr "Dosyalar yükleniyor..."
 
-#: ../eina/ext/eina-file-chooser-dialog.c:342 ../eina/fs.c:64
+#: ../eina/ext/eina-file-chooser-dialog.c:264
+#, c-format
+msgid "Loaded %d streams"
+msgstr ""
+
+#: ../eina/ext/eina-file-chooser-dialog.c:304 ../eina/ext/eina-fs.c:101
 msgid "Add or queue files"
 msgstr ""
 
-#: ../eina/ext/eina-file-chooser-dialog.c:414
+#: ../eina/ext/eina-fs.c:91
 #, c-format
-msgid "Found %d streams"
+msgid "'%s' throw an error: %s"
 msgstr ""
 
-#: ../eina/ext/eina-plugin-dialog.c:180 ../eina/plugins.c:53
-msgid "Select plugins"
-msgstr "Eklentileri seçin"
-
-#: ../eina/ext/eina-plugin-dialog.c:334
-#, c-format
-msgid "Loaded unknow plugin: %s"
-msgstr ""
-
-#: ../eina/ext/eina-plugin-properties.c:157
-msgid "No name"
-msgstr "İsimsiz"
-
-#: ../eina/ext/eina-plugin-properties.c:158
-msgid "No description"
-msgstr "Açıklama yok"
-
-#: ../eina/ext/eina-plugin-properties.c:159
-msgid "No more information"
-msgstr "Daha fazla bilgi yok"
-
-#: ../eina/ext/eina-plugin-properties.c:161
-msgid "[Internal plugin]"
-msgstr "[Dahili eklenti]"
-
-#: ../eina/ext/eina-plugin-properties.c:163
-msgid "No dependencies"
-msgstr "Bağımlılık yok"
-
-#: ../eina/ext/eina-plugin-properties.c:166
-msgid "No reverse dependencies"
-msgstr "Ters bağımlılık yok"
-
-#: ../eina/ext/eina-stock.c:44
+#: ../eina/ext/eina-stock.c:48
 msgid "Status icon"
 msgstr "Durum simgesi"
 
-#: ../eina/ext/eina-stock.c:45
+#: ../eina/ext/eina-stock.c:49
 msgid "_Random"
 msgstr "_Rastgele"
 
-#: ../eina/ext/eina-stock.c:46
+#: ../eina/ext/eina-stock.c:50
 msgid "_Shuffle"
 msgstr "_Karıştır"
 
-#: ../eina/ext/eina-stock.c:47
+#: ../eina/ext/eina-stock.c:51
 msgid "_Queue"
 msgstr "_Kuyruk"
 
-#: ../eina/ext/eina-stock.c:48
+#: ../eina/ext/eina-stock.c:52
 msgid "Report a bug"
 msgstr "Hata bildir"
 
-#: ../eina/ext/eina-window.c:60
+#: ../eina/ext/eina-window.c:38
 msgid "_File"
 msgstr "_Dosya"
 
-#: ../eina/ext/eina-window.c:61
+#: ../eina/ext/eina-window.c:39
 msgid "_Edit"
 msgstr "_Düzenle"
 
-#: ../eina/ext/eina-window.c:62
-msgid "_Add-ons"
-msgstr "_Eklentiler"
+#: ../eina/ext/eina-window.c:40 ../eina/ext/eina-window.c:43
+msgid "_Plugins"
+msgstr ""
 
-#: ../eina/ext/eina-window.c:63
+#: ../eina/ext/eina-window.c:41 ../eina/player/player.c:54
+#: ../eina/player/player.c:55
 msgid "_Help"
 msgstr "_Yardım"
 
-#: ../eina/about.c:88
+#: ../eina/ext/eina-window.c:111
 #, c-format
-msgid "Missing resource: %s"
+msgid "Error adding UI string: %s"
 msgstr ""
 
-#: ../eina/about.c:95
-msgid "A classic player for the modern era"
-msgstr "Modern çağın klasik oynatıcısı"
+#: ../eina/ext/eina-window.c:185
+msgid "Select plugins"
+msgstr "Eklentileri seçin"
 
-#: ../eina/about.c:108
-msgid "About Eina"
-msgstr "Eina Hakkında"
+#: ../eina/ext/eina-window.c:207
+#, fuzzy, c-format
+msgid "Unhandled unknow action '%s'"
+msgstr "Bilinmeyen görev: %s"
 
-#: ../eina/about.c:130
-msgid "About window plugin"
-msgstr "Hakkında penceresi eklentisi"
-
-#: ../eina/art.c:736
-msgid "Art"
-msgstr "Sanat"
-
-#: ../eina/art.c:736
-msgid "Art framework"
-msgstr ""
-
-#: ../eina/cover.c:366
+#: ../eina/eina.c:130 ../eina/eina.c:205
 #, c-format
-msgid "Cannot load resource '%s': '%s'"
+msgid "Unable to load required plugin '%s': %s"
 msgstr ""
 
-#: ../eina/cover.c:382
-msgid "Invalid cover mask"
+#: ../eina/eina.c:231
+#, fuzzy, c-format
+msgid "Unable to load plugin '%s': %s"
+msgstr "%s: %s eklentisi sonlandırılamıyor"
+
+#: ../eina/adb/adb.c:47
+#, fuzzy, c-format
+msgid "Error setting database '%s'"
+msgstr "Sesi kapatırken hata oluştu"
+
+#: ../eina/adb/adb.c:58
+msgid "Cannot register ADB interface"
 msgstr ""
 
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/cover.c:411
-msgid "Cover plugin"
-msgstr "Kapak eklentisi"
-
-#: ../eina/dbus.c:93
-msgid "Cannot get DBus proxy"
-msgstr ""
-
-#: ../eina/dbus.c:124
-#, c-format
-msgid "Cannot register DBus server: %s"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/dbus.c:198
-msgid "DBus interface for Eina"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/dock.c:305
-msgid "Build-in dock plugin"
-msgstr ""
-
-#: ../eina/eina-ige.c:62
-#, c-format
-msgid "Cannot locate %s"
-msgstr ""
-
-#: ../eina/eina-ige.c:65
-#, c-format
-msgid "Cannot load '%s': '%s'"
-msgstr ""
-
-#: ../eina/eina-ige.c:148
-msgid "OSX integration"
-msgstr "OSX entegrasyonu"
-
-#: ../eina/eina-obj.c:53
-msgid "Trying to free a NULL pointer"
-msgstr ""
-
-#: ../eina/eina-obj.c:107
-#, c-format
-msgid "Resource not found: %s"
-msgstr ""
-
-#: ../eina/log.c:196
-#, c-format
-msgid "Cannot load UI from %s: %s"
-msgstr ""
-
-#: ../eina/log.c:212
-msgid "Not all required widgets are valids"
-msgstr ""
-
-#: ../eina/log.c:230
-#, c-format
-msgid "Cannot create menu item: %s"
-msgstr "Menü öğesi oluşturulamadı: %s"
-
-#: ../eina/log.c:236
-msgid "Debug window"
-msgstr "Hata ayıklama penceresi"
-
-#: ../eina/log.c:300
-msgid "Severe errors"
-msgstr ""
-
-#: ../eina/log.c:301
-msgid "Errors"
-msgstr "Hatalar"
-
-#: ../eina/log.c:302
-msgid "Warnings"
-msgstr "Uyarılar"
-
-#: ../eina/log.c:303
-msgid "Information messages"
+#: ../eina/adb/eina-adb.c:185
+#, fuzzy
+msgid "No error message"
 msgstr "Bilgi mesajları"
 
-#: ../eina/log.c:304
-msgid "Debug information"
-msgstr "Hata ayıklama bilgisi"
-
-#: ../eina/log.c:305
-msgid "Full debug"
-msgstr "Tam hata ayıklama"
-
-#: ../eina/log.c:310
+#: ../eina/adb/eina-adb.c:259
 #, c-format
-msgid "Set level to %s"
+msgid "Error %d in query '%s'"
 msgstr ""
 
-#: ../eina/log.c:406
-msgid "Cannot not shot dialog, it doest exists"
+#: ../eina/adb/eina-adb.c:279
+msgid "Cannot begin transaction"
 msgstr ""
 
-#: ../eina/log.c:455
-msgid "Build-in log"
-msgstr ""
-
-#: ../eina/lomo.c:42
-msgid "Cannot create engine"
-msgstr ""
-
-#: ../eina/lomo.c:50
-msgid "Cannot share engine"
-msgstr ""
-
-#: ../eina/lomo.c:74
-msgid "Cannot destroy engine"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/lomo.c:111
-msgid "Build-in lomo plugin"
-msgstr ""
-
-#: ../eina/player.c:170
+#: ../eina/adb/eina-adb.c:289
 #, c-format
-msgid "Cannot merge with UI Manager: %s"
+msgid "Query %d failed. Query was: %s"
 msgstr ""
 
-#: ../eina/player.c:388 ../eina/plugins.c:123
+#: ../eina/adb/eina-adb.c:298
+msgid "Cannot end transaction"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:361
+#, c-format
+msgid "Unhandled type '%s' in %s. Aborting"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:444
+#, c-format
+msgid "Error in query for get variable '%s'"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:451
+#, fuzzy, c-format
+msgid "Error getting variable '%s'"
+msgstr "Sesi alırken hata oluştu"
+
+#: ../eina/adb/eina-adb.c:470
+#, fuzzy, c-format
+msgid "Error setting variable '%s'='%s'"
+msgstr "Sesi ayarlarken hata oluştu"
+
+#: ../eina/adb/eina-adb.c:499
+#, fuzzy
+msgid "Cannot finalize query"
+msgstr "%s: %s eklentisi sonlandırılamıyor"
+
+#: ../eina/adb/eina-adb.c:513
+#, c-format
+msgid "Error setting schema version for '%s'=%d"
+msgstr ""
+
+#: ../eina/adb/eina-adb-lomo.c:39
+msgid "Cannot INSERT OR IGNORE"
+msgstr ""
+
+#: ../eina/adb/eina-adb-lomo.c:59
+msgid "Unable to retrieve sid for stream"
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:55
+#, c-format
+msgid "Referenced %s from search '%s' was destroyed."
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:68
+#, c-format
+msgid ""
+"Search '%s' is running at dispose phase, calling callback and expect "
+"problems."
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:157
+#, c-format
+msgid ""
+"Trying to set a bpointer while search '%s' already has a bpointer, this is a "
+"bug. You should set bpointer to NULL before trying to do this."
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:179
+#, c-format
+msgid ""
+"Trying to set a result in search '%s' while it already has one, this is a "
+"bug and will be ignored"
+msgstr ""
+
+#: ../eina/art/eina-art-test-backends.c:68
+#, c-format
+msgid "Unable to compile regex '%s': %s"
+msgstr ""
+
+#: ../eina/dbus/dbus.c:115 ../eina/player/player.c:269
 #, c-format
 msgid "Unknow action: %s"
 msgstr "Bilinmeyen görev: %s"
 
-#: ../eina/player.c:394
+#: ../eina/dbus/dbus.c:241
+#, c-format
+msgid "DBus server name %s lost"
+msgstr ""
+
+#: ../eina/dock/dock.c:94
+#, c-format
+msgid "Unhandled notify::%s"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:27
+msgid "<big><b>Dock</b></big>"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:523
+msgid "Removing primary tab is not supported"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:610
+#, c-format
+msgid "Unhanded notify::%s"
+msgstr ""
+
+#: ../eina/lastfm/lastfm.c:96
+#, fuzzy
+msgid "Cannot create preferences UI"
+msgstr "Menü öğesi oluşturulamadı: %s"
+
+#: ../eina/lastfm/lastfm.c:109
+msgid "Last FM"
+msgstr ""
+
+#: ../eina/lastfm/lastfm.c:158
+#, fuzzy, c-format
+msgid "Cannot create spool folder '%s': %s"
+msgstr "Menü öğesi oluşturulamadı: %s"
+
+#: ../eina/lastfm/lastfm.c:182
+#, fuzzy, c-format
+msgid "Cannot spawn daemon (%s): %s"
+msgstr "%s: %s yükleyemiyor"
+
+#: ../eina/lastfm/lastfm.c:292
+#, fuzzy, c-format
+msgid "Cannot write spoolfile '%s'"
+msgstr "'%s' kaynağının yeri belirlenemiyor"
+
+#: ../eina/lastfm/lastfm.c:482
+#, fuzzy, c-format
+msgid "Unknow key '%s'"
+msgstr "Bilinmeyen görev: %s"
+
+#: ../eina/lastfm/preferences.ui.h:1
+msgid "<b>Password</b>"
+msgstr ""
+
+#: ../eina/lastfm/preferences.ui.h:2
+msgid "<b>Username</b>"
+msgstr ""
+
+#: ../eina/lastfm/preferences.ui.h:3
+msgid "New to Last FM?, get an account"
+msgstr ""
+
+#: ../eina/lastfm/preferences.ui.h:4
+msgid "Submit played tracks to Last.fm"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:45
+msgid "Cannot create engine"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:51
+msgid "Cannot share engine"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:99
+#, c-format
+msgid "Unable to recover previous playlist: %s"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:125
+msgid "Cannot destroy engine"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:144
+#, fuzzy, c-format
+msgid "Can't create dir '%s': %s"
+msgstr "Menü öğesi oluşturulamadı: %s"
+
+#: ../eina/lomo/lomo.c:152
+#, c-format
+msgid "Unble to save playlist: %s"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:152
+msgid "Missing parent directory"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:302 ../eina/muine/eina-muine.c:433
+#, fuzzy, c-format
+msgid "Unknow mode: %d"
+msgstr "Bilinmeyen görev: %s"
+
+#: ../eina/muine/eina-muine.c:322
+msgid "Failed to get result row"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:352
+#, c-format
+msgid "Unable to fetch sample URI for %s '%s', query was %s"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:552 ../eina/recently/recently.c:1185
+msgid "Cannot get first iter"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:600
+#, fuzzy
+msgid "Unknow mode"
+msgstr "Bilinmeyen hata"
+
+#: ../eina/muine/eina-muine.c:608
+#, c-format
+msgid "Unable to build query '%s'"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:650
+msgid "Cannot get iter  for model"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:657
+msgid "NULL result from ADB"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:700
+msgid "Unhandled situation"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:722
+#, fuzzy, c-format
+msgid "Unknow action %s"
+msgstr "Bilinmeyen görev: %s"
+
+#: ../eina/muine/muine.c:38
+msgid "Muine"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:1
+msgid "Group by"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:2
+msgid "album"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:3
+msgid "artist"
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:174
+msgid "Now playing"
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:185
+#, c-format
+msgid "Cannot load resource %s. Cover art will be disabled."
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:248
+msgid "Show notifications"
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:371
+msgid "Playing now"
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:460 ../eina/player/player.c:282
+#, c-format
+msgid "Unhanded key '%s'"
+msgstr ""
+
+#: ../eina/player/eina-cover.c:229
+#, c-format
+msgid "Unable to load embed default cover: %s"
+msgstr ""
+
+#: ../eina/player/eina-cover.c:237
+#, c-format
+msgid "Unable to load embed loading cover: %s"
+msgstr ""
+
+#: ../eina/player/eina-cover.c:471
+#, c-format
+msgid ""
+"Protected object %p is begin destroyed. There is a bug somewhere, set a "
+"breakpoint on %s"
+msgstr ""
+
+#: ../eina/player/eina-cover-image.c:172
+#, c-format
+msgid "Unable to load cover mask: %s"
+msgstr ""
+
+#: ../eina/player/eina-player.c:227
+#, c-format
+msgid "Action '%s' not found in widget"
+msgstr ""
+
+#: ../eina/player/eina-player.c:392
+msgid "Eina player"
+msgstr ""
+
+#: ../eina/player/eina-player.c:479
+#, fuzzy, c-format
+msgid "Action %s was not handled"
+msgstr "%s yüklenebilir değil."
+
+#: ../eina/player/player.c:53
+msgid "_Add or queue files"
+msgstr ""
+
+#: ../eina/player/player.c:56
+#, fuzzy
+msgid "_Report a bug"
+msgstr "Hata bildir"
+
+#: ../eina/player/player.c:57
+#, fuzzy
+msgid "_About"
+msgstr "Eina Hakkında"
+
+#.
+#. gtk_box_pack_start (
+#. (GtkBox *) eina_application_get_window_content_area(app),
+#. player,
+#. FALSE, FALSE, 0);
+#. gtk_widget_show_all(player);
+#.
+#: ../eina/player/player.c:99 ../eina/player/player.c:119
+msgid "Player"
+msgstr ""
+
+#: ../eina/player/player.c:106
+#, c-format
+msgid "Unable to add UI to window GtkUIManager: '%s'"
+msgstr ""
+
+#: ../eina/player/player.c:168
+msgid ""
+"Eina is free software; you can redistribute it and/or modify it under the "
+"terms of the GNU General Public License as published by the Free Software "
+"Foundation; either version 2 of the License, or (at your option) any later "
+"version.\n"
+"\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
+"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
+"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
+"details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License along with "
+"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+msgstr ""
+
+#: ../eina/player/player.c:177
+#, c-format
+msgid "Missing resource: %s"
+msgstr ""
+
+#: ../eina/player/player.c:184
+msgid "A classic player for the modern era"
+msgstr "Modern çağın klasik oynatıcısı"
+
+#: ../eina/player/player.c:197
+msgid "About Eina"
+msgstr "Eina Hakkında"
+
+#: ../eina/player/player.c:240
 #, c-format
 msgid "Unable to complete action '%s': %s"
 msgstr ""
 
-#: ../eina/player.c:603 ../eina/playlist.c:1119
-#, c-format
-msgid "Error on file %s: %s"
-msgstr ""
-
-#: ../eina/player.c:616
-msgid "Build-in player plugin"
-msgstr ""
-
-#: ../eina/playlist.c:219
-msgid "Cannot init dock widget"
-msgstr ""
-
-#: ../eina/playlist.c:235
-#, c-format
-msgid "Missing action: %s"
-msgstr ""
-
-#: ../eina/playlist.c:702
-#, c-format
-msgid "Cannot go to stream #%d: '%s'"
-msgstr ""
-
-#: ../eina/playlist.c:712
-#, c-format
-msgid "Cannot set state to LOMO_STATE_PLAY: '%s'"
-msgstr ""
-
-#: ../eina/playlist.c:1011
-#, c-format
-msgid "Cannot find index for stream %p (%s)"
-msgstr ""
-
-#: ../eina/playlist.c:1019
-#, c-format
-msgid "Cannot get iter for index %d"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/playlist.c:1526
-msgid "Build-in playlist plugin"
-msgstr ""
-
-#: ../eina/plugins.c:52
-msgid "Plugins"
-msgstr ""
-
-#: ../eina/plugins.c:80
-#, c-format
-msgid "Cannot merge menu: %s"
-msgstr ""
-
-#: ../eina/plugins.c:136
-msgid "No plugin selected"
-msgstr ""
-
-#: ../eina/plugins.c:158
-msgid "Build-in plugin manager plugin"
-msgstr ""
-
-#: ../eina/preferences.c:67 ../eina/preferences.c:117
-msgid "Preferences"
-msgstr ""
-
-#: ../eina/preferences.c:180
-msgid "Build-in preferences plugin"
-msgstr ""
-
-#: ../eina/settings.c:46
-#, c-format
-msgid "Cannot create config folder %s"
-msgstr ""
-
-#: ../eina/settings.c:77
-msgid "Conf object not found"
-msgstr ""
-
-#: ../eina/settings.c:92
-msgid "Build-in settings plugin"
-msgstr ""
-
-#: ../eina/template.c:95
-msgid "Build-in template plugin"
-msgstr ""
-
-#: ../eina/vogon-app.c:398
-#, c-format
-msgid "Cannot find loaded plugin %s"
-msgstr ""
-
-#: ../eina/vogon-app.c:405
-#, c-format
-msgid "Cannot fini plugin %s: %s"
-msgstr ""
-
-#: ../eina/vogon.c:94 ../plugins/recently/recently.c:357
-msgid "Play"
-msgstr ""
-
-#: ../eina/vogon.c:95
-msgid "Pause"
-msgstr ""
-
-#: ../eina/vogon.c:96
-msgid "Next"
-msgstr ""
-
-#: ../eina/vogon.c:96
-msgid "Next stream"
-msgstr ""
-
-#: ../eina/vogon.c:97
-msgid "Previous"
-msgstr ""
-
-#: ../eina/vogon.c:97
-msgid "Previous stream"
-msgstr ""
-
-#: ../eina/vogon.c:98
-msgid "_Open"
-msgstr ""
-
-#: ../eina/vogon.c:98
-msgid "Add or queue stream(s)"
-msgstr ""
-
-#: ../eina/vogon.c:99
-msgid "C_lear"
-msgstr ""
-
-#: ../eina/vogon.c:99
-msgid "Clear playlist"
-msgstr ""
-
-#: ../eina/vogon.c:100
-msgid "_Quit"
-msgstr ""
-
-#: ../eina/vogon.c:100
-msgid "Quit Eina"
-msgstr ""
-
-#: ../eina/vogon.c:103
-msgid "Random"
-msgstr ""
-
-#: ../eina/vogon.c:103
-msgid "Random playlist"
-msgstr ""
-
-#: ../eina/vogon.c:104
-msgid "Repeat"
-msgstr ""
-
-#: ../eina/vogon.c:104
-msgid "Repeat playlist"
-msgstr ""
-
-#: ../eina/vogon.c:110
-msgid "Gtk+ X11 backend is not supported"
-msgstr ""
-
-#: ../eina/vogon.c:133
-msgid "Cannot create status icon"
-msgstr ""
-
-#: ../eina/vogon.c:173
-msgid ""
-"Systray implementation is buggy on OSX. You have been warned, dont file any "
-"bugs about this."
-msgstr ""
-
-#: ../eina/vogon.c:365
-msgid "Build-in systray and notification plugin"
-msgstr ""
-
-#: ../eina/window.c:35
-msgid "Cannot register EinaWindow object into GelApp"
-msgstr ""
-
-#: ../eina/window.c:57
-msgid "EinaWindow not found in GelApp"
-msgstr ""
-
-#: ../eina/window.c:72
-msgid "Main window plugin"
-msgstr ""
-
-#: ../plugins/adb/adb.c:51
-#, c-format
-msgid "Version mismatch. source:%s runtime:%s"
-msgstr ""
-
-#: ../plugins/adb/adb.c:208
-msgid "Cannot get schema version"
-msgstr ""
-
-#: ../plugins/adb/iface.c:35
-msgid "Cannot access lomo"
-msgstr ""
-
-#: ../plugins/adb/iface.c:44
-msgid "Cannot register ADB object into GelApp"
-msgstr ""
-
-#: ../plugins/adb/iface.c:66
-msgid "Audio database"
-msgstr ""
-
-#: ../plugins/coverplus/iface.c:63
-msgid "Art object not found"
-msgstr ""
-
-#: ../plugins/coverplus/iface.c:118
-msgid "Enhace your covers"
-msgstr ""
-
-#: ../plugins/coverplus/iface.c:119
-msgid ""
-"Brings Eina several simple but fundamental cover providers like:\n"
-"· In-folder cover discover\n"
-"· Banshee (on Linux) covers"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:99
-msgid "Fieshta"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:103
-msgid "Set fieshta mode"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:338
-msgid "Party plugin"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:92
-msgid "Cannot get settings object"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:171 ../plugins/ntfy/ntfy.c:173
-msgid "Playing:"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:238
-msgid "Show notifications"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:392
-msgid "Notifications plugin"
-msgstr ""
-
-#: ../plugins/recently/recently.c:215
-msgid "Unable to find matching row for search"
-msgstr ""
-
-#: ../plugins/recently/recently.c:231
-msgid "Cannot get resource cover-default.png"
-msgstr ""
-
-#: ../plugins/recently/recently.c:239
-#, c-format
-msgid "Cannot load pixbuf from %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:264
-msgid "Monday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:265
-msgid "Tuesday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:266
-msgid "Wednesday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:267
-msgid "Thursday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:268
-msgid "Saturday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:269
-msgid "Sunday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:274
-msgid "Today"
-msgstr ""
-
-#: ../plugins/recently/recently.c:276
-msgid "Yesterday"
-msgstr ""
-
-#: ../plugins/recently/recently.c:286
-msgid "More than 7 days ago"
-msgstr ""
-
-#: ../plugins/recently/recently.c:288
-msgid "More than a month ago"
-msgstr ""
-
-#: ../plugins/recently/recently.c:290
-msgid "More than a year ago"
-msgstr ""
-
-#: ../plugins/recently/recently.c:307
-#, c-format
-msgid "Cannot load ui from %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:340
-msgid "Timestamp"
-msgstr ""
-
-#: ../plugins/recently/recently.c:347
-msgid "Cover"
-msgstr ""
-
-#: ../plugins/recently/recently.c:352
-msgid "Title"
-msgstr ""
-
-#: ../plugins/recently/recently.c:362
-msgid "Enqueue"
-msgstr ""
-
-#: ../plugins/recently/recently.c:367
-msgid "Delete"
-msgstr ""
-
-#: ../plugins/recently/recently.c:805
-msgid ", "
-msgstr ""
-
-#: ../plugins/recently/recently.c:807
-msgid " and "
-msgstr ""
-
-#: ../plugins/recently/recently.c:883
-#, c-format
-msgid "Error %d with query %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:923
-#, c-format
-msgid "Cannot prepare query %s: (%d) %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:997
-#, c-format
-msgid "Cannot prepare query %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1013
-#, c-format
-msgid ""
-"<b>%s (Artist)</b>\n"
-" %d matches"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1016
-#, c-format
-msgid ""
-"<b>%s (Album)</b>\n"
-" %d matches"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1019
-#, c-format
-msgid "<b>%s</b>\n"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1182
-msgid "Cannot get first iter"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1211
-msgid "Cannot fetch Adb object"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1250
-msgid "Stores your recent playlists"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1251
-msgid "Recently plugin. ADB based version"
-msgstr ""
-
-#: ../ui/dock.ui.h:1
-msgid "\t"
-msgstr ""
-
-#: ../ui/dock.ui.h:2
-msgid "Dock"
-msgstr ""
-
-#: ../ui/log.ui.h:1
-msgid "<b>Log level:</b> "
-msgstr ""
-
-#: ../ui/log.ui.h:2
-msgid "gtk-clear"
-msgstr ""
-
-#: ../ui/log.ui.h:3
-msgid "gtk-close"
-msgstr ""
-
-#: ../ui/log.ui.h:4 ../ui/plugins.ui.h:15
-msgid "label"
-msgstr ""
-
-#: ../ui/player-preferences.ui.h:1
-msgid "<b>Information format</b>"
-msgstr ""
-
-#: ../ui/player-preferences.ui.h:2
-msgid "Custom format:"
-msgstr ""
-
-#: ../ui/player-preferences.ui.h:3
-msgid "More info about Pango markup language"
-msgstr ""
-
-#: ../ui/player-preferences.ui.h:5
+#: ../eina/player/eina-player.ui.h:2
 #, no-c-format
-msgid ""
-"This format uses the pango markup, follow next link to learn about it.\n"
-"\n"
-"The following 'tags' can be used: %a for artist, %b for album, %t for title "
-"and %n for track number.\n"
-"\n"
-"Embracing any text with curly brackets makes it optional, disapearing if no "
-"matches for its content is found.\n"
+msgid "<small><tt>%d:%02d</tt></small>"
 msgstr ""
 
-#: ../ui/player.ui.h:1
-msgid "<small><tt></tt></small>"
-msgstr ""
-
-#: ../ui/player.ui.h:3
+#: ../eina/player/eina-player.ui.h:4
 #, no-c-format
 msgid ""
 "<span size=\"x-large\" weight=\"bold\">%t</span>\n"
 "<span size=\"x-large\" weight=\"normal\">{%a}</span>"
 msgstr ""
 
-#: ../ui/playlist.ui.h:1
-msgid "Filter"
+#: ../eina/player/preferences.ui.h:1
+msgid "By default new files"
 msgstr ""
 
-#: ../ui/playlist.ui.h:2
+#: ../eina/player/preferences.ui.h:2
+msgid "Enable cover efects"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:3
+msgid "Enable repeat mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:4
+msgid "Enable shuffle mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:5
+msgid ""
+"Show streams' labels (metadata). \n"
+"<small>Only affects new streams</small>"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:7
+msgid "Start playback automatically"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:8
+msgid "are queued at the end of the playlist"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:9
+msgid "replace the current playlist"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:284
+#, fuzzy, c-format
+msgid "Missing object '%s'"
+msgstr "Eksik yöntem %s"
+
+#: ../eina/playlist/eina-playlist.c:292
+#, fuzzy, c-format
+msgid "Missing action '%s'"
+msgstr "Eksik yöntem %s"
+
+#: ../eina/playlist/eina-playlist.c:411
+#, c-format
+msgid "Missing action: %s"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:667 ../eina/playlist/eina-playlist.c:1253
+#, c-format
+msgid "Cannot get iter for index %d"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:678
+msgid "Stream not in queue"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:763
+#, fuzzy, c-format
+msgid "Unknow state: %d"
+msgstr "Bilinmeyen görev: %s"
+
+#: ../eina/playlist/eina-playlist.c:820
+msgid "You must supply an iter _or_ an item"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:830
+#, c-format
+msgid "Cannot get a GtkTreePath from index %d"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:874
+#, fuzzy, c-format
+msgid "Unknow column %d"
+msgstr "Bilinmeyen görev: %s"
+
+#: ../eina/playlist/eina-playlist.c:916
+#, c-format
+msgid "Cannot go to stream #%d: '%s'"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:926
+#, c-format
+msgid "Cannot set state to LOMO_STATE_PLAY: '%s'"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1073
+#, c-format
+msgid "Cannot find iter corresponding to index #%d"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1187
+#, c-format
+msgid "Got error on stream %p: %s"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1195
+#, c-format
+msgid "Stream %p doest belongs to Player %p"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1204
+#, fuzzy, c-format
+msgid "Cannot get iter for stream %p"
+msgstr "Menü öğesi oluşturulamadı: %s"
+
+#: ../eina/playlist/eina-playlist.c:1245
+#, c-format
+msgid "Cannot find index for stream %p (%s)"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1322
+#, fuzzy, c-format
+msgid "Unhandled action %s"
+msgstr "Bilinmeyen görev: %s"
+
+#: ../eina/playlist/playlist.c:45 ../eina/playlist/eina-playlist.ui.h:4
 msgid "Playlist"
 msgstr ""
 
-#: ../ui/plugins.ui.h:2
-#, no-c-format
-msgid "%s"
+#: ../eina/playlist/eina-playlist.ui.h:1
+msgid "<big><b>There are no files in your playlist</b></big>"
 msgstr ""
 
-#: ../ui/plugins.ui.h:3
-msgid "<b>Description</b>"
+#: ../eina/playlist/eina-playlist.ui.h:2
+msgid "Add some files"
 msgstr ""
 
-#: ../ui/plugins.ui.h:4
-msgid "<b>Filename</b>"
+#: ../eina/playlist/eina-playlist.ui.h:3
+msgid "Filter"
 msgstr ""
 
-#: ../ui/plugins.ui.h:6
-#, no-c-format
+#: ../eina/preferences/eina-preferences-dialog.c:111
+msgid "Widget is not on notebook"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:269
+#, fuzzy, c-format
+msgid "Cannot parse UI string: %s"
+msgstr "%s: %s yükleyemiyor"
+
+#: ../eina/preferences/eina-preferences-tab.c:279
+msgid "Object 'main-widget' not found in UI string"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:338
+msgid "Invalid GSettings parameter"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:347
+#, fuzzy
+msgid "Invalid parameters"
+msgstr "Geçersiz parametreler"
+
+#: ../eina/preferences/eina-preferences-tab.c:371
+#, fuzzy, c-format
+msgid "Missing widget named '%s'"
+msgstr "Eksik yöntem %s"
+
+#: ../eina/preferences/preferences.c:138 ../eina/preferences/preferences.c:158
+msgid "Preferences"
+msgstr ""
+
+#: ../eina/preferences/preferences.c:175
 msgid ""
-"<big><b>%s</b></big>\n"
-"%s"
+"Cannot get GtkUIManager for main menu, unable to attach preferences menu"
 msgstr ""
 
-#: ../ui/plugins.ui.h:8
+#: ../eina/preferences/preferences.c:182
+#, fuzzy, c-format
+msgid "Cannot attach menu: %s"
+msgstr "Menü öğesi oluşturulamadı: %s"
+
+#: ../eina/preferences/preferences.c:199
 msgid ""
-"<big><b>No plugins available</b></big>\n"
-"\n"
-"There are no plugins instaled on your system"
+"Cannot get GtkUIManager for main menu, unable to deattach preferences menu"
 msgstr ""
 
-#: ../ui/plugins.ui.h:11
-msgid "Contact"
+#: ../eina/recently/recently.c:221
+msgid "Unable to find matching row for search"
 msgstr ""
 
-#: ../ui/plugins.ui.h:12
-msgid "Eina plugins"
+#: ../eina/recently/recently.c:237
+msgid "Cannot get resource cover-default.png"
 msgstr ""
 
-#: ../ui/plugins.ui.h:13
-msgid "Show internal plugins"
+#: ../eina/recently/recently.c:245
+#, c-format
+msgid "Cannot load pixbuf from %s: %s"
 msgstr ""
 
-#: ../ui/plugins.ui.h:14
-msgid "Website"
+#: ../eina/recently/recently.c:270
+msgid "Monday"
 msgstr ""
 
-#: ../ui/plugins.ui.h:16 ../plugins/recently/dock.ui.h:5
-msgid "page 1"
+#: ../eina/recently/recently.c:271
+msgid "Tuesday"
 msgstr ""
 
-#: ../ui/plugins.ui.h:17 ../plugins/recently/dock.ui.h:6
-msgid "page 2"
+#: ../eina/recently/recently.c:272
+msgid "Wednesday"
 msgstr ""
 
-#: ../plugins/lastfm/lastfm.ui.h:1
-msgid "<b>Password</b>"
+#: ../eina/recently/recently.c:273
+msgid "Thursday"
 msgstr ""
 
-#: ../plugins/lastfm/lastfm.ui.h:2
-msgid "<b>Username</b>"
+#: ../eina/recently/recently.c:274
+msgid "Saturday"
 msgstr ""
 
-#: ../plugins/lastfm/lastfm.ui.h:3
-msgid "<big><b>Last FM configuration</b></big>"
+#: ../eina/recently/recently.c:275
+msgid "Sunday"
 msgstr ""
 
-#: ../plugins/lastfm/lastfm.ui.h:4
-msgid "New to Last FM?, get an account"
+#: ../eina/recently/recently.c:280
+msgid "Today"
 msgstr ""
 
-#: ../plugins/lastfm/lastfm.ui.h:5
-msgid "Submit played tracks to Last.fm"
+#: ../eina/recently/recently.c:282
+msgid "Yesterday"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:1
+#: ../eina/recently/recently.c:292
+msgid "More than 7 days ago"
+msgstr ""
+
+#: ../eina/recently/recently.c:294
+msgid "More than a month ago"
+msgstr ""
+
+#: ../eina/recently/recently.c:296
+msgid "More than a year ago"
+msgstr ""
+
+#: ../eina/recently/recently.c:312
+#, c-format
+msgid "Cannot load ui from %s: %s"
+msgstr ""
+
+#: ../eina/recently/recently.c:345
+msgid "Timestamp"
+msgstr ""
+
+#: ../eina/recently/recently.c:352
+msgid "Cover"
+msgstr ""
+
+#: ../eina/recently/recently.c:357
+msgid "Title"
+msgstr ""
+
+#: ../eina/recently/recently.c:362 ../eina/statusicon/statusicon.c:81
+msgid "Play"
+msgstr ""
+
+#: ../eina/recently/recently.c:367
+msgid "Enqueue"
+msgstr ""
+
+#: ../eina/recently/recently.c:372
+msgid "Delete"
+msgstr ""
+
+#: ../eina/recently/recently.c:810
+msgid ", "
+msgstr ""
+
+#: ../eina/recently/recently.c:812
+msgid " and "
+msgstr ""
+
+#: ../eina/recently/recently.c:888
+#, c-format
+msgid "Error %d with query %s: %s"
+msgstr ""
+
+#: ../eina/recently/recently.c:928
+#, c-format
+msgid "Cannot prepare query %s: (%d) %s"
+msgstr ""
+
+#: ../eina/recently/recently.c:1000
+#, c-format
+msgid "Cannot prepare query %s: %s"
+msgstr ""
+
+#: ../eina/recently/recently.c:1016
+#, c-format
+msgid ""
+"<b>%s (EinaArtist)</b>\n"
+" %d matches"
+msgstr ""
+
+#: ../eina/recently/recently.c:1019
+#, c-format
+msgid ""
+"<b>%s (Album)</b>\n"
+" %d matches"
+msgstr ""
+
+#: ../eina/recently/recently.c:1022
+#, c-format
+msgid "<b>%s</b>\n"
+msgstr ""
+
+#: ../eina/recently/recently.c:1214
+msgid "Cannot fetch EinaAdb object"
+msgstr ""
+
+#: ../eina/recently/dock.ui.h:1
 msgid "<b>Search</b>"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:2
+#: ../eina/recently/dock.ui.h:2
 msgid "<span color=\"#666\">Type at least 3 characters</span>"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:3
+#: ../eina/recently/dock.ui.h:3
 msgid ""
 "Here you can find your previous playlist and reload or search over them.\n"
 "It seems you dont listen anything, so, there is nothing to see, come back "
 "later"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:7
+#: ../eina/recently/dock.ui.h:5
+msgid "page 1"
+msgstr ""
+
+#: ../eina/recently/dock.ui.h:6
+msgid "page 2"
+msgstr ""
+
+#: ../eina/recently/dock.ui.h:7
 msgid "page 3"
 msgstr ""
+
+#: ../eina/statusicon/statusicon.c:79
+#, fuzzy
+msgid "Show Eina"
+msgstr "Eina Hakkında"
+
+#: ../eina/statusicon/statusicon.c:80
+msgid "Hide Eina"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:82
+msgid "Pause"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:83
+msgid "Next"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:83
+msgid "Next stream"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:84
+msgid "Previous"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:84
+msgid "Previous stream"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:85
+msgid "_Open"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:85
+msgid "Add or queue stream(s)"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:86
+msgid "C_lear"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:86
+msgid "Clear playlist"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:87
+msgid "_Quit"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:87
+msgid "Quit Eina"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:91
+msgid "Random"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:91
+msgid "Random playlist"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:92
+msgid "Repeat"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:92
+msgid "Repeat playlist"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:126
+msgid "Gtk+ X11 backend is not supported"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:136
+msgid "Cannot create status icon"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:180
+msgid ""
+"Systray implementation is buggy on OSX. You have been warned, dont file any "
+"bugs about this."
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:306
+#, c-format
+msgid "Error invoking action '%s': %s"
+msgstr ""
+
+#~ msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
+#~ msgstr ""
+#~ "%d eklentileri çıkışta etkinleştirilir. Bunları kaldırmak için bir yok "
+#~ "etme fonksiyonu kullanın."
+
+#~ msgid "Cannot unload plugin %s, its used by %d plugins"
+#~ msgstr ""
+#~ "%s eklentisi kaldırılamıyor çünkü %d eklentileri tarafından kullanılıyor"
+
+#~ msgid "Cannot find symbol %s in %s"
+#~ msgstr "%s'de %s sembolü bulunamıyor"
+
+#~ msgid "Plugin %s created"
+#~ msgstr "%s eklentisi oluşturuldu"
+
+#~ msgid "Plugin %s is still enabled"
+#~ msgstr "%s eklentisi hala etkin"
+
+#~ msgid "Plugin %s destroyed"
+#~ msgstr "%s eklentisi yokedildi"
+
+#~ msgid "Plugin %s already initialized"
+#~ msgstr "%s eklentisi zaten yapılandırılmış"
+
+#~ msgid "Cannot init plugin %s, unknow reason"
+#~ msgstr "%s eklentisi yapılandırılamıyor, nedeni bilinmiyor"
+
+#~ msgid "Plugin %s initialized"
+#~ msgstr "%s eklentisi yapılandırıldı"
+
+#~ msgid "Cannot finalize plugin %s: unknow reason"
+#~ msgstr "%s eklentisi bitirilemiyor, nedeni bilinmiyor"
+
+#~ msgid "Plugin %s finalized"
+#~ msgstr "%s eklentisi tamamlandı"
+
+#~ msgid "No name"
+#~ msgstr "İsimsiz"
+
+#~ msgid "No description"
+#~ msgstr "Açıklama yok"
+
+#~ msgid "No more information"
+#~ msgstr "Daha fazla bilgi yok"
+
+#~ msgid "[Internal plugin]"
+#~ msgstr "[Dahili eklenti]"
+
+#~ msgid "No dependencies"
+#~ msgstr "Bağımlılık yok"
+
+#~ msgid "No reverse dependencies"
+#~ msgstr "Ters bağımlılık yok"
+
+#~ msgid "_Add-ons"
+#~ msgstr "_Eklentiler"
+
+#~ msgid "About window plugin"
+#~ msgstr "Hakkında penceresi eklentisi"
+
+#~ msgid "Art"
+#~ msgstr "Sanat"
+
+#~ msgid "Cover plugin"
+#~ msgstr "Kapak eklentisi"
+
+#~ msgid "OSX integration"
+#~ msgstr "OSX entegrasyonu"
+
+#~ msgid "Debug window"
+#~ msgstr "Hata ayıklama penceresi"
+
+#~ msgid "Errors"
+#~ msgstr "Hatalar"
+
+#~ msgid "Warnings"
+#~ msgstr "Uyarılar"
+
+#~ msgid "Debug information"
+#~ msgstr "Hata ayıklama bilgisi"
+
+#~ msgid "Full debug"
+#~ msgstr "Tam hata ayıklama"

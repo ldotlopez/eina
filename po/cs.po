@@ -7,146 +7,64 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-10 19:34+0100\n"
+"POT-Creation-Date: 2011-01-17 14:46+0100\n"
 "PO-Revision-Date: 2010-01-29 00:11+0000\n"
 "Last-Translator: Luis Lopez <Unknown>\n"
 "Language-Team: Czech <cs@li.org>\n"
+"Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Launchpad-Export-Date: 2010-04-08 14:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../gel/gel-app.c:108
-#, c-format
-msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
+#: ../gel/gel-job-queue.c:142
+msgid ""
+"Application called gel_job_queue_run while a job is active. Application has "
+"to call gel_job_queue_cancel before, this IS a bug."
 msgstr ""
 
-#: ../gel/gel-app.c:114
-#, c-format
-msgid "  %s (usage:%d enabled:%d locked:%d %s)"
-msgstr "  %s (využití:%d povoleno:%d uzamčeno:%d %s)"
-
-#: ../gel/gel-app.c:129
+#.
+#. * gel_warn_fix_implementation:
+#. *
+#. * Warns about some buggy method
+#.
+#: ../gel/gel-misc.h:360
 #, c-format
 msgid ""
-"%d plugins still loaded, will be leaked. Use a dispose func "
-"(gel_app_set_dispose_func) to unload them at exit"
+"%s needs to be fixed. Method is incomplete, buggy or does not match "
+"documentation."
 msgstr ""
 
-#: ../gel/gel-app.c:317
-msgid "Invalid arguments"
-msgstr "Neplatné argumenty"
-
-#: ../gel/gel-app.c:361
-msgid "Plugin not found"
-msgstr "Plugin nenalezen"
-
-#: ../gel/gel-app.c:392
-#, c-format
-msgid "Cannot load %s: %s"
-msgstr ""
-
-#: ../gel/gel-app.c:426
-#, c-format
-msgid "Dependecy %s for %s not found"
-msgstr "Závislost %s pro %s nenalezena"
-
-#: ../gel/gel-app.c:444
-#, c-format
-msgid "Invalid arguments, set breakpoint on %s to debug"
-msgstr ""
-
-#: ../gel/gel-app.c:460
-#, c-format
-msgid "Plugin %p has NULL name"
-msgstr ""
-
-#: ../gel/gel-app.c:572 ../gel/gel-app.c:574
-#, c-format
-msgid "Cannot unload plugin %s, its used by %d plugins"
-msgstr ""
-
-#: ../gel/gel-app.c:586 ../gel/gel-plugin.c:421
-#, c-format
-msgid "Cannot finalize plugin %s: %s"
-msgstr ""
-
-#: ../gel/gel-app.c:601
-#, c-format
-msgid "Dependency %s for plugin %s not found"
-msgstr "Závislost %s pluginu %s nenalezena"
-
-#: ../gel/gel-app.c:613
-#, c-format
-msgid "Cannot free plugin after all: %s"
-msgstr ""
-
-#: ../gel/gel-app.c:645
-#, c-format
-msgid "Cannot free plugin %s: %s"
-msgstr "Nelze uvolnit plugin %s: %s"
-
-#: ../gel/gel-plugin.c:62
+#: ../gel/gel-plugin.c:58
 msgid "Module loading is not supported on this platform"
 msgstr "Načítání pluginů není na této platformě podporováno"
 
-#: ../gel/gel-plugin.c:69
+#: ../gel/gel-plugin.c:75
 #, c-format
-msgid "%s is not loadable"
+msgid "%s is not loadable: %s"
 msgstr ""
 
-#: ../gel/gel-plugin.c:76
-#, c-format
-msgid "Cannot find symbol %s in %s"
-msgstr "Nelze nalézt symbol %s v %s"
+#: ../gel/gel-plugin.c:92
+#, fuzzy, c-format
+msgid "Plugin '%s' has no init hook"
+msgstr "Nelze inicializovat plugin %s"
 
-#: ../gel/gel-plugin.c:84
-#, c-format
-msgid "Invalid serial in object %s:%s (app:%d, plugin:%d)"
-msgstr ""
-
-#: ../gel/gel-plugin.c:99
-#, c-format
-msgid ""
-"%s plugin has no deps, are you sure? if you are sure use GEL_PLUGIN_NO_DEPS"
-msgstr ""
-
-#: ../gel/gel-plugin.c:111
-#, c-format
-msgid "Plugin %s created"
-msgstr "Plugin %s vytvořen"
-
-#: ../gel/gel-plugin.c:124
+#: ../gel/gel-plugin.c:127
 #, c-format
 msgid "Plugin %s is in use"
 msgstr "Plugin %s je v užívání"
 
-#: ../gel/gel-plugin.c:132
-#, c-format
-msgid "Plugin %s is still enabled"
-msgstr "Plugin %s je stále povolen"
-
-#: ../gel/gel-plugin.c:140
-#, c-format
-msgid "Plugin %s is locked"
-msgstr "Plugin %s je uzamčen"
-
-#: ../gel/gel-plugin.c:144
-#, c-format
-msgid "Plugin %s destroyed"
+#: ../gel/gel-plugin.c:134
+msgid "fini hook failed without a reason"
 msgstr ""
 
-#: ../gel/gel-plugin.c:201 ../gel/gel-plugin.c:219
+#: ../gel/gel-plugin.c:221
 #, c-format
 msgid "Invalid reference from %s on %s"
 msgstr ""
 
-#: ../gel/gel-plugin.c:209 ../gel/gel-plugin.c:228
-msgid "none"
-msgstr "nic"
-
-#: ../gel/gel-plugin.c:270
+#: ../gel/gel-plugin.c:250
 #, c-format
 msgid ""
 "You call %s with plugin == NULL, its OK but:\n"
@@ -159,979 +77,1269 @@ msgid ""
 "invocation\n"
 msgstr ""
 
-#: ../gel/gel-plugin.c:367
+#: ../gel/gel-plugin-engine.c:96
 #, c-format
-msgid "Plugin %s already initialized"
-msgstr "Plugin %s již byl zinicializován"
-
-#: ../gel/gel-plugin.c:374
-#, c-format
-msgid "Plugin %s has not init hook"
+msgid "Plugin '%s' cannot be unloaded: %s"
 msgstr ""
 
-#: ../gel/gel-plugin.c:381
-#, c-format
-msgid "Cannot init plugin %s: %s"
+#: ../gel/gel-plugin-engine.c:97
+#, fuzzy
+msgid "No error"
+msgstr "Neznámá chyba"
+
+#: ../gel/gel-plugin-engine.c:106
+msgid "Plugin stack has remaining items, they will be leaked"
 msgstr ""
 
-#: ../gel/gel-plugin.c:386
-#, c-format
-msgid "Cannot init plugin %s, unknow reason"
-msgstr "Nelze spustit plugin %s, neznámá příčina"
+#: ../gel/gel-plugin-engine.c:285
+#, fuzzy, c-format
+msgid "Cannot load plugin file '%s': %s"
+msgstr "Nelze načíst '%s': '%s'"
 
-#: ../gel/gel-plugin.c:390
-#, c-format
-msgid "Plugin %s initialized"
-msgstr "Plugin %s inicializován"
+#: ../gel/gel-plugin-engine.c:290
+#, fuzzy, c-format
+msgid "Plugin file %s loaded"
+msgstr "Plugin %s je uzamčen"
 
-#: ../gel/gel-plugin.c:401
+#: ../gel/gel-plugin-engine.c:337
 #, c-format
-msgid "Plugin %s is not initialized"
-msgstr "Nelze inicializovat plugin %s"
+msgid "Failed to load plugin dependency '%s' for '%s': %s"
+msgstr ""
 
-#: ../gel/gel-plugin.c:426
+#: ../gel/gel-plugin-engine.c:419
+#, fuzzy, c-format
+msgid "GelPluginInfo for '%s' not found"
+msgstr "Plugin nenalezen"
+
+#: ../gel/gel-plugin-engine.c:438
+msgid "Invalid arguments"
+msgstr "Neplatné argumenty"
+
+#: ../gel/gel-plugin-engine.c:472
 #, c-format
-msgid "Cannot finalize plugin %s: unknow reason"
-msgstr "Nelze ukončit plugin %s: neznámá příčina"
+msgid "Cannot free plugin %s: %s"
+msgstr "Nelze uvolnit plugin %s: %s"
 
-#: ../gel/gel-plugin.c:430
+#: ../gel/gel-plugin-engine.c:506
 #, c-format
-msgid "Plugin %s finalized"
-msgstr "Plugin %s ukončen"
+msgid "Missing GelPlugin object '%s', cant add a reference. THIS IS A BUG."
+msgstr ""
 
-#: ../gel/gel-ui.c:49 ../eina/cover.c:356
+#: ../gel/gel-plugin-engine.c:546
+#, c-format
+msgid "Missing GelPlugin object '%s', cant remove a reference. THIS IS A BUG."
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:36
+msgid "A name must be provided if filename is NULL"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:48
+msgid "Unable to introspect NULL"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:56
+#, fuzzy, c-format
+msgid "Symbol '%s' not found"
+msgstr "Závislost %s pro %s nenalezena"
+
+#: ../gel/gel-plugin-info.c:77
+msgid "Info file has no group named 'Eina Plugin'"
+msgstr ""
+
+#: ../gel/gel-plugin-info.c:87
+#, fuzzy, c-format
+msgid "Missing required key '%s'"
+msgstr "Chybějící metoda %s"
+
+#: ../gel/gel-ui-dialogs.c:81
+msgid "Details"
+msgstr ""
+
+#: ../gel/gel-ui-generic.c:131
+#, fuzzy, c-format
+msgid "Cannot load widget from file '%s': %s"
+msgstr "Nelze načíst UI z %s: %s"
+
+#: ../gel/gel-ui-generic.c:161
+#, fuzzy, c-format
+msgid "Cannot load xml UI definition: %s"
+msgstr "Nelze načíst UI z %s: %s"
+
+#: ../gel/gel-ui-generic.c:169
+msgid "Unable to find widget 'main-widget' on xml UI definition"
+msgstr ""
+
+#: ../gel/gel-ui-plugin-manager.c:308
+#, c-format
+msgid "Loaded unknow plugin: %p"
+msgstr ""
+
+#: ../gel/gel-ui-plugin-manager.c:343
+#, fuzzy
+msgid "Error loading plugin"
+msgstr "Chyba nastavování hlasitosti"
+
+#: ../gel/gel-ui-plugin-manager.c:344
+#, fuzzy, c-format
+msgid "Cannot load plugin '%s'"
+msgstr "Nelze načíst '%s': '%s'"
+
+#: ../gel/gel-ui-utils.c:52
 #, c-format
 msgid "Cannot locate resource '%s'"
 msgstr "Zdroj '%s' nenalezen"
 
-#: ../gel/gel-ui.c:153
+#: ../gel/gel-ui-utils.c:195
 #, c-format
 msgid "Invalid GtkTreePath in selection, use %s only with ListModels"
 msgstr ""
 
-#: ../lomo/lomo-player.c:108 ../lomo/lomo-player.c:119
-#: ../lomo/lomo-player.c:121
+#: ../gel/gel-ui-utils.c:331
+msgid "Widget has been already made droppable by GelUI, ignoring."
+msgstr ""
+
+#: ../gel/gel-ui-utils.c:356
+msgid "Widget has been not made droppable by GelUI, ignoring."
+msgstr ""
+
+#: ../lomo/lomo-player.c:115 ../lomo/lomo-player.c:126
+#: ../lomo/lomo-player.c:128
 #, c-format
 msgid "Missing method %s"
 msgstr "Chybějící metoda %s"
 
-#: ../lomo/lomo-player.c:859
+#: ../lomo/lomo-player.c:974
 msgid "Cannot create pipeline for NULL stream"
 msgstr ""
 
-#: ../lomo/lomo-player.c:867
+#: ../lomo/lomo-player.c:982
 #, c-format
 msgid "Cannot create pipeline for stream %s"
 msgstr ""
 
-#: ../lomo/lomo-player.c:966
+#: ../lomo/lomo-player.c:1080
 msgid "Cannot set state: missing pipeline"
 msgstr ""
 
-#: ../lomo/lomo-player.c:983
+#: ../lomo/lomo-player.c:1097
 msgid "Error setting state"
 msgstr "Chyba při nastavování stavu"
 
-#: ../lomo/lomo-player.c:1063
+#: ../lomo/lomo-player.c:1177
 msgid "Player not seekable"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1071
+#: ../lomo/lomo-player.c:1185
 msgid "Invalid format"
 msgstr "Neplatný formát"
 
-#: ../lomo/lomo-player.c:1089
+#: ../lomo/lomo-player.c:1203
 msgid "Error seeking"
 msgstr "Chyba vyhledávání"
 
-#: ../lomo/lomo-player.c:1169
+#: ../lomo/lomo-player.c:1283
 msgid "Error setting volume"
 msgstr "Chyba nastavování hlasitosti"
 
-#: ../lomo/lomo-player.c:1199
+#: ../lomo/lomo-player.c:1314
 msgid "Error getting volume"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1217
+#: ../lomo/lomo-player.c:1332
 msgid "Missing set_mute and set_volume methods, cannot mute"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1248
+#: ../lomo/lomo-player.c:1363
 msgid "Error setting mute"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1426
+#: ../lomo/lomo-player.c:1543
 #, c-format
 msgid "Error creating pipeline: %s"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1709
+#: ../lomo/lomo-player.c:1829
 msgid "Cannot change stream, it's in queue but can't dequeue it"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1728
+#: ../lomo/lomo-player.c:1848
 msgid "Action blocked by hook"
 msgstr ""
 
-#: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
+#: ../eina/ext/curl-engine.c:246
 msgid "Unknow error"
 msgstr "Neznámá chyba"
 
-#: ../eina/ext/eina-file-chooser-dialog.c:288
+#: ../eina/ext/eina-application.c:64
+#, fuzzy, c-format
+msgid "Unable to load resource '%s': %s"
+msgstr "Zdroj '%s' nenalezen"
+
+#: ../eina/ext/eina-application.c:76
+#, fuzzy, c-format
+msgid "Unable to locate resource '%s'"
+msgstr "Zdroj '%s' nenalezen"
+
+#: ../eina/ext/eina-file-chooser-dialog.c:244
 msgid "Loading files..."
 msgstr "Načítání souborů..."
 
-#: ../eina/ext/eina-file-chooser-dialog.c:342 ../eina/fs.c:64
+#: ../eina/ext/eina-file-chooser-dialog.c:264
+#, c-format
+msgid "Loaded %d streams"
+msgstr ""
+
+#: ../eina/ext/eina-file-chooser-dialog.c:304 ../eina/ext/eina-fs.c:101
 msgid "Add or queue files"
 msgstr ""
 
-#: ../eina/ext/eina-file-chooser-dialog.c:414
+#: ../eina/ext/eina-fs.c:91
 #, c-format
-msgid "Found %d streams"
+msgid "'%s' throw an error: %s"
 msgstr ""
 
-#: ../eina/ext/eina-plugin-dialog.c:180 ../eina/plugins.c:53
-msgid "Select plugins"
-msgstr "Vybrat pluginy"
-
-#: ../eina/ext/eina-plugin-dialog.c:334
-#, c-format
-msgid "Loaded unknow plugin: %s"
-msgstr ""
-
-#: ../eina/ext/eina-plugin-properties.c:157
-msgid "No name"
-msgstr "Bez názvu"
-
-#: ../eina/ext/eina-plugin-properties.c:158
-msgid "No description"
-msgstr "Bez popisu"
-
-#: ../eina/ext/eina-plugin-properties.c:159
-msgid "No more information"
-msgstr "Žádné další informace"
-
-#: ../eina/ext/eina-plugin-properties.c:161
-msgid "[Internal plugin]"
-msgstr ""
-
-#: ../eina/ext/eina-plugin-properties.c:163
-msgid "No dependencies"
-msgstr "Bez závislostí"
-
-#: ../eina/ext/eina-plugin-properties.c:166
-msgid "No reverse dependencies"
-msgstr ""
-
-#: ../eina/ext/eina-stock.c:44
+#: ../eina/ext/eina-stock.c:48
 msgid "Status icon"
 msgstr "Stavová ikona"
 
-#: ../eina/ext/eina-stock.c:45
+#: ../eina/ext/eina-stock.c:49
 msgid "_Random"
 msgstr ""
 
-#: ../eina/ext/eina-stock.c:46
+#: ../eina/ext/eina-stock.c:50
 msgid "_Shuffle"
 msgstr "_Promíchat"
 
-#: ../eina/ext/eina-stock.c:47
+#: ../eina/ext/eina-stock.c:51
 msgid "_Queue"
 msgstr "_Fronta"
 
-#: ../eina/ext/eina-stock.c:48
+#: ../eina/ext/eina-stock.c:52
 msgid "Report a bug"
 msgstr "Nahlásit chybu"
 
-#: ../eina/ext/eina-window.c:60
+#: ../eina/ext/eina-window.c:38
 msgid "_File"
 msgstr "_Soubor"
 
-#: ../eina/ext/eina-window.c:61
+#: ../eina/ext/eina-window.c:39
 msgid "_Edit"
 msgstr ""
 
-#: ../eina/ext/eina-window.c:62
-msgid "_Add-ons"
-msgstr ""
+#: ../eina/ext/eina-window.c:40 ../eina/ext/eina-window.c:43
+#, fuzzy
+msgid "_Plugins"
+msgstr "Pluginy"
 
-#: ../eina/ext/eina-window.c:63
+#: ../eina/ext/eina-window.c:41 ../eina/player/player.c:54
+#: ../eina/player/player.c:55
 msgid "_Help"
 msgstr ""
 
-#: ../eina/about.c:88
-#, c-format
-msgid "Missing resource: %s"
-msgstr ""
+#: ../eina/ext/eina-window.c:111
+#, fuzzy, c-format
+msgid "Error adding UI string: %s"
+msgstr "Chyba v souborech %s: %s"
 
-#: ../eina/about.c:95
-msgid "A classic player for the modern era"
-msgstr "Klasický přehrávač pro moderní dobu"
+#: ../eina/ext/eina-window.c:185
+msgid "Select plugins"
+msgstr "Vybrat pluginy"
 
-#: ../eina/about.c:108
-msgid "About Eina"
-msgstr "O aplikaci"
+#: ../eina/ext/eina-window.c:207
+#, fuzzy, c-format
+msgid "Unhandled unknow action '%s'"
+msgstr "Neznámá akce: %s"
 
-#: ../eina/about.c:130
-msgid "About window plugin"
-msgstr ""
+#: ../eina/eina.c:130 ../eina/eina.c:205
+#, fuzzy, c-format
+msgid "Unable to load required plugin '%s': %s"
+msgstr "Nelze dokončit akci '%s': %s"
 
-#: ../eina/art.c:736
-msgid "Art"
-msgstr ""
+#: ../eina/eina.c:231
+#, fuzzy, c-format
+msgid "Unable to load plugin '%s': %s"
+msgstr "Nelze dokončit akci '%s': %s"
 
-#: ../eina/art.c:736
-msgid "Art framework"
-msgstr ""
+#: ../eina/adb/adb.c:47
+#, fuzzy, c-format
+msgid "Error setting database '%s'"
+msgstr "Chyba při nastavování stavu"
 
-#: ../eina/cover.c:366
-#, c-format
-msgid "Cannot load resource '%s': '%s'"
-msgstr ""
-
-#: ../eina/cover.c:382
-msgid "Invalid cover mask"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/cover.c:411
-msgid "Cover plugin"
-msgstr ""
-
-#: ../eina/dbus.c:93
-msgid "Cannot get DBus proxy"
-msgstr ""
-
-#: ../eina/dbus.c:124
-#, c-format
-msgid "Cannot register DBus server: %s"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/dbus.c:198
-msgid "DBus interface for Eina"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/dock.c:305
-msgid "Build-in dock plugin"
-msgstr ""
-
-#: ../eina/eina-ige.c:62
-#, c-format
-msgid "Cannot locate %s"
-msgstr ""
-
-#: ../eina/eina-ige.c:65
-#, c-format
-msgid "Cannot load '%s': '%s'"
-msgstr "Nelze načíst '%s': '%s'"
-
-#: ../eina/eina-ige.c:148
-msgid "OSX integration"
-msgstr ""
-
-#: ../eina/eina-obj.c:53
-msgid "Trying to free a NULL pointer"
-msgstr ""
-
-#: ../eina/eina-obj.c:107
-#, c-format
-msgid "Resource not found: %s"
-msgstr ""
-
-#: ../eina/log.c:196
-#, c-format
-msgid "Cannot load UI from %s: %s"
-msgstr "Nelze načíst UI z %s: %s"
-
-#: ../eina/log.c:212
-msgid "Not all required widgets are valids"
-msgstr "Některé požadované widgety nejsou validní"
-
-#: ../eina/log.c:230
-#, c-format
-msgid "Cannot create menu item: %s"
-msgstr "Nelze vytvořit položku menu:  %s"
-
-#: ../eina/log.c:236
-msgid "Debug window"
-msgstr "Ladící okno"
-
-#: ../eina/log.c:300
-msgid "Severe errors"
-msgstr "Závažné chyby"
-
-#: ../eina/log.c:301
-msgid "Errors"
-msgstr "Chyby"
-
-#: ../eina/log.c:302
-msgid "Warnings"
-msgstr "Varování"
-
-#: ../eina/log.c:303
-msgid "Information messages"
-msgstr "Informační hlášení"
-
-#: ../eina/log.c:304
-msgid "Debug information"
-msgstr "Ladící informace"
-
-#: ../eina/log.c:305
-msgid "Full debug"
-msgstr "Plné ladění"
-
-#: ../eina/log.c:310
-#, c-format
-msgid "Set level to %s"
-msgstr "Nastavit úroveň %s"
-
-#: ../eina/log.c:406
-msgid "Cannot not shot dialog, it doest exists"
-msgstr "Nelze vytvořit dialog"
-
-#: ../eina/log.c:455
-msgid "Build-in log"
-msgstr "Vestavěný log"
-
-#: ../eina/lomo.c:42
-msgid "Cannot create engine"
+#: ../eina/adb/adb.c:58
+#, fuzzy
+msgid "Cannot register ADB interface"
 msgstr "Nelze vytvořit engine"
 
-#: ../eina/lomo.c:50
-msgid "Cannot share engine"
-msgstr "Nelze sdílet engine"
+#: ../eina/adb/eina-adb.c:185
+#, fuzzy
+msgid "No error message"
+msgstr "Informační hlášení"
 
-#: ../eina/lomo.c:74
-msgid "Cannot destroy engine"
-msgstr "Nelze ukončit engine"
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/lomo.c:111
-msgid "Build-in lomo plugin"
-msgstr "Vestavěný plugin lomo"
-
-#: ../eina/player.c:170
+#: ../eina/adb/eina-adb.c:259
 #, c-format
-msgid "Cannot merge with UI Manager: %s"
+msgid "Error %d in query '%s'"
 msgstr ""
 
-#: ../eina/player.c:388 ../eina/plugins.c:123
+#: ../eina/adb/eina-adb.c:279
+#, fuzzy
+msgid "Cannot begin transaction"
+msgstr "Nelze vytvořit stavovou ikonu"
+
+#: ../eina/adb/eina-adb.c:289
+#, c-format
+msgid "Query %d failed. Query was: %s"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:298
+#, fuzzy
+msgid "Cannot end transaction"
+msgstr "Nelze vytvořit stavovou ikonu"
+
+#: ../eina/adb/eina-adb.c:361
+#, c-format
+msgid "Unhandled type '%s' in %s. Aborting"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:444
+#, c-format
+msgid "Error in query for get variable '%s'"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:451
+#, fuzzy, c-format
+msgid "Error getting variable '%s'"
+msgstr "Chyba nastavování hlasitosti"
+
+#: ../eina/adb/eina-adb.c:470
+#, fuzzy, c-format
+msgid "Error setting variable '%s'='%s'"
+msgstr "Chyba nastavování hlasitosti"
+
+#: ../eina/adb/eina-adb.c:499
+msgid "Cannot finalize query"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:513
+#, c-format
+msgid "Error setting schema version for '%s'=%d"
+msgstr ""
+
+#: ../eina/adb/eina-adb-lomo.c:39
+msgid "Cannot INSERT OR IGNORE"
+msgstr ""
+
+#: ../eina/adb/eina-adb-lomo.c:59
+msgid "Unable to retrieve sid for stream"
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:55
+#, c-format
+msgid "Referenced %s from search '%s' was destroyed."
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:68
+#, c-format
+msgid ""
+"Search '%s' is running at dispose phase, calling callback and expect "
+"problems."
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:157
+#, c-format
+msgid ""
+"Trying to set a bpointer while search '%s' already has a bpointer, this is a "
+"bug. You should set bpointer to NULL before trying to do this."
+msgstr ""
+
+#: ../eina/art/eina-art-search.c:179
+#, c-format
+msgid ""
+"Trying to set a result in search '%s' while it already has one, this is a "
+"bug and will be ignored"
+msgstr ""
+
+#: ../eina/art/eina-art-test-backends.c:68
+#, fuzzy, c-format
+msgid "Unable to compile regex '%s': %s"
+msgstr "Nelze dokončit akci '%s': %s"
+
+#: ../eina/dbus/dbus.c:115 ../eina/player/player.c:269
 #, c-format
 msgid "Unknow action: %s"
 msgstr "Neznámá akce: %s"
 
-#: ../eina/player.c:394
+#: ../eina/dbus/dbus.c:241
+#, c-format
+msgid "DBus server name %s lost"
+msgstr ""
+
+#: ../eina/dock/dock.c:94
+#, c-format
+msgid "Unhandled notify::%s"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:27
+msgid "<big><b>Dock</b></big>"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:523
+msgid "Removing primary tab is not supported"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:610
+#, c-format
+msgid "Unhanded notify::%s"
+msgstr ""
+
+#: ../eina/lastfm/lastfm.c:96
+#, fuzzy
+msgid "Cannot create preferences UI"
+msgstr "Nelze vytvořit engine"
+
+#: ../eina/lastfm/lastfm.c:109
+msgid "Last FM"
+msgstr ""
+
+#: ../eina/lastfm/lastfm.c:158
+#, fuzzy, c-format
+msgid "Cannot create spool folder '%s': %s"
+msgstr "Nemohu vytvořit konfigurační adresář %s"
+
+#: ../eina/lastfm/lastfm.c:182
+#, fuzzy, c-format
+msgid "Cannot spawn daemon (%s): %s"
+msgstr "Nelze načíst '%s': '%s'"
+
+#: ../eina/lastfm/lastfm.c:292
+#, fuzzy, c-format
+msgid "Cannot write spoolfile '%s'"
+msgstr "Zdroj '%s' nenalezen"
+
+#: ../eina/lastfm/lastfm.c:482
+#, fuzzy, c-format
+msgid "Unknow key '%s'"
+msgstr "Neznámá akce: %s"
+
+#: ../eina/lastfm/preferences.ui.h:1
+msgid "<b>Password</b>"
+msgstr ""
+
+#: ../eina/lastfm/preferences.ui.h:2
+msgid "<b>Username</b>"
+msgstr ""
+
+#: ../eina/lastfm/preferences.ui.h:3
+msgid "New to Last FM?, get an account"
+msgstr ""
+
+#: ../eina/lastfm/preferences.ui.h:4
+msgid "Submit played tracks to Last.fm"
+msgstr ""
+
+#: ../eina/lomo/lomo.c:45
+msgid "Cannot create engine"
+msgstr "Nelze vytvořit engine"
+
+#: ../eina/lomo/lomo.c:51
+msgid "Cannot share engine"
+msgstr "Nelze sdílet engine"
+
+#: ../eina/lomo/lomo.c:99
+#, fuzzy, c-format
+msgid "Unable to recover previous playlist: %s"
+msgstr "Nelze dokončit akci '%s': %s"
+
+#: ../eina/lomo/lomo.c:125
+msgid "Cannot destroy engine"
+msgstr "Nelze ukončit engine"
+
+#: ../eina/lomo/lomo.c:144
+#, fuzzy, c-format
+msgid "Can't create dir '%s': %s"
+msgstr "Nelze načíst '%s': '%s'"
+
+#: ../eina/lomo/lomo.c:152
+#, fuzzy, c-format
+msgid "Unble to save playlist: %s"
+msgstr "Smazat seznam skladeb"
+
+#: ../eina/lomo/lomo.c:152
+msgid "Missing parent directory"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:302 ../eina/muine/eina-muine.c:433
+#, fuzzy, c-format
+msgid "Unknow mode: %d"
+msgstr "Neznámá akce: %s"
+
+#: ../eina/muine/eina-muine.c:322
+msgid "Failed to get result row"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:352
+#, c-format
+msgid "Unable to fetch sample URI for %s '%s', query was %s"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:552 ../eina/recently/recently.c:1185
+msgid "Cannot get first iter"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:600
+#, fuzzy
+msgid "Unknow mode"
+msgstr "Neznámá chyba"
+
+#: ../eina/muine/eina-muine.c:608
+#, c-format
+msgid "Unable to build query '%s'"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:650
+msgid "Cannot get iter  for model"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:657
+msgid "NULL result from ADB"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:700
+msgid "Unhandled situation"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:722
+#, fuzzy, c-format
+msgid "Unknow action %s"
+msgstr "Neznámá akce: %s"
+
+#: ../eina/muine/muine.c:38
+msgid "Muine"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:1
+msgid "Group by"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:2
+msgid "album"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:3
+msgid "artist"
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:174
+#, fuzzy
+msgid "Now playing"
+msgstr "Přehrávání:"
+
+#: ../eina/ntfy/ntfy.c:185
+#, c-format
+msgid "Cannot load resource %s. Cover art will be disabled."
+msgstr ""
+
+#: ../eina/ntfy/ntfy.c:248
+msgid "Show notifications"
+msgstr "Zobrazovat upozornění"
+
+#: ../eina/ntfy/ntfy.c:371
+#, fuzzy
+msgid "Playing now"
+msgstr "Přehrávání:"
+
+#: ../eina/ntfy/ntfy.c:460 ../eina/player/player.c:282
+#, c-format
+msgid "Unhanded key '%s'"
+msgstr ""
+
+#: ../eina/player/eina-cover.c:229
+#, c-format
+msgid "Unable to load embed default cover: %s"
+msgstr ""
+
+#: ../eina/player/eina-cover.c:237
+#, fuzzy, c-format
+msgid "Unable to load embed loading cover: %s"
+msgstr "Nelze dokončit akci '%s': %s"
+
+#: ../eina/player/eina-cover.c:471
+#, c-format
+msgid ""
+"Protected object %p is begin destroyed. There is a bug somewhere, set a "
+"breakpoint on %s"
+msgstr ""
+
+#: ../eina/player/eina-cover-image.c:172
+#, fuzzy, c-format
+msgid "Unable to load cover mask: %s"
+msgstr "Nelze dokončit akci '%s': %s"
+
+#: ../eina/player/eina-player.c:227
+#, c-format
+msgid "Action '%s' not found in widget"
+msgstr ""
+
+#: ../eina/player/eina-player.c:392
+msgid "Eina player"
+msgstr ""
+
+#: ../eina/player/eina-player.c:479
+#, fuzzy, c-format
+msgid "Action %s was not handled"
+msgstr "Nelze inicializovat plugin %s"
+
+#: ../eina/player/player.c:53
+msgid "_Add or queue files"
+msgstr ""
+
+#: ../eina/player/player.c:56
+#, fuzzy
+msgid "_Report a bug"
+msgstr "Nahlásit chybu"
+
+#: ../eina/player/player.c:57
+#, fuzzy
+msgid "_About"
+msgstr "O aplikaci"
+
+#.
+#. gtk_box_pack_start (
+#. (GtkBox *) eina_application_get_window_content_area(app),
+#. player,
+#. FALSE, FALSE, 0);
+#. gtk_widget_show_all(player);
+#.
+#: ../eina/player/player.c:99 ../eina/player/player.c:119
+#, fuzzy
+msgid "Player"
+msgstr "Přehrát"
+
+#: ../eina/player/player.c:106
+#, c-format
+msgid "Unable to add UI to window GtkUIManager: '%s'"
+msgstr ""
+
+#: ../eina/player/player.c:168
+msgid ""
+"Eina is free software; you can redistribute it and/or modify it under the "
+"terms of the GNU General Public License as published by the Free Software "
+"Foundation; either version 2 of the License, or (at your option) any later "
+"version.\n"
+"\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
+"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
+"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
+"details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License along with "
+"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+msgstr ""
+"Tento program je svobodný software; můžete jej šířit a modifikovat podle "
+"ustanovení Obecné veřejné licence GNU, vydávané Free Software Foundation; a "
+"to buď verze 2 této licence anebo (podle vašeho uvážení) kterékoli pozdější "
+"verze.\n"
+"Tento program je rozšiřován v naději, že bude užitečný, avšak BEZ JAKÉKOLI "
+"ZÁRUKY; neposkytují se ani odvozené záruky PRODEJNOSTI anebo VHODNOSTI PRO "
+"URČITÝ ÚČEL. Další podrobnosti hledejte ve Obecné veřejné licenci GNU.\n"
+"Kopii Obecné veřejné licence GNU jste měl obdržet spolu s tímto programem; "
+"pokud se tak nestalo, napište o ni Free Software Foundation, Inc., 675 Mass "
+"Ave, Cambridge, MA 02139, USA."
+
+#: ../eina/player/player.c:177
+#, c-format
+msgid "Missing resource: %s"
+msgstr ""
+
+#: ../eina/player/player.c:184
+msgid "A classic player for the modern era"
+msgstr "Klasický přehrávač pro moderní dobu"
+
+#: ../eina/player/player.c:197
+msgid "About Eina"
+msgstr "O aplikaci"
+
+#: ../eina/player/player.c:240
 #, c-format
 msgid "Unable to complete action '%s': %s"
 msgstr "Nelze dokončit akci '%s': %s"
 
-#: ../eina/player.c:603 ../eina/playlist.c:1119
-#, c-format
-msgid "Error on file %s: %s"
-msgstr "Chyba v souborech %s: %s"
+#: ../eina/player/eina-player.ui.h:2
+#, fuzzy, no-c-format
+msgid "<small><tt>%d:%02d</tt></small>"
+msgstr "<small><tt></tt></small>"
 
-#: ../eina/player.c:616
-msgid "Build-in player plugin"
+#: ../eina/player/eina-player.ui.h:4
+#, no-c-format
+msgid ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+msgstr ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+
+#: ../eina/player/preferences.ui.h:1
+msgid "By default new files"
 msgstr ""
 
-#: ../eina/playlist.c:219
-msgid "Cannot init dock widget"
+#: ../eina/player/preferences.ui.h:2
+msgid "Enable cover efects"
 msgstr ""
 
-#: ../eina/playlist.c:235
+#: ../eina/player/preferences.ui.h:3
+msgid "Enable repeat mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:4
+msgid "Enable shuffle mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:5
+msgid ""
+"Show streams' labels (metadata). \n"
+"<small>Only affects new streams</small>"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:7
+msgid "Start playback automatically"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:8
+msgid "are queued at the end of the playlist"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:9
+#, fuzzy
+msgid "replace the current playlist"
+msgstr "Opakovat seznam skladeb"
+
+#: ../eina/playlist/eina-playlist.c:284
+#, fuzzy, c-format
+msgid "Missing object '%s'"
+msgstr "Chybějící metoda %s"
+
+#: ../eina/playlist/eina-playlist.c:292
+#, fuzzy, c-format
+msgid "Missing action '%s'"
+msgstr "Chybějící akce: %s"
+
+#: ../eina/playlist/eina-playlist.c:411
 #, c-format
 msgid "Missing action: %s"
 msgstr "Chybějící akce: %s"
 
-#: ../eina/playlist.c:702
-#, c-format
-msgid "Cannot go to stream #%d: '%s'"
-msgstr ""
-
-#: ../eina/playlist.c:712
-#, c-format
-msgid "Cannot set state to LOMO_STATE_PLAY: '%s'"
-msgstr "Nelze nastavit status LOMO_STATE_PLAY: '%s'"
-
-#: ../eina/playlist.c:1011
-#, c-format
-msgid "Cannot find index for stream %p (%s)"
-msgstr ""
-
-#: ../eina/playlist.c:1019
+#: ../eina/playlist/eina-playlist.c:667 ../eina/playlist/eina-playlist.c:1253
 #, c-format
 msgid "Cannot get iter for index %d"
 msgstr ""
 
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/playlist.c:1526
-msgid "Build-in playlist plugin"
+#: ../eina/playlist/eina-playlist.c:678
+msgid "Stream not in queue"
 msgstr ""
 
-#: ../eina/plugins.c:52
-msgid "Plugins"
-msgstr "Pluginy"
+#: ../eina/playlist/eina-playlist.c:763
+#, fuzzy, c-format
+msgid "Unknow state: %d"
+msgstr "Neznámá akce: %s"
 
-#: ../eina/plugins.c:80
+#: ../eina/playlist/eina-playlist.c:820
+msgid "You must supply an iter _or_ an item"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:830
 #, c-format
-msgid "Cannot merge menu: %s"
+msgid "Cannot get a GtkTreePath from index %d"
 msgstr ""
 
-#: ../eina/plugins.c:136
-msgid "No plugin selected"
+#: ../eina/playlist/eina-playlist.c:874
+#, fuzzy, c-format
+msgid "Unknow column %d"
+msgstr "Neznámá akce: %s"
+
+#: ../eina/playlist/eina-playlist.c:916
+#, c-format
+msgid "Cannot go to stream #%d: '%s'"
 msgstr ""
 
-#: ../eina/plugins.c:158
-msgid "Build-in plugin manager plugin"
+#: ../eina/playlist/eina-playlist.c:926
+#, c-format
+msgid "Cannot set state to LOMO_STATE_PLAY: '%s'"
+msgstr "Nelze nastavit status LOMO_STATE_PLAY: '%s'"
+
+#: ../eina/playlist/eina-playlist.c:1073
+#, c-format
+msgid "Cannot find iter corresponding to index #%d"
 msgstr ""
 
-#: ../eina/preferences.c:67 ../eina/preferences.c:117
+#: ../eina/playlist/eina-playlist.c:1187
+#, fuzzy, c-format
+msgid "Got error on stream %p: %s"
+msgstr "Chyba v souborech %s: %s"
+
+#: ../eina/playlist/eina-playlist.c:1195
+#, c-format
+msgid "Stream %p doest belongs to Player %p"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1204
+#, fuzzy, c-format
+msgid "Cannot get iter for stream %p"
+msgstr "Nelze vytvořit položku menu:  %s"
+
+#: ../eina/playlist/eina-playlist.c:1245
+#, c-format
+msgid "Cannot find index for stream %p (%s)"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.c:1322
+#, fuzzy, c-format
+msgid "Unhandled action %s"
+msgstr "Neznámá akce: %s"
+
+#: ../eina/playlist/playlist.c:45 ../eina/playlist/eina-playlist.ui.h:4
+msgid "Playlist"
+msgstr "Seznam skladeb"
+
+#: ../eina/playlist/eina-playlist.ui.h:1
+msgid "<big><b>There are no files in your playlist</b></big>"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.ui.h:2
+msgid "Add some files"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.ui.h:3
+msgid "Filter"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-dialog.c:111
+msgid "Widget is not on notebook"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:269
+#, fuzzy, c-format
+msgid "Cannot parse UI string: %s"
+msgstr "Nelze načíst UI z %s: %s"
+
+#: ../eina/preferences/eina-preferences-tab.c:279
+msgid "Object 'main-widget' not found in UI string"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:338
+msgid "Invalid GSettings parameter"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:347
+#, fuzzy
+msgid "Invalid parameters"
+msgstr "Neplatné argumenty"
+
+#: ../eina/preferences/eina-preferences-tab.c:371
+#, fuzzy, c-format
+msgid "Missing widget named '%s'"
+msgstr "Chybějící metoda %s"
+
+#: ../eina/preferences/preferences.c:138 ../eina/preferences/preferences.c:158
 msgid "Preferences"
 msgstr "Nastavení"
 
-#: ../eina/preferences.c:180
-msgid "Build-in preferences plugin"
-msgstr ""
-
-#: ../eina/settings.c:46
-#, c-format
-msgid "Cannot create config folder %s"
-msgstr "Nemohu vytvořit konfigurační adresář %s"
-
-#: ../eina/settings.c:77
-msgid "Conf object not found"
-msgstr "Konfigurační objekt nenalezen"
-
-#: ../eina/settings.c:92
-msgid "Build-in settings plugin"
-msgstr "Vestavěný plugin pro nastavení"
-
-#: ../eina/template.c:95
-msgid "Build-in template plugin"
-msgstr ""
-
-#: ../eina/vogon-app.c:398
-#, c-format
-msgid "Cannot find loaded plugin %s"
-msgstr ""
-
-#: ../eina/vogon-app.c:405
-#, c-format
-msgid "Cannot fini plugin %s: %s"
-msgstr ""
-
-#: ../eina/vogon.c:94 ../plugins/recently/recently.c:357
-msgid "Play"
-msgstr "Přehrát"
-
-#: ../eina/vogon.c:95
-msgid "Pause"
-msgstr "Pozastavit"
-
-#: ../eina/vogon.c:96
-msgid "Next"
-msgstr ""
-
-#: ../eina/vogon.c:96
-msgid "Next stream"
-msgstr ""
-
-#: ../eina/vogon.c:97
-msgid "Previous"
-msgstr "Předchozí"
-
-#: ../eina/vogon.c:97
-msgid "Previous stream"
-msgstr ""
-
-#: ../eina/vogon.c:98
-msgid "_Open"
-msgstr "_Otevřít"
-
-#: ../eina/vogon.c:98
-msgid "Add or queue stream(s)"
-msgstr ""
-
-#: ../eina/vogon.c:99
-msgid "C_lear"
-msgstr "Vymazat"
-
-#: ../eina/vogon.c:99
-msgid "Clear playlist"
-msgstr "Smazat seznam skladeb"
-
-#: ../eina/vogon.c:100
-msgid "_Quit"
-msgstr "_Konec"
-
-#: ../eina/vogon.c:100
-msgid "Quit Eina"
-msgstr ""
-
-#: ../eina/vogon.c:103
-msgid "Random"
-msgstr "Náhodně"
-
-#: ../eina/vogon.c:103
-msgid "Random playlist"
-msgstr ""
-
-#: ../eina/vogon.c:104
-msgid "Repeat"
-msgstr "Opakovat"
-
-#: ../eina/vogon.c:104
-msgid "Repeat playlist"
-msgstr "Opakovat seznam skladeb"
-
-#: ../eina/vogon.c:110
-msgid "Gtk+ X11 backend is not supported"
-msgstr ""
-
-#: ../eina/vogon.c:133
-msgid "Cannot create status icon"
-msgstr "Nelze vytvořit stavovou ikonu"
-
-#: ../eina/vogon.c:173
+#: ../eina/preferences/preferences.c:175
 msgid ""
-"Systray implementation is buggy on OSX. You have been warned, dont file any "
-"bugs about this."
+"Cannot get GtkUIManager for main menu, unable to attach preferences menu"
 msgstr ""
 
-#: ../eina/vogon.c:365
-msgid "Build-in systray and notification plugin"
-msgstr ""
+#: ../eina/preferences/preferences.c:182
+#, fuzzy, c-format
+msgid "Cannot attach menu: %s"
+msgstr "Nelze vytvořit položku menu:  %s"
 
-#: ../eina/window.c:35
-msgid "Cannot register EinaWindow object into GelApp"
-msgstr ""
-
-#: ../eina/window.c:57
-msgid "EinaWindow not found in GelApp"
-msgstr ""
-
-#: ../eina/window.c:72
-msgid "Main window plugin"
-msgstr ""
-
-#: ../plugins/adb/adb.c:51
-#, c-format
-msgid "Version mismatch. source:%s runtime:%s"
-msgstr ""
-
-#: ../plugins/adb/adb.c:208
-msgid "Cannot get schema version"
-msgstr ""
-
-#: ../plugins/adb/iface.c:35
-msgid "Cannot access lomo"
-msgstr ""
-
-#: ../plugins/adb/iface.c:44
-msgid "Cannot register ADB object into GelApp"
-msgstr ""
-
-#: ../plugins/adb/iface.c:66
-msgid "Audio database"
-msgstr ""
-
-#: ../plugins/coverplus/iface.c:63
-msgid "Art object not found"
-msgstr ""
-
-#: ../plugins/coverplus/iface.c:118
-msgid "Enhace your covers"
-msgstr ""
-
-#: ../plugins/coverplus/iface.c:119
+#: ../eina/preferences/preferences.c:199
 msgid ""
-"Brings Eina several simple but fundamental cover providers like:\n"
-"· In-folder cover discover\n"
-"· Banshee (on Linux) covers"
+"Cannot get GtkUIManager for main menu, unable to deattach preferences menu"
 msgstr ""
 
-#: ../plugins/fieshta/fieshta.c:99
-msgid "Fieshta"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:103
-msgid "Set fieshta mode"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:338
-msgid "Party plugin"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:92
-msgid "Cannot get settings object"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:171 ../plugins/ntfy/ntfy.c:173
-msgid "Playing:"
-msgstr "Přehrávání:"
-
-#: ../plugins/ntfy/ntfy.c:238
-msgid "Show notifications"
-msgstr "Zobrazovat upozornění"
-
-#: ../plugins/ntfy/ntfy.c:392
-msgid "Notifications plugin"
-msgstr ""
-
-#: ../plugins/recently/recently.c:215
+#: ../eina/recently/recently.c:221
 msgid "Unable to find matching row for search"
 msgstr ""
 
-#: ../plugins/recently/recently.c:231
+#: ../eina/recently/recently.c:237
 msgid "Cannot get resource cover-default.png"
 msgstr ""
 
-#: ../plugins/recently/recently.c:239
+#: ../eina/recently/recently.c:245
 #, c-format
 msgid "Cannot load pixbuf from %s: %s"
 msgstr ""
 
-#: ../plugins/recently/recently.c:264
+#: ../eina/recently/recently.c:270
 msgid "Monday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:265
+#: ../eina/recently/recently.c:271
 msgid "Tuesday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:266
+#: ../eina/recently/recently.c:272
 msgid "Wednesday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:267
+#: ../eina/recently/recently.c:273
 msgid "Thursday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:268
+#: ../eina/recently/recently.c:274
 msgid "Saturday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:269
+#: ../eina/recently/recently.c:275
 msgid "Sunday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:274
+#: ../eina/recently/recently.c:280
 msgid "Today"
 msgstr ""
 
-#: ../plugins/recently/recently.c:276
+#: ../eina/recently/recently.c:282
 msgid "Yesterday"
 msgstr ""
 
-#: ../plugins/recently/recently.c:286
+#: ../eina/recently/recently.c:292
 msgid "More than 7 days ago"
 msgstr ""
 
-#: ../plugins/recently/recently.c:288
+#: ../eina/recently/recently.c:294
 msgid "More than a month ago"
 msgstr ""
 
-#: ../plugins/recently/recently.c:290
+#: ../eina/recently/recently.c:296
 msgid "More than a year ago"
 msgstr ""
 
-#: ../plugins/recently/recently.c:307
+#: ../eina/recently/recently.c:312
 #, c-format
 msgid "Cannot load ui from %s: %s"
 msgstr ""
 
-#: ../plugins/recently/recently.c:340
+#: ../eina/recently/recently.c:345
 msgid "Timestamp"
 msgstr ""
 
-#: ../plugins/recently/recently.c:347
+#: ../eina/recently/recently.c:352
 msgid "Cover"
 msgstr ""
 
-#: ../plugins/recently/recently.c:352
+#: ../eina/recently/recently.c:357
 msgid "Title"
 msgstr ""
 
-#: ../plugins/recently/recently.c:362
+#: ../eina/recently/recently.c:362 ../eina/statusicon/statusicon.c:81
+msgid "Play"
+msgstr "Přehrát"
+
+#: ../eina/recently/recently.c:367
 msgid "Enqueue"
 msgstr ""
 
-#: ../plugins/recently/recently.c:367
+#: ../eina/recently/recently.c:372
 msgid "Delete"
 msgstr ""
 
-#: ../plugins/recently/recently.c:805
+#: ../eina/recently/recently.c:810
 msgid ", "
 msgstr ""
 
-#: ../plugins/recently/recently.c:807
+#: ../eina/recently/recently.c:812
 msgid " and "
 msgstr ""
 
-#: ../plugins/recently/recently.c:883
+#: ../eina/recently/recently.c:888
 #, c-format
 msgid "Error %d with query %s: %s"
 msgstr ""
 
-#: ../plugins/recently/recently.c:923
+#: ../eina/recently/recently.c:928
 #, c-format
 msgid "Cannot prepare query %s: (%d) %s"
 msgstr ""
 
-#: ../plugins/recently/recently.c:997
+#: ../eina/recently/recently.c:1000
 #, c-format
 msgid "Cannot prepare query %s: %s"
 msgstr ""
 
-#: ../plugins/recently/recently.c:1013
+#: ../eina/recently/recently.c:1016
 #, c-format
 msgid ""
-"<b>%s (Artist)</b>\n"
+"<b>%s (EinaArtist)</b>\n"
 " %d matches"
 msgstr ""
 
-#: ../plugins/recently/recently.c:1016
+#: ../eina/recently/recently.c:1019
 #, c-format
 msgid ""
 "<b>%s (Album)</b>\n"
 " %d matches"
 msgstr ""
 
-#: ../plugins/recently/recently.c:1019
+#: ../eina/recently/recently.c:1022
 #, c-format
 msgid "<b>%s</b>\n"
 msgstr ""
 
-#: ../plugins/recently/recently.c:1182
-msgid "Cannot get first iter"
+#: ../eina/recently/recently.c:1214
+msgid "Cannot fetch EinaAdb object"
 msgstr ""
 
-#: ../plugins/recently/recently.c:1211
-msgid "Cannot fetch Adb object"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1250
-msgid "Stores your recent playlists"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1251
-msgid "Recently plugin. ADB based version"
-msgstr ""
-
-#: ../ui/dock.ui.h:1
-msgid "\t"
-msgstr "\t"
-
-#: ../ui/dock.ui.h:2
-msgid "Dock"
-msgstr "Dok"
-
-#: ../ui/log.ui.h:1
-msgid "<b>Log level:</b> "
-msgstr "<b>Úroveň logování:</b> "
-
-#: ../ui/log.ui.h:2
-msgid "gtk-clear"
-msgstr "gtk-clear"
-
-#: ../ui/log.ui.h:3
-msgid "gtk-close"
-msgstr "gtk-close"
-
-#: ../ui/log.ui.h:4 ../ui/plugins.ui.h:15
-msgid "label"
-msgstr "label"
-
-#: ../ui/player-preferences.ui.h:1
-msgid "<b>Information format</b>"
-msgstr "<b>Formát zobrazení</b>"
-
-#: ../ui/player-preferences.ui.h:2
-msgid "Custom format:"
-msgstr "Uživatelský formát"
-
-#: ../ui/player-preferences.ui.h:3
-msgid "More info about Pango markup language"
-msgstr "Více informací o značkovacím jazyku Pango"
-
-#: ../ui/player-preferences.ui.h:5
-#, no-c-format
-msgid ""
-"This format uses the pango markup, follow next link to learn about it.\n"
-"\n"
-"The following 'tags' can be used: %a for artist, %b for album, %t for title "
-"and %n for track number.\n"
-"\n"
-"Embracing any text with curly brackets makes it optional, disapearing if no "
-"matches for its content is found.\n"
-msgstr ""
-"Tento formát používa značky Pango. Více informací viz následující odkaz.\n"
-"\n"
-"Jsou povoleny následující hnačky: %a - autor, %b - album, %t název skladby, "
-"%n - číslo skladby.\n"
-"\n"
-"Uzavření do složených závorek způsobí vypuštění hodnoty pokud je prázdná.\n"
-
-#: ../ui/player.ui.h:1
-msgid "<small><tt></tt></small>"
-msgstr "<small><tt></tt></small>"
-
-#: ../ui/player.ui.h:3
-#, no-c-format
-msgid ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
-msgstr ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
-
-#: ../ui/playlist.ui.h:1
-msgid "Filter"
-msgstr ""
-
-#: ../ui/playlist.ui.h:2
-msgid "Playlist"
-msgstr "Seznam skladeb"
-
-#: ../ui/plugins.ui.h:2
-#, no-c-format
-msgid "%s"
-msgstr ""
-
-#: ../ui/plugins.ui.h:3
-msgid "<b>Description</b>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:4
-msgid "<b>Filename</b>"
-msgstr ""
-
-#: ../ui/plugins.ui.h:6
-#, no-c-format
-msgid ""
-"<big><b>%s</b></big>\n"
-"%s"
-msgstr ""
-
-#: ../ui/plugins.ui.h:8
-msgid ""
-"<big><b>No plugins available</b></big>\n"
-"\n"
-"There are no plugins instaled on your system"
-msgstr ""
-
-#: ../ui/plugins.ui.h:11
-msgid "Contact"
-msgstr ""
-
-#: ../ui/plugins.ui.h:12
-msgid "Eina plugins"
-msgstr ""
-
-#: ../ui/plugins.ui.h:13
-msgid "Show internal plugins"
-msgstr ""
-
-#: ../ui/plugins.ui.h:14
-msgid "Website"
-msgstr ""
-
-#: ../ui/plugins.ui.h:16 ../plugins/recently/dock.ui.h:5
-msgid "page 1"
-msgstr ""
-
-#: ../ui/plugins.ui.h:17 ../plugins/recently/dock.ui.h:6
-msgid "page 2"
-msgstr ""
-
-#: ../plugins/lastfm/lastfm.ui.h:1
-msgid "<b>Password</b>"
-msgstr ""
-
-#: ../plugins/lastfm/lastfm.ui.h:2
-msgid "<b>Username</b>"
-msgstr ""
-
-#: ../plugins/lastfm/lastfm.ui.h:3
-msgid "<big><b>Last FM configuration</b></big>"
-msgstr ""
-
-#: ../plugins/lastfm/lastfm.ui.h:4
-msgid "New to Last FM?, get an account"
-msgstr ""
-
-#: ../plugins/lastfm/lastfm.ui.h:5
-msgid "Submit played tracks to Last.fm"
-msgstr ""
-
-#: ../plugins/recently/dock.ui.h:1
+#: ../eina/recently/dock.ui.h:1
 msgid "<b>Search</b>"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:2
+#: ../eina/recently/dock.ui.h:2
 msgid "<span color=\"#666\">Type at least 3 characters</span>"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:3
+#: ../eina/recently/dock.ui.h:3
 msgid ""
 "Here you can find your previous playlist and reload or search over them.\n"
 "It seems you dont listen anything, so, there is nothing to see, come back "
 "later"
 msgstr ""
 
-#: ../plugins/recently/dock.ui.h:7
+#: ../eina/recently/dock.ui.h:5
+msgid "page 1"
+msgstr ""
+
+#: ../eina/recently/dock.ui.h:6
+msgid "page 2"
+msgstr ""
+
+#: ../eina/recently/dock.ui.h:7
 msgid "page 3"
 msgstr ""
 
-#~ msgid ""
-#~ "Copyright &#xA9; 2003-2008 xuzo\n"
-#~ "Copyright &#xA9; 2003-2005 xuzo and eru"
-#~ msgstr ""
-#~ "Copyright &#xA9; 2003-2008 xuzo\n"
-#~ "Copyright &#xA9; 2003-2005 xuzo and eru"
+#: ../eina/statusicon/statusicon.c:79
+#, fuzzy
+msgid "Show Eina"
+msgstr "O aplikaci"
+
+#: ../eina/statusicon/statusicon.c:80
+msgid "Hide Eina"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:82
+msgid "Pause"
+msgstr "Pozastavit"
+
+#: ../eina/statusicon/statusicon.c:83
+msgid "Next"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:83
+msgid "Next stream"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:84
+msgid "Previous"
+msgstr "Předchozí"
+
+#: ../eina/statusicon/statusicon.c:84
+msgid "Previous stream"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:85
+msgid "_Open"
+msgstr "_Otevřít"
+
+#: ../eina/statusicon/statusicon.c:85
+msgid "Add or queue stream(s)"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:86
+msgid "C_lear"
+msgstr "Vymazat"
+
+#: ../eina/statusicon/statusicon.c:86
+msgid "Clear playlist"
+msgstr "Smazat seznam skladeb"
+
+#: ../eina/statusicon/statusicon.c:87
+msgid "_Quit"
+msgstr "_Konec"
+
+#: ../eina/statusicon/statusicon.c:87
+msgid "Quit Eina"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:91
+msgid "Random"
+msgstr "Náhodně"
+
+#: ../eina/statusicon/statusicon.c:91
+msgid "Random playlist"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:92
+msgid "Repeat"
+msgstr "Opakovat"
+
+#: ../eina/statusicon/statusicon.c:92
+msgid "Repeat playlist"
+msgstr "Opakovat seznam skladeb"
+
+#: ../eina/statusicon/statusicon.c:126
+msgid "Gtk+ X11 backend is not supported"
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:136
+msgid "Cannot create status icon"
+msgstr "Nelze vytvořit stavovou ikonu"
+
+#: ../eina/statusicon/statusicon.c:180
+msgid ""
+"Systray implementation is buggy on OSX. You have been warned, dont file any "
+"bugs about this."
+msgstr ""
+
+#: ../eina/statusicon/statusicon.c:306
+#, fuzzy, c-format
+msgid "Error invoking action '%s': %s"
+msgstr "Chyba v souborech %s: %s"
+
+#~ msgid "  %s (usage:%d enabled:%d locked:%d %s)"
+#~ msgstr "  %s (využití:%d povoleno:%d uzamčeno:%d %s)"
+
+#~ msgid "Dependency %s for plugin %s not found"
+#~ msgstr "Závislost %s pluginu %s nenalezena"
+
+#~ msgid "Cannot find symbol %s in %s"
+#~ msgstr "Nelze nalézt symbol %s v %s"
+
+#~ msgid "Plugin %s created"
+#~ msgstr "Plugin %s vytvořen"
+
+#~ msgid "Plugin %s is still enabled"
+#~ msgstr "Plugin %s je stále povolen"
+
+#~ msgid "none"
+#~ msgstr "nic"
+
+#~ msgid "Plugin %s already initialized"
+#~ msgstr "Plugin %s již byl zinicializován"
+
+#~ msgid "Cannot init plugin %s, unknow reason"
+#~ msgstr "Nelze spustit plugin %s, neznámá příčina"
+
+#~ msgid "Plugin %s initialized"
+#~ msgstr "Plugin %s inicializován"
+
+#~ msgid "Cannot finalize plugin %s: unknow reason"
+#~ msgstr "Nelze ukončit plugin %s: neznámá příčina"
+
+#~ msgid "Plugin %s finalized"
+#~ msgstr "Plugin %s ukončen"
+
+#~ msgid "No name"
+#~ msgstr "Bez názvu"
+
+#~ msgid "No description"
+#~ msgstr "Bez popisu"
+
+#~ msgid "No more information"
+#~ msgstr "Žádné další informace"
+
+#~ msgid "No dependencies"
+#~ msgstr "Bez závislostí"
+
+#~ msgid "Not all required widgets are valids"
+#~ msgstr "Některé požadované widgety nejsou validní"
+
+#~ msgid "Debug window"
+#~ msgstr "Ladící okno"
+
+#~ msgid "Severe errors"
+#~ msgstr "Závažné chyby"
+
+#~ msgid "Errors"
+#~ msgstr "Chyby"
+
+#~ msgid "Warnings"
+#~ msgstr "Varování"
+
+#~ msgid "Debug information"
+#~ msgstr "Ladící informace"
+
+#~ msgid "Full debug"
+#~ msgstr "Plné ladění"
+
+#~ msgid "Set level to %s"
+#~ msgstr "Nastavit úroveň %s"
+
+#~ msgid "Cannot not shot dialog, it doest exists"
+#~ msgstr "Nelze vytvořit dialog"
+
+#~ msgid "Build-in log"
+#~ msgstr "Vestavěný log"
+
+#~ msgid "Build-in lomo plugin"
+#~ msgstr "Vestavěný plugin lomo"
+
+#~ msgid "Conf object not found"
+#~ msgstr "Konfigurační objekt nenalezen"
+
+#~ msgid "Build-in settings plugin"
+#~ msgstr "Vestavěný plugin pro nastavení"
+
+#~ msgid "\t"
+#~ msgstr "\t"
+
+#~ msgid "Dock"
+#~ msgstr "Dok"
+
+#~ msgid "<b>Log level:</b> "
+#~ msgstr "<b>Úroveň logování:</b> "
+
+#~ msgid "gtk-clear"
+#~ msgstr "gtk-clear"
+
+#~ msgid "gtk-close"
+#~ msgstr "gtk-close"
+
+#~ msgid "label"
+#~ msgstr "label"
+
+#~ msgid "<b>Information format</b>"
+#~ msgstr "<b>Formát zobrazení</b>"
+
+#~ msgid "Custom format:"
+#~ msgstr "Uživatelský formát"
+
+#~ msgid "More info about Pango markup language"
+#~ msgstr "Více informací o značkovacím jazyku Pango"
 
 #~ msgid ""
-#~ "Eina is free software; you can redistribute it and/or modify it under the "
-#~ "terms of the GNU General Public License as published by the Free Software "
-#~ "Foundation; either version 2 of the License, or (at your option) any later "
-#~ "version.\n"
+#~ "This format uses the pango markup, follow next link to learn about it.\n"
 #~ "\n"
-#~ "Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
-#~ "WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
-#~ "FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
-#~ "details.\n"
+#~ "The following 'tags' can be used: %a for artist, %b for album, %t for "
+#~ "title and %n for track number.\n"
 #~ "\n"
-#~ "You should have received a copy of the GNU General Public License along with "
-#~ "Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
-#~ "Street, Fifth Floor, Boston, MA 02110-1301, USA."
+#~ "Embracing any text with curly brackets makes it optional, disapearing if "
+#~ "no matches for its content is found.\n"
 #~ msgstr ""
-#~ "Tento program je svobodný software; můžete jej šířit a modifikovat podle "
-#~ "ustanovení Obecné veřejné licence GNU, vydávané Free Software Foundation; a "
-#~ "to buď verze 2 této licence anebo (podle vašeho uvážení) kterékoli pozdější "
-#~ "verze.\n"
-#~ "Tento program je rozšiřován v naději, že bude užitečný, avšak BEZ JAKÉKOLI "
-#~ "ZÁRUKY; neposkytují se ani odvozené záruky PRODEJNOSTI anebo VHODNOSTI PRO "
-#~ "URČITÝ ÚČEL. Další podrobnosti hledejte ve Obecné veřejné licenci GNU.\n"
-#~ "Kopii Obecné veřejné licence GNU jste měl obdržet spolu s tímto programem; "
-#~ "pokud se tak nestalo, napište o ni Free Software Foundation, Inc., 675 Mass "
-#~ "Ave, Cambridge, MA 02139, USA."
+#~ "Tento formát používa značky Pango. Více informací viz následující odkaz.\n"
+#~ "\n"
+#~ "Jsou povoleny následující hnačky: %a - autor, %b - album, %t název "
+#~ "skladby, %n - číslo skladby.\n"
+#~ "\n"
+#~ "Uzavření do složených závorek způsobí vypuštění hodnoty pokud je "
+#~ "prázdná.\n"
+
+#~ msgid ""
+#~ "Copyright &#xA9; 2003-2008 xuzo\n"
+#~ "Copyright &#xA9; 2003-2005 xuzo and eru"
+#~ msgstr ""
+#~ "Copyright &#xA9; 2003-2008 xuzo\n"
+#~ "Copyright &#xA9; 2003-2005 xuzo and eru"
 
 #~ msgid "None yet :)"
 #~ msgstr "Zatím nic ;-)"
