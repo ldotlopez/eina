@@ -37,7 +37,7 @@ eina_LDFLAGS = \
 	@EINA_LIBS@ \
 	-L$(top_builddir)/gel/.libs  \
 	-L$(top_builddir)/lomo/.libs \
-	-lgel-1.0 -lgel-ui-1.0 -llomo-1.1
+	-lgel-@GEL_API_VERSION@ -lgel-ui-@GEL_API_VERSION@ -llomo-@LOMO_API_VERSION@
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS = \

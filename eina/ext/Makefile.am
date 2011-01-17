@@ -2,7 +2,7 @@ include $(top_srcdir)/build/Makefile.am.common
 
 noinst_LTLIBRARIES = libeinaext.la
 
-libeinaext_la_LDFLAGS = @EINA_LIBS@ -L$(top_builddir)/gel/.libs -L$(top_builddir)/lomo/.libs -lgel-ui-1.0 -llomo-1.0
+libeinaext_la_LDFLAGS = @EINA_LIBS@ -L$(top_builddir)/gel/.libs -L$(top_builddir)/lomo/.libs -lgel-ui-@GEL_API_VERSION@ -llomo-@LOMO_API_VERSION@
 libeinaext_la_CFLAGS = @EINA_CFLAGS@
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 include_HEADERS = \
