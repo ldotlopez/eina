@@ -1,0 +1,6 @@
+Name: GelUI
+Description: Gtk+-@GTK_API_VERSION@ Extensions Library
+Version: @GEL_VERSION@
+Requires: gtk+-@GTK_API_VERSION@
+Libs: ${pc_top_builddir}/gel/libgel-ui-@GEL_API_VERSION@.la
+Cflags: -I${pc_top_builddir}

@@ -8,7 +8,7 @@ libgel_1_0_la_LDFLAGS = -export-dynamic -version-info 1:0:0 -export-dynamic @GLI
 libgel_ui_1_0_la_CFLAGS  = -DGEL_UI_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@
 libgel_ui_1_0_la_LDFLAGS = $(libgel_1_0_la_LDFLAGS) @GTK_LIBS@
 
-common_includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/gel
+common_includedir = $(prefix)/include/gel-@GEL_API_VERSION@/gel
 
 libgel_includedir = $(common_includedir)
 libgel_include_HEADERS = \
@@ -31,7 +31,7 @@ libgel_ui_include_HEADERS = \
 	gel-ui-plugin-manager.h \
 	gel-ui-utils.h
 
-common_geldir = $(prefix)/$(libdir)
+common_geldir = $(libdir)/gel-@GEL_API_VERSION@
 
 libgeldir = $(common_geldir)
 libgel_1_0_la_SOURCES = \

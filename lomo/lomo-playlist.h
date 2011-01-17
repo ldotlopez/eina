@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOMO_PLAYLIST_H__
-#define __LOMO_PLAYLIST_H__
+#ifndef _LOMO_PLAYLIST
+#define _LOMO_PLAYLIST
 
 #include <glib.h>
 #include <lomo/lomo-stream.h>

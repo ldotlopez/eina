@@ -23,6 +23,18 @@
 #include <gst/gst.h>
 
 /**
+ * lomo_init:
+ * @argc: (inout) (transfer none): argc from main()
+ * @argv: (inout) (transfer none): argv from main()
+ *
+ * Initializes liblomo
+ **/
+void lomo_init(gint* argc, gchar ***argv)
+{
+	gst_init(argc, argv);
+}
+
+/**
  * lomo_format_to_gst:
  * @format: input format
  * @gst_format: (out): ouput format
@@ -122,7 +134,7 @@ lomo_state_from_gst(GstState state, LomoState *lomo_state)
 }
 
 /**
- * gst_state_to_str:
+ * gst_state_to_str: (skip)
  * @state: #GstState state
  *
  * Returns the string corresponding to the @state
@@ -150,7 +162,7 @@ gst_state_to_str(GstState state)
 }
 
 /**
- * gst_state_change_return_to_str:
+ * gst_state_change_return_to_str: (skip)
  * @s: #GstStateChangeReturn state
  *
  * Returns the string corresponding to the @s

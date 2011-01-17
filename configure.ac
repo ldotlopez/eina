@@ -28,6 +28,28 @@ EINA_CODENAME_0_9_2="Pagan poetry"        # Björk
 EINA_CODENAME_0_9_1="In muine we believe" #
 EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 
+GEL_MAJOR=1
+GEL_MINOR=0
+GEL_MICRO=0
+GEL_API_VERSION="$GEL_MAJOR.$GEL_MINOR"
+GEL_VERSION="$GEL_API_VERSION.$GEL_MICRO"
+AC_SUBST(GEL_API_VERSION)
+AC_SUBST(GEL_VERSION)
+AC_SUBST(GEL_MAJOR)
+AC_SUBST(GEL_MINOR)
+AC_SUBST(GEL_MICRO)
+
+LOMO_MAJOR=1
+LOMO_MINOR=1
+LOMO_MICRO=0
+LOMO_API_VERSION="$LOMO_MAJOR.$LOMO_MINOR"
+LOMO_VERSION="$LOMO_API_VERSION.$LOMO_MICRO"
+AC_SUBST(LOMO_API_VERSION)
+AC_SUBST(LOMO_VERSION)
+AC_SUBST(LOMO_MAJOR)
+AC_SUBST(LOMO_MINOR)
+AC_SUBST(LOMO_MICRO)
+
 AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
 AC_DEFINE_UNQUOTED(EINA_API_VERSION,"$EINA_API_VERSION", [Eina API version])
 
@@ -53,6 +75,9 @@ dnl aclocal flags
 AC_CONFIG_MACRO_DIR([m4])
 # ACLOCAL_AMFLAGS="-I build/m4 ${ACLOCAL_FLAGS}"
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+
+dnl pkgconfig
+PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$top_builddir/data"
 
 # Introspection
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
@@ -163,27 +188,35 @@ COMMON_CFLAGS="\
 	-Wall -Werror -std=c99 $DEBUG_CFLAGS \
 	"
 
+GLIB_API_VERSION="2.0"
+GTK_API_VERSION="3.0"
+GST_API_VERSION="0.10"
+
 GLIB_VERSION="2.25.9"
 GTK_VERSION="2.91.1"
-GSTREAMER_VERSION="0.10"
+GST_VERSION="$GST_API_VERSION.0"
 glib_modules="\
-	glib-2.0 >= $GLIB_VERSION,    \
-	gobject-2.0 >= $GLIB_VERSION, \
-	gmodule-2.0 >= $GLIB_VERSION, \
-	gio-2.0 >= $GLIB_VERSION      \
+	glib-$GLIB_API_VERSION >= $GLIB_VERSION,    \
+	gobject-$GLIB_API_VERSION >= $GLIB_VERSION, \
+	gmodule-$GLIB_API_VERSION >= $GLIB_VERSION, \
+	gio-$GLIB_API_VERSION >= $GLIB_VERSION      \
 	"
 gtk_modules="\
-	gtk+-3.0 >= $GTK_VERSION \
+	gtk+-$GTK_API_VERSION >= $GTK_VERSION \
 	"
-gstreamer_modules="\
-	gstreamer-0.10 >= $GSTREAMER_VERSION \
+gst_modules="\
+	gstreamer-0.10 >= $GST_VERSION \
 	"
-PKG_CHECK_MODULES(GLIB,      $glib_modules)
-PKG_CHECK_MODULES(GTK,       $gtk_modules)
-PKG_CHECK_MODULES(GSTREAMER, $gstreamer_modules)
+PKG_CHECK_MODULES(GLIB, $glib_modules)
+PKG_CHECK_MODULES(GTK,  $gtk_modules)
+PKG_CHECK_MODULES(GST,  $gst_modules)
 
 GDK_QUARTZ_BACKEND="`pkg-config --variable=target gdk-3.0`"
 AC_DEFINE([GDK_QUARTZ_BACKEND], [1], [Define if GDK is using the quartz backend])
+
+AC_SUBST(GLIB_API_VERSION)
+AC_SUBST(GTK_API_VERSION)
+AC_SUBST(GST_API_VERSION)
 
 AC_PATH_PROG(CURL_CONFIG, curl-config)
 if test x$CURL_CONFIG = 'x'; then
@@ -199,7 +232,7 @@ AC_SUBST(CURL_LIBS)
 EINA_CFLAGS="\
 	$GLIB_CFLAGS         \
 	$GTK_CFLAGS          \
-	$GSTREAMER_CFLAGS    \
+	$GST_CFLAGS          \
 	$CURL_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
@@ -207,7 +240,7 @@ EINA_CFLAGS="\
 EINA_LIBS="\
 	$GLIB_LIBS      \
 	$GTK_LIBS       \
-	$GSTREAMER_LIBS \
+	$GST_LIBS       \
 	$CURL_LIBS      \
 	$COMMON_LIBS    \
 	$EXPERIMENTAL_LIBS  \
@@ -220,14 +253,14 @@ GTK_CFLAGS+=" $COMMON_CFLAGS"
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
-GSTREAMER_CFLAGS+=" $COMMON_CFLAGS"
-AC_SUBST(GSTREAMER_CFLAGS)
-AC_SUBST(GSTREAMER_LIBS)
+GST_CFLAGS+=" $COMMON_CFLAGS"
+AC_SUBST(GST_CFLAGS)
+AC_SUBST(GST_LIBS)
 
 # EINA_LIBS="--as-needed $EINA_LIBS"
 
 AC_SUBST(GTK_VERSION)
-AC_SUBST(GSTREAMER_VERSION)
+AC_SUBST(GST_VERSION)
 
 GLIB_GSETTINGS
 
@@ -394,7 +427,13 @@ build/Makefile
 bundle/build
 bundle/Info.plist
 data/eina.desktop
-data/eina.pc
+data/gel-${GEL_API_VERSION}.pc
+data/gel-${GEL_API_VERSION}-uninstalled.pc
+data/gel-ui-${GEL_API_VERSION}.pc
+data/gel-ui-${GEL_API_VERSION}-uninstalled.pc
+data/lomo-${LOMO_API_VERSION}.pc
+data/lomo-${LOMO_API_VERSION}-uninstalled.pc
+data/eina-${EINA_API_VERSION}.pc
 data/net.sourceforge.eina.gschema.xml.in
 gel/Makefile
 lomo/Makefile
@@ -404,6 +443,7 @@ eina/adb/Makefile
 eina/art/Makefile
 eina/dbus/Makefile
 eina/dock/Makefile
+eina/fieshta/Makefile
 eina/lastfm/Makefile
 eina/lomo/Makefile
 eina/player/Makefile

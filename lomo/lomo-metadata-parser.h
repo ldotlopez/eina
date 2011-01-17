@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_LOMO_METADATA_PARSER_H
-#define _LOMO_LOMO_METADATA_PARSER_H
+#ifndef _LOMO_METADATA_PARSER
+#define _LOMO_METADATA_PARSER
 
 #include <glib-object.h>
 #include <lomo/lomo-stream.h>
@@ -33,6 +33,11 @@ G_BEGIN_DECLS
 #define LOMO_IS_METADATA_PARSER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE  ((klass), LOMO_TYPE_METADATA_PARSER))
 #define LOMO_METADATA_PARSER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS  ((obj), LOMO_TYPE_METADATA_PARSER, LomoMetadataParserClass))
 
+/**
+ * LomoMetadataParserPrivate:
+ *
+ * Private data for LomoMetadataParser
+ **/
 typedef struct _LomoMetadataParserPrivate LomoMetadataParserPrivate;
 
 /**
@@ -83,5 +88,5 @@ void                lomo_metadata_parser_clear(LomoMetadataParser *self);
 
 G_END_DECLS
 
-#endif // __LOMO_METADATA_PARSER_H
+#endif // _LOMO_METADATA_PARSER
 

@@ -19,8 +19,8 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_LOMO_H
-#define _LOMO_LOMO_H
+#ifndef _LOMO
+#define _LOMO
 
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>

@@ -17,43 +17,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOMO_UTIL_H
-#define __LOMO_UTIL_H
+#ifndef _LOMO_UTIL
+#define _LOMO_UTIL
 
 #include <gst/gst.h>
 #include <lomo/lomo-player.h>
 
 G_BEGIN_DECLS
 
+void          lomo_init(gint* argc, gchar ***argv);
+
+gchar    *lomo_create_uri(gchar *str);
+
+gboolean             lomo_format_to_gst(LomoFormat format, GstFormat *gst_format);
+gboolean             lomo_state_to_gst(LomoState state, GstState *gst_state);
+gboolean             lomo_state_from_gst(GstState state, LomoState *lomo_state);
+GstStateChangeReturn lomo_state_change_return_to_gst(GstStateChangeReturn ret);
+
+const gchar *gst_state_to_str(GstState state);
+const gchar *gst_state_change_return_to_str(GstStateChangeReturn s);
+
 /**
- * lomo_nanosecs_to_secs:
+ * LOMO_NANOSECS_TO_SECS:
  * @x: nanoseconds
  *
  * Utility macro to convert nanoseconds to secons
  *
  * Returns: Nanoseconds converted to seconds
  **/
-#define lomo_nanosecs_to_secs(x) ((gint64)(x/1000000000L))
+#define LOMO_NANOSECS_TO_SECS(x) ((gint64)(x/1000000000L))
 
 /**
- * lomo_secs_to_nanosecs:
+ * LOMO_SECS_TO_NANOSECS:
  * @x: Seconds
  *
- * Inverse function of lomo_nanosecs_to_secs()
+ * Inverse function of LOMO_NANOSECS_TO_SECS()
  *
  * Returns: Seconds converted to nanoseconds
  **/
-#define lomo_secs_to_nanosecs(x) ((gint64)(x*1000000000L))
-
-gboolean lomo_format_to_gst(LomoFormat format, GstFormat *gst_format);
-gboolean lomo_state_to_gst(LomoState state, GstState *gst_state);
-gboolean lomo_state_from_gst(GstState state, LomoState *lomo_state);
-GstStateChangeReturn lomo_state_change_return_to_gst(GstStateChangeReturn ret);
-
-const gchar *gst_state_to_str(GstState state);
-const gchar *gst_state_change_return_to_str(GstStateChangeReturn s);
-
-gchar *lomo_create_uri(gchar *str);
+#define LOMO_SECS_TO_NANOSECS(x) ((gint64)(x*1000000000L))
 
 G_END_DECLS
 

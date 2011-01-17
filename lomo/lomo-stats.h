@@ -19,6 +19,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _LOMO_STATS
+#define _LOMO_STATS
+
 #include <lomo/lomo-player.h>
 
 /**
@@ -33,4 +36,4 @@ gint64 lomo_stats_get_time_played(LomoStats *self);
 LomoStats* lomo_stats_watch  (LomoPlayer *player);
 void       lomo_stats_destroy(LomoStats *stats);
 
-
+#endif

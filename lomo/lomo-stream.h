@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_STREAM_H
-#define _LOMO_STREAM_H
+#ifndef _LOMO_STREAM
+#define _LOMO_STREAM
 
 #include <glib-object.h>
 

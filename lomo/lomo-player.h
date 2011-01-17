@@ -28,20 +28,11 @@ G_BEGIN_DECLS
 
 #define LOMO_TYPE_PLAYER lomo_player_get_type()
 
-#define LOMO_PLAYER(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_PLAYER, LomoPlayer))
-
-#define LOMO_PLAYER_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), LOMO_TYPE_PLAYER, LomoPlayerClass))
-
-#define LOMO_IS_PLAYER(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_PLAYER))
-
-#define LOMO_IS_PLAYER_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), LOMO_TYPE_PLAYER))
-
-#define LOMO_PLAYER_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_PLAYER, LomoPlayerClass))
+#define LOMO_PLAYER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_PLAYER, LomoPlayer)) 
+#define LOMO_PLAYER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST  ((klass), LOMO_TYPE_PLAYER, LomoPlayerClass)) 
+#define LOMO_IS_PLAYER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_PLAYER)) 
+#define LOMO_IS_PLAYER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE  ((klass), LOMO_TYPE_PLAYER)) 
+#define LOMO_PLAYER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS  ((obj), LOMO_TYPE_PLAYER, LomoPlayerClass))
 
 typedef struct {
 	GObject parent;
@@ -73,7 +64,12 @@ typedef struct {
 	void (*all_tags)    (LomoPlayer *self, LomoStream *stream);
 } LomoPlayerClass;
 
-typedef struct _LomoPlayerVTable {
+/**
+ * LomoPlayerVTable:
+ *
+ * Override default methods from #LomoPlayer
+ **/
+typedef struct {
 	GstElement* (*create_pipeline)  (const gchar *uri, GHashTable *opts);
 	void        (*destroy_pipeline) (GstElement *pipeline);
 
@@ -94,8 +90,20 @@ typedef struct _LomoPlayerVTable {
 	gboolean (*get_mute) (GstElement *pipeline);
 } LomoPlayerVTable;
 
-/* LomoPlayer errors */
-enum {
+/**
+ * LomoPlayerErrorCode:
+ * @LOMO_PLAYER_NO_ERROR: No error
+ * @LOMO_PLAYER_ERROR_MISSING_METHOD: Method is not implemented
+ * @LOMO_PLAYER_ERROR_CREATE_PIPELINE: Pipeline cannot be created
+ * @LOMO_PLAYER_ERROR_MISSING_PIPELINE: Pipeline is missing
+ * @LOMO_PLAYER_ERROR_SET_STATE: State cannot be set
+ * @LOMO_PLAYER_ERROR_CANNOT_DEQUEUE: Stream cannot be dequeued
+ * @LOMO_PLAYER_ERROR_UNKNOW_STATE: Pipeline's state is unknow
+ * @LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE: Failure in state change
+ * @LOMO_PLAYER_ERROR_NO_STREAM: There is no stream
+ * @LOMO_PLAYER_HOOK_BLOCK: Action was blocked by a hook
+ */
+typedef enum {
 	LOMO_PLAYER_NO_ERROR = 0,
 	LOMO_PLAYER_ERROR_MISSING_METHOD,
 	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
@@ -106,7 +114,7 @@ enum {
 	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
 	LOMO_PLAYER_ERROR_NO_STREAM,
 	LOMO_PLAYER_HOOK_BLOCK
-};
+} LomoPlayerErrorCode;
 
 /**
  * LomoPlayerHookType:
@@ -186,6 +194,18 @@ typedef struct {
 	GError *error;      // error
 } LomoPlayerHookEvent;
 
+/**
+ * LomoPlayerHook:
+ * @self: A #LomoPlayer
+ * @event: The #LomoPlayerHookEvent to handle
+ * @ret: Alternative value for return
+ * @data: User data
+ *
+ * Handles hook events
+ *
+ * Returns: %TRUE if event was handle and stop the default implementation,
+ *          %FALSE if other hooks and default implementation should be called
+ **/
 typedef gboolean(*LomoPlayerHook)(LomoPlayer *self, LomoPlayerHookEvent event, gpointer ret, gpointer data);
 
 /**
@@ -243,24 +263,6 @@ typedef enum {
 
 GType lomo_player_get_type (void);
 
-/**
- * lomo_init:
- * @argc: argc from main()
- * @argv: argv from main()
- *
- * Initializes liblomo
- */
-#define lomo_init(argc,argv)    gst_init(argc,argv)
-
-/**
- * lomo_get_option_group:
- *
- * Gets the default option group for liblomo
- *
- * Returns: a #GOptionGroup
- */
-#define lomo_get_option_group() gst_init_get_option_group()
-
 LomoPlayer* lomo_player_new (gchar *option_name, ...);
 
 gboolean lomo_player_get_auto_parse(LomoPlayer *self);
@@ -282,8 +284,8 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 
 /**
  * lomo_player_play:
- * @p: The #LomoPlayer
- * @error: Location to store error (if any)
+ * @p: (type Lomo.Player): A #LomoPlayer
+ * @error: (type GError): Location to store error (if any)
  *
  * Sets #LOMO_STATE_PLAY (start playback) on @p
  *
@@ -293,8 +295,8 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 
 /**
  * lomo_player_pause:
- * @p: The #LomoPlayer
- * @error: Location to store error (if any)
+ * @p: (type Lomo.Player): A #LomoPlayer
+ * @error: (type GError): Location to store error (if any)
  *
  * Sets #LOMO_STATE_PAUSE (pause playback) on @p
  *
@@ -304,8 +306,8 @@ LomoStateChangeReturn lomo_player_set_state(LomoPlayer *self, LomoState state, G
 
 /**
  * lomo_player_stop:
- * @p: The #LomoPlayer
- * @error: Location to store error (if any)
+ * @p: (type Lomo.Player): A #LomoPlayer
+ * @error: (type GError): Location to store error (if any)
  *
  * Sets #LOMO_STATE_STOP (stop playback) on @p
  *
