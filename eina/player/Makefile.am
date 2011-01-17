@@ -12,7 +12,7 @@ include_HEADERS = \
 	player.h
 
 libplayer_la_CFLAGS  = @EINA_CFLAGS@
-libplayer_la_LDFLAGS = @EINA_LIBS@
+libplayer_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libplayer_la_SOURCES = \
 	$(include_HEADERS) \
 	eina-cover.c       \
@@ -21,16 +21,16 @@ libplayer_la_SOURCES = \
 	eina-player.c      \
 	player.c
 
-plugin_DATA = player.ini
+plugin_DATA = preferences.ui player.ini
 
 eina-cover-default-cover.h: $(top_srcdir)/pixmaps/cover-default.png
-	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_default_png $<  > $@
+	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_default_png $<  > $@
 
 eina-cover-loading-cover.h: $(top_srcdir)/pixmaps/cover-loading.png
-	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_loading_png $<  > $@
+	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_loading_png $<  > $@
 
 eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
-	$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask_png $<  > $@
+	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask_png $<  > $@
 
 png_h_files = \
 	eina-cover-image-mask.h \
@@ -47,4 +47,4 @@ eina_ui2h_ui = eina-player.ui
 eina_ui2h_name = __eina_player_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
-EXTRA_DIST += player.ini
+EXTRA_DIST += $(plugin_DATA) player.ini

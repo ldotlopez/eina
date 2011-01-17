@@ -9,7 +9,7 @@ include_HEADERS = \
 	eina-preferences-tab.h
 
 libpreferences_la_CFLAGS  = @EINA_CFLAGS@
-libpreferences_la_LDFLAGS = @EINA_LIBS@
+libpreferences_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libpreferences_la_SOURCES = \
 	$(include_HEADERS)        \
 	eina-preferences-dialog.c \

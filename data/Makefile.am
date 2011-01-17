@@ -37,4 +37,7 @@ install-am:
 	install -c -m 644 gel-ui-$(GEL_API_VERSION).pc "$(DESTDIR)/$(pkgconfigdir)/gel-ui-$(GEL_API_VERSION).pc"
 	install -c -m 644 lomo-$(LOMO_API_VERSION).pc  "$(DESTDIR)/$(pkgconfigdir)/lomo-$(LOMO_API_VERSION).pc"
 	install -c -m 644 eina-$(EINA_API_VERSION).pc  "$(DESTDIR)/$(pkgconfigdir)/$(PACKAGE)-$(EINA_API_VERSION).pc"
+	
+	test -z "$(DESTDIR)/$(gsettingsdir)" || /bin/mkdir -p "$(DESTDIR)/$(gsettingsdir)"
+	install -c -m 644 net.sourceforge.eina.gschema.xml "$(DESTDIR)/$(gsettingsdir)/net.sourceforge.eina.gschema.xml"
 

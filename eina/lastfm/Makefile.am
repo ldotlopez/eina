@@ -3,15 +3,16 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/lastfm
 plugin_LTLIBRARIES = liblastfm.la
 liblastfm_la_CFLAGS  = @EINA_CFLAGS@
-liblastfm_la_LDFLAGS = @EINA_LIBS@
+liblastfm_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 liblastfm_la_SOURCES = \
+	lastfm-priv.h \
 	lastfm.c
 
 plugin_DATA = \
 	lastfm.ini     \
 	preferences.ui \
 	lastfm.png
-EXTRA_DIST += lastfm.ini
+EXTRA_DIST += $(plugin_DATA) lastfm.ini
 
 
 lastfmsubmitddir = $(plugindir)/lastfmsubmitd

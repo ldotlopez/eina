@@ -1,3 +1,9 @@
+eina-player (0.10.0-0ubuntu1) natty; urgency=low
+
+  * Update for natty and gtk+-3
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 17 Jan 2011 14:24:31 +0100
+
 eina-player (0.9.3-3.1) lucid; urgency=low
 
   * Fix lintian warnings

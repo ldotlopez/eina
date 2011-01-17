@@ -9,7 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 #
 AC_PREREQ(2.63)
 LT_PREREQ([2.2.6])
-AM_INIT_AUTOMAKE([1.10 -Wno-portability])
+AM_INIT_AUTOMAKE([1.10 -Wno-portability foreign])
 IT_PROG_INTLTOOL([0.40.0])
 LT_INIT
 AM_GLIB_GNU_GETTEXT
@@ -79,8 +79,8 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 dnl pkgconfig
 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$top_builddir/data"
 
-# Introspection
-GOBJECT_INTROSPECTION_CHECK([0.6.7])
+# Introspection, disable for now
+# GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
 # checks for programs
@@ -90,12 +90,14 @@ AC_PROG_CC
 AC_PATH_PROG(PKG_CONFIG, pkg-config)
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource)
-AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
+#AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
+AC_PATH_PROG(VALAC, valac)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 
 AC_SUBST(GLIB_GENMARSHAL)
-AC_SUBST(DBUS_BINDING_TOOL)
+#AC_SUBST(DBUS_BINDING_TOOL)
 AC_SUBST(GDK_PIXBUF_CSOURCE)
+
 #
 # checks for libraries
 #
@@ -279,27 +281,27 @@ dnl
 dnl
 dnl Clutter (core, fieshta)
 dnl
-CLUTTER_GTK_VERSION="9.10.0"
-clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
-PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
-[
-	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
-		echo "*** clutter-gtk is not supported on osx (disabling clutter) ***"
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
-		HAVE_CLUTTER_GTK=no
-	else
-		AC_SUBST(CLUTTER_GTK_CFLAGS)
-		AC_SUBST(CLUTTER_GTK_LIBS)
-		HAVE_CLUTTER_GTK=yes
-		EINA_CFLAGS="$EINA_CFLAGS $CLUTTER_GTK_CFLAGS DHAVE_CLUTTER_GTK=1"
-		EINA_LIBS="$EINA_LIBS $CLUTTER_GTK_LIBS"
-	fi
-],
-[
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
-	HAVE_CLUTTER_GTK=no
-])
-AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
+#CLUTTER_GTK_VERSION="9.10.0"
+#clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
+#PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
+#[
+#	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
+#		echo "*** clutter-gtk is not supported on osx (disabling clutter) ***"
+#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
+#		HAVE_CLUTTER_GTK=no
+#	else
+#		AC_SUBST(CLUTTER_GTK_CFLAGS)
+#		AC_SUBST(CLUTTER_GTK_LIBS)
+#		HAVE_CLUTTER_GTK=yes
+#		EINA_CFLAGS="$EINA_CFLAGS $CLUTTER_GTK_CFLAGS DHAVE_CLUTTER_GTK=1"
+#		EINA_LIBS="$EINA_LIBS $CLUTTER_GTK_LIBS"
+#	fi
+#],
+#[
+#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
+#	HAVE_CLUTTER_GTK=no
+#])
+#AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
 dnl
 dnl notify (ntfy)
@@ -344,20 +346,20 @@ fi
 dnl
 dnl dbus-glib (dbus)
 dnl
-DBUS_GLIB_VERSION="0.80"
-dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
-PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
-	[
-		AC_SUBST(DBUS_GLIB_CFLAGS)
-		AC_SUBST(DBUS_GLIB_LIBS)
-		HAVE_DBUS_GLIB=yes
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=1"
-	],
-	[
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=0"
-		HAVE_DBUS_GLIB=no
-	]
-	)
+#DBUS_GLIB_VERSION="0.80"
+#dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
+#PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
+#	[
+#		AC_SUBST(DBUS_GLIB_CFLAGS)
+#		AC_SUBST(DBUS_GLIB_LIBS)
+#		HAVE_DBUS_GLIB=yes
+#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=1"
+#	],
+#	[
+#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=0"
+#		HAVE_DBUS_GLIB=no
+#	]
+#	)
 
 dnl
 dnl sqlite3 (!core, adb)
@@ -389,26 +391,26 @@ fi
 dnl
 dnl uuid (!core, callhome)
 dnl
-UUID_VERSION="1.41.0"
-uuid_modules="uuid >= $UUID_VERSION" 
-PKG_CHECK_MODULES(UUID, $uuid_modules,
-	[
-		HAVE_UUID=yes
-	],
-	[
-		dnl On MacOS X uuid is installed by default but is unreachable by
-		dnl pkg-config. We need to check if uuid/uuid.h is present and asume some things
-		AC_CHECK_HEADER(uuid/uuid.h, [HAVE_UUID=yes], [HAVE_UUID=no])
-	]
-	)
-
-if test x"$HAVE_UUID" = "xyes"; then
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=1"
-	AC_SUBST(UUID_CFLAGS)
-	AC_SUBST(UUID_LIBS)
-else
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=0"
-fi
+#UUID_VERSION="1.41.0"
+#uuid_modules="uuid >= $UUID_VERSION" 
+#PKG_CHECK_MODULES(UUID, $uuid_modules,
+#	[
+#		HAVE_UUID=yes
+#	],
+#	[
+#		dnl On MacOS X uuid is installed by default but is unreachable by
+#		dnl pkg-config. We need to check if uuid/uuid.h is present and asume some things
+#		AC_CHECK_HEADER(uuid/uuid.h, [HAVE_UUID=yes], [HAVE_UUID=no])
+#	]
+#	)
+#
+#if test x"$HAVE_UUID" = "xyes"; then
+#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=1"
+#	AC_SUBST(UUID_CFLAGS)
+#	AC_SUBST(UUID_LIBS)
+#else
+#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=0"
+#fi
 
 dnl
 dnl Conditionals
@@ -417,9 +419,10 @@ AM_CONDITIONAL(GEL_UI_ENABLE_APPLICATION, test "1" = "0")
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
-AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
+#AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
+AM_CONDITIONAL(HAVE_INTROSPECTION, test 1 -eq 0)
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([
