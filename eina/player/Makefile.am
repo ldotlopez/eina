@@ -21,7 +21,7 @@ libplayer_la_SOURCES = \
 	eina-player.c      \
 	player.c
 
-plugin_DATA = player.ini
+plugin_DATA = preferences.ui player.ini
 
 eina-cover-default-cover.h: $(top_srcdir)/pixmaps/cover-default.png
 	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_default_png $<  > $@
@@ -47,4 +47,4 @@ eina_ui2h_ui = eina-player.ui
 eina_ui2h_name = __eina_player_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
-EXTRA_DIST += player.ini
+EXTRA_DIST += $(plugin_DATA) player.ini

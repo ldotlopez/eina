@@ -8,6 +8,7 @@ libmuine_la_SOURCES = \
 	eina-muine.c    \
 	eina-muine.h    \
 	eina-muine-ui.h \
+	muine.h         \
 	muine.c
 
 plugin_DATA = \

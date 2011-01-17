@@ -248,27 +248,27 @@ dnl
 dnl
 dnl Clutter (core, fieshta)
 dnl
-CLUTTER_GTK_VERSION="9.10.0"
-clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
-PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
-[
-	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
-		echo "*** clutter-gtk is not supported on osx (disabling clutter) ***"
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
-		HAVE_CLUTTER_GTK=no
-	else
-		AC_SUBST(CLUTTER_GTK_CFLAGS)
-		AC_SUBST(CLUTTER_GTK_LIBS)
-		HAVE_CLUTTER_GTK=yes
-		EINA_CFLAGS="$EINA_CFLAGS $CLUTTER_GTK_CFLAGS DHAVE_CLUTTER_GTK=1"
-		EINA_LIBS="$EINA_LIBS $CLUTTER_GTK_LIBS"
-	fi
-],
-[
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
-	HAVE_CLUTTER_GTK=no
-])
-AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
+#CLUTTER_GTK_VERSION="9.10.0"
+#clutter_modules="clutter-gtk-0.10 >= $CLUTTER_GTK_VERSION"
+#PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
+#[
+#	if test x"`$PKG_CONFIG --variable=flavour clutter-gtk-0.10`" = "xosx"; then
+#		echo "*** clutter-gtk is not supported on osx (disabling clutter) ***"
+#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
+#		HAVE_CLUTTER_GTK=no
+#	else
+#		AC_SUBST(CLUTTER_GTK_CFLAGS)
+#		AC_SUBST(CLUTTER_GTK_LIBS)
+#		HAVE_CLUTTER_GTK=yes
+#		EINA_CFLAGS="$EINA_CFLAGS $CLUTTER_GTK_CFLAGS DHAVE_CLUTTER_GTK=1"
+#		EINA_LIBS="$EINA_LIBS $CLUTTER_GTK_LIBS"
+#	fi
+#],
+#[
+#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
+#	HAVE_CLUTTER_GTK=no
+#])
+#AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
 dnl
 dnl notify (ntfy)

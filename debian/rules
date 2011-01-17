@@ -7,8 +7,8 @@ include /usr/share/quilt/quilt.make
 
 override_dh_install:
 	mv debian/tmp/usr/bin/eina debian/tmp/usr/bin/eina-player
-	mv debian/tmp/usr/bin/vogon debian/tmp/usr/bin/vogon-player
-	mv debian/tmp/usr/share/applications/eina.desktop debian/tmp/usr/share/applications/eina-player.desktop
+	# mv debian/tmp/usr/bin/vogon debian/tmp/usr/bin/vogon-player
+	# mv debian/tmp/usr/share/applications/eina.desktop debian/tmp/usr/share/applications/eina-player.desktop
 	dh_install
 
 override_dh_auto_configure:

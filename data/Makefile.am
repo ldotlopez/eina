@@ -28,4 +28,9 @@ install-am:
 	
 	test -z "$(DESTDIR)/$(prefix)/lib/pkgconfig" || /bin/mkdir -p "$(DESTDIR)/$(prefix)/lib/pkgconfig"
 	install -c -m 644 eina.pc "$(DESTDIR)/$(prefix)/lib/pkgconfig/$(PACKAGE)-$(EINA_API_VERSION).pc"
+	
+	test -z "$(DESTDIR)/$(prefix)/share/glib-2.0/schemas/" || \
+		/bin/mkdir -p "$(DESTDIR)/$(prefix)/share/glib-2.0/schemas/"
+	install -c -m 644 net.sourceforge.eina.gschema.xml \
+		"$(DESTDIR)/$(prefix)/share/glib-2.0/schemas/net.sourceforge.eina.gschema.xml"
 

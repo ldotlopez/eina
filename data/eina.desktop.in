@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=@PACKAGE_NAME@ music player
+Name=Eina music player
 GenericName=Music player
 Comment=Play songs
-X-GNOME-FullName=@PACKAGE_NAME@ music player
+X-GNOME-FullName=Eina music player
 Exec=eina %U
 Icon=@prefix@/share/@PACKAGE@/pixmaps/eina.svg
 Terminal=false
