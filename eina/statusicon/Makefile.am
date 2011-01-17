@@ -7,7 +7,7 @@ includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/statusicon
 include_HEADERS = 
 
 libstatusicon_la_CFLAGS  = @EINA_CFLAGS@
-libstatusicon_la_LDFLAGS = @EINA_LIBS@
+libstatusicon_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libstatusicon_la_SOURCES = \
 	statusicon.c
 

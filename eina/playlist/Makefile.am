@@ -9,7 +9,7 @@ include_HEADERS = \
 	playlist.h
 
 libplaylist_la_CFLAGS  = @EINA_CFLAGS@
-libplaylist_la_LDFLAGS = @EINA_LIBS@
+libplaylist_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libplaylist_la_SOURCES = \
 	$(include_HEADERS) \
 	eina-playlist.c \

@@ -3,7 +3,7 @@ include $(top_srcdir)/build/Makefile.am.common
 plugindir = $(pkglibdir)/lastfm
 plugin_LTLIBRARIES = liblastfm.la
 liblastfm_la_CFLAGS  = @EINA_CFLAGS@
-liblastfm_la_LDFLAGS = @EINA_LIBS@
+liblastfm_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 liblastfm_la_SOURCES = \
 	lastfm.c
 

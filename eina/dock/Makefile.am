@@ -1,6 +1,6 @@
 include $(top_srcdir)/build/Makefile.am.common
 
-VALAFLAGS=--pkg gtk+-3.0
+AM_VALAFLAGS=--pkg gtk+-3.0
 vala_files=eina-dock-tab.vala
 include $(top_srcdir)/build/Makefile.am.vala
 
@@ -14,7 +14,7 @@ include_HEADERS = \
 	dock.h
 
 libdock_la_CFLAGS  = @EINA_CFLAGS@
-libdock_la_LDFLAGS = @EINA_LIBS@
+libdock_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libdock_la_SOURCES =   \
 	$(include_HEADERS) \
 	eina-dock.c        \
