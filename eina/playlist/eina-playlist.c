@@ -1164,6 +1164,10 @@ lomo_eos_cb_helper(LomoPlayer *lomo)
 		lomo_player_go_next(lomo, NULL);
 		lomo_player_play(lomo, NULL); //XXX: Handle GError
 	}
+	else
+	{
+		lomo_player_stop(lomo, NULL);
+	}
 
 	return FALSE;
 }
