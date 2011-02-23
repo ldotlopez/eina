@@ -25,4 +25,4 @@ plugin_DATA = art.ini
 EXTRA_DIST += art.ini
 
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

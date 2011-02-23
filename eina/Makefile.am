@@ -76,4 +76,4 @@ eina_SOURCES = \
 #CLEANFILES += $(gir_DATA) $(typelib_DATA)
 #endif
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

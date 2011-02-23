@@ -75,4 +75,4 @@ tscalableapps_DATA = scalable/apps/eina.svg
 EXTRA_DIST = $(tscalableapps_DATA) $(tscalableactions_DATA) $(t192x192apps_DATA) $(t192x192actions_DATA) $(t128x128apps_DATA) $(t128x128actions_DATA) $(t96x96apps_DATA) $(t96x96actions_DATA) $(t72x72apps_DATA) $(t72x72actions_DATA) $(t64x64apps_DATA) $(t64x64actions_DATA) $(t48x48apps_DATA) $(t48x48actions_DATA) $(t36x36apps_DATA) $(t36x36actions_DATA) $(t32x32apps_DATA) $(t32x32actions_DATA) $(t24x24apps_DATA) $(t24x24actions_DATA) $(t22x22apps_DATA) $(t22x22actions_DATA) $(t16x16apps_DATA) $(t16x16actions_DATA) 
 
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

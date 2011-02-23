@@ -42,4 +42,4 @@ install-data-hook:
 	chmod +x $(DESTDIR)/$(plugindir)/lastfmsubmitd/lastfmsubmitd
 
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

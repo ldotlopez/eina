@@ -15,4 +15,4 @@ libdbus_la_SOURCES = \
 plugin_DATA = dbus.ini
 EXTRA_DIST += dbus.ini
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

@@ -12,4 +12,4 @@ pixmaps_DATA =  \
 EXTRA_DIST += $(pixmaps_DATA)
 
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

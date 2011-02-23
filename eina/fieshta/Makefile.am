@@ -18,4 +18,4 @@ libfieshta_la_SOURCES = \
 plugin_DATA = fieshta.ini
 EXTRA_DIST += fieshta.ini
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

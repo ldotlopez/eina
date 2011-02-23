@@ -21,4 +21,4 @@ include $(top_srcdir)/build/Makefile.am.ui2h
 EXTRA_DIST += $(plugin_DATA)
 
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

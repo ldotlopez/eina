@@ -15,4 +15,4 @@ plugin_DATA = statusicon.ini
 
 EXTRA_DIST += statusicon.ini
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk

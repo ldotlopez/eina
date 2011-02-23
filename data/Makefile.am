@@ -53,5 +53,5 @@ uninstall-am:
 	-rf -rf "$(DESTDIR)/$(gsettingsdir)/net.sourceforge.$(PACKAGE).gschema.xml"
 	$(GLIB_COMPILE_SCHEMAS) "$(DESTDIR)/$(gsettingsdir)"
 
--include $(top_srcdir)/git.mk
+-include $(top_srcdir)/build/git.mk
 
