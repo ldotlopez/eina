@@ -108,8 +108,8 @@ eina_cover_image_draw(GtkWidget *widget, cairo_t *_cr)
 
 		GdkRGBA color;
 		gtk_style_context_get_background_color(
-			gtk_widget_get_style_context(GTK_WIDGET(gtk_widget_get_parent(widget))),
-			GTK_STATE_FLAG_ACTIVE,
+			gtk_widget_get_style_context(GTK_WIDGET(gtk_widget_get_toplevel(widget))),
+			GTK_STATE_FLAG_NORMAL,
 			&color);
 
 		cairo_set_source_rgba(_cr, color.red, color.green, color.blue, color.alpha);
