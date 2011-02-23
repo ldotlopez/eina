@@ -25,4 +25,4 @@ plugin_DATA = dock.ini
 
 EXTRA_DIST += dock.ini
 
--include $(top_srcdir)/build/git.mk
+-include $(top_srcdir)/git.mk

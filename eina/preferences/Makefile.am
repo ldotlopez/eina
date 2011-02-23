@@ -20,4 +20,4 @@ libpreferences_la_SOURCES = \
 plugin_DATA = preferences.ini
 EXTRA_DIST += $(plugin_DATA)
 
--include $(top_srcdir)/build/git.mk
+-include $(top_srcdir)/git.mk

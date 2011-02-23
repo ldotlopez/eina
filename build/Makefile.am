@@ -6,4 +6,4 @@ EXTRA_DIST =                \
 	Makefile.am.ui2h
 
 
--include $(top_srcdir)/build/git.mk
+-include $(top_srcdir)/git.mk

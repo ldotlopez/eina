@@ -10,7 +10,7 @@ SUBDIRS = \
 	po
 
 EXTRA_DIST = \
-	run-uninstalled.sh \
+	git.mk run-uninstalled.sh \
 	intltool-extract.in intltool-merge.in intltool-update.in \
 	AUTHORS BUGS COPYING INSTALL NEWS README
 #m4/introspection.m4 
@@ -32,4 +32,4 @@ dist-hook:
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
 
--include $(top_srcdir)/build/git.mk
+-include $(top_srcdir)/git.mk

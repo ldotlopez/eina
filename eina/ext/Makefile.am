@@ -25,4 +25,4 @@ libeinaext_la_SOURCES = \
 	eina-window.c
 
 
--include $(top_srcdir)/build/git.mk
+-include $(top_srcdir)/git.mk

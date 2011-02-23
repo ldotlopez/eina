@@ -1,3 +1,3 @@
 SUBDIRS = hicolor
 
--include $(top_srcdir)/build/git.mk
+-include $(top_srcdir)/git.mk
