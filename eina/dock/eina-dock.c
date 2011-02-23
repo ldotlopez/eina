@@ -33,7 +33,6 @@ G_DEFINE_TYPE (EinaDock, eina_dock, GTK_TYPE_BOX)
 enum
 {
 	PROP_PAGE_ORDER = 1,
-	PROP_EXPANDED,
 	PROP_RESIZABLE
 };
 
@@ -80,10 +79,6 @@ eina_dock_get_property (GObject *object, guint property_id, GValue *value, GPara
 		g_value_set_boxed(value, eina_dock_get_page_order((EinaDock *) object));
 		return;
 
-	case PROP_EXPANDED:
-		g_value_set_boolean(value, eina_dock_get_expanded((EinaDock *) object));
-		return;
-
 	case PROP_RESIZABLE:
 		g_value_set_boolean(value, eina_dock_get_resizable((EinaDock *) object));
 		return;
@@ -101,8 +96,9 @@ eina_dock_set_property (GObject *object, guint property_id, const GValue *value,
 		eina_dock_set_page_order((EinaDock *) object, g_value_get_boxed(value));
 		return;
 
-	case PROP_EXPANDED:
-		eina_dock_set_expanded((EinaDock *) object, g_value_get_boolean(value));
+	case PROP_RESIZABLE:
+		eina_dock_set_resizable((EinaDock *) object, g_value_get_boolean(value));
+		return;
 
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -148,15 +144,6 @@ eina_dock_class_init (EinaDockClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROP_RESIZABLE,
 		g_param_spec_boolean("resizable", "resizable", "resizable",
-		FALSE, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-
-	/*
-	 * EinaDock::expanded:
-	 *
-	 * Whatever the widget is expanded or not
-	 */
-	g_object_class_install_property(object_class, PROP_EXPANDED,
-		g_param_spec_boolean("expanded", "expanded", "expanded",
 		FALSE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/*
@@ -367,28 +354,19 @@ eina_dock_set_page_order(EinaDock *self, gchar **order)
 }
 
 /*
- * eina_dock_get_expanded:
+ * eina_dock_set_resizable:
  *
- * @self: The #EinaDock object.
+ * @self: The #EinaDock object
+ * @resizable: Value for the resizable property
  *
- * Get the value of property 'expanded'
- *
- * Returns: the expanded property value
+ * Sets the value of the property 'resizable'
  */
-gboolean
-eina_dock_get_expanded(EinaDock *self)
-{
-	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
-	return gtk_expander_get_expanded(self->priv->expander);
-}
-
 void
-eina_dock_set_expanded(EinaDock *self, gboolean expanded)
+eina_dock_set_resizable(EinaDock *self, gboolean resizable)
 {
 	g_return_if_fail(EINA_IS_DOCK(self));
-	g_return_if_fail(self->priv->n_tabs >= 2);
 
-	gtk_expander_set_expanded(self->priv->expander, expanded);
+	gtk_expander_set_expanded(self->priv->expander, resizable);
 }
 
 /*
@@ -403,8 +381,9 @@ eina_dock_set_expanded(EinaDock *self, gboolean expanded)
 gboolean
 eina_dock_get_resizable(EinaDock *self)
 {
-	g_return_val_if_fail(EINA_IS_DOCK(self), TRUE);
-	return self->priv->resizable;
+	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
+
+	return gtk_expander_get_expanded(self->priv->expander);
 }
 
 /*

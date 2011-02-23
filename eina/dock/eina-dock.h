@@ -65,11 +65,14 @@ GType eina_dock_get_type (void);
 
 EinaDock  *eina_dock_new (void);
 
-gboolean eina_dock_get_resizable(EinaDock *self);
 gchar**  eina_dock_get_page_order(EinaDock *self);
 void     eina_dock_set_page_order(EinaDock *self, gchar **order);
-gboolean eina_dock_get_expanded(EinaDock *self);
+
+void     eina_dock_set_resizable(EinaDock *self, gboolean resizable);
+gboolean eina_dock_get_resizable(EinaDock *self);
+
 void     eina_dock_set_expanded(EinaDock *self, gboolean expanded);
+gboolean eina_dock_get_expanded(EinaDock *self);
 
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
