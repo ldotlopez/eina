@@ -177,7 +177,7 @@ about_show(EinaPlayer *player)
 		g_warning(N_("Missing resource: %s"), "eina.svg");
 	else
 	{
-		logo_pb = gdk_pixbuf_new_from_file_at_size(logo_path, 192, 192, NULL);
+		logo_pb = gdk_pixbuf_new_from_file_at_size(logo_path, 128, 128, NULL);
 		g_free(logo_path);
 	}
 
