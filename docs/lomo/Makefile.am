@@ -90,3 +90,5 @@ EXTRA_DIST +=
 
 # Comment this out if you want your docs-status tested during 'make check'
 DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
+
+-include $(top_srcdir)/git.mk

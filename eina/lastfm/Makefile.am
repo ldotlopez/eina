@@ -26,10 +26,20 @@ lastfmsubmitdlib_DATA = \
 	lastfmsubmitd/lastfm/marshaller.py \
 	lastfmsubmitd/lastfm/config.py     \
 	lastfmsubmitd/lastfm/client.py
+
+CLEANFILES += \
+	lastfmsubmitd/lastfm/__init__.pyc   \
+	lastfmsubmitd/lastfm/marshaller.pyc \
+	lastfmsubmitd/lastfm/config.pyc     \
+	lastfmsubmitd/lastfm/client.pyc
+
 EXTRA_DIST += \
 	$(lastfmsubmitd_DATA) \
 	$(lastfmsubmitdlib_DATA)
 
+
 install-data-hook:
 	chmod +x $(DESTDIR)/$(plugindir)/lastfmsubmitd/lastfmsubmitd
 
+
+-include $(top_srcdir)/git.mk

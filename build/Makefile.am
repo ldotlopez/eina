@@ -5,3 +5,5 @@ EXTRA_DIST =                \
 	Makefile.am.vala        \
 	Makefile.am.ui2h
 
+
+-include $(top_srcdir)/git.mk

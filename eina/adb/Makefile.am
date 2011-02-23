@@ -19,3 +19,5 @@ plugin_DATA = adb.ini
 
 EXTRA_DIST += adb.ini
 
+
+-include $(top_srcdir)/git.mk

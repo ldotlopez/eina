@@ -15,3 +15,5 @@ EXTRA_DIST += \
 	$(plugin_DATA)	\
 	ntfy.svg
 
+
+-include $(top_srcdir)/git.mk

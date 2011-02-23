@@ -11,3 +11,5 @@ pixmaps_DATA =  \
 	plugin.png
 EXTRA_DIST += $(pixmaps_DATA)
 
+
+-include $(top_srcdir)/git.mk

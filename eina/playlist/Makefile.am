@@ -22,3 +22,5 @@ eina_ui2h_name = __ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
 EXTRA_DIST += playlist.ini
+
+-include $(top_srcdir)/git.mk

@@ -13,3 +13,5 @@ plugin_DATA = \
 
 EXTRA_DIST += $(plugin_DATA)
 
+
+-include $(top_srcdir)/git.mk

@@ -48,3 +48,5 @@ eina_ui2h_name = __eina_player_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
 EXTRA_DIST += $(plugin_DATA) player.ini
+
+-include $(top_srcdir)/git.mk

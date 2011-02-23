@@ -24,3 +24,5 @@ libart_la_SOURCES = \
 plugin_DATA = art.ini
 EXTRA_DIST += art.ini
 
+
+-include $(top_srcdir)/git.mk
