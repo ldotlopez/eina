@@ -348,6 +348,11 @@ eina_dock_set_page_order(EinaDock *self, gchar **order)
 	gel_free_and_invalidate(priv->page_order, NULL, g_strfreev);
 	priv->page_order = gel_strv_copy(order, TRUE);
 
+	/*
+	g_warning("Set page-order to:");
+	for (guint i = 0; order[i]; i++)
+		g_warning("%d: %s", i, order[i]);
+	*/
 	dock_reorder_pages(self);
 
 	g_object_notify((GObject *) self, "page-order");
@@ -386,6 +391,32 @@ eina_dock_get_resizable(EinaDock *self)
 	return gtk_expander_get_expanded(self->priv->expander);
 }
 
+static void
+dock_tab_label_fix_orientation(GtkWidget *label, GtkPositionType position)
+{
+	g_return_if_fail(GTK_IS_WIDGET(label));
+	if (!GTK_IS_LABEL(label))
+		return;
+
+	gdouble angle = 0;
+	switch (position)
+	{
+	case GTK_POS_TOP:
+		angle = 0;
+		break;
+	case GTK_POS_RIGHT:
+		angle = 270;
+		break;
+	case GTK_POS_BOTTOM:
+		angle = 0;
+		break;
+	case GTK_POS_LEFT:
+		angle = 90;
+		break;
+	}
+	gtk_label_set_angle(GTK_LABEL(label), angle);
+}
+
 /*
  * eina_dock_add_widget:
  * 
@@ -404,19 +435,44 @@ EinaDockTab *
 eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags)
 {
 	g_return_val_if_fail(EINA_IS_DOCK(self), NULL);
-	gel_warn_fix_implementation();
 
 	EinaDockPrivate *priv = self->priv;
 
-	g_return_val_if_fail(g_list_find_custom(priv->tabs, id, (GCompareFunc) list_find_by_id) == NULL, NULL);
+	// Check parameters
+	g_return_val_if_fail(id != NULL, NULL);
 
-	EinaDockTab *tab = eina_dock_tab_new(id, widget, label, FALSE);
-	g_return_val_if_fail(EINA_IS_DOCK_TAB(tab), NULL);
+	g_return_val_if_fail(GTK_IS_WIDGET(widget), NULL);
+
+	if (label == NULL)
+		label = gtk_label_new(id);
+	g_return_val_if_fail(GTK_IS_WIDGET(label), NULL);
+
+	g_return_val_if_fail(g_list_find_custom(priv->tabs, id, (GCompareFunc) list_find_by_id) == NULL, NULL);
 
 	if (flags != EINA_DOCK_DEFAULT)
 		g_warning("EinaDockFlags %x not supported", flags);
 
-	if (priv->n_tabs == 0)
+	dock_tab_label_fix_orientation(label, gtk_notebook_get_tab_pos(priv->notebook));
+
+	// Position is needed
+	guint pos = (priv->page_order && priv->tabs) ? 0 : gtk_notebook_get_n_pages(priv->notebook);
+	while (priv->tabs && priv->page_order && (priv->page_order[pos]))
+	{
+		if (g_str_equal(id, priv->page_order[pos]))
+			break;
+		else
+			pos++;
+	}
+	// g_warning("Position for tab %s: %d", id, pos);
+
+	// Create and insert into structures
+	EinaDockTab *tab = eina_dock_tab_new(id, widget, label, FALSE);
+	g_return_val_if_fail(EINA_IS_DOCK_TAB(tab), NULL);
+
+	priv->tabs = g_list_prepend(priv->tabs, tab);
+	priv->n_tabs++;
+
+	if (priv->n_tabs == 1)
 	{
 		gtk_box_pack_start   ((GtkBox *) self, widget, FALSE, TRUE, 0);
 		gtk_box_reorder_child((GtkBox *) self, widget, 0);
@@ -424,48 +480,12 @@ eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidg
 	}
 	else
 	{
-		// Get position
-		gint pos = 0;
-		while (priv->page_order && (priv->page_order[pos] != NULL))
-			if (g_str_equal(id, priv->page_order[pos]))
-				break;
-			else
-				pos++;
-
 		// Append notebook's page
 		gtk_notebook_append_page  (priv->notebook, widget, label);
 		gtk_notebook_reorder_child(priv->notebook, widget, pos);
-
-		// Fix label orientation
-		if (GTK_IS_LABEL(label))
-		{
-			gdouble angle = 0;
-			switch (gtk_notebook_get_tab_pos(priv->notebook))
-			{
-			case GTK_POS_TOP:
-				angle = 0;
-				break;
-			case GTK_POS_RIGHT:
-				angle = 270;
-				break;
-			case GTK_POS_BOTTOM:
-				angle = 0;
-				break;
-			case GTK_POS_LEFT:
-				angle = 90;
-				break;
-			}
-			gtk_label_set_angle(GTK_LABEL(label), angle);
-		}
-
 		gtk_widget_show(label);
 	}
 	gtk_notebook_set_tab_reorderable(priv->notebook, widget, TRUE);
-
-	// Update structures
-	priv->tabs = g_list_prepend(priv->tabs, tab);
-	priv->n_tabs++;
-
 	g_object_weak_ref((GObject *) widget, eina_dock_weak_ref_cb, NULL);
 
 	// Update properties
@@ -592,37 +612,32 @@ expander_notify_cb(GtkExpander *w, GParamSpec *pspec, EinaDock *self)
 static void
 page_reorder_cb(GtkNotebook *w, GtkWidget *widget, guint n, EinaDock *self)
 {
-	gel_warn_fix_implementation();
-
-#if 0
 	EinaDockPrivate *priv = self->priv;
 
 	gint n_tabs = gtk_notebook_get_n_pages(w);
-	
-	gchar **items = g_new0(gchar *, n_tabs + 1);
-	gint j = 0;
-	for (gint i = 0; i < n_tabs; i++)
-	{
-		gpointer tab = gtk_notebook_get_nth_page(w, i);
+	gchar **order = g_new0(gchar *, n_tabs + 1);
 
-		GHashTableIter iter;
-		gchar *id;
-		gpointer _tab;
-		g_hash_table_iter_init(&iter, priv->id2tab);
-		while (g_hash_table_iter_next(&iter, (gpointer *) &id, &_tab))
+	for (guint i = 0; i < n_tabs; i++)
+	{
+		GtkWidget *nth_widget = gtk_notebook_get_nth_page(w, i);
+
+		GList *l = priv->tabs;
+		while (l)
 		{
-			if (tab == _tab)
+			EinaDockTab *dt = EINA_DOCK_TAB(l->data);
+			if (nth_widget == GTK_WIDGET(eina_dock_tab_get_widget(dt)))
 			{
-				items[j++] = g_strdup(id);
+				order[i] = g_strdup(eina_dock_tab_get_id(dt));
 				break;
 			}
+			l = l->next;
 		}
+
+		if (l == NULL)
+			order[i] = g_strdup("");
 	}
 
-	g_strfreev(priv->page_order);
-	priv->page_order = items;
-
-	g_object_notify((GObject *) self, "page-order");
-#endif
+	eina_dock_set_page_order(self, order);
+	g_strfreev(order);
 }
 
