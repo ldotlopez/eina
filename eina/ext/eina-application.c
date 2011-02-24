@@ -97,6 +97,18 @@ eina_application_get_argv(EinaApplication *application)
 	return NULL;
 }
 
+/*
+ * eina_application_set_interface:
+ * @self: An #EinaApplication
+ * @name: The inteface's name. Must be unique in @self
+ * @interface: (transfer none) (allow-none): Pointer to the interface
+ *
+ * Inserts an interface in the #EinaApplication object.
+ * If @interface is %NULL it is deleted from @self and all references are
+ * cleared
+ *
+ * Returns %TRUE if successfull, %FALSE otherwise
+ */
 gboolean
 eina_application_set_interface(EinaApplication *self, const gchar *name, gpointer interface)
 {
@@ -113,6 +125,15 @@ eina_application_set_interface(EinaApplication *self, const gchar *name, gpointe
 	return TRUE;
 }
 
+/*
+ * eina_application_get_interface:
+ * @self: An #EinaApplication
+ * @name: The interface's name
+ *
+ * Returns the references of an interface from the #EinaApplication object
+ *
+ * Returns: (transfer none): The pointer to the interface
+ */
 gpointer
 eina_application_get_interface(EinaApplication *self, const gchar *name)
 {
@@ -124,6 +145,17 @@ eina_application_get_interface(EinaApplication *self, const gchar *name)
 	return interface;
 }
 
+/*
+ * eina_application_steal_interface:
+ * @self: An #EinaApplication
+ * @name: The interface's name
+ *
+ * Gets and delete the interface from the #EinaApplication. Its a combination
+ * of eina_application_get_interface(self, name)
+ * and eina_application_set_interface(self, name, NULL)
+ *
+ * Returns: (transfer none): The pointer to the interface
+ */
 gpointer
 eina_application_steal_interface(EinaApplication *self, const gchar *name)
 {
