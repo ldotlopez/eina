@@ -393,7 +393,7 @@ lastfm_submit_write_config_wrapper(EinaLastFM *self)
 static gchar *
 str_parser_cb(gchar key, LomoStream *stream)
 {
-	LomoTag tag = LOMO_TAG_INVALID;
+	const gchar *tag = LOMO_TAG_INVALID;
 	switch (key)
 	{
 	case 'a':

@@ -32,9 +32,12 @@ include $(top_srcdir)/build/Makefile.am.marshallers
 
 ## Vala bindings
 ## /opt/gtk/bin/vala-gen-introspect  lomo-1.1 .
-## /opt/gtk/bin/vapigen-0.12 --pkg Gst-0.10 --pkg GLib-2.0 --library lomo-1.1  lomo-1.1.gi
-# $(VALA_GEN_INTROSPECT) lomo-1.1 $(top_builddir)/lomo
-# $(VAPIGEN) --pkg GLib-@GLIB_API_VERSION@ --pkg Gst-@GST_API_VERSION@ --library Lomo-1.1 lomo-1.1.gi
+# /opt/gtk/bin/vapigen-0.12 --pkg Gst-0.10 --pkg GLib-2.0 --library lomo-1.1  lomo-1.1.gi
+#lomo-1.1.gi:
+#	$(VALA_GEN_INTROSPECT) lomo-1.1 $(top_builddir)/lomo
+#	$(VAPIGEN) --pkg GLib-@GLIB_API_VERSION@ --pkg Gst-@GST_API_VERSION@ --library Lomo-1.1 lomo-1.1.gi
+#
+#BUILT_SOURCES += lomo-1.1.gi
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
@@ -48,8 +51,8 @@ Lomo_1_1_gir_PACKAGES = gstreamer-@GST_API_VERSION@
 Lomo_1_1_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
 Lomo_1_1_gir_LIBS = liblomo-1.1.la
 Lomo_1_1_gir_FILES = \
-	lomo-player.h lomo-stream.h lomo-util.h \
-	lomo-player.c lomo-stream.c lomo-util.c
+	lomo-player.h lomo-stream.h lomo-metadata-parser.h lomo-util.h \
+	lomo-player.c lomo-stream.c lomo-metadata-parser.c lomo-util.c
 INTROSPECTION_GIRS += Lomo-1.1.gir
 
 girdir = $(datadir)/gir-1.0

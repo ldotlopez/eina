@@ -59,8 +59,8 @@ typedef struct {
 	void (*repeat)      (LomoPlayer *self, gboolean val);
 	void (*random)      (LomoPlayer *self, gboolean val);
 	void (*eos)         (LomoPlayer *self);
-	void (*error)       (LomoPlayer *self, GError *error);
-	void (*tag)         (LomoPlayer *self, LomoStream *stream, LomoTag tag);
+	void (*error)       (LomoPlayer *self, LomoStream *stream, GError *error);
+	void (*tag)         (LomoPlayer *self, LomoStream *stream, const gchar *tag);
 	void (*all_tags)    (LomoPlayer *self, LomoStream *stream);
 } LomoPlayerClass;
 
@@ -92,7 +92,7 @@ typedef struct {
 
 /**
  * LomoPlayerErrorCode:
- * @LOMO_PLAYER_NO_ERROR: No error
+ * @LOMO_PLAYER_ERROR_NO_ERROR: No error
  * @LOMO_PLAYER_ERROR_MISSING_METHOD: Method is not implemented
  * @LOMO_PLAYER_ERROR_CREATE_PIPELINE: Pipeline cannot be created
  * @LOMO_PLAYER_ERROR_MISSING_PIPELINE: Pipeline is missing
@@ -101,10 +101,10 @@ typedef struct {
  * @LOMO_PLAYER_ERROR_UNKNOW_STATE: Pipeline's state is unknow
  * @LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE: Failure in state change
  * @LOMO_PLAYER_ERROR_NO_STREAM: There is no stream
- * @LOMO_PLAYER_HOOK_BLOCK: Action was blocked by a hook
+ * @LOMO_PLAYER_ERROR_HOOK_BLOCK: Action was blocked by a hook
  */
 typedef enum {
-	LOMO_PLAYER_NO_ERROR = 0,
+	LOMO_PLAYER_ERROR_NO_ERROR = 0,
 	LOMO_PLAYER_ERROR_MISSING_METHOD,
 	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
 	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
@@ -113,7 +113,7 @@ typedef enum {
 	LOMO_PLAYER_ERROR_UNKNOW_STATE,
 	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
 	LOMO_PLAYER_ERROR_NO_STREAM,
-	LOMO_PLAYER_HOOK_BLOCK
+	LOMO_PLAYER_ERROR_HOOK_BLOCK
 } LomoPlayerErrorCode;
 
 /**
@@ -189,7 +189,7 @@ typedef struct {
 	gint pos;           // insert, remove
 	gint queue_pos;     // queue, dequeue
 	gint from, to;      // change
-	LomoTag tag;        // tag
+	const gchar *tag;   // tag
 	gboolean value;     // random, repeat, mute
 	GError *error;      // error
 } LomoPlayerHookEvent;
@@ -231,7 +231,7 @@ typedef enum {
  * @LOMO_STATE_STOP: Stop state
  * @LOMO_STATE_PLAY: Play state
  * @LOMO_STATE_PAUSE: Pause state
- * @LOMO_N_STATES: Helper define
+ * @LOMO_STATE_N_STATES: Helper define
  *
  * Defines the state of the #LomoPlayer object
  **/
@@ -241,7 +241,7 @@ typedef enum {
 	LOMO_STATE_PLAY    = 1,
 	LOMO_STATE_PAUSE   = 2,
 
-	LOMO_N_STATES
+	LOMO_STATE_N_STATES
 } LomoState;
 
 /**
@@ -249,7 +249,7 @@ typedef enum {
  * @LOMO_FORMAT_INVALID: Invalid format
  * @LOMO_FORMAT_TIME: Format is time
  * @LOMO_FORMAT_PERCENT: Format is precent
- * @LOMO_N_FORMATS: Helper define
+ * @LOMO_FORMAT_N_FORMATS: Helper define
  *
  * Define in which format data is expressed
  **/
@@ -258,7 +258,7 @@ typedef enum {
 	LOMO_FORMAT_TIME    = 0,
 	LOMO_FORMAT_PERCENT = 1,
 
-	LOMO_N_FORMATS
+	LOMO_FORMAT_N_FORMATS
 } LomoFormat;
 
 GType lomo_player_get_type (void);

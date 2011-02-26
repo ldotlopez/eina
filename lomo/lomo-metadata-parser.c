@@ -24,7 +24,8 @@
 
 G_DEFINE_TYPE (LomoMetadataParser, lomo_metadata_parser, G_TYPE_OBJECT)
 
-enum {
+enum
+{
 	TAG,
 	ALL_TAGS,
 	LAST_SIGNAL
@@ -81,29 +82,30 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 
 	/**
 	 * LomoMetadataParser::tag:
+	 *
 	 * @parser: The parser
-	 * @stream: The stream where the tag was found
+	 * @stream: (type Lomo.Stream): The stream where the tag was found
 	 * @tag: The #LomoTag found
 	 *
-	 * The ::tag signal is emitted for every tag found in the @stream
+	 * Emitted for every tag found in the @stream
 	 */
 	lomo_metadata_parser_signals[TAG] =
 		g_signal_new ("tag",
 			G_OBJECT_CLASS_TYPE (object_class), G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET (LomoMetadataParserClass, tag),
 			NULL, NULL,
-			lomo_marshal_VOID__POINTER_INT,
+			lomo_marshal_VOID__OBJECT_STRING,
 			G_TYPE_NONE,
 			2,
-			G_TYPE_POINTER,
-			G_TYPE_INT);
+			G_TYPE_OBJECT,
+			G_TYPE_STRING);
+
 	/**
 	 * LomoMetadataParser::all-tags:
 	 * @parser: The parser
-	 * @stream: The stream where all tags have been parsed
+	 * @stream: (type Lomo.Stream): The stream where all tags have been parsed
 	 *
-	 * The ::all-tags signal is emitted when all tags in the @stream have been
-	 * parsed
+	 * Emitted when all tags in the @stream have been parsed
 	 */
 	lomo_metadata_parser_signals[ALL_TAGS] =
 		g_signal_new ("all-tags",
@@ -111,10 +113,10 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 			G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET (LomoMetadataParserClass, all_tags),
 			NULL, NULL,
-			g_cclosure_marshal_VOID__POINTER,
+			g_cclosure_marshal_VOID__OBJECT,
 			G_TYPE_NONE,
 			1,
-			G_TYPE_POINTER);
+			G_TYPE_OBJECT);
 
 	g_type_class_add_private (klass, sizeof (LomoMetadataParserPrivate));
 
@@ -146,18 +148,19 @@ lomo_metadata_parser_new (void)
 
 /**
  * lomo_metadata_parser_parse:
+ *
  * @self: The parser.
  * @stream: The stream to parse.
  * @prio: The priority on the queue.
  *
  * Adds @stream to @self internal queue with @prio to be parsed
- **/
+ */
 void
 lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMetadataParserPrio prio)
 {
 	g_return_if_fail(LOMO_IS_METADATA_PARSER(self));
 	g_return_if_fail(LOMO_IS_STREAM(stream));
-	g_return_if_fail((prio > LOMO_METADATA_PARSER_PRIO_INVALID) && (prio < LOMO_TYPE_METADATA_PARSER_N_PRIO));
+	g_return_if_fail((prio > LOMO_METADATA_PARSER_PRIO_INVALID) && (prio < LOMO_METADATA_PARSER_PRIO_N_PRIOS));
 
 	LomoMetadataParserPrivate *priv = self->priv;
 	switch (prio)
@@ -180,10 +183,11 @@ lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMet
 
 /**
  * lomo_metadata_parser_clear:
+ *
  * @self: The parser
  *
  * Clears internal queue and stop any parse in progress
- **/
+ */
 void
 lomo_metadata_parser_clear(LomoMetadataParser *self)
 {

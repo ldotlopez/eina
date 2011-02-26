@@ -32,33 +32,21 @@ G_BEGIN_DECLS
 #define LOMO_IS_STREAM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE  ((klass), LOMO_TYPE_STREAM))
 #define LOMO_STREAM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS  ((obj), LOMO_TYPE_STREAM, LomoStreamClass))
 
-/**
- * LomoStream:
- *
- * Represents a stream
- **/
+typedef struct _LomoStreamPrivate LomoStreamPrivate;
 typedef struct {
-	/*< private >*/
 	GObject parent;
+	LomoStreamPrivate *priv;
 } LomoStream;
 
 typedef struct {
-	/*< private >*/
 	GObjectClass parent_class;
 } LomoStreamClass;
 
-/**
- * LomoTag:
- *
- * A string representing a tag
- */
-typedef const gchar* LomoTag;
-
 GType lomo_stream_get_type (void);
 
-LomoStream* lomo_stream_new (gchar *uri);
+LomoStream* lomo_stream_new (const gchar *uri);
 
-gchar *lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self);
+gchar*      lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self);
 
 #ifdef LOMO_COMPILATION
 void lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value);
@@ -69,11 +57,11 @@ gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
 
 gchar*       lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
-const gchar* lomo_stream_get_tag      (LomoStream *self, LomoTag tag);
-void         lomo_stream_set_tag      (LomoStream *self, LomoTag tag, gpointer value);
+const gchar* lomo_stream_get_tag      (LomoStream *self, const gchar *tag);
+void         lomo_stream_set_tag      (LomoStream *self, const gchar *tag, gpointer value);
 GList*       lomo_stream_get_tags     (LomoStream *self);
 
-GType   lomo_tag_get_gtype(LomoTag tag);
+GType   lomo_tag_get_gtype(const gchar *tag);
 
 /* 
  * To (re-)generate this list, run:

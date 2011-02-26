@@ -20,20 +20,15 @@
 #include "lomo-stream.h"
 
 #include <string.h>
-#include <glib/gprintf.h>
+#include <glib/gi18n.h>
 #include <gst/gst.h>
 #include "lomo.h"
 
 G_DEFINE_TYPE (LomoStream, lomo_stream, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_STREAM, LomoStreamPrivate))
-
-typedef struct _LomoStreamPrivate LomoStreamPrivate;
-
 struct TagFmt {
 	gchar   key;
-	LomoTag tag;
+	const gchar *tag;
 	gchar  *fmt;
 };
 
@@ -55,7 +50,7 @@ struct _LomoStreamPrivate {
 static void
 lomo_stream_dispose (GObject *object)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(LOMO_STREAM(object));
+	struct _LomoStreamPrivate *priv = LOMO_STREAM(object)->priv;
 
 	if (priv->tags)
 	{
@@ -81,38 +76,45 @@ lomo_stream_class_init (LomoStreamClass *klass)
 static void
 lomo_stream_init (LomoStream *self)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
+	LomoStreamPrivate *priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), LOMO_TYPE_STREAM, LomoStreamPrivate);
 	priv->all_tags = FALSE;
 	priv->tags     = NULL;
 }
 
 /**
  * lomo_stream_new:
- * @uri: (in) (transfer none): An uri to create a #LomoStream from.
+ * @uri: An uri to create a #LomoStream from.
  *
  * Create a new #LomoStream from an uri
  * 
  * Returns: A new #LomoStream
  */
 LomoStream*
-lomo_stream_new (gchar *uri)
+lomo_stream_new (const gchar *uri)
 {
 	LomoStream *self;
 	gint i;
 
-	g_return_val_if_fail(uri != NULL, NULL);
+	g_warn_if_fail(uri != NULL);
 	
-	// Check valid URI, more strict methods than this: g_uri_parse_scheme
-	for (i = 0; uri[i] != '\0'; i++)
-		if ((uri[i] < 20) || (uri[i] > 126))
-			return NULL;
+	if (uri)
+	{
+		// Check valid URI, more strict methods than this: g_uri_parse_scheme
+		for (i = 0; uri[i] != '\0'; i++)
+			if ((uri[i] < 20) || (uri[i] > 126))
+				g_warning(_("'%s' is not a valid URI"), uri);
 
-	if (strstr(uri, "://") == NULL)
-		return NULL;
+		if (!uri && (strstr(uri, "://") == NULL))
+			g_warning(_("'%s' is not a valid URI"), uri);
+	}
 
 	// Create instance once URI
 	self = g_object_new (LOMO_TYPE_STREAM, NULL);
-	g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
+
+	if (uri)
+		g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
+	else
+		g_object_set_data(G_OBJECT(self), LOMO_TAG_URI, NULL);
 
 	return self;
 }
@@ -150,8 +152,10 @@ lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
  * Returns: A pointer to the tag value
  */
 const gchar*
-lomo_stream_get_tag(LomoStream *self, LomoTag tag)
+lomo_stream_get_tag(LomoStream *self, const gchar *tag)
 {
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 	g_return_val_if_fail(tag, NULL);
 
@@ -161,15 +165,15 @@ lomo_stream_get_tag(LomoStream *self, LomoTag tag)
 /**
  * lomo_stream_set_tag:
  * @self: a #LomoStream
- * @tag: (in) (type gchar*) (transfer none): a #LomoTag to set
+ * @tag: (in) (type gchar*) (transfer none): a #const gchar *to set
  * @value: (in) (type gchar*) (transfer none): value for tag, must not be modified. It becomes owned by #LomoStream
  *
  * Sets a tag in a #LomoStream
  */
 void
-lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value)
+lomo_stream_set_tag(LomoStream *self, const gchar *tag, gpointer value)
 {
-	struct _LomoStreamPrivate *priv = GET_PRIVATE(self);
+	LomoStreamPrivate *priv = self->priv;
 	GList *link = g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp);
 
 	if (tag != NULL)
@@ -195,7 +199,7 @@ lomo_stream_set_tag(LomoStream *self, LomoTag tag, gpointer value)
  * lomo_stream_get_tags:
  * @self: a #LomoStream
  *
- * Gets the list of #LomoTag for a #LomoStream
+ * Gets the list of #const gchar *for a #LomoStream
  *
  * Return value: (element-type utf8) (transfer full): a #GList, it must be freed when no longer needed, data too
  */
@@ -203,7 +207,7 @@ GList*
 lomo_stream_get_tags(LomoStream *self)
 {
 	GList *ret = NULL;
-	GList *iter = GET_PRIVATE(self)->tags;
+	GList *iter = self->priv->tags;
 	while (iter)
 	{
 		ret = g_list_prepend(ret, g_strdup((gchar *) iter->data));
@@ -222,7 +226,7 @@ lomo_stream_get_tags(LomoStream *self)
 void
 lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value)
 {
-	GET_PRIVATE(self)->all_tags = value;
+	self->priv->all_tags = value;
 }
 
 /**
@@ -236,7 +240,7 @@ lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value)
 gboolean
 lomo_stream_get_all_tags_flag(LomoStream *self)
 {
-	return GET_PRIVATE(self)->all_tags;
+	return self->priv->all_tags;
 }
 
 /**
@@ -249,7 +253,7 @@ lomo_stream_get_all_tags_flag(LomoStream *self)
 void
 lomo_stream_set_failed_flag(LomoStream *self, gboolean value)
 {
-	GET_PRIVATE(self)->failed = value;
+	self->priv->failed = value;
 }
 
 /**
@@ -263,7 +267,7 @@ lomo_stream_set_failed_flag(LomoStream *self, gboolean value)
 gboolean
 lomo_stream_get_failed_flag(LomoStream *self)
 {
-	return GET_PRIVATE(self)->failed;
+	return self->priv->failed;
 }
 
 /**
@@ -304,7 +308,7 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
  * Returns: the #GType for tag
  */
 GType
-lomo_tag_get_gtype(LomoTag tag)
+lomo_tag_get_gtype(const gchar *tag)
 {
 	if (g_str_equal(tag, "uri")) 
 		return G_TYPE_STRING;

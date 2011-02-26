@@ -134,7 +134,7 @@ guint lomo_player_signals[LAST_SIGNAL] = { 0 };
 // Callbacks
 // --
 static void
-tag_cb(LomoMetadataParser *parser, LomoStream *stream, LomoTag tag, LomoPlayer *self);
+tag_cb(LomoMetadataParser *parser, LomoStream *stream, const gchar *tag, LomoPlayer *self);
 static void
 all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self);
 static gboolean
@@ -408,10 +408,10 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, insert),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_INT,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
-				G_TYPE_POINTER,
+				G_TYPE_OBJECT,
 				G_TYPE_INT);
 	/**
 	 * LomoPlayer::remove:
@@ -427,10 +427,10 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, remove),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_INT,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
-				G_TYPE_POINTER,
+				G_TYPE_OBJECT,
 				G_TYPE_INT);
 	/**
 	 * LomoPlayer::queue:
@@ -446,10 +446,10 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, queue),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_INT,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
-				G_TYPE_POINTER,
+				G_TYPE_OBJECT,
 				G_TYPE_INT);
 	/**
 	 * LomoPlayer::dequeue:
@@ -465,10 +465,10 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, dequeue),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_INT,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
-				G_TYPE_POINTER,
+				G_TYPE_OBJECT,
 				G_TYPE_INT);
 	/**
 	 * LomoPlayer::queue-clear:
@@ -602,15 +602,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, error),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_POINTER,
+				lomo_marshal_VOID__OBJECT_POINTER,
 			    G_TYPE_NONE,
 			    2,
-			    G_TYPE_POINTER,
+			    G_TYPE_OBJECT,
 				G_TYPE_POINTER);
 	/**
 	 * LomoPlayer::tag:
 	 * @lomo: the object that received the signal
-	 * @stream: #LomoStream that gives a new tag
+	 * @stream: (type LomoStream): #LomoStream that gives a new tag
 	 * @tag: Discoved tag
 	 *
 	 * Emitted when some tag is found in a stream.
@@ -621,11 +621,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, tag),
 			    NULL, NULL,
-			    lomo_marshal_VOID__POINTER_INT,
+			    lomo_marshal_VOID__OBJECT_STRING,
 			    G_TYPE_NONE,
 			    2,
-				G_TYPE_POINTER,
-				G_TYPE_INT);
+				G_TYPE_OBJECT,
+				G_TYPE_STRING);
 	/**
 	 * LomoPlayer::all-tags:
 	 * @lomo: the object that received the signal
@@ -640,10 +640,10 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, all_tags),
 			    NULL, NULL,
-			    g_cclosure_marshal_VOID__POINTER,
+			    g_cclosure_marshal_VOID__OBJECT,
 			    G_TYPE_NONE,
 			    1,
-				G_TYPE_POINTER);
+				G_TYPE_OBJECT);
 
 	/**
 	 * LomoPlayer:auto-parse:
@@ -887,7 +887,7 @@ player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
 
 	case LOMO_PLAYER_HOOK_TAG:
 		event.stream = va_arg(args, LomoStream*);
-		event.tag    = va_arg(args, LomoTag);
+		event.tag    = va_arg(args, const gchar*);
 		break;
 
 	case LOMO_PLAYER_HOOK_ALL_TAGS:
@@ -1845,7 +1845,7 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	gboolean ret = FALSE;
 	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, prev, pos))
 	{
-		g_set_error(error, lomo_quark(), LOMO_PLAYER_HOOK_BLOCK, N_("Action blocked by hook"));
+		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_HOOK_BLOCK, N_("Action blocked by hook"));
 		return ret;
 	}
 
@@ -2050,7 +2050,7 @@ gint64 lomo_player_stats_get_stream_time_played(LomoPlayer *self)
 // Watchers and callbacks
 // --
 static void
-tag_cb(LomoMetadataParser *parser, LomoStream *stream, LomoTag tag, LomoPlayer *self)
+tag_cb(LomoMetadataParser *parser, LomoStream *stream, const gchar *tag, LomoPlayer *self)
 {
 	// Run hook
 	if (player_run_hooks(self, LOMO_PLAYER_HOOK_TAG, NULL, stream, tag))
