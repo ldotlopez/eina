@@ -80,7 +80,7 @@ dnl pkgconfig
 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$top_builddir/data"
 
 # Introspection, disable for now
-# GOBJECT_INTROSPECTION_CHECK([0.6.7])
+GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
 # checks for programs
@@ -92,6 +92,8 @@ AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource)
 AC_PATH_PROG(GLIB_COMPILE_SCHEMAS, glib-compile-schemas)
 AC_PATH_PROG(VALAC, valac)
+#AC_PATH_PROG(VALA_GEN_INTROSPECT, vala-gen-introspect)
+#AC_PATH_PROG(VAPIGEN, vapigen)
 #AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 
@@ -99,6 +101,8 @@ AC_SUBST(GLIB_GENMARSHAL)
 AC_SUBST(GLIB_COMPILE_SCHEMAS)
 AC_SUBST(GDK_PIXBUF_CSOURCE)
 AC_SUBST(VALAC)
+#AC_SUBST(VALA_GEN_INTROSPECT)
+#AC_SUBST(VAPIGEN)
 #AC_SUBST(DBUS_BINDING_TOOL)
 
 #
@@ -425,7 +429,6 @@ AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
 #AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
-AM_CONDITIONAL(HAVE_INTROSPECTION, test 1 -eq 0)
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([
