@@ -24,5 +24,31 @@ libeinaext_la_SOURCES = \
 	eina-stock.c               \
 	eina-window.c
 
+DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
+
+-include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel
+INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/gel
+
+if HAVE_INTROSPECTION
+introspection_sources = $(libeinaext_la_SOURCES)
+
+Eina-0.10.gir: libeinaext.la
+Eina_0_10_gir_INCLUDES = Gtk-3.0 Gel-1.0
+Eina_0_10_gir_CFLAGS = -I$(top_srcdir)
+Eina_0_10_gir_LDFLAGS = -L$(top_builddir)/gel -lgel-1.0
+Eina_0_10_gir_LIBS = libeinaext.la
+Eina_0_10_gir_FILES = $(introspection_sources)
+INTROSPECTION_GIRS += Eina-0.10.gir
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+endif
 
 -include $(top_srcdir)/git.mk

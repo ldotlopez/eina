@@ -25,43 +25,24 @@
 #include <eina/ext/eina-application.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 
-#define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
-#define EINA_FS_LAST_FOLDER_KEY "last-folder"
+void eina_fs_load_from_uri_multiple        (EinaApplication *app, GList *uris);
+void eina_fs_load_from_default_file_chooser(EinaApplication *app);
+void eina_fs_load_from_file_chooser        (EinaApplication *app, EinaFileChooserDialog *dialog);
 
-void
-eina_fs_load_from_uri_multiple(EinaApplication *app, GList *uris);
+GSList* eina_fs_files_from_uri_strv(const gchar *const *uris);
+GList*  eina_fs_uri_get_children(const gchar *uri);
+GList*  eina_fs_readdir(const gchar *path, gboolean abspath);
 
-void
-eina_fs_load_from_default_file_chooser(EinaApplication *app);
-void
-eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dialog);
+GList* eina_fs_recursive_readdir(const gchar *path, gboolean abspath);
+GList* eina_fs_prepend_dirname(const gchar *dirname, GList *list);
 
-GSList*
-eina_fs_files_from_uri_strv(gchar **uris);
+gchar* eina_fs_utf8_to_ondisk(const gchar *path);
+gchar* eina_fs_ondisk_to_utf8(const gchar *path); 
 
-GList*
-eina_fs_uri_get_children(gchar *uri);
+gboolean eina_fs_file_test(const gchar *utf8_path, GFileTest test);
+gboolean eina_fs_mkdir    (const gchar *pathname, gint mode, GError **error);
 
-GList*
-eina_fs_readdir(gchar *path, gboolean abspath);
-GList*
-eina_fs_recursive_readdir(gchar *path, gboolean abspath);
-GList*
-eina_fs_prepend_dirname(gchar *dirname, GList *list);
-
-gchar*
-eina_fs_utf8_to_ondisk(gchar *path);
-gchar*
-eina_fs_ondisk_to_utf8(gchar *path); 
-
-gboolean
-eina_fs_file_test(gchar *utf8_path, GFileTest test);
-
-gboolean
-eina_fs_mkdir(gchar *pathname, gint mode, GError **error);
-
-const gchar*
-eina_fs_get_cache_dir(void);
+const gchar* eina_fs_get_cache_dir(void);
 
 #endif
 

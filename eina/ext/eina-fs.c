@@ -25,6 +25,9 @@
 
 #include "eina-fs.h"
 
+#define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
+#define EINA_FS_LAST_FOLDER_KEY "last-folder"
+
 #include <errno.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
@@ -42,14 +45,18 @@ GEL_DEFINE_QUARK_FUNC(eina_fs)
 
 /*
  * eina_fs_load_from_uri_multiple:
- * @lomo: a #LomoPlayer
- * @uris: list of uris (gchar *) to load, this function deep copies it
+ * @app: a #EinaApplication
+ * @uris: (transfer none) (element-type utf8): List of uris load.
  *
- * Scans and add uris to lomo
+ * Scans and adds URIs to the LomoPlayer interface (expects 'lomo' ID) from
+ * @app. This function works asynchrnously.
  */
 void
 eina_fs_load_from_uri_multiple(EinaApplication *app, GList *uris)
 {
+	g_return_if_fail(EINA_IS_APPLICATION(app));
+	g_return_if_fail(uris != NULL);
+
 	GelIOScanner *scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
 	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, app);
 	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   app);
@@ -92,9 +99,17 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 	g_free(uri);
 }
 
+/*
+ * eina_fs_load_from_default_file_chooser:
+ * @app: An #EinaApplication.
+ *
+ * Creates a new #EinaFileChooserDialog to select files and loads them into
+ * @app. This functions uses eina_fs_load_from_uri_multiple() see doc.
+ */
 void
 eina_fs_load_from_default_file_chooser(EinaApplication *app)
 {
+	g_return_if_fail(EINA_IS_APPLICATION(app));
 
 	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
 	g_object_set((GObject *) picker,
@@ -116,9 +131,21 @@ eina_fs_load_from_default_file_chooser(EinaApplication *app)
 	gtk_widget_destroy((GtkWidget *) picker);
 }
 
+/*
+ * eina_fs_load_from_file_chooser:
+ * @app: An #EinaApplication
+ * @dialog: An #EinaFileChooserDialog
+ *
+ * Using and existing #EinaFileChooserDialog this function gets selected URIs
+ * and loads them into @app. This functions uses
+ * eina_fs_load_from_uri_multiple() see doc.
+ */
 void
 eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dialog)
 {
+	g_return_if_fail(EINA_IS_APPLICATION(app));
+	g_return_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(dialog));
+
 	gboolean run = TRUE;
 	while (run)
 	{
@@ -149,11 +176,19 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 	}
 }
 
-// Return a list with children's URIs from URI
-// Returned list and list data must be free
+/*
+ * eina_fs_uri_get_children:
+ * @uri: URI to read.
+ *
+ * Reads URI as a directory and returns his children in a URI form
+ *
+ * Returns: (transfer full) (element-type utf8): Children URIs.
+ */
 GList*
-eina_fs_uri_get_children(gchar *uri)
+eina_fs_uri_get_children(const gchar *uri)
 {
+	g_return_val_if_fail(uri != NULL, NULL);
+
 	GFile *f = NULL;
 	GFileEnumerator *f_enum = NULL;
 	GFileInfo *f_inf = NULL;
@@ -196,26 +231,45 @@ eina_fs_uri_get_children(gchar *uri)
 	return g_list_reverse(ret);
 }
 
+/*
+ * eina_fs_files_from_uri_strv:
+ * @uris: a strv of URIs to convert
+ * 
+ * Converts a strv of URIs into a GSList of #GFile
+ *
+ * Returns: (element-type GFile) (transfer full): List of #GFiles.
+ */
 GSList*
-eina_fs_files_from_uri_strv(gchar **uris)
+eina_fs_files_from_uri_strv(const char *const *uris)
 {
+	g_return_val_if_fail((uris != NULL) && (uris[0] != NULL), NULL);
+
 	gint i;
 	GSList *ret = NULL;
 	gchar *uri;
 
-	if (!uris)
-		return NULL;
-	
 	for (i = 0; (uris[i] != NULL) && uris[i][0]; i++)
-		if ((uri = lomo_create_uri(uris[i])) != NULL)
+		if ((uri = lomo_create_uri((gchar *) uris[i])) != NULL)
 		{
 			ret = g_slist_prepend(ret, g_file_new_for_uri(uri));
 			g_free(uri);
 		}
+
 	return g_slist_reverse(ret);
 }
 
-GList *eina_fs_readdir(gchar *path, gboolean abspath) {
+/*
+ * eina_fs_readdir:
+ * @path: Path to read in utf-8. It will be converted to ondisk path.
+ * @abspath: %TRUE if returned values should be absolute, %FALSE if not.
+ *
+ * Safe readdir with absolute paths option
+ *
+ * Returns: (transfer full) (element-type utf8): List of children.
+ */
+GList *eina_fs_readdir(const gchar *path, gboolean abspath) {
+	g_return_val_if_fail(path != NULL, FALSE);
+
 	/* Path is UTF8, g_dir_open require on-disk encoding (note: on windows is
 	 * UTF8
 	 */
@@ -226,23 +280,25 @@ GList *eina_fs_readdir(gchar *path, gboolean abspath) {
 	GError *err = NULL;
 
 	gchar *real_path = g_filename_from_utf8(path, -1, NULL, NULL, &err);
-	if (err != NULL) {
-		gel_error("Cannot convert UTF8 path '%s' to on-disk encoding: %s",
-			path, err->message);
-		goto epic_fail;
+	if (err != NULL)
+	{
+		gel_error(_("Cannot convert UTF8 path '%s' to on-disk encoding: %s"), path, err->message);
+		goto eina_fs_readdir_fail;
 	}
 
 	dir = g_dir_open(real_path, 0, &err);
-	if (err != NULL) {
+	if (err != NULL)
+	{
 		gel_error("Cannot open dir '%s': '%s'", real_path, err->message);
-		goto epic_fail;
+		goto eina_fs_readdir_fail;
 	}
 
-	while ((child = g_dir_read_name(dir)) != NULL) {
+	while ((child = g_dir_read_name(dir)) != NULL)
+	{
 		utf8_child = g_filename_to_utf8(child, -1, NULL, NULL, &err);
-		if (err != NULL) {
-			gel_error("Cannot convert on-disk encoding '%s' to UTF8: %s",
-				path, err->message);
+		if (err)
+		{
+			gel_error(_("Cannot convert on-disk encoding '%s' to UTF8: %s"), path, err->message);
 			g_error_free(err);
 			err = NULL;
 			continue;
@@ -252,7 +308,8 @@ GList *eina_fs_readdir(gchar *path, gboolean abspath) {
 	}
 	g_dir_close(dir);
 
-	if (abspath) {
+	if (abspath)
+	{
 		ret2 = eina_fs_prepend_dirname(path, ret);
 		g_list_free(ret);
 		ret = ret2;
@@ -260,7 +317,7 @@ GList *eina_fs_readdir(gchar *path, gboolean abspath) {
 
 	return g_list_reverse(ret);
 
-epic_fail:
+eina_fs_readdir_fail:
 	if (real_path != NULL)
 		g_free(real_path);
 
@@ -273,7 +330,17 @@ epic_fail:
 	return NULL;
 }
 
-GList *eina_fs_recursive_readdir(gchar *path, gboolean abspath) {
+/*
+ * eina_fs_recursive_readdir:
+ * @path: Path to recursively read
+ * @abspath: Return absolute path or not
+ *
+ * Recursive read @path.
+ *
+ * Returns: (transfer full) (element-type utf8): A #GList of paths.
+ */
+GList *eina_fs_recursive_readdir(const gchar *path, gboolean abspath)
+{
 	GList *ret = NULL;
 	GList *children, *l;
 
@@ -289,8 +356,17 @@ GList *eina_fs_recursive_readdir(gchar *path, gboolean abspath) {
 	return ret;
 }
 
+/*
+ * eina_fs_prepend_dirname:
+ * @dirname: foo?
+ * @list: bar?
+ *
+ * Black magic
+ *
+ * Returns: (transfer full) (element-type utf8): Unicorns
+ */
 GList*
-eina_fs_prepend_dirname(gchar *dirname, GList *list)
+eina_fs_prepend_dirname(const gchar *dirname, GList *list)
 {
 	GList *ret = NULL;
 	GList *l;
@@ -304,13 +380,23 @@ eina_fs_prepend_dirname(gchar *dirname, GList *list)
 	return g_list_reverse(ret);
 }
 
-gchar* eina_fs_utf8_to_ondisk(gchar *path)
+/*
+ * eina_fs_utf8_to_ondisk:
+ * @path: Path in utf8 encoding
+ *
+ * Converts a path encoded in utf8 to path in disk encoding
+ *
+ * Returns: The path in disk encoding. This should be freeed with g_free
+ */
+gchar* eina_fs_utf8_to_ondisk(const gchar *path)
 {
-	gchar *ret;
+	g_return_val_if_fail(path != NULL, NULL);
+
 	GError *err = NULL;
 
-	ret = g_filename_from_utf8(path, -1, NULL, NULL, &err);
-	if (err != NULL) {
+	gchar *ret = g_filename_from_utf8(path, -1, NULL, NULL, &err);
+	if (err != NULL)
+	{
 		gel_error("Cannot convert UTF8 path '%s' to on-disk encoding: %s", path, err->message);
 		g_error_free(err);
 		return NULL;
@@ -318,13 +404,23 @@ gchar* eina_fs_utf8_to_ondisk(gchar *path)
 	return ret;
 }
 
-gchar* eina_fs_ondisk_to_utf8(gchar *path)
+/*
+ * eina_fs_ondisk_to_utf8:
+ * @path: Path in disk encoding 
+ *
+ * Converts a path encoded in disk charset to utf8
+ *
+ * Returns: The path in utf8 encoding. This should be freeed with g_free
+ */
+gchar* eina_fs_ondisk_to_utf8(const gchar *path)
 {
-	gchar *ret;
+	g_return_val_if_fail(path != NULL, NULL);
+
 	GError *err = NULL;
 
-	ret = g_filename_to_utf8(path, -1, NULL, NULL, &err);
-	if (err != NULL) {
+	gchar *ret = g_filename_to_utf8(path, -1, NULL, NULL, &err);
+	if (err != NULL)
+	{
 		gel_error("Cannot convert on-disk encoding '%s' to UTF8 path: %s", path, err->message); g_error_free(err);
 		g_error_free(err);
 		return NULL;
@@ -332,7 +428,16 @@ gchar* eina_fs_ondisk_to_utf8(gchar *path)
 	return ret;
 }
 
-gboolean eina_fs_file_test(gchar *utf8_path, GFileTest test)
+/*
+ * eina_fs_file_test:
+ * @utf8_path: Path in utf8 encoding
+ * @test: Test to perform
+ *
+ * Does @test on @utf8_path.
+ *
+ * Returns: %TRUE if test is successfull, %FALSE otherwise
+ */
+gboolean eina_fs_file_test(const gchar *utf8_path, GFileTest test)
 {
 	gboolean ret;
 	gchar *real_path = eina_fs_utf8_to_ondisk(utf8_path);
@@ -341,8 +446,19 @@ gboolean eina_fs_file_test(gchar *utf8_path, GFileTest test)
 	return ret;
 }
 
+/*
+ * eina_fs_mkdir:
+ * @pathname: Path to create
+ * @mode: Mode for the path
+ * @error: (transfer full) (allow-none): return location for a GError, or %NULL.
+ *
+ * Creates a directory named @pathname with mode set to @mode. If operation
+ * fails @error is filled with the error.
+ *
+ * Returns: TRUE on success, FALSE if an error occurred.
+ */
 gboolean
-eina_fs_mkdir(gchar *pathname, gint mode, GError **error)
+eina_fs_mkdir(const gchar *pathname, gint mode, GError **error)
 {
 	if (g_mkdir_with_parents(pathname, mode) == -1)
 	{
@@ -352,6 +468,13 @@ eina_fs_mkdir(gchar *pathname, gint mode, GError **error)
 	return TRUE;
 }
 
+/*
+ * eina_fs_get_cache_dir:
+ *
+ * Get the cache dir for the current user
+ *
+ * Returns: The cache directory
+ */
 const gchar*
 eina_fs_get_cache_dir(void)
 {

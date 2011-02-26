@@ -30,11 +30,6 @@
 
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogPrivate))
-
-typedef struct _EinaFileChooserDialogPrivate EinaFileChooserDialogPrivate;
-
 struct _EinaFileChooserDialogPrivate {
 	EinaFileChooserDialogAction action;
 	GList *uris; // Store output from eina_file_chooser_dialog_run 
@@ -64,7 +59,7 @@ scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaFileCh
 static void
 reset_resources(EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	EinaFileChooserDialogPrivate *priv = self->priv;
 
 	/*
 	if (priv->scanner)
@@ -121,7 +116,7 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 static void
 eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	EinaFileChooserDialogPrivate *priv = self->priv;
 
 	#if defined(__APPLE__) || defined(__APPLE_CC_)
 	g_signal_connect(GTK_FILE_CHOOSER(self), "selection-changed", (GCallback) gtk_widget_queue_draw, NULL);
@@ -135,25 +130,46 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 	gtk_window_set_icon_name(GTK_WINDOW(self), GTK_STOCK_OPEN);
 }
 
+/*
+ * eina_file_chooser_dialog_new:
+ * @action: Action to perform
+ *
+ * Creates new #EinaFileChooserDialog designed to perform a concrete action
+ *
+ * Returns: The new EinaFileChooserDialog
+ */
 EinaFileChooserDialog*
 eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
 {
-	EinaFileChooserDialog *self;
-	EinaFileChooserDialogPrivate *priv;
-
-	self = g_object_new (EINA_TYPE_FILE_CHOOSER_DIALOG, "local-only", FALSE, NULL);
-	priv = GET_PRIVATE(self);
-	priv->action = action;
+	EinaFileChooserDialog *self = g_object_new (EINA_TYPE_FILE_CHOOSER_DIALOG, "local-only", FALSE, NULL);
+	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogPrivate);
+	self->priv->action = action;
 
 	set_action(self, action);
 
 	return self;
 }
 
+/*
+ * eina_file_chooser_dialog_set_custom_msg:
+ * @self: An #EinaFileChooserDialog
+ * @image: Widget (usually an image) to display at the left of the message
+ *          area
+ * @label: Label with the message to display.
+ * @action: Widget (usually a button) to perform an action (close message,
+ *          etc...)
+ *
+ * Display a custom message in the message area of the #EinaFileChooserDialog
+ */
 void eina_file_chooser_dialog_set_custom_msg(EinaFileChooserDialog *self,
 	GtkWidget *image, GtkLabel *label, GtkWidget *action)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	g_return_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(self));
+	g_return_if_fail(GTK_IS_WIDGET(image));
+	g_return_if_fail(GTK_IS_LABEL(label));
+	g_return_if_fail(GTK_IS_WIDGET(action));
+
+	EinaFileChooserDialogPrivate *priv = self->priv;
 
 	clear_message(self);
 
@@ -164,33 +180,45 @@ void eina_file_chooser_dialog_set_custom_msg(EinaFileChooserDialog *self,
 	gtk_widget_show_all(GTK_WIDGET(priv->info_box));
 }
 
+/*
+ * eina_file_chooser_dialog_set_msg:
+ * @self: An #EinaFileChooserDialog
+ * @type: Type of the message
+ * @msg: Message to display
+ *
+ * Displays a standard message of type @type in the message area of the
+ * filechooser
+ */
 void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
-	EinaFileChooserDialogMsgType type, gchar *msg)
+	EinaFileChooserDialogMsgType type, const gchar *msg)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
-	GtkButton *button;
+	g_return_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(self));
+	g_return_if_fail(msg != NULL);
+
+	EinaFileChooserDialogPrivate *priv = self->priv;
+
 	gchar *stock_id;
+	switch (type)
+	{
+	case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO:
+		stock_id = GTK_STOCK_INFO;
+		break;
 
-	switch (type) {
-		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO:
-			stock_id = GTK_STOCK_INFO;
-			break;
+	case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_WARN:
+		stock_id = GTK_STOCK_DIALOG_WARNING;
+		break;
 
-		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_WARN:
-			stock_id = GTK_STOCK_DIALOG_WARNING;
-			break;
+	case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_ERROR:
+		stock_id = GTK_STOCK_DIALOG_ERROR;
+		break;
 
-		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_ERROR:
-			stock_id = GTK_STOCK_DIALOG_ERROR;
-			break;
-
-		case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE:
-		default:
-			gtk_widget_hide(GTK_WIDGET(priv->info_box));
-			return;
+	case EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE:
+	default:
+		gtk_widget_hide(GTK_WIDGET(priv->info_box));
+		return;
 	}
 
-	button = (GtkButton *) gtk_button_new();
+	GtkButton *button = (GtkButton *) gtk_button_new();
 	gtk_button_set_relief(button, GTK_RELIEF_NONE);
 	gtk_container_add(GTK_CONTAINER(button), gtk_image_new_from_stock("gtk-close", GTK_ICON_SIZE_MENU));
 	g_signal_connect_swapped(button, "clicked", (GCallback) clear_message, self);
@@ -198,14 +226,28 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	eina_file_chooser_dialog_set_custom_msg(self,
 		gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU),
 		(GtkLabel *) gtk_label_new(msg),
-		GTK_WIDGET(button)
-		);
+		GTK_WIDGET(button));
 }
 
+/*
+ * eina_file_chooser_dialog_get_uris:
+ * @self: An #EinaFileChooserDialog
+ *
+ * Gets the selected URIs from the filechooser dialog recursivelly.
+ * This function is synchronous, while transversing the tree it puts itself in
+ * a unsensitive state and enters in deeper gtk main-loop.
+ *
+ * Operation is cancelable using a button.
+ *
+ * Returns: (transfer full) (element-type utf-8): The URIs. Elements of the
+ * list must be freed with g_free and list with g_list_free
+ */
 GList *
 eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	g_return_val_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(self), NULL);
+
+	EinaFileChooserDialogPrivate *priv = self->priv;
 	reset_resources(self);
 
 	GSList *s_uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self));
@@ -219,10 +261,6 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	uris = g_list_reverse(uris);
 	g_slist_free(s_uris);
 
-	/*priv->scanner = gel_io_scan(uris, "standard::*", TRUE,
-		(GelIOScannerSuccessFunc) scanner_success_cb,
-		(GelIOScannerErrorFunc)   scanner_error_cb, self);
-		*/
 	priv->scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
 	g_signal_connect(priv->scanner, "finish", (GCallback) scanner_success_cb, self);
 	g_signal_connect(priv->scanner, "error",  (GCallback) scanner_error_cb,   self);
@@ -312,7 +350,7 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 static void
 update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	EinaFileChooserDialogPrivate *priv = self->priv;
 
 	gtk_widget_set_sensitive(gtk_dialog_get_action_area(GTK_DIALOG(self)), value);
 	GList *children = gtk_container_get_children(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(self))));
@@ -345,7 +383,7 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 static void
 clear_message(EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	EinaFileChooserDialogPrivate *priv = self->priv;
 	GList *children = gtk_container_get_children(GTK_CONTAINER(priv->info_box));
 	GList *iter = children;
 	while (iter)
@@ -359,7 +397,7 @@ clear_message(EinaFileChooserDialog *self)
 static void
 cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	EinaFileChooserDialogPrivate *priv = self->priv;
 	priv->user_cancel = TRUE;
 	reset_resources(self);
 	clear_message(self);
@@ -369,7 +407,7 @@ cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 static void
 scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = GET_PRIVATE(self);
+	EinaFileChooserDialogPrivate *priv = self->priv;
 
 	// GList *flatten = gel_io_scan_flatten_result(forest);
 	GList *flatten = gel_io_scanner_flatten_result(forest);

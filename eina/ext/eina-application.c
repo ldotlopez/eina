@@ -5,9 +5,6 @@
 
 G_DEFINE_TYPE (EinaApplication, eina_application, GTK_TYPE_APPLICATION)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_APPLICATION, EinaApplicationPrivate))
-
 struct _EinaApplicationPrivate {
 	gint    *argc;
 	gchar ***argv;
@@ -45,7 +42,7 @@ eina_application_class_init (EinaApplicationClass *klass)
 static void
 eina_application_init (EinaApplication *self)
 {
-	self->priv = GET_PRIVATE(self);
+	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_APPLICATION, EinaApplicationPrivate);
 	self->priv->interfaces = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	self->priv->settings   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
@@ -76,6 +73,14 @@ eina_application_init (EinaApplication *self)
 		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
 }
 
+/*
+ * eina_application_new:
+ * @application_id: ID for the application see gtk_application_new()
+ *
+ * Creates a new #EinaApplication with @application_id as ID
+ *
+ * Returns: A new #EinaApplication
+ */
 EinaApplication*
 eina_application_new (const gchar *application_id)
 {
@@ -85,15 +90,35 @@ eina_application_new (const gchar *application_id)
 		NULL);
 }
 
+/*
+ * eina_application_get_argc:
+ * @application: An #EinaApplication
+ * 
+ * Gets argc for current @application. The returned pointer is owned by
+ * @application
+ *
+ * Returns: (transfer none): argc
+ */
 gint*
 eina_application_get_argc(EinaApplication *application)
 {
+	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
 	return NULL;
 }
 
+/*
+ * eina_application_get_argv:
+ * @application: An #EinaApplication
+ *
+ * Gets argv for current @application. The returned pointer is owned by
+ * @application
+ *
+ * Returns: (transfer none): argv
+ */
 gchar***
 eina_application_get_argv(EinaApplication *application)
 {
+	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
 	return NULL;
 }
 
@@ -122,6 +147,7 @@ eina_application_set_interface(EinaApplication *self, const gchar *name, gpointe
 	}
 	else
 		g_hash_table_remove(self->priv->interfaces, name);
+
 	return TRUE;
 }
 
@@ -142,6 +168,7 @@ eina_application_get_interface(EinaApplication *self, const gchar *name)
 
 	gpointer interface = g_hash_table_lookup(self->priv->interfaces, name);
 	g_return_val_if_fail(interface != NULL, NULL);
+
 	return interface;
 }
 
@@ -159,19 +186,23 @@ eina_application_get_interface(EinaApplication *self, const gchar *name)
 gpointer
 eina_application_steal_interface(EinaApplication *self, const gchar *name)
 {
-	// XXX: Race condition?
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
+	g_return_val_if_fail(name != NULL, NULL);
+
+	// FIXME: Race condition
 	gpointer ret = eina_application_get_interface(self, name);
 	g_return_val_if_fail(ret != NULL, NULL);
 
 	eina_application_set_interface(self, name, NULL);
+
 	return ret;
 }
 
 /*
  * eina_application_get_settings:
  *
- * @self: (inout) (transfer none): the #EinaApplication
- * @domain: (in) (transfer none): string representing a domain
+ * @self: the #EinaApplication
+ * @domain: string representing a domain
  *
  * Gets a GSettings for the domain, if it's not present it gets created.
  *
@@ -180,8 +211,10 @@ eina_application_steal_interface(EinaApplication *self, const gchar *name)
 GSettings*
 eina_application_get_settings(EinaApplication *self, const gchar *domain)
 {
-	gchar *app_id = NULL;
-	g_object_get(self, "application-id", &app_id, NULL);
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
+	g_return_val_if_fail(domain != NULL, NULL);
+
+	const gchar *app_id = g_application_get_application_id(G_APPLICATION(self));
 	g_return_val_if_fail(app_id != NULL, NULL);
 
 	GSettings *ret = g_hash_table_lookup(self->priv->settings, domain);
@@ -191,18 +224,7 @@ eina_application_get_settings(EinaApplication *self, const gchar *domain)
 		g_hash_table_insert(self->priv->settings, g_strdup(domain), ret);
 	}
 
-	return ret;
-}
-
-static EinaWindow *
-create_window(EinaApplication *self)
-{
-	if (self->priv->window)
-		return self->priv->window;
-
-	self->priv->window = (EinaWindow *) eina_window_new();
-	gtk_application_add_window((GtkApplication *) self, (GtkWindow *) self->priv->window);
-	return self->priv->window;
+	return G_SETTINGS(ret);
 }
 
 /*
@@ -217,7 +239,8 @@ eina_application_get_window(EinaApplication *self)
 {
 	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
 	create_window(self);
-	return self->priv->window;
+
+	return EINA_WINDOW(self->priv->window);
 }
 
 /*
@@ -231,7 +254,8 @@ GtkUIManager*
 eina_application_get_window_ui_manager(EinaApplication *self)
 {
 	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
-	return eina_window_get_ui_manager(self->priv->window);
+
+	return GTK_UI_MANAGER(eina_window_get_ui_manager(self->priv->window));
 }
 
 /*
@@ -244,5 +268,19 @@ GtkActionGroup *
 eina_application_get_window_action_group(EinaApplication *self)
 {
 	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
-	return eina_window_get_action_group(self->priv->window);
+
+	return GTK_ACTION_GROUP(eina_window_get_action_group(self->priv->window));
 }
+
+static EinaWindow *
+create_window(EinaApplication *self)
+{
+	if (self->priv->window)
+		return self->priv->window;
+
+	self->priv->window = (EinaWindow *) eina_window_new();
+	gtk_application_add_window((GtkApplication *) self, (GtkWindow *) self->priv->window);
+
+	return EINA_WINDOW(self->priv->window);
+}
+

@@ -26,39 +26,54 @@
 G_BEGIN_DECLS
 
 #define EINA_TYPE_FILE_CHOOSER_DIALOG eina_file_chooser_dialog_get_type()
+#define EINA_FILE_CHOOSER_DIALOG(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialog))
+#define EINA_FILE_CHOOSER_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogClass))
+#define EINA_IS_FILE_CHOOSER_DIALOG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_FILE_CHOOSER_DIALOG))
+#define EINA_IS_FILE_CHOOSER_DIALOG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_FILE_CHOOSER_DIALOG))
+#define EINA_FILE_CHOOSER_DIALOG_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogClass))
 
-#define EINA_FILE_CHOOSER_DIALOG(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialog))
-
-#define EINA_FILE_CHOOSER_DIALOG_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogClass))
-
-#define EINA_IS_FILE_CHOOSER_DIALOG(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_FILE_CHOOSER_DIALOG))
-
-#define EINA_IS_FILE_CHOOSER_DIALOG_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_FILE_CHOOSER_DIALOG))
-
-#define EINA_FILE_CHOOSER_DIALOG_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogClass))
-
+typedef struct _EinaFileChooserDialogPrivate EinaFileChooserDialogPrivate;
 typedef struct {
 	GtkFileChooserDialog parent;
+	EinaFileChooserDialogPrivate *priv;
 } EinaFileChooserDialog;
 
 typedef struct {
 	GtkFileChooserDialogClass parent_class;
 } EinaFileChooserDialogClass;
 
+/*
+ * EinaFileChooserDialogAction:
+ * @EINA_FILE_CHOOSER_DIALOG_LOAD_FILES: Filechooser dialog will be used to
+ *                                       load files
+ *
+ * Possible actions for the filechooser dialog
+ */
 typedef enum {
 	EINA_FILE_CHOOSER_DIALOG_LOAD_FILES
 } EinaFileChooserDialogAction;
 
+/*
+ * EinaFileChooserDialogResponse:
+ * @EINA_FILE_CHOOSER_RESPONSE_QUEUE: URIs were selected for queue
+ * @EINA_FILE_CHOOSER_RESPONSE_PLAY: URIs were selected for play
+ *
+ * Possible responses from the filechooser dialog
+ */
 typedef enum {
 	EINA_FILE_CHOOSER_RESPONSE_QUEUE = 1,
 	EINA_FILE_CHOOSER_RESPONSE_PLAY
 } EinaFileChooserDialogResponse;
 
+/*
+ * EinaFileChooserDialogMsgType:
+ * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE: No type
+ * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO: Information message
+ * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_WARN: Warning message
+ * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_ERROR: Error message
+ *
+ * Possible messages types
+ */
 typedef enum {
 	EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE,
 	EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO,
@@ -70,10 +85,9 @@ GType eina_file_chooser_dialog_get_type (void);
 
 EinaFileChooserDialog* eina_file_chooser_dialog_new (EinaFileChooserDialogAction action);
 void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
-	EinaFileChooserDialogMsgType type, gchar *msg);
+	EinaFileChooserDialogMsgType type, const gchar *msg);
 
 GList *eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self);
-
 
 G_END_DECLS
 

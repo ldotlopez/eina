@@ -19,36 +19,54 @@
 
 #include "eina-file-utils.h"
 
+/*
+ * eina_file_utils_is_supported_extension:
+ * @uri: URI to check for support
+ *
+ * Checks if URI is supported. Test its done using extension.
+ *
+ * Return: %TRUE if supported, %FALSE otherwise.
+ */
 gboolean
 eina_file_utils_is_supported_extension(gchar *uri)
 {
-	static const gchar *suffixes[] = {".mp3", ".ogg", "wav", ".wma", ".aac", ".flac", ".m4a", NULL };
-	gchar *lc_name;
-	gint i;
-	gboolean ret = FALSE;
+	g_return_val_if_fail(uri != NULL, FALSE);
 
-	// lc_name = g_utf8_strdown(uri, -1);
-	lc_name = g_ascii_strdown(uri, -1);
-	for (i = 0; suffixes[i] != NULL; i++)
+	static const gchar *suffixes[] = {".mp3", ".ogg", "wav", ".wma", ".aac", ".flac", ".m4a", NULL };
+
+	gchar *lc_name = g_ascii_strdown(uri, -1);
+	for (guint i = 0; suffixes[i] != NULL; i++)
 	{
 		if (g_str_has_suffix(lc_name, suffixes[i]))
 		{
-			ret = TRUE;
-			break;
+			g_free(lc_name);
+			return TRUE;
 		}
 	}
 
-	g_free(lc_name);
-	return ret;
+	return FALSE;
 }
 
+/*
+ * eina_file_utils_is_supported_file:
+ * @file: A #GFile to check
+ *
+ * Checks if the file is supported. This function is a wrapper around
+ * eina_file_utils_is_supported_extension(), see doc for details.
+ *
+ * Returns: %TRUE if supported, %FALSE otherwise.
+ */
 gboolean
-eina_file_utils_is_supported_file(GFile *uri)
+eina_file_utils_is_supported_file(GFile *file)
 {
-	gboolean ret;
-	gchar *u = g_file_get_uri(uri);
-	ret = eina_file_utils_is_supported_extension(u);
-	g_free(u);
+	g_return_val_if_fail(G_IS_FILE(file), FALSE);
+
+	gchar *uri = g_file_get_uri(file);
+	g_return_val_if_fail(uri != NULL, FALSE);
+
+	gboolean ret = eina_file_utils_is_supported_extension(uri);
+	g_free(uri);
+
 	return ret;
 }
 

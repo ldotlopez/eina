@@ -23,10 +23,8 @@
 #include <glib.h>
 #include <gio/gio.h>
 
-gboolean
-eina_file_utils_is_supported_extension(gchar *uri);
-gboolean
-eina_file_utils_is_supported_file(GFile *uri);
+gboolean eina_file_utils_is_supported_extension(gchar *uri);
+gboolean eina_file_utils_is_supported_file     (GFile *file);
 
 #endif
 
