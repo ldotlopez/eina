@@ -65,27 +65,25 @@ include $(top_srcdir)/build/Makefile.am.ui2h
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
-INTROSPECTION_SCANNER_ARGS =
-INTROSPECTION_COMPILER_ARGS = 
+
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel
+INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/gel
 
 if HAVE_INTROSPECTION
 Gel-1.0.gir: libgel-1.0.la
-Gel_1_0_gir_INCLUDES = GLib-2.0 Gio-2.0
-Gel_1_0_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
+Gel_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0
+Gel_1_0_gir_CFLAGS = -I$(top_srcdir)
 Gel_1_0_gir_LIBS = libgel-1.0.la
 Gel_1_0_gir_FILES = $(libgel_1_0_la_SOURCES)
 INTROSPECTION_GIRS += Gel-1.0.gir
 
 GelUI-1.0.gir: libgel-ui-1.0.la
-GelUI_1_0_gir_INCLUDES = $(Gel_1_0_gir_INCLUDES) Gtk-3.0 Gel-1.0
-GelUI_1_0_gir_PACKAGES = gtk+-3.0
-GelUI_1_0_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
+GelUI_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Gtk-3.0 Gel-1.0
+GelUI_1_0_gir_CFLAGS = -I$(top_srcdir)
+GelUI_1_0_gir_LDFLAGS = -L$(top_buildir)/.libs -lgel-1.0
 GelUI_1_0_gir_LIBS = libgel-ui-1.0.la
-GelUI_1_0_gir_LDFLAGS = -L$(top_buildir)/gel -lgel-1.0
 GelUI_1_0_gir_FILES = $(libgel_ui_1_0_la_SOURCES)
 INTROSPECTION_GIRS += GelUI-1.0.gir
-INTROSPECTION_SCANNER_ARGS += \
-	--add-include-path=$(top_builddir)/gel 
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)

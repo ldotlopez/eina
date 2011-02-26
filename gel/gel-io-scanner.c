@@ -25,8 +25,6 @@
 
 G_DEFINE_TYPE (GelIOScanner, gel_io_scanner, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) (o->priv)
-
 struct _GelIOScannerPrivate {
 	GList    *uris;
 	gchar    *attributes;
@@ -71,7 +69,7 @@ static guint scanner_signals[LAST_SIGNAL] = { 0 };
 static void
 gel_io_scanner_dispose (GObject *object)
 {
-	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(object));
+	GelIOScannerPrivate *priv = GEL_IO_SCANNER(object)->priv;
 
 	gel_free_and_invalidate(priv->attributes, NULL, g_free);
 
@@ -273,7 +271,7 @@ gel_io_scanner_flatten_result(GList *forest)
 static void
 _scanner_query_info_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 {
-	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+	GelIOScannerPrivate *priv = self->priv;
 
 	GError *error = NULL;
 	GFileInfo *info = g_file_query_info_finish((GFile *) source, res, &error);
@@ -313,7 +311,7 @@ _scanner_query_info_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 static void
 _scanner_enumerate_children_cb(GFile *source, GAsyncResult *res, GelIOScanner *self)
 {
-	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+	GelIOScannerPrivate *priv = self->priv;
 	GError *error = NULL;
 	GFileEnumerator *e = g_file_enumerate_children_finish(source, res, &error);
 	if (e == NULL)
@@ -333,7 +331,7 @@ _scanner_enumerate_children_cb(GFile *source, GAsyncResult *res, GelIOScanner *s
 static void
 _scanner_enumerator_next_cb(GFileEnumerator *e, GAsyncResult *res, GelIOScanner *self)
 {
-	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+	GelIOScannerPrivate *priv = self->priv;
 	GError *error = NULL;
 	GList *children = g_file_enumerator_next_files_finish(e, res, &error);
 	GFile *parent   = g_file_enumerator_get_container(e);
@@ -387,7 +385,7 @@ _scanner_run_queue_idle_wrapper(gpointer self)
 static void
 _scanner_run_queue(GelIOScanner *self)
 {
-	GelIOScannerPrivate *priv = GET_PRIVATE(GEL_IO_SCANNER(self));
+	GelIOScannerPrivate *priv = self->priv;
 	if (g_queue_is_empty(priv->queue))
 	{
 		GList *l = priv->results = g_list_reverse(g_list_sort(priv->results, (GCompareFunc) _scanner_cmp_by_type_by_name_cb));

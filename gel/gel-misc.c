@@ -151,7 +151,7 @@ gel_object_get_ref_count(GObject *object)
  *
  * Get object's class printable name
  *
- * Returns: A string containing the object's class name. This string is owned
+ * Returns: (transfer none): A string containing the object's class name. This string is owned
  *          by glib-object and should NOT be freeded.
  **/
 const gchar*
