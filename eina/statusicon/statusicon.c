@@ -283,7 +283,7 @@ action_activate_cb(GtkAction *action, StatusIconData *self)
 		lomo_player_stop(eina_plugin_get_lomo(self->plugin), &error);
 
 	else if (g_str_equal(name, "prev-action"))
-		lomo_player_go_prev(eina_plugin_get_lomo(self->plugin), NULL);
+		lomo_player_go_previous(eina_plugin_get_lomo(self->plugin), NULL);
 
 	else if (g_str_equal(name, "next-action"))
 		lomo_player_go_next(eina_plugin_get_lomo(self->plugin), NULL);

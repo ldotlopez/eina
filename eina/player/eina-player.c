@@ -350,7 +350,7 @@ player_update_sensitive(EinaPlayer *self)
 	if (lomo != NULL)
 	{
 		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-button"), (lomo_player_get_current(lomo) != -1));
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       (lomo_player_get_prev(lomo) != -1));
+		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       (lomo_player_get_previous(lomo) != -1));
 		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       (lomo_player_get_next(lomo) != -1));
 	}
 	else
@@ -473,7 +473,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		lomo_player_go_next(lomo, &error);
 
 	else if (g_str_equal(name, "prev-action"))
-		lomo_player_go_prev(lomo, &error);
+		lomo_player_go_previous(lomo, &error);
 
 	else
 		g_warning(N_("Action %s was not handled"), name);

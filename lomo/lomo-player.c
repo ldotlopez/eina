@@ -28,12 +28,10 @@
 
 G_DEFINE_TYPE (LomoPlayer, lomo_player, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_PLAYER, LomoPlayerPrivate))
-
-typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
+#define GET_PRIVATE(o) (o->priv)
 
 struct _LomoPlayerPrivate {
+	LomoPlayerPrivate *priv;
  	LomoPlayerVTable  vtable;
 	GHashTable       *options;
 
@@ -71,7 +69,10 @@ struct _LomoPlayerPrivate {
  */
 
 enum {
-	PROPERTY_AUTO_PARSE = 1,
+	PROPERTY_STATE = 1,
+	PROPERTY_CAN_GO_NEXT,
+	PROPERTY_CAN_GO_PREVIOUS,
+	PROPERTY_AUTO_PARSE,
 	PROPERTY_AUTO_PLAY, 
 	PROPERTY_RANDOM,
 	PROPERTY_REPEAT,
@@ -80,6 +81,7 @@ enum {
 };
 
 enum {
+	STATE_CHANGED,
 	PLAY,
 	PAUSE,
 	STOP,
@@ -165,6 +167,27 @@ lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error
 static  gboolean
 lomo_player_destroy_pipeline(LomoPlayer *self, GError **error);
 
+#define LOMO_STATE_ENUM_TYPE (lomo_state_enum_type())
+GType
+lomo_state_enum_type(void)
+{
+	static GType etype = 0;
+	if (etype == 0)
+	{
+		static const GEnumValue values[] =
+		{
+			{ LOMO_STATE_INVALID,  "LOMO_STATE_INVALID",  "invalid"  },
+			{ LOMO_STATE_STOP,     "LOMO_STATE_STOP",     "stop"     },
+			{ LOMO_STATE_PLAY,     "LOMO_STATE_PLAY",     "play"     },
+			{ LOMO_STATE_PAUSE,    "LOMO_STATE_PAUSE",    "pause"    },
+			{ LOMO_STATE_N_STATES, "LOMO_STATE_N_STATES", "n-states" },
+			{ 0, NULL, NULL }
+		};
+		etype = g_enum_register_static ("LomoStateEnumType", values);
+	}
+	return etype;
+}
+
 static GQuark
 lomo_quark(void)
 {
@@ -181,6 +204,15 @@ lomo_player_get_property (GObject *object, guint property_id,
 	LomoPlayer *self = LOMO_PLAYER(object);
 	switch (property_id)
 	{
+	case PROPERTY_STATE:
+		g_value_set_enum(value, lomo_player_get_state(self));
+		break;
+	case PROPERTY_CAN_GO_NEXT:
+		g_value_set_boolean(value, lomo_player_get_can_go_next(self));
+		break;
+	case PROPERTY_CAN_GO_PREVIOUS:
+		g_value_set_boolean(value, lomo_player_get_can_go_previous(self));
+		break;
 	case PROPERTY_AUTO_PARSE:
 		g_value_set_boolean(value, lomo_player_get_auto_parse(self));
 		break;
@@ -212,6 +244,9 @@ lomo_player_set_property (GObject *object, guint property_id,
 
 	switch (property_id)
 	{
+	case PROPERTY_STATE:
+		lomo_player_set_state(self, g_value_get_enum(value), NULL);
+		break;
 	case PROPERTY_AUTO_PARSE:
 		lomo_player_set_auto_parse(self, g_value_get_boolean(value));
 		break;
@@ -295,6 +330,22 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	object_class->get_property = lomo_player_get_property;
 	object_class->set_property = lomo_player_set_property;
 	object_class->dispose = lomo_player_dispose;
+
+	/**
+	 * LomoPlayer::state-changed:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state.
+	 */
+	lomo_player_signals[STATE_CHANGED] =
+		g_signal_new ("state-chnaged",
+			    G_OBJECT_CLASS_TYPE (object_class),
+			    G_SIGNAL_RUN_LAST,
+			    G_STRUCT_OFFSET (LomoPlayerClass, state_changed),
+			    NULL, NULL,
+			    g_cclosure_marshal_VOID__VOID,
+			    G_TYPE_NONE,
+			    0);
 
 	/**
 	 * LomoPlayer::play:
@@ -505,6 +556,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
+
 	/**
 	 * LomoPlayer::change:
 	 * @lomo: the object that received the signal
@@ -646,6 +698,33 @@ lomo_player_class_init (LomoPlayerClass *klass)
 				G_TYPE_OBJECT);
 
 	/**
+	 * LomoPlayer:state:
+	 *
+	 * State of the player
+	 */
+	g_object_class_install_property(object_class, PROPERTY_STATE,
+		g_param_spec_enum("state", "state", "Player state",
+		LOMO_STATE_ENUM_TYPE, LOMO_STATE_STOP, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+
+	/**
+	 * LomoPlayer:can-go-previous:
+	 *
+	 * Check if player can backwards in playlist
+	 */
+	g_object_class_install_property(object_class, PROPERTY_CAN_GO_PREVIOUS,
+		g_param_spec_boolean("can-go-previous", "can-go-previous", "Can go previous",
+		TRUE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * LomoPlayer:can-go-next:
+	 *
+	 * Check if player can forward in playlist
+	 */
+	g_object_class_install_property(object_class, PROPERTY_CAN_GO_PREVIOUS,
+		g_param_spec_boolean("can-go-next", "can-go-next", "Can go next",
+		TRUE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
+
+	/**
 	 * LomoPlayer:auto-parse:
 	 *
 	 * Control if #LomoPlayer must parse automatically all inserted streams
@@ -703,7 +782,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 static void
 lomo_player_init (LomoPlayer *self)
 {
-	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+	LomoPlayerPrivate *priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), LOMO_TYPE_PLAYER, LomoPlayerPrivate);
 	LomoPlayerVTable vtable = {
 		create_pipeline,
 		destroy_pipeline,
@@ -1071,8 +1150,14 @@ lomo_player_get_stream(LomoPlayer *self)
 LomoStateChangeReturn
 lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 {
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), LOMO_STATE_CHANGE_FAILURE);
+	LomoPlayerPrivate *priv = self->priv;
+
+	// Dont update state twice
+	if (state == lomo_player_get_state(self))
+		return LOMO_STATE_CHANGE_SUCCESS;
+
 	check_method_or_return_val(self, set_state, LOMO_STATE_CHANGE_FAILURE, error);
-	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
 	if (priv->pipeline == NULL)
 	{
@@ -1098,7 +1183,64 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
 
+	g_object_notify(G_OBJECT(self), "state");
+
 	return LOMO_STATE_CHANGE_SUCCESS; // Or async, or preroll...
+}
+
+/**
+ * lomo_player_stop:
+ * @self: A #LomoPlayer
+ * @error: (transfer full) (allow-none): Location to store possible errors or
+ *         %NULL to ignore
+ *
+ * Sets the ::state propery to LOMO_STATE_STOP
+ *
+ * Returns: a #LomoStateChangeReturn indicating how the action is realized
+ */
+LomoStateChangeReturn
+lomo_player_stop(LomoPlayer *self, GError **error)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), LOMO_STATE_CHANGE_FAILURE);
+
+	return lomo_player_set_state(self, LOMO_STATE_STOP, error);
+}
+
+/**
+ * lomo_player_play:
+ * @self: A #LomoPlayer
+ * @error: (transfer full) (allow-none): Location to store possible errors or
+ *         %NULL to ignore
+ *
+ * Sets the ::state propery to LOMO_STATE_PLAY
+ *
+ * Returns: a #LomoStateChangeReturn indicating how the action is realized
+ */
+LomoStateChangeReturn
+lomo_player_play(LomoPlayer *self, GError **error)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), LOMO_STATE_CHANGE_FAILURE);
+
+	return lomo_player_set_state(self, LOMO_STATE_PLAY, error);
+}
+
+
+/**
+ * lomo_player_pause:
+ * @self: A #LomoPlayer
+ * @error: (transfer full) (allow-none): Location to store possible errors or
+ *         %NULL to ignore
+ *
+ * Sets the ::state propery to LOMO_STATE_PAUSE
+ *
+ * Returns: a #LomoStateChangeReturn indicating how the action is realized
+ */
+LomoStateChangeReturn
+lomo_player_pause(LomoPlayer *self, GError **error)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), LOMO_STATE_CHANGE_FAILURE);
+
+	return lomo_player_set_state(self, LOMO_STATE_PAUSE, error);
 }
 
 /**
@@ -1124,6 +1266,36 @@ LomoState lomo_player_get_state(LomoPlayer *self)
 		return LOMO_STATE_INVALID;
 
 	return state;
+}
+
+/**
+ * lomo_player_get_can_go_previous:
+ * @self: A #LomoPlayer
+ *
+ * Gets the value of the 'can-go-previous' property
+ *
+ * Returns: The value
+ */
+gboolean
+lomo_player_get_can_go_previous(LomoPlayer *self)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
+	return (lomo_player_get_previous(self) >= 0);
+}
+
+/**
+ * lomo_player_get_can_go_next:
+ * @self: A #LomoPlayer
+ *
+ * Gets the value of the 'can-go-next' property
+ *
+ * Returns: The value
+ */
+gboolean
+lomo_player_get_can_go_next(LomoPlayer *self)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
+	return (lomo_player_get_next(self) >= 0);
 }
 
 /**
@@ -1764,7 +1936,7 @@ lomo_player_index(LomoPlayer *self, LomoStream *stream)
 }
 
 /**
- * lomo_player_get_prev:
+ * lomo_player_get_previous:
  * @self: a #LomoPlayer
  *
  * Gets the position of the previous stream in the playlist following
@@ -1772,9 +1944,9 @@ lomo_player_index(LomoPlayer *self, LomoStream *stream)
  *
  * Returns: the position of the previous stream, or -1 if none
  */
-gint lomo_player_get_prev(LomoPlayer *self)
+gint lomo_player_get_previous(LomoPlayer *self)
 {
-	return lomo_playlist_get_prev(GET_PRIVATE(self)->pl);
+	return lomo_playlist_get_previous(GET_PRIVATE(self)->pl);
 }
 
 /**
@@ -1797,9 +1969,38 @@ gint lomo_player_get_next(LomoPlayer *self)
 }
 
 /**
+ * lomo_player_go_next:
+ * @self: a #LomoPlayer
+ * @error: (transfer full) (allow-none): Location for error or %NULL
+ *
+ * Skips to the next track (in normal or random mode) maintaining the current
+ * state
+ *
+ * Returns: %TRUE on successfull, %FALSE otherwise
+ */
+gboolean lomo_player_go_next(LomoPlayer *self, GError **error)
+{
+	return lomo_player_go_nth(self, lomo_player_get_next(self), error);
+}
+
+/**
+ * lomo_player_go_previous:
+ * @self: a #LomoPlayer
+ * @error: (transfer full) (allow-none): Location for error or %NULL
+ *
+ * See lomo_player_go_next()
+ *
+ * Returns: %TRUE on successfull, %FALSE otherwise
+ */
+gboolean lomo_player_go_previous(LomoPlayer *self, GError **error)
+{
+	return lomo_player_go_nth(self, lomo_player_get_previous(self), error);
+}
+
+/**
  * lomo_player_go_nth:
  * @self: a #LomoPlayer
- * @pos: position for the new active #LomoStream
+ * @position: Go to stream at postion
  * @error: location for an error
  *
  * Changes the active #LomoStream from the playlist for the #LomoStream
@@ -1807,43 +2008,43 @@ gint lomo_player_get_next(LomoPlayer *self)
  *
  * Returns: %TRUE if success, %FALSE if an error ocurred
  */
-gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
+gboolean
+lomo_player_go_nth(LomoPlayer *self, gint position, GError **error)
 {
+	if (!LOMO_IS_PLAYER(self))
+	{
+		g_warn_if_fail(LOMO_IS_PLAYER(self));
+		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_INVALID_ARGUMENT,
+			_("Invalid argument"));
+		return FALSE;
+	}
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
-	const LomoStream *stream;
-	LomoState state;
-	gint prev = -1;
 
-	// Cannot go to that position
-	stream = lomo_playlist_nth_stream(priv->pl, pos);
+	LomoStream *stream = lomo_playlist_nth_stream(priv->pl, position);
 	if (stream == NULL)
 	{
-		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_NO_STREAM, "No stream at position %d", pos);
+		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_NO_STREAM,
+			_("No stream at position %d"), position);
 		return FALSE;
 	}
 
 	// Check if stream is in queue and dequeue it
 	gint queue_idx = g_queue_index(priv->queue, stream);
 	if ((queue_idx >= 0) && !lomo_player_dequeue(self, queue_idx))
-	{
-		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CANNOT_DEQUEUE, N_("Cannot change stream, it's in queue but can't dequeue it"));
-		return FALSE;
-	}
+		g_warning(_("Stream #%d is queued but can't be dequeued"), position);
 
 	// Get state for later restore it
-	state = lomo_player_get_state(self);
+	LomoState state = lomo_player_get_state(self);
 	if (state == LOMO_STATE_INVALID)
 		state = LOMO_STATE_STOP;
 
-	// Emit prechange for cleanup (dont call hook because pre-change signal its
-	// deprecated and overlaps with change hook)
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[PRE_CHANGE], 0);
 
-	prev = lomo_player_get_current(self);
+	guint prev = lomo_player_get_current(self);
 
 	// Call hook
 	gboolean ret = FALSE;
-	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, prev, pos))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, prev, position))
 	{
 		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_HOOK_BLOCK, N_("Action blocked by hook"));
 		return ret;
@@ -1853,20 +2054,32 @@ gboolean lomo_player_go_nth(LomoPlayer *self, gint pos, GError **error)
 	if (!lomo_player_stop(self, error))
 		return FALSE;
 
-	lomo_playlist_go_nth(priv->pl, pos);
+	lomo_playlist_go_nth(priv->pl, position);
 	priv->stream = (LomoStream *) stream;
 
-	if (!lomo_player_create_pipeline(self, (LomoStream *) stream, error))
-		return FALSE;
+	GError *suberror = NULL;
 
-	g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, prev, pos);
-
-	// Restore state
-	if (lomo_player_set_state(self, state, NULL) == LOMO_STATE_CHANGE_FAILURE) 
+	// Create new pipeline
+	if (!lomo_player_create_pipeline(self, (LomoStream *) stream, &suberror))
 	{
-		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE, "Error while changing state");
-		return FALSE;
+		g_warning(_("Stream changed from #%d to #%d but can not create new pipeline: %s"),
+			prev, position, suberror->message);
+		g_error_free(suberror);
+		suberror = NULL;
 	}
+
+	// Restore player state
+	if (lomo_player_set_state(self, state, &suberror) == LOMO_STATE_CHANGE_FAILURE)
+	{
+		g_warning(_("Stream changed from #%d to #%d but player state can not be restored: %s"),
+			prev, position, suberror->message);
+		g_error_free(suberror);
+		suberror = NULL;
+	}
+
+	g_signal_emit(G_OBJECT(self), lomo_player_signals[CHANGE], 0, prev, position);
+	g_object_notify(G_OBJECT(self), "can-go-next");
+	g_object_notify(G_OBJECT(self), "can-go-previous");
 
 	return TRUE;
 }
@@ -1943,6 +2156,9 @@ void lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 	lomo_playlist_set_repeat(GET_PRIVATE(self)->pl, val);
 
 	g_object_notify(G_OBJECT(self), "repeat");
+	g_object_notify(G_OBJECT(self), "can-go-previous");
+	g_object_notify(G_OBJECT(self), "can-go-next");
+
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[REPEAT], 0, val);
 }
 
@@ -1979,6 +2195,9 @@ void lomo_player_set_random(LomoPlayer *self, gboolean val)
 	lomo_playlist_set_random(GET_PRIVATE(self)->pl, val);
 
 	g_object_notify(G_OBJECT(self), "random");
+	g_object_notify(G_OBJECT(self), "can-go-previous");
+	g_object_notify(G_OBJECT(self), "can-go-next");
+
 	g_signal_emit(G_OBJECT(self), lomo_player_signals[RANDOM], 0, val);
 }
 

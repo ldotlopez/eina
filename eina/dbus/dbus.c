@@ -109,7 +109,7 @@ proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVari
 		lomo_player_go_next(lomo, NULL);
 
 	else if (g_str_equal("Previous", action))
-		lomo_player_go_prev(lomo, NULL);
+		lomo_player_go_previous(lomo, NULL);
 
 	else
 		g_warning(N_("Unknow action: %s"), action);

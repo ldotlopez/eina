@@ -490,7 +490,7 @@ gint lomo_playlist_get_next
  * Return position PREVIOUS to the active,
  * or -1 if it doesn't exist
  */
-gint lomo_playlist_get_prev
+gint lomo_playlist_get_previous
 (LomoPlaylist *l)
 {
 	gint pos;
@@ -532,7 +532,7 @@ gint lomo_playlist_get_prev
 gboolean lomo_playlist_go_prev
 (LomoPlaylist *l)
 {
-	gint prev = lomo_playlist_get_prev(l);
+	gint prev = lomo_playlist_get_previous(l);
 	return lomo_playlist_go_nth(l, prev);
 }
 

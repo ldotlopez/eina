@@ -205,4 +205,3 @@ lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to, LomoStats *self)
 	stats_set_checkpoint(self, to,   FALSE);
 }
 
-

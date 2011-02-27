@@ -156,13 +156,13 @@ gboolean lomo_playlist_get_repeat (LomoPlaylist *l);
 void lomo_playlist_set_repeat(LomoPlaylist *l, gboolean val);
 
 /*
- * @lomo_playlist_get_prev
+ * @lomo_playlist_get_previous
  * @Returns the previous postion to active stream, if there is no previous position
  * @retuns -1
  *  LomoPlaylist* l: [self]
  *  gint ret: Previous position to active stream
  */
-gint lomo_playlist_get_prev(LomoPlaylist *l);
+gint lomo_playlist_get_previous(LomoPlaylist *l);
 
 /*
  * @lomo_playlist_get_next
