@@ -35,9 +35,9 @@ if HAVE_INTROSPECTION
 introspection_sources = $(libeinaext_la_SOURCES)
 
 Eina-0.10.gir: libeinaext.la
-Eina_0_10_gir_INCLUDES = Gtk-3.0 Gel-1.0
+Eina_0_10_gir_INCLUDES = Gtk-3.0 Gel-@GEL_API_VERSION@
 Eina_0_10_gir_CFLAGS = -I$(top_srcdir)
-Eina_0_10_gir_LDFLAGS = -L$(top_builddir)/gel -lgel-1.0
+Eina_0_10_gir_LDFLAGS = -L$(top_builddir)/gel -lgel-@GEL_API_VERSION@ -lgel-ui-@GEL_API_VERSION@
 Eina_0_10_gir_LIBS = libeinaext.la
 Eina_0_10_gir_FILES = $(introspection_sources)
 INTROSPECTION_GIRS += Eina-0.10.gir

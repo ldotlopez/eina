@@ -1,7 +1,7 @@
 include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = liblomo-1.1.la
-liblomo_1_1_la_LDFLAGS = -export-dynamic -version-info 1:1:0  -export-dynamic @GST_LIBS@
+liblomo_1_1_la_LDFLAGS = -export-dynamic -version-info 1:1:1  -export-dynamic @GST_LIBS@
 liblomo_1_1_la_CFLAGS = -DLOMO_COMPILATION @GST_CFLAGS@ @DEBUG_CFLAGS@
 
 includedir = $(prefix)/include/lomo-1.1/lomo
