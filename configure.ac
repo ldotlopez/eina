@@ -468,6 +468,7 @@ Makefile
 docs/Makefile
 docs/lomo/Makefile
 docs/gel/Makefile
+docs/eina/Makefile
 icons/Makefile
 icons/hicolor/Makefile
 po/Makefile.in

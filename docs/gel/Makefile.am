@@ -74,7 +74,7 @@ expand_content_files=
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GLIB_CFLAGS) $(GTK_CFLAGS)
-GTKDOC_LIBS=$(GLIB_LIBS) $(GTK_LIBS) $(top_builddir)/gel/libgel-1.0.la $(top_builddir)/gel/libgel-ui-1.0.la
+GTKDOC_LIBS=$(GLIB_LIBS) $(GTK_LIBS) $(top_builddir)/gel/libgel-@GEL_API_VERSION@.la $(top_builddir)/gel/libgel-ui-@GEL_API_VERSION@.la
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/docs/gtk-doc.make
