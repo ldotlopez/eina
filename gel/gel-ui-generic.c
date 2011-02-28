@@ -24,11 +24,6 @@
 
 G_DEFINE_TYPE (GelUIGeneric, gel_ui_generic, GTK_TYPE_BOX)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_UI_TYPE_GENERIC, GelUIGenericPrivate))
-
-typedef struct _GelUIGenericPrivate GelUIGenericPrivate;
-
 enum {
 	PROP_XML_STRING = 1
 };
@@ -38,7 +33,7 @@ struct _GelUIGenericPrivate {
 };
 
 static void
-set_xml_string(GelUIGeneric *self, gchar *xml_string);
+set_xml_string(GelUIGeneric *self, const gchar *xml_string);
 
 static GObject*
 gel_ui_generic_constructor(GType type, guint n_construct_params, GObjectConstructParam *construct_params)
@@ -55,7 +50,7 @@ gel_ui_generic_constructor(GType type, guint n_construct_params, GObjectConstruc
 			continue;
 
 		if (g_str_equal(pspec->name, "xml-string"))
-			set_xml_string((GelUIGeneric *) object, (gchar *) g_value_get_string(value));
+			set_xml_string((GelUIGeneric *) object, g_value_get_string(value));
 	}
 	return object;
 }
@@ -87,8 +82,7 @@ gel_ui_generic_set_property (GObject *object, guint property_id, const GValue *v
 static void
 gel_ui_generic_dispose (GObject *object)
 {
-	GelUIGenericPrivate *priv = GET_PRIVATE((GelUIGeneric *) object);
-	gel_free_and_invalidate(priv->builder, NULL, g_object_unref);
+	gel_free_and_invalidate(GEL_UI_GENERIC(object)->priv->builder, NULL, g_object_unref);
 
 	G_OBJECT_CLASS (gel_ui_generic_parent_class)->dispose (object);
 }
@@ -113,16 +107,33 @@ gel_ui_generic_class_init (GelUIGenericClass *klass)
 static void
 gel_ui_generic_init (GelUIGeneric *self)
 {
+	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), GEL_UI_TYPE_GENERIC, GelUIGenericPrivate);
 }
 
+/**
+ * gel_ui_generic_new:
+ * @xml_string: XML string with widget definition. See #GtkBuild doc for more info.
+ *
+ * Creates a new widget from the UI description from @xml_string
+ *
+ * Returns: The #GtkWidget
+ */
 GtkWidget*
-gel_ui_generic_new (gchar *xml_string)
+gel_ui_generic_new (const gchar *xml_string)
 {
 	return g_object_new (GEL_UI_TYPE_GENERIC, "xml-string", xml_string, NULL);
 }
 
+/**
+ * gel_ui_generic_new_from_file:
+ * @filename: XML File with the widget definition, see gel_ui_generic_new()
+ *
+ * Loads @filename into memory and calls gel_ui_generic_new()
+ *
+ * Returns: the #GtkWidget
+ */
 GtkWidget*
-gel_ui_generic_new_from_file (gchar *filename)
+gel_ui_generic_new_from_file (const gchar *filename)
 {
 	gchar *buffer = NULL;
 	GError *err = NULL;
@@ -130,27 +141,35 @@ gel_ui_generic_new_from_file (gchar *filename)
 	{
 		g_warning(N_("Cannot load widget from file '%s': %s"), filename, err->message);
 		g_error_free(err);
-		return NULL;
 	}
 	GtkWidget *self = gel_ui_generic_new(buffer);
-	g_free(buffer);
+	gel_free_and_invalidate(buffer, NULL, g_free);
+
 	return self;
 }
 
+/**
+ * gel_ui_generic_get_builder:
+ * @self: A #GelUIGeneric
+ *
+ * Gets the #GtkBuilder for @self
+ *
+ * Returns: (transfer none): The #GtkBuilder
+ */
 GtkBuilder*
 gel_ui_generic_get_builder(GelUIGeneric *self)
 {
 	g_return_val_if_fail(GEL_UI_IS_GENERIC(self), NULL);
-	return GET_PRIVATE(self)->builder;
+	return self->priv->builder;
 }
 
 static void
-set_xml_string(GelUIGeneric *self, gchar *xml_string)
+set_xml_string(GelUIGeneric *self, const gchar *xml_string)
 {
 	g_return_if_fail(GEL_UI_IS_GENERIC(self));
 	g_return_if_fail(xml_string != NULL);
 
-	GelUIGenericPrivate *priv = GET_PRIVATE(self);
+	GelUIGenericPrivate *priv = self->priv;
 	g_return_if_fail(priv->builder == NULL);
 
 	priv->builder = gtk_builder_new();

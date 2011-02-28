@@ -31,8 +31,10 @@ G_BEGIN_DECLS
 #define GEL_UI_IS_PLUGIN_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GEL_UI_TYPE_PLUGIN_MANAGER))
 #define GEL_UI_PLUGIN_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GEL_UI_TYPE_PLUGIN_MANAGER, GelUIPluginManagerClass))
 
+typedef struct _GelUIPluginManagerPrivate GelUIPluginManagerPrivate;
 typedef struct {
 	GtkBox parent;
+	GelUIPluginManagerPrivate *priv;
 } GelUIPluginManager;
 
 typedef struct {

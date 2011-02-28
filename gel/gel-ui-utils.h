@@ -24,16 +24,6 @@
 
 G_BEGIN_DECLS
 
-// #define GelUI GtkBuilder
-
-typedef struct GelUISignalDef
-{
-	gchar     *widget;
-	gchar     *signal;
-	GCallback  callback;
-} GelUISignalDef;
-#define GEL_UI_SIGNAL_DEF_NONE { NULL, NULL, NULL }
-
 typedef struct GelUIImageDef
 {
 	gchar *widget;
@@ -48,6 +38,10 @@ enum {
     GEL_UI_ERROR_RESOURCE_NOT_FOUND 
 };
 
+#ifdef GEL_UI_COMPILATION
+GQuark gel_ui_quark();
+#endif
+
 /*
  * UI creation
  */
@@ -57,11 +51,11 @@ gel_ui_load_resource(gchar *ui_filename, GError **error);
 /*
  * Signal handling
  */
-gboolean
-gel_ui_signal_connect_from_def(GtkBuilder *ui, GelUISignalDef def, gpointer data, GError **error);
 
-gboolean
-gel_ui_signal_connect_from_def_multiple(GtkBuilder *ui, GelUISignalDef defs[], gpointer data, guint *count);
+gboolean gel_ui_builder_connect_signal_from_def(GtkBuilder *ui,
+	GelSignalDef def, gpointer data);
+gboolean gel_ui_builder_connect_signal_from_def_multiple(GtkBuilder *ui,
+	GelSignalDef defs[], guint n_entries, gpointer data, guint *count);
 
 /*
  * Images on UI's
@@ -85,7 +79,7 @@ void
 gel_ui_container_clear(GtkContainer *container);
 
 GtkWidget *
-gel_ui_container_find_widget(GtkContainer *container, gchar *name);
+gel_ui_container_find_widget(GtkContainer *container, const gchar *name);
 
 /*
  * Gtk List Model helpers
@@ -100,7 +94,7 @@ void
 gel_ui_list_store_insert_at_index(GtkListStore *model, gint index, ...);
 
 void
-gel_ui_list_store_set_valist_at_index(GtkListStore *model, gint index, ...);
+gel_ui_list_store_set_at_index(GtkListStore *model, gint index, ...);
 
 void
 gel_ui_list_store_remove_at_index(GtkListStore *model, gint index);

@@ -66,7 +66,7 @@ include $(top_srcdir)/build/Makefile.am.ui2h
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 
-INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/gel
 
 if HAVE_INTROSPECTION

@@ -26,11 +26,6 @@
 
 G_DEFINE_TYPE (GelUIPluginManager, gel_ui_plugin_manager, GTK_TYPE_BOX)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), GEL_UI_TYPE_PLUGIN_MANAGER, GelUIPluginManagerPrivate))
-
-typedef struct _GelUIPluginManagerPrivate GelUIPluginManagerPrivate;
-
 struct _GelUIPluginManagerPrivate {
 	GelPluginEngine *engine;
 
@@ -105,7 +100,7 @@ static void
 gel_ui_plugin_manager_dispose (GObject *object)
 {
 	GelUIPluginManager *self = GEL_UI_PLUGIN_MANAGER(object);
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	GelUIPluginManagerPrivate *priv = self->priv;
 	
 	if (priv->engine)
 	{
@@ -143,7 +138,7 @@ gel_ui_plugin_manager_class_init (GelUIPluginManagerClass *klass)
 static void
 gel_ui_plugin_manager_init (GelUIPluginManager *self)
 {
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	GelUIPluginManagerPrivate *priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), GEL_UI_TYPE_PLUGIN_MANAGER, GelUIPluginManagerPrivate);
 
 	// Build UI
 	gchar *objs[] = { "main-widget", "liststore", NULL };
@@ -172,22 +167,39 @@ gel_ui_plugin_manager_init (GelUIPluginManager *self)
 	// priv->close = gtk_dialog_add_button((GtkDialog *) self, GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
 }
 
+/**
+ * gel_ui_plugin_manager_new:
+ * @engine: A #GelPluginEngine
+ *
+ * Creates a new #GelUIPluginManager for @engine
+ *
+ * Returns: A #GelUIPluginManager
+ */
 GelUIPluginManager*
 gel_ui_plugin_manager_new (GelPluginEngine *engine)
 {
 	return g_object_new (GEL_UI_TYPE_PLUGIN_MANAGER, "engine", engine, NULL);
 }
 
+/**
+ * gel_ui_plugin_manager_get_engine:
+ * @self: A #GelUIPluginManager
+ *
+ * Gets the current engine
+ *
+ * Returns: (transfer none): The #GelPluginEngine
+ */
 GelPluginEngine *
 gel_ui_plugin_manager_get_engine(GelUIPluginManager *self)
 {
-	return GET_PRIVATE(self)->engine;
+	g_return_val_if_fail(GEL_UI_IS_PLUGIN_MANAGER(self), NULL);
+	return self->priv->engine;
 }
 
 static void
 set_engine(GelUIPluginManager *self, GelPluginEngine *engine)
 {
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	GelUIPluginManagerPrivate *priv = self->priv;
 	g_return_if_fail(priv->engine == NULL);
 	g_return_if_fail(engine != NULL);
 
@@ -230,11 +242,21 @@ set_engine(GelUIPluginManager *self, GelPluginEngine *engine)
 	g_signal_connect(engine,  "plugin-fini", (GCallback) plugin_fini_cb, self);
 }
 
-
+/**
+ * gel_ui_plugin_manager_get_selected_plugin:
+ * @self: A #GelUIPluginManager
+ *
+ * Gets the current selected item as a #GelPlugin or %NULL if no item is
+ * selected.
+ *
+ * Returns: (allow-none) (transfer none): A #GelPlugin
+ */
 GelPlugin *
 gel_ui_plugin_manager_get_selected_plugin(GelUIPluginManager *self)
 {
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	g_return_val_if_fail(GEL_UI_IS_PLUGIN_MANAGER(self), NULL);
+
+	GelUIPluginManagerPrivate *priv = self->priv;
 
 	GtkTreeSelection *tvsel;
 	GtkTreeModel *model;
@@ -252,7 +274,7 @@ gel_ui_plugin_manager_get_selected_plugin(GelUIPluginManager *self)
 static gboolean
 get_iter_from_info(GelUIPluginManager *self, GtkTreeIter *iter, GelPluginInfo *info)
 {
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	GelUIPluginManagerPrivate *priv = self->priv;
 	GtkTreeModel *model = gtk_tree_view_get_model(priv->tv);
 	if (!gtk_tree_model_get_iter_first(model, iter))
 		return FALSE;
@@ -289,7 +311,7 @@ insert_info(GelUIPluginManager *self, GtkListStore *model, GtkTreeIter *iter, Ge
 		);
 
 	gtk_list_store_set(model, iter,
-		COLUMN_ENABLED, (gel_plugin_engine_get_plugin(GET_PRIVATE(self)->engine, info) != NULL), 
+		COLUMN_ENABLED, (gel_plugin_engine_get_plugin(self->priv->engine, info) != NULL), 
 		COLUMN_ICON,    pb,
 		COLUMN_MARKUP,  markup,
 		COLUMN_INFO,    info,
@@ -300,7 +322,7 @@ insert_info(GelUIPluginManager *self, GtkListStore *model, GtkTreeIter *iter, Ge
 static void
 update_info(GelUIPluginManager *self, GelPluginInfo *info, gboolean enabled)
 {
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	GelUIPluginManagerPrivate *priv = self->priv;
 
 	GtkTreeIter iter;
 	if (!get_iter_from_info(self, &iter, info))
@@ -316,7 +338,7 @@ update_info(GelUIPluginManager *self, GelPluginInfo *info, gboolean enabled)
 static void
 enabled_renderer_toggled_cb(GtkCellRendererToggle *render, gchar *path, GelUIPluginManager *self)
 {
-	GelUIPluginManagerPrivate *priv = GET_PRIVATE(self);
+	GelUIPluginManagerPrivate *priv = self->priv;
 
 	GtkTreePath *tp = gtk_tree_path_new_from_string(path);
 	GtkTreeIter iter;

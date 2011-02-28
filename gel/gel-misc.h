@@ -92,6 +92,23 @@ typedef enum {
 } GelResourceType;
 
 /**
+ * GelSignalDef:
+ * @object: Name of the object
+ * @signal: Signal name
+ * @callback: #GCallback to connect
+ * @data: data to pass to callback or %NULL
+ * @swapped: Whatever to use swapped version of g_signal_connect()
+ *
+ * Defines a signal
+ */
+typedef struct {
+	gchar *object, *signal;
+	GCallback callback;
+	gpointer data;
+	gboolean swapped;
+} GelSignalDef;
+
+/**
  * GelPrintFunc:
  *
  * @data: (transfer none): gpointer holind data to dump
@@ -164,6 +181,13 @@ gel_get_package_lib_dir(void);
 
 const gchar*
 gel_get_package_data_dir(void);
+
+#define gel_propagate_error_or_warm(dst,src,...) \
+	G_STMT_START {                   \
+		if (dst == NULL)             \
+			g_warning(__VA_ARGS__);  \
+		g_propagate_error(dst, src); \
+	} G_STMT_END
 
 // --
 // GObject functions
@@ -276,6 +300,12 @@ gel_dir_read(gchar *path, gboolean absolute, GError **error);
 
 gchar **
 gel_file_strings(gchar *pathname);
+
+// --
+// XDG related
+// --
+void
+gel_show_to_user(const gchar *uri);
 
 // --
 // Timeout functions

@@ -24,7 +24,7 @@
 #include <glib/gi18n.h>
 #include "gel-ui.h"
 
-static GQuark
+GQuark
 gel_ui_quark(void)
 {
 	GQuark ret = 0;
@@ -33,31 +33,39 @@ gel_ui_quark(void)
 	return ret;
 }
 
-/*
- * UI creation
+/**
+ * gel_ui_load_resource:
+ * @ui_filename: Filename for the UI file
+ * @error: Location for #GError or %NULL
+ *
+ * Searchs and loads in to a #GtkBuilder the UI file named @ui_filename.
+ * The file is located via gel_resource_locate() function and the same
+ * rules are applied here.
+ *
+ * Returns: (transfer full): The #GtkBuilder for @ui_filename or %NULL.
  */
 GtkBuilder *
 gel_ui_load_resource(gchar *ui_filename, GError **error)
 {
-	GtkBuilder *ret = NULL;
-	gchar *ui_pathname;
-	gchar *tmp;
+	g_return_val_if_fail(ui_filename, NULL);
 
-	tmp = g_strconcat(ui_filename, ".ui", NULL);
-	ui_pathname = gel_resource_locate(GEL_RESOURCE_TYPE_UI, tmp);
+	g_return_val_if_fail(g_str_has_suffix(ui_filename, ".ui"), NULL);
+	gchar *ui_pathname = gel_resource_locate(GEL_RESOURCE_TYPE_UI, ui_filename);
+
+	GError *suberror = NULL;
 
 	if (ui_pathname == NULL)
 	{
-		g_set_error(error, gel_ui_quark(), GEL_UI_ERROR_RESOURCE_NOT_FOUND,
-			N_("Cannot locate resource '%s'"), tmp);
-		g_free(tmp);
+		g_set_error(&suberror, gel_ui_quark(), GEL_UI_ERROR_RESOURCE_NOT_FOUND,
+			_("Cannot locate resource '%s'"), ui_filename);
+		gel_propagate_error_or_warm(error, suberror, "%s", suberror->message);
 		return NULL;
 	}
-	g_free(tmp);
 
-	ret = gtk_builder_new();
-	if (gtk_builder_add_from_file(ret, ui_pathname, error) == 0) {
-		gel_error("Error loading GtkBuilder: %s", (*error)->message);
+	GtkBuilder *ret = gtk_builder_new();
+	if (gtk_builder_add_from_file(ret, ui_pathname, &suberror) == 0)
+	{
+		gel_propagate_error_or_warm(error, suberror, "%s", suberror->message);
 		g_object_unref(ret);
 		ret = NULL;
 	}
@@ -65,90 +73,162 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 	return ret;
 }
 
+#define _ui_signal_connect_from_def(ui,def,data,ret) \
+	do { \
+		GObject *object = (GObject *) gtk_builder_get_object(ui, def.object);     \
+		if ((object == NULL) || !G_OBJECT(object))                                \
+		{                                                                         \
+			g_warning(_("Can not find object '%s' at GelUI %p"), def.object, ui); \
+			ret = FALSE;                                                          \
+		}                                                                         \
+		gpointer _data = def.data ? def.data : data;                              \
+		if (def.swapped)                                                          \
+			g_signal_connect_swapped(object, def.signal, def.callback, _data);    \
+		else                                                                      \
+			g_signal_connect(object, def.signal, def.callback, _data);            \
+		ret = TRUE;                                                               \
+	} while (0)
+
 /*
- * Signal handling
+ * gel_ui_builder_connect_signal_from_def:
+ * @ui: A #GtkBuilder.
+ * @def: A #GelSignalDef with signal definition
+ * @data: (allow-none): Userdata to pass to callback.
+ *                      Not used if def.data is not %NULL
+ *
+ * Connects the signal from @def on @ui parameter for g_signal_connect()
+ * If def.data is %NULL, the @data parameter is used as an alternative userdata 
+ * for callback
+ *
+ * Returns: %TRUE is successful, %FALSE otherwise.
  */
 gboolean
-gel_ui_signal_connect_from_def(GtkBuilder *ui, GelUISignalDef def, gpointer data, GError **error)
+gel_ui_builder_connect_signal_from_def(GtkBuilder *ui,
+	GelSignalDef def, gpointer data)
 {
-	GObject *object;
+	g_return_val_if_fail(GTK_IS_BUILDER(ui), FALSE);
+	// FIXME: Check other parameters
 
-	object = (GObject *) gtk_builder_get_object(ui, def.widget);
-
-	if ((object == NULL) || !G_OBJECT(object))
-	{ 
-		gel_warn("Can not find object '%s' at GelUI %p", def.widget, ui);
-		return FALSE;
-	}
-
-	g_signal_connect(object, def.signal, def.callback, data);
-	return TRUE;
-}
-
-gboolean
-gel_ui_signal_connect_from_def_multiple(GtkBuilder *ui, GelUISignalDef defs[], gpointer data, guint *count)
-{
-	guint _count = 0;
-	gboolean ret = TRUE;
-	guint i;
-	
-	for (i = 0; defs[i].widget != NULL; i++)
-	{
-		if (gel_ui_signal_connect_from_def(ui, defs[i], data, NULL))
-			_count++;
-		else
-			ret = FALSE;
-	}
-
-	if (count != NULL)
-		*count = _count;
+	gboolean ret;
+	_ui_signal_connect_from_def(ui, def, data, ret);
 	return ret;
 }
 
 /*
- * Images on UI's
+ * gel_ui_builder_connect_signal_from_def_multiple:
+ * @ui: A #GtkBuilder.
+ * @defs: An array of #GelSignalDef 
+ * @n_entries: Number of elements in @def
+ * @data: (allow-none): Userdata to pass to callback.
+ *                      Not used if def[x].data is not %NULL
+ * @count: (out caller-allocates) (allow-none): Location for store the number
+ *         of successful connected signals.
+ * 
+ * Calls gel_ui_builder_connect_signal_from_def() for each signal definition
+ * in def
+ *
+ * Returns: %TRUE is all signals were connected, %FALSE otherwise.
+ */
+gboolean
+gel_ui_builder_connect_signal_from_def_multiple(GtkBuilder *ui,
+	GelSignalDef defs[], guint n_entries, gpointer data, guint *count)
+{
+	guint _count = 0;
+	for (guint i = 0; i < n_entries; i++)
+	{
+		gboolean ret;
+		_ui_signal_connect_from_def(ui, defs[i], data, ret);
+		if (ret)
+			_count++;
+	}
+	return (_count == n_entries);
+}
+
+/**
+ * gel_ui_load_pixbuf_from_imagedef:
+ * @def: Image definition
+ * @error: Location for #GError or %NULL
+ *
+ * Loads image from @def into a #GdkPixbuf. Pathname of the image is
+ * resolved via gel_resource_locate(). If an error is ocurred @error
+ * is filled with the error and %NULL is returned.
+ *
+ * Returns: (allow-none) (transfer full): The #GdkPixbuf or %NULL
  */
 GdkPixbuf *
 gel_ui_load_pixbuf_from_imagedef(GelUIImageDef def, GError **error)
 {
-	GdkPixbuf *ret;
+	// FIXME: Check in parameters
 
-	gchar *pathname = gel_plugin_get_resource(NULL, GEL_RESOURCE_TYPE_IMAGE, def.image);
+	gchar *pathname = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, def.image);
 	if (pathname == NULL)
 	{
-		// Handle error
+		g_set_error(error, gel_ui_quark(), GEL_UI_ERROR_RESOURCE_NOT_FOUND, _("Unable to locate %s"), def.image);
 		return NULL;
 	}
 
-	ret = gdk_pixbuf_new_from_file_at_size(pathname, def.w, def.h, error);
+	GError *suberror = NULL;
+	GdkPixbuf *ret = gdk_pixbuf_new_from_file_at_size(pathname, def.w, def.h, &suberror);
+	if (!ret)
+		gel_propagate_error_or_warm(error, suberror, "%s", suberror->message);
 	g_free(pathname);
+
 	return ret;
 }
 
+/**
+ * gel_ui_container_clear:
+ * @container: A #GtkContainer
+ *
+ * Removes all children from @container using gtk_container_remove()
+ */
 void
 gel_ui_container_clear(GtkContainer *container)
 {
+	g_return_if_fail(GTK_IS_CONTAINER(container));
+
 	GList *l, *children = gtk_container_get_children(GTK_CONTAINER(container));
 	for (l = children; l != NULL; l = l->next)
 		gtk_container_remove((GtkContainer *) container, GTK_WIDGET(l->data));
 	gel_free_and_invalidate(children, NULL, g_list_free);
 }
 
+/**
+ * gel_ui_container_replace_children:
+ * @container: A #GtkContainer
+ * @widget: (transfer full): A #GtkWidget
+ *
+ * Removes all children from @container using gel_ui_container_clear() and
+ * then packs @widget into @container
+ */
 void
 gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
 {
+	g_return_if_fail(GTK_IS_CONTAINER(container));
+	g_return_if_fail(GTK_IS_WIDGET(widget));
+	
 	gtk_container_foreach(container, (GtkCallback) gtk_widget_destroy, NULL);
 	gtk_box_pack_start(GTK_BOX(container), widget, TRUE, TRUE, 0); 
 }
 
 
+/**
+ * gel_ui_container_find_widget:
+ * @container: A #GtkContainer
+ * @name: Child name
+ *
+ * Tries to find widget named @name in @container recursively. If it is not
+ * found %NULL is returned. No references are added in this function.
+ *
+ * Returns: (transfer none) (allow-none): The widget
+ */
 GtkWidget *
-gel_ui_container_find_widget(GtkContainer *container, gchar *name)
+gel_ui_container_find_widget(GtkContainer *container, const gchar *name)
 {
-	GtkWidget *ret = NULL;
-
 	g_return_val_if_fail(GTK_IS_CONTAINER(container), NULL);
 	g_return_val_if_fail(name, NULL);
+
+	GtkWidget *ret = NULL;
 
 	GList *children = gtk_container_get_children(container);
 	GList *iter = children;
@@ -164,7 +244,7 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 		}
 
 		if (GTK_IS_CONTAINER(child))
-			ret = gel_ui_container_find_widget((GtkContainer *) child, (gchar *) name);
+			ret = gel_ui_container_find_widget((GtkContainer *) child, name);
 
 		iter = iter->next;
 	}
@@ -172,12 +252,21 @@ gel_ui_container_find_widget(GtkContainer *container, gchar *name)
 	return ret;
 }
 
-//
-// TreeStore/ListStore helpers
-//
+/**
+ * gel_ui_tree_view_get_selected_indices:
+ * @tv: A #GtkTreeView
+ *
+ * Returns a %NULL terminated array of gint with the indices of selected
+ * rows, only works with a #GtkTreeView holding a #GtkListModel
+ *
+ * Returns: (allow-none) (transfer full): The selected indices, each index and the value
+ *                           it self must be freeed with g_free
+ */
 gint *
 gel_ui_tree_view_get_selected_indices(GtkTreeView *tv)
 {
+	g_return_val_if_fail(GTK_IS_TREE_VIEW(tv), NULL);
+	g_return_val_if_fail(GTK_IS_LIST_STORE(gtk_tree_view_get_model(tv)), NULL);
 
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(tv);
 	GtkTreeModel     *model     = gtk_tree_view_get_model(tv);
@@ -205,18 +294,45 @@ gel_ui_tree_view_get_selected_indices(GtkTreeView *tv)
 	return ret;
 }
 
+/**
+ * gel_ui_list_model_get_iter_from_index:
+ * @model: A #GtkListStore
+ * @iter: (out caller-allocates): A #GtkTreeIter
+ * @index: An index to get the iter from
+ *
+ * Fills @iter with the #GtkTreeIter associated with index @index
+ *
+ * Returns: %TRUE if an iter is found, %FALSE otherwise
+ */
 gboolean
 gel_ui_list_model_get_iter_from_index(GtkListStore *model, GtkTreeIter *iter, gint index)
 {
+	g_return_val_if_fail(GTK_IS_LIST_STORE(model), FALSE);
+	g_return_val_if_fail(iter, FALSE);
+	g_return_val_if_fail(index >= 0, FALSE);
+
 	GtkTreePath *treepath = gtk_tree_path_new_from_indices(index, -1);
 	gboolean ret = gtk_tree_model_get_iter(GTK_TREE_MODEL(model), iter, treepath);
 	gtk_tree_path_free(treepath);
+
+	g_warn_if_fail(ret);
 	return ret;
 }
 
+/**
+ * gel_ui_list_store_insert_at_index:
+ * @model: A #GtkListStore
+ * @index: Where to insert data
+ * @Varargs: Data to insert
+ *
+ * Wrapper around gtk_list_store_insert()
+ */
 void
 gel_ui_list_store_insert_at_index(GtkListStore *model, gint index, ...)
 {
+	g_return_if_fail(GTK_IS_LIST_STORE(model));
+	g_return_if_fail(index >= 0);
+
 	GtkTreeIter iter;
 	gtk_list_store_insert(model, &iter, index);
 
@@ -226,9 +342,20 @@ gel_ui_list_store_insert_at_index(GtkListStore *model, gint index, ...)
 	va_end(args);
 }
 
+/**
+ * gel_ui_list_store_set_valist_at_index:
+ * @model: A #GtkListStore
+ * @index: Where to set data
+ * @Varargs: Data to set
+ *
+ * Wrapper around gtk_list_store_set_valist()
+ */
 void
-gel_ui_list_store_set_valist_at_index(GtkListStore *model, gint index, ...)
+gel_ui_list_store_set_at_index(GtkListStore *model, gint index, ...)
 {
+	g_return_if_fail(GTK_IS_LIST_STORE(model));
+	g_return_if_fail(index >= 0);
+
 	va_list args;
 
 	GtkTreeIter iter;
@@ -239,9 +366,19 @@ gel_ui_list_store_set_valist_at_index(GtkListStore *model, gint index, ...)
 	va_end(args);
 }
 
+/**
+ * gel_ui_list_store_remove_at_index:
+ * @model: A #GtkListStore
+ * @index: Where is data to remove
+ *
+ * Wrapper around gtk_list_store_remove()
+ */
 void
 gel_ui_list_store_remove_at_index(GtkListStore *model, gint index)
 {
+	g_return_if_fail(GTK_IS_LIST_STORE(model));
+	g_return_if_fail(index >= 0);
+
 	GtkTreeIter iter;
 	g_return_if_fail(gel_ui_list_model_get_iter_from_index(model, &iter, index));
 
@@ -321,6 +458,14 @@ __gel_ui_drag_data_received (GtkWidget *widget, GdkDragContext *context, gint x,
 	gtk_drag_finish (context, success, FALSE, time);
 }
 
+/**
+ * gel_ui_widget_enable_drop:
+ * @widget: A #GtkWidget
+ * @callback: (type gpointer): A #GCallback to be called on "drag-drop" or "drag-data-received" signals
+ * @user_data: Data to pass to @callback
+ *
+ * This function automatizes some of the black magic of DnD on Gtk+.
+ */
 void
 gel_ui_widget_enable_drop(GtkWidget *widget, GCallback callback, gpointer user_data)
 {
@@ -346,6 +491,12 @@ gel_ui_widget_enable_drop(GtkWidget *widget, GCallback callback, gpointer user_d
 	g_signal_connect(widget, "drag-data-received", (GCallback) __gel_ui_drag_data_received, NULL);
 }
 
+/**
+ * gel_ui_widget_disable_drop:
+ * @widget: A #GtkWidget
+ *
+ * Disables DnD functions added by gel_ui_widget_enable_drop on @widget
+ */
 void
 gel_ui_widget_disable_drop(GtkWidget *widget)
 {

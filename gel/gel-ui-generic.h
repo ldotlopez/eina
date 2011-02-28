@@ -24,25 +24,17 @@
 
 G_BEGIN_DECLS
 
-#define GEL_UI_TYPE_GENERIC gel_ui_generic_get_type()
+#define GEL_UI_TYPE_GENERIC            gel_ui_generic_get_type()
+#define GEL_UI_GENERIC(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), GEL_UI_TYPE_GENERIC, GelUIGeneric))
+#define GEL_UI_GENERIC_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  GEL_UI_TYPE_GENERIC, GelUIGenericClass))
+#define GEL_UI_IS_GENERIC(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEL_UI_TYPE_GENERIC))
+#define GEL_UI_IS_GENERIC_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GEL_UI_TYPE_GENERIC))
+#define GEL_UI_GENERIC_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GEL_UI_TYPE_GENERIC, GelUIGenericClass))
 
-#define GEL_UI_GENERIC(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), GEL_UI_TYPE_GENERIC, GelUIGeneric))
-
-#define GEL_UI_GENERIC_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), GEL_UI_TYPE_GENERIC, GelUIGenericClass))
-
-#define GEL_UI_IS_GENERIC(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), GEL_UI_TYPE_GENERIC))
-
-#define GEL_UI_IS_GENERIC_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), GEL_UI_TYPE_GENERIC))
-
-#define GEL_UI_GENERIC_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), GEL_UI_TYPE_GENERIC, GelUIGenericClass))
-
+typedef struct _GelUIGenericPrivate GelUIGenericPrivate;
 typedef struct {
 	GtkBox parent;
+	GelUIGenericPrivate *priv;
 } GelUIGeneric;
 
 typedef struct {
@@ -51,8 +43,8 @@ typedef struct {
 
 GType gel_ui_generic_get_type (void);
 
-GtkWidget  *gel_ui_generic_new (gchar *xml_string);
-GtkWidget  *gel_ui_generic_new_from_file (gchar *filename);
+GtkWidget  *gel_ui_generic_new (const gchar *xml_string);
+GtkWidget  *gel_ui_generic_new_from_file (const gchar *filename);
 GtkBuilder *gel_ui_generic_get_builder(GelUIGeneric *self);
 
 #define gel_ui_generic_get_typed(self,type_macro,name) \

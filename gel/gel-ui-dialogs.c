@@ -20,6 +20,22 @@
 #include "gel-ui-dialogs.h"
 #include <glib/gi18n.h>
 
+/**
+ * gel_ui_dialog_generic:
+ * @parent: (allow-none) (transfer none): Parent window for dialog or %NULL
+ * @type: Type of dialog
+ * @title: Title for dialog
+ * @message: Short message for display
+ * @details: (allow-none): Long message for display or %NULL
+ * @run_and_destroy: %TRUE if dialog should be run and disposed inmedialty
+ *                   or %FALSE if dialog should be returned.
+ *
+ * Creates a #GtkDialog with the especified parameters. If run_and_destroy
+ * is %TRUE the dialog showed and run, %NULL is returned. With run_and_destroy
+ * as %FALSE the #GtkWidget is created and returned, but not run.
+ *
+ * Returns: (transfer full) (allow-none): The dialog or %NULL
+ */
 GtkWidget *
 gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy)
 {
@@ -113,6 +129,19 @@ gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *titl
 		return dialog;
 }
 
+/**
+ * gel_ui_dialog_error:
+ * @parent: (allow-none) (transfer none): Parent window for dialog or %NULL
+ * @title: Title for dialog
+ * @message: Short message for display
+ * @details: (allow-none): Long message for display or %NULL
+ * @run_and_destroy: %TRUE if dialog should be run and disposed inmedialty
+ *                   or %FALSE if dialog should be returned.
+ *
+ * Calls gel_ui_dialog_generic() with type = %GEL_UI_DIALOG_TYPE_ERROR
+ *
+ * Returns: (transfer full) (allow-none): The dialog or %NULL
+ */
 GtkWidget *
 gel_ui_dialog_error(GtkWidget *parent, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy)
 {
