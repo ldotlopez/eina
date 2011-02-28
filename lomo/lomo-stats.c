@@ -52,7 +52,7 @@ stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add);
 static void
 lomo_weak_ref_cb(LomoStats *self, LomoPlayer *invalid_player);
 static void
-lomo_state_change_cb(LomoPlayer *lomo, LomoStats *self);
+lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self);
 static void
 lomo_eos_cb(LomoPlayer *lomo, LomoStats *self);
 static void
@@ -64,13 +64,11 @@ static struct {
 	gchar *signal;
 	gpointer handler;
 } __signal_table[] = {
-	{ "play",       lomo_state_change_cb },
-	{ "pause",      lomo_state_change_cb },
-	{ "stop",       lomo_state_change_cb },
-	{ "pre-change", lomo_eos_cb      },
-	{ "eos",        lomo_eos_cb      },
-	{ "change",     lomo_change_cb   },
-	{ "seek",       lomo_seek_cb     },
+	{ "notify::state", lomo_notify_state_cb },
+	{ "pre-change",    lomo_eos_cb      },
+	{ "eos",           lomo_eos_cb      },
+	{ "change",        lomo_change_cb   },
+	{ "seek",          lomo_seek_cb     },
 };
 
 LomoStats*
@@ -152,8 +150,11 @@ lomo_weak_ref_cb(LomoStats *self, LomoPlayer *invalid_player)
 }
 
 static void
-lomo_state_change_cb(LomoPlayer *lomo, LomoStats *self)
+lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 {
+	if (!g_str_equal(pspec->name, "name"))
+		return;
+
 	LomoState state = lomo_player_get_state(lomo);
 	switch (state)
 	{

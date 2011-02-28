@@ -81,13 +81,7 @@ enum {
 };
 
 enum {
-	STATE_CHANGED,
-	PLAY,
-	PAUSE,
-	STOP,
 	SEEK,
-	VOLUME,
-	MUTE,
 
 	INSERT,
 	REMOVE,
@@ -99,12 +93,20 @@ enum {
 	PRE_CHANGE,
 	CHANGE,
 	CLEAR,
-	REPEAT,
-	RANDOM,
 	EOS,
 	ERROR,
 	TAG,
 	ALL_TAGS,
+
+	// Extended API
+	STATE_CHANGED,
+	PLAY,
+	PAUSE,
+	STOP,
+	VOLUME,
+	MUTE,
+	REPEAT,
+	RANDOM,
 
 	LAST_SIGNAL
 };
@@ -131,6 +133,9 @@ guint lomo_player_signals[LAST_SIGNAL] = { 0 };
 			return val;                                                  \
 		}                                                                \
 	} G_STMT_END
+
+void
+eapi_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer data);
 
 // --
 // Callbacks
@@ -332,67 +337,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	object_class->dispose = lomo_player_dispose;
 
 	/**
-	 * LomoPlayer::state-changed:
-	 * @lomo: the object that received the signal
-	 *
-	 * Emitted when #LomoPlayer changes his state.
-	 */
-	lomo_player_signals[STATE_CHANGED] =
-		g_signal_new ("state-chnaged",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, state_changed),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
-
-	/**
-	 * LomoPlayer::play:
-	 * @lomo: the object that received the signal
-	 *
-	 * Emitted when #LomoPlayer changes his state to %LOMO_STATE_PLAY
-	 */
-	lomo_player_signals[PLAY] =
-		g_signal_new ("play",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, play),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
-	/**
-	 * LomoPlayer::pause:
-	 * @lomo: the object that received the signal
-	 *
-	 * Emitted when #LomoPlayer changes his state to %LOMO_STATE_PAUSE
-	 */
-	lomo_player_signals[PAUSE] =
-		g_signal_new ("pause",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, pause),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
-	/**
-	 * LomoPlayer::stop:
-	 * @lomo: the object that received the signal
-	 *
-	 * Emitted when #LomoPlayer changes his state to %LOMO_STATE_STOP
-	 */
-	lomo_player_signals[STOP] =
-		g_signal_new ("stop",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, stop),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
-	/**
 	 * LomoPlayer::seek:
 	 * @lomo: the object that received the signal
 	 * @from: Position before the seek
@@ -411,40 +355,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_INT64,
 				G_TYPE_INT64);
-	/**
-	 * LomoPlayer::volume:
-	 * @lomo: the object that received the signal
-	 * @volume: New value of volume (between 0 and 100)
-	 *
-	 * Emitted when #LomoPlayer changes his volume
-	 */
-	lomo_player_signals[VOLUME] =
-		g_signal_new ("volume",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, volume),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__INT,
-			    G_TYPE_NONE,
-			    1,
-				G_TYPE_INT);
-	/**
-	 * LomoPlayer::mute:
-	 * @lomo: the object that received the signal
-	 * @mute: Current value state of mute
-	 *
-	 * Emitted when #LomoPlayer mutes or unmutes
-	 */
-	lomo_player_signals[MUTE] =
-		g_signal_new ("mute",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, mute),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__BOOLEAN,
-			    G_TYPE_NONE,
-			    1,
-				G_TYPE_BOOLEAN);
 	/**
 	 * LomoPlayer::insert:
 	 * @lomo: the object that received the signal
@@ -576,6 +486,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    2,
 				G_TYPE_INT,
 				G_TYPE_INT);
+
 	/**
 	 * LomoPlayer::clear:
 	 * @lomo: the object that received the signal
@@ -697,6 +608,107 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    1,
 				G_TYPE_OBJECT);
 
+	/* * * * * * * * * * * * */ 
+	/* EXTENDED API: Signals */
+	/* * * * * * * * * * * * */ 
+
+	/**
+	 * LomoPlayer::state-changed:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state.
+	 */
+	lomo_player_signals[STATE_CHANGED] =
+		g_signal_new ("state-changed",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, state_changed),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
+
+	/**
+	 * LomoPlayer::play:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state to LOMO_STATE_PLAY
+	 */
+	lomo_player_signals[PLAY] =
+		g_signal_new ("play",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, play),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
+
+	/**
+	 * LomoPlayer::pause:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state to LOMO_STATE_PAUSE
+	 */
+	lomo_player_signals[PAUSE] =
+		g_signal_new ("pause",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, pause),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
+	/**
+	 * LomoPlayer::stop:
+	 * @lomo: the object that received the signal
+	 *
+	 * Emitted when #LomoPlayer changes his state to LOMO_STATE_STOP
+	 */
+	lomo_player_signals[STOP] =
+		g_signal_new ("stop",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, play),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
+	/**
+	 * LomoPlayer::volume:
+	 * @lomo: the object that received the signal
+	 * @volume: New value of volume (between 0 and 100)
+	 *
+	 * Emitted when #LomoPlayer changes his volume
+	 */
+	lomo_player_signals[VOLUME] =
+		g_signal_new ("volume",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, volume),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__INT,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_INT);
+	/**
+	 * LomoPlayer::mute:
+	 * @lomo: the object that received the signal
+	 * @mute: Current value state of mute
+	 *
+	 * Emitted when #LomoPlayer mutes or unmutes
+	 */
+	lomo_player_signals[MUTE] =
+		g_signal_new ("mute",
+		    G_OBJECT_CLASS_TYPE (object_class),
+		    G_SIGNAL_RUN_LAST,
+		    G_STRUCT_OFFSET (LomoPlayerClass, mute),
+		    NULL, NULL,
+		    g_cclosure_marshal_VOID__BOOLEAN,
+		    G_TYPE_NONE,
+		    1,
+			G_TYPE_BOOLEAN);
+
 	/**
 	 * LomoPlayer:state:
 	 *
@@ -704,7 +716,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROPERTY_STATE,
 		g_param_spec_enum("state", "state", "Player state",
-		LOMO_STATE_ENUM_TYPE, LOMO_STATE_STOP, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		LOMO_STATE_ENUM_TYPE, LOMO_STATE_STOP, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * LomoPlayer:can-go-previous:
@@ -731,7 +743,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PARSE,
 		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
-		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		TRUE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * LomoPlayer:auto-play:
@@ -741,7 +753,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 **/
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PLAY,
 		g_param_spec_boolean("auto-play", "auto-play", "Auto play added streams",
-		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * LomoPlayer:volume:
@@ -750,7 +762,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 **/
 	g_object_class_install_property(object_class, PROPERTY_VOLUME,
 		g_param_spec_int("volume", "volume", "Volume",
-		0, 100, 50, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		0, 100, 50, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 	
 	/**
 	 * LomoPlayer:mute:
@@ -759,7 +771,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 **/
 	g_object_class_install_property(object_class, PROPERTY_MUTE,
 		g_param_spec_boolean("mute", "mute", "Mute",
-		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * LomoPlayer:random:
@@ -768,7 +780,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 **/ 
 	g_object_class_install_property(object_class, PROPERTY_RANDOM,
 		g_param_spec_boolean("random", "random", "Random",
-		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:repeat:
 	 *
@@ -776,7 +788,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 **/ 
 	g_object_class_install_property(object_class, PROPERTY_REPEAT,
 		g_param_spec_boolean("repeat", "repeat", "Repeat",
-		FALSE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -812,6 +824,8 @@ lomo_player_init (LomoPlayer *self)
 
 	g_signal_connect(priv->meta, "tag", (GCallback) tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) all_tags_cb, self);
+
+	g_signal_connect(self, "notify", (GCallback) eapi_notify_cb, NULL);
 }
 
 /**
@@ -1458,7 +1472,7 @@ gboolean lomo_player_set_volume(LomoPlayer *self, gint val)
 
 	priv->volume = val;
 	g_object_notify(G_OBJECT(self), "volume");
-	g_signal_emit(self, lomo_player_signals[VOLUME], 0, val);
+
 	return TRUE;
 }
 
@@ -1538,7 +1552,6 @@ gboolean lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 
 	priv->mute = mute;
 	g_object_notify(G_OBJECT(self), "mute");
-	g_signal_emit(self, lomo_player_signals[MUTE], 0 , mute);
 
 	return ret;
 }
@@ -2266,6 +2279,41 @@ gint64 lomo_player_stats_get_stream_time_played(LomoPlayer *self)
 }
 
 // --
+// Extended API
+// --
+void
+eapi_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer data)
+{
+	if (g_str_equal(pspec->name, "state"))
+	{
+		LomoState state = lomo_player_get_state(self);
+		guint signal = 0;
+		switch (state)
+		{
+		case LOMO_STATE_PLAY:
+			signal = PLAY;
+			break;
+		case LOMO_STATE_PAUSE:
+			signal = PAUSE;
+			break;
+		case LOMO_STATE_STOP:
+			signal = STOP;
+			break;
+		default:
+			g_warning(_("Invalid state: %d"), state);
+			return;
+		}
+		g_signal_emit(self, lomo_player_signals[signal], 0, self);
+	}
+
+	else if (g_str_equal(pspec->name, "volume"))
+		g_signal_emit(self, lomo_player_signals[VOLUME], 0, self, lomo_player_get_volume(self));
+
+	else if (g_str_equal(pspec->name, "mute"))
+		g_signal_emit(self, lomo_player_signals[MUTE], 0, self, lomo_player_get_mute(self));
+}
+
+// --
 // Watchers and callbacks
 // --
 static void
@@ -2329,10 +2377,6 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 
 		case GST_MESSAGE_STATE_CHANGED:
 		{
-			static guint last_signal;
-			guint signal;
-			LomoPlayerHookType hook;
-
 			GstState oldstate, newstate, pending;
 			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
 			/*
@@ -2348,40 +2392,22 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			{
 			case GST_STATE_NULL:
 			case GST_STATE_READY:
-				signal = lomo_player_signals[STOP];
-				hook   = LOMO_PLAYER_HOOK_STOP;
 				break;
 			case GST_STATE_PAUSED:
 				// Ignore pause events before 50 miliseconds, gstreamer pauses
 				// pipeline after a first play event, returning to play state
 				// inmediatly. 
-				if ((lomo_player_tell_time(self) / 1000000) > 50)
-				{
-					signal = lomo_player_signals[PAUSE];
-					hook   = LOMO_PLAYER_HOOK_PAUSE;
-				}
-				else
+				if ((lomo_player_tell_time(self) / 1000000) <= 50)
 					return TRUE;
 				break;
 			case GST_STATE_PLAYING:
-				signal = lomo_player_signals[PLAY];
-				hook   = LOMO_PLAYER_HOOK_PLAY;
 				break;
 			default:
 				g_warning("ERROR: Unknow state transition: %s\n", gst_state_to_str(newstate));
 				return TRUE;
 			}
 
-			// Filter repeated events
-			if (signal != last_signal)
-			{
-				if (!player_run_hooks(self, hook, NULL))
-				{
-					// g_printf("Emit signal %s\n", gst_state_to_str(newstate));
-					g_signal_emit(G_OBJECT(self), signal, 0);
-					last_signal = signal;
-				}
-			}
+			g_object_notify(G_OBJECT(self), "state");
 			break;
 		}
 
