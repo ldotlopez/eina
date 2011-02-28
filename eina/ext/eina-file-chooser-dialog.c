@@ -116,7 +116,7 @@ eina_file_chooser_dialog_class_init (EinaFileChooserDialogClass *klass)
 static void
 eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 {
-	EinaFileChooserDialogPrivate *priv = self->priv;
+	EinaFileChooserDialogPrivate *priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogPrivate);
 
 	#if defined(__APPLE__) || defined(__APPLE_CC_)
 	g_signal_connect(GTK_FILE_CHOOSER(self), "selection-changed", (GCallback) gtk_widget_queue_draw, NULL);
