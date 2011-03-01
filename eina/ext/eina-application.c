@@ -17,6 +17,8 @@ struct _EinaApplicationPrivate {
 
 static EinaWindow *
 create_window(EinaApplication *self);
+static gboolean
+window_delete_event_cb(EinaWindow *window, GdkEvent *ev, EinaApplication *self);
 
 static void
 eina_application_dispose (GObject *object)
@@ -279,8 +281,23 @@ create_window(EinaApplication *self)
 		return self->priv->window;
 
 	self->priv->window = (EinaWindow *) eina_window_new();
+	
 	gtk_application_add_window((GtkApplication *) self, (GtkWindow *) self->priv->window);
+	g_signal_connect(self->priv->window, "delete-event", (GCallback) window_delete_event_cb, self);
 
 	return EINA_WINDOW(self->priv->window);
 }
+
+static gboolean
+window_delete_event_cb(EinaWindow *window, GdkEvent *ev, EinaApplication *self)
+{
+	if (!eina_window_get_persistant(window))
+	{
+		g_application_release(G_APPLICATION(self));
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 

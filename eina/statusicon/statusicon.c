@@ -29,22 +29,23 @@ typedef struct {
 	GtkActionGroup *ag;
 	GtkWidget      *menu;
 	gint            player_x, player_y;
-} StatusIconData;
+	gboolean        window_persistant;
+} StatusIconPlugin;
 
 static void
-update_ui_manager(StatusIconData *self);
+update_ui_manager(StatusIconPlugin *self);
 
 // --
 // UI callbacks
 // --
 static void
-status_icon_activate_cb(GtkWidget *w , StatusIconData *self);
+status_icon_activate_cb(GtkWidget *w , StatusIconPlugin *self);
 static void
-action_activate_cb(GtkAction *action, StatusIconData *self);
+action_activate_cb(GtkAction *action, StatusIconPlugin *self);
 static void
-status_icon_popup_menu_cb(GtkWidget *w, guint button, guint activate_time, StatusIconData *self);
+status_icon_popup_menu_cb(GtkWidget *w, guint button, guint activate_time, StatusIconPlugin *self);
 static gboolean
-status_icon_destroy_cb(GtkWidget *w, StatusIconData *self);
+status_icon_destroy_cb(GtkWidget *w, StatusIconPlugin *self);
 
 enum {
 	STATUS_ICON_NO_ERROR = 0,
@@ -95,7 +96,7 @@ static const GtkToggleActionEntry ui_toggle_actions[] = {
 GEL_DEFINE_QUARK_FUNC(status_icon)
 
 static void
-status_icon_data_destroy(StatusIconData *data)
+status_icon_data_destroy(StatusIconPlugin *data)
 {
 	g_return_if_fail(data);
 
@@ -127,7 +128,7 @@ statusicon_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	return FALSE;
 	#endif
 
-	StatusIconData *data= g_new0(StatusIconData, 1);
+	StatusIconPlugin *data= g_new0(StatusIconPlugin, 1);
 	data->plugin = plugin;
 
 	if (!(data->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON)))
@@ -175,6 +176,9 @@ statusicon_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	g_signal_connect_swapped(window, "show",  G_CALLBACK(update_ui_manager), data);
 	g_signal_connect_swapped(window, "hide",  G_CALLBACK(update_ui_manager), data);
 
+	data->window_persistant = eina_window_get_persistant(EINA_WINDOW(window));
+	eina_window_set_persistant(EINA_WINDOW(window), TRUE);
+
 	// Done, just a warning before
 	#if OSX_SYSTEM
 	gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
@@ -187,11 +191,14 @@ statusicon_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 gboolean
 statusicon_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	StatusIconData *data = (StatusIconData *) gel_plugin_get_data(plugin);
+	StatusIconPlugin *data = (StatusIconPlugin *) gel_plugin_get_data(plugin);
+
+	EinaWindow *window = eina_application_get_window(app);
+	eina_window_set_persistant(window, data->window_persistant);
 
 	// Disconnect signals
 	g_signal_handlers_disconnect_by_func(eina_plugin_get_lomo(plugin), update_ui_manager, data);
-	g_signal_handlers_disconnect_by_func(eina_application_get_window(app), update_ui_manager, data);
+	g_signal_handlers_disconnect_by_func(window, update_ui_manager, data);
 
 	// Free/unref objects
 	gel_free_and_invalidate(data->ui_mng, NULL, g_object_unref);
@@ -204,7 +211,7 @@ statusicon_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 }
 
 static void
-update_ui_manager(StatusIconData *self)
+update_ui_manager(StatusIconPlugin *self)
 {
 	gchar *hide = NULL;
 	gchar *show = NULL;
@@ -249,7 +256,7 @@ update_ui_manager(StatusIconData *self)
 // Implement UI Callbacks 
 // --
 static void
-status_icon_popup_menu_cb (GtkWidget *w, guint button, guint activate_time, StatusIconData *self)
+status_icon_popup_menu_cb (GtkWidget *w, guint button, guint activate_time, StatusIconPlugin *self)
 {
     gtk_menu_popup(
         GTK_MENU(self->menu),
@@ -260,7 +267,7 @@ status_icon_popup_menu_cb (GtkWidget *w, guint button, guint activate_time, Stat
 }
 
 static void
-action_activate_cb(GtkAction *action, StatusIconData *self)
+action_activate_cb(GtkAction *action, StatusIconPlugin *self)
 {
 	GError *error = NULL;
 	const gchar *name = gtk_action_get_name(action);
@@ -295,7 +302,7 @@ action_activate_cb(GtkAction *action, StatusIconData *self)
 		lomo_player_clear(eina_plugin_get_lomo(self->plugin));
 	
 	else if (g_str_equal(name, "quit-action"))
-		g_warning("Kill me please, this migration is so painful");
+		g_application_release(G_APPLICATION(eina_plugin_get_application(self->plugin)));
 		// gtk_application_quit(eina_plugin_get_application(self->plugin));
 
 	else
@@ -309,7 +316,7 @@ action_activate_cb(GtkAction *action, StatusIconData *self)
 }
 
 static gboolean
-status_icon_destroy_cb(GtkWidget *w, StatusIconData *self)
+status_icon_destroy_cb(GtkWidget *w, StatusIconPlugin *self)
 {
 	EinaApplication *app = eina_plugin_get_application(self->plugin);
 	GtkWidget *window = GTK_WIDGET(eina_application_get_window(app));
@@ -324,7 +331,7 @@ status_icon_destroy_cb(GtkWidget *w, StatusIconData *self)
 
 static void
 status_icon_activate_cb
-(GtkWidget *w, StatusIconData *self)
+(GtkWidget *w, StatusIconPlugin *self)
 {
 	EinaApplication *app = eina_plugin_get_application(self->plugin);
 	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));

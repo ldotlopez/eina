@@ -32,6 +32,9 @@ EinaWindow*   eina_window_new (void);
 GtkUIManager*   eina_window_get_ui_manager  (EinaWindow *self);
 GtkActionGroup* eina_window_get_action_group(EinaWindow *self);
 
+void     eina_window_set_persistant(EinaWindow *window, gboolean persistant);
+gboolean eina_window_get_persistant(EinaWindow *window);
+
 G_END_DECLS
 
 #endif /* _EINA_WINDOW */

@@ -120,7 +120,6 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	g_signal_connect(engine, "plugin-fini", (GCallback) engine_plugin_signal_cb, application);
 
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
-	g_application_hold(application);
 }
 
 gint main(gint argc, gchar *argv[])

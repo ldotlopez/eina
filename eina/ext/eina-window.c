@@ -13,6 +13,8 @@ struct _EinaWindowPrivate {
 
 	GtkActionGroup *ag;
 	GtkUIManager   *ui_manager;
+
+	gulong   persistant_handler_id;
 };
 
 static void
@@ -45,6 +47,10 @@ static GtkActionEntry ui_mng_actions[] = {
 };
 
 enum {
+	PROP_PERSISTANT = 1
+};
+
+enum {
 	ACTION_ACTIVATE,
 	LAST_SIGNAL
 };
@@ -58,6 +64,32 @@ eina_window_container_add(GtkContainer *container, GtkWidget *widget)
 	
 	g_return_if_fail(n_children <= 2);
 	gtk_box_pack_start(self->priv->container, widget, TRUE, TRUE, 0);
+}
+
+static void
+eina_window_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
+{
+	switch (property_id) {
+	case PROP_PERSISTANT:
+		eina_window_set_persistant(EINA_WINDOW(object), g_value_get_boolean(value));
+		return;
+
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
+}
+
+static void
+eina_window_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+{
+	switch (property_id) {
+	case PROP_PERSISTANT:
+		g_value_set_boolean(value, eina_window_get_persistant(EINA_WINDOW(object)));
+		return;
+
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
 }
 
 static void
@@ -77,7 +109,20 @@ eina_window_class_init (EinaWindowClass *klass)
 
 	g_type_class_add_private (klass, sizeof (EinaWindowPrivate));
 
-	/*
+	object_class->set_property = eina_window_set_property;
+	object_class->get_property = eina_window_get_property;
+	object_class->dispose = eina_window_dispose;
+
+	/**
+	 * EinaWindow::persistant:
+	 *
+	 * Tell window if must be hide on delete-event or just hide
+	 */
+	g_object_class_install_property(object_class, PROP_PERSISTANT,
+		g_param_spec_boolean("persistant", "persistant", "persistant",
+			FALSE, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
+
+	/**
 	 * EinaWindow::activate:
 	 *
 	 * Emitted if some action is activated
@@ -93,7 +138,6 @@ eina_window_class_init (EinaWindowClass *klass)
 		1,
 		G_TYPE_OBJECT);
 
-	object_class->dispose = eina_window_dispose;
 }
 
 static void
@@ -138,13 +182,20 @@ eina_window_init (EinaWindow *self)
 	gtk_window_add_accel_group((GtkWindow *) self, gtk_ui_manager_get_accel_group(self->priv->ui_manager));
 }
 
+/**
+ * eina_window_new:
+ *
+ * Creates a new #EinaWindow
+ *
+ * Returns: The #EinaWindow
+ */
 EinaWindow*
 eina_window_new (void)
 {
 	return g_object_new (EINA_TYPE_WINDOW, NULL);
 }
 
-/*
+/**
  * eina_window_get_window_ui_manager:
  * @self: the #EinaWindow
  *
@@ -157,7 +208,7 @@ eina_window_get_ui_manager(EinaWindow *self)
 	return GTK_UI_MANAGER(self->priv->ui_manager);
 }
 
-/*
+/**
  * eina_window_get_window_action_group:
  * @self: the #EinaWindow
  *
@@ -170,6 +221,50 @@ eina_window_get_action_group(EinaWindow *self)
 	return GTK_ACTION_GROUP(self->priv->ag);
 }
 
+/**
+ * eina_window_set_persistant
+ * @self: An #EinaWindow
+ * @persistant: Value for the 'persistant' property
+ *
+ * Sets the ::persistant property
+ */
+void
+eina_window_set_persistant(EinaWindow *self, gboolean persistant)
+{
+	g_return_if_fail(EINA_IS_WINDOW(self));
+	if ((persistant && self->priv->persistant_handler_id)
+	    || (!persistant && !self->priv->persistant_handler_id))
+		return;
+
+	if (persistant)
+	{
+		g_return_if_fail(self->priv->persistant_handler_id == 0);
+		self->priv->persistant_handler_id = g_signal_connect(self, "delete-event", (GCallback) gtk_widget_hide_on_delete, NULL);
+	}
+	else
+	{
+		g_return_if_fail(self->priv->persistant_handler_id > 0);
+		g_signal_handler_disconnect(self,  self->priv->persistant_handler_id);
+		self->priv->persistant_handler_id = 0;
+	}
+
+	g_object_notify(G_OBJECT(self), "persistant");
+}
+
+/**
+ * eina_window_get_persistant
+ * @self: An #EinaWindow
+ *
+ * Gets the ::persistant property
+ *
+ * Returns: Value for the ::persistant property
+ */
+gboolean
+eina_window_get_persistant(EinaWindow *self)
+{
+	g_return_val_if_fail(EINA_IS_WINDOW(self), FALSE);
+	return (self->priv->persistant_handler_id > 0);
+}
 
 static void
 action_activated_cb(GtkAction *action, EinaWindow *self)
