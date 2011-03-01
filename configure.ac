@@ -455,6 +455,7 @@ eina/dock/Makefile
 eina/fieshta/Makefile
 eina/lastfm/Makefile
 eina/lomo/Makefile
+eina/mpris/Makefile
 eina/player/Makefile
 eina/playlist/Makefile
 eina/preferences/Makefile

@@ -7,6 +7,7 @@ SUBDIRS = ext   \
 	fieshta     \
 	lastfm      \
 	lomo        \
+	mpris       \
 	player      \
 	playlist    \
 	preferences \
