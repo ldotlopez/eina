@@ -56,9 +56,9 @@ struct _EinaNtfy {
 
 // Init/fini plugin
 gboolean
-ntfy_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
+ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
 gboolean
-ntfy_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
+ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
 
 // Mini API
 static gboolean
@@ -116,7 +116,7 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	{
 		if (!ntfy_enable(self, error))
 		{
-			ntfy_fini(engine, plugin, NULL);
+			ntfy_plugin_fini(engine, plugin, NULL);
 			return FALSE;
 		}
 	}
