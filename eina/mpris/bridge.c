@@ -10,7 +10,7 @@ root_method_call_cb (GDBusConnection *connection,
 	GDBusMethodInvocation *invocation,
 	MprisPlugin *plugin)
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("%s.%s", interface_name, method_name);
 
 	if (g_str_equal("Quit", method_name) ||
 		g_str_equal("Raise", method_name))
@@ -39,7 +39,7 @@ root_get_property_cb (GDBusConnection *connection,
 	GError **error,
 	MprisPlugin *plugin)
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("%s.%s", interface_name, property_name);
 
 	if (g_str_equal("CanQuit", property_name) ||
 		g_str_equal("CanRaise", property_name))
@@ -97,7 +97,7 @@ root_set_property_cb (GDBusConnection *connection,
 	GError **error,
 	MprisPlugin *plugin)
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("%s.%s", interface_name, property_name);
 	g_set_error (error,
 		     G_DBUS_ERROR,
 		     G_DBUS_ERROR_NOT_SUPPORTED,
@@ -118,7 +118,22 @@ player_method_call_cb(GDBusConnection *connection,
 			   MprisPlugin *plugin)
 
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("%s.%s", interface_name, method_name);
+
+	const gchar *nulls[] = { "Next", "Previous", "Pause", "Play", "PlayPause", "Stop",
+		"Seek", "SetPosition", "OpenUri" };
+	for (guint i = 0; i < G_N_ELEMENTS(nulls); i++)
+	{
+		if (g_str_equal(nulls[i], method_name))
+		{
+			g_dbus_method_invocation_return_value(invocation, NULL);
+			return;
+		}
+	}
+
+	goto player_method_call_cb_error;
+
+player_method_call_cb_error:
 	g_dbus_method_invocation_return_error (invocation,
 		G_DBUS_ERROR,
 		G_DBUS_ERROR_NOT_SUPPORTED,
@@ -136,15 +151,39 @@ player_get_property_cb (GDBusConnection *connection,
 	GError **error,
 	MprisPlugin *plugin)
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("%s.%s", interface_name, property_name);
 
-	if (g_str_equal("CanControl", property_name))
+	const gchar *bools[] = { "Shuffle", "CanGoNext", "CanGoPrevious", "CanPlay", "CanPause", "CanSeek", "CanControl" };
+	for (guint i = 0; i < G_N_ELEMENTS(bools); i++)
+		if (g_str_equal(bools[i], property_name))
+			return g_variant_new_boolean(TRUE);
+
+	if (g_str_equal("PlaybackStatus", property_name))
+		return g_variant_new_string("Stopped");
+
+	if (g_str_equal("LoopStatus", property_name))
+		return g_variant_new_string("None");
+
+	if (g_str_equal("Rate", property_name))
+		return g_variant_new_double(1.0);
+
+	if (g_str_equal("Metadata", property_name))
 	{
-		return g_variant_new_boolean(TRUE);
+		GVariantBuilder *builder = g_variant_builder_new(G_VARIANT_TYPE ("a{sv}"));
+		g_variant_builder_end (builder);
 	}
 
-	else
-		goto player_get_property_cb_error;
+	if (g_str_equal("Volume", property_name))
+		return g_variant_new_double(1.0);
+
+	if (g_str_equal("Position", property_name))
+		return g_variant_new_int64(0);
+
+	if (g_str_equal("MinimumRate", property_name) ||
+		g_str_equal("MaximumRate", property_name))
+		return g_variant_new_double(1.0);
+
+	goto player_get_property_cb_error;
 
 player_get_property_cb_error:
 	g_set_error (error,
@@ -166,7 +205,16 @@ player_set_property_cb (GDBusConnection *connection,
 	GError **error,
 	MprisPlugin *plugin)
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("%s.%s", interface_name, property_name);
+	
+	const gchar *props[] = { "LoopStatus", "Rate", "Shuffle", "Volume" };
+	for (guint i = 0; i < G_N_ELEMENTS(props); i++)
+		if (g_str_equal(props[i], property_name))
+			return TRUE;
+
+	goto player_set_property_cb_error;
+
+player_set_property_cb_error:
 	g_set_error (error,
 		     G_DBUS_ERROR,
 		     G_DBUS_ERROR_NOT_SUPPORTED,
