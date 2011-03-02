@@ -1,13 +1,14 @@
-#define MPRIS_BUS_NAME_PREFIX "org.mpris.MediaPlayer2"
-#define MPRIS_OBJECT_NAME "/org/mpris/MediaPlayer2"
+#ifndef _MPRIS_MPRIS_SPEC_H
+#define _MPRIS_MPRIS_SPEC_H
 
-#define MPRIS_ROOT_INTERFACE "org.mpris.MediaPlayer2"
+#define MPRIS_BUS_NAME_PREFIX  "org.mpris.MediaPlayer2"
+#define MPRIS_OBJECT_PATH     "/org/mpris/MediaPlayer2"
+#define MPRIS_ROOT_INTERFACE   "org.mpris.MediaPlayer2"
 #define MPRIS_PLAYER_INTERFACE "org.mpris.MediaPlayer2.Player"
-#define MPRIS_TRACKLIST_INTERFACE "org.mpris.MediaPlayer2.TrackList"
 
 const char *mpris_introspection_xml =
 	"<node>"
-	"  <interface name='org.mpris.MediaPlayer2'>"
+	"  <interface name='" MPRIS_ROOT_INTERFACE "'>"
 	"    <method name='Raise'/>"
 	"    <method name='Quit'/>"
 	"    <property name='CanQuit' type='b' access='read'/>"
@@ -18,7 +19,7 @@ const char *mpris_introspection_xml =
 	"    <property name='SupportedUriSchemes' type='as' access='read'/>"
 	"    <property name='SupportedMimeTypes' type='as' access='read'/>"
 	"  </interface>"
-	"  <interface name='org.mpris.MediaPlayer2.Player'>"
+	"  <interface name='" MPRIS_PLAYER_INTERFACE"'>"
 	"    <method name='Next'/>"
 	"    <method name='Previous'/>"
 	"    <method name='Pause'/>"
@@ -54,6 +55,7 @@ const char *mpris_introspection_xml =
 	"    <property name='CanSeek' type='b' access='read'/>"
 	"    <property name='CanControl' type='b' access='read'/>"
 	"  </interface>"
+	/*
 	"  <interface name='org.mpris.MediaPlayer2.TrackList'>"
 	"    <method name='GetTracksMetadata'>"
 	"      <arg direction='in' name='TrackIds' type='ao'/>"
@@ -88,4 +90,7 @@ const char *mpris_introspection_xml =
 	"    <property name='Tracks' type='ao' access='read'/>"
 	"    <property name='CanEditTracks' type='b' access='read'/>"
 	"  </interface>"
+	*/
 	"</node>";
+
+#endif
