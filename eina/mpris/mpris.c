@@ -4,34 +4,154 @@
 
 #define BUS_NAME         "org.mpris.MediaPlayer2.eina"
 #define OBJECT_PATH      "/org/mpris/MediaPlayer2"
-#define MAIN_INTERFACE   "org.mpris.MediaPlayer2"
+#define ROOT_INTERFACE   "org.mpris.MediaPlayer2"
 #define PLAYER_INTERFACE "org.mpris.MediaPlayer2.Player"
 
 typedef struct {
 	LomoPlayer *lomo;
+	GDBusConnection *conn;
+	guint bus_id, root_id, player_id;
 } MprisPlugin;
 
+enum {
+	MPRIS_ERROR_NOT_IMPLEMENTED = 1
+};
+
+// Root interfaces
 static void
-server_bus_acquired_cb(GDBusConnection *connection, const gchar *name, MprisPlugin *plugin);
+root_interface_method_call(GDBusConnection       *connection,
+	const gchar           *sender,
+	const gchar           *object_path,
+	const gchar           *interface_name,
+	const gchar           *method_name,
+	GVariant              *parameters,
+	GDBusMethodInvocation *invocation,
+	gpointer               user_data);
+static GVariant *
+root_interface_get_property (GDBusConnection  *connection,
+	const gchar  *sender,
+	const gchar  *object_path,
+	const gchar  *interface_name,
+	const gchar  *property_name,
+	GError      **error,
+	gpointer      user_data);
+static gboolean
+root_interface_set_property(GDBusConnection  *connection, 
+	const gchar  *sender,
+	const gchar  *object_path,
+	const gchar  *interface_name,
+	const gchar  *property_name,
+	GVariant     *value,
+	GError      **error,
+	gpointer      user_data);
+
+// Player interfaces
+static void
+player_interface_method_call(GDBusConnection       *connection,
+	const gchar           *sender,
+	const gchar           *object_path,
+	const gchar           *interface_name,
+	const gchar           *method_name,
+	GVariant              *parameters,
+	GDBusMethodInvocation *invocation,
+	gpointer               user_data);
+static GVariant *
+player_interface_get_property (GDBusConnection  *connection,
+	const gchar  *sender,
+	const gchar  *object_path,
+	const gchar  *interface_name,
+	const gchar  *property_name,
+	GError      **error,
+	gpointer      user_data);
+static gboolean
+player_interface_set_property(GDBusConnection  *connection, 
+	const gchar  *sender,
+	const gchar  *object_path,
+	const gchar  *interface_name,
+	const gchar  *property_name,
+	GVariant     *value,
+	GError      **error,
+	gpointer      user_data);
+
+// Callbacks
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, MprisPlugin *plugin);
 static void
 server_name_lost_cb(GDBusConnection *connection, const gchar *name, MprisPlugin *plugin);
 
+static const GDBusInterfaceVTable root_vtable =
+{
+	root_interface_method_call,
+	root_interface_get_property,
+	root_interface_set_property
+};
+static const GDBusInterfaceVTable player_vtable =
+{
+	player_interface_method_call,
+	player_interface_get_property,
+	player_interface_set_property
+};
+
+GEL_DEFINE_QUARK_FUNC(mpris)
+
 gboolean
 mpris_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	MprisPlugin *_plugin = g_new(MprisPlugin, 1);
+	GError *err = NULL;
+
 	_plugin->lomo = eina_application_get_lomo(app);
 
-	g_bus_own_name(G_BUS_TYPE_SESSION,
-        BUS_NAME,
-        G_BUS_NAME_OWNER_FLAGS_NONE,
-        (GBusAcquiredCallback)     server_bus_acquired_cb,
-        (GBusNameAcquiredCallback) server_name_acquired_cb,
-        (GBusNameLostCallback)     server_name_lost_cb,
-        _plugin,
-        NULL);
+	// Connect to session bus
+	_plugin->conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &err);
+
+	// Load introspection data
+    GDBusNodeInfo *info = g_dbus_node_info_new_for_xml(_eina_mpris_introspection, &err);
+
+	// Register root 
+
+	if (!(_plugin->root_id = g_dbus_connection_register_object(_plugin->conn,
+		OBJECT_PATH,
+		g_dbus_node_info_lookup_interface(info, ROOT_INTERFACE),
+		&root_vtable,
+		_plugin,
+		NULL,
+		&err)))
+	{
+		g_warning("Error with root interface: %s", err->message);
+		g_error_free(err);
+		err = NULL;
+	}
+
+	// Register player
+	if (!(_plugin->player_id = g_dbus_connection_register_object(_plugin->conn,
+		OBJECT_PATH,
+		g_dbus_node_info_lookup_interface(info, PLAYER_INTERFACE),
+		&player_vtable,
+		_plugin,
+		NULL,
+		&err)))
+	{
+		g_warning("Error with root interface: %s", err->message);
+		g_error_free(err);
+		err = NULL;
+	}
+	
+	if (!(_plugin->bus_id = g_bus_own_name (G_BUS_TYPE_SESSION,
+		BUS_NAME,
+		G_BUS_NAME_OWNER_FLAGS_NONE,
+		NULL,
+		(GBusNameAcquiredCallback) server_name_acquired_cb,
+		(GBusNameLostCallback) server_name_lost_cb,
+		_plugin,
+		NULL)))
+	{
+		g_warning("Error owning bus");
+		g_error_free(err);
+		err = NULL;
+	}
+
+
 
 	return TRUE;
 }
@@ -46,7 +166,7 @@ mpris_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
  * Glue code for org.mpris.MediaPlayer2
  */
 static void
-main_interface_method_call(GDBusConnection       *connection,
+root_interface_method_call(GDBusConnection       *connection,
 	const gchar           *sender,
 	const gchar           *object_path,
 	const gchar           *interface_name,
@@ -55,7 +175,10 @@ main_interface_method_call(GDBusConnection       *connection,
 	GDBusMethodInvocation *invocation,
 	gpointer               user_data)
 {
+	GError *error = NULL;
 	g_warning("Call to %s", method_name);
+	g_set_error(&error, mpris_quark(), MPRIS_ERROR_NOT_IMPLEMENTED, _("Not implemented"));
+	g_dbus_method_invocation_return_gerror(invocation, error);
 	#if 0
 	LomoPlayer *lomo = user_data;
 
@@ -76,7 +199,7 @@ main_interface_method_call(GDBusConnection       *connection,
 }
 
 static GVariant *
-main_interface_get_property (GDBusConnection  *connection,
+root_interface_get_property (GDBusConnection  *connection,
 	const gchar  *sender,
 	const gchar  *object_path,
 	const gchar  *interface_name,
@@ -85,6 +208,8 @@ main_interface_get_property (GDBusConnection  *connection,
 	gpointer      user_data)
 {
 	g_warning("Call to get %s", property_name);
+
+	g_set_error(error, mpris_quark(), MPRIS_ERROR_NOT_IMPLEMENTED, _("Not implemented"));
 	return NULL;
 
 	#if 0
@@ -106,16 +231,17 @@ main_interface_get_property (GDBusConnection  *connection,
 }
 
 static gboolean
-main_interface_set_property(GDBusConnection  *connection,
-const gchar  *sender,
-const gchar  *object_path,
-const gchar  *interface_name,
-const gchar  *property_name,
-GVariant     *value,
-GError      **error,
-gpointer      user_data)
+root_interface_set_property(GDBusConnection  *connection,
+	const gchar  *sender,
+	const gchar  *object_path,
+	const gchar  *interface_name,
+	const gchar  *property_name,
+	GVariant     *value,
+	GError      **error,
+	gpointer      user_data)
 {
 	g_warning("Call to set %s", property_name);
+	g_set_error(error, mpris_quark(), MPRIS_ERROR_NOT_IMPLEMENTED, _("Not implemented"));
 	return FALSE;
 
 	#if 0
@@ -147,7 +273,10 @@ player_interface_method_call(GDBusConnection       *connection,
 	GDBusMethodInvocation *invocation,
 	gpointer               user_data)
 {
+	GError *error = NULL;
 	g_warning("Call to %s", method_name);
+	g_set_error(&error, mpris_quark(), MPRIS_ERROR_NOT_IMPLEMENTED, _("Not implemented"));
+	g_dbus_method_invocation_return_gerror(invocation, error);
 }
 
 static GVariant *
@@ -160,6 +289,7 @@ player_interface_get_property (GDBusConnection  *connection,
 	gpointer      user_data)
 {
 	g_warning("Call to get %s", property_name);
+	g_set_error(error, mpris_quark(), MPRIS_ERROR_NOT_IMPLEMENTED, _("Not implemented"));
 	return NULL;
 }
 
@@ -174,61 +304,18 @@ player_interface_set_property(GDBusConnection  *connection,
 	gpointer      user_data)
 {
 	g_warning("Call to set %s", property_name);
+	g_set_error(error, mpris_quark(), MPRIS_ERROR_NOT_IMPLEMENTED, _("Not implemented"));
 	return FALSE;
-}
-
-
-
-static const GDBusInterfaceVTable interface_vtables[] =
-{
-	{
-		main_interface_method_call,
-		main_interface_get_property,
-		main_interface_set_property
-	},
-	{
-		player_interface_method_call,
-		player_interface_get_property,
-		player_interface_set_property
-	}
-};
-
-static void
-server_bus_acquired_cb(GDBusConnection *connection, const gchar *name, MprisPlugin *plugin)
-{
-	GError *err = NULL;
-	
-    GDBusNodeInfo *info = g_dbus_node_info_new_for_xml(_eina_mpris_introspection, &err);
-	if (!info)
-	{
-		g_warning("%s", err->message);
-		g_error_free(err);
-		return;
-	}
-
-	const gchar const*interfaces[] = { MAIN_INTERFACE, PLAYER_INTERFACE };
-	for (guint i = 0; i < G_N_ELEMENTS(interfaces); i++)
-	{
-		g_dbus_connection_register_object(connection,
-	        OBJECT_PATH,
-	        info->interfaces[i],
-    	    &interface_vtables[i],
-	        NULL,
-			NULL,
-    	    &err);
-		if (err)
-		{
-			g_warning("Unable to register object: %s", err->message);
-			g_error_free(err);
-		}
-		g_warning("%s", __FUNCTION__);
-	}
 }
 
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, MprisPlugin *plugin)
 {
-	g_warning("%s", __FUNCTION__);
+	g_warning("=>%s: %d", name, g_dbus_connection_send_message(connection,
+			g_dbus_message_new_signal(OBJECT_PATH, "org.freedesktop.DBus.Properties", "PropertiesChanged"),
+			G_DBUS_SEND_MESSAGE_FLAGS_NONE,
+			NULL,
+			NULL));
 }
 
 static void
