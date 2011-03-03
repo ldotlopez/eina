@@ -5,7 +5,7 @@
 #define _EINA_MPRIS_PLAYER
 
 #include <glib-object.h>
-#include <lomo/lomo-player.h>
+#include <eina/ext/eina-application.h>
 
 G_BEGIN_DECLS
 
@@ -28,10 +28,10 @@ typedef struct {
 
 GType eina_mpris_player_get_type (void);
 
-EinaMprisPlayer* eina_mpris_player_new (LomoPlayer *lomo, const gchar *bus_name_suffix);
+EinaMprisPlayer* eina_mpris_player_new (EinaApplication *app, const gchar *bus_name_suffix);
 
-LomoPlayer*  eina_mpris_player_get_lomo_player(EinaMprisPlayer *self);
-const gchar* eina_mpris_player_get_bus_name_suffix(EinaMprisPlayer *self);
+EinaApplication*  eina_mpris_player_get_application(EinaMprisPlayer *self);
+const gchar*      eina_mpris_player_get_bus_name_suffix(EinaMprisPlayer *self);
 
 #if 0
 gboolean     eina_mpris_player_get_can_quit(EinaMprisPlayer *self);

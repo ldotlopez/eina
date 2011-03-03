@@ -17,7 +17,7 @@ mpris_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	MprisPlugin *_plugin = g_new(MprisPlugin, 1);
 
-	_plugin->emp = eina_mpris_player_new(eina_application_get_lomo(app), PACKAGE);
+	_plugin->emp = eina_mpris_player_new(app, PACKAGE);
 
 	#if HAVE_INDICATE
 	_plugin->is = indicate_server_ref_default();

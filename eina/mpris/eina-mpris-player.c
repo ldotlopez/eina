@@ -1,4 +1,5 @@
 #include "eina-mpris-player.h"
+#include <eina/lomo/lomo.h>
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 #include "eina-mpris-player-spec.h"
@@ -6,7 +7,7 @@
 G_DEFINE_TYPE (EinaMprisPlayer, eina_mpris_player, G_TYPE_OBJECT)
 
 struct _EinaMprisPlayerPrivate {
-	LomoPlayer      *lomo;
+	EinaApplication *app;
 	gchar           *bus_name_suffix;
 	GDBusConnection *conn;
 	GDBusNodeInfo   *nodeinfo;
@@ -15,7 +16,7 @@ struct _EinaMprisPlayerPrivate {
 
 enum
 {
-	PROP_LOMO_PLAYER = 1,
+	PROP_APP = 1,
 	PROP_BUS_NAME_SUFFIX
 #if 0
 	PROP_CAN_QUIT,
@@ -29,7 +30,7 @@ enum
 };
 
 static void
-set_lomo_player(EinaMprisPlayer *self, LomoPlayer *lomo);
+set_application(EinaMprisPlayer *self, EinaApplication *app);
 static void
 set_bus_name_suffix(EinaMprisPlayer *self, const gchar *bus_name_suffix);
 
@@ -109,8 +110,8 @@ eina_mpris_player_get_property (GObject *object, guint property_id, GValue *valu
 {
 	switch (property_id)
 	{
-	case PROP_LOMO_PLAYER:
-		g_value_set_object(value, eina_mpris_player_get_lomo_player(EINA_MPRIS_PLAYER(object)));
+	case PROP_APP:
+		g_value_set_object(value, eina_mpris_player_get_application(EINA_MPRIS_PLAYER(object)));
 		break;
 
 	case PROP_BUS_NAME_SUFFIX:
@@ -155,8 +156,8 @@ eina_mpris_player_set_property (GObject *object, guint property_id, const GValue
 {
 	switch (property_id)
 	{
-	case PROP_LOMO_PLAYER:
-		set_lomo_player(EINA_MPRIS_PLAYER(object), g_value_get_object(value));
+	case PROP_APP:
+		set_application(EINA_MPRIS_PLAYER(object), g_value_get_object(value));
 		break;
 	case PROP_BUS_NAME_SUFFIX:
 		set_bus_name_suffix(EINA_MPRIS_PLAYER(object), g_value_get_string(value));
@@ -190,7 +191,7 @@ eina_mpris_player_dispose (GObject *object)
 	gel_free_and_invalidate(self->priv->nodeinfo, NULL, g_dbus_node_info_unref);
 	gel_free_and_invalidate(self->priv->conn,     NULL, g_object_unref);
 
-	gel_free_and_invalidate(self->priv->lomo, NULL, g_object_unref);
+	gel_free_and_invalidate(self->priv->app, NULL, g_object_unref);
 	gel_free_and_invalidate(self->priv->bus_name_suffix, NULL, g_free);
 
 	G_OBJECT_CLASS (eina_mpris_player_parent_class)->dispose (object);
@@ -207,9 +208,9 @@ eina_mpris_player_class_init (EinaMprisPlayerClass *klass)
 	object_class->set_property = eina_mpris_player_set_property;
 	object_class->dispose = eina_mpris_player_dispose;
 
-	g_object_class_install_property(object_class, PROP_LOMO_PLAYER,
-		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
-			LOMO_TYPE_PLAYER, G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property(object_class, PROP_APP,
+		g_param_spec_object("application", "application", "application",
+			EINA_TYPE_APPLICATION, G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property(object_class, PROP_BUS_NAME_SUFFIX,
 		g_param_spec_string("bus-name-suffix", "bus-name-suffix", "bus-name-suffix",
@@ -223,10 +224,10 @@ eina_mpris_player_init (EinaMprisPlayer *self)
 }
 
 EinaMprisPlayer*
-eina_mpris_player_new (LomoPlayer *lomo, const gchar *bus_name_suffix)
+eina_mpris_player_new (EinaApplication *app, const gchar *bus_name_suffix)
 {
 	return g_object_new (EINA_TYPE_MPRIS_PLAYER,
-		"lomo-player", lomo,
+		"application", app,
 		"bus-name-suffix", bus_name_suffix,
 		NULL);
 }
@@ -367,27 +368,27 @@ eina_mpris_player_get_supported_mime_types(EinaMprisPlayer *self)
 }
 #endif
 
-LomoPlayer *
-eina_mpris_player_get_lomo_player(EinaMprisPlayer *self)
+EinaApplication *
+eina_mpris_player_get_application (EinaMprisPlayer *self)
 {
 	g_return_val_if_fail(EINA_IS_MPRIS_PLAYER(self), NULL);
-	return LOMO_PLAYER(self->priv->lomo);
+	return EINA_APPLICATION(self->priv->app);
 }
 
 static void
-set_lomo_player(EinaMprisPlayer *self, LomoPlayer *lomo)
+set_application(EinaMprisPlayer *self, EinaApplication *app)
 {
 	g_return_if_fail(EINA_IS_MPRIS_PLAYER(self));
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+	g_return_if_fail(EINA_IS_APPLICATION(app));
 	
-	g_return_if_fail(self->priv->lomo == NULL);
+	g_return_if_fail(self->priv->app == NULL);
 
-	self->priv->lomo = g_object_ref(lomo);
+	self->priv->app = g_object_ref(app);
 
-	if (self->priv->lomo && self->priv->bus_name_suffix)
+	if (self->priv->app && self->priv->bus_name_suffix)
 		complete_setup(self);
 
-	g_object_notify((GObject *) self, "lomo-player");
+	g_object_notify((GObject *) self, "application");
 }
 
 const gchar *
@@ -407,7 +408,7 @@ set_bus_name_suffix(EinaMprisPlayer *self, const gchar *bus_name_suffix)
 
 	self->priv->bus_name_suffix = g_strdup(bus_name_suffix);
 
-	if (self->priv->lomo && self->priv->bus_name_suffix)
+	if (self->priv->app && self->priv->bus_name_suffix)
 		complete_setup(self);
 
 	g_object_notify((GObject *) self, "bus-name-suffix");
@@ -561,7 +562,7 @@ player_method_call_cb(GDBusConnection *connection,
 
 {
 	g_warning("%s.%s", interface_name, method_name);
-	LomoPlayer *lomo = self->priv->lomo;
+	LomoPlayer *lomo = eina_application_get_lomo(self->priv->app);
 
 	if (g_str_equal("PlayPause", method_name))
 	{
@@ -614,6 +615,13 @@ player_get_property_cb (GDBusConnection *connection,
 {
 	g_warning("%s.%s", interface_name, property_name);
 
+	// FIXME: Return error if there are invalid parameters
+
+	g_warn_if_fail(EINA_IS_APPLICATION(self->priv->app));
+	
+	LomoPlayer *lomo = eina_application_get_lomo(self->priv->app);
+	g_warn_if_fail(LOMO_IS_PLAYER(lomo));
+
 	const gchar *bools[] = { "Shuffle", "CanGoNext", "CanGoPrevious", "CanPlay", "CanPause", "CanSeek", "CanControl" };
 	for (guint i = 0; i < G_N_ELEMENTS(bools); i++)
 		if (g_str_equal(bools[i], property_name))
@@ -622,7 +630,7 @@ player_get_property_cb (GDBusConnection *connection,
 	if (g_str_equal("PlaybackStatus", property_name))
 	{
 		const gchar *ret = "Stopped";
-		switch (lomo_player_get_state(self->priv->lomo))
+		switch (lomo_player_get_state(lomo))
 		{
 		case LOMO_STATE_PLAY:
 			ret = "Playing";
