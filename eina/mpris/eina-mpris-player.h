@@ -28,8 +28,12 @@ typedef struct {
 
 GType eina_mpris_player_get_type (void);
 
-EinaMprisPlayer* eina_mpris_player_new (LomoPlayer *lomo);
+EinaMprisPlayer* eina_mpris_player_new (LomoPlayer *lomo, const gchar *bus_name_suffix);
 
+LomoPlayer*  eina_mpris_player_get_lomo_player(EinaMprisPlayer *self);
+const gchar* eina_mpris_player_get_bus_name_suffix(EinaMprisPlayer *self);
+
+#if 0
 gboolean     eina_mpris_player_get_can_quit(EinaMprisPlayer *self);
 gboolean     eina_mpris_player_get_can_raise(EinaMprisPlayer *self);
 gboolean     eina_mpris_player_get_has_track_list(EinaMprisPlayer *self);
@@ -39,11 +43,10 @@ const gchar* const *
              eina_mpris_player_get_supported_uri_schemes(EinaMprisPlayer *self);
 const gchar* const *
              eina_mpris_player_get_supported_mime_types(EinaMprisPlayer *self);
-LomoPlayer*  eina_mpris_player_get_lomo_player(EinaMprisPlayer *self);
 
 void eina_mpris_player_raise(EinaMprisPlayer *self);
 void eina_mpris_player_quit (EinaMprisPlayer *self);
-
+#endif
 
 G_END_DECLS
 

@@ -9,11 +9,13 @@ include_HEADERS =
 libmpris_la_CFLAGS  = @EINA_CFLAGS@
 libmpris_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libmpris_la_SOURCES = \
-	mpris.h mpris-spec.h \
-	eina-mpris-player.c eina-mpris-player.h \
-	bridge.c \
-	mpris-native.c
-# mpris-rb.c 
+	mpris.c \
+	eina-mpris-player.c eina-mpris-player.h mpris-spec.h 
+
+if BUILD_INDICATE
+libmpris_la_CFLAGS  += @INDICATE_CFLAGS@
+libmpris_la_LDFLAGS += @INDICATE_LIBS@
+endif
 
 plugin_DATA = mpris.ini
 

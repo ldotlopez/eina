@@ -1,14 +1,14 @@
 #ifndef _MPRIS_MPRIS_SPEC_H
 #define _MPRIS_MPRIS_SPEC_H
 
-#define MPRIS_BUS_NAME_PREFIX  "org.mpris.MediaPlayer2"
-#define MPRIS_OBJECT_PATH     "/org/mpris/MediaPlayer2"
-#define MPRIS_ROOT_INTERFACE   "org.mpris.MediaPlayer2"
-#define MPRIS_PLAYER_INTERFACE "org.mpris.MediaPlayer2.Player"
+#define MPRIS_SPEC_BUS_NAME_PREFIX  "org.mpris.MediaPlayer2"
+#define MPRIS_SPEC_OBJECT_PATH     "/org/mpris/MediaPlayer2"
+#define MPRIS_SPEC_ROOT_INTERFACE   "org.mpris.MediaPlayer2"
+#define MPRIS_SPEC_PLAYER_INTERFACE "org.mpris.MediaPlayer2.Player"
 
-const char *mpris_introspection_xml =
+const char *mpris_spec_xml =
 	"<node>"
-	"  <interface name='" MPRIS_ROOT_INTERFACE "'>"
+	"  <interface name='" MPRIS_SPEC_ROOT_INTERFACE "'>"
 	"    <method name='Raise'/>"
 	"    <method name='Quit'/>"
 	"    <property name='CanQuit' type='b' access='read'/>"
@@ -19,7 +19,7 @@ const char *mpris_introspection_xml =
 	"    <property name='SupportedUriSchemes' type='as' access='read'/>"
 	"    <property name='SupportedMimeTypes' type='as' access='read'/>"
 	"  </interface>"
-	"  <interface name='" MPRIS_PLAYER_INTERFACE"'>"
+	"  <interface name='" MPRIS_SPEC_PLAYER_INTERFACE"'>"
 	"    <method name='Next'/>"
 	"    <method name='Previous'/>"
 	"    <method name='Pause'/>"
