@@ -609,6 +609,21 @@ gel_strv_copy(gchar **strv, gboolean deep)
 	return ret;
 }
 
+gchar **
+gel_strv_delete(gchar **str, gint index)
+{
+	g_return_val_if_fail(str != NULL, NULL);
+	g_return_val_if_fail((index > 0) && (index < g_strv_length(str)), NULL);
+
+	guint  i = index;
+	gchar *p = str[i];
+	for (i = index; str[i]; i++)
+		str[i] = str[i+1];
+	g_free(p);
+
+	return g_realloc(str, sizeof(gchar*) * i);
+}
+
 // --
 // Debug functions
 // --

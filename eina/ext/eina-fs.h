@@ -25,6 +25,8 @@
 #include <eina/ext/eina-application.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 
+void eina_fs_load_files_multiple(EinaApplication *app, GFile **files, guint n_files);
+
 void eina_fs_load_from_uri_multiple        (EinaApplication *app, GList *uris);
 void eina_fs_load_from_default_file_chooser(EinaApplication *app);
 void eina_fs_load_from_file_chooser        (EinaApplication *app, EinaFileChooserDialog *dialog);

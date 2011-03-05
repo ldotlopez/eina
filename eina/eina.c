@@ -28,27 +28,6 @@
 #include "eina/ext/eina-application.h"
 #include "eina/ext/eina-stock.h"
 
-static gboolean opt_enqueue = FALSE;
-static gboolean opt_new_instance = FALSE;
-static gchar**  opt_uris = NULL;
-static const GOptionEntry opt_entries[] =
-{
-	{ "enqueue",      'e', 0, G_OPTION_ARG_NONE, &opt_enqueue,      "Enqueue files instead of directly play", NULL},
-	{ "new-instance", 'n', 0, G_OPTION_ARG_NONE, &opt_new_instance, "Ignore running instances and create a new one", NULL},
-
-	{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris, NULL, "[FILE...]"},
-	{ NULL }
-};
-
-/*
-static gboolean
-application_quit(GelUIApplication *app, GelPluginEngine *self)
-{
-	g_signal_handlers_disconnect_by_func(self, plugin_changes_cb, gel_ui_application_get_settings(app, EINA_DOMAIN));
-	return FALSE;
-}
-*/
-
 static void
 engine_plugin_signal_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
 {
@@ -81,6 +60,17 @@ engine_plugin_signal_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplicat
 static void
 app_activate_cb (GApplication *application, gpointer user_data)
 {
+	static gboolean activated = FALSE;
+	if (activated)
+	{
+		GtkWindow *window = GTK_WINDOW(eina_application_get_window(EINA_APPLICATION(application)));
+		if (!window || !GTK_IS_WINDOW(window))
+			g_warn_if_fail(GTK_IS_WINDOW(window));
+		gtk_window_present(window);                                   
+		return;
+	}
+	activated = TRUE;
+
 	// Initialize stock icons stuff
 	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
 	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
@@ -122,19 +112,24 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
 }
 
-gint main(gint argc, gchar *argv[])
+static gint
+app_command_line_cb (GApplication *application, GApplicationCommandLine *command_line, gpointer user_data)
 {
-	g_type_init();
-	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
-	gtk_init(&argc, &argv);
+	static gchar**  opt_uris = NULL;
+	static const GOptionEntry opt_entries[] =
+	{
+		{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris, NULL, "[FILE...]"},
+		{ NULL }
+	};
+
+	// Handle arguments here
+	gint argc;
+	gchar **argv = g_application_command_line_get_arguments(command_line, &argc);
 
 	GOptionContext *opt_ctx = g_option_context_new("Eina options");
 	g_option_context_set_help_enabled(opt_ctx, TRUE);
-	g_option_context_set_ignore_unknown_options(opt_ctx, TRUE); // Ignore unknow
+	//  g_option_context_set_ignore_unknown_options(opt_ctx, TRUE); // Ignore unknow
 	g_option_context_add_main_entries(opt_ctx, opt_entries, GETTEXT_PACKAGE);
-
-	// Options from underlying libraries
-	g_option_context_add_group(opt_ctx, gtk_get_option_group (TRUE));
 
 	GError *err = NULL;
 	if (!g_option_context_parse(opt_ctx, &argc, &argv, &err))
@@ -145,9 +140,39 @@ gint main(gint argc, gchar *argv[])
 	}
 	g_option_context_free(opt_ctx);
 
-	// XXX: Generate an alternative id if we are running in -n mode
+	g_application_activate(application);
+	if (opt_uris)
+	{
+		GFile **gfiles = g_new0(GFile*, g_strv_length(opt_uris));
+		for (guint i = 0; opt_uris[i]; i++)
+			gfiles[i] = g_file_new_for_commandline_arg(opt_uris[i]);
+
+		g_application_open(application, gfiles, g_strv_length(opt_uris), "");
+		for (guint i = 0; opt_uris[i]; i++)
+			g_object_unref(gfiles[i]);
+		g_free(gfiles);
+		g_strfreev(opt_uris);
+	}
+
+	return 0;
+}
+
+static void
+app_open_cb(GApplication *application, gpointer files, gint n_files, gchar *hint, gpointer data)
+{
+	eina_fs_load_files_multiple(EINA_APPLICATION(application), files, n_files);
+}
+
+gint main(gint argc, gchar *argv[])
+{
+	g_type_init();
+	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
+	gtk_init(&argc, &argv);
+
 	EinaApplication *app = eina_application_new(EINA_DOMAIN);
-	g_signal_connect(app, "activate", (GCallback) app_activate_cb, NULL);
+	g_signal_connect(app, "activate",     (GCallback) app_activate_cb, NULL);
+	g_signal_connect(app, "command-line", (GCallback) app_command_line_cb, NULL);
+	g_signal_connect(app, "open",         (GCallback) app_open_cb, NULL);
 
 	gint status = g_application_run (G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
@@ -160,71 +185,6 @@ gint main(gint argc, gchar *argv[])
 	}
 	
 	return status;
-
-#if 0
-	// Initialize stock icons stuff
-	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
-	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
-	g_free(themedir);
-
-	if ((themedir = (gchar*) g_getenv("EINA_THEME_DIR")) != NULL)
-		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
-	eina_stock_init();
-
-	GelPluginEngine *engine = gel_plugin_engine_new(&argc, &argv);
-
-	gchar *plugins[] =
-	{
-	"dbus", "application", "player", "playlist"
-	};
-
-	guint  n_plugins = G_N_ELEMENTS(plugins);
-	guint  i;
-	for (i = 0; i < n_plugins; i++)
-	{
-		GError *error = NULL;
-		if (!gel_plugin_engine_load_plugin_by_name(engine, plugins[i], &error))
-		{
-			g_warning(N_("Unable to load required plugin '%s': %s"), plugins[i], error->message);
-			g_error_free(error);
-			g_object_unref(engine);
-			return 1;
-		}
-	}
-
-	GList *l = NULL;
-	for (guint u = 0; opt_uris && opt_uris[u]; u++)
-	{
-		gchar *uri = lomo_create_uri(opt_uris[u]);
-		if (uri)
-			l = g_list_prepend(l, uri);
-	}
-	l = g_list_reverse(l);
-	eina_fs_load_from_uri_multiple(engine, l);
-	gel_list_deep_free(l, (GFunc) g_free);
-
-	GelUIApplication *application = gel_plugin_engine_get_interface(engine, "application");
-	GSettings *settings = gel_ui_application_get_settings(application, EINA_DOMAIN);
-	gchar **plugins_strv = g_settings_get_strv(settings, "plugins");
-	for (guint i = 0; plugins_strv[i]; i++)
-	{
-		GError *err = NULL;
-		if (!gel_plugin_engine_load_plugin_by_name(engine, plugins_strv[i], &err))
-		{
-			g_warning(N_("Unable to load plugin '%s': %s"), plugins_strv[i], err->message);
-			g_error_free(err);
-		}
-	}
-	g_strfreev(plugins_strv);
-
-	g_signal_connect(engine, "plugin-init", (GCallback) plugin_changes_cb, settings);
-	g_signal_connect(engine, "plugin-fini", (GCallback) plugin_changes_cb, settings);
-	g_signal_connect(application, "quit",   (GCallback) application_quit,  engine);
-
-	// gtk_application_run((GtkApplication *) application);
-	g_object_unref(engine);
-	return 0;
-#endif
 }
 
 

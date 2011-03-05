@@ -1,6 +1,7 @@
 #include "eina-application.h"
 #include <gel/gel.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 #include <eina/ext/eina-window.h>
 
 G_DEFINE_TYPE (EinaApplication, eina_application, GTK_TYPE_APPLICATION)
@@ -31,14 +32,57 @@ eina_application_dispose (GObject *object)
 	G_OBJECT_CLASS (eina_application_parent_class)->dispose (object);
 }
 
+static gboolean
+eina_application_local_command_line(GApplication   *application, gchar ***arguments, gint *exit_status)
+{
+	/*
+	If local_command_line() returns TRUE, the command line is expected to be
+	completely handled, including possibly registering as the primary instance,
+	calling g_application_activate() or g_application_open(), etc.
+
+	If local_command_line() returns FALSE then the application is registered and
+	the "command-line" signal is emitted in the primary instance (which may or
+	may not be this instance). The signal handler gets passed a
+	GApplicationCommandline object that (among other things) contains the
+	remaining commandline arguments that have not been handled by local_command_line().
+	*/
+
+	gboolean new_instance = FALSE;
+	gchar **argv = *arguments;
+
+	for (guint i = 0; argv[i]; i++)
+	{
+		g_printf("  * '%s'\n", argv[i]);
+		if (g_str_equal(argv[i], "-n") ||
+		    g_str_equal(argv[i], "--new-instance"))
+		{
+			*arguments = gel_strv_delete(argv, i);
+			new_instance = TRUE;
+			break;
+		}
+	}
+
+	if (new_instance)
+	{
+		const gchar *app_id = g_application_get_application_id(application);
+		gchar *new_id = g_strdup_printf("%s.id%d", app_id, getpid());
+		g_application_set_application_id(application, new_id);
+		g_free(new_id);
+	}
+
+	return FALSE;
+}
+
 static void
 eina_application_class_init (EinaApplicationClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GObjectClass      *object_class      = G_OBJECT_CLASS (klass);
+	GApplicationClass *application_class = G_APPLICATION_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (EinaApplicationPrivate));
 
 	object_class->dispose = eina_application_dispose;
+ 	application_class->local_command_line = eina_application_local_command_line;
 }
 
 static void
@@ -88,7 +132,7 @@ eina_application_new (const gchar *application_id)
 {
 	return g_object_new (EINA_TYPE_APPLICATION,
 		"application-id", application_id,
-		"flags", G_APPLICATION_FLAGS_NONE, // | G_APPLICATION_HANDLES_OPEN | G_APPLICATION_HANDLES_COMMAND_LINE,
+		"flags", G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_HANDLES_OPEN,
 		NULL);
 }
 

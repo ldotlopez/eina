@@ -43,6 +43,17 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 
 GEL_DEFINE_QUARK_FUNC(eina_fs)
 
+void
+eina_fs_load_files_multiple(EinaApplication *app, GFile **files, guint n_files)
+{
+	GList *l = NULL;
+	for (guint i = 0; i < n_files; i++)
+		l = g_list_prepend(l, g_file_get_uri(files[i]));
+	l = g_list_reverse(l);
+	eina_fs_load_from_uri_multiple(app, l);
+	g_list_free(l);
+}
+
 /*
  * eina_fs_load_from_uri_multiple:
  * @app: a #EinaApplication

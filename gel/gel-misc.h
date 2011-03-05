@@ -348,6 +348,9 @@ gel_8601_date_now(void);
 gchar **
 gel_strv_copy(gchar **strv, gboolean deep);
 
+gchar **
+gel_strv_delete(gchar **strv, gint index);
+
 // --
 // Totally misc functions
 // --
