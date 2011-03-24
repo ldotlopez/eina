@@ -57,8 +57,8 @@ static GtkActionEntry ui_mng_actions[] = {
 	{ "about-action", GTK_STOCK_ABOUT, N_("_About"),               NULL,    NULL, (GCallback) action_activated_cb }
 };
 
+static EinaDockTab *dock_tab;
 static guint __ui_merge_id = 0;
-static GSettings *__settings = NULL;
 static EinaPreferencesTab *__prefs_tab = NULL;
 
 G_MODULE_EXPORT gboolean
@@ -96,7 +96,7 @@ player_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	gtk_widget_show_all(player);
 */
 
-	eina_plugin_add_dock_widget(plugin, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
+	dock_tab = eina_plugin_add_dock_widget(plugin, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
 
 	// Attach menus
 	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
@@ -137,11 +137,18 @@ player_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT gboolean
 player_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	gel_free_and_invalidate(__settings, NULL, g_object_unref);
+	GtkWidget *player = eina_application_get_player(app);
+	if (!player || !EINA_IS_PLAYER(player))
+		g_warn_if_fail(EINA_IS_PLAYER(player));
+	else
+	{
+		EinaDock *dock = eina_application_get_dock(app);
+		eina_dock_remove_widget(dock, dock_tab);
+	}
+
 	if (__ui_merge_id > 0)
 	{
-		EinaApplication *application = eina_application_get_interface(app, "application");
-		GtkUIManager *ui_mng = eina_application_get_window_ui_manager(application);
+		GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
 		gtk_ui_manager_remove_ui(ui_mng, __ui_merge_id);
 	}
 	if (__prefs_tab)

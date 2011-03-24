@@ -520,13 +520,16 @@ eina_dock_remove_widget(EinaDock *self, EinaDockTab *tab)
 	if (tab == priv->primary_tab)
 	{
 		g_warning(_("Removing primary tab is not supported"));
-		return FALSE;
+		gtk_container_remove((GtkContainer *) self, eina_dock_tab_get_widget(tab));
+		priv->primary_tab = NULL;
 	}
-
-	// Unlink from internal structures
-	gtk_notebook_remove_page(
-		priv->notebook,
-		gtk_notebook_page_num(priv->notebook, eina_dock_tab_get_widget(tab)));
+	else
+	{
+		// Unlink from internal structures
+		gtk_notebook_remove_page(
+			priv->notebook,
+			gtk_notebook_page_num(priv->notebook, eina_dock_tab_get_widget(tab)));
+	}
 
 	priv->tabs = g_list_remove_link(priv->tabs, tab_l);
 	priv->n_tabs--;

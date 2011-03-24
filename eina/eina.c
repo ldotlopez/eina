@@ -81,6 +81,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	eina_stock_init();
 
 	GelPluginEngine *engine = gel_plugin_engine_new(application);
+	g_object_set_data(G_OBJECT(application), "x-eina-plugin-engine", engine);
 
 	gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
 	gchar **opt_plugins = g_settings_get_strv(
@@ -115,10 +116,16 @@ app_activate_cb (GApplication *application, gpointer user_data)
 static gint
 app_command_line_cb (GApplication *application, GApplicationCommandLine *command_line, gpointer user_data)
 {
-	static gchar**  opt_uris = NULL;
-	static const GOptionEntry opt_entries[] =
+	gboolean opt_play  = FALSE;
+	gboolean opt_pause = FALSE;
+	gboolean opt_clear = FALSE;
+	gchar**  opt_uris  = NULL;
+	const GOptionEntry opt_entries[] =
 	{
-		{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris, NULL, "[FILE...]"},
+		{ "play",            'p', 0, G_OPTION_ARG_NONE,           &opt_play,  _("Set play state"), NULL },
+		{ "pause",           'x', 0, G_OPTION_ARG_NONE,           &opt_pause, _("Set stop state"), NULL },
+		{ "clear",           'c', 0, G_OPTION_ARG_NONE,           &opt_clear, _("Clear playlist (use it replace current playlist)"), NULL },
+		{ G_OPTION_REMAINING, 0,  0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris,   NULL, _("[FILES/URIs...]") },
 		{ NULL }
 	};
 
@@ -141,6 +148,16 @@ app_command_line_cb (GApplication *application, GApplicationCommandLine *command
 	g_option_context_free(opt_ctx);
 
 	g_application_activate(application);
+
+	LomoPlayer *lomo = LOMO_PLAYER(eina_application_get_lomo(EINA_APPLICATION(application)));
+
+	if (opt_uris && !g_application_command_line_get_is_remote(command_line))
+		opt_clear = TRUE;
+
+	if (opt_play && !opt_uris)  lomo_player_play (lomo, NULL);
+	if (opt_pause) lomo_player_pause(lomo, NULL);
+	if (opt_clear) lomo_player_clear(lomo);
+
 	if (opt_uris)
 	{
 		GFile **gfiles = g_new0(GFile*, g_strv_length(opt_uris));
@@ -152,6 +169,16 @@ app_command_line_cb (GApplication *application, GApplicationCommandLine *command
 			g_object_unref(gfiles[i]);
 		g_free(gfiles);
 		g_strfreev(opt_uris);
+
+		if (opt_play)
+			lomo_player_play (lomo, NULL);
+	}
+
+	if (!opt_uris && !g_application_command_line_get_is_remote(command_line))
+	{
+		gchar *playlist = g_build_filename(g_get_user_config_dir(), PACKAGE, "playlist", NULL);
+		eina_fs_load_from_playlist(EINA_APPLICATION(application), playlist);
+		g_free(playlist);
 	}
 
 	return 0;
@@ -175,6 +202,7 @@ gint main(gint argc, gchar *argv[])
 	g_signal_connect(app, "open",         (GCallback) app_open_cb, NULL);
 
 	gint status = g_application_run (G_APPLICATION (app), argc, argv);
+	g_object_unref(G_OBJECT(g_object_get_data(G_OBJECT(app), "x-eina-plugin-engine")));
 	g_object_unref(app);
 
 	// Fuc*** gcc issues

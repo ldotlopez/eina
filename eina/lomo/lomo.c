@@ -76,43 +76,6 @@ lomo_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 
 	g_signal_connect(lomo, "random", (GCallback) lomo_random_cb, NULL);
 
-	// Quick hack
-	gint    argsc = argc ? *argc : 0;
-	gchar **argsv = argv ? *argv : NULL;
-
-	for (guint i = 1; (i <= argsc) && argsv && argsv[i] && argsv[i][0]; i++)
-	{
-		gchar *uri = lomo_create_uri(argsv[i]);
-		g_warning("+ '%s'", uri);
-		lomo_player_append_uri(lomo, uri);
-	}
-
-	if (lomo_player_get_playlist(lomo) == NULL)
-	{
-		gchar *output = g_build_filename(g_get_user_config_dir(), PACKAGE, "playlist", NULL);
-		if (g_file_test(output, G_FILE_TEST_IS_REGULAR))
-		{
-			gchar *buffer = NULL;
-			GError *err = NULL;
-			if (!g_file_get_contents(output, &buffer, NULL, &err))
-			{
-				g_warning(N_("Unable to recover previous playlist: %s"), err->message);
-				g_error_free(err);
-			}
-			else
-			{
-				gchar **v = g_uri_list_extract_uris(buffer);
-				g_free(buffer);
-
-				for (guint i = 0; v && v[i]; i++)
-					lomo_player_append_uri(lomo, v[i]);
-
-				g_strfreev(v);
-			}
-		}
-		gel_free_and_invalidate(output, NULL, g_free);
-	}
-
 	return TRUE;
 }
 

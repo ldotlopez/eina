@@ -54,6 +54,42 @@ eina_fs_load_files_multiple(EinaApplication *app, GFile **files, guint n_files)
 	g_list_free(l);
 }
 
+void
+eina_fs_load_from_playlist(EinaApplication *application, const gchar *playlist)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(application));
+	g_return_if_fail(g_file_test(playlist, G_FILE_TEST_IS_REGULAR));
+
+	gchar *buffer = NULL;
+	GError *error = NULL;
+	if (!g_file_get_contents(playlist, &buffer, NULL, &error))
+	{
+		g_warning("%s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	gchar **lines = g_strsplit_set(buffer, "\n\r", 0);
+	g_free(buffer);
+
+	g_return_if_fail(lines && lines[0]);
+
+	GFile **gfiles = g_new0(GFile*, g_strv_length(lines));
+
+	guint n = 0;
+	for (guint i = 0; lines[i]; i++)
+		if (lines[i] && (lines[i][0] != '\0'))
+			gfiles[n++] = g_file_new_for_commandline_arg(lines[i]);
+	
+	g_strfreev(lines);
+
+	eina_fs_load_files_multiple(application, gfiles, n);
+	for (guint i = 0; i < n; i++)
+		g_object_unref(gfiles[i]);
+	g_free(gfiles);
+}
+
+
 /*
  * eina_fs_load_from_uri_multiple:
  * @app: a #EinaApplication
