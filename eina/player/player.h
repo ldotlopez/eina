@@ -23,8 +23,8 @@
 #include <eina/eina-plugin.h>
 #include <eina/player/eina-player.h>
 
-#define gel_plugin_engine_get_player(engine) gel_plugin_engine_get_interface(engine, "player")
-#define eina_plugin_get_player(plugin)       gel_plugin_get_player(plugin)
+#define eina_application_get_player(app) eina_application_get_interface(app, "player")
+#define eina_plugin_get_player(plugin)   eina_application_get_player(eina_plugin_get_application(plugin))
 
 #endif
 
