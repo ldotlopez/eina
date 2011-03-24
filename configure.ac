@@ -310,6 +310,20 @@ dnl
 #])
 #AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
+INDICATE_VERSION="0.4.0"
+indicate_modules="indicate >= $INDICATE_VERSION"
+PKG_CHECK_MODULES(INDICATE, $indicate_modules,
+[
+	AC_SUBST(INDICATE_CFLAGS)
+	AC_SUBST(INDICATE_LIBS)
+	HAVE_INDICATE=yes
+	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
+],
+[
+	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=0"
+	HAVE_INDICATE=no
+])
+
 dnl
 dnl notify (ntfy)
 dnl
@@ -428,6 +442,7 @@ AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
 #AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
 AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
+AM_CONDITIONAL(BUILD_INDICATE, test x"$HAVE_INDICATE"    = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
 
 dnl Keep in alphabetical order
