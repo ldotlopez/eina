@@ -43,13 +43,7 @@ typedef struct {
 typedef struct {
 	GObjectClass parent_class;
 
-	void (*state_changed) (LomoPlayer *self);
-	void (*play)          (LomoPlayer *self);
-	void (*pause)         (LomoPlayer *self);
-	void (*stop)          (LomoPlayer *self);
 	void (*seek)          (LomoPlayer *self, gint64 old, gint64 new);
-	void (*volume)        (LomoPlayer *self, gint volume);
-	void (*mute)          (LomoPlayer *self, gboolean mute);
 	void (*insert)        (LomoPlayer *self, LomoStream *stream, gint pos);
 	void (*remove)        (LomoPlayer *self, LomoStream *stream, gint pos);
 	void (*queue)         (LomoPlayer *self, LomoStream *stream, gint pos);
@@ -64,6 +58,14 @@ typedef struct {
 	void (*error)         (LomoPlayer *self, LomoStream *stream, GError *error);
 	void (*tag)           (LomoPlayer *self, LomoStream *stream, const gchar *tag);
 	void (*all_tags)      (LomoPlayer *self, LomoStream *stream);
+
+	// Extended API
+	void (*state_changed) (LomoPlayer *self);
+	void (*play)          (LomoPlayer *self);
+	void (*pause)         (LomoPlayer *self);
+	void (*stop)          (LomoPlayer *self);
+	void (*volume)        (LomoPlayer *self, gint volume);
+	void (*mute)          (LomoPlayer *self, gboolean mute);
 } LomoPlayerClass;
 
 /**
