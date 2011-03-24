@@ -1,5 +1,6 @@
 #include "eina-mpris-player.h"
 #include <eina/lomo/lomo.h>
+#include <eina/ext/eina-window.h>
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 #include "eina-mpris-player-spec.h"
@@ -12,6 +13,8 @@ struct _EinaMprisPlayerPrivate {
 	GDBusConnection *conn;
 	GDBusNodeInfo   *nodeinfo;
 	guint bus_id, root_id, player_id;
+	GHashTable    *prop_changes;
+	guint prop_change_id;
 };
 
 enum
@@ -33,6 +36,14 @@ static void
 set_application(EinaMprisPlayer *self, EinaApplication *app);
 static void
 set_bus_name_suffix(EinaMprisPlayer *self, const gchar *bus_name_suffix);
+
+static GVariant*
+build_metadata_variant(LomoStream *stream);
+
+static void
+lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaMprisPlayer *self);
+static void
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaMprisPlayer *self);
 
 static void
 server_name_lost_cb (GDBusConnection *connection, const gchar *name, gpointer user_data);
@@ -221,6 +232,7 @@ static void
 eina_mpris_player_init (EinaMprisPlayer *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_MPRIS_PLAYER, EinaMprisPlayerPrivate);
+	self->priv->prop_changes = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
 }
 
 EinaMprisPlayer*
@@ -295,6 +307,10 @@ complete_setup(EinaMprisPlayer *self)
 		goto complete_setup_error;
 	}
 	g_free(bus_name);
+
+	LomoPlayer *lomo = eina_application_get_lomo(self->priv->app);
+	g_signal_connect(lomo, "notify::state", (GCallback) lomo_notify_state_cb, self);
+	g_signal_connect(lomo, "change",        (GCallback) lomo_change_cb, self);
 
 	return;
 
@@ -414,6 +430,100 @@ set_bus_name_suffix(EinaMprisPlayer *self, const gchar *bus_name_suffix)
 	g_object_notify((GObject *) self, "bus-name-suffix");
 }
 
+static gboolean
+emit_properties_change_idle_cb(EinaMprisPlayer *self)
+{
+	g_return_val_if_fail(EINA_IS_MPRIS_PLAYER(self), FALSE);
+
+	self->priv->prop_change_id = 0;
+	g_return_val_if_fail(g_hash_table_size(self->priv->prop_changes) > 0, FALSE);
+
+	GVariantBuilder *properties = g_variant_builder_new(G_VARIANT_TYPE ("a{sv}"));
+
+	GHashTableIter iter;
+	gpointer propname, propvalue;
+	GList *invalid_props = NULL;
+	g_hash_table_iter_init (&iter, self->priv->prop_changes);
+	while (g_hash_table_iter_next (&iter, &propname, &propvalue))
+	{
+		g_variant_builder_add (properties, "{sv}", propname, propvalue);
+		invalid_props = g_list_prepend(invalid_props, propname);
+	}
+	gchar **invalid_props_strv = gel_list_to_strv(invalid_props, FALSE); // Save memory
+	g_list_free(invalid_props);
+
+	GVariant *parameters = g_variant_new ("(sa{sv}^as)",
+				    MPRIS_SPEC_PLAYER_INTERFACE,
+				    properties,
+				    invalid_props_strv);
+	GError *error = NULL;
+	g_dbus_connection_emit_signal (self->priv->conn,
+				       NULL,
+					   MPRIS_SPEC_OBJECT_PATH,
+				       "org.freedesktop.DBus.Properties",
+				       "PropertiesChanged",
+				       parameters,
+				       &error);
+	if (error != NULL)
+	{
+		g_warning ("Unable to send MPRIS property changes: %s", error->message);
+		g_clear_error (&error);
+	}
+
+	// Final cleanup, 100% safe
+	g_variant_unref(parameters);
+	g_variant_builder_unref (properties);
+	g_free(invalid_props_strv);
+	g_hash_table_remove_all(self->priv->prop_changes);
+
+	return FALSE;
+}
+
+static void
+emit_properties_change(EinaMprisPlayer *self)
+{
+	if (self->priv->prop_change_id)
+		return;
+	else
+		self->priv->prop_change_id = g_idle_add((GSourceFunc) emit_properties_change_idle_cb, self);
+}
+
+static void
+lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaMprisPlayer *self)
+{
+	const gchar *value = NULL;
+	LomoState state = lomo_player_get_state(lomo);
+	switch (state)
+	{
+	case LOMO_STATE_PLAY:
+		value = "Playing";
+		break;
+	case LOMO_STATE_PAUSE:
+		value = "Paused";
+		break;
+	case LOMO_STATE_STOP:
+		value = "Stopped";
+		break;
+	default:
+		g_warning(_("Unknow status %d"), state);
+		return;
+	}
+
+	g_hash_table_insert(self->priv->prop_changes, g_strdup("PlaybackStatus"), g_variant_new_string(value));
+	emit_properties_change(self);
+}
+
+static void
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaMprisPlayer *self)
+{
+	LomoStream *stream = lomo_player_nth_stream(lomo, to);
+	if (lomo_stream_get_all_tags_flag(stream))
+	{
+		g_hash_table_insert(self->priv->prop_changes, g_strdup("Metadata"), build_metadata_variant(stream));
+		emit_properties_change(self);
+	}
+}
+
 #if 0
 void
 eina_mpris_player_raise(EinaMprisPlayer *self)
@@ -453,14 +563,25 @@ root_method_call_cb (GDBusConnection *connection,
 	GDBusMethodInvocation *invocation,
 	EinaMprisPlayer *self)
 {
-	g_warning("%s.%s", interface_name, method_name);
-
-	if (g_str_equal("Quit", method_name) ||
-		g_str_equal("Raise", method_name))
+	if (g_str_equal("Raise", method_name))
 	{
-		g_dbus_method_invocation_return_value(invocation, NULL);
+		GtkWindow *window = GTK_WINDOW(eina_application_get_window(self->priv->app));
+		if (!window || !GTK_IS_WINDOW(window))
+		{
+			g_warn_if_fail(GTK_IS_WINDOW(window));
+			goto root_method_call_cb_error;
+		}
+
+		gtk_window_present(window);
 		return;
 	}
+
+	else if (g_str_equal("Quit", method_name))
+	{
+		g_application_release(G_APPLICATION(self->priv->app));
+		return;
+	}
+
 	else
 		goto root_method_call_cb_error;
 
@@ -604,6 +725,64 @@ player_method_call_cb_error:
 		method_name);
 }
 
+static GVariant*
+build_metadata_variant(LomoStream *stream)
+{
+	GVariantBuilder *builder = g_variant_builder_new(G_VARIANT_TYPE ("a{sv}"));
+	g_return_val_if_fail(LOMO_IS_STREAM(stream), g_variant_builder_end(builder));
+
+	GList *taglist = lomo_stream_get_tags(stream);
+	GList *l = taglist;
+	while (l)
+	{
+		const gchar *tag = (const gchar *) l->data;
+		if (lomo_tag_get_gtype(tag) != G_TYPE_STRING)
+			goto build_metadata_variant_loop_next;
+
+		// Translate LomoTag to xesam tag
+		const gchar *xesam_tag = NULL;
+		GVariant    *tag_variant = NULL;
+		if (g_str_equal(LOMO_TAG_ALBUM, tag))
+			xesam_tag = "album";
+
+		else if (g_str_equal(LOMO_TAG_TITLE, tag))
+			xesam_tag = "title";
+
+		else if (g_str_equal(LOMO_TAG_ARTIST, tag))
+		{
+			xesam_tag = "artist";
+			const gchar const *artists[] = { lomo_stream_get_tag(stream, tag), NULL };
+			tag_variant = g_variant_new_strv(artists, -1);
+		}
+
+		else
+			goto build_metadata_variant_loop_next;
+
+		if (tag_variant == NULL)
+		{
+			const gchar *tag_str = lomo_stream_get_tag(stream, tag);
+			if (tag_str)
+				tag_variant = g_variant_new_string(tag_str);
+		}
+
+		if (!xesam_tag || !tag_variant)
+			goto build_metadata_variant_loop_next;
+
+		gchar *tmp = g_strconcat("xesam:", xesam_tag, NULL);
+		g_variant_builder_add(builder, "{sv}", tmp, tag_variant);
+		g_free(tmp);
+
+build_metadata_variant_loop_next:
+		l = l->next;
+	}
+	gel_list_deep_free(taglist, g_free);
+
+	GVariant *ret = g_variant_builder_end(builder);
+	g_variant_builder_unref(builder);
+
+	return ret;
+}
+
 static GVariant *
 player_get_property_cb (GDBusConnection *connection,
 	const char *sender,
@@ -618,15 +797,61 @@ player_get_property_cb (GDBusConnection *connection,
 	// FIXME: Return error if there are invalid parameters
 
 	g_warn_if_fail(EINA_IS_APPLICATION(self->priv->app));
-	
-	LomoPlayer *lomo = eina_application_get_lomo(self->priv->app);
-	g_warn_if_fail(LOMO_IS_PLAYER(lomo));
 
-	const gchar *bools[] = { "Shuffle", "CanGoNext", "CanGoPrevious", "CanPlay", "CanPause", "CanSeek", "CanControl" };
+	LomoPlayer *lomo = eina_application_get_lomo(self->priv->app);
+	if (!lomo || !LOMO_IS_PLAYER(lomo))
+	{
+		g_warn_if_fail(LOMO_IS_PLAYER(lomo));
+		goto player_get_property_cb_error;
+	}
+
+	// CanPlay, CanPause, CanSeek, CanControl
+	const gchar *bools[] = { "CanPlay", "CanPause", "CanSeek", "CanControl" };
 	for (guint i = 0; i < G_N_ELEMENTS(bools); i++)
+	{
 		if (g_str_equal(bools[i], property_name))
 			return g_variant_new_boolean(TRUE);
+	}
 
+	// CanGoPrevious
+	if (g_str_equal("CanGoPrevious", property_name))
+	{
+		return g_variant_new_boolean(lomo_player_get_can_go_next(lomo));
+	}
+
+
+	// CanGoNext
+	if (g_str_equal("CanGoNext", property_name))
+	{
+		return g_variant_new_boolean(lomo_player_get_can_go_next(lomo));
+	}
+
+	// LoopStatus
+	if (g_str_equal("LoopStatus", property_name))
+	{
+		return g_variant_new_string(lomo_player_get_repeat(lomo) ?
+			"Playlist" : "None");
+	}
+
+	// Metadata
+	if (g_str_equal("Metadata", property_name))
+	{
+		LomoStream *stream = lomo_player_get_current_stream(lomo);
+		if (!LOMO_IS_STREAM(stream))
+		{
+			g_warn_if_fail(LOMO_IS_STREAM(stream));
+			goto player_get_property_cb_error;
+		}
+
+		return build_metadata_variant(stream);
+	}
+
+	// MinimumRate, MaximumRate
+	if (g_str_equal("MinimumRate", property_name) ||
+		g_str_equal("MaximumRate", property_name))
+		return g_variant_new_double(1.0);
+
+	// PlaybackStatus
 	if (g_str_equal("PlaybackStatus", property_name))
 	{
 		const gchar *ret = "Stopped";
@@ -644,27 +869,29 @@ player_get_property_cb (GDBusConnection *connection,
 		return g_variant_new_string(ret);
 	}
 
-	if (g_str_equal("LoopStatus", property_name))
-		return g_variant_new_string("None");
-
-	if (g_str_equal("Rate", property_name))
-		return g_variant_new_double(1.0);
-
-	if (g_str_equal("Metadata", property_name))
+	// Position
+	if (g_str_equal("Position", property_name))
 	{
-		GVariantBuilder *builder = g_variant_builder_new(G_VARIANT_TYPE ("a{sv}"));
-		g_variant_builder_end (builder);
+		return g_variant_new_int64(lomo_player_tell(lomo, LOMO_FORMAT_TIME));
 	}
 
+	// Rate
+	if (g_str_equal("Rate", property_name))
+	{
+		return g_variant_new_double(1.0);
+	}
+
+	// Shuffle
+	if (g_str_equal("Shuffle", property_name))
+	{
+		return g_variant_new_boolean(lomo_player_get_repeat(lomo));
+	}
+
+	// Volume
 	if (g_str_equal("Volume", property_name))
-		return g_variant_new_double(1.0);
-
-	if (g_str_equal("Position", property_name))
-		return g_variant_new_int64(0);
-
-	if (g_str_equal("MinimumRate", property_name) ||
-		g_str_equal("MaximumRate", property_name))
-		return g_variant_new_double(1.0);
+	{
+		return g_variant_new_double(lomo_player_get_volume(lomo) / (double) 100.0);
+	}
 
 	goto player_get_property_cb_error;
 
