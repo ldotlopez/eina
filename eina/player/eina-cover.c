@@ -48,8 +48,6 @@ struct _EinaCoverPrivate {
 
 	guint loading_timeout; // <Used to draw a loading cover after a timeout
 	gboolean got_cover;    // <Flag to indicate if cover was found
-
-	guint x;
 };
 
 enum {
@@ -139,6 +137,7 @@ eina_cover_container_add(GtkContainer *container, GtkWidget *widget)
 {
 	GList *l = gtk_container_get_children(container);
 	g_return_if_fail(l == NULL);
+	g_list_free(l);
 
 	GTK_CONTAINER_CLASS(eina_cover_parent_class)->add(container, widget);
 }
@@ -224,20 +223,28 @@ eina_cover_init (EinaCover *self)
 	GError *error = NULL;
 
 	if (!default_pb)
+	{
 		if (!(default_pb = gdk_pixbuf_new_from_inline(-1, __cover_default_png, FALSE, &error)))
 		{
-			g_warning(N_("Unable to load embed default cover: %s"), error->message);
+			g_warning(N_("Unable to load embeded default cover: %s"), error->message);
 			g_error_free(error);
 			error = NULL;
 		}
+	}
+	else
+		g_object_ref(default_pb);
 
 	if (!loading_pb)
+	{
 		if (!(loading_pb = gdk_pixbuf_new_from_inline(-1, __cover_loading_png, FALSE, &error)))
 		{
-			g_warning(N_("Unable to load embed loading cover: %s"), error->message);
+			g_warning(N_("Unable to load embeded loading cover: %s"), error->message);
 			g_error_free(error);
 			error = NULL;
 		}
+	}
+	else
+		g_object_ref(loading_pb);
 
 	eina_cover_set_default_pixbuf(self, default_pb);
 	eina_cover_set_loading_pixbuf(self, loading_pb);
@@ -253,9 +260,7 @@ void
 eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer)
 {
 	g_return_if_fail(EINA_IS_COVER(self));
-
-	if (renderer)
-		g_return_if_fail(GTK_IS_WIDGET(self));
+	g_return_if_fail(GTK_IS_WIDGET(renderer));
 
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 	if (priv->renderer)
@@ -326,34 +331,34 @@ eina_cover_get_lomo_player(EinaCover *self)
 	return GET_PRIVATE(self)->lomo;
 }
 
+#define eina_cover_set_generic_pixbuf(self,src,dst,prop) \
+	G_STMT_START { \
+		g_return_if_fail(EINA_IS_COVER(self));       \
+		g_return_if_fail(GDK_IS_PIXBUF(src));        \
+		                                             \
+		EinaCoverPrivate *priv = GET_PRIVATE(self);  \
+		if (priv->dst)                               \
+			g_object_unref(priv->dst);               \
+		                                             \
+		priv->dst = g_object_ref(pixbuf);            \
+		g_object_weak_ref((GObject *) priv->dst,     \
+			(GWeakNotify) weak_ref_cb,               \
+			NULL);                                   \
+		                                             \
+		if (prop)                                    \
+			g_object_notify((GObject *) self, prop); \
+	} G_STMT_END
+
 void
 eina_cover_set_default_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 {
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	if (priv->default_pb)
-		g_object_unref(priv->default_pb);
-
-	if (pixbuf)
-	{
-		priv->default_pb = g_object_ref_sink(pixbuf);
-		g_object_weak_ref((GObject *) priv->default_pb, (GWeakNotify) weak_ref_cb, NULL);
-	}
-	g_object_notify((GObject *) self, "default-pixbuf");
+	eina_cover_set_generic_pixbuf(self, pixbuf, default_pb, "default-pixbuf");
 }
 
 void
 eina_cover_set_loading_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 {
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	if (priv->loading_pb)
-		g_object_unref(priv->loading_pb);
-
-	if (pixbuf)
-	{
-		priv->loading_pb = g_object_ref_sink(pixbuf);
-		g_object_weak_ref((GObject *) priv->loading_pb, (GWeakNotify) weak_ref_cb, NULL);
-	}
-	g_object_notify((GObject *) self, "loading-pixbuf");
+	eina_cover_set_generic_pixbuf(self, pixbuf, loading_pb, "loading-pixbuf");
 }
 
 void
@@ -419,7 +424,7 @@ search_finish_cb(EinaArtSearch *search, EinaCover *self)
 	EinaCoverPrivate *priv = GET_PRIVATE(self);
 	priv->search = NULL;
 
-	GdkPixbuf *pb = (GdkPixbuf *) eina_art_search_get_result(search);
+	GdkPixbuf *pb = eina_art_search_get_result_as_pixbuf(search);
 	debug("* Search got result: %p\n", pb);
 	cover_set_pixbuf(self, pb);
 }

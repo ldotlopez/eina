@@ -47,6 +47,12 @@ struct _LomoStreamPrivate {
 	GList *tags;
 };
 
+enum {
+	SIGNAL_EXTENDED_METADATA_UPDATED,
+	LAST_SIGNAL
+};
+guint lomo_stream_signals[LAST_SIGNAL] = { 0 };
+
 static void
 lomo_stream_dispose (GObject *object)
 {
@@ -71,6 +77,17 @@ lomo_stream_class_init (LomoStreamClass *klass)
 	g_type_class_add_private (klass, sizeof (LomoStreamPrivate));
 
 	object_class->dispose = lomo_stream_dispose;
+
+	lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED] =
+		g_signal_new ("extended-metadata-updated",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoStreamClass, extended_metadata_updated),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__STRING,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_STRING);
 }
 
 static void
@@ -268,6 +285,49 @@ gboolean
 lomo_stream_get_failed_flag(LomoStream *self)
 {
 	return self->priv->failed;
+}
+
+/**
+ * lomo_stream_set_extended_metadata:
+ * @self: A #LomoStream
+ * @key: Key
+ * @data: Data to store
+ * @destroy: Function to free data
+ *
+ * See g_object_set_data_full()
+ */
+void
+lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer data, GDestroyNotify destroy)
+{
+	g_return_if_fail(LOMO_IS_STREAM(self));
+	g_return_if_fail(key != NULL);
+
+	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
+	g_object_set_data_full(G_OBJECT(self), k, data, destroy);
+	g_free(k);
+
+	g_signal_emit(self, lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED], 0, key);
+}
+
+/**
+ * lomo_stream_get_extended_metadata:
+ * @self: A #LomoStream
+ * @key: A Key
+ *
+ * See g_object_get_data()
+ *
+ * Returns: (transfer none): The data associated with the key
+ */
+gpointer
+lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key)
+{
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+
+	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
+	gpointer ret = g_object_get_data(G_OBJECT(self), k);
+	g_free(k);
+
+	return ret;
 }
 
 /**

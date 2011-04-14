@@ -40,6 +40,7 @@ typedef struct {
 
 typedef struct {
 	GObjectClass parent_class;
+	void (*extended_metadata_updated) (LomoStream *self, const gchar *key);
 } LomoStreamClass;
 
 GType lomo_stream_get_type (void);
@@ -48,13 +49,16 @@ LomoStream* lomo_stream_new (const gchar *uri);
 
 gchar*      lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self);
 
-#ifdef LOMO_COMPILATION
+#if (defined LOMO_COMPILATION) || (defined LIBLOMO_USE_PRIVATE_API)
 void lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value);
 void lomo_stream_set_failed_flag  (LomoStream *self, gboolean value);
 #endif
 
 gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
+
+void     lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer data, GDestroyNotify destroy);
+gpointer lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key);
 
 gchar*       lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
 const gchar* lomo_stream_get_tag      (LomoStream *self, const gchar *tag);
