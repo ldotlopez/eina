@@ -197,10 +197,8 @@ eina_art_cancel(EinaArt *art, EinaArtSearch *search)
 static void
 backend_finish_cb(EinaArtBackend *backend, EinaArtSearch *search, EinaArtClass *art_class)
 {
-	gpointer result = eina_art_search_get_result(search);
-
 	// Got results
-	if (result)
+	if (eina_art_search_get_result(search))
 	{
 		EinaArt *art = EINA_ART(eina_art_search_get_domain(search));
 		EinaArtPrivate *priv = GET_PRIVATE(art);

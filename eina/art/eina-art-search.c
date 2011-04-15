@@ -18,6 +18,7 @@
  */
 #define GEL_DOMAIN "EinaArtSearch"
 #include "eina-art-search.h"
+#include <gio/gio.h>
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 
@@ -34,6 +35,11 @@ G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 
 typedef struct _EinaArtSearchPrivate EinaArtSearchPrivate;
 
+enum {
+	PROP_0 = 0,
+	PROP_RESULT
+};
+
 struct _EinaArtSearchPrivate {
 	GObject               *domain;
 	LomoStream            *stream;
@@ -44,7 +50,8 @@ struct _EinaArtSearchPrivate {
 
 	gpointer bpointer;
 
-	gpointer result;
+	gchar *result;
+	GdkPixbuf *result_pb;
 };
 
 static void eina_art_search_weak_notify_cb(EinaArtSearch *search, GObject *old)
@@ -95,7 +102,33 @@ eina_art_search_dispose (GObject *object)
 		priv->stringify = NULL;
 	}
 
+	if (priv->result)
+	{
+		g_free(priv->result);
+		priv->result = NULL;
+	}
+
+	if (priv->result_pb)
+	{
+		g_object_unref(priv->result_pb);
+		priv->result = NULL;
+	}
+
 	G_OBJECT_CLASS (eina_art_search_parent_class)->dispose (object);
+}
+
+static void
+eina_art_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+{
+	switch (property_id)
+	{
+	case PROP_RESULT:
+		g_value_set_string(value, eina_art_search_get_result(EINA_ART_SEARCH(object)));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+		return;
+	}
 }
 
 static void
@@ -106,6 +139,12 @@ eina_art_search_class_init (EinaArtSearchClass *klass)
 	g_type_class_add_private (klass, sizeof (EinaArtSearchPrivate));
 
 	object_class->dispose = eina_art_search_dispose;
+	object_class->get_property = eina_art_get_property;
+
+	g_object_class_install_property(object_class, PROP_RESULT,
+		g_param_spec_string("result", "result", "result",
+		NULL, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
+
 }
 
 static void
@@ -124,9 +163,12 @@ eina_art_search_new (GObject *domain, LomoStream *stream, EinaArtSearchCallback 
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
 	priv->domain = g_object_ref(domain);
-	priv->stream = g_object_ref(stream);
+	priv->stream = stream;
+	g_object_ref(priv->stream);
 	priv->callback = callback;
 	priv->callback_data = callback_data;
+
+	priv->result = NULL;
 
 	g_object_weak_ref((GObject *) priv->stream, (GWeakNotify) eina_art_search_weak_notify_cb, search);
 	g_object_weak_ref((GObject *) priv->domain, (GWeakNotify) eina_art_search_weak_notify_cb, search);
@@ -169,9 +211,11 @@ eina_art_search_get_bpointer(EinaArtSearch *search)
 }
 
 void
-eina_art_search_set_result(EinaArtSearch *search, gpointer result)
+eina_art_search_set_result(EinaArtSearch *search, const gchar *result)
 {
 	g_return_if_fail(EINA_IS_ART_SEARCH(search));
+	g_return_if_fail(result != NULL);
+
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 
 	if (result && priv->result)
@@ -181,15 +225,54 @@ eina_art_search_set_result(EinaArtSearch *search, gpointer result)
 		g_return_if_fail(priv->result == NULL);
 	}
 
-	priv->result = result;
+	priv->result = g_strdup(result);
+	g_object_notify(G_OBJECT(search), "result");
 }
 
-gpointer
+const gchar *
 eina_art_search_get_result(EinaArtSearch *search)
 {
-	return GET_PRIVATE(search)->result;
+	g_return_val_if_fail(EINA_IS_ART_SEARCH(search), NULL);
+
+	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
+	return priv->result;
 }
 
+/* transfer full */
+GdkPixbuf *
+eina_art_search_get_result_as_pixbuf(EinaArtSearch *search)
+{
+	g_return_val_if_fail(EINA_IS_ART_SEARCH(search), NULL);
+
+	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
+	if (!priv->result)
+		return NULL;
+	
+	GError *error = NULL;
+
+	GFile *f = g_file_new_for_uri(priv->result);
+	GInputStream *i_stream = G_INPUT_STREAM(g_file_read(f, NULL, &error));
+	if (!i_stream)
+	{
+		g_warning(_("Unable to open URI '%s': '%s'"), priv->result, error->message);
+		g_error_free(error);
+		g_object_unref(f);
+		return NULL;
+	}
+	g_object_unref(f);
+
+	GdkPixbuf *ret = gdk_pixbuf_new_from_stream(i_stream, NULL, &error);
+	if (!ret)
+	{
+		g_warning(_("Unable to read URI '%s': '%s'"), priv->result, error->message);
+		g_error_free(error);
+		g_object_unref(i_stream);
+		return NULL;
+	}
+	g_object_unref(i_stream);
+
+	return ret;
+}
 
 const gchar*
 eina_art_search_stringify(EinaArtSearch *search)

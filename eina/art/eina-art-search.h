@@ -22,6 +22,7 @@
 
 #include <glib-object.h>
 #include <lomo/lomo-player.h>
+#include <gdk/gdk.h>
 
 G_BEGIN_DECLS
 
@@ -67,8 +68,9 @@ GObject     *eina_art_search_get_domain(EinaArtSearch *search);
 void     eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer);
 gpointer eina_art_search_get_bpointer(EinaArtSearch *search);
 
-gpointer eina_art_search_get_result(EinaArtSearch *search);
-void     eina_art_search_set_result(EinaArtSearch *search, gpointer result);
+void         eina_art_search_set_result(EinaArtSearch *search, const gchar *uri);
+const gchar *eina_art_search_get_result(EinaArtSearch *search);
+GdkPixbuf   *eina_art_search_get_result_as_pixbuf(EinaArtSearch *search);
 
 void
 eina_art_search_run_callback(EinaArtSearch *search);

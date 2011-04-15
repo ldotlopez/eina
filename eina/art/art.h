@@ -27,6 +27,13 @@ G_BEGIN_DECLS
 #define gel_engine_plugin_get_art(engine) eina_art_new()
 #define eina_plugin_get_art(plugin)       eina_art_new()
 
+void eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream);
+
+const gchar *eina_art_plugin_get_default_cover_path(void);
+const gchar *eina_art_plugin_get_default_cover_uri (void);
+const gchar *eina_art_plugin_get_loading_cover_path(void);
+const gchar *eina_art_plugin_get_loading_cover_uri (void);
+
 G_END_DECLS
 
 #endif

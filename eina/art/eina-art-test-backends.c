@@ -34,7 +34,7 @@ eina_art_random_backend_search(EinaArtBackend *backend, EinaArtSearch *search, g
 	g_warning("Random backend here: %s!", s ? "success" : "faling");
 
 	if (s)
-		eina_art_search_set_result(search, (gpointer) g_strdup("0xdeadbeef"));
+		eina_art_search_set_result(search, "0xdeadbeef");
 
 	eina_art_backend_finish(backend, search);
 }
@@ -122,12 +122,13 @@ eina_art_infolder_sync_backend_search(EinaArtBackend *backend, EinaArtSearch *se
 	}
 
 	if (score < G_MAXINT)
-	{	
+	{
 		gchar *cover_pathname = g_build_filename(dirname, winner, NULL);
-		GdkPixbuf *pb = gdk_pixbuf_new_from_file(cover_pathname, NULL);
-		if (pb && GDK_IS_PIXBUF(pb))
-			eina_art_search_set_result(search, pb);
+		gchar *cover_uri = g_filename_to_uri(cover_pathname, NULL, NULL);
+		if (cover_uri)
+			eina_art_search_set_result(search, cover_uri);
 		g_free(cover_pathname);
+		g_free(cover_uri);
 	}
 
 	// Free used data
