@@ -21,31 +21,24 @@
 #define _EINA_PLAYER
 
 #include <glib-object.h>
-#include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
 #include <eina/player/eina-cover.h>
+#include <gel/gel-ui.h>
 
 G_BEGIN_DECLS
 
 #define EINA_TYPE_PLAYER eina_player_get_type()
 
-#define EINA_PLAYER(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_PLAYER, EinaPlayer))
+#define EINA_PLAYER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_PLAYER, EinaPlayer))
+#define EINA_PLAYER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_PLAYER, EinaPlayerClass))
+#define EINA_IS_PLAYER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_PLAYER))
+#define EINA_IS_PLAYER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_PLAYER))
+#define EINA_PLAYER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_PLAYER, EinaPlayerClass))
 
-#define EINA_PLAYER_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_PLAYER, EinaPlayerClass))
-
-#define EINA_IS_PLAYER(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_PLAYER))
-
-#define EINA_IS_PLAYER_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_PLAYER))
-
-#define EINA_PLAYER_GET_CLASS(obj) \
-  (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PLAYER, EinaPlayerClass))
-
+typedef struct _EinaPlayerPrivate EinaPlayerPrivate;
 typedef struct {
 	GelUIGeneric parent;
+	EinaPlayerPrivate *priv;
 } EinaPlayer;
 
 typedef struct {
@@ -63,6 +56,8 @@ LomoPlayer *
 eina_player_get_lomo_player(EinaPlayer *self);
 void
 eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup);
+void
+eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf);
 
 EinaCover *
 eina_player_get_cover_widget(EinaPlayer *self);

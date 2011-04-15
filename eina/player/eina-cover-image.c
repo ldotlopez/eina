@@ -21,6 +21,7 @@
 #include "eina-cover-image.h"
 #include "eina-cover-image-mask.h"
 #include <glib/gi18n.h>
+#include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaCoverImage, eina_cover_image, GTK_TYPE_DRAWING_AREA)
 
@@ -35,13 +36,10 @@ struct _EinaCoverImagePrivate {
 	gint pb_w, pb_h, m_w, m_h;
 	gfloat scale;
 	cairo_t *cr;
-
-	gboolean as_is;
 };
 
 enum {
 	PROPERTY_COVER = 1,
-	PROPERTY_ASIS
 };
 
 static void
@@ -49,9 +47,6 @@ eina_cover_image_get_property (GObject *object, guint property_id,
 		                          GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
-	case PROPERTY_ASIS:
-		g_value_set_boolean(value, eina_cover_image_get_as_is(EINA_COVER_IMAGE(object)));
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -62,9 +57,6 @@ eina_cover_image_set_property (GObject *object, guint property_id,
 		                          const GValue *value, GParamSpec *pspec)
 {
 	switch (property_id) {
-	case PROPERTY_ASIS:
-		eina_cover_image_set_as_is((EinaCoverImage *) object, g_value_get_boolean(value));
-		break;
 	case PROPERTY_COVER:
 		eina_cover_image_set_from_pixbuf((EinaCoverImage *) object, g_value_get_object(value));
 		break;
@@ -76,6 +68,11 @@ eina_cover_image_set_property (GObject *object, guint property_id,
 static void
 eina_cover_image_dispose (GObject *object)
 {
+	EinaCoverImage *self = EINA_COVER_IMAGE(object);
+	EinaCoverImagePrivate *priv = GET_PRIVATE(self);
+
+	gel_free_and_invalidate(priv->pixbuf, NULL, g_object_unref);
+
 	G_OBJECT_CLASS (eina_cover_image_parent_class)->dispose (object);
 }
 
@@ -91,7 +88,7 @@ eina_cover_image_draw(GtkWidget *widget, cairo_t *_cr)
 	gdk_cairo_set_source_pixbuf(_cr, priv->pixbuf, 0, 0);
 	cairo_paint(_cr);
 
-	if (!priv->as_is && priv->mask)
+	if (priv->mask)
 	{
 		// Create mask
 		cairo_push_group(_cr);
@@ -155,9 +152,6 @@ eina_cover_image_class_init (EinaCoverImageClass *klass)
     g_object_class_install_property(object_class, PROPERTY_COVER,
 		g_param_spec_object("cover", "Cover", "Cover pixbuf",
 		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-    g_object_class_install_property(object_class, PROPERTY_ASIS,
-		g_param_spec_boolean("as-is", "Asis", "Hint for draw cover pixbuf as-is with no decoration or artifacts from renderer",
-		TRUE, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 }
 
 static void
@@ -194,7 +188,7 @@ eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 	if (priv->pixbuf)
 		g_object_unref(priv->pixbuf);
 
-	priv->pixbuf = pixbuf;
+	priv->pixbuf = pixbuf ? g_object_ref(pixbuf) : NULL;
 	if (!priv->pixbuf)
 	{
 		priv->pb_w = priv->pb_h = -1;
@@ -202,25 +196,11 @@ eina_cover_image_set_from_pixbuf(EinaCoverImage *self, GdkPixbuf *pixbuf)
 		return;
 	}
 
-
 	priv->pb_w = gdk_pixbuf_get_width(priv->pixbuf);
 	priv->pb_h = gdk_pixbuf_get_width(priv->pixbuf);
 	priv->scale = MAX(priv->allocation.width / (gfloat) priv->pb_w, priv->allocation.height / (gfloat) priv->pb_h);
 	gtk_widget_queue_draw(GTK_WIDGET(self));
 
 	g_object_notify((GObject *) self, "cover");
-}
-
-void
-eina_cover_image_set_as_is(EinaCoverImage *self, gboolean as_is)
-{
-	GET_PRIVATE(self)->as_is = as_is;
-	g_object_notify((GObject *) self, "as-is");
-}
-
-gboolean
-eina_cover_image_get_as_is(EinaCoverImage *self)
-{
-	return GET_PRIVATE(self)->as_is;
 }
 

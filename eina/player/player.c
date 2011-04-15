@@ -68,8 +68,9 @@ player_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 
 	GtkWidget *player = eina_player_new();
 	g_object_set(player,
-		"lomo-player",   eina_application_get_interface(app, "lomo"),
-		"stream-markup", g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
+		"lomo-player",    eina_application_get_interface(app, "lomo"),
+		"default-pixbuf", gdk_pixbuf_new_from_file(eina_art_plugin_get_default_cover_path(), NULL),
+		"stream-markup",  g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
 		NULL);
 	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, app);
 
@@ -227,9 +228,6 @@ static gboolean
 player_action_activated_cb(EinaPlayer *player, GtkAction *action, EinaApplication *app)
 {
 	const gchar *name = gtk_action_get_name(action);
-
-	LomoPlayer *lomo = eina_player_get_lomo_player(player);
-	g_return_val_if_fail(LOMO_IS_PLAYER(lomo), FALSE);
 
 	GError *error = NULL;
 

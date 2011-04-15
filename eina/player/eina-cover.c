@@ -20,55 +20,37 @@
 #include "eina-cover.h"
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
-#include "eina-cover-default-cover.h"
-#include "eina-cover-loading-cover.h"
 
 G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
-
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_COVER, EinaCoverPrivate))
 
 #define SIZE_HACKS 0
 
 // #define debug(...) g_warning(__VA_ARGS__)
 #define debug(...) ;
 
-typedef struct _EinaCoverPrivate EinaCoverPrivate;
-
 struct _EinaCoverPrivate {
 	LomoPlayer *lomo;      // <Extern object, used for monitor changes
-	EinaArt    *art;       // <Extern object, used for search covers
 	GtkWidget  *renderer;  // <Renderer
+	GdkPixbuf  *default_pb;
 
-	GdkPixbuf *default_pb; // <Default pixbuf to use if no cover is found
-	GdkPixbuf *loading_pb; // <Pixbuf for used while search is performed
-	GdkPixbuf *curr_pb;    // <Pointer alias for current pixbuf
+	gboolean has_cover;
 
-	EinaArtSearch *search; // <Search in progress
-
-	guint loading_timeout; // <Used to draw a loading cover after a timeout
-	gboolean got_cover;    // <Flag to indicate if cover was found
+	LomoStream *stream;
+	gulong      stream_em_handler;
 };
 
 enum {
-	PROPERTY_RENDERER = 1,
-	PROPERTY_LOMO_PLAYER,
-	PROPERTY_ART,
-
-	PROPERTY_DEFAULT_PIXBUF,
-	PROPERTY_LOADING_PIXBUF
+	PROPERTY_DEFAULT_PIXBUF = 1,
+	PROPERTY_RENDERER,
+	PROPERTY_LOMO_PLAYER
 };
 
-void
-cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb);
 static void
-weak_ref_cb (gpointer data, GObject *_object);
+cover_set(EinaCover *self, const gchar *uri);
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self);
 static void
 lomo_clear_cb(LomoPlayer *lomo,  EinaCover *self);
-static void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream , EinaCover *self);
 
 static void
 eina_cover_get_property (GObject *object, guint property_id,
@@ -93,41 +75,34 @@ eina_cover_set_property (GObject *object, guint property_id,
 	case PROPERTY_RENDERER:
 		eina_cover_set_renderer((EinaCover *) object, g_value_get_object(value));
 		break;
-	case PROPERTY_LOMO_PLAYER:
-		eina_cover_set_lomo_player((EinaCover *) object, g_value_get_object(value));
-		break;
-	case PROPERTY_ART:
-		eina_cover_set_art((EinaCover *) object, g_value_get_pointer(value));
-		break;
 	case PROPERTY_DEFAULT_PIXBUF:
 		eina_cover_set_default_pixbuf((EinaCover *) object, g_value_get_object(value));
 		break;
-	case PROPERTY_LOADING_PIXBUF:
-		eina_cover_set_loading_pixbuf((EinaCover *) object, g_value_get_object(value));
+	case PROPERTY_LOMO_PLAYER:
+		eina_cover_set_lomo_player((EinaCover *) object, g_value_get_object(value));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
 }
 
-#define dispose_pixbuf(pb) \
-	G_STMT_START { \
-		if (pb) \
-		{ \
-			g_object_weak_unref((GObject *) pb, weak_ref_cb, NULL); \
-			g_object_unref(pb); \
-			pb = NULL; \
-		} \
-	} G_STMT_END
-
 static void
 eina_cover_dispose (GObject *object)
 {
 	EinaCover *self = EINA_COVER(object);
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	EinaCoverPrivate *priv = self->priv;
 
-	dispose_pixbuf(priv->default_pb);
-	dispose_pixbuf(priv->loading_pb);
+	if (priv->stream_em_handler)
+	{
+		g_signal_handler_disconnect(priv->stream, priv->stream_em_handler);
+		priv->stream_em_handler = 0;
+	}
+
+	if (priv->default_pb)
+	{
+		g_object_unref(priv->default_pb);
+		priv->default_pb = NULL;
+	}
 
 	G_OBJECT_CLASS (eina_cover_parent_class)->dispose (object);
 }
@@ -201,83 +176,54 @@ eina_cover_class_init (EinaCoverClass *klass)
 
 	g_object_class_install_property(object_class, PROPERTY_RENDERER,
 		g_param_spec_object("renderer", "Renderer object", "Widget used to render images",
-		GTK_TYPE_WIDGET, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	g_object_class_install_property(object_class, PROPERTY_ART,
-		g_param_spec_pointer("art", "Art interface", "Art interface",
-		G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		GTK_TYPE_WIDGET, G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property(object_class, PROPERTY_DEFAULT_PIXBUF,
+		g_param_spec_object("default-pixbuf", "Default pixbuf", "Default pixbuf",
+		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS));
+
 	g_object_class_install_property(object_class, PROPERTY_LOMO_PLAYER,
 		g_param_spec_object("lomo-player", "Lomo player", "Lomo Player to control/watch",
-		LOMO_TYPE_PLAYER, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	g_object_class_install_property(object_class, PROPERTY_DEFAULT_PIXBUF,
-		g_param_spec_object("default-pixbuf", "Default pixbuf", "Default pixbuf to display",
-		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	g_object_class_install_property(object_class, PROPERTY_LOADING_PIXBUF,
-		g_param_spec_object("loading-pixbuf", "Loading pixbuf", "Loading pixbuf to display",
-		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+		LOMO_TYPE_PLAYER,  G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
 eina_cover_init (EinaCover *self)
 {
-	static GdkPixbuf *default_pb = NULL, *loading_pb = NULL;
-	GError *error = NULL;
-
-	if (!default_pb)
-	{
-		if (!(default_pb = gdk_pixbuf_new_from_inline(-1, __cover_default_png, FALSE, &error)))
-		{
-			g_warning(N_("Unable to load embeded default cover: %s"), error->message);
-			g_error_free(error);
-			error = NULL;
-		}
-	}
-	else
-		g_object_ref(default_pb);
-
-	if (!loading_pb)
-	{
-		if (!(loading_pb = gdk_pixbuf_new_from_inline(-1, __cover_loading_png, FALSE, &error)))
-		{
-			g_warning(N_("Unable to load embeded loading cover: %s"), error->message);
-			g_error_free(error);
-			error = NULL;
-		}
-	}
-	else
-		g_object_ref(loading_pb);
-
-	eina_cover_set_default_pixbuf(self, default_pb);
-	eina_cover_set_loading_pixbuf(self, loading_pb);
+	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_COVER, EinaCoverPrivate));
 }
 
 EinaCover*
-eina_cover_new (void)
+eina_cover_new (LomoPlayer *lomo, GdkPixbuf *pixbuf, GtkWidget *renderer)
 {
-	return g_object_new (EINA_TYPE_COVER, NULL);
+	return g_object_new (EINA_TYPE_COVER,
+		"lomo-player",    lomo,
+		"default-pixbuf", pixbuf,
+		"renderer",       renderer,
+		NULL);
 }
 
 void
 eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer)
 {
 	g_return_if_fail(EINA_IS_COVER(self));
-	g_return_if_fail(GTK_IS_WIDGET(renderer));
 
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	if (renderer)
+		g_return_if_fail(GTK_IS_WIDGET(renderer));
+
+	EinaCoverPrivate *priv = self->priv;
+
+	// unset old object
 	if (priv->renderer)
 		gtk_container_remove((GtkContainer *) self, priv->renderer); 
 
+	// setup new object if any
 	priv->renderer = renderer;
 	if (priv->renderer)
 	{
 		gtk_container_add(GTK_CONTAINER(self), renderer);
 		gtk_widget_set_visible(renderer, TRUE);
-
-		if (priv->curr_pb || priv->default_pb)
-			cover_set_pixbuf(self,  priv->curr_pb ? priv->curr_pb : priv->default_pb );
-	}
-	else
-	{
-		g_warning("Renderer is NULL");
+		cover_set(self, NULL);
 	}
 
 	g_object_notify((GObject *) self, "renderer");
@@ -287,215 +233,150 @@ GtkWidget*
 eina_cover_get_renderer(EinaCover *self)
 {
 	g_return_val_if_fail(EINA_IS_COVER(self), NULL);
-	return GET_PRIVATE(self)->renderer;
-}
-
-void
-eina_cover_set_art(EinaCover *self, EinaArt *art)
-{
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-
-	if (priv->search)
-		g_object_unref(priv->art);
-	priv->art = art;
-	g_object_notify((GObject *) self, "art");
+	return self->priv->renderer;
 }
 
 void
 eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo)
 {
 	g_return_if_fail(EINA_IS_COVER(self));
+
 	if (lomo)
 		g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	EinaCoverPrivate *priv = self->priv;
+
+	// unset old object
 	if (priv->lomo)
 	{
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_change_cb,   self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_clear_cb,    self);
-		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_all_tags_cb, self);
 	}
-	priv->lomo = lomo;
-	if (!lomo)
-		return;
 
-	g_signal_connect(priv->lomo, "change",   (GCallback) lomo_change_cb,   self);
-	g_signal_connect(priv->lomo, "clear",    (GCallback) lomo_clear_cb,    self);
-	g_signal_connect(priv->lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
+	// Setup new object if any
+	priv->lomo = lomo;
+	if (priv->lomo)
+	{
+		g_signal_connect(priv->lomo, "change",   (GCallback) lomo_change_cb,   self);
+		g_signal_connect(priv->lomo, "clear",    (GCallback) lomo_clear_cb,    self);
+	}
+
 	g_object_notify((GObject *) self, "lomo-player");
 }
 
 LomoPlayer*
 eina_cover_get_lomo_player(EinaCover *self)
 {
-	return GET_PRIVATE(self)->lomo;
+	g_return_val_if_fail(EINA_IS_COVER(self), NULL);
+	return self->priv->lomo;
 }
 
-#define eina_cover_set_generic_pixbuf(self,src,dst,prop) \
-	G_STMT_START { \
-		g_return_if_fail(EINA_IS_COVER(self));       \
-		g_return_if_fail(GDK_IS_PIXBUF(src));        \
-		                                             \
-		EinaCoverPrivate *priv = GET_PRIVATE(self);  \
-		if (priv->dst)                               \
-			g_object_unref(priv->dst);               \
-		                                             \
-		priv->dst = g_object_ref(pixbuf);            \
-		g_object_weak_ref((GObject *) priv->dst,     \
-			(GWeakNotify) weak_ref_cb,               \
-			NULL);                                   \
-		                                             \
-		if (prop)                                    \
-			g_object_notify((GObject *) self, prop); \
-	} G_STMT_END
-
+/**
+ * eina_cover_set_default_pixbuf:
+ * @self: An #EinaCover
+ * @pixbuf: A #GdkPixbuf
+ *
+ * Sets the default pixbuf
+ */
 void
 eina_cover_set_default_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 {
-	eina_cover_set_generic_pixbuf(self, pixbuf, default_pb, "default-pixbuf");
+	g_return_if_fail(EINA_IS_COVER(self));
+	g_return_if_fail(GDK_IS_PIXBUF(pixbuf));
+
+	EinaCoverPrivate *priv = self->priv;
+	g_return_if_fail(!priv->default_pb);
+
+	priv->default_pb = pixbuf;
+
+	GtkWidget *renderer = eina_cover_get_renderer(self);
+	if (renderer && !priv->has_cover)
+		cover_set(self, NULL);
+
+	g_object_notify(G_OBJECT(self), "default-pixbuf");
 }
 
-void
-eina_cover_set_loading_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
-{
-	eina_cover_set_generic_pixbuf(self, pixbuf, loading_pb, "loading-pixbuf");
-}
-
-void
-cover_set_pixbuf(EinaCover *self, GdkPixbuf *pb)
+static void
+cover_set(EinaCover *self, const gchar *uri)
 {
 	g_return_if_fail(EINA_IS_COVER(self));
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
+	EinaCoverPrivate *priv = self->priv;
 
-	if (priv->loading_timeout)
+	priv->has_cover = FALSE;
+	if (uri == NULL)
 	{
-		g_source_remove(priv->loading_timeout);
-		priv->loading_timeout = 0;
-	}
-
-	if (!priv->renderer)
-		return;
-
-	if ((pb == NULL) || !GDK_IS_PIXBUF(pb))
-	{
-		debug("Setting pixbuf to NULL (no search result?), using default");
-		pb = priv->default_pb;
-	}
-	g_return_if_fail(GDK_IS_PIXBUF(pb));
-
-	if (pb == priv->curr_pb)
-		return;
-
-	priv->curr_pb = pb;
-	gboolean asis = (pb == priv->default_pb) || (pb == priv->loading_pb);
-	priv->got_cover = !asis;
-	debug("* Setting cover to %p (got_cover: %s)\n", pb, priv->got_cover ? "true" : "false");
-
-	// Keep two call to g_object_set, renderer may not support asis property
-	g_object_set((GObject *) priv->renderer, "as-is",  asis, NULL);
-	g_object_set((GObject *) priv->renderer, "cover", asis ? gdk_pixbuf_copy(pb) : pb, NULL);
-}
-
-static gboolean
-_cover_set_loading_real(EinaCover *self)
-{
-	g_return_val_if_fail(EINA_IS_COVER(self), FALSE);
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	priv->loading_timeout = 0;
-
-	cover_set_pixbuf(self, priv->loading_pb);
-
-	return FALSE;
-}
-
-static void
-cover_set_loading(EinaCover *self)
-{
-	g_return_if_fail(EINA_IS_COVER(self));
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	if (priv->loading_timeout)
-		g_source_remove(priv->loading_timeout);
-	priv->loading_timeout = g_timeout_add(500, (GSourceFunc) _cover_set_loading_real, self);
-}
-
-static void
-search_finish_cb(EinaArtSearch *search, EinaCover *self)
-{
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	priv->search = NULL;
-
-	GdkPixbuf *pb = eina_art_search_get_result_as_pixbuf(search);
-	debug("* Search got result: %p\n", pb);
-	cover_set_pixbuf(self, pb);
-}
-
-static void
-cover_set_stream(EinaCover *self, LomoStream *stream)
-{
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	priv->got_cover = FALSE;
-
-	debug("* Got new stream %p\n", stream);
-	if (priv->art && priv->search)
-	{
-		debug(" discart running search %p\n", priv->search);
-		eina_art_cancel(priv->art, priv->search);
-		priv->search = NULL;
-	}
-	if (!priv->renderer)
-	{
-		debug(" no renderer, no search\n");
+		g_object_set((GObject *) priv->renderer, "cover", priv->default_pb, NULL);
 		return;
 	}
-	if (!priv->art)
+	else
 	{
-		debug(" no art interface, set default cover\n");
-		cover_set_pixbuf(self, priv->default_pb); 
-		return;
-	}
+		GFile *f = g_file_new_for_uri(uri);
+		GError *error = NULL;
+		GInputStream *input = G_INPUT_STREAM(g_file_read(f, NULL, &error));
+		if (error)
+		{
+			g_warning("Unable to read uri '%s': '%s", uri, error->message);
+			g_error_free(error);
+			g_object_unref(f);
+			return;
+		}
+		g_object_unref(f);
 
-	if (!stream)
-	{
-		debug(" no stream, set default cover\n");
-		cover_set_pixbuf(self, priv->default_pb);
-		return;
-	}
-
-	priv->search = eina_art_search(priv->art, stream, (EinaArtSearchCallback) search_finish_cb, self);
-	debug(" new search started: %p\n", priv->search);
-	if (priv->search)
-	{
-		debug(" set loading cover\n");
-		cover_set_loading(self);
+		GdkPixbuf *pb = gdk_pixbuf_new_from_stream(input, NULL, &error);
+		if (error)
+		{
+			g_warning("Unable to load cover from uri '%s': '%s", uri, error->message);
+			g_error_free(error);
+			g_object_unref(input);
+			return;
+		}
+		g_object_unref(input);
+		g_object_set((GObject *) priv->renderer, "cover", pb, NULL);
+		g_object_unref(pb);
+		priv->has_cover = TRUE;
 	}
 }
 
 static void
-weak_ref_cb (gpointer data, GObject *_object)
+stream_em_updated(LomoStream *stream, const gchar *key, EinaCover *self)
 {
-	g_warning(N_("Protected object %p is begin destroyed. There is a bug somewhere, set a breakpoint on %s"), _object, __FUNCTION__);
+	if (g_str_equal(key, "art-uri"))
+		cover_set(self, (const gchar *) lomo_stream_get_extended_metadata(stream, key));
 }
-
 
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 {
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	cover_set_stream(self, lomo_player_get_current_stream(priv->lomo));
+	g_warn_if_fail(to >= 0);
+
+	EinaCoverPrivate *priv = self->priv;
+	if (priv->stream_em_handler)
+	{
+		g_signal_handler_disconnect(priv->stream, priv->stream_em_handler);
+		priv->stream_em_handler = 0;
+	}
+
+	if ((priv->stream = lomo_player_nth_stream(lomo, to)) == NULL)
+	{
+		cover_set(self, NULL);
+		return;
+	}
+
+	gpointer d = lomo_stream_get_extended_metadata(priv->stream, "art-uri");
+	if (d)
+		cover_set(self, d);
+	priv->stream_em_handler = g_signal_connect(priv->stream, "extended-metadata-updated", (GCallback) stream_em_updated, self);
 }
 
 static void
 lomo_clear_cb(LomoPlayer *lomo,  EinaCover *self)
 {
-	cover_set_stream(self, NULL);
-}
-
-static void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream , EinaCover *self)
-{
-	EinaCoverPrivate *priv = GET_PRIVATE(self);
-	if (priv->got_cover || (stream != lomo_player_get_current_stream(priv->lomo)))
-		return;
-	cover_set_stream(self, stream);
+	EinaCoverPrivate *priv = self->priv;
+	if (priv->stream_em_handler)
+	{
+		g_signal_handler_disconnect(priv->stream, priv->stream_em_handler);
+		priv->stream_em_handler = 0;
+	}
+	cover_set(self, NULL);
 }
 

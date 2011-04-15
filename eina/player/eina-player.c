@@ -20,6 +20,7 @@
 #include "eina-player.h"
 #include "eina-player-ui.h"
 #include <glib/gi18n.h>
+#include <gel/gel-ui.h>
 #include "eina-seek.h"
 #include "eina-cover.h"
 #include "eina-cover-image.h"
@@ -27,23 +28,19 @@
 
 G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_PLAYER, EinaPlayerPrivate))
-
-typedef struct _EinaPlayerPrivate EinaPlayerPrivate;
-
 struct _EinaPlayerPrivate {
 	// Props.
 	LomoPlayer *lomo;
-	gchar *stream_mrkp;
+	GdkPixbuf  *default_pixbuf;
+	gchar      *stream_mrkp;
 
-	EinaArt   *art;
 	EinaSeek  *seek;
 	EinaCover *cover;
 };
 
 enum {
 	PROP_LOMO_PLAYER = 1,
+	PROP_DEFAULT_PIXBUF,
 	PROP_STREAM_MARKUP
 };
 
@@ -77,11 +74,8 @@ binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *ds
 static void
 eina_player_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-	switch (property_id) {
-	case PROP_LOMO_PLAYER:
-		g_value_set_object(value, G_OBJECT(eina_player_get_lomo_player((EinaPlayer *) object)));
-		return;
-
+	switch (property_id)
+	{
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -90,14 +84,19 @@ eina_player_get_property (GObject *object, guint property_id, GValue *value, GPa
 static void
 eina_player_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	switch (property_id) {
+	switch (property_id)
+	{
 	case PROP_LOMO_PLAYER:
 		eina_player_set_lomo_player((EinaPlayer *) object, (LomoPlayer *) g_value_get_object(value));
-		return;
+		break;
+
+	case PROP_DEFAULT_PIXBUF:
+		eina_player_set_default_pixbuf((EinaPlayer *) object, (GdkPixbuf *) g_value_get_object(value));
+		break;
 
 	case PROP_STREAM_MARKUP:
 		eina_player_set_stream_markup((EinaPlayer *) object, (gchar *) g_value_get_string(value));
-		return;
+		break;
 
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -107,21 +106,14 @@ eina_player_set_property (GObject *object, guint property_id, const GValue *valu
 static void
 eina_player_dispose (GObject *object)
 {
-	EinaPlayer *player = EINA_PLAYER(object);
-	EinaPlayerPrivate *priv = GET_PRIVATE(player);
+	EinaPlayer *self = EINA_PLAYER(object);
+	EinaPlayerPrivate *priv = self->priv;
 
-	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
-	gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
-	gel_free_and_invalidate(priv->art,  NULL, g_object_unref);
+	gel_free_and_invalidate(priv->lomo,           NULL, g_object_unref);
+	gel_free_and_invalidate(priv->default_pixbuf, NULL, g_object_unref);
+	gel_free_and_invalidate(priv->stream_mrkp,    NULL, g_free);
 	
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
-}
-
-static GObject*
-eina_player_constructor(GType type, guint n_params, GObjectConstructParam *construct_params)
-{
-	GObject *object = G_OBJECT_CLASS(eina_player_parent_class)->constructor(type, n_params, construct_params);
-	return object;
 }
 
 static void
@@ -131,18 +123,24 @@ eina_player_class_init (EinaPlayerClass *klass)
 
 	g_type_class_add_private (klass, sizeof (EinaPlayerPrivate));
 
-	object_class->constructor  = eina_player_constructor;
 	object_class->get_property = eina_player_get_property;
 	object_class->set_property = eina_player_set_property;
 	object_class->dispose = eina_player_dispose;
 
 	g_object_class_install_property(object_class, PROP_LOMO_PLAYER,
 		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
-		LOMO_TYPE_PLAYER, G_PARAM_WRITABLE
+		LOMO_TYPE_PLAYER, G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS
 		));
+
+	g_object_class_install_property(object_class, PROP_DEFAULT_PIXBUF,
+		g_param_spec_object("default-pixbuf", "default-pixbuf", "default-pixbuf",
+		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS
+		));
+
 	g_object_class_install_property(object_class, PROP_STREAM_MARKUP,
 		g_param_spec_string("stream-markup", "stream-markup", "stream-markup",
-		"%t", G_PARAM_WRITABLE));
+		"%t", G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS
+		));
 
 	eina_player_signals[ACTION_ACTIVATED] =
 		g_signal_new ("action-activated",
@@ -159,15 +157,17 @@ eina_player_class_init (EinaPlayerClass *klass)
 static void
 eina_player_init (EinaPlayer *self)
 {
+	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_PLAYER, EinaPlayerPrivate));
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
 }
 
 GtkWidget*
 eina_player_new (void)
 {
-	GtkWidget *self = g_object_new (EINA_TYPE_PLAYER, "xml-string", __eina_player_ui_xml, NULL);
-
-	EinaPlayerPrivate *priv = GET_PRIVATE(self);
+	EinaPlayer *self = EINA_PLAYER(g_object_new (EINA_TYPE_PLAYER,
+		"xml-string", __eina_player_ui_xml,
+		NULL));
+	EinaPlayerPrivate *priv = self->priv;
 
 	// Seek widget
 	g_object_set(priv->seek = eina_seek_new(),
@@ -175,7 +175,6 @@ eina_player_new (void)
 		"remaining-label", gel_ui_generic_get_typed(self, GTK_LABEL, "time-remaining-label"),
 		"total-label",     gel_ui_generic_get_typed(self, GTK_LABEL, "time-total-label"),
 		NULL);
-
 	gel_ui_container_replace_children(
 		gel_ui_generic_get_typed(self, GTK_CONTAINER, "seek-container"),
 		GTK_WIDGET(priv->seek));
@@ -183,36 +182,15 @@ eina_player_new (void)
 
 	// Cover widget
 	priv->cover = g_object_new(EINA_TYPE_COVER,
-		"art",      priv->art = eina_art_new(),
 		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE, NULL),
 		NULL);
-
 	GtkContainer *cover_container = gel_ui_generic_get_typed(self, GTK_CONTAINER, "cover-container");
 	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
 	gtk_container_add(cover_container, (GtkWidget *) priv->cover);
 	gtk_widget_show(GTK_WIDGET(priv->cover));
 
-	#if 0
-	GdkPixbuf *def_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-default.png"), NULL);
-	GdkPixbuf *loa_pb = gdk_pixbuf_new_from_file( gel_resource_locate(GEL_RESOURCE_IMAGE, "cover-loading.png"), NULL);
-	EinaCover *cover = g_object_new(EINA_TYPE_COVER,
-		"art", eina_obj_get_art(self),
-		"lomo-player", eina_obj_get_lomo(self),
-		"default-pixbuf", def_pb,
-		"loading-pixbuf", loa_pb,
-		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE,
-			"cover", def_pb,
-			NULL),
-		NULL);
-	
-	GtkContainer *cover_container = eina_obj_get_typed(self, GTK_CONTAINER, "cover-container");
-	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
-	gtk_box_pack_start(GTK_BOX(cover_container), GTK_WIDGET(cover), TRUE, TRUE, 0);
-	gtk_widget_show(GTK_WIDGET(cover));
-	#endif
-
 	// Actions
-	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
+	GtkBuilder *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
 	const gchar *actions[] = {
 		"prev-action",
 		"next-action",
@@ -229,19 +207,25 @@ eina_player_new (void)
 			g_signal_connect(a, "activate", (GCallback) action_activated_cb, self);
 	}
 
-	return self;
+	return GTK_WIDGET(self);
 }
 
-LomoPlayer *
-eina_player_get_lomo_player(EinaPlayer *self)
+static LomoPlayer *
+player_get_lomo_player(EinaPlayer *self)
 {
 	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
-	return GET_PRIVATE(self)->lomo;
+	return self->priv->lomo;
 }
 
 void
 eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 {
+	g_return_if_fail(EINA_IS_PLAYER(self));
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+
+	EinaPlayerPrivate *priv = self->priv;
+	g_return_if_fail(!priv->lomo);
+
 	const struct {
 		gchar *signal;
 		GCallback callback;
@@ -256,10 +240,7 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 		{ "clear",    G_CALLBACK(lomo_clear_cb),             FALSE },
 		{ "all-tags", G_CALLBACK(lomo_all_tags_cb),          FALSE }
 	};
-	g_return_if_fail(EINA_IS_PLAYER(self));
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
-	EinaPlayerPrivate *priv = GET_PRIVATE(self);
 	if (priv->lomo)
 	{
 		for (guint i = 0 ; i < G_N_ELEMENTS(callback_defs); i++)
@@ -275,7 +256,7 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 		else
 			g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 
-	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
+	GtkBuilder *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
 	g_object_bind_property_full(
 		lomo, "volume",
 		gtk_builder_get_object(builder, "volume-button"), "value",
@@ -290,7 +271,7 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 	player_update_state(self);
 	player_update_information(self);
 
-	g_object_notify((GObject *) self, "lomo-player");
+	g_object_notify(G_OBJECT(self), "lomo-player");
 }
 
 void
@@ -299,7 +280,7 @@ eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup)
 	g_return_if_fail(EINA_IS_PLAYER(self));
 	g_return_if_fail(stream_markup != NULL);
 
-	EinaPlayerPrivate *priv = GET_PRIVATE(self);
+	EinaPlayerPrivate *priv = self->priv;
 
 	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
 	priv->stream_mrkp = g_strdup(stream_markup);
@@ -309,21 +290,40 @@ eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup)
 	g_object_notify((GObject *) self, "stream-markup");
 }
 
+void
+eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf)
+{
+	g_return_if_fail(EINA_IS_PLAYER(self));
+	EinaPlayerPrivate *priv = self->priv;
+
+	if (pixbuf)
+		g_return_if_fail(GDK_IS_PIXBUF(pixbuf));
+
+	priv->default_pixbuf = pixbuf;
+	eina_cover_set_default_pixbuf(priv->cover, priv->default_pixbuf);
+
+	g_object_notify(G_OBJECT(self), "default-pixbuf");
+}
+
 EinaCover *
 eina_player_get_cover_widget(EinaPlayer *self)
 {
-	return GET_PRIVATE(self)->cover;
+	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
+	return self->priv->cover;
 }
 
 static void
 player_update_state(EinaPlayer *self)
 {
-	LomoPlayer *lomo = GET_PRIVATE(self)->lomo;
+	g_return_if_fail(EINA_IS_PLAYER(self));
+	EinaPlayerPrivate *priv = self->priv;
+	
+	LomoPlayer *lomo = priv->lomo;
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
-	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
-	GtkActivatable *button = GTK_ACTIVATABLE(gtk_builder_get_object(builder, "play-pause-button"));
-	GtkImage       *image  = GTK_IMAGE      (gtk_builder_get_object(builder, "play-pause-image"));
+	GtkBuilder     *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
+	GtkActivatable *button  = GTK_ACTIVATABLE(gtk_builder_get_object(builder, "play-pause-button"));
+	GtkImage       *image   = GTK_IMAGE      (gtk_builder_get_object(builder, "play-pause-image"));
 
 	const gchar *action = NULL;
 	const gchar *stock = NULL;
@@ -345,7 +345,9 @@ player_update_state(EinaPlayer *self)
 static void
 player_update_sensitive(EinaPlayer *self)
 {
-	LomoPlayer *lomo = GET_PRIVATE(self)->lomo;
+	g_return_if_fail(EINA_IS_PLAYER(self));
+
+	LomoPlayer *lomo = player_get_lomo_player(self);
 
 	if (lomo != NULL)
 	{
@@ -365,7 +367,7 @@ static void
 player_update_information(EinaPlayer *self)
 {
 	g_return_if_fail(EINA_IS_PLAYER(self));
-	EinaPlayerPrivate *priv = GET_PRIVATE(self);
+	EinaPlayerPrivate *priv = self->priv;
 
 	gchar *info  = 
 		"<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n"
@@ -400,7 +402,6 @@ player_update_information(EinaPlayer *self)
 		"label", info,
 		NULL);
 	g_free(info);
-
 
 	if (window)
 	{
@@ -458,7 +459,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		return;
 
 	const gchar *name = gtk_action_get_name(action);
-	LomoPlayer  *lomo = GET_PRIVATE(self)->lomo;
+	LomoPlayer  *lomo = player_get_lomo_player(self);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	GError *error = NULL;
