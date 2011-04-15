@@ -23,29 +23,21 @@
 #include <gel/gel-ui.h>
 #include <lomo/lomo-player.h>
 #include <eina/adb/eina-adb.h>
-#include <eina/art/art.h>
 
 G_BEGIN_DECLS
 
 #define EINA_TYPE_MUINE eina_muine_get_type()
 
-#define EINA_MUINE(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_MUINE, EinaMuine))
+#define EINA_MUINE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_MUINE, EinaMuine))
+#define EINA_MUINE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_MUINE, EinaMuineClass))
+#define EINA_IS_MUINE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_MUINE))
+#define EINA_IS_MUINE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_MUINE))
+#define EINA_MUINE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_MUINE, EinaMuineClass))
 
-#define EINA_MUINE_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_MUINE, EinaMuineClass))
-
-#define EINA_IS_MUINE(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_MUINE))
-
-#define EINA_IS_MUINE_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_MUINE))
-
-#define EINA_MUINE_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_MUINE, EinaMuineClass))
-
+typedef struct _EinaMuinePrivate EinaMuinePrivate;
 typedef struct {
-	GelUIGeneric parent;
+	GelUIGeneric      parent;
+	EinaMuinePrivate *priv;
 } EinaMuine;
 
 typedef struct {
