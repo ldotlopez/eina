@@ -35,43 +35,13 @@ struct _GelUIGenericPrivate {
 static void
 set_xml_string(GelUIGeneric *self, const gchar *xml_string);
 
-static GObject*
-gel_ui_generic_constructor(GType type, guint n_construct_params, GObjectConstructParam *construct_params)
-{
-	GObject *object = G_OBJECT_CLASS (gel_ui_generic_parent_class)->constructor (type, n_construct_params, construct_params);
-	g_return_val_if_fail(object != NULL, NULL);
-
-	for (guint i = 0; i < n_construct_params; i++)
-	{
-		GParamSpec *pspec = construct_params[i].pspec;
-		GValue     *value = construct_params[i].value;
-	
-		if (pspec->owner_type != GEL_UI_TYPE_GENERIC)
-			continue;
-
-		if (g_str_equal(pspec->name, "xml-string"))
-			set_xml_string((GelUIGeneric *) object, g_value_get_string(value));
-	}
-	return object;
-}
-
-static void
-gel_ui_generic_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
-{
-	switch (property_id) {
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-	}
-}
-
 static void
 gel_ui_generic_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	if (pspec->flags & G_PARAM_CONSTRUCT_ONLY)
-		return;
-
-	switch (property_id) {
+	switch (property_id)
+	{
 	case PROP_XML_STRING:
+		set_xml_string((GelUIGeneric *) object, g_value_get_string(value));
 		return;
 
 	default:
@@ -94,14 +64,12 @@ gel_ui_generic_class_init (GelUIGenericClass *klass)
 
 	g_type_class_add_private (klass, sizeof (GelUIGenericPrivate));
 
-	object_class->get_property = gel_ui_generic_get_property;
 	object_class->set_property = gel_ui_generic_set_property;
-	object_class->constructor = gel_ui_generic_constructor;
 	object_class->dispose = gel_ui_generic_dispose;
 
 	g_object_class_install_property(object_class, PROP_XML_STRING, 
 		g_param_spec_string("xml-string", "xml-string", "xml-string",
-		NULL, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+		NULL, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -191,5 +159,7 @@ set_xml_string(GelUIGeneric *self, const gchar *xml_string)
 
 	gtk_widget_reparent(w, (GtkWidget *) self);
 	gtk_box_set_child_packing ((GtkBox *) self, w, TRUE, TRUE, 0, GTK_PACK_START);
+
+	g_object_notify(G_OBJECT(self), "xml-string");
 }
 
