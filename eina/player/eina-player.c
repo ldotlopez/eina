@@ -31,7 +31,6 @@ G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 struct _EinaPlayerPrivate {
 	// Props.
 	LomoPlayer *lomo;
-	GdkPixbuf  *default_pixbuf;
 	gchar      *stream_mrkp;
 
 	EinaSeek  *seek;
@@ -110,7 +109,6 @@ eina_player_dispose (GObject *object)
 	EinaPlayerPrivate *priv = self->priv;
 
 	gel_free_and_invalidate(priv->lomo,           NULL, g_object_unref);
-	gel_free_and_invalidate(priv->default_pixbuf, NULL, g_object_unref);
 	gel_free_and_invalidate(priv->stream_mrkp,    NULL, g_free);
 	
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
@@ -299,8 +297,7 @@ eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf)
 	if (pixbuf)
 		g_return_if_fail(GDK_IS_PIXBUF(pixbuf));
 
-	priv->default_pixbuf = pixbuf;
-	eina_cover_set_default_pixbuf(priv->cover, priv->default_pixbuf);
+	eina_cover_set_default_pixbuf(priv->cover, pixbuf);
 
 	g_object_notify(G_OBJECT(self), "default-pixbuf");
 }
