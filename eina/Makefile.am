@@ -20,6 +20,10 @@ SUBDIRS +=   \
 endif
 #	recently
 
+if BUILD_CLUTTY
+SUBDIRS += clutty
+endif
+
 if BUILD_NTFY
 SUBDIRS += ntfy
 endif
@@ -27,6 +31,7 @@ endif
 DIST_SUBDIRS = \
 	$(SUBDIRS) \
 	adb        \
+	clutty     \
 	muine      \
 	ntfy       \
 	recently
