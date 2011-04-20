@@ -10,7 +10,8 @@ libmpris_la_CFLAGS  = @EINA_CFLAGS@
 libmpris_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libmpris_la_SOURCES = \
 	mpris.c \
-	eina-mpris-player.c eina-mpris-player.h mpris-spec.h 
+	eina-mpris-player-spec.h \
+	eina-mpris-player.c eina-mpris-player.h
 
 if BUILD_INDICATE
 libmpris_la_CFLAGS  += @INDICATE_CFLAGS@

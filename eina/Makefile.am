@@ -13,6 +13,14 @@ SUBDIRS = ext   \
 	preferences \
 	statusicon
 
+DIST_SUBDIRS = \
+	$(SUBDIRS) \
+	adb        \
+	clutty     \
+	muine      \
+	ntfy
+#	recently
+
 if BUILD_ADB
 SUBDIRS +=   \
 	adb      \
@@ -27,14 +35,6 @@ endif
 if BUILD_NTFY
 SUBDIRS += ntfy
 endif
-
-DIST_SUBDIRS = \
-	$(SUBDIRS) \
-	adb        \
-	clutty     \
-	muine      \
-	ntfy
-#	recently
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la

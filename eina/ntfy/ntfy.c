@@ -311,6 +311,8 @@ ntfy_sync(EinaNtfy *self)
 		g_signal_connect(self->stream, "extended-metadata-updated", G_CALLBACK (stream_em_updated_cb), self);
 	}
 
+	GdkPixbuf *scaled = NULL;
+
 	// Build body
 	gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
 	gchar *bname = g_uri_unescape_string(tmp, NULL);
@@ -354,7 +356,7 @@ ntfy_sync(EinaNtfy *self)
 	gint dx = MIN(sx,sy) * gdk_pixbuf_get_width(pb);
 	gint dy = MIN(sx,sy) * gdk_pixbuf_get_height(pb);
 
-	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pb, dx, dy, GDK_INTERP_NEAREST);
+	scaled = gdk_pixbuf_scale_simple(pb, dx, dy, GDK_INTERP_NEAREST);
 	g_object_unref(pb);
 	notify_notification_set_icon_from_pixbuf(self->ntfy, scaled);
 

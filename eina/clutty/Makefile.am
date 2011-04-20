@@ -16,6 +16,7 @@ libclutty_la_SOURCES = \
 
 plugin_DATA = clutty.ini
 
-EXTRA_DIST += clutty.ini
+EXTRA_DIST += \
+	$(plugin_DATA)
 
 -include $(top_srcdir)/git.mk
