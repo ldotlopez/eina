@@ -40,18 +40,9 @@ struct _EinaNtfy {
 	guint           vogon_merge_id;
 	#endif
 
-	GtkStatusIcon *status_icon;
-	
 	NotifyNotification *ntfy;
-
-	LomoStream *stream;
-	gboolean all_tags;
-	gboolean got_cover;
-	GdkPixbuf *cover;
-	GdkPixbuf *default_cover;
-
-	EinaArt       *art;
-	EinaArtSearch *search;
+	GtkStatusIcon      *status_icon;
+	LomoStream         *stream;
 };
 
 // Init/fini plugin
@@ -73,8 +64,6 @@ vogon_disable(EinaNtfy *self);
 #endif
 
 static void
-ntfy_reset(EinaNtfy *self);
-static void
 ntfy_sync(EinaNtfy *self);
 
 // Callback
@@ -86,15 +75,19 @@ engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self
 static void
 action_activate_cb(GtkAction *action, EinaNtfy *self);
 #endif
+
+static void
+stream_weak_ref_cb(EinaNtfy *self, GObject *_stream);
+static void
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfy *self);
+static void
+lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfy *self);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self);
 static void
-art_search_cb(EinaArtSearch *search, EinaNtfy *self);
-
+stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfy *self);
 static void
 settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self);
-
-// GEL_AUTO_QUARK_FUNC(ntfy)
 
 // ------------------
 // Init / fini plugin
@@ -107,8 +100,6 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 
 	self = g_new0(EinaNtfy, 1);
 	self->plugin = plugin;
-
-	self->art = eina_art_new();
 
 	// Enable if needed (by default on)
 	GSettings *settings = g_settings_new(EINA_NTFY_PREFERENCES_DOMAIN);
@@ -142,7 +133,7 @@ ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 {
 	EinaNtfy *self = (EinaNtfy *) gel_plugin_steal_data(plugin);
 
-	#if HAVE
+	#if HAVE_VOGON
 	g_signal_handlers_disconnect_by_func(engine, engine_plugin_init_cb, self);
 	g_signal_handlers_disconnect_by_func(engine, engine_plugin_fini_cb, self);
 
@@ -154,7 +145,6 @@ ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	#endif
 
 	ntfy_disable(self);
-	gel_free_and_invalidate(self->art,      NULL, g_object_unref);
 	gel_free_and_invalidate(self->settings, NULL, g_object_unref);
 	g_free(self);
 
@@ -168,24 +158,15 @@ ntfy_enable(EinaNtfy *self, GError **error)
 		return TRUE;
 	
 	if (!notify_is_initted())
-		notify_init("Eina");
+		notify_init(PACKAGE_NAME);
 
 	self->enabled = TRUE;
 	self->ntfy = notify_notification_new(N_("Now playing"), NULL, NULL);
 
 	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
-	g_signal_connect_swapped(lomo, "play",     (GCallback) ntfy_sync, self);
-	g_signal_connect_swapped(lomo, "change",   (GCallback) ntfy_reset, self);
+	g_signal_connect(lomo, "notify::state", (GCallback) lomo_state_notify_cb, self);
+	g_signal_connect(lomo, "change",   (GCallback) lomo_change_cb, self);
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
-
-	gchar *path = NULL;
-	if (!(path = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "cover-default.png")) ||
-	    !(self->default_cover = gdk_pixbuf_new_from_file_at_scale(path, 64, 64, TRUE, NULL)))
-	{
-		g_warning(N_("Cannot load resource %s. Cover art will be disabled."), "cover-default.png");
-	}
-
-	gel_free_and_invalidate(path, NULL, g_free);
 
 	return TRUE;
 }
@@ -198,26 +179,19 @@ ntfy_disable(EinaNtfy *self)
 	self->enabled = FALSE;
 
 	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
-	g_signal_handlers_disconnect_by_func(lomo, (GCallback) ntfy_reset, self);
-	g_signal_handlers_disconnect_by_func(lomo, (GCallback) ntfy_sync, self);
+	g_signal_handlers_disconnect_by_func(lomo, (GCallback) lomo_state_notify_cb, self);
 	g_signal_handlers_disconnect_by_func(lomo, (GCallback) lomo_all_tags_cb, self);
 
-	self->stream = NULL;
-	self->all_tags  = FALSE;
-	self->got_cover = FALSE;
+	if (self->stream)
+	{
+		g_signal_handlers_disconnect_by_func(self->stream, stream_em_updated_cb, self);
+		self->stream  = NULL;
+	}
 
 	gel_free_and_invalidate(self->ntfy,  NULL, g_object_unref);
-	gel_free_and_invalidate(self->cover, NULL, g_object_unref);
-	gel_free_and_invalidate(self->default_cover, NULL, g_object_unref);
 
 	if (notify_is_initted())
 		notify_uninit();
-
-	if (self->art && self->search)
-	{
-		eina_art_cancel(self->art, self->search);
-		self->search = NULL;
-	}
 }
 
 #if HAVE_VOGON
@@ -317,40 +291,25 @@ vogon_disable(EinaNtfy *self)
 
 // -------------
 static void
-ntfy_reset(EinaNtfy *self)
-{
-	self->stream  = NULL;
-	self->all_tags = FALSE;
-	self->got_cover = FALSE;
-	gel_free_and_invalidate(self->cover, NULL, g_object_unref);
-	if (self->art && self->search)
-	{
-		eina_art_cancel(self->art, self->search);
-		self->search = NULL;
-	}
-}
-
-static void
 ntfy_sync(EinaNtfy *self)
 {
 	LomoPlayer *lomo     = eina_plugin_get_lomo(self->plugin);
 	LomoStream *stream   = lomo_player_get_current_stream(lomo);
-	gboolean    all_tags = lomo_stream_get_all_tags_flag(stream);
 
-	gboolean update = FALSE;
-	if (self->stream != stream)
-		update = TRUE;
-	if (self->all_tags != all_tags)
-		update = TRUE;
-	if (self->cover && !self->got_cover)
-		update = TRUE;
-	
-	if (!update)
+	if (lomo_player_get_state(lomo) != LOMO_STATE_PLAY)
 		return;
 
-	self->stream = stream;
-	self->all_tags = all_tags;
-	self->got_cover = (self->cover != NULL);
+	if (self->stream != stream)
+	{
+		if (self->stream)
+		{
+			g_signal_handlers_disconnect_by_func(self->stream, stream_em_updated_cb, self);
+			g_object_weak_unref(G_OBJECT(self->stream), (GWeakNotify) stream_weak_ref_cb, self);
+		}
+		self->stream = stream;
+		g_object_weak_ref(G_OBJECT(self->stream), (GWeakNotify) stream_weak_ref_cb, self);
+		g_signal_connect(self->stream, "extended-metadata-updated", G_CALLBACK (stream_em_updated_cb), self);
+	}
 
 	// Build body
 	gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
@@ -363,15 +322,46 @@ ntfy_sync(EinaNtfy *self)
 
 	gel_free_and_invalidate(bname, NULL, g_free);
 
-	// Check cover
-	if (all_tags)
-		self->search = eina_art_search(self->art, self->stream, (EinaArtSearchCallback) art_search_cb, self);
-
-	GdkPixbuf *cover = self->cover ? self->cover : self->default_cover;
 	notify_notification_update(self->ntfy, N_("Playing now"), body, NULL);
-	if (cover)
-		notify_notification_set_icon_from_pixbuf(self->ntfy, cover);
+
+	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata(stream, "art-uri");
+	if (!uri)
+	{
+		g_warn_if_fail(uri);
+		goto ntfy_sync_show;
+	}
+
+	GFile *f = g_file_new_for_uri(uri);
+	GInputStream *s = G_INPUT_STREAM(g_file_read(f, NULL, NULL));
+	g_object_unref(f);
+	if (!G_IS_INPUT_STREAM(s))
+	{
+		g_warn_if_fail(G_IS_INPUT_STREAM(s));
+		goto ntfy_sync_show;
+	}
+
+	GdkPixbuf *pb = gdk_pixbuf_new_from_stream(s, NULL, NULL);
+	g_object_unref(s);
+	if (!GDK_IS_PIXBUF(pb))
+	{
+		g_warn_if_fail(GDK_IS_PIXBUF(pb));
+		goto ntfy_sync_show;
+	}
+
+	gdouble sx = (gdouble) 64 / gdk_pixbuf_get_width(pb);
+	gdouble sy = (gdouble) 64 / gdk_pixbuf_get_height(pb);
+
+	gint dx = MIN(sx,sy) * gdk_pixbuf_get_width(pb);
+	gint dy = MIN(sx,sy) * gdk_pixbuf_get_height(pb);
+
+	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pb, dx, dy, GDK_INTERP_NEAREST);
+	g_object_unref(pb);
+	notify_notification_set_icon_from_pixbuf(self->ntfy, scaled);
+
+ntfy_sync_show:
 	notify_notification_show(self->ntfy, NULL);
+	gel_free_and_invalidate(body,   NULL, g_free);
+	gel_free_and_invalidate(scaled, NULL, g_object_unref);
 }
 // -------------
 
@@ -394,31 +384,47 @@ engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self
 #endif
 
 static void
-art_search_cb(EinaArtSearch *search, EinaNtfy *self)
+stream_weak_ref_cb(EinaNtfy *self, GObject *_stream)
 {
-	self->search = NULL;
+	self->stream = NULL;
+}
 
-	gpointer data = eina_art_search_get_result(search);
-	if (!data)
+static void
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfy *self)
+{
+	if (self->stream)
+	{
+		g_signal_handlers_disconnect_by_func(self->stream, stream_em_updated_cb, self);
+		self->stream = NULL;
+	}
+	ntfy_sync(self);
+}
+
+static void
+lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfy *self)
+{
+	if (!g_str_equal(pspec->name, "state"))
 		return;
-
-	g_return_if_fail(data && GDK_IS_PIXBUF(data));
-
-	self->cover = (GdkPixbuf *) data;
+	// g_warning("State: %s", lomo_state_to_str(lomo_player_get_state(lomo)));
 	ntfy_sync(self);
 }
 
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self)
 {
-	if (stream != self->stream)
+	if (lomo_player_get_current_stream(lomo) != stream)
 		return;
-	
-	// Start search
-	if (self->art && self->search)
-		eina_art_cancel(self->art, self->search);
+	ntfy_sync(self);
+}
 
-	self->search = eina_art_search(self->art, self->stream, (EinaArtSearchCallback) art_search_cb, self);
+static void
+stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfy *self)
+{
+	g_return_if_fail(LOMO_IS_STREAM(stream));
+	g_return_if_fail(key);
+
+	if (!g_str_equal(key, "art-uri"))
+		return;
 	ntfy_sync(self);
 }
 
