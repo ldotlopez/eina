@@ -70,7 +70,7 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/gel
 
 if HAVE_INTROSPECTION
-Gel-1.1.gir: libgel-1.0.la
+Gel-1.1.gir: libgel-1.1.la
 Gel_1_1_gir_INCLUDES = GObject-2.0 Gio-2.0
 Gel_1_1_gir_CFLAGS = -I$(top_srcdir)
 Gel_1_1_gir_LIBS = libgel-1.1.la
