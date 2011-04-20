@@ -111,8 +111,8 @@ action_activate_cb(GtkAction *action, EinaPlaylist *self);
 /*
  * Lomo callbacks
  */
-static void lomo_state_change_cb
-(LomoPlayer *lomo, EinaPlaylist *self);
+static void lomo_notify_state_cb
+(LomoPlayer *lomo, GParamSpec *pspec, EinaPlaylist *self);
 static void lomo_insert_cb
 (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaPlaylist *self);
 static void lomo_remove_cb
@@ -324,9 +324,7 @@ eina_playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 		{ "dequeue",  G_CALLBACK(lomo_dequeue_cb)      },
 		{ "change",   G_CALLBACK(lomo_change_cb)       },
 		{ "clear",    G_CALLBACK(lomo_clear_cb)        },
-		{ "play",     G_CALLBACK(lomo_state_change_cb) },
-		{ "pause",    G_CALLBACK(lomo_state_change_cb) },
-		{ "stop",     G_CALLBACK(lomo_state_change_cb) },
+		{ "notify::state", G_CALLBACK(lomo_notify_state_cb) },
 		{ "eos",      G_CALLBACK(lomo_eos_cb)          },
 		{ "all-tags", G_CALLBACK(lomo_all_tags_cb)     },
 		{ "error",    G_CALLBACK(lomo_error_cb)        }
@@ -1021,9 +1019,10 @@ static void search_entry_icon_press_cb
 // --
 // Lomo callbacks
 // --
-static void lomo_state_change_cb
-(LomoPlayer *lomo, EinaPlaylist *self)
+static void lomo_notify_state_cb
+(LomoPlayer *lomo, GParamSpec *pspec, EinaPlaylist *self)
 {
+	g_return_if_fail(g_str_equal(pspec->name, "state"));
 	eina_playlist_update_current_item(self, PLAYLIST_COLUMN_STATE, -1);
 }
 
