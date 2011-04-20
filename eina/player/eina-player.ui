@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy project-wide -->
   <object class="GtkAction" id="about-action">
     <property name="label">About</property>
     <property name="short_label">About</property>
@@ -54,12 +53,9 @@
         <property name="can_focus">False</property>
         <property name="spacing">5</property>
         <child>
-          <object class="GtkAlignment" id="cover-container">
-            <property name="width_request">128</property>
-            <property name="height_request">128</property>
+          <object class="GtkHBox" id="cover-container">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="yalign">0</property>
             <child>
               <object class="GtkImage" id="cover-image">
                 <property name="visible">True</property>
@@ -68,11 +64,16 @@
                 <property name="stock">gtk-missing-image</property>
                 <property name="icon-size">6</property>
               </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
