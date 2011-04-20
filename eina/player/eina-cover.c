@@ -23,7 +23,7 @@
 
 G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
 
-#define SIZE_HACKS 0
+#define SIZE_HACKS 1
 
 // #define debug(...) g_warning(__VA_ARGS__)
 #define debug(...) ;
@@ -121,16 +121,16 @@ eina_cover_container_add(GtkContainer *container, GtkWidget *widget)
 static void
 eina_cover_get_preferred_h_for_w(GtkWidget *widget, gint i, gint *minimum, gint *natural)
 {
-	g_debug("%s", __FUNCTION__);
-	g_debug("  Proposed ↑↓ %d", i);
+	//g_debug("%s", __FUNCTION__);
+	//g_debug("  Proposed ↑↓ %d", i);
 	*minimum = *natural = i;
 }
 
 static void
 eina_cover_get_preferred_w_for_h(GtkWidget *widget, gint i, gint *minimum, gint *natural)
 {
-	g_debug("%s", __FUNCTION__);
-	g_debug("  Proposed ←→ %d", i);
+	//g_debug("%s", __FUNCTION__);
+	//g_debug("  Proposed ←→ %d", i);
 	*minimum = *natural = i;
 }
 
@@ -143,6 +143,11 @@ eina_cover_get_request_mode(GtkWidget *widget)
 static void
 eina_cover_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
+	g_warn_if_fail(allocation->width == allocation->height);
+
+	// This is probabilly very incorrect
+	gtk_widget_set_size_request(widget, allocation->width, allocation->height);
+
 	GList *children = gtk_container_get_children((GtkContainer *) widget);
 	GtkWidget *child = children ? (GtkWidget *) children->data : NULL;
 
@@ -170,7 +175,7 @@ eina_cover_class_init (EinaCoverClass *klass)
 	#if SIZE_HACKS
 	widget_class->size_allocate = eina_cover_size_allocate;
 	widget_class->get_preferred_width_for_height = eina_cover_get_preferred_w_for_h;
-	widget_class->get_preferred_height_for_width = eina_cover_get_preferred_h_for_w;
+	if (0) widget_class->get_preferred_height_for_width = eina_cover_get_preferred_h_for_w;
 	widget_class->get_request_mode               = eina_cover_get_request_mode;
 	#endif
 
