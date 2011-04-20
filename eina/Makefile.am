@@ -33,8 +33,8 @@ DIST_SUBDIRS = \
 	adb        \
 	clutty     \
 	muine      \
-	ntfy       \
-	recently
+	ntfy
+#	recently
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la

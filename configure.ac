@@ -327,7 +327,7 @@ PKG_CHECK_MODULES(INDICATE, $indicate_modules,
 dnl
 dnl notify (ntfy)
 dnl
-NOTIFY_VERSION="0.6.0"
+NOTIFY_VERSION="0.7.0"
 notify_modules="libnotify >= $NOTIFY_VERSION"
 PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 [
@@ -436,7 +436,6 @@ dnl
 dnl
 dnl Conditionals
 dnl
-AM_CONDITIONAL(GEL_UI_ENABLE_APPLICATION, test "1" = "0")
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
@@ -450,6 +449,7 @@ AC_CONFIG_FILES([
 build/Makefile
 bundle/build
 bundle/Info.plist
+data/Makefile
 data/eina.desktop
 data/gel-${GEL_API_VERSION}.pc
 data/gel-${GEL_API_VERSION}-uninstalled.pc
@@ -459,8 +459,13 @@ data/lomo-${LOMO_API_VERSION}.pc
 data/lomo-${LOMO_API_VERSION}-uninstalled.pc
 data/eina-${EINA_API_VERSION}.pc
 data/net.sourceforge.eina.gschema.xml.in
+docs/Makefile
+docs/gel/Makefile
+docs/eina/Makefile
+docs/lomo/Makefile
+icons/Makefile
+icons/hicolor/Makefile
 gel/Makefile
-lomo/Makefile
 eina/Makefile
 eina/ext/Makefile
 eina/adb/Makefile
@@ -472,24 +477,18 @@ eina/fieshta/Makefile
 eina/lastfm/Makefile
 eina/lomo/Makefile
 eina/mpris/Makefile
+eina/muine/Makefile
+eina/ntfy/Makefile
 eina/player/Makefile
 eina/playlist/Makefile
 eina/preferences/Makefile
-eina/muine/Makefile
-eina/ntfy/Makefile
-eina/recently/Makefile
 eina/statusicon/Makefile
-pixmaps/Makefile
-data/Makefile
 Makefile
-docs/Makefile
-docs/lomo/Makefile
-docs/gel/Makefile
-docs/eina/Makefile
-icons/Makefile
-icons/hicolor/Makefile
-po/Makefile.in
+lomo/Makefile
+pixmaps/Makefile
 plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
+po/Makefile.in
 ])
 AC_OUTPUT
 
+# eina/recently/Makefile
