@@ -865,6 +865,18 @@ lomo_player_new (gchar *option_name, ...)
 	return self;
 }
 
+static void
+player_emit_state_change(LomoPlayer *self)
+{
+	static LomoState prev = LOMO_STATE_INVALID;
+	LomoState curr = lomo_player_get_state(self);
+	if (prev != curr)
+	{
+		prev = curr;
+		g_object_notify(G_OBJECT(self), "state");
+	}
+}
+
 /**
  * lomo_player_get_auto_parse:
  * @self: a #LomoPlayer
@@ -1197,7 +1209,8 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 		return LOMO_STATE_CHANGE_FAILURE;
 	}
 
-	g_object_notify(G_OBJECT(self), "state");
+	if (ret == GST_STATE_CHANGE_SUCCESS)
+		player_emit_state_change(self);
 
 	return LOMO_STATE_CHANGE_SUCCESS; // Or async, or preroll...
 }
@@ -2378,9 +2391,10 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 		case GST_MESSAGE_STATE_CHANGED:
 		{
 			GstState oldstate, newstate, pending;
+
 			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
 			/*
-			g_printf("Got state change from bus: old=%s, new=%s, pending=%s\n",
+			g_warning("Got state change from bus: old=%s, new=%s, pending=%s\n",
 				gst_state_to_str(oldstate),
 				gst_state_to_str(newstate),
 				gst_state_to_str(pending));
@@ -2407,7 +2421,7 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 				return TRUE;
 			}
 
-			g_object_notify(G_OBJECT(self), "state");
+			player_emit_state_change(self);
 			break;
 		}
 

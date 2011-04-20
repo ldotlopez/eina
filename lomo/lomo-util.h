@@ -34,6 +34,8 @@ gboolean             lomo_state_to_gst(LomoState state, GstState *gst_state);
 gboolean             lomo_state_from_gst(GstState state, LomoState *lomo_state);
 GstStateChangeReturn lomo_state_change_return_to_gst(GstStateChangeReturn ret);
 
+const gchar *lomo_state_to_str(LomoState state);
+
 const gchar *gst_state_to_str(GstState state);
 const gchar *gst_state_change_return_to_str(GstStateChangeReturn s);
 

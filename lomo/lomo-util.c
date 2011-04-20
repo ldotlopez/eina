@@ -134,6 +134,32 @@ lomo_state_from_gst(GstState state, LomoState *lomo_state)
 }
 
 /**
+ * lomo_state_to_str:
+ * @state: A #LomoState
+ *
+ * Returns the string corresponding to the @state
+ *
+ * Returns: The string. This string is owner by liblomo and should not be
+ *          freeded
+ **/
+const gchar *lomo_state_to_str(LomoState state)
+{
+	switch (state)
+	{
+	case LOMO_STATE_INVALID:
+		return G_STRINGIFY(LOMO_STATE_INVALID);
+	case LOMO_STATE_STOP:
+		return G_STRINGIFY(LOMO_STATE_STOP);
+	case LOMO_STATE_PLAY:
+		return G_STRINGIFY(LOMO_STATE_PLAY);
+	case LOMO_STATE_PAUSE:
+		return G_STRINGIFY(LOMO_STATE_PAUSE);
+	default:
+		return NULL;
+	}
+}
+
+/**
  * gst_state_to_str: (skip)
  * @state: #GstState state
  *
