@@ -13,14 +13,6 @@ SUBDIRS = ext   \
 	preferences \
 	statusicon
 
-DIST_SUBDIRS = \
-	$(SUBDIRS) \
-	adb        \
-	clutty     \
-	muine      \
-	ntfy
-#	recently
-
 if BUILD_ADB
 SUBDIRS +=   \
 	adb      \
