@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <glib/gi18n.h>
 #include <glib/gprintf.h>
 #include "gel.h"
 
@@ -445,54 +446,48 @@ gchar *
 gel_resource_type_get_system_dir(GelResourceType type)
 {
 	gchar *prgupper = g_ascii_strup(g_get_prgname(), -1);
-	gchar *path_key = g_strconcat(prgupper, "_PATH", NULL);
 	gchar *data_key = g_strconcat(prgupper, "_DATA_PREFIX", NULL);
 	gchar *lib_key  = g_strconcat(prgupper, "_LIB_PREFIX",  NULL);
 
-	gchar *path_val = g_strdup_safe(g_getenv(path_key));
 	gchar *data_val = g_strdup_safe(g_getenv(data_key));
 	gchar *lib_val  = g_strdup_safe(g_getenv(lib_key));
 
-	g_free(path_key);
 	g_free(data_key);
 	g_free(lib_key);
 
-	if (!path_val)
-		path_val = g_strdup(PACKAGE_PREFIX);
-
-	if (path_val && !data_val)
-		data_val = g_build_filename(path_val, "share", NULL);
-	if (path_val && !lib_val)
-		lib_val  = g_build_filename(path_val, "lib", NULL);
+	if (!data_val)
+		data_val = g_strdup(gel_get_package_data_dir());
+	if (!lib_val)
+		lib_val  = g_strdup(gel_get_package_lib_dir());
 
 	gchar *ret = NULL;
 	switch (type)
 	{
 	case GEL_RESOURCE_TYPE_IMAGE:
 		if (data_val)
-			ret = g_build_filename(data_val, g_get_prgname(), "pixmaps", NULL);
+			ret = g_build_filename(data_val, "pixmaps", NULL);
 		break;
 		
 	case GEL_RESOURCE_TYPE_UI:
 		if (data_val)
-			ret = g_build_filename(data_val, g_get_prgname(), "ui", NULL);
+			ret = g_build_filename(data_val, "ui", NULL);
 		break;
 
 	case GEL_RESOURCE_TYPE_SHARED:
-		if (lib_val)
-			ret = g_build_filename(lib_val, g_get_prgname(), NULL);
+		ret = g_strdup(lib_val);
 		break;
 
 	case GEL_RESOURCE_TYPE_OTHER:
 		break;
 
 	default:
+		g_warning(_("Unknow GelResourceType %d"), type);
 		break;
 	}
 
-	g_free(path_val);
 	g_free(data_val);
 	g_free(lib_val);
+
 	return ret;
 }
 
