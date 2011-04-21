@@ -23,19 +23,12 @@ libplayer_la_SOURCES = \
 
 plugin_DATA = preferences.ui player.ini
 
-eina-cover-default-cover.h: $(top_srcdir)/pixmaps/cover-default.png
-	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_default_png $<  > $@
-
-eina-cover-loading-cover.h: $(top_srcdir)/pixmaps/cover-loading.png
-	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_loading_png $<  > $@
-
 eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
 	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask_png $<  > $@
 
 png_h_files = \
-	eina-cover-image-mask.h \
-	eina-cover-default-cover.h \
-	eina-cover-loading-cover.h
+	eina-cover-image-mask.h
+
 CLEANFILES += $(png_h_files)
 DISTCLEANFILES += $(png_h_files)
 BUILT_SOURCES += $(png_h_files)
