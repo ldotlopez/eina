@@ -21,16 +21,18 @@ GTK_DOC_CHECK(1.9)
 #
 GETTEXT_PACKAGE="eina"
 EINA_API_VERSION="0.10"
-EINA_VERSION="0.9.90"
-EINA_CODENAME="Trained"                   # Najwa
+EINA_VERSION="0.11.0"
+EINA_CODENAME=""
+EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
+EINA_CODENAME_0_9_4="Trained"             # Najwa
 EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
 EINA_CODENAME_0_9_2="Pagan poetry"        # Björk
 EINA_CODENAME_0_9_1="In muine we believe" #
 EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 
-GEL_MAJOR=1
-GEL_MINOR=1
-GEL_MICRO=1
+GEL_MAJOR=2
+GEL_MINOR=0
+GEL_MICRO=0
 GEL_API_VERSION="$GEL_MAJOR.$GEL_MINOR"
 GEL_VERSION="$GEL_API_VERSION.$GEL_MICRO"
 AC_SUBST(GEL_API_VERSION)
@@ -39,9 +41,9 @@ AC_SUBST(GEL_MAJOR)
 AC_SUBST(GEL_MINOR)
 AC_SUBST(GEL_MICRO)
 
-LOMO_MAJOR=1
-LOMO_MINOR=1
-LOMO_MICRO=1
+LOMO_MAJOR=2
+LOMO_MINOR=0
+LOMO_MICRO=0
 LOMO_API_VERSION="$LOMO_MAJOR.$LOMO_MINOR"
 LOMO_VERSION="$LOMO_API_VERSION.$LOMO_MICRO"
 AC_SUBST(LOMO_API_VERSION)
@@ -201,8 +203,8 @@ GLIB_API_VERSION="2.0"
 GTK_API_VERSION="3.0"
 GST_API_VERSION="0.10"
 
-GLIB_VERSION="2.25.9"
-GTK_VERSION="2.91.1"
+GLIB_VERSION="2.28.0"
+GTK_VERSION="3.0.0"
 GST_VERSION="$GST_API_VERSION.0"
 glib_modules="\
 	glib-$GLIB_API_VERSION >= $GLIB_VERSION,    \
@@ -344,43 +346,25 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 dnl
 dnl ige-mac-integracion (ige)
 dnl
-IGE_VERSION="0.9.0"
-ige_modules="ige-mac-integration >= $IGE_VERSION"
-if test "x`pkg-config --variable target gtk+-3.0`" = "xquartz"; then
-	PKG_CHECK_MODULES(IGE, $ige_modules,
-		[
-			HAVE_IGE=yes
-			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=1"
-			AC_SUBST(IGE_CFLAGS)
-			AC_SUBST(IGE_LIBS)
-		],
-		[
-			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-			HAVE_IGE=no
-		]
-		)
-else
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-	HAVE_IGE=no
-fi
-
-dnl
-dnl dbus-glib (dbus)
-dnl
-#DBUS_GLIB_VERSION="0.80"
-#dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
-#PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
-#	[
-#		AC_SUBST(DBUS_GLIB_CFLAGS)
-#		AC_SUBST(DBUS_GLIB_LIBS)
-#		HAVE_DBUS_GLIB=yes
-#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=1"
-#	],
-#	[
-#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=0"
-#		HAVE_DBUS_GLIB=no
-#	]
-#	)
+#IGE_VERSION="0.9.0"
+#ige_modules="ige-mac-integration >= $IGE_VERSION"
+#if test "x`pkg-config --variable target gtk+-3.0`" = "xquartz"; then
+#	PKG_CHECK_MODULES(IGE, $ige_modules,
+#		[
+#			HAVE_IGE=yes
+#			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=1"
+#			AC_SUBST(IGE_CFLAGS)
+#			AC_SUBST(IGE_LIBS)
+#		],
+#		[
+#			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
+#			HAVE_IGE=no
+#		]
+#		)
+#else
+#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
+#	HAVE_IGE=no
+#fi
 
 dnl
 dnl sqlite3 (!core, adb)
@@ -408,39 +392,13 @@ else
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_SQLITE3=0"
 fi
 
-
-dnl
-dnl uuid (!core, callhome)
-dnl
-#UUID_VERSION="1.41.0"
-#uuid_modules="uuid >= $UUID_VERSION" 
-#PKG_CHECK_MODULES(UUID, $uuid_modules,
-#	[
-#		HAVE_UUID=yes
-#	],
-#	[
-#		dnl On MacOS X uuid is installed by default but is unreachable by
-#		dnl pkg-config. We need to check if uuid/uuid.h is present and asume some things
-#		AC_CHECK_HEADER(uuid/uuid.h, [HAVE_UUID=yes], [HAVE_UUID=no])
-#	]
-#	)
-#
-#if test x"$HAVE_UUID" = "xyes"; then
-#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=1"
-#	AC_SUBST(UUID_CFLAGS)
-#	AC_SUBST(UUID_LIBS)
-#else
-#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=0"
-#fi
-
 dnl
 dnl Conditionals
 dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
-#AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
-AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
+#AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
 AM_CONDITIONAL(BUILD_INDICATE, test x"$HAVE_INDICATE"    = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
 
@@ -491,4 +449,3 @@ po/Makefile.in
 ])
 AC_OUTPUT
 
-# eina/recently/Makefile
