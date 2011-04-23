@@ -17,6 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "player.h"
 #include <eina/eina-plugin.h>
 #include <eina/lomo/lomo.h>
@@ -169,7 +172,7 @@ about_show(EinaPlayer *player)
 		NULL
 	};
 	const gchar *authors[] = {
-		"Luis Lopez <luis.lopez@cuarentaydos.com>",
+		"Luis Lopez <luis@cuarentaydos.com>",
 		NULL
 	};
 	gchar *license = 
@@ -190,21 +193,23 @@ about_show(EinaPlayer *player)
 	}
 
 	gchar *comments = g_strconcat("(" EINA_CODENAME ")\n\n", N_("A classic player for the modern era"), NULL);
+	gchar *title = g_strdup_printf(_("About %s"), PACKAGE_NAME);
 	GtkWidget *about = gtk_about_dialog_new();
 	g_object_set((GObject *) about,
 		"artists", artists,
 		"authors", authors,
 		"program-name", "Eina",
-		"copyright", "Copyright © 2003-2010 xuzo\nCopyright © 2003-2005 xuzo and eru",
+		"copyright", "Copyright © 2003-2011 Luis Lopez\nCopyright © 2003-2005 Luis Lopez and Daniel Ripolles",
 		"comments", comments,
 		"website", EINA_PLUGIN_GENERIC_URL,
 		"license", license,
 		"version", PACKAGE_VERSION,
 		"wrap-license", TRUE,
 		"logo", logo_pb,
-		"title", N_("About Eina"),
+		"title", title,
 		NULL);
 	g_free(comments);
+	g_free(title);
 
 	g_signal_connect(about, "response", (GCallback) gtk_widget_destroy, NULL);
 	gtk_widget_show(about);
