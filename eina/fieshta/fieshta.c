@@ -42,6 +42,10 @@ fieshta_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 G_MODULE_EXPORT gboolean
 fieshta_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
+	Fieshta *self = (Fieshta *) gel_plugin_get_data(plugin);
+
+	eina_plugin_window_ui_manager_remove(plugin, self->ui_mng_merge_id);
+	eina_plugin_window_action_group_remove_toogle_actions(plugin, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions));
 	return TRUE;
 }
 
