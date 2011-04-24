@@ -63,36 +63,5 @@ eina_ui2h_ui = gel-ui-plugin-manager.ui
 eina_ui2h_name = __gel_ui_plugin_manager_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
--include $(INTROSPECTION_MAKEFILE)
-INTROSPECTION_GIRS =
-
-INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel
-INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/gel
-
-if HAVE_INTROSPECTION
-Gel-1.1.gir: libgel-1.1.la
-Gel_1_1_gir_INCLUDES = GObject-2.0 Gio-2.0
-Gel_1_1_gir_CFLAGS = -I$(top_srcdir)
-Gel_1_1_gir_LIBS = libgel-1.1.la
-Gel_1_1_gir_FILES = $(libgel_1_1_la_SOURCES)
-INTROSPECTION_GIRS += Gel-1.1.gir
-
-GelUI-1.1.gir: libgel-ui-1.1.la
-GelUI_1_1_gir_INCLUDES = GObject-2.0 Gio-2.0 Gtk-3.0 Gel-1.1
-GelUI_1_1_gir_CFLAGS = -I$(top_srcdir)
-GelUI_1_1_gir_LDFLAGS = -L$(top_buildir)/.libs -lgel-1.1
-GelUI_1_1_gir_LIBS = libgel-ui-1.1.la
-GelUI_1_1_gir_FILES = $(libgel_ui_1_1_la_SOURCES)
-INTROSPECTION_GIRS += GelUI-1.1.gir
-
-girdir = $(datadir)/gir-1.0
-gir_DATA = $(INTROSPECTION_GIRS)
-
-typelibdir = $(libdir)/girepository-1.0
-typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
-
-CLEANFILES += $(gir_DATA) $(typelib_DATA)
-endif
-
 -include $(top_srcdir)/git.mk
 

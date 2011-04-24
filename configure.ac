@@ -80,7 +80,7 @@ dnl pkgconfig
 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$top_builddir/data"
 
 # Introspection, disable for now
-GOBJECT_INTROSPECTION_CHECK([0.6.7])
+#GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
 # checks for programs
@@ -201,8 +201,8 @@ GLIB_API_VERSION="2.0"
 GTK_API_VERSION="3.0"
 GST_API_VERSION="0.10"
 
-GLIB_VERSION="2.25.9"
-GTK_VERSION="2.91.1"
+GLIB_VERSION="2.28.0"
+GTK_VERSION="3.0.0"
 GST_VERSION="$GST_API_VERSION.0"
 glib_modules="\
 	glib-$GLIB_API_VERSION >= $GLIB_VERSION,    \
@@ -310,19 +310,35 @@ PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 ])
 AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
-INDICATE_VERSION="0.4.0"
-indicate_modules="indicate >= $INDICATE_VERSION"
+INDICATE_API_VERSION="0.5"
+INDICATE_VERSION="0.5.0"
+indicate_modules="indicate-$INDICATE_API_VERSION >= $INDICATE_VERSION"
 PKG_CHECK_MODULES(INDICATE, $indicate_modules,
 [
 	AC_SUBST(INDICATE_CFLAGS)
 	AC_SUBST(INDICATE_LIBS)
 	HAVE_INDICATE=yes
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
-],
+]
 [
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=0"
 	HAVE_INDICATE=no
 ])
+if [ "x$HAVE_INDICATE" = "xno" ]; then
+	INDICATE_VERSION="0.4.0"
+	indicate_modules="indicate >= $INDICATE_VERSION"
+	PKG_CHECK_MODULES(INDICATE, $indicate_modules,
+	[
+		AC_SUBST(INDICATE_CFLAGS)
+		AC_SUBST(INDICATE_LIBS)
+		HAVE_INDICATE=yes
+		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
+	],
+	[
+		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=0"
+		HAVE_INDICATE=no
+	])
+fi
+
 
 dnl
 dnl notify (ntfy)
@@ -340,47 +356,6 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_NOTIFY=0"
 	HAVE_NOTIFY=no
 ])
-
-dnl
-dnl ige-mac-integracion (ige)
-dnl
-IGE_VERSION="0.9.0"
-ige_modules="ige-mac-integration >= $IGE_VERSION"
-if test "x`pkg-config --variable target gtk+-3.0`" = "xquartz"; then
-	PKG_CHECK_MODULES(IGE, $ige_modules,
-		[
-			HAVE_IGE=yes
-			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=1"
-			AC_SUBST(IGE_CFLAGS)
-			AC_SUBST(IGE_LIBS)
-		],
-		[
-			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-			HAVE_IGE=no
-		]
-		)
-else
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-	HAVE_IGE=no
-fi
-
-dnl
-dnl dbus-glib (dbus)
-dnl
-#DBUS_GLIB_VERSION="0.80"
-#dbus_glib_modules="dbus-glib-1 >= $DBUS_GLIB_VERSION"
-#PKG_CHECK_MODULES(DBUS_GLIB, $dbus_glib_modules,
-#	[
-#		AC_SUBST(DBUS_GLIB_CFLAGS)
-#		AC_SUBST(DBUS_GLIB_LIBS)
-#		HAVE_DBUS_GLIB=yes
-#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=1"
-#	],
-#	[
-#		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_DBUS_GLIB=0"
-#		HAVE_DBUS_GLIB=no
-#	]
-#	)
 
 dnl
 dnl sqlite3 (!core, adb)
@@ -410,37 +385,11 @@ fi
 
 
 dnl
-dnl uuid (!core, callhome)
-dnl
-#UUID_VERSION="1.41.0"
-#uuid_modules="uuid >= $UUID_VERSION" 
-#PKG_CHECK_MODULES(UUID, $uuid_modules,
-#	[
-#		HAVE_UUID=yes
-#	],
-#	[
-#		dnl On MacOS X uuid is installed by default but is unreachable by
-#		dnl pkg-config. We need to check if uuid/uuid.h is present and asume some things
-#		AC_CHECK_HEADER(uuid/uuid.h, [HAVE_UUID=yes], [HAVE_UUID=no])
-#	]
-#	)
-#
-#if test x"$HAVE_UUID" = "xyes"; then
-#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=1"
-#	AC_SUBST(UUID_CFLAGS)
-#	AC_SUBST(UUID_LIBS)
-#else
-#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_UUID=0"
-#fi
-
-dnl
 dnl Conditionals
 dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
-#AM_CONDITIONAL(BUILD_DBUS,     test x"$HAVE_DBUS_GLIB"   = "xyes" -a x"$DBUS_BINDING_TOOL" != "x")
-AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
 AM_CONDITIONAL(BUILD_INDICATE, test x"$HAVE_INDICATE"    = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
 
@@ -490,5 +439,3 @@ plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
 po/Makefile.in
 ])
 AC_OUTPUT
-
-# eina/recently/Makefile
