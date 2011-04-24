@@ -17,5 +17,5 @@ diff -Nru a/configure.ac b/configure.ac
 -GETTEXT_PACKAGE="eina"
 +GETTEXT_PACKAGE="eina-player"
  EINA_API_VERSION="0.10"
- EINA_VERSION="$EINA_API_VERSION.0"
+ EINA_VERSION="0.10.0"
  EINA_CODENAME="Trained"                   # Najwa
