@@ -19,14 +19,10 @@
 
 #include <eina/eina-plugin.h>
 #include <eina/lomo/lomo.h>
-#include "lomo-player-instropection.xml.h"
 
 #define BUS_NAME  "org.gnome.SettingsDaemon"
 #define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"
 #define INTERFACE "org.gnome.SettingsDaemon.MediaKeys"
-
-#define SERVER_BUS_NAME "net.sourceforge.Eina"
-#define SERVER 0
 
 typedef struct {
 	guint server_id;
@@ -36,12 +32,6 @@ typedef struct {
 
 static void
 proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, DBusData *data);
-static void
-server_bus_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData *data);
-static void
-server_name_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData *data);
-static void
-server_name_lost_cb(GDBusConnection *connection, const gchar *name, DBusData *data);
 
 gboolean
 dbus_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
@@ -61,16 +51,6 @@ dbus_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	else
 		g_warn_if_fail(data->mmkeys_proxy!= NULL);
 
-	data->server_id = g_bus_own_name(G_BUS_TYPE_SESSION,
-		SERVER_BUS_NAME,
-		G_BUS_NAME_OWNER_FLAGS_NONE,
-		(GBusAcquiredCallback) server_bus_acquired_cb,
-		(GBusNameAcquiredCallback) server_name_acquired_cb,
-		(GBusNameLostCallback) server_name_lost_cb,
-		data,
-		NULL);
-	g_warn_if_fail(data->server_id > 0);
-
 	gel_plugin_set_data(plugin, data);
 	return TRUE;
 }
@@ -82,7 +62,6 @@ dbus_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	g_return_val_if_fail(data != NULL, FALSE);
 
 	gel_free_and_invalidate(data->mmkeys_proxy, NULL, g_object_unref);
-	gel_free_and_invalidate(data->server_id,    0,    g_bus_unown_name);
 	return TRUE;
 }
 
@@ -113,131 +92,5 @@ proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVari
 
 	else
 		g_warning(N_("Unknow action: %s"), action);
-}
-
-#if SERVER
-static void
-handle_method_call (GDBusConnection       *connection,
-			              const gchar           *sender,
-			              const gchar           *object_path,
-			              const gchar           *interface_name,
-			              const gchar           *method_name,
-			              GVariant              *parameters,
-			              GDBusMethodInvocation *invocation,
-			              gpointer               user_data)
-{
-	LomoPlayer *lomo = user_data;
-
-	if (g_str_equal(method_name, "Play"))
-	{
-		/*
-		gint change;
-		g_variant_get (parameters, "(i)", &change);
-
-		my_object_change_count (lomo, change);
-
-		g_dbus_method_invocation_return_value (invocation, NULL);
-		*/
-		lomo_player_play(lomo);
-		g_dbus_method_invocation_return_value(invocation, NULL);
-	}
-}
-
-static GVariant *
-handle_get_property (GDBusConnection  *connection,
-			               const gchar      *sender,
-			               const gchar      *object_path,
-			               const gchar      *interface_name,
-			               const gchar      *property_name,
-			               GError          **error,
-			               gpointer          user_data)
-{
-	GVariant *ret;
-	LomoPlayer *lomo = user_data;
-
-	ret = NULL;
-	if (g_strcmp0 (property_name, "Count") == 0)
-		{
-			ret = g_variant_new_int32 (lomo->count);
-		}
-	else if (g_strcmp0 (property_name, "Name") == 0)
-		{
-			ret = g_variant_new_string (lomo->name ? lomo->name : "");
-		}
-
-	return ret;
-}
-
-static gboolean
-handle_set_property (GDBusConnection  *connection,
-			               const gchar      *sender,
-			               const gchar      *object_path,
-			               const gchar      *interface_name,
-			               const gchar      *property_name,
-			               GVariant         *value,
-			               GError          **error,
-			               gpointer          user_data)
-{
-	LomoPlayer *lomo = user_data;
-
-	if (g_strcmp0 (property_name, "Count") == 0)
-		{
-			g_object_set (lomo, "count", g_variant_get_int32 (value), NULL);
-		}
-	else if (g_strcmp0 (property_name, "Name") == 0)
-		{
-			g_object_set (lomo, "name", g_variant_get_string (value, NULL), NULL);
-		}
-
-	return TRUE;
-}
-
-static const GDBusInterfaceVTable interface_vtable =
-{
-	handle_method_call,
-	handle_get_property,
-	handle_set_property
-};
-#endif
-
-static void
-server_bus_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData *data)
-{
-	// g_warning("%s: %s", __FUNCTION__, name);
-	GError *err = NULL;
-	GDBusNodeInfo *info = g_dbus_node_info_new_for_xml(lomo_player_instrospection_data, &err);
-	if (!info)
-	{
-		g_warning("Unable to parse XML definition: %s", err->message);
-		g_error_free(err);
-		return;
-	}
-#if SERVER
-	data->server_id = g_dbus_connection_register_object(connection,
-		"/net/sourceforge/Eina/LomoPlayer",
-		"net.sourceforge.Eina.Control"
-		info->interfaces[0],
-		&interface_vtable,
-		NULL,
-		&err);	
-	if (!(data->server_id >= 0))
-	{
-		g_warning("Unable to register object: %s", err->message);
-		g_error_free(err);
-		return;
-	}
-#endif
-}
-
-static void
-server_name_acquired_cb(GDBusConnection *connection, const gchar *name, DBusData *data)
-{
-	// g_warning("%s: %s", __FUNCTION__, name);
-}
-
-static void
-server_name_lost_cb(GDBusConnection *connection, const gchar *name, DBusData *data)
-{
-	g_warning(N_("DBus server name %s lost"), name);
 }
 

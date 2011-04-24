@@ -198,7 +198,7 @@ about_show(EinaPlayer *player)
 	g_object_set((GObject *) about,
 		"artists", artists,
 		"authors", authors,
-		"program-name", "Eina",
+		"program-name", PACKAGE_NAME,
 		"copyright", "Copyright © 2003-2011 Luis Lopez\nCopyright © 2003-2005 Luis Lopez and Daniel Ripolles",
 		"comments", comments,
 		"website", EINA_PLUGIN_GENERIC_URL,

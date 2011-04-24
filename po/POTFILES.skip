@@ -22,3 +22,5 @@ ui/player-preferences.ui
 ui/player.ui
 ui/playlist.ui
 ui/plugins.ui
+eina/recently/dock.ui
+eina/recently/recently.c

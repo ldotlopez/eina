@@ -24,7 +24,8 @@ gel/gel-ui-generic.h
 gel/gel-ui.h
 gel/gel-ui-plugin-manager.c
 gel/gel-ui-plugin-manager.h
-gel/gel-ui-plugin-manager-ui.h
+gel/gel-ui-utils.c
+gel/gel-ui-utils.h
 gel/gel-ui-utils.c
 gel/gel-ui-utils.h
 [type: gettext/glade]gel/gel-ui-plugin-manager.ui
@@ -59,6 +60,7 @@ eina/ext/eina-window.c
 eina/ext/eina-window.h
 
 eina/eina.c
+eina/eina-plugin.c
 eina/eina-plugin.h
 
 eina/adb/adb.c
@@ -82,7 +84,12 @@ eina/art/eina-art-search.h
 eina/art/eina-art-test-backends.c
 eina/art/eina-art-test-backends.h
 
+eina/clutty/clutty.c
+eina/clutty/eina-cover-clutter.c
+eina/clutty/eina-cover-clutter.h
+
 eina/dbus/dbus.c
+eina/dbus/lomo-player-instropection.xml.h
 eina/dock/dock.c
 eina/dock/dock.h
 eina/dock/eina-dock.c
@@ -90,12 +97,22 @@ eina/dock/eina-dock.h
 eina/dock/eina-dock-tab.c
 eina/dock/eina-dock-tab.h
 
+eina/fieshta/eina-fiestha-behaviour.c
+eina/fieshta/eina-fiestha-behaviour.h
+eina/fieshta/fieshta.c
+eina/fieshta/fieshta.h
+
 eina/lastfm/lastfm.c
 eina/lastfm/lastfm-priv.h
 [type: gettext/glade]eina/lastfm/preferences.ui
 
 eina/lomo/lomo.c
 eina/lomo/lomo.h
+
+eina/mpris/eina-mpris-player.c
+eina/mpris/eina-mpris-player.h
+eina/mpris/eina-mpris-player-spec.h
+eina/mpris/mpris.c
 
 eina/muine/eina-muine.c
 eina/muine/eina-muine.h
@@ -107,12 +124,9 @@ eina/ntfy/ntfy.c
 eina/ntfy/ntfy.h
 
 eina/player/eina-cover.c
-eina/player/eina-cover-default-cover.h
 eina/player/eina-cover.h
 eina/player/eina-cover-image.c
 eina/player/eina-cover-image.h
-eina/player/eina-cover-image-mask.h
-eina/player/eina-cover-loading-cover.h
 eina/player/eina-player.c
 eina/player/eina-player.h
 eina/player/eina-seek.c
@@ -124,6 +138,7 @@ eina/player/player.h
 
 eina/playlist/eina-playlist.c
 eina/playlist/eina-playlist.h
+eina/playlist/eina-playlist-ui.h
 eina/playlist/playlist.c
 eina/playlist/playlist.h
 [type: gettext/glade]eina/playlist/eina-playlist.ui
@@ -134,9 +149,6 @@ eina/preferences/eina-preferences-tab.c
 eina/preferences/eina-preferences-tab.h
 eina/preferences/preferences.c
 eina/preferences/preferences.h
-
-eina/recently/recently.c
-[type: gettext/glade]eina/recently/dock.ui
 
 eina/statusicon/statusicon.c
 
