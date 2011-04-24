@@ -21,8 +21,8 @@ mpris_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 
 	#if HAVE_INDICATE
 	_plugin->is = indicate_server_ref_default();
-	indicate_server_set_type(_plugin->is, "music.eina");
-	indicate_server_set_desktop_file(_plugin->is, "/usr/share/applications/eina.desktop");
+	indicate_server_set_type(_plugin->is, "music."PACKAGE);
+	indicate_server_set_desktop_file(_plugin->is, PACKAGE_PREFIX"/share/applications/"PACKAGE".desktop");
 	indicate_server_show(_plugin->is);
 	#endif
 
