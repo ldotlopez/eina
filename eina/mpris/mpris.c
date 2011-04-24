@@ -21,8 +21,30 @@ mpris_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 
 	#if HAVE_INDICATE
 	_plugin->is = indicate_server_ref_default();
-	indicate_server_set_type(_plugin->is, "music.eina");
-	indicate_server_set_desktop_file(_plugin->is, "/usr/share/applications/eina.desktop");
+
+	gchar *server_type = g_strconcat("music.", PACKAGE, NULL);
+	indicate_server_set_type(_plugin->is, server_type);
+	g_free(server_type);
+
+	gchar *uc_package = g_ascii_strup(PACKAGE, -1);
+	gchar *env_package_name = g_strconcat(uc_package, "_DESKTOP_FILE", NULL);
+	const gchar *env_desktop_file = g_getenv(env_package_name);
+	if (env_desktop_file)
+	{
+		g_free(uc_package);
+		g_free(env_package_name);
+		g_warning("Set indicate desktop file to: '%s'", env_desktop_file);
+		indicate_server_set_desktop_file(_plugin->is, env_desktop_file);
+	}
+	else
+	{
+		gchar *tmp = g_strconcat(PACKAGE, ".desktop", NULL);
+		gchar *desktop_file = g_build_filename(PACKAGE_PREFIX, "share", "applications", tmp, NULL);
+		g_warning("Set indicate desktop file to: '%s'", desktop_file);
+		indicate_server_set_desktop_file(_plugin->is, desktop_file);
+		g_free(tmp);
+		g_free(desktop_file);
+	}
 	indicate_server_show(_plugin->is);
 	#endif
 
