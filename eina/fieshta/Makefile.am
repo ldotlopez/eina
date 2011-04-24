@@ -9,7 +9,7 @@ include_HEADERS = \
 	fieshta.h
 
 libfieshta_la_CFLAGS  = @EINA_CFLAGS@
-libfieshta_la_LDFLAGS = @EINA_LIBS@
+libfieshta_la_LDFLAGS = @EINA_LIBS@ -avoid-version
 libfieshta_la_SOURCES = \
 	$(include_HEADERS) \
 	eina-fiestha-behaviour.c \
