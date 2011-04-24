@@ -50,13 +50,10 @@
 
 #define eina_plugin_get_application(plugin) EINA_APPLICATION(gel_plugin_get_application(plugin))
 
-guint
-eina_plugin_window_ui_manager_add_from_string(EinaPlugin *plugin,
-	const gchar *ui_mng_str);
+guint eina_plugin_window_ui_manager_add_from_string(EinaPlugin *plugin, const gchar *ui_mng_str);
+void  eina_plugin_window_ui_manager_remove         (EinaPlugin *plugin, guint id);
 
-void
-eina_plugin_window_action_group_add_toggle_actions(EinaPlugin *plugin,
-	const GtkToggleActionEntry *entries,
-	guint n_entries);
+void  eina_plugin_window_action_group_add_toggle_actions   (EinaPlugin *plugin, const GtkToggleActionEntry *entries, guint n_entries);
+void  eina_plugin_window_action_group_remove_toogle_actions(EinaPlugin *plugin, const GtkToggleActionEntry *entries, guint n_entries);
 
 #endif
