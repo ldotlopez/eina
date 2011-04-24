@@ -20,6 +20,7 @@ export EINA_LIB_PATH="$R/plugins"
 
 # Eina specific
 export EINA_THEME_DIR="$D/icons"
+export EINA_DESKTOP_FILE="$D/data/eina.desktop"
 
 # Copy EINA vars to VACA (for testing)
 export VACA_PIXMAP_PATH="$EINA_PIXMAP_PATH"
