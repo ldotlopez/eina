@@ -169,7 +169,7 @@ about_show(EinaPlayer *player)
 		NULL
 	};
 	const gchar *authors[] = {
-		"Luis Lopez <luis.lopez@cuarentaydos.com>",
+		"Luis Lopez <luis@cuarentaydos.com>",
 		NULL
 	};
 	gchar *license = 
@@ -194,8 +194,8 @@ about_show(EinaPlayer *player)
 	g_object_set((GObject *) about,
 		"artists", artists,
 		"authors", authors,
-		"program-name", "Eina",
-		"copyright", "Copyright © 2003-2010 xuzo\nCopyright © 2003-2005 xuzo and eru",
+		"program-name", PACKAGE_NAME,
+		"copyright", "Copyright © 2003-2011 Luis Lopez\nCopyright © 2003-2005 Luis Lopez and Daniel Ripolles",
 		"comments", comments,
 		"website", EINA_PLUGIN_GENERIC_URL,
 		"license", license,

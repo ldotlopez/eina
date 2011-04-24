@@ -623,7 +623,7 @@ root_get_property_cb (GDBusConnection *connection,
 
 	else if (g_str_equal("DesktopEntry", property_name))
 	{
-		return g_variant_new_string("eina.desktop");
+		return g_variant_new_string(PACKAGE);
 	}
 
 	else if (g_str_equal("SupportedUriSchemes", property_name))

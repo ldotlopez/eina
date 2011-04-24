@@ -31,7 +31,7 @@ free to request new features and make things the way you like.
 Based on free technology
 ========================
 
-Eina is written in plain C, using Gtk+-2.0 for the graphic interface
+Eina is written in plain C, using Gtk+-3.0 for the graphic interface
 and GStreamer for playback. Gtk means portatility, accesibility,
 and internationalization. GStreamer means extensibility and support
 for every audio format out there. These two elements make Eina an
