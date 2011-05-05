@@ -97,6 +97,11 @@ AC_PATH_PROG(VALAC, valac)
 #AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 
+if test "x$VALAC" = "x"; then
+	echo "valac not found"
+	exit 1
+fi
+
 AC_SUBST(GLIB_GENMARSHAL)
 AC_SUBST(GLIB_COMPILE_SCHEMAS)
 AC_SUBST(GDK_PIXBUF_CSOURCE)
@@ -310,36 +315,6 @@ PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 ])
 AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
-INDICATE_API_VERSION="0.5"
-INDICATE_VERSION="0.5.0"
-indicate_modules="indicate-$INDICATE_API_VERSION >= $INDICATE_VERSION"
-PKG_CHECK_MODULES(INDICATE, $indicate_modules,
-[
-	AC_SUBST(INDICATE_CFLAGS)
-	AC_SUBST(INDICATE_LIBS)
-	HAVE_INDICATE=yes
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
-]
-[
-	HAVE_INDICATE=no
-])
-if [ "x$HAVE_INDICATE" = "xno" ]; then
-	INDICATE_VERSION="0.4.0"
-	indicate_modules="indicate >= $INDICATE_VERSION"
-	PKG_CHECK_MODULES(INDICATE, $indicate_modules,
-	[
-		AC_SUBST(INDICATE_CFLAGS)
-		AC_SUBST(INDICATE_LIBS)
-		HAVE_INDICATE=yes
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
-	],
-	[
-		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=0"
-		HAVE_INDICATE=no
-	])
-fi
-
-
 dnl
 dnl notify (ntfy)
 dnl
@@ -356,6 +331,33 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_NOTIFY=0"
 	HAVE_NOTIFY=no
 ])
+
+dnl
+dnl indicate (!mpris)
+dnl
+INDICATE_VERSION="0.5.0"
+indicate_modules="indicate-0.5 >= $INDICATE_VERSION"
+PKG_CHECK_MODULES(INDICATE, $indicate_modules,
+	[
+		AC_SUBST(INDICATE_CFLAGS)
+		AC_SUBST(INDICTE_LIBS)
+		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
+		HAVE_INDICATE=yes
+	],
+	[
+		INDICATE_VERSION="0.4.0"
+		indicate_modules="indicate >= $INDICATE_VERSION"
+		PKG_CHECK_MODULES(INDICATE, $indicate_modules,
+		[
+			AC_SUBST(INDICATE_CFLAGS)
+			AC_SUBST(INDICTE_LIBS)
+			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
+			HAVE_INDICATE=yes
+		],
+		[
+			HAVE_INDICATE=no
+		])
+	])
 
 dnl
 dnl sqlite3 (!core, adb)
