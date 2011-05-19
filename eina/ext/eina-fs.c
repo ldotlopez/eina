@@ -162,7 +162,7 @@ eina_fs_load_from_default_file_chooser(EinaApplication *app)
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
 		NULL);
-	GSettings *settings = g_settings_new(EINA_FS_STATE_DOMAIN);
+	GSettings *settings = eina_application_get_settings(app, EINA_FS_STATE_DOMAIN);
 
 	const gchar *prev_folder_uri = g_settings_get_string(settings, EINA_FS_LAST_FOLDER_KEY);
 	if ((prev_folder_uri != NULL) && (prev_folder_uri[0] != '\0'))
@@ -174,7 +174,6 @@ eina_fs_load_from_default_file_chooser(EinaApplication *app)
 	g_settings_set_string(settings, EINA_FS_LAST_FOLDER_KEY, curr_folder_uri);
 	g_free(curr_folder_uri);
 
-	g_object_unref(settings);
 	gtk_widget_destroy((GtkWidget *) picker);
 }
 

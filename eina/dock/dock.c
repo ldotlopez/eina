@@ -48,7 +48,7 @@ dock_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	DockPlugin *data = g_new0(DockPlugin, 1);
 	gel_plugin_set_data(plugin, data);
 
-	data->settings = g_settings_new(EINA_DOCK_PREFERENCES_DOMAIN);
+	data->settings = eina_application_get_settings(app, EINA_DOCK_PREFERENCES_DOMAIN);
 
 	// Setup dock
 	data->dock = (GtkWidget *) g_object_ref(eina_dock_new());
@@ -93,7 +93,6 @@ dock_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 
 	gtk_container_remove(container, data->dock);
 
-	g_object_unref(data->settings);
 	g_object_unref(data->dock);
 	g_free(data);
 
