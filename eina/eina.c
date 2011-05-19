@@ -54,7 +54,6 @@ engine_plugin_signal_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplicat
 		g_settings_set_strv(eina_application_get_settings(app, EINA_DOMAIN), "plugins", (const gchar * const*) visible_strv);
 		g_strfreev(visible_strv);
 	}
-
 }
 
 static void
@@ -202,6 +201,8 @@ gint main(gint argc, gchar *argv[])
 	g_signal_connect(app, "open",         (GCallback) app_open_cb, NULL);
 
 	gint status = g_application_run (G_APPLICATION (app), argc, argv);
+	GObject *o = G_OBJECT(g_object_get_data(G_OBJECT(app), "x-eina-plugin-engine"));
+	g_signal_handlers_disconnect_by_func(o, (GCallback) engine_plugin_signal_cb, app);
 	g_object_unref(G_OBJECT(g_object_get_data(G_OBJECT(app), "x-eina-plugin-engine")));
 	g_object_unref(app);
 
@@ -211,7 +212,7 @@ gint main(gint argc, gchar *argv[])
 		eina_fs_load_from_default_file_chooser(NULL);
 		eina_plugin_window_ui_manager_add_from_string(NULL, NULL);
 	}
-	
+
 	return status;
 }
 
