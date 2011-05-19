@@ -50,6 +50,8 @@
 
 #define eina_plugin_get_application(plugin) EINA_APPLICATION(gel_plugin_get_application(plugin))
 
+#define eina_plugin_get_settings(plugin,domain) eina_application_get_settings(EINA_APPLICATION(gel_plugin_get_application(plugin)), domain)
+
 guint eina_plugin_window_ui_manager_add_from_string(EinaPlugin *plugin, const gchar *ui_mng_str);
 void  eina_plugin_window_ui_manager_remove         (EinaPlugin *plugin, guint id);
 

@@ -27,7 +27,13 @@ eina_application_dispose (GObject *object)
 	EinaApplication *self = EINA_APPLICATION(object);
 
 	gel_free_and_invalidate(self->priv->interfaces, NULL, g_hash_table_destroy);
-	gel_free_and_invalidate(self->priv->settings,   NULL, g_hash_table_destroy);
+	if (self->priv->settings)
+	{
+		GList *values = g_hash_table_get_values(self->priv->settings);
+		g_list_foreach(values, (GFunc) g_settings_sync, NULL);
+		g_list_free(values);
+		gel_free_and_invalidate(self->priv->settings,   NULL, g_hash_table_destroy);
+	}
 
 	G_OBJECT_CLASS (eina_application_parent_class)->dispose (object);
 }

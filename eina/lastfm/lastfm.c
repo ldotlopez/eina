@@ -50,7 +50,7 @@ static void settings_changed_cb(GSettings *settings, const gchar *key, EinaLastF
 static gboolean lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaLastFM *self);
 
 gboolean
-lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+lastfm_plugin_init(EinaApplication *app, EinaPlugin *plugin, GError **error)
 {
 	EinaLastFM *data = g_new0(EinaLastFM, 1);
 	gel_plugin_set_data(plugin, data);
@@ -58,7 +58,7 @@ lastfm_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	data->lomo = eina_plugin_get_lomo(plugin);
 	lomo_player_hook_add(data->lomo, (LomoPlayerHook) lomo_hook_cb, data);
 
-	data->settings   = g_settings_new(LASTFM_PREFERENCES_DOMAIN);
+	data->settings   = eina_plugin_get_settings(plugin, LASTFM_PREFERENCES_DOMAIN);
 	data->daemonpath = g_build_filename(gel_plugin_get_lib_dir(plugin), "lastfmsubmitd", "lastfmsubmitd", NULL);
 
 	lastfm_plugin_build_preferences(plugin);
@@ -111,13 +111,12 @@ lastfm_plugin_build_preferences(GelPlugin *plugin)
 		NULL);
 	gel_free_and_invalidate(pb, NULL, g_object_unref);
 
-	GSettings *settings = g_settings_new(LASTFM_PREFERENCES_DOMAIN);
 	eina_preferences_tab_bindv(self->prefs_tab,
-		settings, LASTFM_SUBMIT_ENABLED_KEY,  LASTFM_SUBMIT_ENABLED_KEY,  "active",
-		settings, LASTFM_USERNAME_KEY, LASTFM_USERNAME_KEY, "text",
-		settings, LASTFM_PASSWORD_KEY, LASTFM_PASSWORD_KEY, "text",
+		self->settings, LASTFM_SUBMIT_ENABLED_KEY,  LASTFM_SUBMIT_ENABLED_KEY,  "active",
+		self->settings, LASTFM_USERNAME_KEY, LASTFM_USERNAME_KEY, "text",
+		self->settings, LASTFM_PASSWORD_KEY, LASTFM_PASSWORD_KEY, "text",
 		NULL);
-	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
+	g_signal_connect(self->settings, "changed", (GCallback) settings_changed_cb, self);
 
 	EinaPreferences *preferences = eina_plugin_get_preferences(plugin);
 	eina_preferences_add_tab(preferences, self->prefs_tab);

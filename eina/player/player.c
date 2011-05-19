@@ -67,7 +67,7 @@ static EinaPreferencesTab *__prefs_tab = NULL;
 G_MODULE_EXPORT gboolean
 player_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
-	GSettings *settings = g_settings_new(EINA_PLAYER_PREFERENCES_DOMAIN);
+	GSettings *settings = eina_application_get_settings(app, EINA_PLAYER_PREFERENCES_DOMAIN);
 
 	GtkWidget *player = eina_player_new();
 	g_object_set(player,

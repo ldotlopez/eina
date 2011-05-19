@@ -102,8 +102,8 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	self->plugin = plugin;
 
 	// Enable if needed (by default on)
-	GSettings *settings = g_settings_new(EINA_NTFY_PREFERENCES_DOMAIN);
-	if (g_settings_get_boolean(settings, EINA_NTFY_ENABLED_KEY))
+	self->settings = gel_plugin_get_settings(plugin, EINA_NTFY_PREFERENCES_DOMAIN);
+	if (g_settings_get_boolean(self->settings, EINA_NTFY_ENABLED_KEY))
 	{
 		if (!ntfy_enable(self, error))
 		{
@@ -111,7 +111,7 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 			return FALSE;
 		}
 	}
-	g_signal_connect(settings, "changed", (GCallback) settings_changed_cb, self);
+	g_signal_connect(self->settings, "changed", (GCallback) settings_changed_cb, self);
 
 	// Try to enable vogon integration
 	#if HAVE_VOGON
@@ -145,7 +145,6 @@ ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	#endif
 
 	ntfy_disable(self);
-	gel_free_and_invalidate(self->settings, NULL, g_object_unref);
 	g_free(self);
 
 	return TRUE;
