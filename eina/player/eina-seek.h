@@ -28,29 +28,22 @@ G_BEGIN_DECLS
 
 #define EINA_TYPE_SEEK eina_seek_get_type()
 
-#define EINA_SEEK(obj) \
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_SEEK, EinaSeek))
+#define EINA_SEEK(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_SEEK, EinaSeek))
+#define EINA_SEEK_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST  ((klass), EINA_TYPE_SEEK, EinaSeekClass))
+#define EINA_IS_SEEK(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_SEEK))
+#define EINA_IS_SEEK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE  ((klass), EINA_TYPE_SEEK))
+#define EINA_SEEK_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS  ((obj), EINA_TYPE_SEEK, EinaSeekClass))
 
-#define EINA_SEEK_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_SEEK, EinaSeekClass))
-
-#define EINA_IS_SEEK(obj) \
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_SEEK))
-
-#define EINA_IS_SEEK_CLASS(klass) \
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_SEEK))
-
-#define EINA_SEEK_GET_CLASS(obj) \
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_SEEK, EinaSeekClass))
-
+typedef struct _EinaSeekPrivate EinaSeekPrivate;
 typedef struct
 {
-	GtkHScale parent;
+	GtkScale parent;
+	EinaSeekPrivate *priv;
 } EinaSeek;
 
 typedef struct
 {
-	GtkHScaleClass parent_class;
+	GtkScaleClass parent_class;
 } EinaSeekClass;
 
 GType eina_seek_get_type (void);
