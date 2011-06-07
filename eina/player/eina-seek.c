@@ -17,20 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::Player::Seek"
 #include "eina-seek.h"
 #include <lomo/lomo-util.h>
 #include <gel/gel.h>
 
-
-G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_HSCALE)
-
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_SEEK, EinaSeekPrivate))
-
 #define ZERO_SPACE "\u200b"
 
-typedef struct _EinaSeekPrivate EinaSeekPrivate;
+G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_SCALE)
 
 enum {
 	EINA_SEEK_TIME_CURRENT,
@@ -64,13 +57,13 @@ struct _EinaSeekPrivate {
 static void
 eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label);
 static void
-eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp);
+seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp);
 static void
-eina_seek_sync_values(EinaSeek *self);
+seek_sync_values(EinaSeek *self);
 static void
-eina_seek_updater_start(EinaSeek *self);
+seek_updater_start(EinaSeek *self);
 static void
-eina_seek_updater_stop(EinaSeek *self);
+seek_updater_stop(EinaSeek *self);
 
 // --
 // UI callbacks
@@ -98,12 +91,11 @@ lomo_clear_cb(LomoPlayer *lomo, EinaSeek *self);
 // Get/Set properties
 // --
 static void
-eina_seek_get_property (GObject *object, guint property_id,
-	GValue *value, GParamSpec *pspec)
+eina_seek_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
 	EinaSeek *self = EINA_SEEK(object);
-	switch (property_id) {
-
+	switch (property_id)
+	{
 	case EINA_SEEK_PROPERTY_LOMO_PLAYER:
 		g_value_set_object(value, (gpointer) eina_seek_get_lomo_player(self));
 		break;
@@ -126,12 +118,12 @@ eina_seek_get_property (GObject *object, guint property_id,
 }
 
 static void
-eina_seek_set_property (GObject *object, guint property_id,
-  const GValue *value, GParamSpec *pspec)
+eina_seek_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
 	EinaSeek *self = EINA_SEEK(object);
 
-	switch (property_id) {
+	switch (property_id)
+	{
 	case EINA_SEEK_PROPERTY_LOMO_PLAYER:
 		eina_seek_set_lomo_player(self, LOMO_PLAYER(g_value_get_object(value)));
 		break;
@@ -160,11 +152,11 @@ static void
 eina_seek_dispose (GObject *object)
 {
 	EinaSeek *self = EINA_SEEK(object);
-	EinaSeekPrivate *priv = GET_PRIVATE(object);
+	EinaSeekPrivate *priv = self->priv;
 	if (!priv->disposed)
 	{
 
-		eina_seek_updater_stop(EINA_SEEK(object));
+		seek_updater_stop(EINA_SEEK(object));
 	
 		eina_seek_set_lomo_player(self, NULL);
 
@@ -217,28 +209,32 @@ eina_seek_class_init (EinaSeekClass *klass)
 static void
 eina_seek_init (EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
-	gint i;
+	EinaSeekPrivate *priv = self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_SEEK, EinaSeekPrivate));
+
+	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_HORIZONTAL);
 
 	priv->total_is_desync = TRUE;
 	priv->lomo   = NULL;
-	for (i = 0; i < EINA_SEEK_N_TIMES; i++)
+	for (guint i = 0; i < EINA_SEEK_N_TIMES; i++)
 	{
 		priv->time_labels[i] = NULL;
 		priv->time_fmts[i]   = NULL;
 	}
     priv->real_id = -1;
+
 }
 
 EinaSeek*
 eina_seek_new (void)
 {
 	EinaSeek *self = g_object_new (EINA_TYPE_SEEK, NULL);
+	
+	gtk_scale_set_draw_value(GTK_SCALE(self), FALSE);
 
-	g_object_set(G_OBJECT(self), "draw-value", FALSE, NULL);
 	gtk_range_set_range(GTK_RANGE(self), 0, 1000);
 	// Removed in gtk3, not sure if removing this creates any regression
 	// gtk_range_set_update_policy(GTK_RANGE(self), GTK_UPDATE_CONTINUOUS);
+	
 	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
 
 	g_signal_connect(self, "value-changed",        G_CALLBACK(value_changed_cb), self);
@@ -254,28 +250,32 @@ eina_seek_new (void)
 void
 eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
-	
+	g_return_if_fail(EINA_IS_SEEK(self));
+	if (lomo != NULL)
+		g_return_if_fail(LOMO_IS_PLAYER(lomo));
+
+	EinaSeekPrivate *priv = self->priv;
+
 	if (priv->lomo)
 	{
-		g_signal_handlers_disconnect_by_func(priv->lomo, eina_seek_updater_start, self);
-		g_signal_handlers_disconnect_by_func(priv->lomo, eina_seek_updater_stop, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, seek_updater_start, self);
+		g_signal_handlers_disconnect_by_func(priv->lomo, seek_updater_stop, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_state_change_cb, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_change_cb, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_clear_cb, self);
 		g_object_unref(priv->lomo);
 	}
 
-	if ((lomo == NULL) || !LOMO_IS_PLAYER(lomo))
+	if (lomo == NULL)
 		return;
 
 	priv->lomo = lomo;
 	g_object_ref(lomo);
 
 	// Connect UI signals
-	g_signal_connect_swapped(lomo, "play",  G_CALLBACK(eina_seek_updater_start), self);
-	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(eina_seek_updater_stop),  self);
-	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(eina_seek_updater_stop),  self);
+	g_signal_connect_swapped(lomo, "play",  G_CALLBACK(seek_updater_start), self);
+	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(seek_updater_stop),  self);
+	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(seek_updater_stop),  self);
 
 	// Connect lomo signals
 	g_signal_connect(lomo, "play",   G_CALLBACK(lomo_state_change_cb), self);
@@ -285,7 +285,7 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 	g_signal_connect(lomo, "clear",  G_CALLBACK(lomo_clear_cb),  self);
 
 	priv->total_is_desync = TRUE;
-	eina_seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
+	seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
 	if (lomo_player_get_current(priv->lomo) >= 0)
 		gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
 	else
@@ -295,20 +295,25 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 LomoPlayer *
 eina_seek_get_lomo_player(EinaSeek *self)
 {
-	return GET_PRIVATE(self)->lomo;
+	g_return_val_if_fail(EINA_IS_SEEK(self), NULL);
+	return self->priv->lomo;
 }
 
 static void
 eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	g_return_if_fail(EINA_IS_SEEK(self));
 	g_return_if_fail(id < EINA_SEEK_N_TIMES);
+	if (label != NULL)
+		g_return_if_fail(GTK_IS_LABEL(label));
+
+	EinaSeekPrivate *priv = self->priv;
 
 	priv->time_labels[id] = NULL;
 	gel_free_and_invalidate(priv->time_labels[id], NULL, g_object_unref);
 	gel_free_and_invalidate(priv->time_fmts[id],   NULL, g_free);
 
-	if ((label == NULL) || !GTK_IS_LABEL(label))
+	if (label == NULL)
 		return;
 
 	g_object_ref(label);
@@ -338,29 +343,29 @@ eina_seek_set_total_label(EinaSeek *self, GtkLabel *label)
 LomoPlayer*
 eina_seek_get_lomo(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
-	return priv->lomo;
+	g_return_val_if_fail(EINA_IS_SEEK(self), NULL);
+	return self->priv->lomo;
 }
 
 GtkLabel*
 eina_seek_get_current_label(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
-	return priv->time_labels[EINA_SEEK_TIME_CURRENT];
+	g_return_val_if_fail(EINA_IS_SEEK(self), NULL);
+	return self->priv->time_labels[EINA_SEEK_TIME_CURRENT];
 }
 
 GtkLabel*
 eina_seek_get_remaining_label(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
-	return priv->time_labels[EINA_SEEK_TIME_REMAINING];
+	g_return_val_if_fail(EINA_IS_SEEK(self), NULL);
+	return self->priv->time_labels[EINA_SEEK_TIME_REMAINING];
 }
 
 GtkLabel*
 eina_seek_get_total_label(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
-	return priv->time_labels[EINA_SEEK_TIME_TOTAL];
+	g_return_val_if_fail(EINA_IS_SEEK(self), NULL);
+	return self->priv->time_labels[EINA_SEEK_TIME_TOTAL];
 }
 
 //--
@@ -369,18 +374,18 @@ eina_seek_get_total_label(EinaSeek *self)
 
 // Control updater timeout functions
 static void
-eina_seek_updater_start(EinaSeek *self)
+seek_updater_start(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 	if (priv->updater_id > 0)
 		g_source_remove(priv->updater_id);
 	priv->updater_id = g_timeout_add(400, (GSourceFunc) timeout_cb, (gpointer) self);
 }
 
 static void
-eina_seek_updater_stop(EinaSeek *self)
+seek_updater_stop(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 	if (priv->updater_id > 0)
 	{
 		g_source_remove(priv->updater_id);
@@ -388,9 +393,10 @@ eina_seek_updater_stop(EinaSeek *self)
 	}
 }
 
-gboolean eina_seek_real_seek(EinaSeek *self)
+static gboolean
+seek_real_seek(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 	g_return_val_if_fail(LOMO_IS_PLAYER(priv->lomo), FALSE);
 
 	LomoState state = lomo_player_get_state(priv->lomo);
@@ -404,10 +410,10 @@ gboolean eina_seek_real_seek(EinaSeek *self)
 }
 
 static gchar*
-eina_seek_fmt_time(EinaSeek *self, gint id, gint64 time, gboolean tempstr)
+seek_fmt_time(EinaSeek *self, gint id, gint64 time, gboolean tempstr)
 {
 	g_return_val_if_fail(EINA_IS_SEEK(self), NULL);
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 
 	if (time < 0)
 		return NULL;
@@ -428,9 +434,9 @@ eina_seek_fmt_time(EinaSeek *self, gint id, gint64 time, gboolean tempstr)
 }
 
 static void
-eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp)
+seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 	gchar *current, *remaining, *total;
 
 	// Sync total only if not synced
@@ -438,7 +444,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 	{
 		if (total_time >= 0)
 		{
-			total = eina_seek_fmt_time(self, EINA_SEEK_TIME_TOTAL, total_time, FALSE);
+			total = seek_fmt_time(self, EINA_SEEK_TIME_TOTAL, total_time, FALSE);
 			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], total);
 			g_free(total);
 			priv->total_is_desync = FALSE;
@@ -460,7 +466,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 	if (priv->time_labels[EINA_SEEK_TIME_REMAINING])
 	{
 		if ((total_time >= 0) && (current_time >= 0) && (total_time >= current_time))
-			remaining =  eina_seek_fmt_time(self, EINA_SEEK_TIME_REMAINING, total_time - current_time, temp);
+			remaining =  seek_fmt_time(self, EINA_SEEK_TIME_REMAINING, total_time - current_time, temp);
 		else
 			remaining = NULL;
 
@@ -472,7 +478,7 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 	if (priv->time_labels[EINA_SEEK_TIME_CURRENT])
 	{
 		if (current_time >= 0)
-			current = eina_seek_fmt_time(self, EINA_SEEK_TIME_CURRENT, current_time, temp);
+			current = seek_fmt_time(self, EINA_SEEK_TIME_CURRENT, current_time, temp);
 		else
 			current = NULL;
 		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], current ? current : ZERO_SPACE);
@@ -481,20 +487,20 @@ eina_seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, 
 }
 
 static void
-eina_seek_sync_values(EinaSeek *self)
+seek_sync_values(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 	if (priv->lomo == NULL)
 		return;
 	priv->total_is_desync = TRUE;
-	eina_seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
+	seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
 }
 
 // --
 // UI Callbacks
 // --
 void value_changed_cb(GtkWidget *w, EinaSeek *self) {
-EinaSeekPrivate *priv = GET_PRIVATE(self);
+EinaSeekPrivate *priv = self->priv;
 	gint64  total;
 	gint64  pseudo_pos;
 	gdouble val;
@@ -510,31 +516,31 @@ EinaSeekPrivate *priv = GET_PRIVATE(self);
 	val = gtk_range_get_value(GTK_RANGE(self));
 	pseudo_pos = total * (val/1000);
 
-	eina_seek_update_values(self, pseudo_pos, total, TRUE);
+	seek_update_values(self, pseudo_pos, total, TRUE);
 
 	/* Create a timeout function */
 	priv->pos = pseudo_pos;
-	priv->real_id = g_timeout_add(100, (GSourceFunc) eina_seek_real_seek, self);
+	priv->real_id = g_timeout_add(100, (GSourceFunc) seek_real_seek, self);
 }
 
 gboolean
 button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 {
-	eina_seek_updater_stop(self);
+	seek_updater_stop(self);
 	return FALSE;
 }
 
 gboolean
 button_release_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 {
-	eina_seek_updater_start(self);
+	seek_updater_start(self);
 	return FALSE;
 }
 
 gboolean
 timeout_cb(EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 	gint64 len = 0, pos = 0;
 	gdouble percent;
 	
@@ -556,7 +562,7 @@ timeout_cb(EinaSeek *self)
 		value_changed_cb,
 		self);
 
-	eina_seek_update_values(self, pos, len, FALSE);
+	seek_update_values(self, pos, len, FALSE);
 	return TRUE;
 }
 
@@ -566,7 +572,7 @@ timeout_cb(EinaSeek *self)
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaSeek *self)
 {
-	EinaSeekPrivate *priv = GET_PRIVATE(self);
+	EinaSeekPrivate *priv = self->priv;
 
 	if (from == to)
 		return;
@@ -587,15 +593,15 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaSeek *self)
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaSeek *self)
 {
-	struct _EinaSeekPrivate *priv = GET_PRIVATE(self);
+	struct _EinaSeekPrivate *priv = self->priv;
 	priv->total_is_desync = TRUE;
 	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
 	gtk_range_set_value(GTK_RANGE(self), (gdouble) 0);
-	eina_seek_update_values(self, -1, -1, FALSE);
+	seek_update_values(self, -1, -1, FALSE);
 }
 
 static void
 lomo_state_change_cb(LomoPlayer *lomo, EinaSeek *self)
 {
-	eina_seek_sync_values(self);
+	seek_sync_values(self);
 }
