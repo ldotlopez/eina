@@ -28,19 +28,57 @@
 #include "eina/ext/eina-application.h"
 #include "eina/ext/eina-stock.h"
 
-static void
-engine_plugin_signal_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
+static GelPluginEngine*
+application_get_plugin_engine(EinaApplication *app)
 {
+	g_return_val_if_fail(EINA_IS_APPLICATION(app), NULL);
+	return (GelPluginEngine *) g_object_get_data((GObject *) app, "x-eina-plugin-engine");
+}
+
+static void
+application_set_plugin_engine(EinaApplication *app, GelPluginEngine *engine)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(app));
+	g_return_if_fail(GEL_IS_PLUGIN_ENGINE(engine));
+
+	GelPluginEngine *test = application_get_plugin_engine(app);
+	if (test != NULL)
+		g_warning("EinaApplication object %p already has an GelPluginEngine", test);
+	g_object_set_data((GObject *) app, "x-eina-plugin-engine", engine);
+}
+
+
+static void
+application_save_plugin_list_in_change(EinaApplication *app, GelPlugin *plugin, gboolean include_plugin)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(app));
+
+	g_return_if_fail(GEL_IS_PLUGIN(plugin));
+
+	GelPluginEngine *engine = application_get_plugin_engine(app);
+	g_return_if_fail(GEL_IS_PLUGIN_ENGINE(engine));
+
 	GList *visible = NULL;
 
 	GList *current_plugins = gel_plugin_engine_get_plugins(engine);
 	GList *l = current_plugins;
 	while (l)
 	{
-		GelPlugin *plugin = GEL_PLUGIN(l->data);
-		const GelPluginInfo *info = gel_plugin_get_info(plugin);
-		if (!info->hidden)
-			visible = g_list_prepend(visible, g_strdup(info->name));
+		GelPlugin *_plugin = GEL_PLUGIN(l->data);
+		const GelPluginInfo *info = gel_plugin_get_info(_plugin);
+		if (info->hidden)
+		{
+			l = l->next;
+			continue;
+		}
+
+		if ((_plugin == plugin) && !include_plugin)
+		{
+			l = l->next;
+			continue;
+		}
+
+		visible = g_list_prepend(visible, g_strdup(info->name));
 		l = l->next;
 	}
 	gel_free_and_invalidate(current_plugins, NULL, g_list_free);
@@ -54,6 +92,19 @@ engine_plugin_signal_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplicat
 		g_settings_set_strv(eina_application_get_settings(app, EINA_DOMAIN), "plugins", (const gchar * const*) visible_strv);
 		g_strfreev(visible_strv);
 	}
+}
+
+static void
+engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
+{
+	application_save_plugin_list_in_change(app, plugin, TRUE);
+}
+
+
+static void
+engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
+{
+	application_save_plugin_list_in_change(app, plugin, FALSE);
 }
 
 static void
@@ -80,7 +131,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	eina_stock_init();
 
 	GelPluginEngine *engine = gel_plugin_engine_new(application);
-	g_object_set_data(G_OBJECT(application), "x-eina-plugin-engine", engine);
+	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
 	gchar **opt_plugins = g_settings_get_strv(
@@ -106,8 +157,8 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	}
 	g_strfreev(plugins);
 
-	g_signal_connect(engine, "plugin-init", (GCallback) engine_plugin_signal_cb, application);
-	g_signal_connect(engine, "plugin-fini", (GCallback) engine_plugin_signal_cb, application);
+	g_signal_connect(engine, "plugin-init", (GCallback) engine_plugin_init_cb, application);
+	g_signal_connect(engine, "plugin-fini", (GCallback) engine_plugin_fini_cb, application);
 
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
 }
@@ -201,9 +252,11 @@ gint main(gint argc, gchar *argv[])
 	g_signal_connect(app, "open",         (GCallback) app_open_cb, NULL);
 
 	gint status = g_application_run (G_APPLICATION (app), argc, argv);
-	GObject *o = G_OBJECT(g_object_get_data(G_OBJECT(app), "x-eina-plugin-engine"));
-	g_signal_handlers_disconnect_by_func(o, (GCallback) engine_plugin_signal_cb, app);
-	g_object_unref(G_OBJECT(g_object_get_data(G_OBJECT(app), "x-eina-plugin-engine")));
+
+	GelPluginEngine *engine = application_get_plugin_engine(app);
+	g_signal_handlers_disconnect_by_func(engine, (GCallback) engine_plugin_init_cb, app);
+	g_signal_handlers_disconnect_by_func(engine, (GCallback) engine_plugin_fini_cb, app);
+	g_object_unref(engine);
 	g_object_unref(app);
 
 	// Fuc*** gcc issues
