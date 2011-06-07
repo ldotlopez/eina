@@ -34,7 +34,8 @@ typedef struct _GelPlugin       GelPlugin;
 #include <gel/gel-plugin-engine.h>
 #include <gel/gel-misc.h>
 
-#define GEL_PLUGIN(p)     ((GelPlugin *) p)
+#define GEL_PLUGIN(p)    ((GelPlugin *) p)
+#define GEL_IS_PLUGIN(p) (p != NULL)
 typedef enum {
 	GEL_PLUGIN_NO_ERROR = 0,
 	GEL_PLUGIN_ERROR_FINI_FAILED,
