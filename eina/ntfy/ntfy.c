@@ -47,9 +47,9 @@ struct _EinaNtfy {
 
 // Init/fini plugin
 gboolean
-ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
+ntfy_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error);
 gboolean
-ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error);
+ntfy_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error);
 
 // Mini API
 static gboolean
@@ -94,7 +94,7 @@ settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self);
 // ------------------
 
 G_MODULE_EXPORT gboolean
-ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+ntfy_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaNtfy *self;
 
@@ -102,12 +102,12 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 	self->plugin = plugin;
 
 	// Enable if needed (by default on)
-	self->settings = gel_plugin_get_settings(plugin, EINA_NTFY_PREFERENCES_DOMAIN);
+	self->settings = eina_application_get_settings(app, EINA_NTFY_PREFERENCES_DOMAIN);
 	if (g_settings_get_boolean(self->settings, EINA_NTFY_ENABLED_KEY))
 	{
 		if (!ntfy_enable(self, error))
 		{
-			ntfy_plugin_fini(engine, plugin, NULL);
+			ntfy_plugin_fini(app, plugin, NULL);
 			return FALSE;
 		}
 	}
@@ -129,7 +129,7 @@ ntfy_plugin_init(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-ntfy_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+ntfy_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 {
 	EinaNtfy *self = (EinaNtfy *) gel_plugin_steal_data(plugin);
 
@@ -160,7 +160,13 @@ ntfy_enable(EinaNtfy *self, GError **error)
 		notify_init(PACKAGE_NAME);
 
 	self->enabled = TRUE;
+	#if defined(NOTIFY_VERSION_0_7)
 	self->ntfy = notify_notification_new(N_("Now playing"), NULL, NULL);
+	#elif defined(NOTIFY_VERSION_0_5)
+	self->ntfy = notify_notification_new(N_("Now playing"), NULL, NULL, NULL);
+	#else
+	#error "Unknow notify version"
+	#endif
 
 	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
 	g_signal_connect(lomo, "notify::state", (GCallback) lomo_state_notify_cb, self);
