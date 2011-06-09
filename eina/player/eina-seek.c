@@ -21,9 +21,10 @@
 #include <lomo/lomo-util.h>
 #include <gel/gel.h>
 
-#define ZERO_SPACE "\u200b"
+// #define ZERO_SPACE "\u200b"
+#define ZERO_SPACE "<small><tt>-:--</tt></small>"
 
-G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_SCALE)
+G_DEFINE_TYPE (EinaSeek, eina_seek, GEL_UI_TYPE_SCALE)
 
 enum {
 	EINA_SEEK_TIME_CURRENT,
@@ -499,8 +500,10 @@ seek_sync_values(EinaSeek *self)
 // --
 // UI Callbacks
 // --
-void value_changed_cb(GtkWidget *w, EinaSeek *self) {
-EinaSeekPrivate *priv = self->priv;
+static void
+value_changed_cb(GtkWidget *w, EinaSeek *self)
+{
+	EinaSeekPrivate *priv = self->priv;
 	gint64  total;
 	gint64  pseudo_pos;
 	gdouble val;
@@ -523,21 +526,21 @@ EinaSeekPrivate *priv = self->priv;
 	priv->real_id = g_timeout_add(100, (GSourceFunc) seek_real_seek, self);
 }
 
-gboolean
+static gboolean
 button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 {
 	seek_updater_stop(self);
 	return FALSE;
 }
 
-gboolean
+static gboolean
 button_release_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 {
 	seek_updater_start(self);
 	return FALSE;
 }
 
-gboolean
+static gboolean
 timeout_cb(EinaSeek *self)
 {
 	EinaSeekPrivate *priv = self->priv;
