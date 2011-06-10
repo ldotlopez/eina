@@ -33,13 +33,23 @@ sync_value(GelUIScale *self)
 	gtk_range_set_fill_level (GTK_RANGE (self), gtk_range_get_value (GTK_RANGE (self)));
 }
 
+static gboolean
+do_setup(GelUIScale *self)
+{
+	g_object_set(G_OBJECT(self),
+		"show-fill-level", TRUE,
+		"restrict-to-fill-level", FALSE,
+		NULL);
+
+	sync_value(self);
+	g_signal_handlers_disconnect_by_func(self, do_setup, NULL);
+	return FALSE;
+}
+
 static void
 gel_ui_scale_init (GelUIScale *self)
 {
-	gtk_range_set_show_fill_level (GTK_RANGE (self), TRUE);
-	gtk_range_set_restrict_to_fill_level (GTK_RANGE (self), FALSE);
-
-	sync_value(self);
+	g_signal_connect (self, "draw",          (GCallback) do_setup, NULL);
 	g_signal_connect (self, "value-changed", (GCallback) sync_value, NULL);
 }
 

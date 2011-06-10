@@ -246,6 +246,10 @@ gint main(gint argc, gchar *argv[])
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
 	gtk_init(&argc, &argv);
 
+	gchar *tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);
+	g_set_application_name(tmp);
+	g_free(tmp);
+
 	EinaApplication *app = eina_application_new(EINA_DOMAIN);
 	g_signal_connect(app, "activate",     (GCallback) app_activate_cb, NULL);
 	g_signal_connect(app, "command-line", (GCallback) app_command_line_cb, NULL);
