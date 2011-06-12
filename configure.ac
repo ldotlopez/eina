@@ -207,10 +207,12 @@ COMMON_CFLAGS="\
 GLIB_API_VERSION="2.0"
 GTK_API_VERSION="3.0"
 GST_API_VERSION="0.10"
+PEAS_API_VERSION="1.0"
 
 GLIB_VERSION="2.28.0"
 GTK_VERSION="3.0.0"
 GST_VERSION="$GST_API_VERSION.0"
+PEAS_VERSION="1.0.0"
 glib_modules="\
 	glib-$GLIB_API_VERSION >= $GLIB_VERSION,    \
 	gobject-$GLIB_API_VERSION >= $GLIB_VERSION, \
@@ -223,9 +225,13 @@ gtk_modules="\
 gst_modules="\
 	gstreamer-0.10 >= $GST_VERSION \
 	"
+peas_modules="\
+	libpeas-$PEAS_API_VERSION >= $PEAS_VERSION \
+	"
 PKG_CHECK_MODULES(GLIB, $glib_modules)
 PKG_CHECK_MODULES(GTK,  $gtk_modules)
 PKG_CHECK_MODULES(GST,  $gst_modules)
+PKG_CHECK_MODULES(PEAS, $peas_modules)
 
 GDK_QUARTZ_BACKEND="`pkg-config --variable=target gdk-3.0`"
 AC_DEFINE([GDK_QUARTZ_BACKEND], [1], [Define if GDK is using the quartz backend])
@@ -249,6 +255,7 @@ EINA_CFLAGS="\
 	$GLIB_CFLAGS         \
 	$GTK_CFLAGS          \
 	$GST_CFLAGS          \
+	$PEAS_CFLAGS         \
 	$CURL_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
@@ -257,6 +264,7 @@ EINA_LIBS="\
 	$GLIB_LIBS      \
 	$GTK_LIBS       \
 	$GST_LIBS       \
+	$PEAS_LIBS      \
 	$CURL_LIBS      \
 	$COMMON_LIBS    \
 	$EXPERIMENTAL_LIBS  \

@@ -8,6 +8,7 @@ includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 include_HEADERS = \
 	curl-engine.h              \
 	eina-application.h         \
+	eina-activatable.h         \
 	eina-file-chooser-dialog.h \
 	eina-file-utils.h          \
 	eina-fs.h                  \
@@ -17,6 +18,7 @@ include_HEADERS = \
 libeinaext_la_SOURCES = \
 	$(include_HEADERS)         \
 	eina-application.c         \
+	eina-activatable.c         \
 	curl-engine.c              \
 	eina-file-chooser-dialog.c \
 	eina-file-utils.c          \

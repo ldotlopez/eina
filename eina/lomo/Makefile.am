@@ -11,6 +11,7 @@ liblomo_la_CFLAGS  = @EINA_CFLAGS@
 liblomo_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 liblomo_la_SOURCES =   \
 	$(include_HEADERS) \
+	plugin.c plugin.h \
 	lomo.c
 
 plugin_DATA = lomo.ini

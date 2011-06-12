@@ -25,31 +25,35 @@
 #include <gtk/gtk.h>
 #include <gel/gel.h>
 #include <lomo/lomo.h>
+#include <libpeas/peas.h>
 #include "eina/ext/eina-application.h"
+#include "eina/ext/eina-activatable.h"
 #include "eina/ext/eina-stock.h"
 
-static GelPluginEngine*
+static PeasEngine*
 application_get_plugin_engine(EinaApplication *app)
 {
 	g_return_val_if_fail(EINA_IS_APPLICATION(app), NULL);
-	return (GelPluginEngine *) g_object_get_data((GObject *) app, "x-eina-plugin-engine");
+	return (PeasEngine *) g_object_get_data((GObject *) app, "x-eina-plugin-engine");
 }
 
 static void
-application_set_plugin_engine(EinaApplication *app, GelPluginEngine *engine)
+application_set_plugin_engine(EinaApplication *app, PeasEngine *engine)
 {
 	g_return_if_fail(EINA_IS_APPLICATION(app));
-	g_return_if_fail(GEL_IS_PLUGIN_ENGINE(engine));
+	g_return_if_fail(PEAS_IS_ENGINE(engine));
 
-	GelPluginEngine *test = application_get_plugin_engine(app);
+	PeasEngine *test = application_get_plugin_engine(app);
 	if (test != NULL)
-		g_warning("EinaApplication object %p already has an GelPluginEngine", test);
+		g_warning("EinaApplication object %p already has an PeasEngine", test);
 	g_object_set_data((GObject *) app, "x-eina-plugin-engine", engine);
 }
 
 static void
-application_save_plugin_list_in_change(EinaApplication *app, GelPlugin *plugin, gboolean include_plugin)
+application_save_plugin_list_in_change(EinaApplication *app, PeasPluginInfo *info, gboolean include_plugin)
 {
+	return ;
+	#if 0
 	g_return_if_fail(EINA_IS_APPLICATION(app));
 	g_return_if_fail(GEL_IS_PLUGIN(plugin));
 
@@ -90,18 +94,36 @@ application_save_plugin_list_in_change(EinaApplication *app, GelPlugin *plugin, 
 		g_settings_set_strv(eina_application_get_settings(app, EINA_DOMAIN), "plugins", (const gchar * const*) visible_strv);
 		g_strfreev(visible_strv);
 	}
+	#endif
 }
 
 static void
-engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
+engine_load_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, EinaApplication *app)
 {
-	application_save_plugin_list_in_change(app, plugin, TRUE);
+	application_save_plugin_list_in_change(app, info, TRUE);
 }
 
 static void
-engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
+engine_unload_plugin_cb(PeasEngine *engine, PeasPluginInfo *info, EinaApplication *app)
 {
-	application_save_plugin_list_in_change(app, plugin, FALSE);
+	application_save_plugin_list_in_change(app, info, TRUE);
+}
+
+static void
+extension_set_extension_added_cb(PeasExtensionSet *set,
+	PeasPluginInfo   *info,
+	PeasExtension    *exten,
+	EinaApplication  *application)
+{
+	eina_activatable_activate (EINA_ACTIVATABLE (exten), application);
+}
+static void
+extension_set_extension_removed_cb(PeasExtensionSet *set,
+	PeasPluginInfo   *info,
+	PeasExtension    *exten,
+	EinaApplication  *application)
+{
+	eina_activatable_deactivate (EINA_ACTIVATABLE (exten), application);
 }
 
 static void
@@ -127,13 +149,18 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
 
-	GelPluginEngine *engine = gel_plugin_engine_new(application);
+	PeasEngine *engine = peas_engine_get_default();
+	peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
+		
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
-	gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
-	gchar **opt_plugins = g_settings_get_strv(
-			eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
-			"plugins");
+	// gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
+	gchar  *req_plugins[] = { "lomo" };
+
+	//gchar **opt_plugins = g_settings_get_strv(
+	//		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
+	//		"plugins");
+	gchar **opt_plugins = NULL;
 
 	gchar **plugins = gel_strv_concat(
 		req_plugins,
@@ -141,21 +168,35 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		NULL);
 	g_strfreev(opt_plugins);
 
+	// ExtensionSet
+	PeasExtensionSet *es = peas_extension_set_new (engine,
+		EINA_TYPE_ACTIVATABLE,
+		NULL);
+
+	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
+	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
+
+
 	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
 	for (i = 0; i < n_plugins; i++)
 	{
-		GError *error = NULL;
-		if (!gel_plugin_engine_load_plugin_by_name(engine, plugins[i], &error))
+		// GError *error = NULL;
+		PeasPluginInfo *info = peas_engine_get_plugin_info(engine, plugins[i]);
+		if (!info || !peas_engine_load_plugin(engine, info))
+		// if (!gel_plugin_engine_load_plugin_by_name(engine, plugins[i], &error))
 		{
-			g_warning(N_("Unable to load required plugin '%s': %s"), plugins[i], error->message);
-			g_error_free(error);
+			// g_warning(N_("Unable to load required plugin '%s': %s"), plugins[i], error->message);
+			// g_error_free(error);
+			g_warning(N_("Unable to load required plugin '%s'"), plugins[i]);
 		}
 	}
 	g_strfreev(plugins);
 
-	g_signal_connect(engine, "plugin-init", (GCallback) engine_plugin_init_cb, application);
-	g_signal_connect(engine, "plugin-fini", (GCallback) engine_plugin_fini_cb, application);
+	// g_signal_connect(engine, "plugin-init", (GCallback) engine_plugin_init_cb, application);
+	// g_signal_connect(engine, "plugin-fini", (GCallback) engine_plugin_fini_cb, application);
+	g_signal_connect(engine, "load-plugin",   (GCallback) engine_load_plugin_cb,   application);
+	g_signal_connect(engine, "unload-plugin", (GCallback) engine_unload_plugin_cb, application);
 
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
 }
@@ -254,9 +295,9 @@ gint main(gint argc, gchar *argv[])
 
 	gint status = g_application_run (G_APPLICATION (app), argc, argv);
 
-	GelPluginEngine *engine = application_get_plugin_engine(app);
-	g_signal_handlers_disconnect_by_func(engine, (GCallback) engine_plugin_init_cb, app);
-	g_signal_handlers_disconnect_by_func(engine, (GCallback) engine_plugin_fini_cb, app);
+	PeasEngine *engine = application_get_plugin_engine(app);
+	g_signal_handlers_disconnect_by_func(engine, (GCallback) engine_load_plugin_cb, app);
+	g_signal_handlers_disconnect_by_func(engine, (GCallback) engine_unload_plugin_cb, app);
 	g_object_unref(engine);
 	g_object_unref(app);
 
