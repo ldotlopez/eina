@@ -1,3 +1,4 @@
+data/eina.desktop.in
 data/net.sourceforge.eina.gschema.xml.in
 data/net.sourceforge.eina.gschema.xml.in.in
 eina/eina-ige.c

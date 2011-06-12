@@ -1,6 +1,6 @@
 diff -Nru a/configure.ac b/configure.ac
---- a/configure.ac	2010-04-05 20:29:52.624644265 +0200
-+++ b/configure.ac	2010-04-05 20:30:14.137149083 +0200
+--- a/configure.ac	2011-06-10 20:45:30.000000000 +0200
++++ b/configure.ac	2011-06-11 18:34:29.481302820 +0200
 @@ -1,7 +1,7 @@
  #
  # Init package
@@ -18,4 +18,4 @@ diff -Nru a/configure.ac b/configure.ac
 +GETTEXT_PACKAGE="eina-player"
  EINA_API_VERSION="0.10"
  EINA_VERSION="0.10.0"
- EINA_CODENAME="Trained"                   # Najwa
+ EINA_CODENAME="La primavera"              # Delafe y las flores azules
