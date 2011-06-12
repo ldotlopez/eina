@@ -21,9 +21,7 @@
 #include <lomo/lomo-util.h>
 #include <gel/gel.h>
 
-#define ZERO_SPACE "\u200b"
-
-G_DEFINE_TYPE (EinaSeek, eina_seek, GTK_TYPE_SCALE)
+G_DEFINE_TYPE (EinaSeek, eina_seek, GEL_UI_TYPE_SCALE)
 
 enum {
 	EINA_SEEK_TIME_CURRENT,
@@ -49,6 +47,7 @@ struct _EinaSeekPrivate {
 
 	GtkLabel *time_labels[EINA_SEEK_N_TIMES];
 	gchar    *time_fmts[EINA_SEEK_N_TIMES];
+	gchar    *time_def_val[EINA_SEEK_N_TIMES];
 };
 
 // --
@@ -310,8 +309,9 @@ eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label)
 	EinaSeekPrivate *priv = self->priv;
 
 	priv->time_labels[id] = NULL;
-	gel_free_and_invalidate(priv->time_labels[id], NULL, g_object_unref);
-	gel_free_and_invalidate(priv->time_fmts[id],   NULL, g_free);
+	gel_free_and_invalidate(priv->time_labels[id],  NULL, g_object_unref);
+	gel_free_and_invalidate(priv->time_fmts[id],    NULL, g_free);
+	gel_free_and_invalidate(priv->time_def_val[id], NULL, g_free);
 
 	if (label == NULL)
 		return;
@@ -319,7 +319,12 @@ eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label)
 	g_object_ref(label);
 	priv->time_labels[id] = label;
 	priv->time_fmts[id]   = g_strdup(gtk_label_get_label(label));
-	gtk_label_set_label(label, ZERO_SPACE);
+
+	gchar *d = priv->time_def_val[id] = g_strdup_printf(priv->time_fmts[id], 0, 0);
+	for (guint i = 0; d[i] != '\0'; i++)
+		if (d[i] == '0')
+			d[i] = '-';
+	gtk_label_set_label(label, d);
 }
 
 void
@@ -450,7 +455,7 @@ seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gbool
 			priv->total_is_desync = FALSE;
 		}
 		else
-			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], ZERO_SPACE);
+			gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_TOTAL], priv->time_def_val[EINA_SEEK_TIME_TOTAL]);
 	}
 	// If total is -1 even if there is no widget to show it, self must be
 	// insensitive and progress reset
@@ -470,7 +475,8 @@ seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gbool
 		else
 			remaining = NULL;
 
-		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_REMAINING], remaining ? remaining : ZERO_SPACE );
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_REMAINING],
+			remaining ? remaining : priv->time_def_val[EINA_SEEK_TIME_REMAINING]);
 		gel_free_and_invalidate(remaining, NULL, g_free);
 	}
 
@@ -481,7 +487,8 @@ seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gbool
 			current = seek_fmt_time(self, EINA_SEEK_TIME_CURRENT, current_time, temp);
 		else
 			current = NULL;
-		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT], current ? current : ZERO_SPACE);
+		gtk_label_set_markup(priv->time_labels[EINA_SEEK_TIME_CURRENT],
+			current ? current : priv->time_def_val[EINA_SEEK_TIME_CURRENT]);
 		gel_free_and_invalidate(current, NULL, g_free);
    }
 }
@@ -499,8 +506,11 @@ seek_sync_values(EinaSeek *self)
 // --
 // UI Callbacks
 // --
-void value_changed_cb(GtkWidget *w, EinaSeek *self) {
-EinaSeekPrivate *priv = self->priv;
+static void
+value_changed_cb(GtkWidget *w, EinaSeek *self)
+{
+	EinaSeekPrivate *priv = self->priv;
+
 	gint64  total;
 	gint64  pseudo_pos;
 	gdouble val;
@@ -523,21 +533,21 @@ EinaSeekPrivate *priv = self->priv;
 	priv->real_id = g_timeout_add(100, (GSourceFunc) seek_real_seek, self);
 }
 
-gboolean
+static gboolean
 button_press_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 {
 	seek_updater_stop(self);
 	return FALSE;
 }
 
-gboolean
+static gboolean
 button_release_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 {
 	seek_updater_start(self);
 	return FALSE;
 }
 
-gboolean
+static gboolean
 timeout_cb(EinaSeek *self)
 {
 	EinaSeekPrivate *priv = self->priv;

@@ -47,12 +47,10 @@ application_set_plugin_engine(EinaApplication *app, GelPluginEngine *engine)
 	g_object_set_data((GObject *) app, "x-eina-plugin-engine", engine);
 }
 
-
 static void
 application_save_plugin_list_in_change(EinaApplication *app, GelPlugin *plugin, gboolean include_plugin)
 {
 	g_return_if_fail(EINA_IS_APPLICATION(app));
-
 	g_return_if_fail(GEL_IS_PLUGIN(plugin));
 
 	GelPluginEngine *engine = application_get_plugin_engine(app);
@@ -99,7 +97,6 @@ engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplicatio
 {
 	application_save_plugin_list_in_change(app, plugin, TRUE);
 }
-
 
 static void
 engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaApplication *app)
@@ -246,6 +243,10 @@ gint main(gint argc, gchar *argv[])
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
 	gtk_init(&argc, &argv);
 
+	gchar *tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);
+	g_set_application_name(tmp);
+	g_free(tmp);
+
 	EinaApplication *app = eina_application_new(EINA_DOMAIN);
 	g_signal_connect(app, "activate",     (GCallback) app_activate_cb, NULL);
 	g_signal_connect(app, "command-line", (GCallback) app_command_line_cb, NULL);
@@ -268,5 +269,4 @@ gint main(gint argc, gchar *argv[])
 
 	return status;
 }
-
 

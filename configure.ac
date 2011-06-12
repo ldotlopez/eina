@@ -99,6 +99,11 @@ AC_PATH_PROG(VALAC, valac)
 #AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 
+if test "x$VALAC" = "x"; then
+	echo "valac not found"
+	exit 1
+fi
+
 AC_SUBST(GLIB_GENMARSHAL)
 AC_SUBST(GLIB_COMPILE_SCHEMAS)
 AC_SUBST(GDK_PIXBUF_CSOURCE)
@@ -312,20 +317,6 @@ PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 ])
 AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
-INDICATE_VERSION="0.4.0"
-indicate_modules="indicate >= $INDICATE_VERSION"
-PKG_CHECK_MODULES(INDICATE, $indicate_modules,
-[
-	AC_SUBST(INDICATE_CFLAGS)
-	AC_SUBST(INDICATE_LIBS)
-	HAVE_INDICATE=yes
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
-],
-[
-	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=0"
-	HAVE_INDICATE=no
-])
-
 dnl
 dnl notify (ntfy)
 dnl
@@ -353,27 +344,31 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 ])
 
 dnl
-dnl ige-mac-integracion (ige)
+dnl indicate (!mpris)
 dnl
-#IGE_VERSION="0.9.0"
-#ige_modules="ige-mac-integration >= $IGE_VERSION"
-#if test "x`pkg-config --variable target gtk+-3.0`" = "xquartz"; then
-#	PKG_CHECK_MODULES(IGE, $ige_modules,
-#		[
-#			HAVE_IGE=yes
-#			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=1"
-#			AC_SUBST(IGE_CFLAGS)
-#			AC_SUBST(IGE_LIBS)
-#		],
-#		[
-#			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-#			HAVE_IGE=no
-#		]
-#		)
-#else
-#	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_IGE=0"
-#	HAVE_IGE=no
-#fi
+INDICATE_VERSION="0.5.0"
+indicate_modules="indicate-0.5 >= $INDICATE_VERSION"
+PKG_CHECK_MODULES(INDICATE, $indicate_modules,
+	[
+		AC_SUBST(INDICATE_CFLAGS)
+		AC_SUBST(INDICTE_LIBS)
+		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
+		HAVE_INDICATE=yes
+	],
+	[
+		INDICATE_VERSION="0.4.0"
+		indicate_modules="indicate >= $INDICATE_VERSION"
+		PKG_CHECK_MODULES(INDICATE, $indicate_modules,
+		[
+			AC_SUBST(INDICATE_CFLAGS)
+			AC_SUBST(INDICTE_LIBS)
+			EINA_CFLAGS="$EINA_CFLAGS -DHAVE_INDICATE=1"
+			HAVE_INDICATE=yes
+		],
+		[
+			HAVE_INDICATE=no
+		])
+	])
 
 dnl
 dnl sqlite3 (!core, adb)
@@ -407,7 +402,6 @@ dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
-#AM_CONDITIONAL(BUILD_IGE,      test x"$HAVE_IGE"         = "xyes")
 AM_CONDITIONAL(BUILD_INDICATE, test x"$HAVE_INDICATE"    = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
 

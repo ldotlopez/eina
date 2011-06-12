@@ -29,7 +29,8 @@ libgel_ui_include_HEADERS = \
 	gel-ui-dialogs.h        \
 	gel-ui-generic.h        \
 	gel-ui-plugin-manager.h \
-	gel-ui-utils.h
+	gel-ui-utils.h          \
+	gel-ui-scale.h
 
 common_geldir = $(libdir)/gel-@GEL_API_VERSION@
 
@@ -53,7 +54,8 @@ libgel_ui_2_0_la_SOURCES = \
 	gel-ui-generic.c             \
 	gel-ui-plugin-manager.c      \
 	gel-ui-plugin-manager-ui.h   \
-	gel-ui-utils.c
+	gel-ui-utils.c               \
+	gel-ui-scale.c
 
 glib_marshallers_list = gel-marshallers.list
 glib_marshallers_prefix = gel_marshal

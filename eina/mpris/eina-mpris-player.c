@@ -622,7 +622,7 @@ root_get_property_cb (GDBusConnection *connection,
 	GError **error,
 	EinaMprisPlayer *self)
 {
-	g_warning("%s.%s", interface_name, property_name);
+	// g_warning("%s.%s", interface_name, property_name);
 
 	if (g_str_equal("CanQuit", property_name) ||
 		g_str_equal("CanRaise", property_name))
@@ -680,7 +680,7 @@ root_set_property_cb (GDBusConnection *connection,
 	GError **error,
 	EinaMprisPlayer *self)
 {
-	g_warning("%s.%s", interface_name, property_name);
+	// g_warning("%s.%s", interface_name, property_name);
 	g_set_error (error,
 		     G_DBUS_ERROR,
 		     G_DBUS_ERROR_NOT_SUPPORTED,
@@ -701,7 +701,7 @@ player_method_call_cb(GDBusConnection *connection,
 			   EinaMprisPlayer *self)
 
 {
-	g_warning("%s.%s", interface_name, method_name);
+	// g_warning("%s.%s", interface_name, method_name);
 	LomoPlayer *lomo = eina_application_get_lomo(self->priv->app);
 
 	if (g_str_equal("PlayPause", method_name))
@@ -814,7 +814,7 @@ player_get_property_cb (GDBusConnection *connection,
 	GError **error,
 	EinaMprisPlayer *self)
 {
-	g_warning("%s.%s", interface_name, property_name);
+	// g_warning("%s.%s", interface_name, property_name);
 
 	// FIXME: Return error if there are invalid parameters
 
@@ -937,7 +937,7 @@ player_set_property_cb (GDBusConnection *connection,
 	GError **error,
 	EinaMprisPlayer *self)
 {
-	g_warning("%s.%s", interface_name, property_name);
+	// g_warning("%s.%s", interface_name, property_name);
 	
 	const gchar *props[] = { "LoopStatus", "Rate", "Shuffle", "Volume" };
 	for (guint i = 0; i < G_N_ELEMENTS(props); i++)

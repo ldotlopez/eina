@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 #include <lomo/lomo-player.h>
+#include <gel/gel-ui.h>
 
 G_BEGIN_DECLS
 
@@ -37,13 +38,13 @@ G_BEGIN_DECLS
 typedef struct _EinaSeekPrivate EinaSeekPrivate;
 typedef struct
 {
-	GtkScale parent;
+	GelUIScale parent;
 	EinaSeekPrivate *priv;
 } EinaSeek;
 
 typedef struct
 {
-	GtkScaleClass parent_class;
+	GelUIScaleClass parent_class;
 } EinaSeekClass;
 
 GType eina_seek_get_type (void);

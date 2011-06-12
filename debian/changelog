@@ -1,3 +1,9 @@
+eina-player (0.10.0.2-ppa1) natty; urgency=low
+
+  * New subrelease for debian/ubuntu
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sat, 11 Jun 2011 17:53:08 +0200
+
 eina-player (0.10.0-0ppa1) natty; urgency=low
 
   * Update for natty and gtk+-3

@@ -181,9 +181,7 @@ eina_preferences_tab_class_init (EinaPreferencesTabClass *klass)
 static void
 eina_preferences_tab_init (EinaPreferencesTab *self)
 {
-	EinaPreferencesTabPrivate *priv = GET_PRIVATE(self);
 	g_signal_connect(self, "realize", (GCallback) realize_cb, NULL);
-	if (0) priv = NULL;
 }
 
 EinaPreferencesTab*

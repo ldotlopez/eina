@@ -26,6 +26,7 @@
 #include <gel/gel-ui-generic.h>
 #include <gel/gel-ui-plugin-manager.h>
 #include <gel/gel-ui-utils.h>
+#include <gel/gel-ui-scale.h>
 
 #endif
 
