@@ -38,21 +38,47 @@ G_BEGIN_DECLS
 typedef struct _EinaActivatable          EinaActivatable; /* dummy typedef */
 typedef struct _EinaActivatableInterface EinaActivatableInterface;
 
-struct _EinaActivatableInterface {
-  GTypeInterface g_iface;
+enum {
+	EINA_ACTIVATABLE_UNKNOW_ERROR = 1,
+	EINA_ACTIVATABLE_INVALID_ARGS 
+};
 
-  /* Virtual public methods */
-  void (*activate)   (EinaActivatable *activatable, EinaApplication *application);
-  void (*deactivate) (EinaActivatable *activatable, EinaApplication *application);
+typedef struct _EinaActivatableInterfacePrivate EinaActivatableInterfacePrivate;
+struct _EinaActivatableInterface {
+	GTypeInterface g_iface;
+	EinaActivatableInterfacePrivate *priv;
+
+	/* Virtual public methods */
+	#ifdef EINA_ACTIVATABLE_SIMPLE_API
+	void (*activate)   (EinaActivatable *activatable, EinaApplication *application);
+	void (*deactivate) (EinaActivatable *activatable, EinaApplication *application);
+	#else
+	gboolean (*activate)   (EinaActivatable *activatable, EinaApplication *application, GError **error);
+	gboolean (*deactivate) (EinaActivatable *activatable, EinaApplication *application, GError **error);
+	#endif
 };
 
 /*
  * Public methods
  */
 GType eina_activatable_get_type   (void)  G_GNUC_CONST;
+
+#ifdef EINA_ACTIVATABLE_SIMPLE_API
 void  eina_activatable_activate   (EinaActivatable *activatable, EinaApplication *application);
 void  eina_activatable_deactivate (EinaActivatable *activatable, EinaApplication *application);
+#else
+gboolean eina_activatable_activate  (EinaActivatable *activatable, EinaApplication *application, GError **error);
+gboolean eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *application, GError **error);
 
+void     eina_activatable_set_data  (EinaActivatable *activatable, gpointer data);
+gpointer eina_activatable_get_data  (EinaActivatable *activatable);
+gpointer eina_activatable_steal_data(EinaActivatable *activatable);
+
+EinaApplication *eina_activatable_get_application(EinaActivatable *activatable);
+const gchar     *eina_activatable_get_data_dir(EinaActivatable *activatable);
+
+
+#endif
 G_END_DECLS
 
 #endif /* __EINA_ACTIVATABLE_H__ */

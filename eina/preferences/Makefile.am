@@ -14,10 +14,10 @@ libpreferences_la_SOURCES = \
 	$(include_HEADERS)        \
 	eina-preferences-dialog.c \
 	eina-preferences-tab.c    \
-	preferences.h             \
-	preferences.c
+	eina-preferences-plugin.h \
+	eina-preferences-plugin.c
 
-plugin_DATA = preferences.ini
+plugin_DATA = preferences.plugin
 EXTRA_DIST += $(plugin_DATA)
 
 -include $(top_srcdir)/git.mk

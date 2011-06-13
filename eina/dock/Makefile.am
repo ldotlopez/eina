@@ -11,7 +11,7 @@ includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/dock
 include_HEADERS = \
 	eina-dock.h     \
 	eina-dock-tab.h \
-	dock.h
+	eina-dock-plugin.h
 
 libdock_la_CFLAGS  = @EINA_CFLAGS@
 libdock_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
@@ -19,10 +19,10 @@ libdock_la_SOURCES =   \
 	$(include_HEADERS) \
 	eina-dock.c        \
 	eina-dock-tab.c    \
-	dock.c
+	eina-dock-plugin.c
 
-plugin_DATA = dock.ini
+plugin_DATA = dock.plugin
 
-EXTRA_DIST += dock.ini
+EXTRA_DIST += $(plugin_DATA)
 
 -include $(top_srcdir)/git.mk

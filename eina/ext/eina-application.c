@@ -144,7 +144,7 @@ eina_application_init (EinaApplication *self)
 		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
 }
 
-/*
+/**
  * eina_application_new:
  * @application_id: ID for the application see gtk_application_new()
  *
@@ -161,39 +161,39 @@ eina_application_new (const gchar *application_id)
 		NULL);
 }
 
-/*
+/**
  * eina_application_get_argc:
- * @application: An #EinaApplication
+ * @self: An #EinaApplication
  * 
- * Gets argc for current @application. The returned pointer is owned by
+ * Gets argc for current @self. The returned pointer is owned by
  * @application
  *
  * Returns: (transfer none): argc
  */
 gint*
-eina_application_get_argc(EinaApplication *application)
+eina_application_get_argc(EinaApplication *self)
 {
-	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
 	return NULL;
 }
 
-/*
+/**
  * eina_application_get_argv:
- * @application: An #EinaApplication
+ * @self: An #EinaApplication
  *
- * Gets argv for current @application. The returned pointer is owned by
+ * Gets argv for current @self. The returned pointer is owned by
  * @application
  *
  * Returns: (transfer none): argv
  */
 gchar***
-eina_application_get_argv(EinaApplication *application)
+eina_application_get_argv(EinaApplication *self)
 {
-	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
 	return NULL;
 }
 
-/*
+/**
  * eina_application_set_interface:
  * @self: An #EinaApplication
  * @name: The inteface's name. Must be unique in @self
@@ -222,7 +222,7 @@ eina_application_set_interface(EinaApplication *self, const gchar *name, gpointe
 	return TRUE;
 }
 
-/*
+/**
  * eina_application_get_interface:
  * @self: An #EinaApplication
  * @name: The interface's name
@@ -243,7 +243,7 @@ eina_application_get_interface(EinaApplication *self, const gchar *name)
 	return interface;
 }
 
-/*
+/**
  * eina_application_steal_interface:
  * @self: An #EinaApplication
  * @name: The interface's name
@@ -269,7 +269,7 @@ eina_application_steal_interface(EinaApplication *self, const gchar *name)
 	return ret;
 }
 
-/*
+/**
  * eina_application_get_settings:
  *
  * @self: the #EinaApplication
@@ -298,7 +298,7 @@ eina_application_get_settings(EinaApplication *self, const gchar *domain)
 	return G_SETTINGS(ret);
 }
 
-/*
+/**
  * eina_application_get_window:
  *
  * @self: the #EinaApplication
@@ -314,7 +314,7 @@ eina_application_get_window(EinaApplication *self)
 	return EINA_WINDOW(self->priv->window);
 }
 
-/*
+/**
  * eina_application_get_window_ui_manager:
  *
  * @self: the #EinaApplication
@@ -329,7 +329,7 @@ eina_application_get_window_ui_manager(EinaApplication *self)
 	return GTK_UI_MANAGER(eina_window_get_ui_manager(self->priv->window));
 }
 
-/*
+/**
  * eina_application_get_window_action_group:
  * @self: the #EinaApplication
  *

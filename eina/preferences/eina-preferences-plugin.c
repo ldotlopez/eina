@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "preferences.h"
+#include "eina-preferences-plugin.h"
 
 struct  _EinaPreferences {
-	GelPlugin *plugin;
+	EinaActivatable *plugin;
 
 	EinaPreferencesDialog *dialog;
 	GList *tabs;
@@ -53,21 +53,23 @@ enum {
 	EINA_PREFERENCES_CANNOT_REGISTER_SHARED
 };
 
+EINA_DEFINE_EXTENSION(EinaPreferencesPlugin, eina_preferences_plugin, EINA_TYPE_PREFERENCES_PLUGIN)
+
 G_MODULE_EXPORT gboolean
-eina_preference_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_preferences_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
 	EinaPreferences *self = g_new0(EinaPreferences, 1);
 	self->plugin = plugin;
-	eina_activable_set_data(plugin, self);
+	eina_activatable_set_data(plugin, self);
 	eina_application_set_interface(app, "preferences", self);
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
-eina_preference_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_preferences_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
-	EinaPreferences *self = (EinaPreferences *) eina_activable_get_data(plugin);
+	EinaPreferences *self = (EinaPreferences *) eina_activatable_steal_data(plugin);
 
 	if (self->dialog)
 	{
@@ -167,7 +169,7 @@ preferences_attach_menu(EinaPreferences *self)
 		"</menubar>"
 		"</ui>";
 
-	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	EinaApplication *app = eina_activatable_get_application(self->plugin);
 	GtkUIManager *ui_manager = eina_application_get_window_ui_manager(app);
 
 	if (ui_manager == NULL)
@@ -192,7 +194,7 @@ preferences_attach_menu(EinaPreferences *self)
 static void
 preferences_deattach_menu(EinaPreferences *self)
 {
-	EinaApplication *app = eina_plugin_get_application(self->plugin);
+	EinaApplication *app = eina_activatable_get_application(self->plugin);
 	GtkUIManager *ui_manager = eina_application_get_window_ui_manager(app);
 	if (ui_manager == NULL)
 	{

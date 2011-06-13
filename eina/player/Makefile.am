@@ -9,7 +9,7 @@ include_HEADERS = \
 	eina-cover-image.h \
 	eina-seek.h        \
 	eina-player.h      \
-	player.h
+	eina-player-plugin.h
 
 libplayer_la_CFLAGS  = @EINA_CFLAGS@
 libplayer_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
@@ -19,9 +19,9 @@ libplayer_la_SOURCES = \
 	eina-cover-image.c \
 	eina-seek.c        \
 	eina-player.c      \
-	player.c
+	eina-player-plugin.c
 
-plugin_DATA = preferences.ui player.ini
+plugin_DATA = preferences.ui player.plugin
 
 eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
 	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask_png $<  > $@
@@ -40,6 +40,6 @@ eina_ui2h_ui = eina-player.ui
 eina_ui2h_name = __eina_player_ui_xml
 include $(top_srcdir)/build/Makefile.am.ui2h
 
-EXTRA_DIST += $(plugin_DATA) player.ini
+EXTRA_DIST += $(plugin_DATA)
 
 -include $(top_srcdir)/git.mk

@@ -1,5 +1,5 @@
 /*
- * eina/art/art.c
+ * eina/art/eina-art-plugin.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "art.h"
-#include <eina/eina-plugin.h>
-#include <eina/lomo/eina-lomo-plugin.h>
+#include "eina/art/eina-art-plugin.h"
 #include "eina-art-test-backends.h"
+#include <eina/ext/eina-extension.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 
 EinaArtBackend *null_backend, *infolder_backend;
 
@@ -107,8 +107,10 @@ all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaArt *art)
 	}
 }
 
-G_MODULE_EXPORT gboolean
-art_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
+EINA_DEFINE_EXTENSION(EinaArtPlugin, eina_art_plugin, EINA_TYPE_ART_PLUGIN)
+
+static gboolean
+eina_art_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
 	EinaArt *art = eina_art_new();
 
@@ -146,7 +148,7 @@ art_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 }
 
 G_MODULE_EXPORT gboolean
-art_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
+eina_art_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
 	EinaArt *art = eina_application_steal_interface(app, "art");
 	EinaArtClass *art_class = EINA_ART_CLASS(G_OBJECT_GET_CLASS(art));

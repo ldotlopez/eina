@@ -8,7 +8,7 @@ include_HEADERS = \
 	eina-art.h         \
 	eina-art-backend.h \
 	eina-art-search.h  \
-	art.h
+	eina-art-plugin.h
 
 libart_la_CFLAGS  = @EINA_CFLAGS@ -DART_DEBUG=0
 libart_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
@@ -19,10 +19,9 @@ libart_la_SOURCES = \
 	eina-art-search.c        \
 	eina-art-test-backends.h \
 	eina-art-test-backends.c \
-	art.c
+	eina-art-plugin.c
 
-plugin_DATA = art.ini
-EXTRA_DIST += art.ini
-
+plugin_DATA = art.plugin
+EXTRA_DIST += art.plugin
 
 -include $(top_srcdir)/git.mk

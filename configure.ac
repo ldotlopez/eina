@@ -30,6 +30,15 @@ EINA_CODENAME_0_9_2="Pagan poetry"        # Björk
 EINA_CODENAME_0_9_1="In muine we believe" #
 EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 
+EINA_URL="http://eina.sourceforge.net/"
+EINA_URL_HELP="http://eina.sourceforge.net/"
+EINA_ONELINE_COPYRIGHT="Copyright 2004-2011 Eina authors"
+EINA_AUTHORS="Eina authors"
+AC_SUBST(EINA_URL)
+AC_SUBST(EINA_URL_HELP)
+AC_SUBST(EINA_ONELINE_COPYRIGHT)
+AC_SUBST(EINA_AUTHORS)
+
 GEL_MAJOR=2
 GEL_MINOR=0
 GEL_MICRO=0
@@ -40,7 +49,6 @@ AC_SUBST(GEL_VERSION)
 AC_SUBST(GEL_MAJOR)
 AC_SUBST(GEL_MINOR)
 AC_SUBST(GEL_MICRO)
-
 LOMO_MAJOR=2
 LOMO_MINOR=0
 LOMO_MICRO=0
@@ -53,6 +61,7 @@ AC_SUBST(LOMO_MINOR)
 AC_SUBST(LOMO_MICRO)
 
 AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
+AC_DEFINE_UNQUOTED(EINA_URL, "$EINA_URL", [Eina URL])
 AC_DEFINE_UNQUOTED(EINA_API_VERSION,"$EINA_API_VERSION", [Eina API version])
 
 AC_SUBST(EINA_VERSION)
@@ -438,18 +447,23 @@ gel/Makefile
 eina/Makefile
 eina/ext/Makefile
 eina/adb/Makefile
+eina/art/art.plugin
 eina/art/Makefile
 eina/clutty/Makefile
 eina/dbus/Makefile
+eina/dock/dock.plugin
 eina/dock/Makefile
 eina/fieshta/Makefile
 eina/lastfm/Makefile
+eina/lomo/lomo.plugin
 eina/lomo/Makefile
 eina/mpris/Makefile
 eina/muine/Makefile
 eina/ntfy/Makefile
+eina/player/player.plugin
 eina/player/Makefile
 eina/playlist/Makefile
+eina/preferences/preferences.plugin
 eina/preferences/Makefile
 eina/statusicon/Makefile
 Makefile

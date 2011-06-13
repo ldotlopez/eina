@@ -1,0 +1,10 @@
+[Plugin]
+Module=art
+IAge=2
+Depends=lomo
+Name=Art plugin
+Description=Art plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@
