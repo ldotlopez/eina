@@ -206,7 +206,7 @@ eina_window_init (EinaWindow *self)
  *
  * Creates a new #EinaWindow
  *
- * Returns: The #EinaWindow
+ * Returns: (transfer full): The #EinaWindow
  */
 EinaWindow*
 eina_window_new (void)
@@ -215,10 +215,12 @@ eina_window_new (void)
 }
 
 /**
- * eina_window_get_window_ui_manager:
+ * eina_window_get_ui_manager:
  * @self: the #EinaWindow
  *
- * Returns: (transfer none): #GtkUIManager for default window of #EinaWindow
+ * Gets the #GtkUIManager for the main window
+ *
+ * Returns: (transfer none): A #GtkUIManager
  */
 GtkUIManager*
 eina_window_get_ui_manager(EinaWindow *self)
@@ -228,8 +230,10 @@ eina_window_get_ui_manager(EinaWindow *self)
 }
 
 /**
- * eina_window_get_window_action_group:
+ * eina_window_get_action_group:
  * @self: the #EinaWindow
+ *
+ * Gets the #GtkActionGroup for the main window
  *
  * Returns: (transfer none): #GtkActionGroup for default window of #EinaWindow
  */
@@ -241,7 +245,7 @@ eina_window_get_action_group(EinaWindow *self)
 }
 
 /**
- * eina_window_set_persistant
+ * eina_window_set_persistant:
  * @self: An #EinaWindow
  * @persistant: Value for the 'persistant' property
  *
@@ -271,7 +275,7 @@ eina_window_set_persistant(EinaWindow *self, gboolean persistant)
 }
 
 /**
- * eina_window_get_persistant
+ * eina_window_get_persistant:
  * @self: An #EinaWindow
  *
  * Gets the ::persistant property

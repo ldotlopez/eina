@@ -46,6 +46,20 @@
 
 G_DEFINE_INTERFACE(EinaActivatable, eina_activatable, G_TYPE_OBJECT)
 
+/**
+ * eina_activatable_get_iface:
+ * @object: A #GObject
+ *
+ * Gets the #EinaActivatableInterface from @object
+ *
+ * Returns: (transfer none): The #EinaActivatableInterface
+ */
+EinaActivatableInterface*
+eina_activatable_get_iface(GObject *object)
+{
+	return EINA_ACTIVATABLE_GET_IFACE(object);
+}
+
 void
 eina_activatable_default_init (EinaActivatableInterface *iface)
 {

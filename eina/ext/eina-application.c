@@ -222,7 +222,7 @@ eina_application_set_interface(EinaApplication *self, const gchar *name, gpointe
 	return TRUE;
 }
 
-/*
+/**
  * eina_application_get_interface:
  * @self: An #EinaApplication
  * @name: The interface's name
@@ -243,7 +243,7 @@ eina_application_get_interface(EinaApplication *self, const gchar *name)
 	return interface;
 }
 
-/*
+/**
  * eina_application_steal_interface:
  * @self: An #EinaApplication
  * @name: The interface's name
@@ -252,7 +252,7 @@ eina_application_get_interface(EinaApplication *self, const gchar *name)
  * of eina_application_get_interface(self, name)
  * and eina_application_set_interface(self, name, NULL)
  *
- * Returns: (transfer none): The pointer to the interface
+ * Returns: (transfer full): The pointer to the interface
  */
 gpointer
 eina_application_steal_interface(EinaApplication *self, const gchar *name)
@@ -269,9 +269,8 @@ eina_application_steal_interface(EinaApplication *self, const gchar *name)
 	return ret;
 }
 
-/*
+/**
  * eina_application_get_settings:
- *
  * @self: the #EinaApplication
  * @domain: string representing a domain
  *
@@ -298,9 +297,8 @@ eina_application_get_settings(EinaApplication *self, const gchar *domain)
 	return G_SETTINGS(ret);
 }
 
-/*
+/**
  * eina_application_get_window:
- *
  * @self: the #EinaApplication
  *
  * Returns: (transfer none): Defaut window for #EinaApplication
@@ -314,9 +312,8 @@ eina_application_get_window(EinaApplication *self)
 	return EINA_WINDOW(self->priv->window);
 }
 
-/*
+/**
  * eina_application_get_window_ui_manager:
- *
  * @self: the #EinaApplication
  *
  * Returns: (transfer none): #GtkUIManager for default window of #EinaApplication
@@ -329,7 +326,7 @@ eina_application_get_window_ui_manager(EinaApplication *self)
 	return GTK_UI_MANAGER(eina_window_get_ui_manager(self->priv->window));
 }
 
-/*
+/**
  * eina_application_get_window_action_group:
  * @self: the #EinaApplication
  *

@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct {
 	GtkWindowClass parent_class;
-	gboolean (*action_activate) (EinaWindow *window, GtkAction *action);
+	gboolean (*action_activate) (EinaWindow *self, GtkAction *action);
 } EinaWindowClass;
 
 GType eina_window_get_type (void);
@@ -51,8 +51,8 @@ EinaWindow*   eina_window_new (void);
 GtkUIManager*   eina_window_get_ui_manager  (EinaWindow *self);
 GtkActionGroup* eina_window_get_action_group(EinaWindow *self);
 
-void     eina_window_set_persistant(EinaWindow *window, gboolean persistant);
-gboolean eina_window_get_persistant(EinaWindow *window);
+void     eina_window_set_persistant(EinaWindow *self, gboolean persistant);
+gboolean eina_window_get_persistant(EinaWindow *self);
 
 G_END_DECLS
 

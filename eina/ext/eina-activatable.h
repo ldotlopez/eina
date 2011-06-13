@@ -49,6 +49,9 @@ struct _EinaActivatableInterface {
 /*
  * Public methods
  */
+
+EinaActivatableInterface* eina_activatable_get_iface(GObject *object);
+
 GType eina_activatable_get_type   (void)  G_GNUC_CONST;
 void  eina_activatable_activate   (EinaActivatable *activatable, EinaApplication *application);
 void  eina_activatable_deactivate (EinaActivatable *activatable, EinaApplication *application);
