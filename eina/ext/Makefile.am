@@ -28,4 +28,37 @@ libeinaext_la_SOURCES = \
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 
+-include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = \
+	--warn-all \
+	--add-include-path=$(top_builddir)/lomo \
+	--add-include-path=$(top_builddir)/gel
+INTROSPECTION_COMPILER_ARGS = \
+	--includedir=$(top_builddir)/lomo \
+	--includedir=$(top_builddir)/gel
+
+if HAVE_INTROSPECTION
+introspection_sources = \
+	eina-application.c eina-application.h \
+	eina-activatable.c eina-activatable.h \
+	eina-window.c      eina-window.h
+
+Eina-0.12.gir: libeinaext.la
+Eina_0_12_gir_INCLUDES = Lomo-2.0 GelUI-2.0
+Eina_0_12_gir_CFLAGS = -I$(top_srcdir) $(INCLUDES)
+Eina_0_12_gir_LIBS = libeinaext.la
+Eina_0_12_gir_LDFLAGS = -llomo-2.0 -lgel-2.0 -lgel-ui-2.0
+Eina_0_12_gir_FILES = $(introspection_sources)
+INTROSPECTION_GIRS += Eina-0.12.gir
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+endif
+
 -include $(top_srcdir)/git.mk
