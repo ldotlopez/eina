@@ -115,8 +115,10 @@ extension_set_extension_added_cb(PeasExtensionSet *set,
 	PeasExtension    *exten,
 	EinaApplication  *application)
 {
-	eina_activatable_activate (EINA_ACTIVATABLE (exten), application);
+	peas_extension_call(exten, "activate", exten, application);
+	// eina_activatable_activate (EINA_ACTIVATABLE (exten), application);
 }
+
 static void
 extension_set_extension_removed_cb(PeasExtensionSet *set,
 	PeasPluginInfo   *info,
@@ -149,13 +151,28 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
 
+	g_irepository_prepend_search_path("./gel");
+	g_irepository_prepend_search_path("./lomo");
+	g_irepository_prepend_search_path("./eina/ext");
+
+	GError *er = NULL;
+	if(!g_irepository_require_private(g_irepository_get_default(),
+		"./eina/ext",
+		"Eina", "0.12",
+		G_IREPOSITORY_LOAD_FLAG_LAZY,
+		&er))
+	{
+		g_warning(N_("Unable to load typelib %s %s: %s"), "Eina", EINA_API_VERSION, er->message);
+		g_error_free(er);
+	}
+
 	PeasEngine *engine = peas_engine_get_default();
 	peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
 		
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	// gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
-	gchar  *req_plugins[] = { "lomo" };
+	gchar  *req_plugins[] = { "lomo", NULL };
 
 	//gchar **opt_plugins = g_settings_get_strv(
 	//		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
@@ -306,6 +323,7 @@ gint main(gint argc, gchar *argv[])
 	{
 		eina_fs_load_from_default_file_chooser(NULL);
 		eina_plugin_window_ui_manager_add_from_string(NULL, NULL);
+		eina_activatable_activate(NULL, NULL);
 	}
 
 	return status;
