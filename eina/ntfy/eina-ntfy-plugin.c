@@ -17,11 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ntfy.h"
+#include "eina-ntfy-plugin.h"
 #include <libnotify/notify.h>
-#include <eina/eina-plugin.h>
-#include <eina/lomo/lomo.h>
-#include <eina/art/art.h>
+#include <eina/lomo/eina-lomo-plugin.h>
+#include <eina/art/eina-art-plugin.h>
 
 #define HAVE_VOGON 0
 
@@ -29,10 +28,10 @@
 #define ACTION_NAME   "Notifications"
 #define ACTION_PATH   "/Main/PluginsPlaceholder/Notifications"
 
-struct _EinaNtfy {
-	GelPlugin      *plugin;
-	GSettings      *settings;
-	gboolean        enabled;
+typedef struct {
+	EinaApplication *app;
+	GSettings       *settings;
+	gboolean         enabled;
 
 	#if HAVE_VOGON
 	gboolean        vogon_enabled;
@@ -43,63 +42,58 @@ struct _EinaNtfy {
 	NotifyNotification *ntfy;
 	GtkStatusIcon      *status_icon;
 	LomoStream         *stream;
-};
-
-// Init/fini plugin
-gboolean
-ntfy_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error);
-gboolean
-ntfy_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error);
+} EinaNtfyData;
 
 // Mini API
 static gboolean
-ntfy_enable(EinaNtfy *self, GError **error);
+ntfy_enable(EinaNtfyData *self, GError **error);
 static void
-ntfy_disable(EinaNtfy *self);
+ntfy_disable(EinaNtfyData *self);
 #if HAVE_VOGON
 static gboolean
-vogon_enable(EinaNtfy *self);
+vogon_enable(EinaNtfyData *self);
 static gboolean
-vogon_disable(EinaNtfy *self);
+vogon_disable(EinaNtfyData *self);
 #endif
 
 static void
-ntfy_sync(EinaNtfy *self);
+ntfy_sync(EinaNtfyData *self);
 
 // Callback
 #if HAVE_VOGON
 static void
-engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self);
+engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfyData *self);
 static void
-engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self);
+engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfyData *self);
 static void
-action_activate_cb(GtkAction *action, EinaNtfy *self);
+action_activate_cb(GtkAction *action, EinaNtfyData *self);
 #endif
 
 static void
-stream_weak_ref_cb(EinaNtfy *self, GObject *_stream);
+stream_weak_ref_cb(EinaNtfyData *self, GObject *_stream);
 static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfy *self);
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfyData *self);
 static void
-lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfy *self);
+lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfyData *self);
 static void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self);
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfyData *self);
 static void
-stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfy *self);
+stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfyData *self);
 static void
-settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self);
+settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfyData *self);
 
 // ------------------
 // Init / fini plugin
 // ------------------
+EINA_DEFINE_EXTENSION(EinaNtfyPlugin, eina_ntfy_plugin, EINA_TYPE_NTFY_PLUGIN)
 
-G_MODULE_EXPORT gboolean
-ntfy_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
+static gboolean
+eina_ntfy_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaNtfy *self;
+	EinaNtfyData *self;
 
-	self = g_new0(EinaNtfy, 1);
-	self->plugin = plugin;
+	self = g_new0(EinaNtfyData, 1);
+	self->app = app;
 
 	// Enable if needed (by default on)
 	self->settings = eina_application_get_settings(app, EINA_NTFY_PREFERENCES_DOMAIN);
@@ -107,7 +101,7 @@ ntfy_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	{
 		if (!ntfy_enable(self, error))
 		{
-			ntfy_plugin_fini(app, plugin, NULL);
+			eina_ntfy_plugin_deactivate(activatable, app, NULL);
 			return FALSE;
 		}
 	}
@@ -124,14 +118,14 @@ ntfy_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	g_signal_connect(app, "plugin-fini", (GCallback) engine_plugin_init_cb, self);
 	#endif
 
-	gel_plugin_set_data(plugin, self);
+	eina_activatable_set_data(activatable, self);
 	return TRUE;
 }
 
-G_MODULE_EXPORT gboolean
-ntfy_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
+static gboolean
+eina_ntfy_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaNtfy *self = (EinaNtfy *) gel_plugin_steal_data(plugin);
+	EinaNtfyData *self = (EinaNtfyData *) eina_activatable_steal_data(activatable);
 
 	#if HAVE_VOGON
 	g_signal_handlers_disconnect_by_func(engine, engine_plugin_init_cb, self);
@@ -151,7 +145,7 @@ ntfy_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
 }
 
 static gboolean
-ntfy_enable(EinaNtfy *self, GError **error)
+ntfy_enable(EinaNtfyData *self, GError **error)
 {
 	if (self->enabled)
 		return TRUE;
@@ -168,7 +162,7 @@ ntfy_enable(EinaNtfy *self, GError **error)
 	#error "Unknow notify version"
 	#endif
 
-	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
+	LomoPlayer *lomo = eina_application_get_lomo(self->app);
 	g_signal_connect(lomo, "notify::state", (GCallback) lomo_state_notify_cb, self);
 	g_signal_connect(lomo, "change",   (GCallback) lomo_change_cb, self);
 	g_signal_connect(lomo, "all-tags", (GCallback) lomo_all_tags_cb, self);
@@ -177,13 +171,13 @@ ntfy_enable(EinaNtfy *self, GError **error)
 }
 
 static void
-ntfy_disable(EinaNtfy *self)
+ntfy_disable(EinaNtfyData *self)
 {
 	if (!self->enabled)
 		return;
 	self->enabled = FALSE;
 
-	LomoPlayer *lomo = eina_plugin_get_lomo(self->plugin);
+	LomoPlayer *lomo = eina_application_get_lomo(self->app);
 	g_signal_handlers_disconnect_by_func(lomo, (GCallback) lomo_state_notify_cb, self);
 	g_signal_handlers_disconnect_by_func(lomo, (GCallback) lomo_all_tags_cb, self);
 
@@ -201,7 +195,7 @@ ntfy_disable(EinaNtfy *self)
 
 #if HAVE_VOGON
 static gboolean
-vogon_enable(EinaNtfy *self)
+vogon_enable(EinaNtfyData *self)
 {
 	EinaVogon *vogon = EINA_OBJ_GET_VOGON(self);
 	g_return_val_if_fail(vogon != NULL, FALSE);
@@ -262,7 +256,7 @@ vogon_enable(EinaNtfy *self)
 }
 
 static gboolean
-vogon_disable(EinaNtfy *self)
+vogon_disable(EinaNtfyData *self)
 {
 	EinaVogon *vogon = EINA_OBJ_GET_VOGON(self);
 	g_return_val_if_fail(vogon != NULL, FALSE);
@@ -296,9 +290,9 @@ vogon_disable(EinaNtfy *self)
 
 // -------------
 static void
-ntfy_sync(EinaNtfy *self)
+ntfy_sync(EinaNtfyData *self)
 {
-	LomoPlayer *lomo     = eina_plugin_get_lomo(self->plugin);
+	LomoPlayer *lomo     = eina_application_get_lomo(self->app);
 	LomoStream *stream   = lomo_player_get_current_stream(lomo);
 
 	if (lomo_player_get_state(lomo) != LOMO_STATE_PLAY)
@@ -374,7 +368,7 @@ ntfy_sync_show:
 
 #if HAVE_VOGON
 static void
-engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self)
+engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfyData *self)
 {
 	if (!g_str_equal(gel_plugin_get_info(plugin)->name, "vogon"))
 		return;
@@ -382,7 +376,7 @@ engine_plugin_init_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self
 }
 
 static void
-engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self)
+engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfyData *self)
 {
 	if (!g_str_equal(gel_plugin_get_info(plugin)->name, "vogon"))
 		return;
@@ -391,13 +385,13 @@ engine_plugin_fini_cb(GelPluginEngine *engine, GelPlugin *plugin, EinaNtfy *self
 #endif
 
 static void
-stream_weak_ref_cb(EinaNtfy *self, GObject *_stream)
+stream_weak_ref_cb(EinaNtfyData *self, GObject *_stream)
 {
 	self->stream = NULL;
 }
 
 static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfy *self)
+lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfyData *self)
 {
 	if (self->stream)
 	{
@@ -408,7 +402,7 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaNtfy *self)
 }
 
 static void
-lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfy *self)
+lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfyData *self)
 {
 	if (!g_str_equal(pspec->name, "state"))
 		return;
@@ -417,7 +411,7 @@ lomo_state_notify_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaNtfy *self)
 }
 
 static void
-lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self)
+lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfyData *self)
 {
 	if (lomo_player_get_current_stream(lomo) != stream)
 		return;
@@ -425,7 +419,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaNtfy *self)
 }
 
 static void
-stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfy *self)
+stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfyData *self)
 {
 	g_return_if_fail(LOMO_IS_STREAM(stream));
 	g_return_if_fail(key);
@@ -437,7 +431,7 @@ stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfy *self)
 
 #if HAVE_VOGON
 static void
-action_activate_cb(GtkAction *action, EinaNtfy *self)
+action_activate_cb(GtkAction *action, EinaNtfyData *self)
 {
 	const gchar *name = gtk_action_get_name(action);
 	if (g_str_equal(ACTION_NAME, name))
@@ -459,7 +453,7 @@ action_activate_cb(GtkAction *action, EinaNtfy *self)
 #endif
 
 static void
-settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfy *self)
+settings_changed_cb(GSettings *settings, const gchar *key, EinaNtfyData *self)
 {
 	if (g_str_equal(key, EINA_NTFY_ENABLED_KEY))
 	{

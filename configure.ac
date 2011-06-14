@@ -468,6 +468,7 @@ eina/mpris/mpris.plugin
 eina/mpris/Makefile
 eina/muine/muine.plugin
 eina/muine/Makefile
+eina/ntfy/ntfy.plugin
 eina/ntfy/Makefile
 eina/player/player.plugin
 eina/player/Makefile

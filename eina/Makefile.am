@@ -25,9 +25,9 @@ if BUILD_CLUTTY
 SUBDIRS += clutty
 endif
 
-#if BUILD_NTFY
-#SUBDIRS += ntfy
-#endif
+if BUILD_NTFY
+SUBDIRS += ntfy
+endif
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
