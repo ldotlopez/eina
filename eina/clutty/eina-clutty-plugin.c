@@ -1,5 +1,5 @@
 /*
- * eina/clutty/clutty.c
+ * eina/clutty/eina-clutty-plugin.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,14 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/eina-plugin.h>
 #include "eina-cover-clutter.h"
-#include <eina/player/player.h>
+#include <eina/ext/eina-extension.h>
+#include <eina/player/eina-player-plugin.h>
 
 static GtkWidget *prev_render = NULL;
 
-G_MODULE_EXPORT gboolean
-clutty_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
+#define EINA_TYPE_CLUTTY_PLUGIN         (eina_clutty_plugin_get_type ())
+#define EINA_CLUTTY_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_CLUTTY_PLUGIN, EinaCluttyPlugin))
+#define EINA_CLUTTY_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_CLUTTY_PLUGIN, EinaCluttyPlugin))
+#define EINA_IS_CLUTTY_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_CLUTTY_PLUGIN))
+#define EINA_IS_CLUTTY_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_CLUTTY_PLUGIN))
+#define EINA_CLUTTY_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_CLUTTY_PLUGIN, EinaCluttyPluginClass))
+
+EINA_DEFINE_EXTENSION_HEADERS(EinaCluttyPlugin, eina_clutty_plugin)
+EINA_DEFINE_EXTENSION(EinaCluttyPlugin, eina_clutty_plugin, EINA_TYPE_CLUTTY_PLUGIN)
+
+static gboolean
+eina_clutty_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
 	EinaPlayer *player = eina_application_get_player(app);
 	EinaCover  *cover  = eina_player_get_cover_widget(player);
@@ -40,8 +50,8 @@ clutty_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	return TRUE;
 }
 
-G_MODULE_EXPORT gboolean
-clutty_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
+static gboolean
+eina_clutty_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
 	g_return_val_if_fail(GTK_IS_WIDGET(prev_render), TRUE);
 

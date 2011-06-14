@@ -21,9 +21,9 @@ SUBDIRS +=   \
 #	recently
 endif
 
-#if BUILD_CLUTTY
-#SUBDIRS += clutty
-#endif
+if BUILD_CLUTTY
+SUBDIRS += clutty
+endif
 
 #if BUILD_NTFY
 #SUBDIRS += ntfy

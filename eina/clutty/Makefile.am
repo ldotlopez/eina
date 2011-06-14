@@ -12,11 +12,9 @@ libclutty_la_LDFLAGS = @EINA_LIBS@ @CLUTTER_GTK_LIBS@ -module -avoid-version
 libclutty_la_SOURCES = \
 	$(include_HEADERS) \
 	eina-cover-clutter.c \
-	clutty.c
+	eina-clutty-plugin.c
 
-plugin_DATA = clutty.ini
-
-EXTRA_DIST += \
-	$(plugin_DATA)
+plugin_DATA = clutty.plugin
+EXTRA_DIST += $(plugin_DATA)
 
 -include $(top_srcdir)/git.mk
