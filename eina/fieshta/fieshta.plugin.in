@@ -1,0 +1,10 @@
+[Plugin]
+Module=fieshta
+IAge=2
+Depends=lomo
+Name=Fieshta plugin
+Description=Fieshta plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

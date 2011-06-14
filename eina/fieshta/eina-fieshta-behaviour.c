@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "eina-fiestha-behaviour.h"
+#include "eina-fieshta-behaviour.h"
 #include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaFieshtaBehaviour, eina_fieshta_behaviour, G_TYPE_OBJECT)
