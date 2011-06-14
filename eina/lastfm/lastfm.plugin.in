@@ -1,0 +1,10 @@
+[Plugin]
+Module=lastfm
+IAge=2
+Depends=lomo
+Name=LastFM plugin
+Description=LastFM plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

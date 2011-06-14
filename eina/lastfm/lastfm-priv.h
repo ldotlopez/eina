@@ -22,7 +22,7 @@
 
 #include <glib.h>
 #include <lomo/lomo-player.h>
-#include <eina/preferences/preferences.h>
+#include <eina/preferences/eina-preferences-plugin.h>
 
 #define LASTFM_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.lastfm"
 #define LASTFM_SUBMIT_ENABLED_KEY "submit-enabled"
@@ -47,7 +47,7 @@ typedef struct {
 	GSettings *settings;
 
 	guint config_update_id;
-} EinaLastFM;
+} EinaLastfmData;
 
 G_END_DECLS
 

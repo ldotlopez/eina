@@ -457,6 +457,7 @@ eina/dbus/Makefile
 eina/dock/dock.plugin
 eina/dock/Makefile
 eina/fieshta/Makefile
+eina/lastfm/lastfm.plugin
 eina/lastfm/Makefile
 eina/lomo/lomo.plugin
 eina/lomo/Makefile

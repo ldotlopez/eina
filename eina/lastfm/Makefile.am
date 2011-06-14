@@ -6,14 +6,13 @@ liblastfm_la_CFLAGS  = @EINA_CFLAGS@
 liblastfm_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 liblastfm_la_SOURCES = \
 	lastfm-priv.h \
-	lastfm.c
+	eina-lastfm-plugin.c
 
 plugin_DATA = \
-	lastfm.ini     \
+	lastfm.plugin  \
 	preferences.ui \
 	lastfm.png
-EXTRA_DIST += $(plugin_DATA) lastfm.ini
-
+EXTRA_DIST += $(plugin_DATA)
 
 lastfmsubmitddir = $(plugindir)/lastfmsubmitd
 lastfmsubmitd_DATA = \
@@ -41,5 +40,5 @@ EXTRA_DIST += \
 install-data-hook:
 	chmod +x $(DESTDIR)/$(plugindir)/lastfmsubmitd/lastfmsubmitd
 
-
 -include $(top_srcdir)/git.mk
+

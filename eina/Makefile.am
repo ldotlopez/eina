@@ -4,6 +4,7 @@ SUBDIRS = ext   \
 	art         \
 	dbus        \
 	dock        \
+	lastfm      \
 	lomo        \
 	mpris       \
 	player      \
@@ -11,7 +12,6 @@ SUBDIRS = ext   \
 	preferences \
 	pythonhello \
 	status-icon
-#lastfm      
 #fieshta     
 
 #if BUILD_ADB
