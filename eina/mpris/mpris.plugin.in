@@ -1,0 +1,10 @@
+[Plugin]
+Module=mpris
+IAge=2
+Depends=lomo
+Name=MPRIS plugin
+Description=MPRIS plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

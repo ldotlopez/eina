@@ -5,12 +5,12 @@ SUBDIRS = ext   \
 	dbus        \
 	dock        \
 	lomo        \
+	mpris       \
 	player      \
 	playlist    \
 	preferences \
 	pythonhello \
 	status-icon
-#mpris
 #lastfm      
 #fieshta     
 

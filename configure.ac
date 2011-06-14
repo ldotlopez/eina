@@ -460,6 +460,7 @@ eina/fieshta/Makefile
 eina/lastfm/Makefile
 eina/lomo/lomo.plugin
 eina/lomo/Makefile
+eina/mpris/mpris.plugin
 eina/mpris/Makefile
 eina/muine/Makefile
 eina/ntfy/Makefile

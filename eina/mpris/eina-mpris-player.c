@@ -18,11 +18,11 @@
  */
 
 #include "eina-mpris-player.h"
-#include <eina/lomo/lomo.h>
-#include <eina/ext/eina-window.h>
+#include "eina-mpris-player-spec.h"
 #include <gel/gel.h>
 #include <glib/gi18n.h>
-#include "eina-mpris-player-spec.h"
+#include <eina/ext/eina-window.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 
 G_DEFINE_TYPE (EinaMprisPlayer, eina_mpris_player, G_TYPE_OBJECT)
 
