@@ -452,6 +452,7 @@ eina/adb/Makefile
 eina/art/art.plugin
 eina/art/Makefile
 eina/clutty/Makefile
+eina/dbus/dbus.plugin
 eina/dbus/Makefile
 eina/dock/dock.plugin
 eina/dock/Makefile

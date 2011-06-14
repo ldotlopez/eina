@@ -1,5 +1,5 @@
 /*
- * eina/dbus/dbus.c
+ * eina/dbus/eina-dbus-plugin.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,8 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/eina-plugin.h>
+#include <eina/ext/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
+
+#define EINA_TYPE_DBUS_PLUGIN         (eina_dbus_plugin_get_type ())
+#define EINA_DBUS_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin))
+#define EINA_DBUS_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin))
+#define EINA_IS_DBUS_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_DBUS_PLUGIN))
+#define EINA_IS_DBUS_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_DBUS_PLUGIN))
+#define EINA_DBUS_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_DBUS_PLUGIN, EinaDBusPluginClass))
+
+EINA_DEFINE_EXTENSION_HEADERS(EinaDBusPlugin, eina_dbus_plugin)
 
 #define BUS_NAME  "org.gnome.SettingsDaemon"
 #define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"
@@ -28,15 +37,17 @@ typedef struct {
 	guint server_id;
 	EinaApplication *app;
 	GDBusProxy      *mmkeys_proxy;
-} DBusData;
+} EinaDBusData;
 
 static void
-proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, DBusData *data);
+proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusData *data);
 
-gboolean
-dbus_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
+EINA_DEFINE_EXTENSION(EinaDBusPlugin, eina_dbus_plugin, EINA_TYPE_DBUS_PLUGIN)
+
+static gboolean
+eina_dbus_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
-	DBusData *data = g_new0(DBusData, 1);
+	EinaDBusData *data = g_new0(EinaDBusData, 1);
 	data->app = app;
 	data->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
@@ -51,14 +62,14 @@ dbus_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	else
 		g_warn_if_fail(data->mmkeys_proxy!= NULL);
 
-	gel_plugin_set_data(plugin, data);
+	eina_activatable_set_data(plugin, data);
 	return TRUE;
 }
 
-gboolean
-dbus_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
+static gboolean
+eina_dbus_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
-	DBusData *data = (DBusData *) gel_plugin_steal_data(plugin);
+	EinaDBusData *data = (EinaDBusData *) eina_activatable_steal_data(plugin);
 	g_return_val_if_fail(data != NULL, FALSE);
 
 	gel_free_and_invalidate(data->mmkeys_proxy, NULL, g_object_unref);
@@ -66,7 +77,7 @@ dbus_plugin_fini(GelPluginEngine *engine, GelPlugin *plugin, GError **error)
 }
 
 static void
-proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, DBusData *data)
+proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusData *data)
 {
 	g_return_if_fail(g_str_equal("(ss)", (gchar *) g_variant_get_type(parameters)));
 

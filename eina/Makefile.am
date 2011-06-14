@@ -2,6 +2,7 @@ include $(top_srcdir)/build/Makefile.am.common
 
 SUBDIRS = ext   \
 	art         \
+	dbus        \
 	dock        \
 	lomo        \
 	player      \
@@ -9,25 +10,24 @@ SUBDIRS = ext   \
 	preferences \
 	pythonhello \
 	status-icon
-#dbus        \
 #mpris
 #lastfm      
 #fieshta     
 
-if BUILD_ADB
-SUBDIRS +=   \
-	adb      
+#if BUILD_ADB
+#SUBDIRS +=   \
+#	adb      
 #	muine
-endif
 #	recently
+#endif
 
-if BUILD_CLUTTY
-SUBDIRS += clutty
-endif
+#if BUILD_CLUTTY
+#SUBDIRS += clutty
+#endif
 
-if BUILD_NTFY
+#if BUILD_NTFY
 #SUBDIRS += ntfy
-endif
+#endif
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
