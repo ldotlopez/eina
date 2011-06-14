@@ -143,6 +143,14 @@ eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *appli
 	return ret;
 }
 
+/**
+ * eina_activatable_get_application:
+ * @activatable: An #EinaApplication
+ *
+ * Get application from @activatable
+ *
+ * Returns: (transfer none): An #EinaApplication
+ */
 EinaApplication*
 eina_activatable_get_application(EinaActivatable *activatable)
 {
@@ -151,6 +159,13 @@ eina_activatable_get_application(EinaActivatable *activatable)
 	return EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->application;
 }
 
+/**
+ * eina_activatable_set_data:
+ * @activatable: An #EinaActivatable
+ * @data: User data
+ *
+ * Attach userdata to @activatable
+ */
 void
 eina_activatable_set_data  (EinaActivatable *activatable, gpointer data)
 {
@@ -159,6 +174,14 @@ eina_activatable_set_data  (EinaActivatable *activatable, gpointer data)
 	EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->data = data;
 }
 
+/**
+ * eina_activatable_get_data:
+ * @activatable: An #EinaActivatable
+ *
+ * Get userdata from @activatable
+ *
+ * Returns: (transfer none): userdata
+ */
 gpointer
 eina_activatable_get_data  (EinaActivatable *activatable)
 {
@@ -167,6 +190,14 @@ eina_activatable_get_data  (EinaActivatable *activatable)
 	return EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->data;
 }
 
+/**
+ * eina_activatable_steal_data:
+ * @activatable: An #EinaActivatable
+ *
+ * Steal userdata from @activatable
+ *
+ * Returns: (transfer full): userdata
+ */
 gpointer
 eina_activatable_steal_data(EinaActivatable *activatable)
 {
@@ -179,6 +210,14 @@ eina_activatable_steal_data(EinaActivatable *activatable)
 	return ret;
 }
 
+/**
+ * eina_activatable_get_data_dir:
+ * @activatable: An #EinaActivatable
+ *
+ * Gets data-dir from @activatable
+ *
+ * Returns: The data-dir
+ */
 const gchar *
 eina_activatable_get_data_dir(EinaActivatable *activatable)
 {
