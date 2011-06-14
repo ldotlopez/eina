@@ -162,6 +162,16 @@ eina_application_new (const gchar *application_id)
 		NULL);
 }
 
+/**
+ * eina_application_launch_for_uri:
+ * @application: An #EinaApplication
+ * @uri: URI to open
+ * @error: Location for error
+ *
+ * Launches URI
+ *
+ * Returns: Successfull or not
+ */
 gboolean
 eina_application_launch_for_uri(EinaApplication *application, const gchar *uri, GError **error)
 {
