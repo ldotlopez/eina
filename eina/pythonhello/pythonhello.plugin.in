@@ -1,0 +1,10 @@
+[Plugin]
+Module=pythonhello
+Loader=python
+IAge=2
+Name=Python test
+Description=Test python plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

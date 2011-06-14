@@ -184,12 +184,13 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	}
 
 	PeasEngine *engine = peas_engine_get_default();
+	peas_engine_enable_loader (engine, "python");
 	peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
 		
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	// gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
-	gchar  *req_plugins[] = { "player", "playlist", "status-icon", NULL };
+	gchar  *req_plugins[] = { "player", "playlist", NULL };
 
 	//gchar **opt_plugins = g_settings_get_strv(
 	//		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),

@@ -7,6 +7,7 @@ SUBDIRS = ext   \
 	player      \
 	playlist    \
 	preferences \
+	pythonhello \
 	status-icon
 #dbus        \
 #mpris

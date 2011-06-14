@@ -15,6 +15,7 @@ LT_INIT
 AM_GLIB_GNU_GETTEXT
 AM_PROG_VALAC([0.10.0])
 GTK_DOC_CHECK(1.9)
+AM_PATH_PYTHON
 
 #
 # Package information
@@ -467,6 +468,8 @@ eina/playlist/playlist.plugin
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile
+eina/pythonhello/pythonhello.plugin
+eina/pythonhello/Makefile
 eina/status-icon/status-icon.plugin
 eina/status-icon/Makefile
 Makefile

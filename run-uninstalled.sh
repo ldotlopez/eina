@@ -30,7 +30,7 @@ export VACA_THEME_PATH="$EINA_UI_PATH"
 
 [ -e "$R" ] && rm -rf "$R"
 
-# Schemas
+
 if [ ! -z "$(which glib-compile-schemas)" ]; then
 	mkdir -p "$R/schemas"
 	for schema in $(find "$D/data" "$D/plugins" -name '*gschema.valid' | sed -e 's,.valid$,.xml,')
@@ -58,11 +58,12 @@ do
 	[ -f "$plugindir/$plugin.plugin" ] || continue
 
 	mkdir -p "$R/plugins/$plugin"
-	for ext in so ui png jpg gif ini plugin
+	for ext in so ui png jpg gif plugin py
 	do
 		for obj in $(find "$plugindir" -name "*.$ext")
 		do
 			[ "$ext" = "so" ] && echo "[*] Detected plugin $plugin"
+			[ "$obj" = "$plugin.py" ] && echo "[*] Detected plugin $plugin"
 			ln -s $obj "$R/plugins/$plugin"
 		done
 	done
