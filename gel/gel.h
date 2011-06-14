@@ -27,9 +27,6 @@
 #include <gel/gel-job-queue.h>
 #include <gel/gel-marshallers.h>
 #include <gel/gel-misc.h>
-#include <gel/gel-plugin.h>
-#include <gel/gel-plugin-engine.h>
-#include <gel/gel-plugin-info.h>
 #include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>
 

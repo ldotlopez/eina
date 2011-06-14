@@ -491,10 +491,65 @@ gel_resource_type_get_system_dir(GelResourceType type)
 	return ret;
 }
 
+GList *
+gel_resource_locate_list(GelResourceType type, gchar *resource)
+{
+	// Search precedence
+	// 1. Enviroment variables
+	// If enviroment variable is NULL:
+	//   2.1. User's dir based on GelPluginResourceType
+	//   2.2. System or plugin dir based on GelPluginResourceType
+	const gchar *searchpath = gel_resource_type_get_env(type);
+	if (searchpath)
+	{
+		gchar **searchpaths = g_strsplit(searchpath, G_SEARCHPATH_SEPARATOR_S, -1);
+	
+		GList *ret = NULL;
+		gint i = 0;
+		while (searchpaths[i] && searchpaths[i][0])
+		{
+			ret = g_list_append(ret, g_strconcat(searchpaths[i], G_DIR_SEPARATOR_S, resource, NULL));
+			i++;
+		}
+		g_strfreev(searchpaths);
+		return ret;
+	}
+
+	GList *ret = NULL;
+	gchar *userdir = gel_resource_type_get_user_dir(type);
+	if (userdir)
+	{
+		ret = g_list_prepend(ret, g_build_filename(userdir, resource, NULL));
+		g_free(userdir);
+	}
+
+	gchar *systemdir = gel_resource_type_get_system_dir(type);
+	if (systemdir)
+	{
+		ret = g_list_prepend(ret, g_build_filename(systemdir, resource, NULL));
+		g_free(systemdir);
+	}
+
+	return g_list_reverse(ret);
+}
+
 gchar *
 gel_resource_locate(GelResourceType type, gchar *resource)
 {
-	return gel_plugin_get_resource((GelPlugin *) 0x1, type, resource);
+	GList *candidates = gel_resource_locate_list(type, resource);
+	GList *iter = candidates;
+	gchar *ret = NULL;
+	while (iter)
+	{
+		if (g_file_test((gchar *) iter->data, G_FILE_TEST_IS_REGULAR))
+		{
+			ret = g_strdup((gchar *) iter->data);
+			break;
+		}
+		iter = iter->next;
+	}
+	gel_list_deep_free(candidates, g_free);
+	return ret;
 }
 
 // --

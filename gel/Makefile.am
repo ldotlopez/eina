@@ -17,9 +17,6 @@ libgel_include_HEADERS = \
 	gel-string.h            \
 	gel-str-parser.h        \
 	gel-job-queue.h         \
-	gel-plugin.h            \
-	gel-plugin-engine.h     \
-	gel-plugin-info.h       \
 	gel-io.h                \
 	gel-io-scanner.h
 
@@ -28,7 +25,6 @@ libgel_ui_include_HEADERS = \
 	gel-ui.h                \
 	gel-ui-dialogs.h        \
 	gel-ui-generic.h        \
-	gel-ui-plugin-manager.h \
 	gel-ui-utils.h          \
 	gel-ui-scale.h
 
@@ -42,9 +38,6 @@ libgel_2_0_la_SOURCES = \
 	gel-str-parser.c          \
 	gel-job-queue.c           \
 	gel-marshallers.c         \
-	gel-plugin.c              \
-	gel-plugin-engine.c       \
-	gel-plugin-info.c         \
 	gel-io-scanner.c
 
 libgel_uidir = $(common_geldir)
@@ -52,18 +45,12 @@ libgel_ui_2_0_la_SOURCES = \
 	$(libgel_ui_include_HEADERS) \
 	gel-ui-dialogs.c             \
 	gel-ui-generic.c             \
-	gel-ui-plugin-manager.c      \
-	gel-ui-plugin-manager-ui.h   \
 	gel-ui-utils.c               \
 	gel-ui-scale.c
 
 glib_marshallers_list = gel-marshallers.list
 glib_marshallers_prefix = gel_marshal
 include $(top_srcdir)/build/Makefile.am.marshallers
-
-eina_ui2h_ui = gel-ui-plugin-manager.ui
-eina_ui2h_name = __gel_ui_plugin_manager_ui_xml
-include $(top_srcdir)/build/Makefile.am.ui2h
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =

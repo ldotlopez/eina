@@ -2,13 +2,13 @@ include $(top_srcdir)/build/Makefile.am.common
 
 SUBDIRS = ext   \
 	art         \
-	dbus        \
 	dock        \
 	lomo        \
 	player      \
 	playlist    \
 	preferences \
 	status-icon
+#dbus        \
 #mpris
 #lastfm      
 #fieshta     
@@ -38,11 +38,10 @@ eina_LDFLAGS = \
 	-lgel-@GEL_API_VERSION@ -lgel-ui-@GEL_API_VERSION@ -llomo-@LOMO_API_VERSION@
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
-include_HEADERS = \
-	eina-plugin.h
+include_HEADERS = 
+
 
 eina_SOURCES = \
-	eina-plugin.c \
 	eina.c
 
 -include $(INTROSPECTION_MAKEFILE)

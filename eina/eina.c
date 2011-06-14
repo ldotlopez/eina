@@ -189,7 +189,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	// gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
-	gchar  *req_plugins[] = { "player", "playlist", NULL };
+	gchar  *req_plugins[] = { "player", "playlist", "status-icon", NULL };
 
 	//gchar **opt_plugins = g_settings_get_strv(
 	//		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
