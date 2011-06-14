@@ -21,9 +21,9 @@ AM_PATH_PYTHON
 # Package information
 #
 GETTEXT_PACKAGE="eina"
-EINA_API_VERSION="0.10"
+EINA_API_VERSION="0.12"
 EINA_VERSION="0.11.0"
-EINA_CODENAME=""
+EINA_CODENAME="Dead bodies everywhere"    # git codename
 EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
 EINA_CODENAME_0_9_4="Trained"             # Najwa
 EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
@@ -33,10 +33,12 @@ EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 
 EINA_URL="http://eina.sourceforge.net/"
 EINA_URL_HELP="http://eina.sourceforge.net/"
+EINA_URL_BUGS="https://bugs.launchpad.net/eina"
 EINA_ONELINE_COPYRIGHT="Copyright 2004-2011 Eina authors"
 EINA_AUTHORS="Eina authors"
 AC_SUBST(EINA_URL)
 AC_SUBST(EINA_URL_HELP)
+AC_SUBST(EINA_URL_BUGS)
 AC_SUBST(EINA_ONELINE_COPYRIGHT)
 AC_SUBST(EINA_AUTHORS)
 
@@ -63,6 +65,8 @@ AC_SUBST(LOMO_MICRO)
 
 AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
 AC_DEFINE_UNQUOTED(EINA_URL, "$EINA_URL", [Eina URL])
+AC_DEFINE_UNQUOTED(EINA_URL_HELP, "$EINA_URL_HELP", [Eina help URL])
+AC_DEFINE_UNQUOTED(EINA_URL_BUGS, "$EINA_URL_BUGS", [Eina bugs URL])
 AC_DEFINE_UNQUOTED(EINA_API_VERSION,"$EINA_API_VERSION", [Eina API version])
 
 AC_SUBST(EINA_VERSION)

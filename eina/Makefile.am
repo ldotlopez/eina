@@ -71,10 +71,10 @@ Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c 
 INTROSPECTION_GIRS += Eina-0.12.gir
 
-girdir = $(datadir)/@PACKAGE@/gir-1.0
+girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
 
-typelibdir = $(libdir)/@PACKAGE@/girepository-1.0
+typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES += $(gir_DATA) $(typelib_DATA)

@@ -50,6 +50,8 @@ GType eina_application_get_type (void);
 
 EinaApplication* eina_application_new (const gchar *application_id);
 
+gboolean eina_application_launch_for_uri(EinaApplication *application, const gchar *uri, GError **error);
+
 gint*     eina_application_get_argc(EinaApplication *self);
 gchar***  eina_application_get_argv(EinaApplication *self);
 

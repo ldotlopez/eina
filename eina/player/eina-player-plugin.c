@@ -27,8 +27,6 @@
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
-#define BUGS_URI ""
-#define HELP_URI ""
 
 static void
 player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app);
@@ -275,10 +273,10 @@ action_activated_cb(GtkAction *action, EinaPlayer *player)
 		eina_fs_load_from_default_file_chooser(app);
 
 	else if (g_str_equal("help-action", name))
-		; // gel_ui_application_xdg_open(application, HELP_URL);
+		eina_application_launch_for_uri(app, EINA_URL_HELP, NULL);
 
 	else if (g_str_equal("bug-action", name))
-		; // gel_ui_application_xdg_open(application, BUG_URL);
+		eina_application_launch_for_uri(app, EINA_URL_BUGS, NULL);
 
 	else if (g_str_equal("about-action", name))
 		about_show(player);

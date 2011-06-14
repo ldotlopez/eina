@@ -21,6 +21,7 @@
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
+#include <gdk/gdk.h>
 #include <eina/ext/eina-window.h>
 
 G_DEFINE_TYPE (EinaApplication, eina_application, GTK_TYPE_APPLICATION)
@@ -160,6 +161,13 @@ eina_application_new (const gchar *application_id)
 		"flags", G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_HANDLES_OPEN,
 		NULL);
 }
+
+gboolean
+eina_application_launch_for_uri(EinaApplication *application, const gchar *uri, GError **error)
+{
+ 	return g_app_info_launch_default_for_uri(uri, NULL, error);
+}
+
 
 /**
  * eina_application_get_argc:
