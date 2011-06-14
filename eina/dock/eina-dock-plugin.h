@@ -1,5 +1,5 @@
 /*
- * eina/dock/dock.h
+ * eina/dock/eina-dock-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,12 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DOCK_H
-#define _DOCK_H
+#ifndef __EINA_DOCK_PLUGIN_H__
+#define __EINA_DOCK_PLUGIN_H__
 
 #include <eina/ext/eina-extension.h>
 #include <eina/dock/eina-dock.h>
 
+G_BEGIN_DECLS
+
+/**
+ * EinaExtension boilerplate code
+ */
 #define EINA_TYPE_DOCK_PLUGIN         (eina_dock_plugin_get_type ())
 #define EINA_DOCK_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))
 #define EINA_DOCK_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))
@@ -32,26 +37,31 @@
 
 EINA_DEFINE_EXTENSION_HEADERS(EinaDockPlugin, eina_dock_plugin)
 
-#define eina_application_get_dock(app) eina_application_get_interface(app, "dock")
-#define eina_plugin_get_dock(plugin)   eina_application_get_dock(eina_plugin_get_application(plugin))
+/**
+ * EinaApplication accessors and API
+ */
+EinaDock*
+eina_application_get_dock(EinaApplication *application);
 
+EinaDockTab*
+eina_application_add_dock_widget(EinaApplication *application, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+
+gboolean
+eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab);
+
+gboolean
+eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab);
+
+/**
+ * Preferences keys
+ */
 #define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
 #define EINA_DOCK_ORDER_KEY          "page-order"
 #define EINA_DOCK_EXPANDED_KEY       "expanded"
 #define EINA_DOCK_WINDOW_H_KEY       "window-height"
 #define EINA_DOCK_WINDOW_W_KEY       "window-width"
 
-EinaDockTab*
-eina_application_add_dock_widget(EinaApplication *application, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+G_END_DECLS
 
-EinaDockTab*
-eina_plugin_add_dock_widget(EinaActivatable *plugin, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
-
-gboolean
-eina_plugin_switch_dock_widget(EinaActivatable *plugin, EinaDockTab *tab);
-
-gboolean
-eina_plugin_remove_dock_widget(EinaActivatable *plugin, EinaDockTab *tab);
-
-#endif
+#endif // __EINA_DOCK_PLUGIN_H__
 

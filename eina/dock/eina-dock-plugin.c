@@ -27,13 +27,6 @@ typedef struct {
 	gboolean delayed_open;
 } DockPlugin;
 
-EinaDockTab*
-eina_plugin_add_dock_widget(EinaActivatable *plugin, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
-gboolean
-eina_plugin_switch_dock_widget(EinaActivatable *plugin, EinaDockTab *tab);
-gboolean
-eina_plugin_remove_dock_widget(EinaActivatable *plugin, EinaDockTab *tab);
-
 static void
 dock_widget_add_cb(EinaDock *dock, const gchar *name, DockPlugin *plugin);
 static void
@@ -100,6 +93,19 @@ eina_dock_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GErro
 	return TRUE;
 }
 
+/**
+ * eina_application_get_dock:
+ * @application: An #EinaApplication
+ *
+ * Gets the #EinaDock from #EinaApplication
+ *
+ * Returns: (transfer none): The #EinaDock
+ */ 
+EinaDock *eina_application_get_dock(EinaApplication *application)
+{
+	return (EinaDock *) eina_application_get_interface(application, "dock");
+}
+
 /*
  * Internal API
  */
@@ -131,8 +137,17 @@ restore_size(DockPlugin *plugin)
 		g_settings_get_int(plugin->settings, EINA_DOCK_WINDOW_H_KEY));
 }
 
-/*
- * Plugin API
+/**
+ * eina_application_add_dock_widget:
+ * @application: An #EinaApplication
+ * @id: Unique ID to identify the widget
+ * @widget: Widget to add
+ * @label: Widget to use as label
+ * @flags: Flags
+ *
+ * Adds the @widget into the application's docks
+ *
+ * Returns: (transfer none): The #EinaDockTab
  */
 EinaDockTab*
 eina_application_add_dock_widget(EinaApplication *application, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags)
@@ -143,42 +158,22 @@ eina_application_add_dock_widget(EinaApplication *application, const gchar *id, 
 	return eina_dock_add_widget(dock, id, widget, label, flags);
 }
 
-EinaDockTab*
-eina_plugin_add_dock_widget(EinaActivatable *plugin, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags)
-{
-	return NULL;
-	/*
-	EinaDock *dock = eina_plugin_get_dock(plugin);
-	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
-
-	return eina_dock_add_widget(dock, id, widget, label, flags);
-	*/
-}
-
 gboolean
-eina_plugin_switch_dock_widget(EinaActivatable *plugin, EinaDockTab *tab)
+eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab)
 {
-	return FALSE;
-	/*
-	EinaDock *dock = eina_plugin_get_dock(plugin);
+	EinaDock *dock = eina_application_get_dock(application);
 	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
-	g_return_val_if_fail(EINA_IS_DOCK_TAB(tab), FALSE);
 
 	return eina_dock_switch_widget(dock, tab);
-	*/
 }
 
 gboolean
-eina_plugin_remove_dock_widget(EinaActivatable *plugin, EinaDockTab *tab)
+eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab)
 {
-	return FALSE;
-	/*
-	EinaDock *dock = eina_plugin_get_dock(plugin);
+	EinaDock *dock = eina_application_get_dock(application);
 	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);
-	g_return_val_if_fail(EINA_IS_DOCK_TAB(tab), FALSE);
 
 	return eina_dock_remove_widget(dock, tab);
-	*/
 }
 
 /*

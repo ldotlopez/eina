@@ -1,8 +1,9 @@
 [Plugin]
-Module=lomo
+Module=playlist
 IAge=2
-Name=Lomo plugin
-Description=Gateway to LomoPlayer
+Depends=lomo;dock
+Name=Playlist plugin
+Description=Playlist plugin
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@

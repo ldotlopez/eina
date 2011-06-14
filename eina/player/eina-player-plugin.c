@@ -1,5 +1,5 @@
 /*
- * eina/player/player.c
+ * eina/player/eina-player-plugin.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -20,9 +20,9 @@
 #include "eina-player-plugin.h"
 #include <eina/ext/eina-fs.h>
 #include <eina/ext/eina-stock.h>
-#include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/art/eina-art-plugin.h>
 #include <eina/dock/eina-dock-plugin.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
@@ -93,15 +93,7 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 		"hexpand", TRUE,
 		"vexpand", FALSE,
 		NULL);
-/*
-	gtk_box_pack_start (
-		(GtkBox *) eina_application_get_window_content_area(app),
-		player,
-		FALSE, FALSE, 0);
-	gtk_widget_show_all(player);
-*/
 
-	// dock_tab = eina_plugin_add_dock_widget(plugin, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
 	dock_tab = eina_application_add_dock_widget(app, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
 
 	// Attach menus
@@ -143,7 +135,7 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 static gboolean
 eina_player_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
-	GtkWidget *player = eina_application_get_player(app);
+	GtkWidget *player = GTK_WIDGET(eina_application_get_player(app));
 	if (!player || !EINA_IS_PLAYER(player))
 		g_warn_if_fail(EINA_IS_PLAYER(player));
 	else
@@ -163,6 +155,20 @@ eina_player_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GEr
 		eina_preferences_remove_tab(prefs, __prefs_tab);
 	}
 	return TRUE;
+}
+
+/**
+ * eina_application_get_player:
+ * @application: An #EinaApplication
+ *
+ * Get the #EinaPlayer object from the application
+ *
+ * Returns: (transfer none): The #EinaPlayer
+ */
+EinaPlayer*
+eina_application_get_player(EinaApplication *application)
+{
+	return eina_application_get_interface(application, "player");
 }
 
 static void

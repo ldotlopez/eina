@@ -24,7 +24,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <gel/gel.h>
-#include <lomo/lomo.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 #include <libpeas/peas.h>
 #include "eina/ext/eina-application.h"
 #include "eina/ext/eina-activatable.h"
@@ -189,7 +189,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	// gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
-	gchar  *req_plugins[] = { "player", NULL };
+	gchar  *req_plugins[] = { "player", "playlist", NULL };
 
 	//gchar **opt_plugins = g_settings_get_strv(
 	//		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
@@ -270,7 +270,7 @@ app_command_line_cb (GApplication *application, GApplicationCommandLine *command
 
 	g_application_activate(application);
 
-	LomoPlayer *lomo = LOMO_PLAYER(eina_application_get_lomo(EINA_APPLICATION(application)));
+	LomoPlayer *lomo = LOMO_PLAYER(eina_application_get_interface(EINA_APPLICATION(application), "lomo"));
 
 	if (opt_uris && !g_application_command_line_get_is_remote(command_line))
 		opt_clear = TRUE;

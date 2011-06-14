@@ -26,6 +26,9 @@
 
 G_BEGIN_DECLS
 
+/**
+ * EinaExtension boilerplate code
+ */
 #define EINA_TYPE_LOMO_PLUGIN         (eina_lomo_plugin_get_type ())
 #define EINA_LOMO_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
 #define EINA_LOMO_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
@@ -33,6 +36,30 @@ G_BEGIN_DECLS
 #define EINA_IS_LOMO_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_LOMO_PLUGIN))
 #define EINA_LOMO_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_LOMO_PLUGIN, EinaLomoPluginClass))
 
+EINA_DEFINE_EXTENSION_HEADERS(EinaLomoPlugin, eina_lomo_plugin)
+
+/**
+ * EinaLomoPluginError:
+ * @EINA_LOMO_PLUGIN_ERROR_CANNOT_CREATE_ENGINE: LomoPlayer engine cannot be created
+ * @EINA_LOMO_PLUGIN_ERROR_CANNOT_SET_SHARED: LomoPlayer engine cannot be inserted
+ *                                            into EinaApplication
+ * @EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE: LomoPlayer engine cannot be
+ *                                                destroyed
+ */
+typedef enum { 
+	EINA_LOMO_PLUGIN_ERROR_CANNOT_CREATE_ENGINE = 1,
+	EINA_LOMO_PLUGIN_ERROR_CANNOT_SET_SHARED, 
+	EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE 
+} EinaLomoPluginError; 
+
+/**
+ * EinaApplication accessors
+ */
+LomoPlayer* eina_application_get_lomo(EinaApplication *application);
+
+/**
+ * Preferences keys
+ */
 #define EINA_LOMO_PREFERENCES_DOMAIN  EINA_DOMAIN".preferences.lomo"
 #define EINA_LOMO_VOLUME_KEY          "volume"
 #define EINA_LOMO_MUTE_KEY            "mute"
@@ -40,27 +67,6 @@ G_BEGIN_DECLS
 #define EINA_LOMO_RANDOM_KEY          "random"
 #define EINA_LOMO_AUTO_PARSE_KEY      "auto-parse"
 #define EINA_LOMO_AUTO_PLAY_KEY       "auto-play"
-// #define EINA_LOMO_CURRENT_KEY    "current-stream"
-// #define EINA_LOMO_CURRENT_STREAM_KEY "current-stream"
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaLomoPlugin, eina_lomo_plugin)
-
-/**
- * EinaLomoError:
- * @EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE: LomoPlayer engine cannot be created
- * @EINA_LOMO_ERROR_CANNOT_SET_SHARED: LomoPlayer engine cannot be inserted
- *                                     into EinaApplication
- * @EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE: LomoPlayer engine cannot be
- *                                         destroyed
- */
-typedef enum { 
-	EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE = 1,
-	EINA_LOMO_ERROR_CANNOT_SET_SHARED, 
-	EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE 
-} EinaLomoError; 
-
-#define eina_application_get_lomo(app)  eina_application_get_interface(app,"lomo")
-#define eina_plugin_get_lomo(plugin)    eina_application_get_lomo(eina_plugin_get_application(plugin))
 
 G_END_DECLS
 

@@ -18,7 +18,7 @@
  */
 
 #include <eina/eina-plugin.h>
-#include <eina/lomo/lomo.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 #include "eina-fiestha-behaviour.h"
 
 typedef struct {

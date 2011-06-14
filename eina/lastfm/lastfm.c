@@ -20,7 +20,7 @@
 #define _POSIX_SOURCE
 
 #include <eina/eina-plugin.h>
-#include <eina/lomo/lomo.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 #include "lastfm-priv.h"
 #include <unistd.h>
 #include <sys/types.h>

@@ -25,6 +25,9 @@
 
 G_BEGIN_DECLS
 
+/**
+ * EinaExtension boilerplate code
+ */
 #define EINA_TYPE_ART_PLUGIN         (eina_art_plugin_get_type ())
 #define EINA_ART_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_ART_PLUGIN, EinaArtPlugin))
 #define EINA_ART_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_ART_PLUGIN, EinaArtPlugin))
@@ -34,10 +37,15 @@ G_BEGIN_DECLS
 
 EINA_DEFINE_EXTENSION_HEADERS(EinaArtPlugin, eina_art_plugin)
 
-#define eina_application_get_art(app) eina_art_new()
+/**
+ * EinaApplication accessors
+ */
+EinaArt *eina_application_get_art(EinaApplication *application);
 
-void eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream);
-
+/**
+ * API
+ */
+void         eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream);
 const gchar *eina_art_plugin_get_default_cover_path(void);
 const gchar *eina_art_plugin_get_default_cover_uri (void);
 const gchar *eina_art_plugin_get_loading_cover_path(void);

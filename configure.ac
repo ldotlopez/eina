@@ -462,6 +462,7 @@ eina/muine/Makefile
 eina/ntfy/Makefile
 eina/player/player.plugin
 eina/player/Makefile
+eina/playlist/playlist.plugin
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile

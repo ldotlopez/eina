@@ -19,13 +19,9 @@
 
 #include "eina/art/eina-art-plugin.h"
 #include "eina-art-test-backends.h"
-#include <eina/ext/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
-EinaArtBackend *null_backend, *infolder_backend;
-
-enum
-{
+enum {
 	DEFAULT_COVER_PATH,
 	LOADING_COVER_PATH,
 	DEFAULT_COVER_URI,
@@ -33,80 +29,17 @@ enum
 
 	COVER_N_STRINGS
 };
+
 static gchar *cover_strings[COVER_N_STRINGS] = { NULL };
+EinaArtBackend *null_backend, *infolder_backend;
 
-static void
-insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art);
-static void
-art_search_cb(EinaArtSearch *search, gpointer data);
+static void art_search_cb(EinaArtSearch *search, gpointer data);
+static void insert_cb    (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art);
+static void all_tags_cb  (LomoPlayer *lomo, LomoStream *stream, EinaArt *art);
 
-void
-eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream)
-{
-	EinaArtSearch *search = NULL;
-	if (lomo_stream_get_all_tags_flag(stream) && (search = eina_art_search(art, stream, art_search_cb, NULL)))
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[LOADING_COVER_URI], NULL);
-	else
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
-}
-
-const gchar *
-eina_art_plugin_get_default_cover_path()
-{
-	return cover_strings[DEFAULT_COVER_PATH];
-}
-
-const gchar *
-eina_art_plugin_get_default_cover_uri()
-{
-	return cover_strings[DEFAULT_COVER_URI];
-}
-
-const gchar *
-eina_art_plugin_get_loading_cover_path()
-{
-	return cover_strings[LOADING_COVER_PATH];
-}
-
-const gchar *
-eina_art_plugin_get_loading_cover_uri()
-{
-	return cover_strings[LOADING_COVER_URI];
-}
-
-static void
-art_search_cb(EinaArtSearch *search, gpointer data)
-{
-	const gchar *res = eina_art_search_get_result(search);
-	// g_warning(_("Search finished: %s"), res);
-	if (res)
-		lomo_stream_set_extended_metadata(eina_art_search_get_stream(search), "art-uri", (gpointer) g_strdup(res), g_free);
-	else
-		lomo_stream_set_extended_metadata(eina_art_search_get_stream(search), "art-uri", cover_strings[DEFAULT_COVER_URI] , NULL);
-}
-
-static void
-insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art)
-{
-	eina_art_plugin_init_stream(art, stream);
-}
-
-static void
-all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaArt *art)
-{
-	EinaArtSearch *search = eina_art_search(art, stream, art_search_cb, NULL);
-	if (search)
-	{
-		// g_warning(_("all-tags Search started: %p, setting loading cover"), search);
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[LOADING_COVER_URI], NULL);
-	}
-	else
-	{
-		// g_warning(_("alkl-tags Search doesnt started, set default cover"));
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
-	}
-}
-
+/**
+ * EinaExtension code
+ */
 EINA_DEFINE_EXTENSION(EinaArtPlugin, eina_art_plugin, EINA_TYPE_ART_PLUGIN)
 
 static gboolean
@@ -162,3 +95,92 @@ eina_art_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError
 
 	return TRUE;
 }
+
+/**
+ * eina_application_get_art:
+ * @application: An #EinaApplication
+ *
+ * Get an #EinaArt from #EinaApplication
+ *
+ * Returns: (transfer none): An #EinaArt
+ */
+EinaArt*
+eina_application_get_art(EinaApplication *application)
+{
+	static EinaArt *art = NULL;
+	if (!art)
+		art = eina_art_new();
+	return art;
+}
+
+void
+eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream)
+{
+	EinaArtSearch *search = NULL;
+	if (lomo_stream_get_all_tags_flag(stream) && (search = eina_art_search(art, stream, art_search_cb, NULL)))
+		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[LOADING_COVER_URI], NULL);
+	else
+		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
+}
+
+const gchar *
+eina_art_plugin_get_default_cover_path()
+{
+	return cover_strings[DEFAULT_COVER_PATH];
+}
+
+const gchar *
+eina_art_plugin_get_default_cover_uri()
+{
+	return cover_strings[DEFAULT_COVER_URI];
+}
+
+const gchar *
+eina_art_plugin_get_loading_cover_path()
+{
+	return cover_strings[LOADING_COVER_PATH];
+}
+
+const gchar *
+eina_art_plugin_get_loading_cover_uri()
+{
+	return cover_strings[LOADING_COVER_URI];
+}
+
+/**
+ * Callbacks
+ */
+static void
+art_search_cb(EinaArtSearch *search, gpointer data)
+{
+	const gchar *res = eina_art_search_get_result(search);
+	// g_warning(_("Search finished: %s"), res);
+	if (res)
+		lomo_stream_set_extended_metadata(eina_art_search_get_stream(search), "art-uri", (gpointer) g_strdup(res), g_free);
+	else
+		lomo_stream_set_extended_metadata(eina_art_search_get_stream(search), "art-uri", cover_strings[DEFAULT_COVER_URI] , NULL);
+}
+
+static void
+insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art)
+{
+	eina_art_plugin_init_stream(art, stream);
+}
+
+static void
+all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaArt *art)
+{
+	EinaArtSearch *search = eina_art_search(art, stream, art_search_cb, NULL);
+	if (search)
+	{
+		// g_warning(_("all-tags Search started: %p, setting loading cover"), search);
+		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[LOADING_COVER_URI], NULL);
+	}
+	else
+	{
+		// g_warning(_("alkl-tags Search doesnt started, set default cover"));
+		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
+	}
+}
+
+

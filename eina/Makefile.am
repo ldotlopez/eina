@@ -4,14 +4,14 @@ SUBDIRS = ext   \
 	art         \
 	dbus        \
 	dock        \
-	fieshta     \
-	lastfm      \
 	lomo        \
-	mpris       \
 	player      \
-	preferences \
-	statusicon
-#playlist    
+	playlist    \
+	preferences 
+#statusicon
+#mpris
+#lastfm      
+#fieshta     
 
 if BUILD_ADB
 SUBDIRS +=   \

@@ -55,7 +55,7 @@ IFS="
 for plugindir in $(find "$D/eina" -maxdepth 1 -type d | sort | tail -n +2  )
 do
 	plugin=$(basename -- "$plugindir")
-	[ -f "$plugindir/$plugin.ini" ] || continue
+	[ -f "$plugindir/$plugin.plugin" ] || continue
 
 	mkdir -p "$R/plugins/$plugin"
 	for ext in so ui png jpg gif ini plugin

@@ -1,5 +1,5 @@
 /*
- * eina/preferences/preferences.h
+ * eina/preferences/eina-preferences-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -25,6 +25,9 @@
 
 G_BEGIN_DECLS
 
+/**
+ * EinaExtension boilerplate code
+ */
 #define EINA_TYPE_PREFERENCES_PLUGIN         (eina_preferences_plugin_get_type ())
 #define EINA_PREFERENCES_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPlugin))
 #define EINA_PREFERENCES_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPlugin))
@@ -34,15 +37,28 @@ G_BEGIN_DECLS
 
 EINA_DEFINE_EXTENSION_HEADERS(EinaPreferencesPlugin, eina_preferences_plugin)
 
+/**
+ * EinaApplication accessors
+ */
 typedef struct _EinaPreferences EinaPreferences;
 
-#define eina_application_get_preferences(engine) ((EinaPreferences *) eina_application_get_interface(engine, "preferences"))
-
+EinaPreferences *
+eina_application_get_preferences(EinaApplication *application);
 void
-eina_preferences_add_tab(EinaPreferences *self, EinaPreferencesTab *tab);
-
+eina_application_add_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab);
 void
-eina_preferences_remove_tab(EinaPreferences *self, EinaPreferencesTab *tab);
+eina_application_remove_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab);
+
+/**
+ * EinaPrefences API
+ */
+void
+eina_preferences_add_tab (EinaPreferences *prefences, EinaPreferencesTab *tab);
+void
+eina_preferences_remove_tab(EinaPreferences *prefences, EinaPreferencesTab *tab);
+
+
+
 
 G_END_DECLS
 

@@ -27,8 +27,7 @@ typedef struct {
 	GList *handlers;
 } LomoEventHandlerGroup;
 
-static void
-lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data);
+static void lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data);
 
 static gboolean
 eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *application, GError **error)
@@ -41,14 +40,14 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 	if ((lomo = lomo_player_new("audio-output", "autoaudiosink", NULL)) == NULL)
 	{
 		g_set_error(error, eina_lomo_plugin_quark(),
-			EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
+			EINA_LOMO_PLUGIN_ERROR_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
 		return FALSE;
 	}
 
 	if (!eina_application_set_interface(application, "lomo", lomo))
 	{
 		g_set_error(error, eina_lomo_plugin_quark(),
-			EINA_LOMO_ERROR_CANNOT_SET_SHARED, N_("Cannot share engine"));
+			EINA_LOMO_PLUGIN_ERROR_CANNOT_SET_SHARED, N_("Cannot share engine"));
 		g_object_unref(lomo);
 		return FALSE;
 	}
@@ -84,7 +83,7 @@ eina_lomo_plugin_deactivate (EinaActivatable *activatable, EinaApplication *appl
 	if (!lomo)
 	{
 		g_set_error(error, eina_lomo_plugin_quark(),
-			EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
+			EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
 
@@ -120,6 +119,23 @@ eina_lomo_plugin_deactivate (EinaActivatable *activatable, EinaApplication *appl
 	return TRUE;
 }
 
+/**
+ * eina_application_get_lomo:
+ * @application: An #EinaApplication
+ *
+ * Gets the #LomoPlayer object from an #EinaApplication
+ *
+ * Returns: (transfer none): A #LomoPlayer
+ */
+LomoPlayer*
+eina_application_get_lomo(EinaApplication *application)
+{
+	return LOMO_PLAYER(eina_application_get_interface(application, "lomo"));
+}
+
+/**
+ * Callbacks
+ */
 static void
 lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data)
 {

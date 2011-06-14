@@ -1,5 +1,5 @@
 /*
- * eina/player/player.h
+ * eina/player/eina-player-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,12 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PLAYER_H
-#define _PLAYER_H
+#ifndef __EINA_PLAYER_PLUGIN_H__
+#define __EINA_PLAYER_PLUGIN_H__
 
 #include <eina/ext/eina-extension.h>
 #include <eina/player/eina-player.h>
 
+G_BEGIN_DECLS
+
+/**
+ * EinaExtension boilerplate code
+ */
 #define EINA_TYPE_PLAYER_PLUGIN         (eina_player_plugin_get_type ())
 #define EINA_PLAYER_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
 #define EINA_PLAYER_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
@@ -32,8 +37,12 @@
 
 EINA_DEFINE_EXTENSION_HEADERS(EinaPlayerPlugin, eina_player_plugin)
 
-#define eina_application_get_player(app) eina_application_get_interface(app, "player")
-#define eina_plugin_get_player(plugin)   eina_application_get_player(eina_plugin_get_application(plugin))
+/**
+ * EinaApplication accessors
+ */
+EinaPlayer *eina_application_get_player(EinaApplication *application);
 
-#endif
+G_END_DECLS
+
+#endif // __EINA_PLAYER_PLUGIN_H__
 

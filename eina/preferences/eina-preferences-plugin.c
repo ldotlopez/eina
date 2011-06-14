@@ -1,5 +1,5 @@
 /*
- * eina/preferences/preferences.c
+ * eina/preferences/eina-preferences-plugin.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -19,7 +19,7 @@
 
 #include "eina-preferences-plugin.h"
 
-struct  _EinaPreferences {
+struct _EinaPreferences {
 	EinaActivatable *plugin;
 
 	EinaPreferencesDialog *dialog;
@@ -83,7 +83,7 @@ eina_preferences_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app
 		GList *iter = self->tabs;
 		while (iter)
 		{
-			eina_preferences_remove_tab(self, EINA_PREFERENCES_TAB(iter->data));
+			eina_application_remove_preferences_tab(app, EINA_PREFERENCES_TAB(iter->data));
 			iter = self->tabs;
 		}
 		g_list_free(self->tabs);
@@ -94,6 +94,36 @@ eina_preferences_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app
 
 	g_free(self);
 	return TRUE;
+}
+
+EinaPreferences *
+eina_application_get_preferences(EinaApplication *application)
+{
+	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	return eina_application_get_interface(application, "preferences");
+}
+
+
+void
+eina_application_add_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(application));
+
+	EinaPreferences *preferences = eina_application_get_preferences(application);
+	g_return_if_fail(preferences != NULL);
+
+	eina_preferences_add_tab(preferences, tab);
+}
+
+void
+eina_application_remove_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(application));
+
+	EinaPreferences *preferences = eina_application_get_preferences(application);
+	g_return_if_fail(preferences != NULL);
+
+	eina_preferences_remove_tab(preferences, tab);
 }
 
 void
