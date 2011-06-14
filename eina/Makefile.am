@@ -14,12 +14,12 @@ SUBDIRS = ext   \
 	pythonhello \
 	status-icon
 
-#if BUILD_ADB
-#SUBDIRS +=   \
-#	adb      
-#	muine
+if BUILD_ADB
+SUBDIRS +=   \
+	adb      \
+	muine
 #	recently
-#endif
+endif
 
 #if BUILD_CLUTTY
 #SUBDIRS += clutty

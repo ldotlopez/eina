@@ -1,5 +1,5 @@
 /*
- * eina/adb/adb.c
+ * eina/adb/eina-adb-plugin.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,18 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include "adb.h"
-#include <eina/lomo/lomo.h>
+#include "eina-adb-plugin.h"
 #include "register.h"
+#include <eina/lomo/eina-lomo-plugin.h>
 
-GEL_DEFINE_QUARK_FUNC(adb)
+GEL_DEFINE_QUARK_FUNC(eina_adb_plugin)
+EINA_DEFINE_EXTENSION(EinaAdbPlugin, eina_adb_plugin, EINA_TYPE_ADB_PLUGIN)
 
-G_MODULE_EXPORT gboolean
-adb_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
+static gboolean
+eina_adb_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
 	EinaAdb *adb = eina_adb_new();
 
@@ -44,7 +41,8 @@ adb_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	gboolean ret;
 	if (!(ret = eina_adb_set_db_file(adb, db_path)))
 	{
-		g_set_error(error, adb_quark(), 1, N_("Error setting database '%s'"), db_path);
+		g_set_error(error, eina_adb_plugin_quark(),
+			EINA_ADB_PLUGIN_ERROR_UNABLE_TO_SET_DB_FILE, N_("Error setting database '%s'"), db_path);
 		g_free(db_path);
 		g_object_unref(adb);
 		return FALSE;
@@ -54,8 +52,8 @@ adb_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	// Register into App
 	if (!eina_application_set_interface(app, "adb", adb))
 	{
-		g_set_error(error, adb_quark(), 1,
-			N_("Cannot register ADB interface"));
+		g_set_error(error, eina_adb_plugin_quark(), 
+		            EINA_ADB_PLUGIN_ERROR_CANNOT_REGISTER_INTERFACE, N_("Cannot register ADB interface"));
 		g_object_unref(adb);
 		return FALSE;
 	}
@@ -65,15 +63,30 @@ adb_plugin_init(EinaApplication *app, GelPlugin *plugin, GError **error)
 	return ret;
 }
 
-G_MODULE_EXPORT gboolean
-adb_plugin_fini(EinaApplication *app, GelPlugin *plugin, GError **error)
+static gboolean
+eina_adb_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaAdb *adb = eina_application_get_interface(app, "adb");
-	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
+	EinaAdb    *adb  = eina_application_get_adb (app);
+	LomoPlayer *lomo = eina_application_get_lomo(app);
 
 	adb_register_stop(adb, lomo);
 	g_object_unref(adb);
 
 	return TRUE;
+}
+
+/**
+ * eina_application_get_adb:
+ * @application: An #EinaApplication
+ *
+ * Get the #EinaAdb object from @application
+ *
+ * Returns: (transfer none): The #EinaAdb
+ */
+EinaAdb*
+eina_application_get_adb(EinaApplication *application)
+{
+	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	return eina_application_get_interface(application, "adb");
 }
 

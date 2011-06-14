@@ -448,6 +448,7 @@ icons/hicolor/Makefile
 gel/Makefile
 eina/Makefile
 eina/ext/Makefile
+eina/adb/adb.plugin
 eina/adb/Makefile
 eina/art/art.plugin
 eina/art/Makefile
@@ -464,6 +465,7 @@ eina/lomo/lomo.plugin
 eina/lomo/Makefile
 eina/mpris/mpris.plugin
 eina/mpris/Makefile
+eina/muine/muine.plugin
 eina/muine/Makefile
 eina/ntfy/Makefile
 eina/player/player.plugin

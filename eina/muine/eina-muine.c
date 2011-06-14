@@ -22,7 +22,7 @@
 #include "eina-muine-ui.h"
 
 #include <glib/gi18n.h>
-#include <eina/art/art.h>
+#include <eina/art/eina-art-plugin.h>
 
 G_DEFINE_TYPE (EinaMuine, eina_muine, GEL_UI_TYPE_GENERIC)
 

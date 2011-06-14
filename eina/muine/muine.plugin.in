@@ -1,0 +1,10 @@
+[Plugin]
+Module=muine
+IAge=2
+Depends=adb;lomo;art
+Name=Muine plugin
+Description=Muine plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

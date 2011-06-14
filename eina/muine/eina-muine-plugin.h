@@ -1,5 +1,5 @@
 /*
- * eina/muine/muine.h
+ * eina/muine/eina-muine-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,14 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MUINE
-#define _MUINE
+#ifndef __EINA_MUINE_PLUGIN_H__
+#define __EINA_MUINE_PLUGIN_H__
 
-#include <eina/eina-plugin.h>
 #include <eina/muine/eina-muine.h>
 
-#define EINA_MUINE_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.muine"
-#define EINA_MUINE_GROUP_BY_KEY "group-by"
+#define EINA_MUINE_PREFERENCES_DOMAIN  EINA_DOMAIN".preferences.muine"
+#define EINA_MUINE_GROUP_BY_KEY        "group-by"
 
-#endif
+#endif // __EINA_MUINE_PLUGIN_H__
 
