@@ -1,6 +1,7 @@
 [Plugin]
 Module=preferences
 IAge=2
+Hidden=1
 Name=Preferences plugin
 Description=Preferences plugin
 Authors=@EINA_AUTHORS@

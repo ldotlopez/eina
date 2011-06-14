@@ -1,6 +1,7 @@
 [Plugin]
 Module=playlist
 IAge=2
+Hidden=1
 Depends=lomo;dock
 Name=Playlist plugin
 Description=Playlist plugin

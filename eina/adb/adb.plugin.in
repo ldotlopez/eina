@@ -1,6 +1,7 @@
 [Plugin]
 Module=adb
 IAge=2
+Hidden=1
 Depends=lomo
 Name=ADB plugin
 Description=ADB plugin

@@ -1,6 +1,7 @@
 [Plugin]
 Module=art
 IAge=2
+Hidden=1
 Depends=lomo
 Name=Art plugin
 Description=Art plugin

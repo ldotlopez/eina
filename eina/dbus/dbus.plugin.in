@@ -1,6 +1,7 @@
 [Plugin]
 Module=dbus
 IAge=2
+Hidden=1
 Depends=lomo
 Name=DBus plugin
 Description=Player plugin

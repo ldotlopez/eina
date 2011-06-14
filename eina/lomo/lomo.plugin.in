@@ -1,6 +1,7 @@
 [Plugin]
 Module=lomo
 IAge=2
+Hidden=1
 Name=Lomo plugin
 Description=Gateway to LomoPlayer
 Authors=@EINA_AUTHORS@
