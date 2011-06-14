@@ -11,7 +11,7 @@ R="$D/tools/run"
 # Setup path for libs
 unset GTK_MODULES
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$D/eina/ext/.libs:$LD_LIBRARY_PATH"
-export GI_TYPELIB_PATH="$D/lomo:$D/gel:$GI_TYPELIB_PATH"
+export GI_TYPELIB_PATH="$D/lomo:$D/gel:$D/eina:$GI_TYPELIB_PATH"
 export EINA_TYPELIB_DIR="$D/eina"
 
 # Resource handling (gel-related)
