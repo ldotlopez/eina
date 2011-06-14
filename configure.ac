@@ -466,7 +466,8 @@ eina/playlist/playlist.plugin
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile
-eina/statusicon/Makefile
+eina/status-icon/status-icon.plugin
+eina/status-icon/Makefile
 Makefile
 lomo/Makefile
 pixmaps/Makefile

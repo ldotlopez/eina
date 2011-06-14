@@ -7,8 +7,8 @@ SUBDIRS = ext   \
 	lomo        \
 	player      \
 	playlist    \
-	preferences 
-#statusicon
+	preferences \
+	status-icon
 #mpris
 #lastfm      
 #fieshta     

@@ -10,7 +10,6 @@
 #include <libpeas/peas.h>
 #include <eina/ext/eina-activatable.h>
 
-#if 1
 #define EINA_DEFINE_EXTENSION_HEADERS(TypeName,type_name) \
 	typedef struct _##TypeName        TypeName;        \
 	typedef struct _##TypeName##Class TypeName##Class; \
@@ -18,7 +17,6 @@
 	struct _##TypeName##Class { PeasExtensionBaseClass parent_class;    }; \
 	GType                 type_name##_get_type (void) G_GNUC_CONST;        \
 	G_MODULE_EXPORT void  peas_register_types  (PeasObjectModule *module);
-#endif
 
 #define EINA_DEFINE_EXTENSION(TypeName,type_name,_G_TYPE_NAME) \
 	\
