@@ -236,6 +236,7 @@ gst_modules="\
 	"
 peas_modules="\
 	libpeas-$PEAS_API_VERSION >= $PEAS_VERSION \
+	libpeas-gtk-$PEAS_API_VERSION >= $PEAS_VERSION \
 	"
 PKG_CHECK_MODULES(GLIB, $glib_modules)
 PKG_CHECK_MODULES(GTK,  $gtk_modules)

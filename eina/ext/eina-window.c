@@ -19,6 +19,7 @@
 
 #include "eina-window.h"
 #include <glib/gi18n.h>
+#include <libpeas-gtk/peas-gtk.h>
 #include <gel/gel-ui.h>
 #include <eina/ext/eina-stock.h>
 
@@ -318,7 +319,7 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 			NULL);
-		GtkWidget *pm = (GtkWidget *) gel_ui_plugin_manager_new(gel_plugin_engine_get_default());
+		GtkWidget *pm = (GtkWidget *) peas_gtk_plugin_manager_new(NULL);
 		gtk_box_pack_start((GtkBox*) gtk_dialog_get_content_area((GtkDialog *) dialog),
 			pm,
 			TRUE, TRUE, 0);
@@ -328,7 +329,7 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 		gint h = gdk_screen_get_height(screen) / 2;
 		gtk_window_resize((GtkWindow *) dialog, w, h);
 
-		gtk_widget_show(pm);
+		gtk_widget_show_all(pm);
 		gtk_dialog_run((GtkDialog *) dialog);
 		gtk_widget_destroy(dialog);
 
