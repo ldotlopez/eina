@@ -221,9 +221,10 @@ eina_activatable_steal_data(EinaActivatable *activatable)
 const gchar *
 eina_activatable_get_data_dir(EinaActivatable *activatable)
 {
+	g_warning("Small leak here!!!");
 	g_return_val_if_fail(PEAS_IS_EXTENSION_BASE(activatable), NULL);
-	static const gchar *ret = NULL;
-	if (!ret)
-		g_object_get(G_OBJECT(activatable), "data-dir", &ret, NULL);
+	gchar *ret = NULL;
+	g_object_get(G_OBJECT(activatable), "data-dir", &ret, NULL);
 	return ret;
 }
+
