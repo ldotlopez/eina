@@ -29,8 +29,9 @@ typedef struct {
 } EinaFieshtaData;
 #define EINA_FIESHTA_DATA(x) ((EinaFieshtaData *) x)
 
-static void
-action_toggled_cb(GtkToggleAction *action, EinaActivatable *activatable);
+static void fieshta_enable(EinaActivatable *activatable);
+static void fieshta_disable(EinaActivatable *activatable);
+static void action_toggled_cb(GtkToggleAction *action, EinaActivatable *activatable);
 
 static gchar* ui_mng_str =
 "<ui>"
@@ -68,12 +69,14 @@ eina_fieshta_plugin_deactivate(EinaActivatable *activatable, EinaApplication *ap
 {
 	EinaFieshtaData *self = (EinaFieshtaData *) eina_activatable_get_data(activatable);
 
+	fieshta_disable(activatable);
+
 	GtkActionGroup *ag   = eina_application_get_window_action_group(app);
 	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
 	
-	gtk_ui_manager_remove_ui(ui_mng, self->ui_mng_merge_id);
 	for (guint i = 0; i < G_N_ELEMENTS(ui_mng_actions); i++)
-		gtk_action_group_remove_action(ag, (GtkAction *) &(ui_mng_actions[i]));
+			gtk_action_group_remove_action(ag, GTK_ACTION(gtk_action_group_get_action(ag, ui_mng_actions[i].name)));
+	gtk_ui_manager_remove_ui(ui_mng, self->ui_mng_merge_id);
 	return TRUE;
 }
 
