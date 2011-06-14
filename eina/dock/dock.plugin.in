@@ -1,0 +1,9 @@
+[Plugin]
+Module=dock
+IAge=2
+Name=Dock plugin
+Description=Dock plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

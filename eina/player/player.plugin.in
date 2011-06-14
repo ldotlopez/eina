@@ -1,0 +1,10 @@
+[Plugin]
+Module=player
+IAge=2
+Depends=lomo;art;preferences;dock
+Name=Player plugin
+Description=Player plugin
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

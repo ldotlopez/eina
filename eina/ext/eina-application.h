@@ -51,7 +51,7 @@ GType eina_application_get_type (void);
 EinaApplication* eina_application_new (const gchar *application_id);
 
 gint*     eina_application_get_argc(EinaApplication *self);
-gchar***  eina_application_get_argv(EinaApplication *);
+gchar***  eina_application_get_argv(EinaApplication *self);
 
 gboolean eina_application_set_interface  (EinaApplication *self, const gchar *name, gpointer interface);
 gpointer eina_application_get_interface  (EinaApplication *self, const gchar *name);
@@ -61,7 +61,7 @@ EinaWindow*     eina_application_get_window             (EinaApplication *self);
 GtkUIManager*   eina_application_get_window_ui_manager  (EinaApplication *self);
 GtkActionGroup* eina_application_get_window_action_group(EinaApplication *self);
 
-GSettings*    eina_application_get_settings(EinaApplication *self, const gchar *domain);
+GSettings*      eina_application_get_settings(EinaApplication *self, const gchar *domain);
 
 G_END_DECLS
 

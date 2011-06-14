@@ -18,7 +18,7 @@
  */
 
 #include <eina/eina-plugin.h>
-#include <eina/lomo/lomo.h>
+#include <eina/lomo/eina-lomo-plugin.h>
 
 #define BUS_NAME  "org.gnome.SettingsDaemon"
 #define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"

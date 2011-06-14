@@ -24,7 +24,7 @@
 #include "eina-seek.h"
 #include "eina-cover.h"
 #include "eina-cover-image.h"
-#include <eina/art/art.h>
+#include <eina/art/eina-art.h>
 
 G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 

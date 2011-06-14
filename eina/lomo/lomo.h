@@ -17,37 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_LOMO_H
-#define _EINA_LOMO_H
-
-#include <eina/eina-plugin.h>
-#include <lomo/lomo-player.h>
-#include <lomo/lomo-util.h>
-
-G_BEGIN_DECLS
-
-#define EINA_LOMO_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.lomo"
-#define EINA_LOMO_VOLUME_KEY     "volume"
-#define EINA_LOMO_MUTE_KEY       "mute"
-#define EINA_LOMO_REPEAT_KEY     "repeat"
-#define EINA_LOMO_RANDOM_KEY     "random"
-#define EINA_LOMO_AUTO_PARSE_KEY "auto-parse"
-#define EINA_LOMO_AUTO_PLAY_KEY  "auto-play"
-#define EINA_LOMO_CURRENT_KEY    "current-stream"
-
-#define EINA_LOMO_CURRENT_STREAM_KEY "current-stream"
-
-typedef enum { 
-	EINA_LOMO_NO_ERROR = 0, 
-	EINA_LOMO_ERROR_CANNOT_CREATE_ENGINE, 
-	EINA_LOMO_ERROR_CANNOT_SET_SHARED, 
-	EINA_LOMO_ERROR_CANNOT_DESTROY_ENGINE 
-} EinaLomoError; 
-
-#define eina_application_get_lomo(app) eina_application_get_interface(app,"lomo")
-#define eina_plugin_get_lomo(plugin)   eina_application_get_lomo(eina_plugin_get_application(plugin))
-
-G_END_DECLS
-
-#endif // _EINA_LOMO_H
+#ifndef __EINA_LOMO_H__
+#define __EINA_LOMO_H__
+#include <eina/lomo/eina-lomo-plugin.h>
+#endif
 

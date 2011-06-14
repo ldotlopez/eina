@@ -23,6 +23,8 @@
 #endif
 
 #include "eina-activatable.h"
+#include <gel/gel.h>
+#include <libpeas/peas.h>
 
 /**
  * SECTION:eina-activatable
@@ -45,6 +47,13 @@
  **/
 
 G_DEFINE_INTERFACE(EinaActivatable, eina_activatable, G_TYPE_OBJECT)
+GEL_DEFINE_QUARK_FUNC(eina_activatable)
+
+struct _EinaActivatableInterfacePrivate {
+	EinaApplication *application;
+	gpointer         data;
+};
+
 
 /**
  * eina_activatable_get_iface:
@@ -63,50 +72,119 @@ eina_activatable_get_iface(GObject *object)
 void
 eina_activatable_default_init (EinaActivatableInterface *iface)
 {
+	iface->priv = g_new0(EinaActivatableInterfacePrivate, 1);
 }
 
 /**
  * eina_activatable_activate:
- * @activatable: A #EinaActivatable.
+ * @application: An #EinaApplication
+ * @activatable: An #EinaActivatable
+ * @error: Location for returned error, or %NULL
  *
- * Activates the extension on the targetted object.
+ * Activates an #EinaActivatable
  *
- * On activation, the extension should hook itself to the object
- * where it makes sense.
+ * Returns: %TRUE if successfull, %FALSE otherwise.
  */
-void
-eina_activatable_activate (EinaActivatable *activatable, EinaApplication *application)
+gboolean
+eina_activatable_activate(EinaActivatable *activatable, EinaApplication *application, GError **error)
 {
-	EinaActivatableInterface *iface;
+	if (!EINA_IS_ACTIVATABLE(activatable) || !EINA_IS_APPLICATION(application))
+	{
+		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_INVALID_ARGS, "Invalid arguments");
+		g_return_val_if_fail (EINA_IS_APPLICATION (application), FALSE);
+		g_return_val_if_fail (EINA_IS_ACTIVATABLE (activatable), FALSE);
+	}
 
-	g_return_if_fail (EINA_IS_ACTIVATABLE (activatable));
-	g_return_if_fail (EINA_IS_APPLICATION (application));
+	gboolean ret = FALSE;
+	EinaActivatableInterface *iface = EINA_ACTIVATABLE_GET_IFACE (activatable);
 
-	iface = EINA_ACTIVATABLE_GET_IFACE (activatable);
+	iface->priv->application = application;
+
 	if (iface->activate != NULL)
-		iface->activate (activatable, application);
+		ret = iface->activate(activatable, application, error);
+
+	if (!ret && error && !(*error)) 
+		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_UNKNOW_ERROR, "Unknow error");
+
+	return ret;
 }
 
 /**
  * eina_activatable_deactivate:
- * @activatable: A #EinaActivatable.
+ * @activatable: An #EinaActivatable
+ * @application: An #EinaApplication
+ * @error: Location for returned error, or %NULL
  *
- * Deactivates the extension on the targetted object.
+ * Deactivates an #EinaActivatable
  *
- * On deactivation, an extension should remove itself from all the hooks it
- * used and should perform any cleanup required, so it can be unreffed safely
- * and without any more effect on the host application.
+ * Returns: %TRUE if successfull, %FALSE otherwise.
  */
-void
-eina_activatable_deactivate (EinaActivatable *activatable, EinaApplication *application)
+gboolean
+eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *application, GError **error)
 {
-	EinaActivatableInterface *iface;
+	if (!EINA_IS_ACTIVATABLE(activatable) || !EINA_IS_APPLICATION(application))
+	{
+		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_INVALID_ARGS, "Invalid arguments");
+		g_return_val_if_fail (EINA_IS_APPLICATION (application), FALSE);
+		g_return_val_if_fail (EINA_IS_ACTIVATABLE (activatable), FALSE);
+	}
 
-	g_return_if_fail (EINA_IS_ACTIVATABLE (activatable));
-	g_return_if_fail (EINA_IS_APPLICATION (application));
+	gboolean ret = FALSE;
+	EinaActivatableInterface *iface = EINA_ACTIVATABLE_GET_IFACE (activatable);
 
-	iface = EINA_ACTIVATABLE_GET_IFACE (activatable);
 	if (iface->deactivate != NULL)
-		iface->deactivate (activatable, application);
+		ret = iface->deactivate (activatable, application, error);
+
+	if (!ret && error && !(*error)) 
+		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_UNKNOW_ERROR, "Unknow error");
+
+	iface->priv->application = iface->priv->data = NULL;
+
+	return ret;
 }
 
+EinaApplication*
+eina_activatable_get_application(EinaActivatable *activatable)
+{
+	g_return_val_if_fail(EINA_IS_ACTIVATABLE(activatable), NULL);
+
+	return EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->application;
+}
+
+void
+eina_activatable_set_data  (EinaActivatable *activatable, gpointer data)
+{
+	g_return_if_fail(EINA_IS_ACTIVATABLE(activatable));
+
+	EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->data = data;
+}
+
+gpointer
+eina_activatable_get_data  (EinaActivatable *activatable)
+{
+	g_return_val_if_fail(EINA_IS_ACTIVATABLE(activatable), NULL);
+
+	return EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->data;
+}
+
+gpointer
+eina_activatable_steal_data(EinaActivatable *activatable)
+{
+	g_return_val_if_fail(EINA_IS_ACTIVATABLE(activatable), NULL);
+
+	EinaActivatableInterface *iface = EINA_ACTIVATABLE_GET_IFACE(activatable);
+	gpointer ret = iface->priv->data;
+	iface->priv->data = NULL;
+
+	return ret;
+}
+
+const gchar *
+eina_activatable_get_data_dir(EinaActivatable *activatable)
+{
+	g_return_val_if_fail(PEAS_IS_EXTENSION_BASE(activatable), NULL);
+	static const gchar *ret = NULL;
+	if (!ret)
+		g_object_get(G_OBJECT(activatable), "data-dir", &ret, NULL);
+	return ret;
+}

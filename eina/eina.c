@@ -29,6 +29,7 @@
 #include "eina/ext/eina-application.h"
 #include "eina/ext/eina-activatable.h"
 #include "eina/ext/eina-stock.h"
+#include "eina/ext/eina-fs.h"
 
 static PeasEngine*
 application_get_plugin_engine(EinaApplication *app)
@@ -115,8 +116,12 @@ extension_set_extension_added_cb(PeasExtensionSet *set,
 	PeasExtension    *exten,
 	EinaApplication  *application)
 {
-	peas_extension_call(exten, "activate", exten, application);
-	// eina_activatable_activate (EINA_ACTIVATABLE (exten), application);
+	GError *error = NULL;
+	if (!eina_activatable_activate(EINA_ACTIVATABLE (exten), application, &error))
+	{
+		g_warning(_("Unable to activate plugin %s: %s"), peas_plugin_info_get_name(info), error->message);
+		g_error_free(error);
+	}
 }
 
 static void
@@ -125,7 +130,12 @@ extension_set_extension_removed_cb(PeasExtensionSet *set,
 	PeasExtension    *exten,
 	EinaApplication  *application)
 {
-	eina_activatable_deactivate (EINA_ACTIVATABLE (exten), application);
+	GError *error = NULL;
+	if (!eina_activatable_deactivate(EINA_ACTIVATABLE (exten), application, &error))
+	{
+		g_warning(_("Unable to deactivate plugin %s: %s"), peas_plugin_info_get_name(info), error->message);
+		g_error_free(error);
+	}
 }
 
 static void
@@ -153,17 +163,24 @@ app_activate_cb (GApplication *application, gpointer user_data)
 
 	g_irepository_prepend_search_path("./gel");
 	g_irepository_prepend_search_path("./lomo");
-	g_irepository_prepend_search_path("./eina/ext");
+	g_irepository_prepend_search_path("./eina");
 
-	GError *er = NULL;
-	if(!g_irepository_require_private(g_irepository_get_default(),
-		"./eina/ext",
+	const gchar *g_ir_reqs[] = {
+		"Peas", "1.0",
 		"Eina", "0.12",
-		G_IREPOSITORY_LOAD_FLAG_LAZY,
-		&er))
+		NULL
+		};
+
+	GError *error = NULL;
+	GIRepository *repo = g_irepository_get_default();
+	for (guint i = 0; g_ir_reqs[i] != NULL; i = i + 2)
 	{
-		g_warning(N_("Unable to load typelib %s %s: %s"), "Eina", EINA_API_VERSION, er->message);
-		g_error_free(er);
+		if (!g_irepository_require(repo, g_ir_reqs[i], g_ir_reqs[i+1], G_IREPOSITORY_LOAD_FLAG_LAZY, &error))
+		{
+			g_warning(N_("Unable to load typelib %s %s: %s"), g_ir_reqs[i], g_ir_reqs[i+1], error->message);
+			g_error_free(error);
+			return;
+		}
 	}
 
 	PeasEngine *engine = peas_engine_get_default();
@@ -172,7 +189,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	// gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
-	gchar  *req_plugins[] = { "lomo", NULL };
+	gchar  *req_plugins[] = { "player", NULL };
 
 	//gchar **opt_plugins = g_settings_get_strv(
 	//		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
@@ -192,7 +209,6 @@ app_activate_cb (GApplication *application, gpointer user_data)
 
 	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
 	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
-
 
 	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
@@ -301,6 +317,16 @@ gint main(gint argc, gchar *argv[])
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
 	gtk_init(&argc, &argv);
 
+	for (guint i = 0; i < argc; i++)
+	{
+		if (g_str_has_prefix(argv[i], "--introspect-dump="))
+		{
+			g_irepository_dump(argv[i] + strlen("--introspect-dump="), NULL);
+			return 0;
+		}
+	}
+
+
 	gchar *tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);
 	g_set_application_name(tmp);
 	g_free(tmp);
@@ -322,8 +348,6 @@ gint main(gint argc, gchar *argv[])
 	if (app == (EinaApplication *)0xdeadbeef)
 	{
 		eina_fs_load_from_default_file_chooser(NULL);
-		eina_plugin_window_ui_manager_add_from_string(NULL, NULL);
-		eina_activatable_activate(NULL, NULL);
 	}
 
 	return status;

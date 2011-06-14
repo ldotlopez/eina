@@ -144,7 +144,7 @@ eina_application_init (EinaApplication *self)
 		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
 }
 
-/*
+/**
  * eina_application_new:
  * @application_id: ID for the application see gtk_application_new()
  *
@@ -161,39 +161,39 @@ eina_application_new (const gchar *application_id)
 		NULL);
 }
 
-/*
+/**
  * eina_application_get_argc:
- * @application: An #EinaApplication
+ * @self: An #EinaApplication
  * 
- * Gets argc for current @application. The returned pointer is owned by
+ * Gets argc for current @self. The returned pointer is owned by
  * @application
  *
  * Returns: (transfer none): argc
  */
 gint*
-eina_application_get_argc(EinaApplication *application)
+eina_application_get_argc(EinaApplication *self)
 {
-	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
 	return NULL;
 }
 
-/*
+/**
  * eina_application_get_argv:
- * @application: An #EinaApplication
+ * @self: An #EinaApplication
  *
- * Gets argv for current @application. The returned pointer is owned by
+ * Gets argv for current @self. The returned pointer is owned by
  * @application
  *
  * Returns: (transfer none): argv
  */
 gchar***
-eina_application_get_argv(EinaApplication *application)
+eina_application_get_argv(EinaApplication *self)
 {
-	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	g_return_val_if_fail(EINA_IS_APPLICATION(self), NULL);
 	return NULL;
 }
 
-/*
+/**
  * eina_application_set_interface:
  * @self: An #EinaApplication
  * @name: The inteface's name. Must be unique in @self
