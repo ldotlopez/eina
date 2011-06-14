@@ -18,7 +18,6 @@ if BUILD_ADB
 SUBDIRS +=   \
 	adb      \
 	muine
-#	recently
 endif
 
 if BUILD_CLUTTY
