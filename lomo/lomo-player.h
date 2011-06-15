@@ -77,6 +77,9 @@ typedef struct {
 	GstElement* (*create_pipeline)  (const gchar *uri, GHashTable *opts);
 	void        (*destroy_pipeline) (GstElement *pipeline);
 
+	gboolean    (*can_reset_pipeline) (GstElement *pipeline);
+	gboolean    (*reset_pipeline)     (GstElement *pipeline, const gchar *uri, GError **error);
+
 	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state);
 	GstState             (*get_state) (GstElement *pipeline);
 

@@ -154,6 +154,10 @@ static GstElement*
 create_pipeline(const gchar *uri, GHashTable *opts);
 static void
 destroy_pipeline(GstElement *pipeline);
+static gboolean
+can_reset_pipeline(GstElement *pipeline);
+static gboolean
+reset_pipeline(GstElement *pipeline, const gchar *uri, GError **error);
 static GstStateChangeReturn
 set_state(GstElement *pipeline, GstState state);
 static GstState
@@ -171,6 +175,10 @@ static gboolean
 lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error);
 static  gboolean
 lomo_player_destroy_pipeline(LomoPlayer *self, GError **error);
+static gboolean
+lomo_player_can_reset_pipeline(LomoPlayer *self);
+static gboolean
+lomo_player_reset_pipeline(LomoPlayer *self, LomoStream *stream, GError **error);
 
 #define LOMO_STATE_ENUM_TYPE (lomo_state_enum_type())
 GType
@@ -799,6 +807,9 @@ lomo_player_init (LomoPlayer *self)
 		create_pipeline,
 		destroy_pipeline,
 
+		can_reset_pipeline,
+		reset_pipeline,
+
 		set_state,
 		get_state,
 
@@ -1069,29 +1080,36 @@ lomo_player_create_pipeline(LomoPlayer *self, LomoStream *stream, GError **error
 	check_method_or_return_val(self, create_pipeline,  FALSE, error);
 	LomoPlayerPrivate *priv = GET_PRIVATE(self);
 
-	if (!lomo_player_destroy_pipeline(self, error))
-		return FALSE;
-	priv->pipeline = NULL;
-
-	if (stream == NULL)
+	if (priv->pipeline && lomo_player_can_reset_pipeline(self))
 	{
-		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CREATE_PIPELINE,
-			N_("Cannot create pipeline for NULL stream"));
-		return FALSE;
+		return lomo_player_reset_pipeline(self, stream, error);
 	}
-
-	priv->pipeline = priv->vtable.create_pipeline(lomo_stream_get_tag(stream, LOMO_TAG_URI), priv->options);
-	if (priv->pipeline == NULL)
+	else
 	{
-		g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CREATE_PIPELINE,
-			N_("Cannot create pipeline for stream %s"), (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI));
-		return FALSE;
-	}
-	lomo_player_set_volume(self, -1);               // Restore pipeline volume
-	lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute 
-	gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(priv->pipeline)), (GstBusFunc) bus_watcher, self);
+		if (!lomo_player_destroy_pipeline(self, error))
+			return FALSE;
+		priv->pipeline = NULL;
 
-	return TRUE;
+		if (stream == NULL)
+		{
+			g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CREATE_PIPELINE,
+				N_("Cannot create pipeline for NULL stream"));
+			return FALSE;
+		}
+
+		priv->pipeline = priv->vtable.create_pipeline(lomo_stream_get_tag(stream, LOMO_TAG_URI), priv->options);
+		if (priv->pipeline == NULL)
+		{
+			g_set_error(error, lomo_quark(), LOMO_PLAYER_ERROR_CREATE_PIPELINE,
+				N_("Cannot create pipeline for stream %s"), (gchar*) lomo_stream_get_tag(stream, LOMO_TAG_URI));
+			return FALSE;
+		}
+
+		lomo_player_set_volume(self, -1);         // Restore pipeline volume
+		lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
+		gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(priv->pipeline)), (GstBusFunc) bus_watcher, self);
+		return TRUE;
+	}
 }
 
 static gboolean
@@ -1109,6 +1127,24 @@ lomo_player_destroy_pipeline(LomoPlayer *self, GError **error)
 	priv->vtable.destroy_pipeline(priv->pipeline);
 	priv->pipeline = NULL;
 	return TRUE;
+}
+
+static gboolean
+lomo_player_can_reset_pipeline(LomoPlayer *self)
+{
+	check_method_or_return_val(self, can_reset_pipeline, FALSE, NULL);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+
+	return priv->vtable.can_reset_pipeline(priv->pipeline);
+}
+
+static gboolean
+lomo_player_reset_pipeline(LomoPlayer *self, LomoStream *stream, GError **error)
+{
+        check_method_or_return_val(self, reset_pipeline,  FALSE, error);
+	LomoPlayerPrivate *priv = GET_PRIVATE(self);
+
+	return priv->vtable.reset_pipeline(priv->pipeline, lomo_stream_get_tag(stream, LOMO_TAG_URI), error);
 }
 
 /**
@@ -2446,12 +2482,16 @@ bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 		case GST_MESSAGE_SEGMENT_START:
 		case GST_MESSAGE_SEGMENT_DONE:
 		case GST_MESSAGE_DURATION:
+		case GST_MESSAGE_LATENCY:
+		case GST_MESSAGE_ASYNC_START:
+		case GST_MESSAGE_ASYNC_DONE:
+		case GST_MESSAGE_REQUEST_STATE:
+		case GST_MESSAGE_STEP_START:
+		case GST_MESSAGE_QOS:
+		case GST_MESSAGE_ANY:
 			// g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
 			break;
-			
-		default:
-			break;
-	}
+		}
 
 	return TRUE;
 }
@@ -2465,7 +2505,7 @@ create_pipeline(const gchar *uri, GHashTable *opts)
 	GstElement *ret, *audio_sink;
 	const gchar *audio_sink_str;
 	
-	if ((ret = gst_element_factory_make("playbin", "playbin")) == NULL)
+	if ((ret = gst_element_factory_make("playbin2", "playbin2")) == NULL)
 		return NULL;
 
 	audio_sink_str = (gchar *) g_hash_table_lookup(opts, (gpointer) "audio-output");
@@ -2494,6 +2534,20 @@ destroy_pipeline(GstElement *pipeline)
 {
 	gst_element_set_state(pipeline, GST_STATE_NULL);
 	g_object_unref(G_OBJECT(pipeline));
+}
+
+static gboolean
+can_reset_pipeline(GstElement *pipeline)
+{
+	return TRUE;
+}
+
+static gboolean
+reset_pipeline(GstElement *pipeline, const gchar *uri, GError **error)
+{
+	gst_element_set_state(pipeline, GST_STATE_NULL);
+	g_object_set(pipeline, "uri", uri, NULL);
+	return TRUE;
 }
 
 static GstStateChangeReturn
