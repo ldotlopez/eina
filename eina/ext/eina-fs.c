@@ -62,10 +62,16 @@ eina_fs_load_from_playlist(EinaApplication *application, const gchar *playlist)
 
 	gchar *buffer = NULL;
 	GError *error = NULL;
-	if (!g_file_get_contents(playlist, &buffer, NULL, &error))
+	gsize   reads = -1;
+	if (!g_file_get_contents(playlist, &buffer, &reads, &error))
 	{
 		g_warning("%s", error->message);
 		g_error_free(error);
+		return;
+	}
+	if (reads == 0)
+	{
+		g_free(buffer);
 		return;
 	}
 
