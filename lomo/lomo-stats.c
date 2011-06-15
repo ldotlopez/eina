@@ -160,7 +160,7 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 	{
 	case LOMO_STATE_PLAY:
 		// Set checkpoint without acumulate
-		stats_set_checkpoint(self, lomo_player_tell_time(lomo), FALSE);
+		stats_set_checkpoint(self, lomo_player_get_position(lomo), FALSE);
 		break;
 
 	case LOMO_STATE_STOP:
@@ -168,7 +168,7 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 	
 	case LOMO_STATE_PAUSE:
 		// Add to counter secs from the last checkpoint
-		stats_set_checkpoint(self, lomo_player_tell_time(lomo), TRUE);
+		stats_set_checkpoint(self, lomo_player_get_position(lomo), TRUE);
 		break;
 
 	default:
@@ -182,9 +182,9 @@ static void
 lomo_eos_cb(LomoPlayer *lomo, LomoStats *self)
 {
 	debug("Got EOS/PRE_CHANGE");
-	stats_set_checkpoint(self, lomo_player_tell_time(lomo), TRUE);
+	stats_set_checkpoint(self, lomo_player_get_position(lomo), TRUE);
 
-	if ((self->played >= 30) && (self->played >= (lomo_player_length_time(lomo) / 2)) && !self->submited)
+	if ((self->played >= 30) && (self->played >= (lomo_player_get_length(lomo) / 2)) && !self->submited)
 	{
 		debug("Submit to lastfm");
 		self->submited = TRUE;

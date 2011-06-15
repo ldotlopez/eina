@@ -105,6 +105,7 @@ LomoStream *lomo_playlist_nth_stream(LomoPlaylist *l, guint pos);
 gint lomo_playlist_index(LomoPlaylist *l, LomoStream *stream);
 
 // XXX: This must return a guint
+#define lomo_playlist_get_n_streams(l) lomo_playlist_get_total(l)
 gint lomo_playlist_get_total (LomoPlaylist *l);
 
 /*
