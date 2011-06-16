@@ -564,18 +564,21 @@ row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column, Ein
 		return;
 	}
 
-	GList *uris = muine_get_uris_from_tree_iter(self, &iter);
-	if (uris == NULL)
+	GList *uri_list = muine_get_uris_from_tree_iter(self, &iter);
+	if (uri_list == NULL)
 	{
 		g_warning(N_("NULL result from ADB"));
 		return;
 	}
 
+	gchar **uris = gel_list_to_strv(uri_list, FALSE);
+
 	LomoPlayer *lomo = eina_muine_get_lomo_player(self);
 	lomo_player_clear(lomo);
-	lomo_player_append_uri_multi(lomo, uris);
+	lomo_player_append_strv(lomo, (const gchar * const*) uris);
 
-	gel_list_deep_free(uris, g_free);
+	g_free(uris);
+	gel_list_deep_free(uri_list, g_free);
 }
 
 static void
@@ -653,7 +656,11 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 	LomoPlayer *lomo = eina_muine_get_lomo_player(self);
 	if (do_clear)
 		lomo_player_clear(lomo);
-	lomo_player_append_uri_multi(lomo, uris);
+
+	gchar **uri_strv = gel_list_to_strv(uris, FALSE);
+	lomo_player_insert_strv(lomo, (const gchar * const*) uri_strv, -1); 
+
+	g_free(uri_strv);
 	gel_list_deep_free(uris, g_free);
 }
 

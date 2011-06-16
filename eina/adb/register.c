@@ -262,7 +262,7 @@ lomo_state_change_cb(LomoPlayer *lomo)
 	{
 	case LOMO_STATE_PLAY:
 		// Set checkpoint without acumulate
-		set_checkpoint(lomo_player_tell_time(lomo), FALSE);
+		set_checkpoint(lomo_player_get_position(lomo), FALSE);
 		break;
 
 	case LOMO_STATE_STOP:
@@ -270,7 +270,7 @@ lomo_state_change_cb(LomoPlayer *lomo)
 	
 	case LOMO_STATE_PAUSE:
 		// Add to counter secs from the last checkpoint
-		set_checkpoint(lomo_player_tell_time(lomo), TRUE);
+		set_checkpoint(lomo_player_get_position(lomo), TRUE);
 		break;
 
 	default:
@@ -284,9 +284,9 @@ static void
 lomo_eos_cb(LomoPlayer *lomo, EinaAdb *adb)
 {
 	debug("Got EOS/PRE_CHANGE");
-	set_checkpoint(lomo_player_tell_time(lomo), TRUE);
+	set_checkpoint(lomo_player_get_position(lomo), TRUE);
 
-	if ((__markers.played >= 30) && (__markers.played >= (lomo_player_length_time(lomo) / 2)) && !__markers.submited)
+	if ((__markers.played >= 30) && (__markers.played >= (lomo_player_get_length(lomo) / 2)) && !__markers.submited)
 	{
 		debug("Submit to lastfm");
 		gint sid = eina_adb_lomo_stream_get_sid(adb, lomo_player_get_current_stream(lomo));

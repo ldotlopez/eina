@@ -253,6 +253,16 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 			g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 
 	GtkBuilder *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
+	
+	g_object_bind_property(
+		lomo, "can-go-previous",
+		gel_ui_generic_get_typed(self, G_OBJECT, "prev-button"), "sensitive",
+		G_BINDING_SYNC_CREATE);
+	g_object_bind_property(
+		lomo, "can-go-next",
+		gel_ui_generic_get_typed(self, G_OBJECT, "next-button"), "sensitive",
+		G_BINDING_SYNC_CREATE);
+
 	g_object_bind_property_full(
 		lomo, "volume",
 		gtk_builder_get_object(builder, "volume-button"), "value",
@@ -347,14 +357,14 @@ player_update_sensitive(EinaPlayer *self)
 	if (lomo != NULL)
 	{
 		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-button"), (lomo_player_get_current(lomo) != -1));
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       (lomo_player_get_previous(lomo) != -1));
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       (lomo_player_get_next(lomo) != -1));
+		// gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       (lomo_player_get_previous(lomo) != -1));
+		// gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       (lomo_player_get_next(lomo) != -1));
 	}
 	else
 	{
 		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-button"), FALSE);
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       FALSE);
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       FALSE);
+		// gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       FALSE);
+		// gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       FALSE);
 	}
 }
 

@@ -142,7 +142,7 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 	lomo_player_insert_strv(lomo, (const gchar* const*) uris, -1);
 
 	g_free(uris);
-	gel_list_deep_free(flatten, (GFunc) g_free);
+	g_list_free(flatten);
 }
 
 static void
