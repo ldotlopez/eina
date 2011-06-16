@@ -87,21 +87,26 @@ proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVari
 	LomoPlayer *lomo = eina_application_get_lomo(data->app);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
-	if (g_str_equal("Play", action) || g_str_equal("Pause", action))
-	{
-		if (lomo_player_get_state(lomo) == LOMO_STATE_PLAY)
-			lomo_player_pause(lomo, NULL);
-		else
-			lomo_player_play(lomo, NULL);
-	}
+	GError *error = NULL;
+	if ((g_str_equal("Play", action) || g_str_equal("Pause", action)) && (lomo_player_get_current >= 0))
+		lomo_player_set_state(lomo, lomo_player_get_state(lomo) == LOMO_STATE_PLAY ? LOMO_STATE_PAUSE : LOMO_STATE_PLAY, &error);
 
-	else if (g_str_equal("Next", action))
-		lomo_player_go_next(lomo, NULL);
+	else if (g_str_equal("Next", action) && lomo_player_get_can_go_next(lomo))
+		lomo_player_set_current(lomo, lomo_player_get_next(lomo), &error);
 
-	else if (g_str_equal("Previous", action))
-		lomo_player_go_previous(lomo, NULL);
+	else if (g_str_equal("Previous", action) && lomo_player_get_can_go_previous(lomo))
+		lomo_player_set_current(lomo, lomo_player_get_previous(lomo), &error);
 
 	else
+	{
 		g_warning(N_("Unknow action: %s"), action);
+		return;
+	}
+
+	if (error)
+	{
+		g_warning(_("Error executing action '%s': %s"), action, error->message);
+		g_error_free(error);
+	}
 }
 

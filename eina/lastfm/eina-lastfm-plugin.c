@@ -276,8 +276,8 @@ lastfm_submit_submit(EinaLastfmData *self)
 	g_free(tmp);
 
 	g_string_append_printf(str, "length: %"G_GINT64_FORMAT":%02"G_GINT64_FORMAT"\n",
-		LOMO_NANOSECS_TO_SECS(lomo_player_length_time(self->lomo)) / 60,
-		LOMO_NANOSECS_TO_SECS(lomo_player_length_time(self->lomo)) % 60);
+		LOMO_NANOSECS_TO_SECS(lomo_player_get_length(self->lomo)) / 60,
+		LOMO_NANOSECS_TO_SECS(lomo_player_get_length(self->lomo)) % 60);
 
 	struct tm *gmt;
 	time_t     curtime = time (NULL);
@@ -506,7 +506,7 @@ lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaLastfmD
 	if (!stream)
 		return FALSE;
 
-	gint total  = LOMO_NANOSECS_TO_SECS(lomo_player_length_time(lomo));
+	gint total  = LOMO_NANOSECS_TO_SECS(lomo_player_get_length(lomo));
 	gint played = LOMO_NANOSECS_TO_SECS(lomo_player_stats_get_stream_time_played(lomo));
 	#if DEBUG_DAEMON
 	g_warning("Got change. Played: %d:%02d (%d:%02d)", played / 60 , played % 60, total / 60 , total % 60);

@@ -56,9 +56,11 @@ struct _EinaSeekPrivate {
 static void
 eina_seek_set_generic_label(EinaSeek *self, gint id, GtkLabel *label);
 static void
-seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp);
+seek_updater_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp);
 static void
 seek_sync_values(EinaSeek *self);
+static void
+seek_updater_control(EinaSeek *self);
 static void
 seek_updater_start(EinaSeek *self);
 static void
@@ -154,9 +156,6 @@ eina_seek_dispose (GObject *object)
 	EinaSeekPrivate *priv = self->priv;
 	if (!priv->disposed)
 	{
-
-		seek_updater_stop(EINA_SEEK(object));
-	
 		eina_seek_set_lomo_player(self, NULL);
 
 		gint i;
@@ -166,8 +165,7 @@ eina_seek_dispose (GObject *object)
 		priv->disposed = TRUE;
 	}
 
-	if (G_OBJECT_CLASS (eina_seek_parent_class)->dispose)
-		G_OBJECT_CLASS (eina_seek_parent_class)->dispose (object);
+	G_OBJECT_CLASS (eina_seek_parent_class)->dispose (object);
 }
 
 // --
@@ -257,8 +255,12 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 
 	if (priv->lomo)
 	{
-		g_signal_handlers_disconnect_by_func(priv->lomo, seek_updater_start, self);
-		g_signal_handlers_disconnect_by_func(priv->lomo, seek_updater_stop, self);
+		if (priv->updater_id > 0)
+		{
+			g_source_remove(priv->updater_id);
+			priv->updater_id = 0;
+		}
+		g_signal_handlers_disconnect_by_func(priv->lomo, seek_updater_control, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_state_change_cb, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_change_cb, self);
 		g_signal_handlers_disconnect_by_func(priv->lomo, lomo_clear_cb, self);
@@ -271,20 +273,19 @@ eina_seek_set_lomo_player(EinaSeek *self, LomoPlayer *lomo)
 	priv->lomo = lomo;
 	g_object_ref(lomo);
 
-	// Connect UI signals
-	g_signal_connect_swapped(lomo, "play",  G_CALLBACK(seek_updater_start), self);
-	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(seek_updater_stop),  self);
-	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(seek_updater_stop),  self);
-
 	// Connect lomo signals
+	g_signal_connect_swapped(lomo, "notify::state", (GCallback) seek_sync_values, self);
+	g_signal_connect_swapped(lomo, "notify::state", (GCallback) seek_updater_control, self);
+	/*
 	g_signal_connect(lomo, "play",   G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(lomo, "pause",  G_CALLBACK(lomo_state_change_cb), self);
 	g_signal_connect(lomo, "stop",   G_CALLBACK(lomo_state_change_cb), self);
+	*/
 	g_signal_connect(lomo, "change", G_CALLBACK(lomo_change_cb), self);
 	g_signal_connect(lomo, "clear",  G_CALLBACK(lomo_clear_cb),  self);
 
 	priv->total_is_desync = TRUE;
-	seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
+	seek_updater_values(self, lomo_player_get_position(priv->lomo), lomo_player_get_length(priv->lomo), FALSE);
 	if (lomo_player_get_current(priv->lomo) >= 0)
 		gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
 	else
@@ -379,9 +380,23 @@ eina_seek_get_total_label(EinaSeek *self)
 
 // Control updater timeout functions
 static void
+seek_updater_control(EinaSeek *self)
+{
+	g_return_if_fail(EINA_IS_SEEK(self));
+	EinaSeekPrivate *priv = self->priv;
+
+	if (lomo_player_get_state(priv->lomo) == LOMO_STATE_PLAY)
+		seek_updater_start(self);
+	else
+		seek_updater_stop(self);
+}
+
+static void
 seek_updater_start(EinaSeek *self)
 {
+	g_return_if_fail(EINA_IS_SEEK(self));
 	EinaSeekPrivate *priv = self->priv;
+
 	if (priv->updater_id > 0)
 		g_source_remove(priv->updater_id);
 	priv->updater_id = g_timeout_add(400, (GSourceFunc) timeout_cb, (gpointer) self);
@@ -390,7 +405,9 @@ seek_updater_start(EinaSeek *self)
 static void
 seek_updater_stop(EinaSeek *self)
 {
+	g_return_if_fail(EINA_IS_SEEK(self));
 	EinaSeekPrivate *priv = self->priv;
+
 	if (priv->updater_id > 0)
 	{
 		g_source_remove(priv->updater_id);
@@ -408,7 +425,7 @@ seek_real_seek(EinaSeek *self)
 	if ((state == LOMO_STATE_STOP) || (state == LOMO_STATE_INVALID))
 		lomo_player_set_state(priv->lomo, LOMO_STATE_PLAY, NULL);
 
-	lomo_player_seek_time(priv->lomo, priv->pos);
+	lomo_player_set_position(priv->lomo, priv->pos);
 	priv->pos = -1;
 
 	return FALSE;
@@ -439,7 +456,7 @@ seek_fmt_time(EinaSeek *self, gint id, gint64 time, gboolean tempstr)
 }
 
 static void
-seek_update_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp)
+seek_updater_values(EinaSeek *self, gint64 current_time, gint64 total_time, gboolean temp)
 {
 	EinaSeekPrivate *priv = self->priv;
 	gchar *current, *remaining, *total;
@@ -500,7 +517,7 @@ seek_sync_values(EinaSeek *self)
 	if (priv->lomo == NULL)
 		return;
 	priv->total_is_desync = TRUE;
-	seek_update_values(self, lomo_player_tell_time(priv->lomo), lomo_player_length_time(priv->lomo), FALSE);
+	seek_updater_values(self, lomo_player_get_position(priv->lomo), lomo_player_get_length(priv->lomo), FALSE);
 }
 
 // --
@@ -522,11 +539,11 @@ value_changed_cb(GtkWidget *w, EinaSeek *self)
 	if ((priv->pos != -1) && priv->real_id && (priv->real_id > 0))
 		g_source_remove(priv->real_id);
 
-	total = lomo_player_length_time(priv->lomo);
+	total = lomo_player_get_length(priv->lomo);
 	val = gtk_range_get_value(GTK_RANGE(self));
 	pseudo_pos = total * (val/1000);
 
-	seek_update_values(self, pseudo_pos, total, TRUE);
+	seek_updater_values(self, pseudo_pos, total, TRUE);
 
 	/* Create a timeout function */
 	priv->pos = pseudo_pos;
@@ -554,11 +571,11 @@ timeout_cb(EinaSeek *self)
 	gint64 len = 0, pos = 0;
 	gdouble percent;
 	
-	len = lomo_player_length_time(priv->lomo);
+	len = lomo_player_get_length(priv->lomo);
 	if ((lomo_player_get_state(priv->lomo) == LOMO_STATE_STOP) || len == 0 ) {
 		percent = 0;
 	} else {
-		pos = lomo_player_tell_time(priv->lomo);
+		pos = lomo_player_get_position(priv->lomo);
 		percent = (gdouble)((pos * 1000) / len);
 	}
 
@@ -572,7 +589,7 @@ timeout_cb(EinaSeek *self)
 		value_changed_cb,
 		self);
 
-	seek_update_values(self, pos, len, FALSE);
+	seek_updater_values(self, pos, len, FALSE);
 	return TRUE;
 }
 
@@ -607,7 +624,7 @@ lomo_clear_cb(LomoPlayer *lomo, EinaSeek *self)
 	priv->total_is_desync = TRUE;
 	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
 	gtk_range_set_value(GTK_RANGE(self), (gdouble) 0);
-	seek_update_values(self, -1, -1, FALSE);
+	seek_updater_values(self, -1, -1, FALSE);
 }
 
 static void

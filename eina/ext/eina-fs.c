@@ -119,8 +119,10 @@ static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaApplication *app)
 {
 	GList *flatten = gel_io_scanner_flatten_result(forest);
-	GList *l = flatten;
-	GList *uris = NULL;
+
+	gchar **uris = g_new0(gchar*, g_list_length(flatten) + 1);
+	GList     *l = flatten;
+	guint64    i = 0;
 	while (l)
 	{
 		GFile     *file = G_FILE(l->data);
@@ -128,20 +130,19 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 		gchar *uri = g_file_get_uri(file);
 	
 		if ((g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR) &&
-			(eina_file_utils_is_supported_extension(uri)))
-			uris = g_list_prepend(uris, uri);
+		    (eina_file_utils_is_supported_extension(uri)))
+			uris[i++] = uri;
 		else
 			g_free(uri);
 
 		l = l->next;
 	}
-	uris = g_list_reverse(uris);
 
 	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
-	lomo_player_append_uri_multi(lomo, uris);
+	lomo_player_insert_strv(lomo, (const gchar* const*) uris, -1);
 
-	gel_list_deep_free(uris, (GFunc) g_free);
-	g_list_free(flatten);
+	g_free(uris);
+	gel_list_deep_free(flatten, (GFunc) g_free);
 }
 
 static void
@@ -208,8 +209,8 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 			break;
 		}
 
-		GList *uris = eina_file_chooser_dialog_get_uris(dialog);
-		if (uris == NULL)
+		GList *uri_list = eina_file_chooser_dialog_get_uris(dialog);
+		if (uri_list == NULL)
 			continue;
 
 		LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
@@ -219,12 +220,15 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 			lomo_player_clear(lomo);
 		}
 
-		gboolean do_play = (lomo_player_get_total(lomo) == 0);
-		lomo_player_append_uri_multi(lomo, uris);
-		gel_list_deep_free(uris, (GFunc) g_free);
+		gboolean do_play = (lomo_player_get_n_streams(lomo) == 0);
+
+		gchar **uris = gel_list_to_strv(uri_list, FALSE);
+		lomo_player_insert_strv(lomo, (const gchar * const *)uris, -1);
+		g_free(uris);
+		gel_list_deep_free(uri_list, (GFunc) g_free);
 
 		if (do_play)
-			lomo_player_play(lomo, NULL);
+			lomo_player_set_state(lomo, LOMO_STATE_PLAY, NULL);
 	}
 }
 

@@ -190,7 +190,7 @@ lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaFieshta
 	// Block insert but at the end
 	if ((ev.type == LOMO_PLAYER_HOOK_INSERT)
 		&& (priv->options & EINA_FIESHTA_BEHAVIOUR_OPTION_INSERT)
-		&& (ev.pos != lomo_player_get_total(lomo)))
+		&& (ev.pos != lomo_player_get_n_streams(lomo)))
 	{
 		// g_debug("insert blocked");
 		return TRUE;
@@ -202,7 +202,7 @@ lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent ev, gpointer ret, EinaFieshta
 	{
 		if (ev.to == (ev.from + 1))
 			return FALSE;
-		if ((ev.from == lomo_player_get_total(lomo) - 1) && (ev.to == 0))
+		if ((ev.from == lomo_player_get_n_streams(lomo) - 1) && (ev.to == 0))
 			return FALSE;
 		// g_debug("change from %d to %d blocked", ev.from, ev.to);
 		return TRUE;

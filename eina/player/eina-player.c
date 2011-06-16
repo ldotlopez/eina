@@ -229,12 +229,10 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 		GCallback callback;
 		gboolean swapped;
 	} callback_defs[] = {
-		{ "play",     G_CALLBACK(player_update_state),       TRUE  },
-		{ "pause",    G_CALLBACK(player_update_state),       TRUE  },
-		{ "stop",     G_CALLBACK(player_update_state),       TRUE  },
-		{ "change",   G_CALLBACK(player_update_information), TRUE  },
-		{ "random",   G_CALLBACK(player_update_sensitive),   TRUE  },
-		{ "repeat",   G_CALLBACK(player_update_sensitive),   TRUE  },
+		{ "notify::state",   G_CALLBACK(player_update_state),       TRUE },
+		{ "notify::current", G_CALLBACK(player_update_information), TRUE },
+		{ "notify::random",  G_CALLBACK(player_update_sensitive),   TRUE },
+		{ "notify::repeat",  G_CALLBACK(player_update_sensitive),   TRUE },
 		{ "clear",    G_CALLBACK(lomo_clear_cb),             FALSE },
 		{ "all-tags", G_CALLBACK(lomo_all_tags_cb),          FALSE }
 	};
@@ -263,7 +261,7 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 		(GBindingTransformFunc) binding_volume_double_to_int_cb,
 		NULL, NULL);
 
-	g_object_set(priv->seek, "lomo-player", lomo, NULL);
+	g_object_set(priv->seek,  "lomo-player", lomo, NULL);
 	g_object_set(priv->cover, "lomo-player", lomo, NULL);
 
 	player_update_state(self);
@@ -456,25 +454,36 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		return;
 
 	const gchar *name = gtk_action_get_name(action);
+	g_return_if_fail(name != NULL);
+
 	LomoPlayer  *lomo = player_get_lomo_player(self);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
+
 	GError *error = NULL;
 
-	if (g_str_equal(name, "play-action"))
-		lomo_player_play(lomo, &error);
+	gboolean is_play  = g_str_equal(name, "play-action");
+	gboolean is_pause = g_str_equal(name, "pause-action");
+	gboolean is_prev = g_str_equal(name, "prev-action");
+	gboolean is_next = g_str_equal(name, "prev-action");
 
-	else if (g_str_equal(name, "pause-action"))
-		lomo_player_pause(lomo, &error);
+	if (is_play || is_pause)
+		lomo_player_set_state(lomo, is_play ? LOMO_STATE_PLAY : LOMO_STATE_PAUSE, &error);
 
-	else if (g_str_equal(name, "next-action"))
-		lomo_player_go_next(lomo, &error);
-
-	else if (g_str_equal(name, "prev-action"))
-		lomo_player_go_previous(lomo, &error);
+	else if (is_prev || is_next)
+		lomo_player_set_current(lomo, is_prev ? lomo_player_get_previous(lomo) : lomo_player_get_next(lomo), &error);
 
 	else
+	{
 		g_warning(N_("Action %s was not handled"), name);
+		return;
+	}
+
+	if (error)
+	{
+		g_warning(_("Error executing action '%s': %s"), name, error->message);
+		g_error_free(error);
+	}
 }
 
 static gboolean

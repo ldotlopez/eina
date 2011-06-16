@@ -634,7 +634,7 @@ playlist_queue_selected(EinaPlaylist *self)
 	gint i = 0;
 	for (i = 0; indices[i] != -1; i++)
 	{
-		LomoStream *stream = lomo_player_nth_stream(priv->lomo, indices[i]);
+		LomoStream *stream = lomo_player_get_nth_stream(priv->lomo, indices[i]);
 		gint queue_index = lomo_player_queue_index(priv->lomo, stream);
 		if (queue_index == -1)
 			lomo_player_queue_stream(priv->lomo, stream);
@@ -692,7 +692,7 @@ playlist_remove_selected(EinaPlaylist *self)
 	for (i = 0; indices[i] != -1; i++);
 
 	for (i = i - 1; i >= 0; i--)
-		lomo_player_del(priv->lomo, indices[i]);
+		lomo_player_remove(priv->lomo, indices[i]);
 
 	g_free(indices);
 }
@@ -714,7 +714,7 @@ playlist_update_tab(EinaPlaylist *self)
 		g_return_if_fail(priv->lomo != NULL);
 	}
 
-	gint new_tab = lomo_player_get_total(priv->lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY;
+	gint new_tab = lomo_player_get_n_streams(priv->lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY;
 	if (curr != new_tab)
 	{
 		gboolean sensitive = (new_tab == TAB_PLAYLIST_NON_EMPTY);
@@ -909,7 +909,7 @@ dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column
 		PLAYLIST_COLUMN_INDEX, &index,
 		-1);
 
-	if (!lomo_player_go_nth(priv->lomo, index, &err))
+	if (!lomo_player_set_current(priv->lomo, index, &err))
 	{
 		g_warning(N_("Cannot go to stream #%d: '%s'"), index, err->message);
 		g_error_free(err);
@@ -919,7 +919,7 @@ dock_row_activated_cb(GtkWidget *w, GtkTreePath *path, GtkTreeViewColumn *column
 	if (lomo_player_get_state(priv->lomo) == LOMO_STATE_PLAY)
 		return;
 
-	if (!lomo_player_play(priv->lomo, &err))
+	if (!lomo_player_set_state(priv->lomo,LOMO_STATE_PLAY, &err))
 	{
 		g_warning(N_("Cannot set state to LOMO_STATE_PLAY: '%s'"), err->message);
 		g_error_free(err);
@@ -1079,7 +1079,7 @@ static void lomo_remove_cb
 
 	// Update indices from pos to bottom
 	guint i;
-	guint total = lomo_player_get_total(lomo);
+	guint total = lomo_player_get_n_streams(lomo);
 	treepath = gtk_tree_path_new_from_indices(pos, -1);
 	gtk_tree_model_get_iter(model, &iter, treepath);
 
@@ -1128,7 +1128,7 @@ static void lomo_change_cb
 	// Restore normal (null) state on old stream except it was failed
 	if (old >= 0)
 	{
-		if (lomo_stream_get_failed_flag(lomo_player_nth_stream(lomo, old)))
+		if (lomo_stream_get_failed_flag(lomo_player_get_nth_stream(lomo, old)))
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_MARKUP, -1);
 		else
 			eina_playlist_update_item(self, NULL, old, PLAYLIST_COLUMN_STATE, PLAYLIST_COLUMN_MARKUP, -1);
@@ -1158,16 +1158,25 @@ static void lomo_clear_cb
 static gboolean
 lomo_eos_cb_helper(LomoPlayer *lomo)
 {
+	GError *error = NULL;
+
 	if (lomo_player_get_next(lomo) != -1)
 	{
-		lomo_player_go_next(lomo, NULL);
-		lomo_player_play(lomo, NULL); //XXX: Handle GError
+		if (!lomo_player_go_next(lomo, &error) ||
+		    !lomo_player_set_state(lomo, LOMO_STATE_PLAY, &error))
+			goto lomo_eos_cb_helper_fail;
 	}
 	else
 	{
-		lomo_player_stop(lomo, NULL);
+		if (!lomo_player_set_state(lomo, LOMO_STATE_STOP, &error))
+			goto lomo_eos_cb_helper_fail;
 	}
 
+	return FALSE;
+
+lomo_eos_cb_helper_fail:
+	g_warning(_("Error handling EOS signal: %s"), error->message);
+	g_error_free(error);
 	return FALSE;
 }
 
@@ -1193,7 +1202,7 @@ static void lomo_error_cb
 		return;
 
 	gint pos;
-	if ((pos = lomo_player_index(lomo, stream)) == -1)
+	if ((pos = lomo_player_get_stream_index(lomo, stream)) == -1)
 	{
 		g_warning(N_("Stream %p doest belongs to Player %p"), stream, lomo);
 		return;
@@ -1214,8 +1223,13 @@ static void lomo_error_cb
 		PLAYLIST_COLUMN_STATE, GTK_STOCK_STOP,
 		-1);
 
-	lomo_player_go_next(priv->lomo, NULL);
-	lomo_player_play(priv->lomo, NULL);
+	GError *error2 = NULL;
+	if (!lomo_player_go_next(priv->lomo, &error2) ||
+	    !lomo_player_set_state(priv->lomo, LOMO_STATE_PLAY, &error2))
+	{
+		g_warning(_("Error: %s"), error2->message);
+		g_error_free(error2);
+	}
 }
 
 static gboolean
@@ -1242,7 +1256,7 @@ static void lomo_all_tags_cb
 	EinaPlaylistPrivate *priv = GET_PRIVATE(self);
 
 	GtkTreeModel *model = priv->model;
-	gint index = lomo_player_index(lomo, stream);
+	gint index = lomo_player_get_stream_index(lomo, stream);
 	if (index < 0)
 	{
 		g_warning(N_("Cannot find index for stream %p (%s)"), stream, lomo_stream_get_tag(stream, LOMO_TAG_URI));
