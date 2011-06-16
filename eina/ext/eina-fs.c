@@ -219,12 +219,12 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 			lomo_player_clear(lomo);
 		}
 
-		gboolean do_play = (lomo_player_get_n_streams(lomo) == 0);
+		gboolean do_play = (lomo_player_get_total(lomo) == 0);
 		lomo_player_append_uri_multi(lomo, uris);
 		gel_list_deep_free(uris, (GFunc) g_free);
 
 		if (do_play)
-			g_warn_if_fail(lomo_player_set_state(lomo, LOMO_STATE_PLAY, NULL));
+			lomo_player_play(lomo, NULL);
 	}
 }
 
