@@ -142,6 +142,9 @@ lomo_state_enum_type(void)
 static void     player_emit_state_change(LomoPlayer *self);
 static gboolean player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...);
 
+static void     meta_tag_cb     (LomoMetadataParser *parser, LomoStream *stream, const gchar *tag, LomoPlayer *self);
+static void     meta_all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self);
+static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self); 
 #ifdef LOMO_PLAYER_E_API
 static void     player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data);
 #endif
@@ -675,12 +678,18 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 *
 	 * Control if #LomoPlayer should auto start play when any stream is
 	 * available
-	 **/
+	 */
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PLAY,
 		g_param_spec_boolean("auto-play", "auto-play", "Auto play added streams",
 		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
-
-
+	/**
+	 * LomoPlayer:current:
+	 *
+	 * Current active stream
+	 */
+	g_object_class_install_property(object_class, PROPERTY_CURRENT,
+		g_param_spec_int64("current", "current", "Current stream",
+		-1, G_MAXINT64, -1, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:state:
 	 *
@@ -696,7 +705,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROPERTY_POSITION,
 		g_param_spec_int64("position", "position", "Player position",
-		G_MININT64, G_MAXINT64, G_MININT64, G_PARAM_WRITABLE|G_PARAM_STATIC_STRINGS));
+		0, G_MAXINT64, 0, G_PARAM_WRITABLE|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:volume:
 	 *
@@ -778,6 +787,10 @@ lomo_player_init (LomoPlayer *self)
 	priv->meta     = lomo_metadata_parser_new();
 	priv->queue    = g_queue_new();
 	priv->stats    = lomo_stats_watch(self);
+	priv->current  = -1;
+
+	g_signal_connect(priv->meta, "tag",      (GCallback) meta_tag_cb, self);
+	g_signal_connect(priv->meta, "all-tags", (GCallback) meta_all_tags_cb, self);
 
 	#ifdef LOMO_PLAYER_E_API
 	g_signal_connect(self, "notify", (GCallback) player_notify_cb, NULL);
@@ -1015,7 +1028,7 @@ lomo_player_set_current(LomoPlayer *self, gint64 index, GError **error)
 
 	LomoPlayerPrivate *priv = self->priv;
 
-	g_warning("Missing signal emission and hook calls");
+	// g_warning("Missing signal emission and hook calls");
 
 	gint64 old_index = priv->current;
 
@@ -1030,9 +1043,9 @@ lomo_player_set_current(LomoPlayer *self, gint64 index, GError **error)
 	// new current is -1, discard everything
 	if (index == -1)
 	{
-		g_object_unref(old_pipeline);
+		if (old_pipeline)
+			g_object_unref(old_pipeline);
 		g_object_notify((GObject *) self, "current");
-		g_signal_emit((GObject *) self, player_signals[CHANGE], 0, old_index, -1);
 		return TRUE;
 	}
 
@@ -1042,7 +1055,6 @@ lomo_player_set_current(LomoPlayer *self, gint64 index, GError **error)
 	{
 		g_warn_if_fail(LOMO_IS_STREAM(stream));
 		g_object_notify((GObject *) self, "current");
-		g_signal_emit((GObject *) self, player_signals[CHANGE], 0, old_index, -1);
 		return FALSE;
 	}
 
@@ -1056,11 +1068,13 @@ lomo_player_set_current(LomoPlayer *self, gint64 index, GError **error)
 	// one
 	if (old_pipeline != new_pipeline)
 	{
-		g_object_unref(old_pipeline);
+		if (old_pipeline)
+			g_object_unref(old_pipeline);
 		if (new_pipeline)
 		{
-			lomo_player_set_volume(self, -1);               // Restore pipeline volume
+			lomo_player_set_volume(self, -1);         // Restore pipeline volume
 			lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
+			gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(new_pipeline)), (GstBusFunc) player_bus_watcher, self);
 		}
 	}
 
@@ -1069,14 +1083,14 @@ lomo_player_set_current(LomoPlayer *self, gint64 index, GError **error)
 	{
 		g_warn_if_fail(GST_IS_ELEMENT(new_pipeline));
 		g_object_notify((GObject *) self, "current");
-		g_signal_emit((GObject *) self, player_signals[CHANGE], 0, old_index, -1);
 		return FALSE;
 	}
 
 	priv->pipeline = new_pipeline;
 	priv->current  = index;
-	g_object_notify((GObject *) self, "current");
-	g_signal_emit((GObject *) self, player_signals[CHANGE], 0, old_index, index);
+	if (old_index != index)
+		g_object_notify((GObject *) self, "current");
+
 	return TRUE;
 }
 
@@ -1320,10 +1334,15 @@ lomo_player_set_random(LomoPlayer *self, gboolean val)
  *
  * Returns: (transfer none): the #LomoStream, or %NULL if @index is off the list
  */
-LomoStream *lomo_player_get_nth_stream(LomoPlayer *self, gint64 index)
+// FIXME: Move range for @index into LomoPlaylist after type conversion on it.
+LomoStream*
+lomo_player_get_nth_stream(LomoPlayer *self, gint64 index)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), NULL);
-	g_warn_if_fail(index > (lomo_player_get_n_streams(self) - 1));
+
+	if (index == -1)
+		return NULL;
+	g_return_val_if_fail((index >= -1) || (index > (lomo_player_get_n_streams(self) - 1)), NULL);
 
 	return lomo_playlist_nth_stream(self->priv->playlist, index);
 }
@@ -1642,7 +1661,7 @@ gboolean
 lomo_player_remove(LomoPlayer *self, gint64 pos)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
-	g_return_val_if_fail(lomo_player_get_total(self) <= pos, FALSE);
+	g_return_val_if_fail(lomo_player_get_n_streams(self) <= pos, FALSE);
 
 	LomoPlayerPrivate *priv = self->priv;
 	gint curr, next;
@@ -1670,13 +1689,13 @@ lomo_player_remove(LomoPlayer *self, gint64 pos)
 		if ((next == curr) || (next == -1))
 		{
 			// mmm, only one stream, go stop
-			lomo_player_stop(self, NULL);
+			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
 			lomo_playlist_del(priv->playlist, pos);
 		}
 		else
 		{
 			/* Delete and go next */
-			lomo_player_go_next(self, NULL);
+			lomo_player_set_current(self, lomo_player_get_next(self), NULL);
 			lomo_playlist_del(priv->playlist, pos);
 		}
 	}
@@ -2045,6 +2064,138 @@ player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...)
 	return stop;
 }
 
+static void
+meta_tag_cb(LomoMetadataParser *parser, LomoStream *stream, const gchar *tag, LomoPlayer *self)
+{
+	// Run hook
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_TAG, NULL, stream, tag))
+		return;
+
+	// Exec signal
+	g_signal_emit(self, player_signals[TAG], 0, stream, tag);
+}
+
+static void
+meta_all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self)
+{
+	// Run hook
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_ALL_TAGS, NULL, stream))
+		return;
+
+	// Exec action
+	g_signal_emit(self, player_signals[ALL_TAGS], 0, stream);
+}
+
+static gboolean
+player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
+{
+	GError *err = NULL;
+	gchar *debug = NULL;
+	LomoStream *stream = NULL;
+
+	switch (GST_MESSAGE_TYPE(message)) {
+		case GST_MESSAGE_ERROR:
+			gst_message_parse_error(message, &err, &debug);
+			stream = lomo_player_get_current_stream(self);
+
+			// Call hook
+			if (player_run_hooks(self, LOMO_PLAYER_HOOK_ERROR, NULL, stream, err))
+			{
+				g_error_free(err);
+				g_free(debug);
+				break;
+			}
+
+			// Exec action
+			if (stream != NULL)
+				lomo_stream_set_failed_flag(stream, TRUE);
+
+			g_signal_emit(G_OBJECT(self), player_signals[ERROR], 0, stream, err);
+			g_error_free(err);
+			g_free(debug);
+			break;
+
+		case GST_MESSAGE_EOS:
+			// g_printf("===> %"G_GINT64_FORMAT" (%"G_GINT64_FORMAT" secs)\n", lomo_player_tell_time(self), lomo_nanosecs_to_secs(lomo_player_tell_time(self)));
+			if (player_run_hooks(self, LOMO_PLAYER_HOOK_EOS, NULL))
+				break;
+
+			g_signal_emit(G_OBJECT(self), player_signals[EOS], 0);
+			break;
+
+		case GST_MESSAGE_STATE_CHANGED:
+		{
+			GstState oldstate, newstate, pending;
+
+			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
+			/*
+			g_warning("Got state change from bus: old=%s, new=%s, pending=%s\n",
+				gst_state_to_str(oldstate),
+				gst_state_to_str(newstate),
+				gst_state_to_str(pending));
+			*/
+			if (pending != GST_STATE_VOID_PENDING)
+				break;
+
+			switch (newstate)
+			{
+			case GST_STATE_NULL:
+			case GST_STATE_READY:
+				break;
+			case GST_STATE_PAUSED:
+				// Ignore pause events before 50 miliseconds, gstreamer pauses
+				// pipeline after a first play event, returning to play state
+				// inmediatly. 
+				if ((lomo_player_get_position(self) / 1000000) <= 50)
+					return TRUE;
+				break;
+			case GST_STATE_PLAYING:
+				break;
+			default:
+				g_warning("ERROR: Unknow state transition: %s\n", gst_state_to_str(newstate));
+				return TRUE;
+			}
+
+			player_emit_state_change(self);
+			break;
+		}
+
+		// Messages that can be ignored
+		case GST_MESSAGE_TAG: /* Handled */
+		case GST_MESSAGE_NEW_CLOCK:
+			break;
+
+		// Debug this to get more info about this kind of messages
+		case GST_MESSAGE_CLOCK_PROVIDE:
+		case GST_MESSAGE_CLOCK_LOST:
+		case GST_MESSAGE_UNKNOWN:
+		case GST_MESSAGE_WARNING:
+		case GST_MESSAGE_INFO:
+		case GST_MESSAGE_BUFFERING:
+		case GST_MESSAGE_STATE_DIRTY:
+		case GST_MESSAGE_STEP_DONE:
+		case GST_MESSAGE_STRUCTURE_CHANGE:
+		case GST_MESSAGE_STREAM_STATUS:
+		case GST_MESSAGE_APPLICATION:
+		case GST_MESSAGE_ELEMENT:
+		case GST_MESSAGE_SEGMENT_START:
+		case GST_MESSAGE_SEGMENT_DONE:
+		case GST_MESSAGE_DURATION:
+		case GST_MESSAGE_LATENCY:
+		case GST_MESSAGE_ASYNC_START:
+		case GST_MESSAGE_ASYNC_DONE:
+		case GST_MESSAGE_REQUEST_STATE:
+		case GST_MESSAGE_STEP_START:
+		case GST_MESSAGE_QOS:
+		case GST_MESSAGE_ANY:
+			// g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
+			break;
+		}
+
+	return TRUE;
+}
+
+
 #ifdef LOMO_PLAYER_E_API
 static void
 player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
@@ -2063,7 +2214,8 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		"can-go-previous",
 		"can-go-next",
 		"auto-play",
-		"auto-parse"
+		"auto-parse",
+		"current"
 		};
 
 	for (guint i = 0; i < G_N_ELEMENTS(ignore); i++)
@@ -2072,8 +2224,19 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 
 	if (g_str_equal(pspec->name, "state"))
 	{
-		player_emit_state_change(self);
+		g_signal_emit(self, player_signals[STATE_CHANGED], 0);
 		return;
+	}
+
+	static gint64 prev_current = -1;
+	if (g_str_equal(pspec->name, "current"))
+	{
+		gint64 current = lomo_player_get_current(self);
+		if (current != prev_current)
+		{
+			g_signal_emit(self, player_signals[CHANGE], 0, prev_current, current);
+			prev_current = current;
+		}
 	}
 
 	for (guint i = 0; i < G_N_ELEMENTS(table); i++)
