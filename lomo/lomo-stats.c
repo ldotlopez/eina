@@ -54,9 +54,9 @@ lomo_weak_ref_cb(LomoStats *self, LomoPlayer *invalid_player);
 static void
 lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self);
 static void
-lomo_eos_cb(LomoPlayer *lomo, LomoStats *self);
+lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self);
 static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, LomoStats *self);
+lomo_eos_cb(LomoPlayer *lomo, LomoStats *self);
 static void
 lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to, LomoStats *self);
 
@@ -64,11 +64,11 @@ static struct {
 	gchar *signal;
 	gpointer handler;
 } __signal_table[] = {
-	{ "notify::state", lomo_notify_state_cb },
-	{ "pre-change",    lomo_eos_cb      },
-	{ "eos",           lomo_eos_cb      },
-	{ "change",        lomo_change_cb   },
-	{ "seek",          lomo_seek_cb     },
+	{ "notify::state",   lomo_notify_state_cb   },
+	{ "notify::current", lomo_notify_current_cb },
+	{ "pre-change",      lomo_eos_cb      },
+	{ "eos",             lomo_eos_cb      },
+	{ "seek",            lomo_seek_cb     },
 };
 
 LomoStats*
@@ -179,6 +179,19 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 }
 
 static void
+lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
+{
+	if (!g_str_equal(pspec->name, "current"))
+		return;
+
+	static gint from = -1;
+	gint to = lomo_player_get_current(lomo);
+
+	g_warn_if_fail(from != to);
+	stats_reset_counters(self);
+}
+
+static void
 lomo_eos_cb(LomoPlayer *lomo, LomoStats *self)
 {
 	debug("Got EOS/PRE_CHANGE");
@@ -191,12 +204,6 @@ lomo_eos_cb(LomoPlayer *lomo, LomoStats *self)
 	}
 	else
 		debug("Not enought to submit to lastfm");
-}
-
-static void
-lomo_change_cb(LomoPlayer *lomo, gint from, gint to, LomoStats *self)
-{
-	stats_reset_counters(self);
 }
 
 static void
