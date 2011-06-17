@@ -225,9 +225,6 @@ gel_io_scanner_scan(GelIOScanner *self, GList *uris, const gchar *attributes, gb
 
 	priv->attributes = g_strdup(attributes);
 	priv->recurse    = recurse;
-	// priv->success_cb = success_cb;
-	// priv->error_cb   = error_cb;
-	// priv->userdata   = data;
 
 	priv->cancellable = g_cancellable_new();
 	priv->queue = g_queue_new();
@@ -250,9 +247,7 @@ gel_io_scanner_scan(GelIOScanner *self, GList *uris, const gchar *attributes, gb
  * Flatens a forest (a list of trees) of results
  *
  * Returns: (transfer container): The forest in a 'flatten' state. Data from
- * forest is reutilized in the returned #GList. Data from forest is reutilized
- * in the returned #GList. Data from forest is reutilized in the returned
- * #GList. Data from forest is reutilized in the returned #GList
+ *                                forest is reutilized in the returned #GList.
  */
 GList*
 gel_io_scanner_flatten_result(GList *forest)
