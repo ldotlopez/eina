@@ -171,7 +171,7 @@ player_get_property (GObject *object, guint property_id, GValue *value, GParamSp
 		break;
 
 	case PROPERTY_CURRENT:
-		g_value_set_int64(value, lomo_player_get_current(self));
+		g_value_set_int(value, lomo_player_get_current(self));
 		break;
 	
 	case PROPERTY_RANDOM:
@@ -228,7 +228,7 @@ player_set_property (GObject *object, guint property_id, const GValue *value, GP
 		break;
 
 	case PROPERTY_CURRENT:
-		lomo_player_set_current(self, g_value_get_int64(value), NULL);
+		lomo_player_set_current(self, g_value_get_int(value), NULL);
 		break;
 
 	case PROPERTY_RANDOM:
@@ -263,6 +263,40 @@ player_set_property (GObject *object, guint property_id, const GValue *value, GP
 static void
 player_dispose (GObject *object)
 {
+	LomoPlayer *self = LOMO_PLAYER(object);
+	LomoPlayerPrivate *priv = self->priv;
+
+	if (priv->pipeline)
+	{
+		g_object_unref(priv->pipeline);
+		priv->pipeline = NULL;
+	}
+	if (priv->meta)
+	{
+		g_object_unref(priv->meta);
+		priv->meta = NULL;
+	}
+	if (priv->queue)
+	{
+		g_queue_free(priv->queue);
+		priv->queue = NULL;
+	}
+	if (priv->options)
+	{
+		g_hash_table_destroy(priv->options);
+		priv->options = NULL;
+	}
+	if (priv->playlist)
+	{
+		lomo_playlist_unref(priv->playlist);
+		priv->playlist = NULL;
+	}
+	if (priv->stats)
+	{
+		lomo_stats_destroy(priv->stats);
+		priv->stats = NULL;
+	}
+
 	G_OBJECT_CLASS (lomo_player_parent_class)->dispose (object);
 }
 
@@ -332,11 +366,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, insert),
 			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT64,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
 				G_TYPE_OBJECT,
-				G_TYPE_INT64);
+				G_TYPE_INT);
 	/**
 	 * LomoPlayer::remove:
 	 * @lomo: the object that received the signal
@@ -351,11 +385,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, remove),
 			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT64,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
 				G_TYPE_OBJECT,
-				G_TYPE_INT64);
+				G_TYPE_INT);
 	/**
 	 * LomoPlayer::queue:
 	 * @lomo: the object that received the signal
@@ -370,11 +404,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, queue),
 			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT64,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
 				G_TYPE_OBJECT,
-				G_TYPE_INT64);
+				G_TYPE_INT);
 	/**
 	 * LomoPlayer::dequeue:
 	 * @lomo: the object that received the signal
@@ -389,11 +423,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    G_SIGNAL_RUN_LAST,
 			    G_STRUCT_OFFSET (LomoPlayerClass, dequeue),
 			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT64,
+			    lomo_marshal_VOID__OBJECT_INT,
 			    G_TYPE_NONE,
 			    2,
 				G_TYPE_OBJECT,
-				G_TYPE_INT64);
+				G_TYPE_INT);
 
 	/**
 	 * LomoPlayer::clear:
@@ -466,11 +500,11 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET (LomoPlayerClass, change),
 			NULL, NULL,
-			lomo_marshal_VOID__INT64_INT64,
+			lomo_marshal_VOID__INT_INT,
 			G_TYPE_NONE,
 			2,
-			G_TYPE_INT64,
-			G_TYPE_INT64);
+			G_TYPE_INT,
+			G_TYPE_INT);
 	/**
 	 * LomoPlayer::tag:
 	 * @lomo: the object that received the signal
@@ -689,8 +723,8 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 * Current active stream
 	 */
 	g_object_class_install_property(object_class, PROPERTY_CURRENT,
-		g_param_spec_int64("current", "current", "Current stream",
-		-1, G_MAXINT64, -1, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
+		g_param_spec_int("current", "current", "Current stream",
+		-1, G_MAXINT, -1, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:state:
 	 *
@@ -706,7 +740,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROPERTY_POSITION,
 		g_param_spec_int64("position", "position", "Player position",
-		0, G_MAXINT64, 0, G_PARAM_WRITABLE|G_PARAM_STATIC_STRINGS));
+		-1, G_MAXINT64, 0, G_PARAM_WRITABLE|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:volume:
 	 *
@@ -787,8 +821,8 @@ lomo_player_init (LomoPlayer *self)
 	priv->playlist = lomo_playlist_new();
 	priv->meta     = lomo_metadata_parser_new();
 	priv->queue    = g_queue_new();
-	priv->stats    = lomo_stats_watch(self);
 	priv->current  = -1;
+	priv->stats    = lomo_stats_watch(self);
 
 	g_signal_connect(priv->meta, "tag",      (GCallback) meta_tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) meta_all_tags_cb, self);
@@ -1333,7 +1367,6 @@ lomo_player_set_random(LomoPlayer *self, gboolean val)
  *
  * Returns: (transfer none): the #LomoStream, or %NULL if @index is off the list
  */
-// FIXME: Move range for @index into LomoPlaylist after type conversion on it.
 LomoStream*
 lomo_player_get_nth_stream(LomoPlayer *self, gint index)
 {
@@ -1491,7 +1524,7 @@ lomo_player_get_length(LomoPlayer *self)
 /**
  * lomo_player_insert:
  * @self: a #LomoPlayer
- * @stream: a #LomoStream which will be owner by @self
+ * @stream: (transfer none): a #LomoStream which will be owner by @self
  * @pos: position to insert the element, If this is negative, or is larger than
  *       the number of elements in the list, the new element is added on to the end
  *       of the list.
@@ -1521,83 +1554,6 @@ lomo_player_insert_uri(LomoPlayer *self, const gchar *uri, gint pos)
 {
 	const gchar *tmp[] = { uri, NULL };
 	lomo_player_insert_strv(self, tmp, pos);
-}
-
-/**
- * lomo_player_insert_multiple:
- * @self: a #LomoPlayer
- * @streams: a #GList of #LomoStream which will be owned by @self
- * @pos: position to insert the elements, If this is negative, or is larger
- * than the number of elements in the list, the new elements are added on to the
- * end of the list.
- *
- * Inserts multiple streams in the internal playlist
- */
-void
-lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint pos)
-{
-	LomoPlayerPrivate *priv = self->priv;
-
-	GList *l;
-	LomoStream *stream = NULL;
-	gboolean emit_change;
-
-	if (streams == NULL)
-		return;
-
-	// We should emit change if player was empty before add those streams
-	if (lomo_player_get_n_streams(self) == 0)
-		emit_change = TRUE;
-	else
-		emit_change = FALSE;
-
-	// Add streams to playlist
-	if ((pos <= 0) || (pos >  lomo_player_get_n_streams(self)))
-		pos = lomo_player_get_n_streams(self);
-	// lomo_playlist_insert_multi(priv->pl, streams, pos);
-
-	// For each one parse metadata and emit signals 
-	l = streams;
-	while (l)
-	{
-		stream = (LomoStream *) l->data;
-
-		// Run hooks
-		if (player_run_hooks(self, LOMO_PLAYER_HOOK_INSERT, NULL, stream, pos))
-		{
-			l = l->next;
-			continue;
-		}
-
-		// Exec action
-		lomo_playlist_insert(priv->playlist, stream, pos);
-		if (priv->auto_parse)
-			lomo_metadata_parser_parse(priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
-		g_signal_emit(G_OBJECT(self), player_signals[INSERT], 0, stream, pos);
-	
-		// Emit change if its first stream and hooks dont catch change
-		if (emit_change && !player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
-		{
-			g_signal_emit(G_OBJECT(self), player_signals[CHANGE], 0, -1, 0);
-			GError *err = NULL;
-
-			if (!lomo_player_set_current(self, 0, &err))
-			{
-				g_warning(N_("Error creating pipeline: %s"), err->message);
-				g_error_free(err);
-			}
-			else
-			{
-				if (priv->auto_play)
-					lomo_player_set_state(self, LOMO_STATE_PLAY, NULL);
-				emit_change = FALSE;
-			}
-		}
-
-		pos++;
-		
-		l = l->next;
-	}
 }
 
 /**
@@ -1636,41 +1592,75 @@ lomo_player_insert_strv(LomoPlayer *self, const gchar *const *uris, gint positio
 	}
 	streams = g_list_reverse(streams);
 	lomo_player_insert_multiple(self, streams, position);
+	g_list_foreach(streams, (GFunc) g_object_unref, NULL);
 	g_list_free(streams);
+}
 
-	#if 0
-	GList *l = NULL;
-	gint i;
-	gchar *tmp;
-
-	if (uris == NULL)
-		return; 
+/**
+ * lomo_player_insert_multiple:
+ * @self: a #LomoPlayer
+ * @streams: (transfer none): a #GList of #LomoStream which will be owned by @self
+ * @pos: position to insert the elements, If this is negative, or is larger
+ * than the number of elements in the list, the new elements are added on to the
+ * end of the list.
+ *
+ * Inserts multiple streams in the internal playlist
+ */
+void
+lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
+{
+	g_return_if_fail(LOMO_IS_PLAYER(self));
 	
-	for (i = 0; uris[i] != NULL; i++)
+	// Fix position
+	gint n_streams = lomo_player_get_n_streams(self);
+	if ((position < 0) || (position > n_streams))
+		position = n_streams;
+
+	// Emit change after adding
+	gboolean emit_change = (n_streams == 0);
+
+	GList *l = streams;
+	while (l)
 	{
-		if ((tmp =  g_uri_parse_scheme(uris[i])) != NULL)
+		LomoStream *stream = LOMO_STREAM(l->data);
+		if (!LOMO_IS_STREAM(stream))
 		{
-			// It's an URI, ok
-			g_free(tmp);
-			// l = g_list_prepend(l, g_strdup(uris[i]));
-			l = g_list_prepend(l, lomo_stream_new(uris[i]));
+			g_warn_if_fail(LOMO_IS_STREAM(stream));
+			l = l->next;
+			continue;
 		}
-		else
+
+		// Run hook
+		if (player_run_hooks(self, LOMO_PLAYER_HOOK_INSERT, NULL, stream, position))
 		{
-			// Try to create an URI
-			tmp = g_filename_to_uri(uris[i], NULL, NULL);
-			if (tmp)
-			{
-				l = g_list_prepend(l, tmp);
-			}
+			l = l->next;
+			continue;
 		}
+
+		// Insert and auto-parse
+		lomo_playlist_insert(self->priv->playlist, g_object_ref(stream), position++);
+		if (lomo_player_get_auto_parse(self));
+			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
+
+		l = l->next;
 	}
 
-	l = g_list_reverse(l);
-	lomo_player_insert_multiple(self, l, position);
-	// g_list_foreach(l, (GFunc) g_free, NULL);
-	g_list_free(l);
-	#endif
+	// Change
+	if (emit_change                     &&
+	    lomo_player_get_n_streams(self) &&
+	    !player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
+	{
+		GError *err = NULL;
+
+		if (!lomo_player_set_current(self, 0, &err))
+		{
+			g_warning(N_("Error creating pipeline: %s"), err->message);
+			g_error_free(err);
+		}
+
+		if (lomo_player_get_auto_play(self))
+			lomo_player_set_state(self, LOMO_STATE_PLAY, NULL);
+	}
 }
 
 /**
@@ -2401,23 +2391,4 @@ lomo_player_length(LomoPlayer *self, LomoFormat format)
 	return lomo_player_get_length(self);
 }
 
-void
-lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint position)
-{
-	gchar **strv = g_new0(gchar *, g_list_length(uris) + 1);
-
-	guint index = 0;
-	GList *l = uris;
-
-	while (l)
-	{
-		strv[index++] = l->data;
-		l = l->next;
-	}
-
-	lomo_player_insert_strv(self, (const gchar * const*) strv, position);
-	g_free(strv);
-}
-
 #endif
-
