@@ -320,7 +320,7 @@ gint         lomo_player_get_stream_index(LomoPlayer *self, LomoStream *stream);
 void         lomo_player_randomize       (LomoPlayer *self);
 void         lomo_player_clear           (LomoPlayer *self);
 
-// XXX: Queue API will be rewritten
+// FIXME: Queue API will be rewritten
 #define     lomo_player_queue_stream(self,stream)   lomo_player_queue(self,lomo_player_get_stream_index(self,stream))
 #define     lomo_player_dequeue_stream(self,stream) lomo_player_queue_index(self,stream)
 gint        lomo_player_queue       (LomoPlayer *self, gint pos);
@@ -361,8 +361,8 @@ gint64   lomo_player_length(LomoPlayer *self, LomoFormat format);
 #define lomo_player_tell_time(p)   lomo_player_tell(p,LOMO_FORMAT_TIME)
 #define lomo_player_length_time(c) lomo_player_length(c,LOMO_FORMAT_TIME)
 
-#define lomo_player_append_uri_multi(self, uri_list) lomo_player_insert_uri_multi(self,uri_list,-1)
-void    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint position);
+// #define lomo_player_append_uri_multi(self, uri_list) lomo_player_insert_uri_multi(self,uri_list,-1)
+// void    lomo_player_insert_uri_multi(LomoPlayer *self, GList *uris, gint position);
 #define lomo_player_del(self,index) lomo_player_remove(self,index)
 
 #define lomo_player_index(self,stream)       lomo_player_get_stream_index(self,stream)
