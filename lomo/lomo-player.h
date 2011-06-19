@@ -30,10 +30,10 @@ typedef struct {
 	void (*seek)          (LomoPlayer *self, gint old, gint new);
 	void (*eos)           (LomoPlayer *self);
 
-	void (*insert)        (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*remove)        (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*queue)         (LomoPlayer *self, LomoStream *stream, gint pos);
-	void (*dequeue)       (LomoPlayer *self, LomoStream *stream, gint pos);
+	void (*insert)        (LomoPlayer *self, LomoStream *stream, gint index);
+	void (*remove)        (LomoPlayer *self, LomoStream *stream, gint index);
+	void (*queue2)        (LomoPlayer *self, LomoStream *stream, gint index, gint queue_index);
+	void (*dequeue2)      (LomoPlayer *self, LomoStream *stream, gint index, gint queue_index);
 
 	void (*clear)         (LomoPlayer *self);
 	void (*queue_clear)   (LomoPlayer *self);
@@ -320,14 +320,23 @@ gint         lomo_player_get_stream_index(LomoPlayer *self, LomoStream *stream);
 void         lomo_player_randomize       (LomoPlayer *self);
 void         lomo_player_clear           (LomoPlayer *self);
 
+// Review queue API
+gint     lomo_player_queue2              (LomoPlayer *self, gint index);
+gboolean lomo_player_dequeue2            (LomoPlayer *self, gint index);
+gint     lomo_player_queue2_get_n_streams(LomoPlayer *self);
+gint        lomo_player_queue2_get_stream_index (LomoPlayer *self, LomoStream *stream);
+LomoStream* lomo_player_queue2_get_nth_stream   (LomoPlayer *self, gint queue_pos);
+void        lomo_player_queue2_clear (LomoPlayer *self);
+
 // FIXME: Queue API will be rewritten
+#if 0
 #define     lomo_player_queue_stream(self,stream)   lomo_player_queue(self,lomo_player_get_stream_index(self,stream))
 #define     lomo_player_dequeue_stream(self,stream) lomo_player_queue_index(self,stream)
-gint        lomo_player_queue       (LomoPlayer *self, gint pos);
 gboolean    lomo_player_dequeue     (LomoPlayer *self, gint queue_pos);
 gint        lomo_player_queue_index (LomoPlayer *self, LomoStream *stream);
 LomoStream* lomo_player_queue_nth   (LomoPlayer *self, gint queue_pos);
 void        lomo_player_queue_clear (LomoPlayer *self);
+#endif
 
 void lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data);
 void lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func);
