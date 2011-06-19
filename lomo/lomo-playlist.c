@@ -1,594 +1,560 @@
-/*
- * lomo/lomo-playlist.c
- *
- * Copyright (C) 2004-2011 Eina
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include "lomo-playlist.h"
-
 #include <glib/gprintf.h>
-#include "lomo.h"
 
-struct _LomoPlaylist {
-    GList  *list;
+G_DEFINE_TYPE (LomoPlaylist, lomo_playlist, G_TYPE_OBJECT)
+
+struct _LomoPlaylistPrivate {
+	GList  *list;
     GList  *random_list;
 
     gboolean repeat;
     gboolean random;
     gint total;
     gint current;
-
-	gint ref_count;
 };
 
-/* * * * * * * * * * */
-/* Private functions */
-/* * * * * * * * * * */
-gint lomo_playlist_normal_to_random
-(LomoPlaylist *l, gint pos);
-gint lomo_playlist_random_to_normal
-(LomoPlaylist *l, gint pos);
+static gint
+playlist_normal_to_random (LomoPlaylist *self, gint pos);
+static gint
+playlist_random_to_normal (LomoPlaylist *self, gint pos);
 
-/*
- * Return position in the random list
- * of the element at position 'pos' in the normal list 
- */
-gint
-lomo_playlist_normal_to_random (LomoPlaylist *l, gint pos)
+static void
+lomo_playlist_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-	gpointer data = g_list_nth_data(l->list, pos);
-	return g_list_index(l->random_list, data);
+	switch (property_id) {
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
 }
 
-/*
- * Return position in the normal list
- * of the element at position 'pos' in the random list 
-  */
-gint
-lomo_playlist_random_to_normal (LomoPlaylist *l, gint pos)
+static void
+lomo_playlist_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	gpointer data = g_list_nth_data(l->random_list, pos);
-	return g_list_index(l->list, data);
+	switch (property_id) {
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
 }
 
-// --
-// Public functions implementation
-// --
+static void
+lomo_playlist_dispose (GObject *object)
+{
+	G_OBJECT_CLASS (lomo_playlist_parent_class)->dispose (object);
+}
+
+static void
+lomo_playlist_class_init (LomoPlaylistClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (LomoPlaylistPrivate));
+
+	object_class->get_property = lomo_playlist_get_property;
+	object_class->set_property = lomo_playlist_set_property;
+	object_class->dispose = lomo_playlist_dispose;
+}
+
+static void
+lomo_playlist_init (LomoPlaylist *self)
+{
+	LomoPlaylistPrivate *priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), LOMO_TYPE_PLAYLIST, LomoPlaylistPrivate);
+
+	priv->list = priv->random_list = NULL;
+
+	priv->random = priv->repeat = FALSE;
+
+	priv->total   =  0;
+	priv->current = -1;
+}
 
 /**
  * lomo_playlist_new:
  *
- * Creates a new playlist
- *
- * Returns: a new LomoPlaylist
+ * Creates a new #LomoPlaylist object
  */
 LomoPlaylist*
-lomo_playlist_new (void) 
+lomo_playlist_new (void)
 {
-	LomoPlaylist *self;
-
-	self = g_new0(LomoPlaylist, 1);
-	self->list        = NULL;
-	self->random_list = NULL;
-
-	lomo_playlist_set_repeat(self, FALSE);
-	lomo_playlist_set_random(self, FALSE);
-
-	self->total       =  0;
-	self->current     = -1;
-	self->ref_count   = 1;
-
-	return self;
-}
-
-/**
- * lomo_playlist_ref:
- * @l: a #LomoPlaylist
- *
- * Adds a reference to the playlist
- */
-void
-lomo_playlist_ref (LomoPlaylist *l)
-{
-	l->ref_count++;
-}
-
-/*
- * lomo_playlist_unref:
- * @l: a #LomoPlaylist
- *
- * Removes a reference to the playlist
- */
-void
-lomo_playlist_unref (LomoPlaylist * l)
-{
-	l->ref_count--;
-	if ( l->ref_count > 0 )
-		return;
-
-	lomo_playlist_clear(l);
-	g_free(l);
+	return g_object_new (LOMO_TYPE_PLAYLIST, NULL);
 }
 
 /**
  * lomo_playlist_get_playlist:
- * @l: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  *
  * Gets the current elements of the playlist
  *
- * Returns: a #GList of #LomoStream, its owned by liblomo and should not be
- * modified
+ * Returns: (transfer none) (element-type Lomo.Stream): List of #LomoStream,
+ *          both container and elements are owned by @self
  */
 const GList*
-lomo_playlist_get_playlist (LomoPlaylist *l) 
+lomo_playlist_get_playlist (LomoPlaylist *self) 
 {
-	return (const GList *) l->list;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), NULL);
+	return (const GList *) self->priv->list;
 }
+
 /**
  * lomo_playlist_get_random_playlist:
- * @l: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  *
- * Gets the current elements of the playlist in the internal random order
+ * Gets the current elements of the random playlist
  *
- * Returns: a newly created #GList of #LomoStream, this should be freeded when
- * no longer needed
+ * Returns: (transfer none) (element-type Lomo.Stream): List of #LomoStream,
+ *          both container and elements are owned by @self
  */
-GList*
-lomo_playlist_get_random_playlist (LomoPlaylist *l) 
+const GList*
+lomo_playlist_get_random_playlist (LomoPlaylist *self) 
 {
-	return g_list_copy(l->random_list);
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), NULL);
+	return (const GList *) self->priv->random_list;
 }
 
 /*
- * lomo_playlist_get_total:
- * @l: a #LomoPlaylist
+ * lomo_playlist_get_n_streams:
+ * @self: a #LomoPlaylist
  *
  * Gets the number of elements in the playlist
  *
- * Returns: a #gint
+ * Returns: The number of strems
  */
 gint
-lomo_playlist_get_total (LomoPlaylist *l)
+lomo_playlist_get_n_streams(LomoPlaylist *self)
 {
-	return l->total;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	return self->priv->total;
 }
 
 /*
  * lomo_playlist_get_current:
- * @l: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  *
  * Gets the index of the current active element or -1 if there is no current
  * element
  *
- * Returns: a #gint
+ * Returns: The index of current stream
  */
 gint
-lomo_playlist_get_current (LomoPlaylist *l)
+lomo_playlist_get_current (LomoPlaylist *self)
 {
-	return l->current;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	return self->priv->current;
 }
 
 /**
  * lomo_playlist_set_current:
- * @l: a #LomoPlaylist
- * @pos: Position index to mark as active
+ * @self: a #LomoPlaylist
+ * @index: Position index to mark as active
  *
  * Sets the stream on the position pos as active
  *
  * Returns: TRUE if successful, FALSE if index is outside limits
  */
 gboolean
-lomo_playlist_set_current (LomoPlaylist* l, gint pos)
+lomo_playlist_set_current (LomoPlaylist *self, gint index)
 {
-	g_return_val_if_fail(pos <= (lomo_playlist_get_total(l) - 1), FALSE);
-	l->current = pos;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), FALSE);
+	g_return_val_if_fail(index < lomo_playlist_get_n_streams(self), FALSE);
+
+	self->priv->current = index;
 
 	return TRUE;
 }
 
 /**
  * lomo_playlist_get_random:
- * @l: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  *
  * Gets the value for the random flag
  *
- * Returns: a #gboolean representing the value of the flag
+ * Returns: The random value
  */
 gboolean
-lomo_playlist_get_random (LomoPlaylist *l)
+lomo_playlist_get_random (LomoPlaylist *self)
 {
-	return l->random;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), FALSE);
+	return self->priv->random;
 }
 
 /**
  * lomo_playlist_set_random:
- * @l: a #LomoPlaylist
- * @value: the value for the random flag
+ * @self: a #LomoPlaylist
+ * @random: the value for the random flag
  *
- * Sets the value for the random flag
+ * Sets the value for the random flag. If @value is TRUE, playlist is
+ * randomized
  */
 void
-lomo_playlist_set_random (LomoPlaylist *l, gboolean val)
+lomo_playlist_set_random (LomoPlaylist *self, gboolean random)
 {
-	l->random = val;
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
+	
+	self->priv->random = random;
+	// FIXME: notify can-go-(previous|next) property
+
+	if (random)
+		g_warning("Must randomize me, update can-gos");
 }
 
 /**
  * lomo_playlist_get_repeat:
- * @l: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  *
  * Gets the value for the repeat flag
  *
- * Returns: a #gboolean representing the value of the flag
+ * Returns: The repeat value
  */
 gboolean
-lomo_playlist_get_repeat (LomoPlaylist *l)
+lomo_playlist_get_repeat (LomoPlaylist *self)
 {
-	return l->repeat;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), FALSE);
+	return self->priv->repeat;
 }
 
 /**
  * lomo_playlist_set_random:
- * @l: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  * @value: the value for the random flag
  *
  * Sets the value for the random flag
  */
 void
-lomo_playlist_set_repeat (LomoPlaylist *l, gboolean val)
+lomo_playlist_set_repeat (LomoPlaylist *self, gboolean repeat)
 {
-	l->repeat = val;
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
+	self->priv->repeat = repeat;
+	// FIXME: notify can-go-(previous|next) property
 }
 
 /**
- * lomo_playlist_get_nth:
- * @l: a #LomoPlaylist
- * @pos: Index to retrieve
+ * lomo_playlist_get_nth_stream
+ * @self: a #LomoPlaylist
+ * @index: Index to retrieve
  *
  * Gets the #LomoStream at the given position or NULL if the index its outside
  * limits
  *
- * Returns: the #LomoStream
+ * Returns: (transfer none): the #LomoStream or %NULL
  */
 LomoStream*
-lomo_playlist_nth_stream(LomoPlaylist *l, guint pos)
+lomo_playlist_get_nth_stream(LomoPlaylist *self, gint index)
 {
-	g_return_val_if_fail(pos <= (l->total - 1), NULL);
-	return g_list_nth_data(l->list, pos);
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), NULL);
+	g_return_val_if_fail(index < lomo_playlist_get_n_streams(self), NULL);
+
+	return LOMO_STREAM(g_list_nth_data(self->priv->list, index));
 }
 
 /**
- * lomo_playlist_index:
- * @l: a #LomoPlaylist
+ * lomo_playlist_get_stream_index:
+ * @self: a #LomoPlaylist
  * @stream: the #LomoStream to find
  *
  * Gets the position of the element containing the given data (starting from
  * 0)
  *
- * Returns: the index of the element containing the data, or -1 if the data is
+ * Returns: the index of the element containing the data, or -1 if the stream is
  * not found
  */
 gint
-lomo_playlist_index(LomoPlaylist *l, LomoStream *stream)
+lomo_playlist_get_stream_index(LomoPlaylist *self, LomoStream *stream)
 {
-	return g_list_index(l->list, stream);
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	return g_list_index(self->priv->list, stream);
 }
 
 /**
  * lomo_playlist_insert:
- * @l: a #LomoPlaylist
- * @stream: the stream to insert
- * @pos: the position to insert the element. If this is negative, or is larger
+ * @self: a #LomoPlaylist
+ * @stream: (transfer none): the stream to insert
+ * @index: the position to insert the element. If this is negative, or is larger
  * than the number of elements in the list, the new element is added on to the
  * end of the list.
  *
  * Inserts a new element into the list at the given position.
  */
 void
-lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos)
+lomo_playlist_insert(LomoPlaylist *self, LomoStream *stream, gint index)
 {
-	GList *tmp = NULL;
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 
-	tmp = g_list_prepend(tmp, stream);
-	lomo_playlist_insert_multi(l, tmp, pos);
+	GList *tmp = g_list_prepend(NULL, stream);
+	lomo_playlist_insert_multi(self, tmp, index);
 	g_list_free(tmp);
 }
 
 /**
  * lomo_playlist_multi_insert:
- * @l: a #LomoPlaylist
- * @streams: a list of #LomoStreams
- * 
- * @pos: the position to insert the elements. If this is negative, or is larger
- * than the number of elements in the list, the new element is added on to the
- * end of the list.
+ * @self: a #LomoPlaylist
+ * @streams: (transfer none) (element-type Lomo.Stream): a list of #LomoStreams
+ * @index: the position to insert the elements. If this is negative, or is larger
+ *         than the number of elements in the list, the new element is added on to the
+ *         end of the list.
  *
  * Inserts a list of #LomoStream into the list at the given position.
  */
-void lomo_playlist_insert_multi
-(LomoPlaylist *l, GList *streams, gint pos)
+void
+lomo_playlist_insert_multi (LomoPlaylist *self, GList *streams, gint index)
 {
-	GList *iter;
-	LomoStream *stream;
-	guint randompos;
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 
-	// pos == -1 means at the end
-	if (pos == -1)
-		pos = lomo_playlist_get_total(l);
-	iter = streams;
+	LomoPlaylistPrivate *priv = self->priv;
+	
+
+	if ((index < 0) || (index > lomo_playlist_get_n_streams(self)))
+		index = lomo_playlist_get_n_streams(self);
+
+	GList *iter = streams;
 	while (iter)
 	{
-		stream = (LomoStream *) iter->data;
+		LomoStream *stream = (LomoStream *) iter->data;
+		if (!LOMO_IS_STREAM(stream))
+		{
+			g_warn_if_fail(LOMO_IS_STREAM(stream));
+			iter = iter->next;
+			continue;
+		}
 
 		// Insert into list, each element must be located after previous,
 		// so increment pos
-		l->list = g_list_insert(l->list, (gpointer) stream, pos++);
-		randompos = l->total ? g_random_int_range(0, l->total + 1) : 0;
-		l->random_list = g_list_insert(l->random_list,
-			(gpointer) stream,
-			randompos);
+		priv->list     = g_list_insert(priv->list, (gpointer) g_object_ref(stream), index++);
+		gint randompos = priv->total ? g_random_int_range(0, priv->total + 1) : 0;
 
-		/* Update total, delay current until while's end */
-		l->total++;
+		priv->random_list = g_list_insert(priv->random_list, (gpointer) stream, randompos);
 
+		priv->total++;
 		iter = iter->next;
 	}
 
-	// Only if it is -1
-	if (l->current == -1)
-		l->current = 0;
+	//if (lomo_playlist_get_current(self) == -1)
+	//	lomo_playlist_set_current(self, 0);
 }
 
 /**
- * lomo_playlist_del:
- * @l: a #LomoPlaylist
- * @pos: index of the element to delete
+ * lomo_playlist_remove:
+ * @self: a #LomoPlaylist
+ * @index: index of the element to delete
  *
- * Deletes the element at position pos
+ * Deletes the element at position @index
  */
-void lomo_playlist_del
-(LomoPlaylist *l, guint pos)
+void lomo_playlist_remove
+(LomoPlaylist *self, gint index)
 {
-	
-	LomoStream *stream = (LomoStream *) g_list_nth_data(l->list, pos);
-	g_return_if_fail(stream != NULL);
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
+	g_return_if_fail((index >= 0) && (index < lomo_playlist_get_n_streams(self)));
 
+	LomoPlaylistPrivate *priv = self->priv;
+
+	LomoStream *stream = (LomoStream *) g_list_nth_data(priv->list, index);
+	g_return_if_fail(LOMO_IS_STREAM(stream));
+
+	priv->list        = g_list_remove(priv->list,        stream);
+	priv->random_list = g_list_remove(priv->random_list, stream);
+	priv->total--;
 	g_object_unref(stream);
-
-	l->list        = g_list_remove(l->list,        stream);
-	l->random_list = g_list_remove(l->random_list, stream);
-	l->total--;
 
 	// Check if movement affects current index: 
 	// item was the active one or previous to it
-	if ( pos <= l->current)
+	if (index <= priv->current)
 	{
 		// Ups, deleted one was the only element in the list, set active to -1
-		if (l->total == 0)
-			l->current = -1;
+		if (lomo_playlist_get_n_streams(self) == 0)
+			lomo_playlist_set_current(self, -1);
 
 		// a bit less complicated, deleted one was the first element, increment
 		// active
-		else if (pos == 0)
-			l->current++;
+		else if (index == 0)
+			lomo_playlist_set_current(self, lomo_playlist_get_current(self) + 1);
 
 		// the simpliest case, not 1-element list, and not the firts, decrement
 		// active
 		else
-			l->current--;
+			lomo_playlist_set_current(self, lomo_playlist_get_current(self) - 1);
 	}
 }
 
-void lomo_playlist_clear
-(LomoPlaylist *l)
+/**
+ * lomo_playlist_clear:
+ * @self: A #LomoPlaylist
+ *
+ * Clears the playlist
+ */
+void
+lomo_playlist_clear(LomoPlaylist *self)
 {
-	if ((l->list != NULL) && (l->list->data != NULL))
-	{
-		g_list_foreach(l->list, (GFunc) g_object_unref, NULL);
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
+	LomoPlaylistPrivate *priv = self->priv;
 
-		g_list_free(l->list);
-		g_list_free(l->random_list);
+	
+	g_list_foreach(priv->list, (GFunc) g_object_unref, NULL);
+	g_list_free(priv->list);
+	g_list_free(priv->random_list);
 
-		l->list        = NULL;
-		l->random_list = NULL;
-	}
+	priv->list        = NULL;
+	priv->random_list = NULL;
 
-	l->current = -1;
-	l->total = 0;
+	lomo_playlist_set_current(self, -1);
+	priv->total = 0;
 }
 
-gboolean lomo_playlist_swap
-(LomoPlaylist *l, guint a, guint b)
+/**
+ * lomo_playlist_swap:
+ * @self: A #LomoPlaylist
+ * @a: First index
+ * @b: Second index
+ *
+ * Swap position of two streams in the playlist
+ *
+ * Returns: %TRUE if successful, %FALSE otherwise
+ */
+gboolean
+lomo_playlist_swap (LomoPlaylist *self, gint a, gint b)
 {
-	gpointer data_a, data_b;
-	gint tmp;
-	guint total;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), FALSE);
+	LomoPlaylistPrivate *priv = self->priv;
 
 	/* Check if the two elements are inside playlist limits */
-	total = lomo_playlist_get_total(l);
-	if ( (a < 0) || (a >= total) ||
-		 (b < 0) || (b >= total) ||
-		 (a == b))
-		return FALSE;
+	gint total = lomo_playlist_get_n_streams(self);
+	g_return_val_if_fail(
+	    (a < 0) || (a >= total) ||
+		(b < 0) || (b >= total) ||
+		(a == b), FALSE);
 	
 	/* swap(a,b) if b>a; do this to simplify code */
-	if ( b > a ) {
-		tmp = a; a = b; b = tmp;
+	if ( b > a )
+	{
+		gint tmp = a;
+		a = b;
+		b = tmp;
 	}
 
-	data_a = g_list_nth_data(l->list, a);
-	data_b = g_list_nth_data(l->list, b);
+	gpointer data_a = g_list_nth_data(priv->list, a);
+	gpointer data_b = g_list_nth_data(priv->list, b);
 
 	/* Delete both elements */
-	l->list = g_list_remove(l->list, data_a);
-	l->list = g_list_remove(l->list, data_b);
+	priv->list = g_list_remove(priv->list, data_a);
+	priv->list = g_list_remove(priv->list, data_b);
 
 	/* Insert 'b' where 'a' was */
-	l->list = g_list_insert(l->list, data_b, a - 1);
-	l->list = g_list_insert(l->list, data_a, b);
+	priv->list = g_list_insert(priv->list, data_b, a - 1);
+	priv->list = g_list_insert(priv->list, data_a, b);
 
-	if      ( a == l->current ) { l->current = b; }
-	else if ( b == l->current ) { l->current = a; }
+	if      ( a == priv->current ) { priv->current = b; }
+	else if ( b == priv->current ) { priv->current = a; }
 
 	return TRUE;
 }
 
-/*
- * Return position NEXT to the active,
- * or -1 if it doesn't exist
+/**
+ * lomo_playlist_get_next:
+ * @self: A #LomoPlaylist
+ *
+ * Return the index next to current
+ *
+ * Returns: The next index
  */
-gint lomo_playlist_get_next
-(LomoPlaylist *l)
+gint
+lomo_playlist_get_next (LomoPlaylist *self)
 {
-	gint pos;
-	gint total, normalpos, randompos;
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	LomoPlaylistPrivate *priv = self->priv;
 
-	total     = l->total;
-	normalpos = l->current;
-	randompos = lomo_playlist_normal_to_random(l, l->current);
+	gint total     = lomo_playlist_get_n_streams(self);
+	gint normalpos = lomo_playlist_get_current(self);
+	gint randompos = playlist_normal_to_random(self, normalpos);
 	
 	// playlist has no elements, return invalid
-	if ( total == 0 ) {
+	if (total == 0)
 		return -1;
-	}
 
 	/* At end of list */
-	if ( l->random && (randompos == total - 1) ) {
-		if ( l->repeat ) { return lomo_playlist_random_to_normal(l, 0);  }
-		else             { return -1; }
-	}
+	if (priv->random && (randompos == total - 1))
+		return priv->repeat ? playlist_random_to_normal(self, 0) : -1;
+
 	
-	if ( !(l->random) && (normalpos == total - 1)) {
-		if ( l->repeat ) { return 0; }
-		else             { return -1; }
-	}
+	if (!(priv->random) && (normalpos == total - 1))
+		return priv->repeat ? 0 : -1;
 
 	/* normal advance */
-	if ( l->random ) {
-		pos = lomo_playlist_normal_to_random(l, l->current);
-		pos = lomo_playlist_random_to_normal(l, pos + 1);
-		return pos;
-	}
+	if ( priv->random )
+		return playlist_random_to_normal(self, playlist_normal_to_random(self, normalpos)  + 1);
 	else
-		return l->current+ 1;
+		return normalpos + 1;
 }
 
-/*
- * Return position PREVIOUS to the active,
- * or -1 if it doesn't exist
+/**
+ * lomo_playlist_get_previous:
+ * @self: A #LomoPlaylist
+ *
+ * Return the index previous to current
+ *
+ * Returns: The previous index
  */
-gint lomo_playlist_get_previous
-(LomoPlaylist *l)
+gint
+lomo_playlist_get_previous (LomoPlaylist *self)
 {
-	gint pos;
-	gint total, normalpos, randompos;
-	
-	total     = l->total;
-	normalpos = l->current;
-	randompos = lomo_playlist_normal_to_random(l, l->current);
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	LomoPlaylistPrivate *priv = self->priv;
+
+	gint total     = lomo_playlist_get_n_streams(self);
+	gint normalpos = lomo_playlist_get_current(self);
+	gint randompos = playlist_normal_to_random(self, normalpos);
 
 	/* Empty list */
-	if ( total == 0 )
+	if (total == 0)
 		return -1;
 
 	/* At beginning of list */
-	if ( l->random && (randompos == 0) ) {
-		if ( l->repeat ) { return lomo_playlist_random_to_normal(l, total - 1);  }
-		else             { return -1; }
-	}
-	
-	if ( !(l->random) && (normalpos == 0) ) {
-		if ( l->repeat ) { return total - 1; }
-		else             { return -1; }
-	}
+	if (priv->random && (randompos == 0))
+		return priv->repeat ? playlist_random_to_normal(self, total - 1) : -1;
+
+	if (!(priv->random) && (normalpos == 0))
+		return priv->repeat ? total - 1 : -1;
 
 	/* normal backwards movement */
-	if ( l->random ) {
-		pos = lomo_playlist_normal_to_random(l, l->current);
-		pos = lomo_playlist_random_to_normal(l, pos - 1);
-		return pos;
-	}
+	if ( priv->random )
+		return playlist_random_to_normal(self, playlist_normal_to_random(self, normalpos) - 1);
 	else
-		return l->current - 1;
+		return normalpos - 1;
 }
 
-/*
- * Goto previous element in play list
- * Return TRUE/FALSE on success/failure
+/**
+ * lomo_playlist_randomize:
+ * @self: A #LomoPlaylist
+ *
+ * Randomized playlist
  */
-gboolean lomo_playlist_go_prev
-(LomoPlaylist *l)
+void
+lomo_playlist_randomize (LomoPlaylist *self)
 {
-	gint prev = lomo_playlist_get_previous(l);
-	return lomo_playlist_go_nth(l, prev);
-}
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
+	LomoPlaylistPrivate *priv = self->priv;
 
-/* 
- * Goto next element in play list
- * Return TRUE/FALSE on success/failure
- */
-gboolean lomo_playlist_go_next
-(LomoPlaylist *l)
-{
-	gint next = lomo_playlist_get_next(l);
-	return lomo_playlist_go_nth(l, next);
-}
-
-/*
- * Goto element at position 'pos' in play list
- * Return TRUE/FALSE on success/failure
- */
-gboolean lomo_playlist_go_nth
-(LomoPlaylist *l, gint pos)
-{
-	g_return_val_if_fail(pos >= 0, FALSE);
-
-	lomo_playlist_set_current(l, pos);
-
-	return TRUE;
-}
-
-/* Re-build random list */
-void lomo_playlist_randomize
-(LomoPlaylist *l)
-{
 	GList *copy = NULL;
 	GList *res  = NULL;
 	gpointer data;
-	gint i, r, len = lomo_playlist_get_total(l);
+	gint i, r, len = lomo_playlist_get_n_streams(self);
 
-	copy = g_list_copy(l->list);
+	copy = g_list_copy((GList *) lomo_playlist_get_playlist(self));
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		r = g_random_int_range(0, len - i);
 		data = g_list_nth_data(copy, r);
 		copy = g_list_remove(copy, data);
 		res = g_list_prepend(res, data);
 	}
 
-	g_list_free(l->random_list);
-	l->random_list = res;
+	g_list_free(priv->random_list);
+	priv->random_list = res;
 }
 
-void lomo_playlist_print
-(LomoPlaylist *l)
+void
+lomo_playlist_print (LomoPlaylist *self)
 {
-	GList *list;
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 
-	list = l->list;
+ 	GList *list = (GList *) lomo_playlist_get_playlist(self);
 	while (list)
 	{
 		g_printf("[liblomo] %s\n", (gchar *) g_object_get_data(G_OBJECT(list->data), "uri"));
@@ -596,16 +562,55 @@ void lomo_playlist_print
 	}
 }
 
-void lomo_playlist_print_random
-(LomoPlaylist *l)
+void
+lomo_playlist_print_random(LomoPlaylist *self)
 {
-	GList *list;
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 
-	list = l->random_list;
+	GList *list = (GList *) lomo_playlist_get_random_playlist(self);
 	while (list)
 	{
 		g_printf("[liblomo] %s\n", (gchar *) g_object_get_data(G_OBJECT(list->data), "uri"));
 		list = list->next;
 	}
 }
+
+/**
+ * playlist_normal_to_random:
+ * @self: A #LomoPlaylist
+ * @pos: Index in normal playlist
+ *
+ * Transform normal index @pos to random index
+ *
+ * Returns: The index in the random mode
+ */
+static gint
+playlist_normal_to_random (LomoPlaylist *self, gint pos)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	LomoPlaylistPrivate *priv = self->priv;
+
+	gpointer data = g_list_nth_data(priv->list, pos);
+	return g_list_index(priv->random_list, data);
+}
+
+/**
+ * playlist_random_to_normal:
+ * @self: A #LomoPlaylist
+ * @pos: Index in random playlist
+ *
+ * Transform random index @pos to normal index
+ *
+ * Returns: The index in the normal mode
+ */
+static gint
+playlist_random_to_normal (LomoPlaylist *self, gint pos)
+{
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	LomoPlaylistPrivate *priv = self->priv;
+
+	gpointer data = g_list_nth_data(priv->random_list, pos);
+	return g_list_index(priv->list, data);
+}
+
 

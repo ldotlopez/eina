@@ -186,8 +186,9 @@ lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 
 	static gint from = -1;
 	gint to = lomo_player_get_current(lomo);
+	if ((from == -1) && (to == -1))
+		return;
 
-	g_warn_if_fail(from != to);
 	stats_reset_counters(self);
 }
 

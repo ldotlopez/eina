@@ -21,7 +21,7 @@ struct _LomoPlayerPrivate {
 	GList *hooks, *hooks_data;
 
 	GstElement *pipeline;
-	gint        current;
+	// gint        current;
 	
 	gint     volume;
 	gboolean mute;
@@ -138,6 +138,11 @@ lomo_state_enum_type(void)
 				g_warning(N_("Missing method %s"), G_STRINGIFY(method)); \
 			return val;                                                  \
 		}                                                                \
+	} G_STMT_END
+#define check_method_or_warn(self,method) \
+	G_STMT_START {                                                       \
+		if (self->priv->vtable.method == NULL)                           \
+				g_warning(N_("Missing method %s"), G_STRINGIFY(method)); \
 	} G_STMT_END
 
 static void     player_emit_state_change(LomoPlayer *self);
@@ -288,7 +293,7 @@ player_dispose (GObject *object)
 	}
 	if (priv->playlist)
 	{
-		lomo_playlist_unref(priv->playlist);
+		g_object_unref(priv->playlist);
 		priv->playlist = NULL;
 	}
 	if (priv->stats)
@@ -780,16 +785,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROPERTY_CAN_GO_PREVIOUS,
 		g_param_spec_boolean("can-go-previous", "can-go-previous", "Can go previous",
-		TRUE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
-
+		FALSE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:can-go-next:
 	 *
 	 * Check if player can forward in playlist
 	 */
-	g_object_class_install_property(object_class, PROPERTY_CAN_GO_PREVIOUS,
+	g_object_class_install_property(object_class, PROPERTY_CAN_GO_NEXT,
 		g_param_spec_boolean("can-go-next", "can-go-next", "Can go next",
-		TRUE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
+		FALSE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -821,7 +825,6 @@ lomo_player_init (LomoPlayer *self)
 	priv->playlist = lomo_playlist_new();
 	priv->meta     = lomo_metadata_parser_new();
 	priv->queue    = g_queue_new();
-	priv->current  = -1;
 	priv->stats    = lomo_stats_watch(self);
 
 	g_signal_connect(priv->meta, "tag",      (GCallback) meta_tag_cb, self);
@@ -1040,7 +1043,7 @@ gint
 lomo_player_get_current(LomoPlayer *self)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), -1);
-	return self->priv->current;
+	return lomo_playlist_get_current(self->priv->playlist);
 }
 
 /**
@@ -1061,68 +1064,111 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 
 	LomoPlayerPrivate *priv = self->priv;
 
-	// g_warning("Missing signal emission and hook calls");
+	g_debug("Missing signal emission and hook calls");
 
-	gint old_index = priv->current;
+	gint old_index = lomo_player_get_current(self);
 
-	// Discard previous references to pipeline
-	GstElement *old_pipeline = self->priv->pipeline;
-	if (self->priv->pipeline)
+	if (index >= lomo_player_get_n_streams(self))
 	{
-		self->priv->pipeline = NULL;
-		self->priv->current  = -1;
+		g_warn_if_fail(index >= lomo_player_get_n_streams(self));
+		index = -1;
 	}
 
-	// new current is -1, discard everything
+	// Nothing to do here?
+	if (old_index == index)
+		return TRUE;
+
+	// Check if new index is -1 and delete everything
 	if (index == -1)
 	{
-		if (old_pipeline)
-			g_object_unref(old_pipeline);
+		g_debug("Going to -1...");
+		if (priv->pipeline != NULL)
+		{
+			g_debug("  nuking pipeline");
+			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
+			g_object_unref(priv->pipeline);
+			priv->pipeline = NULL;
+		}
+		lomo_playlist_set_current(priv->playlist, -1);
 		g_object_notify((GObject *) self, "current");
+		g_object_notify((GObject *) self, "can-go-previous");
+		g_object_notify((GObject *) self, "can-go-next");
 		return TRUE;
 	}
 
-	// Get stream for new current
-	LomoStream *stream = lomo_playlist_nth_stream(self->priv->playlist, index);
+	g_debug("Going to %d...", index);
+
+	// Check stream
+	LomoStream *stream = lomo_player_get_nth_stream(self, index);
 	if (!LOMO_IS_STREAM(stream))
 	{
+		g_debug("  stream is fucked, reboot _set_current");
 		g_warn_if_fail(LOMO_IS_STREAM(stream));
-		g_object_notify((GObject *) self, "current");
+		lomo_player_set_current(self, -1, NULL);
 		return FALSE;
 	}
 
-	// Create pipeline for the new object
-	GstElement *new_pipeline = self->priv->vtable.set_uri(
+	// Save state for restore
+	GstState state = GST_STATE_READY;
+	if (!priv->vtable.get_state)
+	{
+		check_method_or_warn(self, get_state);
+		state = GST_STATE_READY;
+	}
+	else if (priv->pipeline)
+		state = priv->vtable.get_state(priv->pipeline);
+
+	// Check for a reusable pipeline
+	GstElement *new_pipeline = priv->vtable.set_uri(
 		priv->pipeline, 
 		lomo_stream_get_tag(stream, LOMO_TAG_URI),
 		priv->options);
 
-	// Pipeline has changed, discard previous and setup some values on the new
-	// one
-	if (old_pipeline != new_pipeline)
+	// Old pipeline is not reusable
+	if (new_pipeline != priv->pipeline)
 	{
-		if (old_pipeline)
-			g_object_unref(old_pipeline);
-		if (new_pipeline)
+		// Wipe it
+		if (priv->pipeline)
 		{
-			lomo_player_set_volume(self, -1);         // Restore pipeline volume
-			lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
-			gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(new_pipeline)), (GstBusFunc) player_bus_watcher, self);
+			g_debug("Old pipeline is going to be wiped");
+			check_method_or_warn(self, set_state);
+			if (priv->vtable.set_state)
+				priv->vtable.set_state(priv->pipeline, GST_STATE_NULL);
+			g_object_unref(priv->pipeline);
 		}
+
+		// Assume new pipeline
+		g_debug("new pipeline is assumed and default values assigned");
+		priv->pipeline = new_pipeline;
+		lomo_player_set_volume(self, -1);         // Restore pipeline volume
+		lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
+		gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(new_pipeline)), (GstBusFunc) player_bus_watcher, self);
 	}
 
-	// Pipeline can be invalid
-	if (!new_pipeline)
+	// Set URI stream on the pipeline
+	if (!GST_IS_PIPELINE(priv->pipeline))
 	{
-		g_warn_if_fail(GST_IS_ELEMENT(new_pipeline));
-		g_object_notify((GObject *) self, "current");
+		g_warn_if_fail(GST_IS_PIPELINE(priv->pipeline));
+		lomo_player_set_current(self, -1, NULL);
 		return FALSE;
 	}
 
-	priv->pipeline = new_pipeline;
-	priv->current  = index;
-	if (old_index != index)
-		g_object_notify((GObject *) self, "current");
+	// Restore state
+	if (!priv->vtable.set_state)
+	{
+		check_method_or_warn(self, set_state);
+		lomo_player_set_current(self, -1, NULL);
+		return FALSE;
+	}
+
+	g_debug("Everything ok, fire notifies");
+	lomo_playlist_set_current(priv->playlist, index);
+	g_object_notify((GObject *) self, "current");
+	g_object_notify((GObject *) self, "can-go-previous");
+	g_object_notify((GObject *) self, "can-go-next");
+	priv->vtable.set_state(priv->pipeline, state);
+	if (old_index == -1)
+		g_object_notify((GObject *) self, "state");
 
 	return TRUE;
 }
@@ -1376,7 +1422,7 @@ lomo_player_get_nth_stream(LomoPlayer *self, gint index)
 		return NULL;
 	g_return_val_if_fail((index >= -1) || (index > (lomo_player_get_n_streams(self) - 1)), NULL);
 
-	return lomo_playlist_nth_stream(self->priv->playlist, index);
+	return lomo_playlist_get_nth_stream(self->priv->playlist, index);
 }
 
 /**
@@ -1410,7 +1456,7 @@ gint lomo_player_get_next(LomoPlayer *self)
 	LomoPlayerPrivate *priv = self->priv;
 	LomoStream *stream = g_queue_peek_head(priv->queue);
 	if (stream)
-		return lomo_playlist_index(priv->playlist, stream);
+		return lomo_playlist_get_stream_index(priv->playlist, stream);
 	else
 		return lomo_playlist_get_next(priv->playlist);
 }
@@ -1639,19 +1685,24 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 
 		// Insert and auto-parse
 		lomo_playlist_insert(self->priv->playlist, g_object_ref(stream), position++);
+		g_signal_emit(self, player_signals[INSERT], 0, stream, position - 1);
 		if (lomo_player_get_auto_parse(self));
 			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
+
+		// Fire change after the first insert
 
 		l = l->next;
 	}
 
-	// Change
+	// emit change 
 	if (emit_change                     &&
 	    lomo_player_get_n_streams(self) &&
 	    !player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
 	{
 		GError *err = NULL;
 
+		// Force playlist to -1
+		lomo_playlist_set_current(self->priv->playlist, -1);
 		if (!lomo_player_set_current(self, 0, &err))
 		{
 			g_warning(N_("Error creating pipeline: %s"), err->message);
@@ -1660,6 +1711,13 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 
 		if (lomo_player_get_auto_play(self))
 			lomo_player_set_state(self, LOMO_STATE_PLAY, NULL);
+	}
+	
+	// prev and next could have changed if any stream was added
+	if (n_streams != lomo_player_get_n_streams(self))
+	{
+		g_object_notify((GObject *) self, "can-go-previous");
+		g_object_notify((GObject *) self, "can-go-next");
 	}
 }
 
@@ -1695,7 +1753,7 @@ lomo_player_remove(LomoPlayer *self, gint pos)
 	if (curr != pos)
 	{
 		// No problem, delete 
-		lomo_playlist_del(priv->playlist, pos);
+		lomo_playlist_remove(priv->playlist, pos);
 	}
 
 	else
@@ -1706,16 +1764,18 @@ lomo_player_remove(LomoPlayer *self, gint pos)
 		{
 			// mmm, only one stream, go stop
 			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
-			lomo_playlist_del(priv->playlist, pos);
+			lomo_playlist_remove(priv->playlist, pos);
 		}
 		else
 		{
 			/* Delete and go next */
 			lomo_player_set_current(self, lomo_player_get_next(self), NULL);
-			lomo_playlist_del(priv->playlist, pos);
+			lomo_playlist_remove(priv->playlist, pos);
 		}
 	}
 	g_signal_emit(G_OBJECT(self), player_signals[REMOVE], 0, stream, pos);
+	g_object_notify((GObject *) self, "can-go-previous");
+	g_object_notify((GObject *) self, "can-go-next");
 	g_object_unref(stream);
 
 	return TRUE;
@@ -1749,7 +1809,7 @@ lomo_player_get_stream_index(LomoPlayer *self, LomoStream *stream)
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), -1 );
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), -1);
 
-	return lomo_playlist_index(self->priv->playlist, stream);
+	return lomo_playlist_get_stream_index(self->priv->playlist, stream);
 }
 
 /**
@@ -1814,7 +1874,7 @@ lomo_player_queue(LomoPlayer *self, gint pos)
 	g_return_val_if_fail(pos >= 0, -1);
 	LomoPlayerPrivate *priv = self->priv;
 
-	LomoStream *stream = lomo_playlist_nth_stream(priv->playlist, pos);
+	LomoStream *stream = lomo_playlist_get_nth_stream(priv->playlist, pos);
 	g_return_val_if_fail(stream != NULL, -1);
 
 	// Run hooks
@@ -1984,8 +2044,8 @@ player_emit_state_change(LomoPlayer *self)
 	LomoState curr = lomo_player_get_state(self);
 	if (prev != curr)
 	{
-		prev = curr;
 		g_object_notify(G_OBJECT(self), "state");
+		prev = curr;
 	}
 }
 
@@ -2204,7 +2264,9 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 		case GST_MESSAGE_STEP_START:
 		case GST_MESSAGE_QOS:
 		case GST_MESSAGE_ANY:
-			// g_printf("Bus got something like... '%s'\n", gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
+			break;
+		default:
+			g_debug(_("Bus got something like... '%s'"), gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
 			break;
 		}
 
@@ -2249,8 +2311,6 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		gint current = lomo_player_get_current(self);
 		if (current != prev_current)
 		{
-			g_object_notify((GObject *) self, "can-go-previous");
-			g_object_notify((GObject *) self, "can-go-next");
 			g_signal_emit(self, player_signals[CHANGE], 0, prev_current, current);
 			prev_current = current;
 		}
@@ -2275,47 +2335,32 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 static GstElement*
 set_uri(GstElement *old_pipeline, const gchar *uri, GHashTable *opts)
 {
-	if (old_pipeline)
-		g_return_val_if_fail(GST_IS_ELEMENT(old_pipeline), NULL);
-
-	// If uri is NULL destroy pipeline
 	if (uri == NULL)
 	{
-		if (old_pipeline != NULL)
-		{
-			set_state(old_pipeline, GST_STATE_NULL);
+		if (old_pipeline)
 			g_object_unref(old_pipeline);
-		}
+		g_return_val_if_fail(uri != NULL, NULL);
+	}
+
+	if (old_pipeline && (get_state(old_pipeline) != GST_STATE_NULL))
+		set_state(old_pipeline, GST_STATE_NULL);
+
+	GstElement *ret = old_pipeline ? old_pipeline : gst_element_factory_make("playbin2", "playbin2");
+	const gchar *audio_sink_str = (const gchar *) g_hash_table_lookup(opts, (gpointer) "audio-output");
+	if (audio_sink_str == NULL)
+			audio_sink_str = "autoaudiosink";
+
+	GstElement *audio_sink = gst_element_factory_make(audio_sink_str, "audio-sink");
+	if (audio_sink == NULL)
+	{
+		g_warn_if_fail(GST_IS_ELEMENT(audio_sink));
+		g_object_unref(ret);
 		return NULL;
 	}
 
-	// Create pipeline if there is no one
-	GstElement *ret = old_pipeline;
-	if (ret == NULL)
-	{
-		ret = gst_element_factory_make("playbin2", "playbin2");
-		if (ret == NULL)
-		{
-			g_warn_if_fail(GST_IS_ELEMENT(ret));
-			return NULL;
-		}
-
-		const gchar *audio_sink_str = (const gchar *) g_hash_table_lookup(opts, (gpointer) "audio-output");
-		if (audio_sink_str == NULL)
-			audio_sink_str = "autoaudiosink";
-
-		GstElement *audio_sink = gst_element_factory_make(audio_sink_str, "audio-sink");
-		if (audio_sink == NULL)
-		{
-			g_warn_if_fail(GST_IS_ELEMENT(audio_sink));
-			g_object_unref(ret);
-			return NULL;
-		}
-		g_object_set(G_OBJECT(ret), "audio-sink", audio_sink, NULL);
-	}
-
-	// Set uri and state
+	g_object_set(G_OBJECT(ret), "audio-sink", audio_sink, NULL);
 	g_object_set(G_OBJECT(ret), "uri", uri, NULL);
+
 	gst_element_set_state(ret, GST_STATE_READY); 
 
 	return ret;
