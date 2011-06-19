@@ -27,13 +27,12 @@
     <property name="stock_id">gtk-open</property>
   </object>
   <object class="GtkAction" id="pause-action">
-    <property name="label">Pause stream</property>
-    <property name="short_label">Pause</property>
     <property name="stock_id">gtk-media-pause</property>
+    <property name="always_show_image">True</property>
   </object>
   <object class="GtkAction" id="play-action">
-    <property name="label">Play stream</property>
-    <property name="short_label">Play</property>
+    <property name="stock_id">gtk-media-play</property>
+    <property name="always_show_image">True</property>
   </object>
   <object class="GtkAction" id="prev-action">
     <property name="label">Previous stream</property>
@@ -253,13 +252,14 @@
                   <object class="GtkButton" id="play-pause-button">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
+                    <property name="receives_default">False</property>
                     <property name="related_action">play-action</property>
+                    <property name="use_action_appearance">False</property>
                     <child>
                       <object class="GtkImage" id="play-pause-image">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="stock">gtk-media-pause</property>
+                        <property name="stock">gtk-media-play</property>
                       </object>
                     </child>
                   </object>
@@ -301,8 +301,9 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="related_action">open-action</property>
+                        <property name="use_action_appearance">False</property>
                         <child>
-                          <object class="GtkImage" id="image5">
+                          <object class="GtkImage" id="image1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-open</property>

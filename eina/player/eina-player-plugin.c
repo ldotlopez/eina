@@ -227,11 +227,13 @@ player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app
 	g_return_if_fail(type == G_TYPE_STRING);
 
 	gchar **uris = g_uri_list_extract_uris((gchar *) data);
-	GList *l = gel_strv_to_list(uris, FALSE);
-	if (l)
+	// GList *l = gel_strv_to_list(uris, FALSE);
+	if (uris && uris[0])
+	{
 		lomo_player_clear(eina_application_get_lomo(app));
-	eina_fs_load_from_uri_multiple(app, l);
-	g_list_free(l);
+		eina_fs_load_uri_strv(app, (const gchar * const*) uris);
+	}
+	// g_list_free(l);
 	g_strfreev(uris);
 }
 
