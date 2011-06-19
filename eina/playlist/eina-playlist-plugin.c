@@ -34,11 +34,8 @@ eina_playlist_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GEr
 {
 	GSettings *settings = eina_application_get_settings(app, EINA_PLAYLIST_PREFERENCES_DOMAIN);
 
-	EinaPlaylist *playlist = eina_playlist_new();
-	g_object_set(playlist,
-		"lomo-player",    eina_application_get_interface(app, "lomo"),
-		"stream-markup",  g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY),
-		NULL);
+	EinaPlaylist *playlist = eina_playlist_new(eina_application_get_interface(app, "lomo"));
+	eina_playlist_set_stream_markup(playlist, g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY));
 	g_signal_connect(playlist, "action-activated", (GCallback) action_activated_cb, app);
 
 	EinaDockTab *tab = eina_application_add_dock_widget(app,
