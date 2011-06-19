@@ -565,7 +565,7 @@ eina_mpris_player_quit(EinaMprisPlayer *self)
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
-	g_warning("%s", __FUNCTION__);
+	// g_warning("%s", __FUNCTION__);
 }
 
 static void

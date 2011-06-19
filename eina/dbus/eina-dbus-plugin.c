@@ -59,8 +59,6 @@ eina_dbus_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError 
 	g_warn_if_fail(data->mmkeys_proxy != NULL);
 	if (data->mmkeys_proxy)
 		g_signal_connect (data->mmkeys_proxy, "g-signal", G_CALLBACK (proxy_signal_cb), data);
-	else
-		g_warn_if_fail(data->mmkeys_proxy!= NULL);
 
 	eina_activatable_set_data(plugin, data);
 	return TRUE;

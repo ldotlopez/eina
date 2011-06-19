@@ -60,14 +60,12 @@ eina_mpris_plugin_activate(EinaActivatable *activatable, EinaApplication *app, G
 	{
 		g_free(uc_package);
 		g_free(env_package_name);
-		g_warning("Set indicate desktop file to: '%s'", env_desktop_file);
 		indicate_server_set_desktop_file(self->is, env_desktop_file);
 	}
 	else
 	{
 		gchar *tmp = g_strconcat(PACKAGE, ".desktop", NULL);
 		gchar *desktop_file = g_build_filename(PACKAGE_PREFIX, "share", "applications", tmp, NULL);
-		g_warning("Set indicate desktop file to: '%s'", desktop_file);
 		indicate_server_set_desktop_file(self->is, desktop_file);
 		g_free(tmp);
 		g_free(desktop_file);
