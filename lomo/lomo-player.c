@@ -1162,6 +1162,11 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		return FALSE;
 	}
 
+	// Check queue stuff
+	gint queue_index = lomo_player_queue2_get_stream_index(self, stream);
+	if (queue_index >= 0)
+		lomo_player_dequeue2(self, queue_index);
+
 	g_debug("Everything ok, fire notifies");
 	lomo_playlist_set_current(priv->playlist, index);
 	g_object_notify((GObject *) self, "current");
@@ -1913,12 +1918,13 @@ lomo_player_dequeue2(LomoPlayer *self, gint queue_index)
 	if (player_run_hooks(self, LOMO_PLAYER_HOOK_DEQUEUE, &ret, stream, queue_index))
 		return ret;
 
+	gint index = lomo_player_get_stream_index(self, stream);
+	g_signal_emit(G_OBJECT(self), player_signals[DEQUEUE], 0, stream, index, queue_index);
+
 	// Exec action
 	if (g_queue_pop_nth(priv->queue, queue_index) == NULL)
 		return FALSE;
 
-	gint index = lomo_player_get_stream_index(self, stream);
-	g_signal_emit(G_OBJECT(self), player_signals[DEQUEUE], 0, stream, index, queue_index);
 	return TRUE;
 }
 
