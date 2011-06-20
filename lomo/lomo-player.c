@@ -1741,7 +1741,7 @@ gboolean
 lomo_player_remove(LomoPlayer *self, gint pos)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
-	g_return_val_if_fail(lomo_player_get_n_streams(self) <= pos, FALSE);
+	g_return_val_if_fail(lomo_player_get_n_streams(self) > pos, FALSE);
 
 	LomoPlayerPrivate *priv = self->priv;
 	gint curr, next;

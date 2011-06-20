@@ -321,12 +321,12 @@ void         lomo_player_randomize       (LomoPlayer *self);
 void         lomo_player_clear           (LomoPlayer *self);
 
 // Review queue API
-gint     lomo_player_queue2              (LomoPlayer *self, gint index);
-gboolean lomo_player_dequeue2            (LomoPlayer *self, gint index);
-gint     lomo_player_queue2_get_n_streams(LomoPlayer *self);
+gint        lomo_player_queue2                  (LomoPlayer *self, gint index);
+gboolean    lomo_player_dequeue2                (LomoPlayer *self, gint index);
+gint        lomo_player_queue2_get_n_streams    (LomoPlayer *self);
 gint        lomo_player_queue2_get_stream_index (LomoPlayer *self, LomoStream *stream);
 LomoStream* lomo_player_queue2_get_nth_stream   (LomoPlayer *self, gint queue_pos);
-void        lomo_player_queue2_clear (LomoPlayer *self);
+void        lomo_player_queue2_clear            (LomoPlayer *self);
 
 // FIXME: Queue API will be rewritten
 #if 0
