@@ -20,9 +20,9 @@
 #include "eina-playlist.h"
 #include "eina-playlist-ui.h"
 #include <glib/gi18n.h>
-/*
-#include <gdk/gdkkeysyms.h>
-*/
+
+#define ENABLE_EXPERIMENTAL 0
+
 G_DEFINE_TYPE (EinaPlaylist, eina_playlist, GEL_UI_TYPE_GENERIC)
 
 struct _EinaPlaylistPrivate {
@@ -33,8 +33,6 @@ struct _EinaPlaylistPrivate {
 	// Internals
 	GtkTreeView  *tv;
 	GtkTreeModel *model; // Model, tv has a filter attached
-
-	// GBinding *bind_random, *bind_repeat;
 };
 
 /*
@@ -85,6 +83,7 @@ static void     playlist_handle_action      (EinaPlaylist *self, GtkAction *acti
 
 static gboolean playlist_get_iter_from_index(EinaPlaylist *self, GtkTreeIter *iter, gint index);
 static gint*    playlist_get_selected_indices(EinaPlaylist *self);
+
 static gchar* format_stream(LomoStream *stream, gchar *fmt);
 static gchar* format_stream_cb(gchar key, LomoStream *stream);
 
@@ -193,6 +192,8 @@ eina_playlist_new (LomoPlayer *lomo)
 		NULL);
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
+	gtk_widget_set_visible(gel_ui_generic_get_typed(self, GTK_WIDGET, "search-frame"), ENABLE_EXPERIMENTAL);
+
 	return self;
 }
 
@@ -296,7 +297,9 @@ playlist_remove_stream(EinaPlaylist *self, LomoStream *stream, gint index)
 
 	EinaPlaylistPrivate *priv = self->priv;
 
-	g_return_if_fail((index >= 0) && (index < lomo_player_get_n_streams(priv->lomo)));
+	// Index must be (0 <= index <= lomo_player_get_n_streams()), remember, stream is already
+	// deleted
+	g_return_if_fail((index >= 0) && (index <= lomo_player_get_n_streams(priv->lomo)));
 
 	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
 	gtk_notebook_set_current_page(nb,
@@ -315,7 +318,11 @@ playlist_refresh_model(EinaPlaylist *self)
 
 	EinaPlaylistPrivate *priv = self->priv;
 
+	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
+	gtk_notebook_set_current_page(nb, lomo_player_get_n_streams(priv->lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY);
+
 	gtk_list_store_clear((GtkListStore *) priv->model);
+	
 
 	const GList *streams = lomo_player_get_playlist(priv->lomo);
 	GList *l = (GList *) streams;
@@ -450,10 +457,11 @@ playlist_get_selected_indices(EinaPlaylist *self)
 		GtkTreePath *path = (GtkTreePath *) l->data;
 		gint *indices = gtk_tree_path_get_indices(path);
 
-		if (!indices || !indices[0])
+		if (!indices || (indices[0] < 0))
 		{
-			g_warn_if_fail(!indices || !indices[0]);
+			g_warn_if_fail(!indices || (indices[0] < 0));
 			l = l->next;
+			continue;
 		}
 
 		ret[i++] = indices[0];
@@ -476,7 +484,10 @@ static void playlist_remove_selected(EinaPlaylist *self)
 	gint *indices = playlist_get_selected_indices(self);
 	g_return_if_fail(indices && (indices[0] >= 0));
 
-	for (guint i = 0; indices && (indices[i] >= 0); i++)
+	gint len = 0;
+	for (; indices && (indices[len] >= 0); len++);
+
+	for (gint i = (len - 1);  i >= 0; i--)
 		lomo_player_remove(priv->lomo, indices[i]);
 
 	g_free(indices);
@@ -652,7 +663,9 @@ playlist_get_iter_from_index(EinaPlaylist *self, GtkTreeIter *iter, gint index)
 
 	EinaPlaylistPrivate *priv = self->priv;
 
-	g_return_val_if_fail((index >= 0) && (index < lomo_player_get_n_streams(priv->lomo)), FALSE);
+	// Delete restricions on index, sometimes index is out of range, think about
+	// ::remove and ::clear signals
+	// g_return_val_if_fail((index >= 0) && (index < lomo_player_get_n_streams(priv->lomo)), FALSE);
 
 	GtkTreePath *path = gtk_tree_path_new_from_indices(index, -1);
 	if (!gtk_tree_model_get_iter(priv->model, iter, path))
