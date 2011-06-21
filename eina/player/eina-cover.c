@@ -362,7 +362,7 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 	}
 
 	priv->stream = lomo_player_get_nth_stream(lomo, to);
-	if (priv->stream == NULL);
+	if (priv->stream == NULL)
 	{
 		cover_set(self, NULL);
 		return;
