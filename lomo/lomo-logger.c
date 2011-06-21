@@ -173,6 +173,7 @@ lomo_player_start_logger(LomoPlayer *lomo)
 		{ "seek", (GCallback) seek_cb },
 		{ "eos", (GCallback) eos_cb},
 		{ "insert", (GCallback) insert_cb},
+		{ "remove", (GCallback) remove_cb},
 		{ "queue", (GCallback) queue_cb},
 		{ "dequeue", (GCallback) dequeue_cb},
 		{ "clear", (GCallback) clear_cb},

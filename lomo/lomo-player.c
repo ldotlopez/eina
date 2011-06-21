@@ -385,15 +385,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[REMOVE] =
 		g_signal_new ("remove",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, remove),
-			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT,
-			    G_TYPE_NONE,
-			    2,
-				G_TYPE_OBJECT,
-				G_TYPE_INT);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, remove),
+			NULL, NULL,
+			lomo_marshal_VOID__OBJECT_INT,
+			G_TYPE_NONE,
+			2,
+			G_TYPE_OBJECT,
+			G_TYPE_INT);
 	/**
 	 * LomoPlayer::queue:
 	 * @lomo: the object that received the signal
@@ -1756,10 +1756,29 @@ lomo_player_remove(LomoPlayer *self, gint pos)
 	// Exec action
 	g_object_ref(stream);
 	curr = lomo_player_get_current(self);
+
+	if (curr == pos)
+	{
+		next = lomo_player_get_next(self);
+		if ((next == curr) || (next == -1))
+		{
+			// mmm, only one stream, go stop
+			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
+			lomo_player_set_current(self, -1, NULL);
+		}
+		else
+			/* Delete and go next */
+			lomo_player_set_current(self, lomo_player_get_next(self), NULL);
+	}
+
+	lomo_playlist_remove(priv->playlist, pos);
+
+	#if 0
 	if (curr != pos)
 	{
 		// No problem, delete 
 		lomo_playlist_remove(priv->playlist, pos);
+
 	}
 
 	else
@@ -1779,6 +1798,8 @@ lomo_player_remove(LomoPlayer *self, gint pos)
 			lomo_playlist_remove(priv->playlist, pos);
 		}
 	}
+	#endif
+
 	g_signal_emit(G_OBJECT(self), player_signals[REMOVE], 0, stream, pos);
 	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "can-go-next");
