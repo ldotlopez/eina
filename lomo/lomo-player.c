@@ -26,6 +26,8 @@ struct _LomoPlayerPrivate {
 	gboolean mute;
 
 	gboolean auto_parse, auto_play;
+
+	LomoState simulated_state;
 };
 
 enum {
@@ -827,6 +829,7 @@ lomo_player_init (LomoPlayer *self)
 	priv->meta     = lomo_metadata_parser_new();
 	priv->queue    = g_queue_new();
 	priv->stats    = lomo_stats_watch(self);
+	priv->simulated_state = LOMO_STATE_INVALID;
 
 	g_signal_connect(priv->meta, "tag",      (GCallback) meta_tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) meta_all_tags_cb, self);
@@ -951,12 +954,16 @@ lomo_player_set_auto_play(LomoPlayer *self, gboolean auto_play)
  *
  * Returns: a #LomoState representing current state
  */
-LomoState lomo_player_get_state(LomoPlayer *self)
+LomoState
+lomo_player_get_state(LomoPlayer *self)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), LOMO_STATE_INVALID);
 	check_method_or_return_val(self, get_state, LOMO_STATE_INVALID, NULL);
 
 	LomoPlayerPrivate *priv = self->priv;
+
+	if (priv->simulated_state != LOMO_STATE_INVALID)
+		return priv->simulated_state;
 
 	if (!priv->pipeline || (lomo_player_get_current(self)) == -1)
 		return LOMO_STATE_STOP;
@@ -979,7 +986,7 @@ LomoState lomo_player_get_state(LomoPlayer *self)
  *
  * Changes state of @self to @state.
  *
- * Returns: a #LomoStateChangeReturn indicating how the action is realized
+ * Returns: %TRUE if successful, %FALSE otherwise
  */
 gboolean
 lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
@@ -1168,11 +1175,15 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		lomo_player_dequeue2(self, queue_index);
 
 	g_debug("Everything ok, fire notifies");
+	LomoState lomo_state = LOMO_STATE_STOP;
+	if (lomo_state_from_gst(state, &lomo_state))
+		priv->simulated_state = lomo_state;
 	lomo_playlist_set_current(priv->playlist, index);
 	g_object_notify((GObject *) self, "current");
 	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "can-go-next");
 	priv->vtable.set_state(priv->pipeline, state);
+	priv->simulated_state = LOMO_STATE_INVALID;
 	if (old_index == -1)
 		g_object_notify((GObject *) self, "state");
 

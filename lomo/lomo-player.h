@@ -59,7 +59,7 @@ typedef struct {
 	#endif
 } LomoPlayerClass;
 
-/**
+/*
  * LomoPlayerVTable:
  * Override default methods from #LomoPlayer
  */
@@ -139,32 +139,16 @@ typedef enum {
 
 /**
  * LomoPlayerError:
- * @LOMO_PLAYER_ERROR_NO_ERROR: No error
- * @LOMO_PLAYER_ERROR_INVALID_ARGUMENT: One or more arguments are invalid
- * @LOMO_PLAYER_ERROR_NO_STREAM: There is no stream at desired position (soft
- *                               error)
  * @LOMO_PLAYER_ERROR_MISSING_METHOD: Method is not implemented
- * @LOMO_PLAYER_ERROR_CREATE_PIPELINE: Pipeline cannot be created
  * @LOMO_PLAYER_ERROR_MISSING_PIPELINE: Pipeline is missing
- * @LOMO_PLAYER_ERROR_SET_STATE: State cannot be set
- * @LOMO_PLAYER_ERROR_CANNOT_DEQUEUE: Stream cannot be dequeued
  * @LOMO_PLAYER_ERROR_UNKNOW_STATE: Pipeline's state is unknow
- * @LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE: Failure in state change
- * @LOMO_PLAYER_ERROR_HOOK_BLOCK: Action was blocked by a hook
+ * @LOMO_PLAYER_ERROR_SET_STATE: State cannot be set
  */
 typedef enum {
 	LOMO_PLAYER_ERROR_MISSING_METHOD = 1,
 	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
 	LOMO_PLAYER_ERROR_UNKNOW_STATE,
 	LOMO_PLAYER_ERROR_SET_STATE
-	#if 0
-	LOMO_PLAYER_ERROR_CREATE_PIPELINE,
-	LOMO_PLAYER_ERROR_CANNOT_DEQUEUE,
-	LOMO_PLAYER_ERROR_CHANGE_STATE_FAILURE,
-	LOMO_PLAYER_ERROR_NO_STREAM,
-	LOMO_PLAYER_ERROR_HOOK_BLOCK,
-	LOMO_PLAYER_ERROR_INVALID_ARGUMENT
-	#endif
 } LomoPlayerError;
 
 /**
@@ -264,7 +248,7 @@ GType lomo_player_get_type (void);
 
 LomoPlayer* lomo_player_new (gchar *option_name, ...);
 
-/**
+/*
  * gets & sets
  */
 
