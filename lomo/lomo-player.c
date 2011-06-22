@@ -2208,6 +2208,7 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 	GError *err = NULL;
 	gchar *debug = NULL;
 	LomoStream *stream = NULL;
+	gint next;
 
 	switch (GST_MESSAGE_TYPE(message)) {
 		case GST_MESSAGE_ERROR:
@@ -2237,6 +2238,14 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 				break;
 
 			g_signal_emit(G_OBJECT(self), player_signals[EOS], 0);
+			next = lomo_player_get_next(self);
+			if (next == -1)
+			{
+				lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
+				lomo_player_set_current(self, 0, NULL);
+			}
+			else
+				lomo_player_set_current(self, next, NULL);
 			break;
 
 		case GST_MESSAGE_STATE_CHANGED:
