@@ -48,12 +48,14 @@ FIXXREF_OPTIONS=
 # Used for dependencies. The docs will be rebuilt if any of these change.
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
-HFILE_GLOB=$(top_srcdir)/lomo/*.c
-CFILE_GLOB=$(top_srcdir)/lomo/*.h
+HFILE_GLOB= $(top_srcdir)/lomo/*.h
+CFILE_GLOB= $(top_srcdir)/lomo/*.c
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES=lomo-playlist.h lomo-marshallers.h
+#IGNORE_HFILES=lomo-playlist.h lomo-marshallers.h lomo-player-old.c lomo-player-old.h
+IGNORE_HFILES=lomo-playlist.h lomo-marshallers.h lomo-player-old.h
+IGNORE_CFILES=lomo-playlist.c lomo-marshallers.c lomo-player-old.c
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
