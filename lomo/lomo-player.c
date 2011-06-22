@@ -1611,16 +1611,16 @@ lomo_player_insert_uri(LomoPlayer *self, const gchar *uri, gint pos)
 /**
  * lomo_player_insert_strv:
  * @self: a #LomoPlayer
- * @uris: (transfer none) (element-type utf8): a NULL-terminated array of
- *        URIs
- * @position: Position to insert the elements, If this is negative, or is
- *            larger than the number of elements in the list, the new elements
- *            are added on to the end of the list.
+ * @uris: (transfer none) (array zero-terminated=1) (element-type utf8): a
+ *        NULL-terminated array of URIs
+ * @index: Index to insert the elements, If this is negative, or is
+ *         larger than the number of elements in the list, the new elements
+ *         are added on to the end of the list.
  *
  * Inserts multiple URIs into @self
  */
 void
-lomo_player_insert_strv(LomoPlayer *self, const gchar *const *uris, gint position)
+lomo_player_insert_strv(LomoPlayer *self, const gchar *const *uris, gint index)
 {
 	g_return_if_fail(LOMO_IS_PLAYER(self));
 	g_return_if_fail(uris);
@@ -1643,7 +1643,7 @@ lomo_player_insert_strv(LomoPlayer *self, const gchar *const *uris, gint positio
 			g_warning(_("Invalid URI or path: '%s'"), uris[i]);
 	}
 	streams = g_list_reverse(streams);
-	lomo_player_insert_multiple(self, streams, position);
+	lomo_player_insert_multiple(self, streams, index);
 	g_list_foreach(streams, (GFunc) g_object_unref, NULL);
 	g_list_free(streams);
 }
@@ -1652,9 +1652,9 @@ lomo_player_insert_strv(LomoPlayer *self, const gchar *const *uris, gint positio
  * lomo_player_insert_multiple:
  * @self: a #LomoPlayer
  * @streams: (transfer none): a #GList of #LomoStream which will be owned by @self
- * @pos: position to insert the elements, If this is negative, or is larger
- * than the number of elements in the list, the new elements are added on to the
- * end of the list.
+ * @index: Index to insert the elements, If this is negative, or is larger
+ *         than the number of elements in the list, the new elements are added on to the
+ *         end of the list.
  *
  * Inserts multiple streams in the internal playlist
  */
@@ -1730,7 +1730,7 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 /**
  * lomo_player_remove:
  * @self: a #LomoPlayer
- * @pos: position of the #LomoStream to remove
+ * @index: Index of the #LomoStream to remove
  *
  * Removes a #LomoStream from the internal playlist using and index
  * This also implies a reference decrease on the element
@@ -1738,26 +1738,26 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
  * Returns: %TRUE is @position was remove, %FALSE otherwise
  */
 gboolean
-lomo_player_remove(LomoPlayer *self, gint pos)
+lomo_player_remove(LomoPlayer *self, gint index)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
-	g_return_val_if_fail(lomo_player_get_n_streams(self) > pos, FALSE);
+	g_return_val_if_fail(lomo_player_get_n_streams(self) > index, FALSE);
 
 	LomoPlayerPrivate *priv = self->priv;
 	gint curr, next;
 
-	LomoStream *stream = lomo_player_get_nth_stream(self, pos);
+	LomoStream *stream = lomo_player_get_nth_stream(self, index);
 
 	// Call hooks
 	gboolean ret = FALSE;
-	if (player_run_hooks(self, LOMO_PLAYER_HOOK_REMOVE, &ret, stream, pos))
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_REMOVE, &ret, stream, index))
 		return ret;
 
 	// Exec action
 	g_object_ref(stream);
 	curr = lomo_player_get_current(self);
 
-	if (curr == pos)
+	if (curr == index)
 	{
 		next = lomo_player_get_next(self);
 		if ((next == curr) || (next == -1))
@@ -1771,7 +1771,7 @@ lomo_player_remove(LomoPlayer *self, gint pos)
 			lomo_player_set_current(self, lomo_player_get_next(self), NULL);
 	}
 
-	lomo_playlist_remove(priv->playlist, pos);
+	lomo_playlist_remove(priv->playlist, index);
 
 	#if 0
 	if (curr != pos)
@@ -1800,7 +1800,7 @@ lomo_player_remove(LomoPlayer *self, gint pos)
 	}
 	#endif
 
-	g_signal_emit(G_OBJECT(self), player_signals[REMOVE], 0, stream, pos);
+	g_signal_emit(G_OBJECT(self), player_signals[REMOVE], 0, stream, index);
 	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "can-go-next");
 	g_object_unref(stream);
@@ -1886,9 +1886,9 @@ lomo_player_clear(LomoPlayer *self)
 }
 
 /**
- * lomo_player_queue:
+ * lomo_player_queue2:
  * @self: a #LomoPlayer
- * @pos: position of the element to queue
+ * @index: position of the element to queue
  *
  * Queues the element for inmediate play after active element
  *
@@ -1918,9 +1918,9 @@ lomo_player_queue2(LomoPlayer *self, gint index)
 }
 
 /**
- * lomo_player_dequeue:
+ * lomo_player_dequeue2:
  * @self: a #LomoPlayer
- * @queue_pos: Index of the queue to dequeue
+ * @queue_index: Index of the queue to dequeue
  *
  * Removes the element indicated by @queue_pos from the queue
  *
@@ -1949,6 +1949,14 @@ lomo_player_dequeue2(LomoPlayer *self, gint queue_index)
 	return TRUE;
 }
 
+/**
+ * lomo_player_queue2_get_n_streams:
+ * @self: A #LomoPlayer
+ *
+ * Returns the number of streams in the queue
+ *
+ * Returns: Number of streams
+ */
 gint
 lomo_player_queue2_get_n_streams(LomoPlayer *self)
 {
@@ -1959,7 +1967,7 @@ lomo_player_queue2_get_n_streams(LomoPlayer *self)
 }
 
 /**
- * lomo_player_queue_index:
+ * lomo_player_queue2_index:
  * @self: a #LomoPlayer
  * @stream: a #LomoStream to find in queue
  *
@@ -1978,14 +1986,14 @@ lomo_player_queue2_get_stream_index(LomoPlayer *self, LomoStream *stream)
 }
 
 /**
- * lomo_player_queue_nth:
+ * lomo_player_queue2_get_nth_stream:
  * @self: a #LomoPlayer
- * @queue_pos: The queue index of the element, starting from 0
+ * @queue_index: The queue index of the element, starting from 0
  *
  * Gets the #LomoStream at the given position in the queue
  *
  * Returns: (transfer none): the #LomoStream, or %NULL if the position is off the end of the
- * queue
+ *          queue
  */
 LomoStream *
 lomo_player_queue2_get_nth_stream(LomoPlayer *self, gint queue_index)
@@ -1997,7 +2005,7 @@ lomo_player_queue2_get_nth_stream(LomoPlayer *self, gint queue_index)
 }
 
 /**
- * lomo_player_queue_clear:
+ * lomo_player_queue2_clear:
  * @self: a #LomoPlayer
  *
  * Removes all #LomoStream queued

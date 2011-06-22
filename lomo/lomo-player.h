@@ -281,7 +281,7 @@ gboolean  lomo_player_set_state(LomoPlayer *self, LomoState state, GError **erro
 
 /* current stream */
 gint     lomo_player_get_current(LomoPlayer *self);
-gboolean lomo_player_set_current(LomoPlayer *self, gint current, GError **error);
+gboolean lomo_player_set_current(LomoPlayer *self, gint index, GError **error);
 
 /* volume & mute */
 gboolean lomo_player_set_volume(LomoPlayer *self, gint val);
@@ -310,8 +310,8 @@ gint64   lomo_player_get_position(LomoPlayer *self);
 gboolean lomo_player_set_position(LomoPlayer *self, gint64 position);
 gint64   lomo_player_get_length  (LomoPlayer *self);
 
-void     lomo_player_insert_strv    (LomoPlayer *self, const gchar *const *uris, gint position);
-void     lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position);
+void     lomo_player_insert_strv    (LomoPlayer *self, const gchar *const *uris, gint index);
+void     lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint index);
 gboolean lomo_player_remove         (LomoPlayer *self, gint index);
 
 const GList* lomo_player_get_playlist    (LomoPlayer *self);
@@ -322,10 +322,10 @@ void         lomo_player_clear           (LomoPlayer *self);
 
 // Review queue API
 gint        lomo_player_queue2                  (LomoPlayer *self, gint index);
-gboolean    lomo_player_dequeue2                (LomoPlayer *self, gint index);
+gboolean    lomo_player_dequeue2                (LomoPlayer *self, gint queue_index);
 gint        lomo_player_queue2_get_n_streams    (LomoPlayer *self);
 gint        lomo_player_queue2_get_stream_index (LomoPlayer *self, LomoStream *stream);
-LomoStream* lomo_player_queue2_get_nth_stream   (LomoPlayer *self, gint queue_pos);
+LomoStream* lomo_player_queue2_get_nth_stream   (LomoPlayer *self, gint queue_index);
 void        lomo_player_queue2_clear            (LomoPlayer *self);
 
 // FIXME: Queue API will be rewritten
