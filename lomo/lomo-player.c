@@ -1072,19 +1072,41 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 
 	LomoPlayerPrivate *priv = self->priv;
 
-	g_debug("Missing signal emission and hook calls");
-
 	gint old_index = lomo_player_get_current(self);
 
+	gboolean ret = FALSE;
+	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, old_index, index))
+	{
+		if (!ret)
+			g_set_error(error, player_quark(), LOMO_PLAYER_ERROR_BLOCK_BY_HOOK,
+				_("Action blocked by hook"));
+		return ret;
+	}
+
+	/*
+	 * Check and fix index value
+	 * (index >= total)           -> index = (total > 0) ? 0 : -1
+	 * (index < 0) && (total > 0) -> index = 0
+	 * (index 
+	 */
 	if (index >= lomo_player_get_n_streams(self))
 	{
-		g_warn_if_fail(index >= lomo_player_get_n_streams(self));
-		index = -1;
+		g_warning("Index is overlimit");
+		index = (lomo_player_get_n_streams(self) > 0) ? 0 : -1;
+	}
+	else if ((index < 0) && (lomo_player_get_n_streams(self) > 0))
+	{
+		g_warning("Index is under limit");
+		index = 0;
 	}
 
 	// Nothing to do here?
 	if (old_index == index)
+	{
+		if (index != -1)
+			g_warn_if_fail(old_index != index);
 		return TRUE;
+	}
 
 	// Check if new index is -1 and delete everything
 	if (index == -1)
@@ -1106,7 +1128,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 
 	g_debug("Going to %d...", index);
 
-	// Check stream
+	// Check stream, this should never happend
 	LomoStream *stream = lomo_player_get_nth_stream(self, index);
 	if (!LOMO_IS_STREAM(stream))
 	{
@@ -1116,7 +1138,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		return FALSE;
 	}
 
-	// Save state for restore
+	// Save state for restore it later
 	GstState state = GST_STATE_READY;
 	if (!priv->vtable.get_state)
 	{
