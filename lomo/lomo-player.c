@@ -27,7 +27,8 @@ struct _LomoPlayerPrivate {
 
 	gboolean auto_parse, auto_play;
 
-	LomoState simulated_state;
+	LomoState _shadow_state;
+	gint      _shadow_n_streams;
 };
 
 enum {
@@ -119,18 +120,18 @@ lomo_state_enum_type(void)
 	return etype;
 }
 
-#define check_method_or_return(self,method)                             \
-	G_STMT_START {                                                      \
-		if (self->priv->vtable.method == NULL)                          \
-		{                                                               \
-			g_warning(N_("Missing method %s"), G_STRINGIFY(method));    \
-			return;                                                     \
-		}                                                               \
+#define check_method_or_return(self,method)                          \
+	G_STMT_START {                                                   \
+		if (self->priv->vtable.method == NULL)                       \
+		{                                                            \
+			g_warning(N_("Missing method %s"), G_STRINGIFY(method)); \
+			return;                                                  \
+		}                                                            \
 	} G_STMT_END
 
 #define check_method_or_return_val(self,method,val,error)                \
 	G_STMT_START {                                                       \
-		if (self->priv->vtable.method == NULL)                          \
+		if (self->priv->vtable.method == NULL)                           \
 		{                                                                \
 			error != NULL ?                                              \
 				g_set_error(error, player_quark(), LOMO_PLAYER_ERROR_MISSING_METHOD, \
@@ -140,12 +141,15 @@ lomo_state_enum_type(void)
 			return val;                                                  \
 		}                                                                \
 	} G_STMT_END
+
 #define check_method_or_warn(self,method) \
 	G_STMT_START {                                                       \
 		if (self->priv->vtable.method == NULL)                           \
 				g_warning(N_("Missing method %s"), G_STRINGIFY(method)); \
 	} G_STMT_END
 
+static void     player_set_shadow_state    (LomoPlayer *self, LomoState state);
+static void     player_set_shadow_n_streams(LomoPlayer *self, gint n_streams);
 static void     player_emit_state_change(LomoPlayer *self);
 static gboolean player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...);
 
@@ -156,7 +160,7 @@ static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer 
 static void     player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data);
 #endif
 
-static GQuark
+static const GQuark
 player_quark(void)
 {
 	static GQuark ret = 0;
@@ -829,7 +833,10 @@ lomo_player_init (LomoPlayer *self)
 	priv->meta     = lomo_metadata_parser_new();
 	priv->queue    = g_queue_new();
 	priv->stats    = lomo_stats_watch(self);
-	priv->simulated_state = LOMO_STATE_INVALID;
+
+	// Shadow values
+	priv->_shadow_state     = LOMO_STATE_INVALID;
+	priv->_shadow_n_streams = -1;
 
 	g_signal_connect(priv->meta, "tag",      (GCallback) meta_tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) meta_all_tags_cb, self);
@@ -962,8 +969,8 @@ lomo_player_get_state(LomoPlayer *self)
 
 	LomoPlayerPrivate *priv = self->priv;
 
-	if (priv->simulated_state != LOMO_STATE_INVALID)
-		return priv->simulated_state;
+	if (priv->_shadow_state != LOMO_STATE_INVALID)
+		return  priv->_shadow_state;
 
 	if (!priv->pipeline || (lomo_player_get_current(self)) == -1)
 		return LOMO_STATE_STOP;
@@ -1199,13 +1206,13 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	g_debug("Everything ok, fire notifies");
 	LomoState lomo_state = LOMO_STATE_STOP;
 	if (lomo_state_from_gst(state, &lomo_state))
-		priv->simulated_state = lomo_state;
+		player_set_shadow_state(self, lomo_state);
 	lomo_playlist_set_current(priv->playlist, index);
 	g_object_notify((GObject *) self, "current");
 	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "can-go-next");
+	player_set_shadow_state(self, LOMO_STATE_INVALID);
 	priv->vtable.set_state(priv->pipeline, state);
-	priv->simulated_state = LOMO_STATE_INVALID;
 	if (old_index == -1)
 		g_object_notify((GObject *) self, "state");
 
@@ -1860,6 +1867,10 @@ gint
 lomo_player_get_n_streams(LomoPlayer *self)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), 0);
+
+	if (self->priv->_shadow_n_streams >= 0)
+		return self->priv->_shadow_n_streams;
+
 	return lomo_playlist_get_n_streams(self->priv->playlist);
 }
 
@@ -1909,8 +1920,10 @@ lomo_player_clear(LomoPlayer *self)
 		return;
 
 	// Exec action
-	lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
-	lomo_player_set_current(self, -1, NULL);
+	// lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
+	player_set_shadow_n_streams(self,  0);
+	lomo_player_set_current(self, -1, NULL); // This will also set stop
+	player_set_shadow_n_streams(self, -1);
 
 	lomo_playlist_clear(priv->playlist);
 	lomo_metadata_parser_clear(priv->meta);
@@ -2118,6 +2131,20 @@ lomo_player_stats_get_stream_time_played(LomoPlayer *self)
 // --
 // Private funcs
 // --
+static void
+player_set_shadow_state (LomoPlayer *self, LomoState state)
+{
+	g_return_if_fail(LOMO_IS_PLAYER(self));
+	self->priv->_shadow_state = state;
+}
+
+static void
+player_set_shadow_n_streams(LomoPlayer *self, gint n_streams)
+{
+	g_return_if_fail(LOMO_IS_PLAYER(self));
+	self->priv->_shadow_n_streams = n_streams;
+}
+
 static void
 player_emit_state_change(LomoPlayer *self)
 {
