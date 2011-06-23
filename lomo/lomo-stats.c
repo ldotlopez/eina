@@ -14,8 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public
- * License
- * along with this program.  If not, see
+ * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -28,6 +27,7 @@
  **/
 
 #include "lomo-stats.h"
+#include <glib/gi18n.h>
 #include "lomo.h"
 
 struct _LomoStats {
@@ -39,14 +39,13 @@ struct _LomoStats {
 	gboolean    submit;
 };
 
-#define debug(...) do ; while(0)
-// #define debug(...) g_warning(__VA_ARGS__)
+#define DEBUG_PREFIX "LomoStats "
 
 static void
 stats_destroy_real(LomoStats *self, gboolean player_is_active);
-static inline void
+static void
 stats_reset_counters(LomoStats *self);
-static inline void
+static void
 stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add);
 
 static void
@@ -84,6 +83,7 @@ lomo_stats_watch(LomoPlayer *player)
 	for (guint i = 0; i < G_N_ELEMENTS(__signal_table); i++)
 		g_signal_connect(player, __signal_table[i].signal, (GCallback) __signal_table[i].handler, self);
 
+	g_debug(DEBUG_PREFIX "Start stats on %p", self);
 	return self;
 }
 
@@ -99,6 +99,7 @@ stats_destroy_real(LomoStats *self, gboolean player_is_active)
 	g_return_if_fail(self != NULL);
 	if (player_is_active)
 	{
+		g_debug(DEBUG_PREFIX "Stop stats on %p", self->player);
 		g_return_if_fail(LOMO_IS_PLAYER(self->player));
 
 		for (guint i = 0; i < G_N_ELEMENTS(__signal_table); i++)
@@ -127,20 +128,20 @@ lomo_stats_get_time_played(LomoStats *self)
 static void
 stats_reset_counters(LomoStats *self)
 {
-    debug("Reseting counters");
+	g_debug(DEBUG_PREFIX "Reseting counters");
 	self->submited = FALSE;
 	self->played = 0;
 	self->check_point = 0;
 }
 
-static inline void
+static void
 stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add)
 {
-	debug("Set checkpoint: %"G_GINT64_FORMAT" secs (%d)", lomo_nanosecs_to_secs(check_point), add);
+	g_debug(DEBUG_PREFIX "Set checkpoint: %"G_GINT64_FORMAT" secs (%d)", LOMO_NANOSECS_TO_SECS(check_point), add);
 	if (add)
 		self->played += (check_point - self->check_point);
 	self->check_point = check_point;
-	debug("  Currently %"G_GINT64_FORMAT" secs played", lomo_nanosecs_to_secs(self->played));
+	g_debug(DEBUG_PREFIX "Currently %"G_GINT64_FORMAT" secs played", LOMO_NANOSECS_TO_SECS(self->played));
 }
 
 static void
@@ -164,7 +165,7 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 		break;
 
 	case LOMO_STATE_STOP:
-		debug("stop signal, position may be 0");
+		g_debug(DEBUG_PREFIX "Stop signal, position may be 0");
 	
 	case LOMO_STATE_PAUSE:
 		// Add to counter secs from the last checkpoint
@@ -172,8 +173,7 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 		break;
 
 	default:
-		// Do nothing?
-		debug("Unknow state. Be careful");
+		g_warning(_("Unknow state. Expect undefined behaviour"));
 		break;
 	}
 }
@@ -195,16 +195,16 @@ lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 static void
 lomo_eos_cb(LomoPlayer *lomo, LomoStats *self)
 {
-	debug("Got EOS/PRE_CHANGE");
+	g_debug(DEBUG_PREFIX "Got EOS/PRE_CHANGE");
 	stats_set_checkpoint(self, lomo_player_get_position(lomo), TRUE);
 
 	if ((self->played >= 30) && (self->played >= (lomo_player_get_length(lomo) / 2)) && !self->submited)
 	{
-		debug("Submit to lastfm");
+		g_debug(DEBUG_PREFIX "Submit to lastfm");
 		self->submited = TRUE;
 	}
 	else
-		debug("Not enought to submit to lastfm");
+		g_debug(DEBUG_PREFIX "Not enought to submit to lastfm");
 }
 
 static void
