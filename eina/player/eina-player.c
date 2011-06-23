@@ -65,6 +65,8 @@ binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *ds
 static gboolean
 binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 static gboolean
+binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
+static gboolean
 binding_play_pause_lomo_state_to_image_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
 static gboolean
 binding_play_pause_lomo_state_to_action(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
@@ -266,6 +268,12 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 			gel_ui_generic_get_typed(self, G_OBJECT, "next-button"), "sensitive",
 			G_BINDING_SYNC_CREATE,
 			NULL, NULL
+		},
+		{
+			"current",
+			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-button"), "sensitive",
+			G_BINDING_SYNC_CREATE,
+			(GBindingTransformFunc) binding_play_pause_lomo_current_to_sensitive, NULL
 		},
 		{
 			"state",
@@ -478,6 +486,13 @@ static gboolean
 binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
 	g_value_set_int(dst, (gint) CLAMP(g_value_get_double(src) * 100, 0, 100));
+	return TRUE;
+}
+
+static gboolean
+binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
+{
+	g_value_set_boolean(dst, g_value_get_int(src) != -1);
 	return TRUE;
 }
 
