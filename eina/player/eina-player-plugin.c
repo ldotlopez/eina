@@ -106,8 +106,10 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 	gtk_action_group_add_actions(ag, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions), player);
 	gtk_ui_manager_insert_action_group(ui_mng, ag, G_MAXINT);
 
-	gchar *prefs_ui_file = g_build_filename(eina_activatable_get_data_dir(plugin), "preferences.ui", NULL);
+	gchar *datadir = peas_extension_base_get_data_dir((PeasExtensionBase *) plugin);
+	gchar *prefs_ui_file = g_build_filename(datadir, "preferences.ui", NULL);
 	GtkWidget *widget = gel_ui_generic_new_from_file(prefs_ui_file);
+	g_free(datadir);
 	g_free(prefs_ui_file);
 
 	__prefs_tab = eina_preferences_tab_new();
