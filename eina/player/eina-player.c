@@ -423,10 +423,13 @@ stream_info_parser_cb(gchar key, LomoStream *stream)
 
 	if ((key == 't') && (ret == NULL))
 	{
-		const gchar *tmp = lomo_stream_get_tag(stream, LOMO_TAG_URI);
-		gchar *tmp2 = g_uri_unescape_string(tmp, NULL);
-		ret = g_path_get_basename(tmp2);
-		g_free(tmp2);
+		const gchar *uri     = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+		gchar *uri_unescaped = g_uri_unescape_string(uri, NULL);
+		gchar *basename      = g_path_get_basename(uri_unescaped);
+		ret  = g_markup_escape_text(basename, -1);
+
+		g_free(uri_unescaped);
+		g_free(basename);
 	}
 	return ret;
 }
