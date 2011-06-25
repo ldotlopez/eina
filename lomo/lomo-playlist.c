@@ -190,10 +190,8 @@ lomo_playlist_set_random (LomoPlaylist *self, gboolean random)
 	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 	
 	self->priv->random = random;
-	// FIXME: notify can-go-(previous|next) property
-
 	if (random)
-		g_warning("Must randomize me, update can-gos");
+		lomo_playlist_randomize(self);
 }
 
 /**

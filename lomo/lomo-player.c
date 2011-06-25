@@ -1123,6 +1123,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		{
 			g_debug("  nuking pipeline");
 			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
+			priv->vtable.set_state(priv->pipeline, GST_STATE_NULL);
 			g_object_unref(priv->pipeline);
 			priv->pipeline = NULL;
 		}
@@ -1430,8 +1431,6 @@ gboolean lomo_player_get_random(LomoPlayer *self)
  *
  * Sets the value of the random behaviour, if @value is %TRUE playlist will be
  * randomized
- * <note><para>No signal is emitted in this process. You must re-query it to be
- * up-to-date</para></note>
  */
 void
 lomo_player_set_random(LomoPlayer *self, gboolean val)
@@ -1758,7 +1757,7 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 		if (lomo_player_get_auto_play(self))
 			lomo_player_set_state(self, LOMO_STATE_PLAY, NULL);
 	}
-	
+
 	// prev and next could have changed if any stream was added
 	if (n_streams != lomo_player_get_n_streams(self))
 	{
@@ -1812,33 +1811,6 @@ lomo_player_remove(LomoPlayer *self, gint index)
 	}
 
 	lomo_playlist_remove(priv->playlist, index);
-
-	#if 0
-	if (curr != pos)
-	{
-		// No problem, delete 
-		lomo_playlist_remove(priv->playlist, pos);
-
-	}
-
-	else
-	{
-		// Try to go next 
-		next = lomo_player_get_next(self);
-		if ((next == curr) || (next == -1))
-		{
-			// mmm, only one stream, go stop
-			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
-			lomo_playlist_remove(priv->playlist, pos);
-		}
-		else
-		{
-			/* Delete and go next */
-			lomo_player_set_current(self, lomo_player_get_next(self), NULL);
-			lomo_playlist_remove(priv->playlist, pos);
-		}
-	}
-	#endif
 
 	g_signal_emit(G_OBJECT(self), player_signals[REMOVE], 0, stream, index);
 	g_object_notify((GObject *) self, "can-go-previous");
@@ -1904,14 +1876,6 @@ lomo_player_clear(LomoPlayer *self)
 	g_return_if_fail(LOMO_IS_PLAYER(self));
 	LomoPlayerPrivate *priv = self->priv;
 
-	// Only clear if needed
-	/*
-	if (lomo_player_get_playlist(self) == NULL)
-		return;
-	*/
-	/*
-	 XXX: Atomic operation here, get_playlist may be O(n), use get_current which is O(n)
-	 */
 	if (lomo_player_get_current(self) == -1)
 		return;
 
@@ -1927,6 +1891,10 @@ lomo_player_clear(LomoPlayer *self)
 
 	lomo_playlist_clear(priv->playlist);
 	lomo_metadata_parser_clear(priv->meta);
+
+	g_object_notify((GObject *) self, "can-go-next");
+	g_object_notify((GObject *) self, "can-go-prev");
+	g_object_notify((GObject *) self, "current");
 
 	g_signal_emit(G_OBJECT(self), player_signals[CLEAR], 0);
 }
