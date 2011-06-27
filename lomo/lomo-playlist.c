@@ -189,6 +189,9 @@ lomo_playlist_set_random (LomoPlaylist *self, gboolean random)
 {
 	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 	
+	if (random == self->priv->random)
+		return;
+
 	self->priv->random = random;
 	if (random)
 		lomo_playlist_randomize(self);
@@ -221,7 +224,6 @@ lomo_playlist_set_repeat (LomoPlaylist *self, gboolean repeat)
 {
 	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 	self->priv->repeat = repeat;
-	// FIXME: notify can-go-(previous|next) property
 }
 
 /**
@@ -238,7 +240,7 @@ LomoStream*
 lomo_playlist_get_nth_stream(LomoPlaylist *self, gint index)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), NULL);
-	g_return_val_if_fail(index < lomo_playlist_get_n_streams(self), NULL);
+	g_return_val_if_fail((index >= 0) && (index < lomo_playlist_get_n_streams(self)), NULL);
 
 	return LOMO_STREAM(g_list_nth_data(self->priv->list, index));
 }
@@ -246,7 +248,7 @@ lomo_playlist_get_nth_stream(LomoPlaylist *self, gint index)
 /**
  * lomo_playlist_get_stream_index:
  * @self: a #LomoPlaylist
- * @stream: the #LomoStream to find
+ * @stream: (transfer none): the #LomoStream to find
  *
  * Gets the position of the element containing the given data (starting from
  * 0)
@@ -258,6 +260,8 @@ gint
 lomo_playlist_get_stream_index(LomoPlaylist *self, LomoStream *stream)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	g_return_val_if_fail(LOMO_IS_STREAM(stream), -1);
+
 	return g_list_index(self->priv->list, stream);
 }
 
@@ -298,7 +302,6 @@ lomo_playlist_insert_multi (LomoPlaylist *self, GList *streams, gint index)
 
 	LomoPlaylistPrivate *priv = self->priv;
 	
-
 	if ((index < 0) || (index > lomo_playlist_get_n_streams(self)))
 		index = lomo_playlist_get_n_streams(self);
 
@@ -324,8 +327,7 @@ lomo_playlist_insert_multi (LomoPlaylist *self, GList *streams, gint index)
 		iter = iter->next;
 	}
 
-	//if (lomo_playlist_get_current(self) == -1)
-	//	lomo_playlist_set_current(self, 0);
+	// Important: Dont move 'current'.
 }
 
 /**
@@ -335,8 +337,8 @@ lomo_playlist_insert_multi (LomoPlaylist *self, GList *streams, gint index)
  *
  * Deletes the element at position @index
  */
-void lomo_playlist_remove
-(LomoPlaylist *self, gint index)
+void
+lomo_playlist_remove (LomoPlaylist *self, gint index)
 {
 	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 	g_return_if_fail((index >= 0) && (index < lomo_playlist_get_n_streams(self)));
@@ -437,8 +439,14 @@ lomo_playlist_swap (LomoPlaylist *self, gint a, gint b)
 	priv->list = g_list_insert(priv->list, data_b, a - 1);
 	priv->list = g_list_insert(priv->list, data_a, b);
 
-	if      ( a == priv->current ) { priv->current = b; }
-	else if ( b == priv->current ) { priv->current = a; }
+	gint new_curr = -1;
+	if ( a == priv->current )
+		new_curr = b;
+	else if ( b == priv->current )
+		new_curr = a;
+
+	if (new_curr >= 0)
+		lomo_playlist_set_current(self, new_curr);
 
 	return TRUE;
 }
@@ -469,7 +477,6 @@ lomo_playlist_get_next (LomoPlaylist *self)
 	if (priv->random && (randompos == total - 1))
 		return priv->repeat ? playlist_random_to_normal(self, 0) : -1;
 
-	
 	if (!(priv->random) && (normalpos == total - 1))
 		return priv->repeat ? 0 : -1;
 
@@ -547,6 +554,12 @@ lomo_playlist_randomize (LomoPlaylist *self)
 	priv->random_list = res;
 }
 
+/**
+ * lomo_playlist_print:
+ * self: a #LomoPlaylist
+ *
+ * Print the internal playlist
+ */
 void
 lomo_playlist_print (LomoPlaylist *self)
 {
@@ -560,6 +573,12 @@ lomo_playlist_print (LomoPlaylist *self)
 	}
 }
 
+/**
+ * lomo_playlist_print_random:
+ * @self: A #LomoPlaylist
+ *
+ * Prints the random playlist
+ */
 void
 lomo_playlist_print_random(LomoPlaylist *self)
 {
