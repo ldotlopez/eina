@@ -343,7 +343,9 @@ playlist_update_state(EinaPlaylist *self)
 	EinaPlaylistPrivate *priv = self->priv;
 
 	gint index = lomo_player_get_current(priv->lomo);
-	g_return_if_fail((index >= 0) && (index < lomo_player_get_n_streams(priv->lomo)));
+	if (index < 0)
+		return;
+	g_return_if_fail(index < lomo_player_get_n_streams(priv->lomo));
 
 	LomoState state = lomo_player_get_state(priv->lomo);
 
@@ -355,7 +357,9 @@ playlist_update_state(EinaPlaylist *self)
 	{
 	case LOMO_STATE_STOP:  stock = GTK_STOCK_MEDIA_STOP ; break;
 	case LOMO_STATE_PAUSE: stock = GTK_STOCK_MEDIA_PAUSE; break;
-	case LOMO_STATE_PLAY:  stock = GTK_STOCK_MEDIA_PLAY;  break;
+	case LOMO_STATE_PLAY:
+		stock = ((gtk_widget_get_direction((GtkWidget *) self) == GTK_TEXT_DIR_RTL) ?
+			"gtk-media-play-rtl" : "gtk-media-play-ltr");
 	default:
 		g_warning(_("Unhanded state: %d"), state);
 	}
@@ -405,6 +409,9 @@ void playlist_change_current(EinaPlaylist *self, gint from, gint to)
 			playlist_update_state(self);
 		g_free(markup);
 		g_free(text);
+
+		GtkTreePath *tree_path = gtk_tree_path_new_from_indices(to, -1);
+		gtk_tree_view_scroll_to_cell(priv->tv, tree_path, NULL, FALSE, 0.0, 0.0);
 	}
 }
 
@@ -422,7 +429,10 @@ playlist_update_stream (EinaPlaylist *self, LomoStream *stream)
 	GtkTreeIter iter;
 	g_return_if_fail(playlist_get_iter_from_index(self, &iter, index));
 
-	gchar *text = format_stream(stream, priv->stream_mrkp);
+	gchar *tmp  = format_stream(stream, priv->stream_mrkp);
+	gchar *text = g_markup_escape_text(tmp, -1);
+	g_free(tmp);
+
 	gchar *markup = NULL;
 
 	if (index == lomo_player_get_current(priv->lomo))

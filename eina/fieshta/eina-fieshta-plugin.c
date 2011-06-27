@@ -22,14 +22,13 @@
 #include <eina/lomo/eina-lomo-plugin.h>
 
 typedef struct {
-	gpointer magic;
 	guint ui_mng_merge_id;
 	gboolean enabled;
 	EinaFieshtaBehaviour *behaviour;
 } EinaFieshtaData;
 #define EINA_FIESHTA_DATA(x) ((EinaFieshtaData *) x)
 
-static void fieshta_enable(EinaActivatable *activatable);
+static void fieshta_enable (EinaActivatable *activatable);
 static void fieshta_disable(EinaActivatable *activatable);
 static void action_toggled_cb(GtkToggleAction *action, EinaActivatable *activatable);
 

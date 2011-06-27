@@ -71,7 +71,10 @@ eina_lastfm_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	lomo_player_hook_add(self->lomo, (LomoPlayerHook) lomo_hook_cb, self);
 
 	self->settings   = eina_application_get_settings(app, LASTFM_PREFERENCES_DOMAIN);
-	self->daemonpath = g_build_filename(eina_activatable_get_data_dir(activatable), "lastfmsubmitd", "lastfmsubmitd", NULL);
+
+	gchar *datadir = peas_extension_base_get_data_dir(PEAS_EXTENSION_BASE(activatable));
+	self->daemonpath = g_build_filename(datadir, "lastfmsubmitd", "lastfmsubmitd", NULL);
+	g_free(datadir);
 
 	lastfm_plugin_build_preferences(activatable);
 
@@ -101,7 +104,10 @@ lastfm_plugin_build_preferences(EinaActivatable *activatable)
 {
 	EinaLastfmData *self = (EinaLastfmData *) eina_activatable_get_data(activatable);
 
-	gchar *prefs_ui_path = g_build_filename(eina_activatable_get_data_dir(activatable), "preferences.ui", NULL);
+	gchar *datadir = peas_extension_base_get_data_dir(PEAS_EXTENSION_BASE(activatable));
+
+	gchar *prefs_ui_path = g_build_filename(datadir, "preferences.ui", NULL);
+
 	GtkWidget *prefs_ui = gel_ui_generic_new_from_file(prefs_ui_path);
 	if (!prefs_ui)
 	{
@@ -111,19 +117,17 @@ lastfm_plugin_build_preferences(EinaActivatable *activatable)
 	}
 	g_free(prefs_ui_path);
 
-	GdkPixbuf *pb = NULL;
-	g_warning("Missing features here!!!");
-	/*
-	gchar *icon_filename = gel_plugin_get_resource(plugin, GEL_RESOURCE_TYPE_IMAGE, "lastfm.png");
+	gchar *icon_filename = g_build_filename(datadir, "lastfm.png", NULL);
 	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(icon_filename, 16, 16, TRUE, NULL);
 	gel_free_and_invalidate(icon_filename, NULL, g_free);
-	*/
+
+	g_free(datadir);
 
 	self->prefs_tab = eina_preferences_tab_new();
 	g_object_set(self->prefs_tab,
-		"widget", prefs_ui,
-		"label-text", N_("Last FM"),
-		"label-image",  NULL, // gtk_image_new_from_pixbuf(pb),
+		"widget",      prefs_ui,
+		"label-text",  N_("Last FM"),
+		"label-image", gtk_image_new_from_pixbuf(pb),
 		NULL);
 	gel_free_and_invalidate(pb, NULL, g_object_unref);
 

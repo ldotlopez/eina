@@ -49,13 +49,8 @@ struct _EinaActivatableInterface {
 	EinaActivatableInterfacePrivate *priv;
 
 	/* Virtual public methods */
-	#ifdef EINA_ACTIVATABLE_SIMPLE_API
-	void (*activate)   (EinaActivatable *activatable, EinaApplication *application);
-	void (*deactivate) (EinaActivatable *activatable, EinaApplication *application);
-	#else
 	gboolean (*activate)   (EinaActivatable *activatable, EinaApplication *application, GError **error);
 	gboolean (*deactivate) (EinaActivatable *activatable, EinaApplication *application, GError **error);
-	#endif
 };
 
 /*
@@ -66,10 +61,6 @@ EinaActivatableInterface* eina_activatable_get_iface(GObject *object);
 
 GType eina_activatable_get_type   (void)  G_GNUC_CONST;
 
-#ifdef EINA_ACTIVATABLE_SIMPLE_API
-void  eina_activatable_activate   (EinaActivatable *activatable, EinaApplication *application);
-void  eina_activatable_deactivate (EinaActivatable *activatable, EinaApplication *application);
-#else
 gboolean eina_activatable_activate  (EinaActivatable *activatable, EinaApplication *application, GError **error);
 gboolean eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *application, GError **error);
 
@@ -78,10 +69,8 @@ gpointer eina_activatable_get_data  (EinaActivatable *activatable);
 gpointer eina_activatable_steal_data(EinaActivatable *activatable);
 
 EinaApplication *eina_activatable_get_application(EinaActivatable *activatable);
-const gchar     *eina_activatable_get_data_dir(EinaActivatable *activatable);
+// const gchar     *eina_activatable_get_data_dir(EinaActivatable *activatable);
 
-
-#endif
 G_END_DECLS
 
 #endif /* __EINA_ACTIVATABLE_H__ */
