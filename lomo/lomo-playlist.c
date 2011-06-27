@@ -39,6 +39,25 @@ lomo_playlist_set_property (GObject *object, guint property_id, const GValue *va
 static void
 lomo_playlist_dispose (GObject *object)
 {
+	LomoPlaylist *self = LOMO_PLAYLIST(object);
+	LomoPlaylistPrivate *priv = self->priv;
+
+	if (priv->random_list)
+	{
+		g_list_free(priv->random_list);
+		priv->random_list = NULL;
+	}
+
+	if (priv->list)
+	{
+		g_list_foreach(priv->list, (GFunc) g_object_unref, NULL);
+		g_list_free(priv->list);
+		priv->list = NULL;
+	}
+
+	priv->total   =  0;
+	priv->current = -1;
+
 	G_OBJECT_CLASS (lomo_playlist_parent_class)->dispose (object);
 }
 
