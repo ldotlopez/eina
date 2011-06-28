@@ -1726,7 +1726,7 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 		}
 
 		// Insert and auto-parse
-		lomo_playlist_insert(self->priv->playlist, g_object_ref(stream), position++);
+		lomo_playlist_insert(self->priv->playlist, stream, position++);
 		g_signal_emit(self, player_signals[INSERT], 0, stream, position - 1);
 		if (lomo_player_get_auto_parse(self));
 			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
