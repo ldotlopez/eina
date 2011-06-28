@@ -141,8 +141,8 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		EINA_TYPE_ACTIVATABLE,
 		NULL);
 
-	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
-	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
+	g_signal_connect_after(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
+	g_signal_connect_after(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
 
 	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
