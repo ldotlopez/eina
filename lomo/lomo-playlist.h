@@ -24,6 +24,11 @@ typedef struct {
 	GObjectClass parent_class;
 } LomoPlaylistClass;
 
+typedef enum {
+	LOMO_PLAYLIST_TRANSFORM_MODE_NORMAL_TO_RANDOM = 0x0,
+	LOMO_PLAYLIST_TRANSFORM_MODE_RANDOM_TO_NORMAL = 0x1
+} LomoPlaylistTransformMode;
+
 GType lomo_playlist_get_type (void);
 
 LomoPlaylist* lomo_playlist_new (void);
@@ -55,7 +60,8 @@ gint lomo_playlist_get_next    (LomoPlaylist *self);
 #define lomo_playlist_go_previous(self) lomo_playlist_set_current(self, lomo_playlist_get_previous(self))
 #define lomo_playlist_go_next(self)     lomo_playlist_set_current(self, lomo_playlist_get_next(self))
 
-void lomo_playlist_randomize(LomoPlaylist *self);
+gint lomo_playlist_transform_index(LomoPlaylist *self, gint index, LomoPlaylistTransformMode mode);
+
 void lomo_playlist_print(LomoPlaylist *self);
 void lomo_playlist_print_random(LomoPlaylist *self);
 

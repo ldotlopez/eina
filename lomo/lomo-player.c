@@ -1855,21 +1855,6 @@ lomo_player_get_stream_index(LomoPlayer *self, LomoStream *stream)
 	return lomo_playlist_get_stream_index(self->priv->playlist, stream);
 }
 
-/**
- * lomo_player_randomize:
- * @self: a #LomoPlayer
- *
- * Randomizes internal playlist.
- * <note><para>No signal is emitted in this process. You must re-query it to be
- * up-to-date</para></note>
- */
-void
-lomo_player_randomize(LomoPlayer *self)
-{
-	g_return_if_fail(LOMO_IS_PLAYER(self));
-	lomo_playlist_randomize(self->priv->playlist);
-}
-
 void
 lomo_player_clear(LomoPlayer *self)
 {

@@ -1,4 +1,5 @@
 #include "lomo-playlist.h"
+#include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
 G_DEFINE_TYPE (LomoPlaylist, lomo_playlist, G_TYPE_OBJECT)
@@ -13,10 +14,11 @@ struct _LomoPlaylistPrivate {
     gint current;
 };
 
-static gint
-playlist_normal_to_random (LomoPlaylist *self, gint pos);
-static gint
-playlist_random_to_normal (LomoPlaylist *self, gint pos);
+#define index_normal2random(o,i) lomo_playlist_transform_index(o,i,LOMO_PLAYLIST_TRANSFORM_MODE_NORMAL_TO_RANDOM)
+#define index_random2normal(o,i) lomo_playlist_transform_index(o,i,LOMO_PLAYLIST_TRANSFORM_MODE_RANDOM_TO_NORMAL)
+
+void
+playlist_randomize (LomoPlaylist *self);
 
 static void
 lomo_playlist_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
@@ -213,7 +215,7 @@ lomo_playlist_set_random (LomoPlaylist *self, gboolean random)
 
 	self->priv->random = random;
 	if (random)
-		lomo_playlist_randomize(self);
+		playlist_randomize(self);
 }
 
 /**
@@ -486,7 +488,7 @@ lomo_playlist_get_next (LomoPlaylist *self)
 
 	gint total     = lomo_playlist_get_n_streams(self);
 	gint normalpos = lomo_playlist_get_current(self);
-	gint randompos = playlist_normal_to_random(self, normalpos);
+	gint randompos = index_normal2random(self, normalpos);
 	
 	// playlist has no elements, return invalid
 	if (total == 0)
@@ -494,14 +496,16 @@ lomo_playlist_get_next (LomoPlaylist *self)
 
 	/* At end of list */
 	if (priv->random && (randompos == total - 1))
-		return priv->repeat ? playlist_random_to_normal(self, 0) : -1;
+		return priv->repeat ?
+			index_random2normal(self, 0)
+			: -1;
 
 	if (!(priv->random) && (normalpos == total - 1))
 		return priv->repeat ? 0 : -1;
 
 	/* normal advance */
 	if ( priv->random )
-		return playlist_random_to_normal(self, playlist_normal_to_random(self, normalpos)  + 1);
+		return index_random2normal(self, index_normal2random(self, normalpos) + 1);
 	else
 		return normalpos + 1;
 }
@@ -522,7 +526,7 @@ lomo_playlist_get_previous (LomoPlaylist *self)
 
 	gint total     = lomo_playlist_get_n_streams(self);
 	gint normalpos = lomo_playlist_get_current(self);
-	gint randompos = playlist_normal_to_random(self, normalpos);
+	gint randompos = index_normal2random(self, normalpos);
 
 	/* Empty list */
 	if (total == 0)
@@ -530,47 +534,57 @@ lomo_playlist_get_previous (LomoPlaylist *self)
 
 	/* At beginning of list */
 	if (priv->random && (randompos == 0))
-		return priv->repeat ? playlist_random_to_normal(self, total - 1) : -1;
+		return priv->repeat ? index_random2normal(self, total - 1) : -1;
 
 	if (!(priv->random) && (normalpos == 0))
 		return priv->repeat ? total - 1 : -1;
 
 	/* normal backwards movement */
 	if ( priv->random )
-		return playlist_random_to_normal(self, playlist_normal_to_random(self, normalpos) - 1);
+		return index_random2normal(self, index_normal2random(self, normalpos) - 1);
 	else
 		return normalpos - 1;
 }
 
 /**
- * lomo_playlist_randomize:
+ * lomo_playlist_transform_index:
  * @self: A #LomoPlaylist
+ * @index: Index
+ * @mode: Transformation mode
  *
- * Randomized playlist
+ * Transforms @index into another index of diferent type using a
+ * transformation corresponding to @mode
+ *
+ * Returns: The index in the new form.
  */
-void
-lomo_playlist_randomize (LomoPlaylist *self)
+gint
+lomo_playlist_transform_index(LomoPlaylist *self, gint index, LomoPlaylistTransformMode mode)
 {
-	g_return_if_fail(LOMO_IS_PLAYLIST(self));
+	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	g_return_val_if_fail((index >= 0) && (index < lomo_playlist_get_n_streams(self)), -1);
+
 	LomoPlaylistPrivate *priv = self->priv;
 
-	GList *copy = NULL;
-	GList *res  = NULL;
-	gpointer data;
-	gint i, r, len = lomo_playlist_get_n_streams(self);
-
-	copy = g_list_copy((GList *) lomo_playlist_get_playlist(self));
-
-	for (i = 0; i < len; i++)
+	GList *src_list = NULL, *dst_list = NULL;
+	switch (mode)
 	{
-		r = g_random_int_range(0, len - i);
-		data = g_list_nth_data(copy, r);
-		copy = g_list_remove(copy, data);
-		res = g_list_prepend(res, data);
+	case LOMO_PLAYLIST_TRANSFORM_MODE_NORMAL_TO_RANDOM:
+		src_list = priv->list;
+		dst_list = priv->random_list;
+		break;
+	case LOMO_PLAYLIST_TRANSFORM_MODE_RANDOM_TO_NORMAL:
+		src_list = priv->random_list;
+		dst_list = priv->list;
+		break;
+	default:
+		g_warning(_("Unknow transform mode: %d"), mode);
+		return -1;
 	}
 
-	g_list_free(priv->random_list);
-	priv->random_list = res;
+	gpointer data = g_list_nth_data(src_list, index);
+	g_return_val_if_fail(data != NULL, -1);
+
+	return g_list_index(dst_list, data);
 }
 
 /**
@@ -612,41 +626,33 @@ lomo_playlist_print_random(LomoPlaylist *self)
 }
 
 /**
- * playlist_normal_to_random:
+ * playlist_randomize:
  * @self: A #LomoPlaylist
- * @pos: Index in normal playlist
  *
- * Transform normal index @pos to random index
- *
- * Returns: The index in the random mode
+ * Randomize playlist
  */
-static gint
-playlist_normal_to_random (LomoPlaylist *self, gint pos)
+void
+playlist_randomize (LomoPlaylist *self)
 {
-	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
+	g_return_if_fail(LOMO_IS_PLAYLIST(self));
 	LomoPlaylistPrivate *priv = self->priv;
 
-	gpointer data = g_list_nth_data(priv->list, pos);
-	return g_list_index(priv->random_list, data);
+	GList *copy = NULL;
+	GList *res  = NULL;
+	gpointer data;
+	gint i, r, len = lomo_playlist_get_n_streams(self);
+
+	copy = g_list_copy((GList *) lomo_playlist_get_playlist(self));
+
+	for (i = 0; i < len; i++)
+	{
+		r = g_random_int_range(0, len - i);
+		data = g_list_nth_data(copy, r);
+		copy = g_list_remove(copy, data);
+		res = g_list_prepend(res, data);
+	}
+
+	g_list_free(priv->random_list);
+	priv->random_list = res;
 }
-
-/**
- * playlist_random_to_normal:
- * @self: A #LomoPlaylist
- * @pos: Index in random playlist
- *
- * Transform random index @pos to normal index
- *
- * Returns: The index in the normal mode
- */
-static gint
-playlist_random_to_normal (LomoPlaylist *self, gint pos)
-{
-	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
-	LomoPlaylistPrivate *priv = self->priv;
-
-	gpointer data = g_list_nth_data(priv->random_list, pos);
-	return g_list_index(priv->list, data);
-}
-
 
