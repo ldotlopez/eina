@@ -1101,11 +1101,6 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		g_warning("Index is overlimit");
 		index = (lomo_player_get_n_streams(self) > 0) ? 0 : -1;
 	}
-	else if ((index < 0) && (lomo_player_get_n_streams(self) > 0))
-	{
-		g_warning("Index is under limit");
-		index = 0;
-	}
 
 	// Nothing to do here?
 	if (old_index == index)
@@ -1131,6 +1126,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		g_object_notify((GObject *) self, "current");
 		g_object_notify((GObject *) self, "can-go-previous");
 		g_object_notify((GObject *) self, "can-go-next");
+		g_signal_emit(self, player_signals[CHANGE], old_index, -1);
 		return TRUE;
 	}
 
@@ -1216,6 +1212,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	priv->vtable.set_state(priv->pipeline, state);
 	if (old_index == -1)
 		g_object_notify((GObject *) self, "state");
+	g_signal_emit(self, player_signals[CHANGE], 0, old_index, index);
 
 	return TRUE;
 }
@@ -1870,15 +1867,15 @@ lomo_player_clear(LomoPlayer *self)
 
 	// Exec action
 	// lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
-	player_set_shadow_n_streams(self,  0);
+	// player_set_shadow_n_streams(self,  0);
 	lomo_player_set_current(self, -1, NULL); // This will also set stop
-	player_set_shadow_n_streams(self, -1);
+	if (0) player_set_shadow_n_streams(self, -1);
 
 	lomo_playlist_clear(priv->playlist);
 	lomo_metadata_parser_clear(priv->meta);
 
 	g_object_notify((GObject *) self, "can-go-next");
-	g_object_notify((GObject *) self, "can-go-prev");
+	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "current");
 
 	g_signal_emit(G_OBJECT(self), player_signals[CLEAR], 0);
@@ -2362,7 +2359,7 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		"can-go-previous",
 		"can-go-next",
 		"auto-play",
-		"auto-parse"
+		"auto-parse",
 		};
 
 	for (guint i = 0; i < G_N_ELEMENTS(ignore); i++)
@@ -2375,15 +2372,17 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		return;
 	}
 
-	static gint prev_current = -1;
 	if (g_str_equal(pspec->name, "current"))
 	{
+		#if 0
+		static gint prev_current = -1;
 		gint current = lomo_player_get_current(self);
 		if (current != prev_current)
 		{
 			g_signal_emit(self, player_signals[CHANGE], 0, prev_current, current);
 			prev_current = current;
 		}
+		#endif
 		return;
 	}
 

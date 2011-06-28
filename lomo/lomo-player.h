@@ -303,26 +303,14 @@ gboolean lomo_player_remove         (LomoPlayer *self, gint index);
 const GList* lomo_player_get_playlist    (LomoPlayer *self);
 gint         lomo_player_get_n_streams   (LomoPlayer *self);
 gint         lomo_player_get_stream_index(LomoPlayer *self, LomoStream *stream);
-void         lomo_player_randomize       (LomoPlayer *self);
 void         lomo_player_clear           (LomoPlayer *self);
 
-// Review queue API
 gint        lomo_player_queue2                  (LomoPlayer *self, gint index);
 gboolean    lomo_player_dequeue2                (LomoPlayer *self, gint queue_index);
 gint        lomo_player_queue2_get_n_streams    (LomoPlayer *self);
 gint        lomo_player_queue2_get_stream_index (LomoPlayer *self, LomoStream *stream);
 LomoStream* lomo_player_queue2_get_nth_stream   (LomoPlayer *self, gint queue_index);
 void        lomo_player_queue2_clear            (LomoPlayer *self);
-
-// FIXME: Queue API will be rewritten
-#if 0
-#define     lomo_player_queue_stream(self,stream)   lomo_player_queue(self,lomo_player_get_stream_index(self,stream))
-#define     lomo_player_dequeue_stream(self,stream) lomo_player_queue_index(self,stream)
-gboolean    lomo_player_dequeue     (LomoPlayer *self, gint queue_pos);
-gint        lomo_player_queue_index (LomoPlayer *self, LomoStream *stream);
-LomoStream* lomo_player_queue_nth   (LomoPlayer *self, gint queue_pos);
-void        lomo_player_queue_clear (LomoPlayer *self);
-#endif
 
 void lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data);
 void lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func);
@@ -343,24 +331,6 @@ gint64 lomo_player_stats_get_stream_time_played(LomoPlayer *self);
 #define lomo_player_play(self,error)  lomo_player_set_state(self, LOMO_STATE_PLAY,  error)
 #define lomo_player_pause(self,error) lomo_player_set_state(self, LOMO_STATE_PAUSE, error)
 #define lomo_player_stop(self,error)  lomo_player_set_state(self, LOMO_STATE_STOP,  error)
-
-#endif
-
-#ifdef  LOMO_PLAYER_COMPAT
-
-gboolean lomo_player_seek  (LomoPlayer *self, LomoFormat format, gint64 val);
-gint64   lomo_player_tell  (LomoPlayer *self, LomoFormat format);
-gint64   lomo_player_length(LomoPlayer *self, LomoFormat format);
-
-#define lomo_player_seek_time(c,t) lomo_player_seek(c,LOMO_FORMAT_TIME,t)
-#define lomo_player_tell_time(p)   lomo_player_tell(p,LOMO_FORMAT_TIME)
-#define lomo_player_length_time(c) lomo_player_length(c,LOMO_FORMAT_TIME)
-
-#define lomo_player_del(self,index) lomo_player_remove(self,index)
-
-#define lomo_player_index(self,stream)       lomo_player_get_stream_index(self,stream)
-#define lomo_player_nth_stream(self,index)   lomo_player_get_nth_stream(self,index)
-#define lomo_player_get_total(self)          lomo_player_get_n_streams(self)
 
 #endif
 

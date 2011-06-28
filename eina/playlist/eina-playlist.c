@@ -360,6 +360,7 @@ playlist_update_state(EinaPlaylist *self)
 	case LOMO_STATE_PLAY:
 		stock = ((gtk_widget_get_direction((GtkWidget *) self) == GTK_TEXT_DIR_RTL) ?
 			"gtk-media-play-rtl" : "gtk-media-play-ltr");
+		break;
 	default:
 		g_warning(_("Unhanded state: %d"), state);
 	}

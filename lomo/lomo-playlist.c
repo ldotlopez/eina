@@ -561,7 +561,10 @@ gint
 lomo_playlist_transform_index(LomoPlaylist *self, gint index, LomoPlaylistTransformMode mode)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYLIST(self), -1);
-	g_return_val_if_fail((index >= 0) && (index < lomo_playlist_get_n_streams(self)), -1);
+	g_return_val_if_fail((index >= -1) && (index < lomo_playlist_get_n_streams(self)), -1);
+
+	if (index == -1)
+		return -1;
 
 	LomoPlaylistPrivate *priv = self->priv;
 
