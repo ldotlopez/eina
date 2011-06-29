@@ -480,6 +480,8 @@ eina/playlist/playlist.plugin
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile
+eina/pythonconsole/pythonconsole.plugin
+eina/pythonconsole/Makefile
 eina/pythonhello/pythonhello.plugin
 eina/pythonhello/Makefile
 eina/status-icon/status-icon.plugin

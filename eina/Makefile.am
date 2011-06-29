@@ -1,17 +1,18 @@
 include $(top_srcdir)/build/Makefile.am.common
 
 SUBDIRS = ext   \
-	art         \
-	dbus        \
-	dock        \
-	fieshta     \
-	lastfm      \
-	lomo        \
-	mpris       \
-	player      \
-	playlist    \
-	preferences \
-	pythonhello \
+	art           \
+	dbus          \
+	dock          \
+	fieshta       \
+	lastfm        \
+	lomo          \
+	mpris         \
+	player        \
+	playlist      \
+	preferences   \
+	pythonconsole \
+	pythonhello   \
 	status-icon
 
 if BUILD_ADB
@@ -30,7 +31,7 @@ endif
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
-eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\" 
+eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_LDFLAGS = \
 	@EINA_LIBS@ \
 	-L$(top_builddir)/gel/.libs  \
