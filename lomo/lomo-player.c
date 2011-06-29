@@ -21,7 +21,7 @@ struct _LomoPlayerPrivate {
 	GList *hooks, *hooks_data;
 
 	GstElement *pipeline;
-	
+
 	gint     volume;
 	gboolean mute;
 
@@ -183,7 +183,7 @@ player_get_property (GObject *object, guint property_id, GValue *value, GParamSp
 	case PROPERTY_CURRENT:
 		g_value_set_int(value, lomo_player_get_current(self));
 		break;
-	
+
 	case PROPERTY_RANDOM:
 		g_value_set_boolean(value, lomo_player_get_random(self));
 		break;
@@ -226,7 +226,7 @@ player_set_property (GObject *object, guint property_id, const GValue *value, GP
 {
 	LomoPlayer *self = LOMO_PLAYER(object);
 	GError *error = NULL;
-	
+
 	switch (property_id)
 	{
 	case PROPERTY_STATE:
@@ -384,7 +384,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	/**
 	 * LomoPlayer::remove:
 	 * @lomo: the object that received the signal
-	 * @stream: #LomoStream object that was removed 
+	 * @stream: #LomoStream object that was removed
 	 * @position: last position of the stream in the playlist
 	 *
 	 * Emitted when a #LomoStream is remove from #LomoPlayer
@@ -403,8 +403,8 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	/**
 	 * LomoPlayer::queue:
 	 * @lomo: the object that received the signal
-	 * @stream: #LomoStream object that was queued 
-	 * @position: position of the stream in the queue 
+	 * @stream: #LomoStream object that was queued
+	 * @position: position of the stream in the queue
 	 *
 	 * Emitted when a #LomoStream is queued inside a #LomoPlayer
 	 */
@@ -423,8 +423,8 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	/**
 	 * LomoPlayer::dequeue:
 	 * @lomo: the object that received the signal
-	 * @stream: #LomoStream object that was removed 
-	 * @position: last position of the stream in the queue 
+	 * @stream: #LomoStream object that was removed
+	 * @position: last position of the stream in the queue
 	 *
 	 * Emitted when a #LomoStream is dequeue inside a #LomoPlayer
 	 */
@@ -440,7 +440,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 				G_TYPE_OBJECT,
 				G_TYPE_INT,
 				G_TYPE_INT);
-
 	/**
 	 * LomoPlayer::clear:
 	 * @lomo: the object that received the signal
@@ -497,7 +496,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			    g_cclosure_marshal_VOID__VOID,
 			    G_TYPE_NONE,
 			    0);
-
 	/**
 	 * LomoPlayer::change:
 	 * @lomo: the object that received the signal
@@ -589,7 +587,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			g_cclosure_marshal_VOID__VOID,
 			G_TYPE_NONE,
 			0);
-
 	/**
 	 * LomoPlayer::play:
 	 * @lomo: the object that received the signal
@@ -605,7 +602,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			g_cclosure_marshal_VOID__VOID,
 			G_TYPE_NONE,
 			0);
-
 	/**
 	 * LomoPlayer::pause:
 	 * @lomo: the object that received the signal
@@ -719,7 +715,6 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_AUTO_PARSE,
 		g_param_spec_boolean("auto-parse", "auto-parse", "Auto parse added streams",
 		TRUE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
-
 	/**
 	 * LomoPlayer:auto-play:
 	 *
@@ -773,7 +768,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 * LomoPlayer:random:
 	 *
 	 * Enables or disables random mode
-	 **/ 
+	 **/
 	g_object_class_install_property(object_class, PROPERTY_RANDOM,
 		g_param_spec_boolean("random", "random", "Random",
 		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
@@ -781,7 +776,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 * LomoPlayer:repeat:
 	 *
 	 * Enables or disables repeat mode
-	 **/ 
+	 **/
 	g_object_class_install_property(object_class, PROPERTY_REPEAT,
 		g_param_spec_boolean("repeat", "repeat", "Repeat",
 		FALSE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
@@ -1126,7 +1121,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		g_object_notify((GObject *) self, "current");
 		g_object_notify((GObject *) self, "can-go-previous");
 		g_object_notify((GObject *) self, "can-go-next");
-		g_signal_emit(self, player_signals[CHANGE], old_index, -1);
+		g_signal_emit(self, player_signals[CHANGE], 0, old_index, -1);
 		return TRUE;
 	}
 

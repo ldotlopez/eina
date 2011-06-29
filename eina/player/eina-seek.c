@@ -554,13 +554,14 @@ button_release_event_cb(GtkWidget *w, GdkEventButton *ev, EinaSeek *self)
 	return FALSE;
 }
 
-void 
+void
 lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaSeek *self)
 {
 	static gint64 prev_current = -1;
-	gint64 current = lomo_player_get_current(lomo);
-	
-	g_return_if_fail(prev_current != current);
+	gint current = lomo_player_get_current(lomo);
+
+	if (prev_current == current)
+		return;
 
 	// Force update
 	self->priv->total_is_desync = TRUE;
@@ -570,7 +571,7 @@ lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaSeek *self)
 	prev_current = current;
 }
 
-void 
+void
 lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaSeek *self)
 {
 	static LomoState prev_state = LOMO_STATE_INVALID;
