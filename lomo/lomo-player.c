@@ -28,6 +28,7 @@ struct _LomoPlayerPrivate {
 	gboolean auto_parse, auto_play;
 
 	LomoState _shadow_state;
+	gboolean using_gapless;
 };
 
 enum {
@@ -153,7 +154,8 @@ static gboolean player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpoi
 
 static void     meta_tag_cb     (LomoMetadataParser *parser, LomoStream *stream, const gchar *tag, LomoPlayer *self);
 static void     meta_all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self);
-static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self); 
+static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self);
+static void     about_to_finish_cb(GstElement *pipeline, LomoPlayer *self);
 #ifdef LOMO_PLAYER_E_API
 static void     player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data);
 #endif
@@ -1073,6 +1075,17 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 
 	gint old_index = lomo_player_get_current(self);
 
+	if (priv->using_gapless)
+	{
+		lomo_playlist_set_current(priv->playlist, index);
+		g_signal_emit(self, player_signals[CHANGE], 0, old_index, index);
+		g_object_notify((GObject *) self, "current");
+		g_object_notify((GObject *) self, "can-go-next");
+		g_object_notify((GObject *) self, "can-go-previous");
+		priv->using_gapless = FALSE;
+		return TRUE;
+	}
+
 	gboolean ret = FALSE;
 	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, old_index, index))
 	{
@@ -1169,6 +1182,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		lomo_player_set_volume(self, -1);         // Restore pipeline volume
 		lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
 		gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(new_pipeline)), (GstBusFunc) player_bus_watcher, self);
+		g_signal_connect(new_pipeline, "about-to-finish", (GCallback) about_to_finish_cb, self);
 	}
 
 	// Set URI stream on the pipeline
@@ -2207,6 +2221,8 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 	LomoStream *stream = NULL;
 	gint next;
 
+	g_debug("Got msg %s", GST_MESSAGE_TYPE_NAME(message));
+
 	switch (GST_MESSAGE_TYPE(message)) {
 		case GST_MESSAGE_ERROR:
 			gst_message_parse_error(message, &err, &debug);
@@ -2230,7 +2246,6 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			break;
 
 		case GST_MESSAGE_EOS:
-			// g_printf("===> %"G_GINT64_FORMAT" (%"G_GINT64_FORMAT" secs)\n", lomo_player_tell_time(self), lomo_nanosecs_to_secs(lomo_player_tell_time(self)));
 			if (player_run_hooks(self, LOMO_PLAYER_HOOK_EOS, NULL))
 				break;
 
@@ -2319,6 +2334,26 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 	return TRUE;
 }
 
+static void
+about_to_finish_cb(GstElement *pipeline, LomoPlayer *self)
+{
+	g_debug("Got about-to-finish");
+	return;
+
+	gint next = lomo_player_get_next(self);
+	if (next < 0)
+		return;
+
+	LomoStream *s = lomo_player_get_nth_stream(self, next);
+	g_return_if_fail(LOMO_IS_STREAM(s));
+
+	const gchar *uri = lomo_stream_get_tag(s, LOMO_TAG_URI);
+	g_return_if_fail(uri != NULL);
+
+	g_object_set(self->priv->pipeline, "uri", uri, NULL);
+	self->priv->using_gapless = TRUE;
+	lomo_player_set_current(self, next, NULL);
+}
 
 #ifdef LOMO_PLAYER_E_API
 static void
