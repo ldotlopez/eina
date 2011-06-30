@@ -144,7 +144,7 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
  * Defines a quark function
  **/
 #define GEL_DEFINE_QUARK_FUNC(name) \
-	static GQuark name ## _quark(void) \
+	static const GQuark name##_quark(void) \
 	{ \
 		static GQuark ret = 0; \
 		if (ret == 0) \
@@ -161,7 +161,7 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
  */
 #define GEL_DEFINE_WEAK_REF_CALLBACK(name) \
 	static void \
-	name ## _weak_ref_cb (gpointer data, GObject *_object) \
+	name##_weak_ref_cb (gpointer data, GObject *_object) \
 	{ \
 	    g_warning("Protected object %p is begin destroyed. There is a bug somewhere, set a breakpoint on %s", _object, G_STRINGIFY(name)  "_weak_ref_cb"); \
 	}

@@ -82,7 +82,6 @@ lomo_metadata_parser_class_init (LomoMetadataParserClass *klass)
 
 	/**
 	 * LomoMetadataParser::tag:
-	 *
 	 * @parser: The parser
 	 * @stream: (type Lomo.Stream): The stream where the tag was found
 	 * @tag: The #LomoTag found
@@ -135,7 +134,6 @@ lomo_metadata_parser_init (LomoMetadataParser *self)
 
 /**
  * lomo_metadata_parser_new:
- *
  * Creates a new #LomoMetadataParser object
  *
  * Returns: the object
@@ -148,9 +146,8 @@ lomo_metadata_parser_new (void)
 
 /**
  * lomo_metadata_parser_parse:
- *
  * @self: The parser.
- * @stream: The stream to parse.
+ * @stream: (transfer none): The stream to parse.
  * @prio: The priority on the queue.
  *
  * Adds @stream to @self internal queue with @prio to be parsed
@@ -183,7 +180,6 @@ lomo_metadata_parser_parse(LomoMetadataParser *self, LomoStream *stream, LomoMet
 
 /**
  * lomo_metadata_parser_clear:
- *
  * @self: The parser
  *
  * Clears internal queue and stop any parse in progress

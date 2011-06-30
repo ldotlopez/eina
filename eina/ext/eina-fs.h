@@ -25,15 +25,15 @@
 #include <eina/ext/eina-application.h>
 #include <eina/ext/eina-file-chooser-dialog.h>
 
-void eina_fs_load_files_multiple(EinaApplication *app, GFile **files, guint n_files);
-void eina_fs_load_from_playlist(EinaApplication *application, const gchar *playlist);
-
+// Loaders
+void eina_fs_load_gfile_array(EinaApplication *app, GFile **files, guint n_files);
+void eina_fs_load_uri_strv   (EinaApplication *app, const gchar *const *uris);
+void eina_fs_load_playlist   (EinaApplication *app, const gchar *playlist);
 
 void eina_fs_load_from_uri_multiple        (EinaApplication *app, GList *uris);
 void eina_fs_load_from_default_file_chooser(EinaApplication *app);
 void eina_fs_load_from_file_chooser        (EinaApplication *app, EinaFileChooserDialog *dialog);
 
-GSList* eina_fs_files_from_uri_strv(const gchar *const *uris);
 GList*  eina_fs_uri_get_children(const gchar *uri);
 GList*  eina_fs_readdir(const gchar *path, gboolean abspath);
 

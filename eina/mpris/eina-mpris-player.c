@@ -535,7 +535,12 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaMprisPlayer *self)
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaMprisPlayer *self)
 {
-	LomoStream *stream = lomo_player_nth_stream(lomo, to);
+	if (to == -1)
+		return;
+
+	LomoStream *stream = lomo_player_get_nth_stream(lomo, to);
+	g_return_if_fail(LOMO_IS_STREAM(stream));
+
 	if (lomo_stream_get_all_tags_flag(stream))
 	{
 		g_hash_table_insert(self->priv->prop_changes, g_strdup("Metadata"), build_metadata_variant(stream));
@@ -560,7 +565,7 @@ eina_mpris_player_quit(EinaMprisPlayer *self)
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
-	g_warning("%s", __FUNCTION__);
+	// g_warning("%s", __FUNCTION__);
 }
 
 static void
@@ -894,7 +899,7 @@ player_get_property_cb (GDBusConnection *connection,
 	// Position
 	if (g_str_equal("Position", property_name))
 	{
-		return g_variant_new_int64(lomo_player_tell(lomo, LOMO_FORMAT_TIME));
+		return g_variant_new_int64(lomo_player_get_length(lomo));
 	}
 
 	// Rate

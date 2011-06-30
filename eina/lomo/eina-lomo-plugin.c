@@ -27,8 +27,6 @@ typedef struct {
 	GList *handlers;
 } LomoEventHandlerGroup;
 
-static void lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data);
-
 static gboolean
 eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *application, GError **error)
 {
@@ -71,8 +69,6 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 	for (gint i = 0; props[i] ; i++)
 		g_settings_bind(settings, props[i], lomo, props[i], G_SETTINGS_BIND_DEFAULT);
 
-	g_signal_connect(lomo, "random", (GCallback) lomo_random_cb, NULL);
-
 	return TRUE;
 }
 
@@ -113,7 +109,6 @@ eina_lomo_plugin_deactivate (EinaActivatable *activatable, EinaApplication *appl
 		g_warning(N_("Unble to save playlist: %s"), err ? err->message : N_("Missing parent directory"));
 	g_string_free(gs, TRUE);
 
-	g_signal_handlers_disconnect_by_func(lomo, lomo_random_cb, NULL);
 	g_object_unref(G_OBJECT(lomo));
 
 	return TRUE;
@@ -131,14 +126,5 @@ LomoPlayer*
 eina_application_get_lomo(EinaApplication *application)
 {
 	return LOMO_PLAYER(eina_application_get_interface(application, "lomo"));
-}
-
-/**
- * Callbacks
- */
-static void
-lomo_random_cb(LomoPlayer *lomo, gboolean value, gpointer data)
-{
-	if (value) lomo_player_randomize(lomo);
 }
 

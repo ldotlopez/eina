@@ -50,25 +50,26 @@ enum {
 guint eina_player_signals[LAST_SIGNAL] = { 0 };
 
 static void
-player_update_state(EinaPlayer *self);
-static void
-player_update_sensitive(EinaPlayer *self);
-static void
 player_update_information(EinaPlayer *self);
 
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
-static void
-lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self);
 
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
+
 static gboolean
 binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 static gboolean
 binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
+static gboolean
+binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
+static gboolean
+binding_play_pause_lomo_state_to_image_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
+static gboolean
+binding_play_pause_lomo_state_to_action(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
 
 static void
 eina_player_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
@@ -108,8 +109,8 @@ eina_player_dispose (GObject *object)
 	EinaPlayer *self = EINA_PLAYER(object);
 	EinaPlayerPrivate *priv = self->priv;
 
-	gel_free_and_invalidate(priv->lomo,           NULL, g_object_unref);
-	gel_free_and_invalidate(priv->stream_mrkp,    NULL, g_free);
+	gel_free_and_invalidate(priv->lomo,        NULL, g_object_unref);
+	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
 	
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
 }
@@ -229,14 +230,8 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 		GCallback callback;
 		gboolean swapped;
 	} callback_defs[] = {
-		{ "play",     G_CALLBACK(player_update_state),       TRUE  },
-		{ "pause",    G_CALLBACK(player_update_state),       TRUE  },
-		{ "stop",     G_CALLBACK(player_update_state),       TRUE  },
-		{ "change",   G_CALLBACK(player_update_information), TRUE  },
-		{ "random",   G_CALLBACK(player_update_sensitive),   TRUE  },
-		{ "repeat",   G_CALLBACK(player_update_sensitive),   TRUE  },
-		{ "clear",    G_CALLBACK(lomo_clear_cb),             FALSE },
-		{ "all-tags", G_CALLBACK(lomo_all_tags_cb),          FALSE }
+		{ "notify::current", G_CALLBACK(player_update_information), TRUE },
+		{ "all-tags",        G_CALLBACK(lomo_all_tags_cb),          FALSE }
 	};
 
 	if (priv->lomo)
@@ -255,18 +250,68 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 			g_signal_connect(priv->lomo, callback_defs[i].signal, callback_defs[i].callback, self);
 
 	GtkBuilder *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
-	g_object_bind_property_full(
-		lomo, "volume",
-		gtk_builder_get_object(builder, "volume-button"), "value",
-		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE,
-		(GBindingTransformFunc) binding_volume_int_to_double_cb,
-		(GBindingTransformFunc) binding_volume_double_to_int_cb,
-		NULL, NULL);
+	struct {
+		const gchar *s_prop;
+		GObject *dest;
+		const gchar *d_prop;
+		GBindingFlags flags;
+		GBindingTransformFunc src2dst, dst2src;
+	} bindings[] = {
+		{
+			"can-go-previous",
+			gel_ui_generic_get_typed(self, G_OBJECT, "prev-button"), "sensitive",
+			G_BINDING_SYNC_CREATE,
+			NULL, NULL
+		},
+		{
+			"can-go-next",
+			gel_ui_generic_get_typed(self, G_OBJECT, "next-button"), "sensitive",
+			G_BINDING_SYNC_CREATE,
+			NULL, NULL
+		},
+		{
+			"current",
+			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-button"), "sensitive",
+			G_BINDING_SYNC_CREATE,
+			(GBindingTransformFunc) binding_play_pause_lomo_current_to_sensitive, NULL
+		},
+		{
+			"state",
+			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-image"), "stock",
+			G_BINDING_SYNC_CREATE,
+			(GBindingTransformFunc) binding_play_pause_lomo_state_to_image_stock, NULL
+		},
+		{
+			"state",
+			(GObject *) gel_ui_generic_get_typed(self, GTK_ACTIVATABLE, "play-pause-button"), "related-action",
+			G_BINDING_SYNC_CREATE,
+			(GBindingTransformFunc) binding_play_pause_lomo_state_to_action, NULL
+		},
+		{
+			"volume",
+			gtk_builder_get_object(builder, "volume-button"), "value",
+			G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE,
+			(GBindingTransformFunc) binding_volume_int_to_double_cb, binding_volume_double_to_int_cb
+		},
+	};
 
-	g_object_set(priv->seek, "lomo-player", lomo, NULL);
+	for (guint i = 0; i < G_N_ELEMENTS(bindings); i++)
+	{
+		if ((bindings[i].src2dst == NULL) && (bindings[i].dst2src == NULL))
+			g_object_bind_property(lomo, bindings[i].s_prop,
+				bindings[i].dest, bindings[i].d_prop,
+				bindings[i].flags);
+		else
+			g_object_bind_property_full(lomo, bindings[i].s_prop,
+				bindings[i].dest, bindings[i].d_prop,
+				bindings[i].flags,
+				bindings[i].src2dst, bindings[i].dst2src,
+				self, NULL);
+	}
+
+	g_object_set(priv->seek,  "lomo-player", lomo, NULL);
 	g_object_set(priv->cover, "lomo-player", lomo, NULL);
 
-	player_update_state(self);
 	player_update_information(self);
 
 	g_object_notify(G_OBJECT(self), "lomo-player");
@@ -310,57 +355,6 @@ eina_player_get_cover_widget(EinaPlayer *self)
 }
 
 static void
-player_update_state(EinaPlayer *self)
-{
-	g_return_if_fail(EINA_IS_PLAYER(self));
-	EinaPlayerPrivate *priv = self->priv;
-	
-	LomoPlayer *lomo = priv->lomo;
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
-
-	GtkBuilder     *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
-	GtkActivatable *button  = GTK_ACTIVATABLE(gtk_builder_get_object(builder, "play-pause-button"));
-	GtkImage       *image   = GTK_IMAGE      (gtk_builder_get_object(builder, "play-pause-image"));
-
-	const gchar *action = NULL;
-	const gchar *stock = NULL;
-
-	if (lomo_player_get_state(lomo) == LOMO_STATE_PLAY)
-	{
-		action = "pause-action";
-		stock  = "gtk-media-pause";
-	}
-	else
-	{
-		action = "play-action";
-		stock  = "gtk-media-play";
-	}
-	gtk_activatable_set_related_action(button, gel_ui_generic_get_typed(self, GTK_ACTION, action));
-	gtk_image_set_from_stock(image, stock, GTK_ICON_SIZE_BUTTON);
-}
-
-static void
-player_update_sensitive(EinaPlayer *self)
-{
-	g_return_if_fail(EINA_IS_PLAYER(self));
-
-	LomoPlayer *lomo = player_get_lomo_player(self);
-
-	if (lomo != NULL)
-	{
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-button"), (lomo_player_get_current(lomo) != -1));
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       (lomo_player_get_previous(lomo) != -1));
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       (lomo_player_get_next(lomo) != -1));
-	}
-	else
-	{
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-button"), FALSE);
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "prev-button"),       FALSE);
-		gtk_widget_set_sensitive(gel_ui_generic_get_typed(self, GTK_WIDGET, "next-button"),       FALSE);
-	}
-}
-
-static void
 player_update_information(EinaPlayer *self)
 {
 	g_return_if_fail(EINA_IS_PLAYER(self));
@@ -376,9 +370,6 @@ player_update_information(EinaPlayer *self)
 	GtkWindow *window = (GtkWindow *) gtk_widget_get_toplevel((GtkWidget *) self);
 	if (window && (!GTK_IS_WINDOW(window) || !gtk_widget_is_toplevel((GtkWidget *) window)))
 		window = NULL;
-
-	// Buttons' sensitiviness
-	player_update_sensitive(self);
 
 	if (!stream)
 	{
@@ -418,12 +409,6 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 		player_update_information(self);
 }
 
-static void
-lomo_clear_cb(LomoPlayer *lomo, EinaPlayer *self)
-{
-	player_update_information(self);
-}
-
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream)
 {
@@ -438,10 +423,13 @@ stream_info_parser_cb(gchar key, LomoStream *stream)
 
 	if ((key == 't') && (ret == NULL))
 	{
-		const gchar *tmp = lomo_stream_get_tag(stream, LOMO_TAG_URI);
-		gchar *tmp2 = g_uri_unescape_string(tmp, NULL);
-		ret = g_path_get_basename(tmp2);
-		g_free(tmp2);
+		const gchar *uri     = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+		gchar *uri_unescaped = g_uri_unescape_string(uri, NULL);
+		gchar *basename      = g_path_get_basename(uri_unescaped);
+		ret  = g_markup_escape_text(basename, -1);
+
+		g_free(uri_unescaped);
+		g_free(basename);
 	}
 	return ret;
 }
@@ -456,27 +444,40 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 		return;
 
 	const gchar *name = gtk_action_get_name(action);
+	g_return_if_fail(name != NULL);
+
 	LomoPlayer  *lomo = player_get_lomo_player(self);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	GError *error = NULL;
 
-	if (g_str_equal(name, "play-action"))
-		lomo_player_play(lomo, &error);
+	gboolean is_play  = g_str_equal(name, "play-action");
+	gboolean is_pause = g_str_equal(name, "pause-action");
+	gboolean is_prev  = g_str_equal(name, "prev-action");
+	gboolean is_next  = g_str_equal(name, "next-action");
 
-	else if (g_str_equal(name, "pause-action"))
-		lomo_player_pause(lomo, &error);
+	if (is_play || is_pause)
+		lomo_player_set_state(lomo, is_play ? LOMO_STATE_PLAY : LOMO_STATE_PAUSE, &error);
 
-	else if (g_str_equal(name, "next-action"))
-		lomo_player_go_next(lomo, &error);
-
-	else if (g_str_equal(name, "prev-action"))
-		lomo_player_go_previous(lomo, &error);
+	else if (is_prev || is_next)
+		lomo_player_set_current(lomo, is_prev ? lomo_player_get_previous(lomo) : lomo_player_get_next(lomo), &error);
 
 	else
+	{
 		g_warning(N_("Action %s was not handled"), name);
+		return;
+	}
+
+	if (error)
+	{
+		g_warning(_("Error executing action '%s': %s"), name, error->message);
+		g_error_free(error);
+	}
 }
 
+/**
+ * GBindingTransformFuncs for object bindings
+ */
 static gboolean
 binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
@@ -488,6 +489,43 @@ static gboolean
 binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
 	g_value_set_int(dst, (gint) CLAMP(g_value_get_double(src) * 100, 0, 100));
+	return TRUE;
+}
+
+static gboolean
+binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
+{
+	g_value_set_boolean(dst, g_value_get_int(src) != -1);
+	return TRUE;
+}
+
+static gboolean
+binding_play_pause_lomo_state_to_image_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
+{
+	LomoState state = g_value_get_enum(src);
+	const gchar *stock = NULL;
+
+	if (state == LOMO_STATE_PLAY)
+		stock = "gtk-media-pause";
+	else
+		stock = "gtk-media-play";
+
+	g_value_set_static_string(dst, stock);
+	return TRUE;
+}
+
+static gboolean
+binding_play_pause_lomo_state_to_action(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
+{
+	LomoState state = g_value_get_enum(src);
+	GtkAction *action = NULL;
+
+	if (state == LOMO_STATE_PLAY)
+		action = gel_ui_generic_get_typed(self, GTK_ACTION, "pause-action");
+	else
+		action = gel_ui_generic_get_typed(self, GTK_ACTION, "play-action");
+
+	g_value_set_object(dst, action);
 	return TRUE;
 }
 

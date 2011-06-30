@@ -10,11 +10,13 @@ include_HEADERS = \
 	lomo-player.h           \
 	lomo-metadata-parser.h  \
 	lomo-stream.h           \
+	lomo-logger.h \
 	lomo-util.h
 
 lomodir = $(libdir)
 liblomo_2_0_la_SOURCES = \
 	$(include_HEADERS)     \
+	lomo-logger.c \
 	lomo-stats.h           \
 	lomo-playlist.h        \
 	lomo-marshallers.c     \

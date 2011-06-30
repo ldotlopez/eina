@@ -160,7 +160,7 @@ const gchar *lomo_state_to_str(LomoState state)
 }
 
 /**
- * gst_state_to_str: (skip)
+ * gst_state_to_str: (skip):
  * @state: #GstState state
  *
  * Returns the string corresponding to the @state
@@ -188,7 +188,7 @@ gst_state_to_str(GstState state)
 }
 
 /**
- * gst_state_change_return_to_str: (skip)
+ * gst_state_change_return_to_str: (skip):
  * @s: #GstStateChangeReturn state
  *
  * Returns the string corresponding to the @s

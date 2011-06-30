@@ -43,21 +43,59 @@ load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GE
 
 GEL_DEFINE_QUARK_FUNC(eina_fs)
 
+/**
+ * eina_fs_load_gfile_array:
+ * @app: An #EinaApplication
+ * @files: (array length=n_files) (transfer none) (element-type GFile): GFiles to load
+ * @n_files: Number of files
+ *
+ * Inserts recursively @files into @app
+ */
 void
-eina_fs_load_files_multiple(EinaApplication *app, GFile **files, guint n_files)
+eina_fs_load_gfile_array(EinaApplication *app, GFile **files, guint n_files)
 {
-	GList *l = NULL;
+	gchar **uri_strv = g_new0(gchar *, n_files + 1);
 	for (guint i = 0; i < n_files; i++)
-		l = g_list_prepend(l, g_file_get_uri(files[i]));
-	l = g_list_reverse(l);
-	eina_fs_load_from_uri_multiple(app, l);
-	g_list_free(l);
+		uri_strv[i] = g_file_get_uri(files[i]);
+
+	eina_fs_load_uri_strv(app, (const gchar *const *) uri_strv);
+	g_strfreev(uri_strv);
 }
 
+/**
+ * eina_fs_load_uri_strv:
+ * @app: An #EinaApplication
+ * @uris: (array zero-terminated=1) (transfer none) (element-type utf8): URIs to add
+ */
 void
-eina_fs_load_from_playlist(EinaApplication *application, const gchar *playlist)
+eina_fs_load_uri_strv(EinaApplication *app,  const gchar *const *uris)
 {
-	g_return_if_fail(EINA_IS_APPLICATION(application));
+	g_return_if_fail(EINA_IS_APPLICATION(app));
+	g_return_if_fail(uris != NULL);
+
+	GList *uri_list = NULL;
+	for (guint i = 0; uris[i]; i++)
+		uri_list = g_list_prepend(uri_list, (gpointer) uris[i]);
+	uri_list = g_list_reverse(uri_list);
+
+	GelIOScanner *scanner = gel_io_scanner_new_full(uri_list, "standard::*", TRUE);
+	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, app);
+	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   app);
+
+	g_list_free(uri_list);
+}
+
+/**
+ * eina_fs_load_playlist:
+ * @app: An #EinaApplication
+ * @playlist: Pathname to playlist file
+ *
+ * Loads playlist into @app
+ */
+void
+eina_fs_load_playlist(EinaApplication *app, const gchar *playlist)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(app));
 	g_return_if_fail(g_file_test(playlist, G_FILE_TEST_IS_REGULAR));
 
 	gchar *buffer = NULL;
@@ -86,41 +124,23 @@ eina_fs_load_from_playlist(EinaApplication *application, const gchar *playlist)
 	for (guint i = 0; lines[i]; i++)
 		if (lines[i] && (lines[i][0] != '\0'))
 			gfiles[n++] = g_file_new_for_commandline_arg(lines[i]);
-	
 	g_strfreev(lines);
 
-	eina_fs_load_files_multiple(application, gfiles, n);
+	eina_fs_load_gfile_array(app, gfiles, n);
 	for (guint i = 0; i < n; i++)
 		g_object_unref(gfiles[i]);
 	g_free(gfiles);
 }
 
-
-/*
- * eina_fs_load_from_uri_multiple:
- * @app: a #EinaApplication
- * @uris: (transfer none) (element-type utf8): List of uris load.
- *
- * Scans and adds URIs to the LomoPlayer interface (expects 'lomo' ID) from
- * @app. This function works asynchrnously.
- */
-void
-eina_fs_load_from_uri_multiple(EinaApplication *app, GList *uris)
-{
-	g_return_if_fail(EINA_IS_APPLICATION(app));
-	g_return_if_fail(uris != NULL);
-
-	GelIOScanner *scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
-	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, app);
-	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   app);
-}
-
 static void
 load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaApplication *app)
 {
+	// Flatten is container transfer
 	GList *flatten = gel_io_scanner_flatten_result(forest);
+
+	gchar **uri_strv = g_new0(gchar *, g_list_length(flatten) + 1);
+	guint  i = 0;
 	GList *l = flatten;
-	GList *uris = NULL;
 	while (l)
 	{
 		GFile     *file = G_FILE(l->data);
@@ -129,19 +149,16 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 	
 		if ((g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR) &&
 			(eina_file_utils_is_supported_extension(uri)))
-			uris = g_list_prepend(uris, uri);
+			uri_strv[i++] = uri;
 		else
 			g_free(uri);
 
 		l = l->next;
 	}
-	uris = g_list_reverse(uris);
 
 	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
-	lomo_player_append_uri_multi(lomo, uris);
-
-	gel_list_deep_free(uris, (GFunc) g_free);
-	g_list_free(flatten);
+	lomo_player_insert_strv(lomo,  (const gchar * const*) uri_strv, -1);
+	g_strfreev(uri_strv);
 }
 
 static void
@@ -219,8 +236,10 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 			lomo_player_clear(lomo);
 		}
 
-		gboolean do_play = (lomo_player_get_total(lomo) == 0);
-		lomo_player_append_uri_multi(lomo, uris);
+		gboolean do_play = (lomo_player_get_n_streams(lomo) == 0);
+		gchar **tmp = gel_list_to_strv(uris, FALSE);
+		lomo_player_insert_strv(lomo, (const gchar * const*) tmp, -1);
+		g_free(tmp);
 		gel_list_deep_free(uris, (GFunc) g_free);
 
 		if (do_play)
@@ -281,33 +300,6 @@ eina_fs_uri_get_children(const gchar *uri)
 	g_object_unref(f);
 
 	return g_list_reverse(ret);
-}
-
-/*
- * eina_fs_files_from_uri_strv:
- * @uris: a strv of URIs to convert
- * 
- * Converts a strv of URIs into a GSList of #GFile
- *
- * Returns: (element-type GFile) (transfer full): List of #GFiles.
- */
-GSList*
-eina_fs_files_from_uri_strv(const char *const *uris)
-{
-	g_return_val_if_fail((uris != NULL) && (uris[0] != NULL), NULL);
-
-	gint i;
-	GSList *ret = NULL;
-	gchar *uri;
-
-	for (i = 0; (uris[i] != NULL) && uris[i][0]; i++)
-		if ((uri = lomo_create_uri((gchar *) uris[i])) != NULL)
-		{
-			ret = g_slist_prepend(ret, g_file_new_for_uri(uri));
-			g_free(uri);
-		}
-
-	return g_slist_reverse(ret);
 }
 
 /*
@@ -535,3 +527,4 @@ eina_fs_get_cache_dir(void)
 		ret = g_build_filename(g_get_user_cache_dir(), gel_get_package_name(), NULL);
 	return ret;
 }
+

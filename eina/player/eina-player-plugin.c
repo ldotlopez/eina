@@ -106,8 +106,10 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 	gtk_action_group_add_actions(ag, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions), player);
 	gtk_ui_manager_insert_action_group(ui_mng, ag, G_MAXINT);
 
-	gchar *prefs_ui_file = g_build_filename(eina_activatable_get_data_dir(plugin), "preferences.ui", NULL);
+	gchar *datadir = peas_extension_base_get_data_dir((PeasExtensionBase *) plugin);
+	gchar *prefs_ui_file = g_build_filename(datadir, "preferences.ui", NULL);
 	GtkWidget *widget = gel_ui_generic_new_from_file(prefs_ui_file);
+	g_free(datadir);
 	g_free(prefs_ui_file);
 
 	__prefs_tab = eina_preferences_tab_new();
@@ -227,11 +229,13 @@ player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app
 	g_return_if_fail(type == G_TYPE_STRING);
 
 	gchar **uris = g_uri_list_extract_uris((gchar *) data);
-	GList *l = gel_strv_to_list(uris, FALSE);
-	if (l)
+	// GList *l = gel_strv_to_list(uris, FALSE);
+	if (uris && uris[0])
+	{
 		lomo_player_clear(eina_application_get_lomo(app));
-	eina_fs_load_from_uri_multiple(app, l);
-	g_list_free(l);
+		eina_fs_load_uri_strv(app, (const gchar * const*) uris);
+	}
+	// g_list_free(l);
 	g_strfreev(uris);
 }
 

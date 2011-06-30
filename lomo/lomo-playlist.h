@@ -1,242 +1,69 @@
-/*
- * lomo/lomo-playlist.h
- *
- * Copyright (C) 2004-2011 Eina
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+#ifndef __LOMO_PLAYLIST_H__
+#define __LOMO_PLAYLIST_H__
 
-#ifndef _LOMO_PLAYLIST
-#define _LOMO_PLAYLIST
-
-#include <glib.h>
+#include <glib-object.h>
 #include <lomo/lomo-stream.h>
 
 G_BEGIN_DECLS
 
-typedef struct _LomoPlaylist LomoPlaylist;
+#define LOMO_TYPE_PLAYLIST lomo_playlist_get_type()
 
-LomoPlaylist *lomo_playlist_new(void);
+#define LOMO_PLAYLIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_PLAYLIST, LomoPlaylist)) 
+#define LOMO_PLAYLIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), LOMO_TYPE_PLAYLIST, LomoPlaylistClass))
+#define LOMO_IS_PLAYLIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_PLAYLIST))
+#define LOMO_IS_PLAYLIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), LOMO_TYPE_PLAYLIST))
+#define LOMO_PLAYLIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), LOMO_TYPE_PLAYLIST, LomoPlaylistClass))
 
-void lomo_playlist_ref(LomoPlaylist *l);
+typedef struct _LomoPlaylistPrivate LomoPlaylistPrivate;
+typedef struct {
+	GObject parent;
+	LomoPlaylistPrivate *priv;
+} LomoPlaylist;
 
-void lomo_playlist_unref(LomoPlaylist *l);
+typedef struct {
+	GObjectClass parent_class;
+} LomoPlaylistClass;
 
-/* 
- * @lomo_playlist_add
- * @ Adds a LomoStream to playlist
- *  LomoPlaylist* l: [self]
- *  LomoStream* stream: Stream to add, it cannot be freed without previous lomo_playlist_del call
- *  gint ret: Position of the stream on playlist
- */
-#define lomo_playlist_append(l,s) lomo_playlist_insert(l,s,-1)
-void lomo_playlist_insert(LomoPlaylist *l, LomoStream *stream, gint pos);
+typedef enum {
+	LOMO_PLAYLIST_TRANSFORM_MODE_NORMAL_TO_RANDOM = 0x0,
+	LOMO_PLAYLIST_TRANSFORM_MODE_RANDOM_TO_NORMAL = 0x1
+} LomoPlaylistTransformMode;
 
-/*
- * @lomo_playlist_add_multi
- * @ Adds multiple streams into playlist at once
- *  LomoPlaylist* l: [self]
- *  GList* streams: List of LomoStream's to add
- *  gint ret: Position of the first stream on playlist
- */
-#define lomo_playlist_append_multi(l,list) lomo_playlist_insert_multi(l,list,-1)
-void lomo_playlist_insert_multi(LomoPlaylist *l, GList *streams, gint pos);
+GType lomo_playlist_get_type (void);
 
-/*
- * @lomo_player_del
- * @ Deletes the LomoStream at position 'pos' from playlist
- *  LomoPlaylist* l: [self]
- *  gint ret: Items in the playlist
- */
-void
-lomo_playlist_del(LomoPlaylist * l, guint pos);
+LomoPlaylist* lomo_playlist_new (void);
 
-/*
- * @lomo_playlist_clear
- * @ Deletes all streams from playlist, this is not a deep free, LomoStream
- * @ contained in playlist sould be freed manualy
- *  LomoPlaylist* l: [self]
- */
-void lomo_playlist_clear(LomoPlaylist *l);
+void     lomo_playlist_insert      (LomoPlaylist *self, LomoStream *stream, gint index);
+void     lomo_playlist_insert_multi(LomoPlaylist *self, GList *streams, gint index);
+void     lomo_playlist_remove      (LomoPlaylist *self, gint index);
+gboolean lomo_playlist_swap        (LomoPlaylist *self, gint a, gint b);
+void     lomo_playlist_clear       (LomoPlaylist *self);
 
-/*
- * @lomo_playlist_get_playlist
- * @ Returns a GList of LomoStreams contained in playlist
- *  LomoPlaylist* l: [self]
- *  GList* ret: A GList of LomoStreams
- */
-const GList *lomo_playlist_get_playlist(LomoPlaylist *l);
+const GList* lomo_playlist_get_playlist(LomoPlaylist *self);
+const GList* lomo_playlist_get_random_playlist (LomoPlaylist *self);
 
-/*
- * @lomo_playlist_get_random_playlist
- * @ Returns a GList of LomoStreams contained in random playlist
- *  LomoPlaylist* l: [self]
- *  GList* ret: A GList of LomoStreams
- */
-GList* lomo_playlist_get_random_playlist (LomoPlaylist *l);
+LomoStream* lomo_playlist_get_nth_stream  (LomoPlaylist *self, gint index);
+gint        lomo_playlist_get_stream_index(LomoPlaylist *self, LomoStream *stream);
 
-/*
- * @lomo_playlist_nth_stream
- * @Returns the LomoStream at position 'pos'
- *  LomoPlaylist* l: [self]
- *  guint pos: Postion to query
- *  LomoStream* ret: LomoStream located at position 'pos'
- */
-LomoStream *lomo_playlist_nth_stream(LomoPlaylist *l, guint pos);
+gint     lomo_playlist_get_current(LomoPlaylist *self);
+gboolean lomo_playlist_set_current(LomoPlaylist *self, gint index);
+gint     lomo_playlist_get_n_streams(LomoPlaylist *self);
 
-/*
- * @lomo_playlist_index
- * @Returns the position of a LomoStream 
- *  LomoPlaylist* l: [self]
- *  LomoStream* stream: Stream to find
- *  gint ret: Position of stream in playlist or -1 if not found
- */
-gint lomo_playlist_index(LomoPlaylist *l, LomoStream *stream);
+gboolean lomo_playlist_get_random(LomoPlaylist *self);
+void     lomo_playlist_set_random(LomoPlaylist *self, gboolean val);
+gboolean lomo_playlist_get_repeat(LomoPlaylist *self);
+void     lomo_playlist_set_repeat(LomoPlaylist *self, gboolean val);
 
-// XXX: This must return a guint
-gint lomo_playlist_get_total (LomoPlaylist *l);
+gint lomo_playlist_get_previous(LomoPlaylist *self);
+gint lomo_playlist_get_next    (LomoPlaylist *self);
 
-/*
- * @lomo_playlist_get_current
- * @Gets active stream in playlist, returns -1 if thereis no active element
- *  LomoPlaylist* l: [self]
- *  gint ret: Active stream
- */
-gint lomo_playlist_get_current(LomoPlaylist *l);
+#define lomo_playlist_go_previous(self) lomo_playlist_set_current(self, lomo_playlist_get_previous(self))
+#define lomo_playlist_go_next(self)     lomo_playlist_set_current(self, lomo_playlist_get_next(self))
 
-/* @lomo_playlist_set_current
- * @Sets active stream in playlist. -1 sets no active element
- *  LomoPlaylist* l: [self]
- *  gint pos: Number of stream to set as active
- *  gboolean ret: Operation is ok
- */
-gboolean lomo_playlist_set_current(LomoPlaylist *l, gint pos);
+gint lomo_playlist_transform_index(LomoPlaylist *self, gint index, LomoPlaylistTransformMode mode);
 
-/* 
- * @lomo_playlist_get_random
- * @Returns if random mode is active or not
- *  LomoPlaylist* l: [self]
- *  gboolean ret: TRUE is random is active, otherwise returns FALSE
- */ 
-gboolean lomo_playlist_get_random(LomoPlaylist *l);
-
-/* 
- * @lomo_playlist_set_random
- * @Sets or unsets random mode
- *  LomoPlaylist* l: [self]
- *  gboolean val: TRUE for set random on, FALSE for off
- */
-void lomo_playlist_set_random(LomoPlaylist *l, gboolean val);
-
-/* 
- * @lomo_playlist_get_repeat
- * @Returns if repeat mode is active or not
- *  LomoPlaylist* l: [self]
- *  gboolean ret: TRUE is repeat is active, otherwise returns FALSE
- */ 
-gboolean lomo_playlist_get_repeat (LomoPlaylist *l);
-
-/* 
- * @lomo_playlist_set_repeat
- * @Sets or unsets repeat mode
- *  LomoPlaylist* l: [self]
- *  gboolean val: TRUE for set repeat on, FALSE for off
- */
-void lomo_playlist_set_repeat(LomoPlaylist *l, gboolean val);
-
-/*
- * @lomo_playlist_get_previous
- * @Returns the previous postion to active stream, if there is no previous position
- * @retuns -1
- *  LomoPlaylist* l: [self]
- *  gint ret: Previous position to active stream
- */
-gint lomo_playlist_get_previous(LomoPlaylist *l);
-
-/*
- * @lomo_playlist_get_next
- * @Returns the next postion to active stream, if there is no next position
- * @retuns -1
- *  LomoPlaylist* l: [self]
- *  gint ret: Next position to active stream
- */
-gint lomo_playlist_get_next(LomoPlaylist *l);
-
-/*
- * @lomo_playlist_go_prev
- * @Changes active stream to the previous available one. If there is previous stream, returns
- * @FALSE, otherwise returns FALSE.
- * @This is equivalent to do:
- * @ i = lomo_playlist_get_prev(l);
- * @ lomo_playlist_set_current(l, i);
- *  LomoPlaylist* l: [self]
- *  gboolean ret: If LomoPlaylist was able to change to previous stream
- */
-gboolean lomo_playlist_go_prev (LomoPlaylist *l);
-
-/*
- * @lomo_playlist_go_next
- * @Changes active stream to the next available one. If there is next stream, returns
- * @FALSE, otherwise returns FALSE.
- * @This is equivalent to do:
- * @ i = lomo_playlist_get_next(l);
- * @ lomo_playlist_set_current(l, i);
- *  LomoPlaylist* l: [self]
- *  gboolean ret: If LomoPlaylist was able to change to next stream
- */
-gboolean lomo_playlist_go_next (LomoPlaylist *l);
-
-/*
- * @lomo_playlist_go_nth
- * @Changes active stream to the stream 'pos'.
- * @If pos is equal to -1, active is set to -1
- *  LomoPlaylist* l: [self]
- *  gboolean ret: If LomoPlaylist was able to change to stream 'pos'. If pos is equal to -1, returns TRUE
- */
-gboolean lomo_playlist_go_nth (LomoPlaylist *l, gint pos);
-
-/*
- * @lomo_playlist_swap
- * @Swaps streams at positions 'a' and 'b', returns TRUE on successful operation, FALSE otherwise
- *  LomoPlaylist* l: [self]
- *  guint a: First element to swap
- *  guint b: Second element to swap
- *  gboolean ret: Successful status of operation
- */
-gboolean lomo_playlist_swap(LomoPlaylist *l, guint a, guint b);
-
-/* 
- * @lomo_playlist_randomize
- * @Rebuilds internal random list of playlist
- *  LomoPlaylist* l: [self]
- */
-void lomo_playlist_randomize(LomoPlaylist *l);
-
-
-/*
- * @lomo_playlist_print
- * @Prints to stdout the internal playlist
- *  LomoPlaylist* l: [self]
- */
-void lomo_playlist_print(LomoPlaylist *l);
-
-/*
- * @lomo_playlist_print_random
- * @Prints to stdout the internal playlist in random mode
- *  LomoPlaylist* l: [self]
- */
-void lomo_playlist_print_random(LomoPlaylist *l);
+void lomo_playlist_print(LomoPlaylist *self);
+void lomo_playlist_print_random(LomoPlaylist *self);
 
 G_END_DECLS
 

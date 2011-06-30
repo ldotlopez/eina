@@ -290,6 +290,14 @@ eina_window_get_persistant(EinaWindow *self)
 	return (self->priv->persistant_handler_id > 0);
 }
 
+static gboolean
+gc_idle_cb(void)
+{
+	peas_engine_garbage_collect(peas_engine_get_default());
+	return FALSE;
+}
+
+
 static void
 action_activated_cb(GtkAction *action, EinaWindow *self)
 {
@@ -328,6 +336,8 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 		gint w = gdk_screen_get_width(screen)  / 4;
 		gint h = gdk_screen_get_height(screen) / 2;
 		gtk_window_resize((GtkWindow *) dialog, w, h);
+
+		g_signal_connect(dialog, "destroy", (GCallback) gc_idle_cb, NULL);
 
 		gtk_widget_show_all(pm);
 		gtk_dialog_run((GtkDialog *) dialog);

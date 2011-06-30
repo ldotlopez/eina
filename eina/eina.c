@@ -141,8 +141,8 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		EINA_TYPE_ACTIVATABLE,
 		NULL);
 
-	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
-	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
+	g_signal_connect_after(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
+	g_signal_connect_after(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
 
 	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
@@ -229,7 +229,7 @@ app_command_line_cb (GApplication *application, GApplicationCommandLine *command
 	if (!opt_uris && !g_application_command_line_get_is_remote(command_line))
 	{
 		gchar *playlist = g_build_filename(g_get_user_config_dir(), PACKAGE, "playlist", NULL);
-		eina_fs_load_from_playlist(EINA_APPLICATION(application), playlist);
+		eina_fs_load_playlist(EINA_APPLICATION(application), playlist);
 		g_free(playlist);
 	}
 
@@ -239,7 +239,7 @@ app_command_line_cb (GApplication *application, GApplicationCommandLine *command
 static void
 app_open_cb(GApplication *application, gpointer files, gint n_files, gchar *hint, gpointer data)
 {
-	eina_fs_load_files_multiple(EINA_APPLICATION(application), files, n_files);
+	eina_fs_load_gfile_array(EINA_APPLICATION(application), files, n_files);
 }
 
 gint main(gint argc, gchar *argv[])

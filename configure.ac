@@ -226,7 +226,7 @@ PEAS_API_VERSION="1.0"
 GLIB_VERSION="2.28.0"
 GTK_VERSION="3.0.0"
 GST_VERSION="$GST_API_VERSION.0"
-PEAS_VERSION="1.0.0"
+PEAS_VERSION="0.7.3"
 glib_modules="\
 	glib-$GLIB_API_VERSION >= $GLIB_VERSION,    \
 	gobject-$GLIB_API_VERSION >= $GLIB_VERSION, \
@@ -480,6 +480,8 @@ eina/playlist/playlist.plugin
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile
+eina/pythonconsole/pythonconsole.plugin
+eina/pythonconsole/Makefile
 eina/pythonhello/pythonhello.plugin
 eina/pythonhello/Makefile
 eina/status-icon/status-icon.plugin

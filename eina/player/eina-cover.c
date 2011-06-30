@@ -352,7 +352,7 @@ stream_em_updated(LomoStream *stream, const gchar *key, EinaCover *self)
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 {
-	g_warn_if_fail(to >= 0);
+	g_warn_if_fail(to >= -1);
 
 	EinaCoverPrivate *priv = self->priv;
 	if (priv->stream_em_handler)
@@ -361,7 +361,14 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 		priv->stream_em_handler = 0;
 	}
 
-	if ((priv->stream = lomo_player_nth_stream(lomo, to)) == NULL)
+	if (to == -1)
+	{
+		cover_set(self, NULL);
+		return;
+	}
+
+	priv->stream = lomo_player_get_nth_stream(lomo, to);
+	if (priv->stream == NULL)
 	{
 		cover_set(self, NULL);
 		return;
@@ -377,7 +384,7 @@ static void
 lomo_clear_cb(LomoPlayer *lomo,  EinaCover *self)
 {
 	EinaCoverPrivate *priv = self->priv;
-	if (priv->stream_em_handler)
+	if (LOMO_IS_STREAM(priv->stream) && priv->stream_em_handler)
 	{
 		g_signal_handler_disconnect(priv->stream, priv->stream_em_handler);
 		priv->stream_em_handler = 0;

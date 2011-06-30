@@ -41,26 +41,17 @@ typedef struct {
 
 typedef struct {
 	GObjectClass parent_class;
-	/**
-	 * tag:
-	 * @self: foo
-	 * @stream: (type Lomo.Stream): lala
-	 * @tag: pedo
-	 *
-	 * asfdasdfas
-	 */
+
 	void (*tag)      (LomoMetadataParser *self, LomoStream *stream, const gchar *tag);
 	void (*all_tags) (LomoMetadataParser *self, LomoStream *stream);
 } LomoMetadataParserClass;
 
-/*
+/**
  * LomoMetadataParserPrio:
  * @LOMO_METADATA_PARSER_PRIO_INVALID: Helper prio, dont use
  * @LOMO_METADATA_PARSER_PRIO_INMEDIATE: Parse stream as soon as possible
  * @LOMO_METADATA_PARSER_PRIO_DEFAULT: Parse stream with default priority
  * @LOMO_METADATA_PARSER_PRIO_N_PRIOS: Helper prio, dont use
- *
- * Define priority for #LomoStream in the #LomoMetadataParser
  */
 typedef enum {
 	LOMO_METADATA_PARSER_PRIO_INVALID = -1,
