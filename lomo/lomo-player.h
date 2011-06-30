@@ -261,6 +261,9 @@ void     lomo_player_set_auto_parse(LomoPlayer *self, gboolean auto_parse);
 gboolean lomo_player_get_auto_play(LomoPlayer *self);
 void     lomo_player_set_auto_play(LomoPlayer *self, gboolean auto_play);
 
+gboolean lomo_player_get_gapless_mode(LomoPlayer *self);
+void     lomo_player_set_gapless_mode(LomoPlayer *self, gboolean gapless_mode);
+
 /* state */
 LomoState lomo_player_get_state(LomoPlayer *self);
 gboolean  lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error);

@@ -166,7 +166,7 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 
 	case LOMO_STATE_STOP:
 		g_debug(DEBUG_PREFIX "Stop signal, position may be 0");
-	
+
 	case LOMO_STATE_PAUSE:
 		// Add to counter secs from the last checkpoint
 		stats_set_checkpoint(self, lomo_player_get_position(lomo), TRUE);
