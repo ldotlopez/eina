@@ -28,7 +28,6 @@ struct _LomoPlayerPrivate {
 	gboolean auto_parse, auto_play;
 
 	LomoState _shadow_state;
-	gint      _shadow_n_streams;
 };
 
 enum {
@@ -149,7 +148,6 @@ lomo_state_enum_type(void)
 	} G_STMT_END
 
 static void     player_set_shadow_state    (LomoPlayer *self, LomoState state);
-static void     player_set_shadow_n_streams(LomoPlayer *self, gint n_streams);
 static void     player_emit_state_change(LomoPlayer *self);
 static gboolean player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpointer ret, ...);
 
@@ -409,17 +407,17 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 * Emitted when a #LomoStream is queued inside a #LomoPlayer
 	 */
 	player_signals[QUEUE] =
-		g_signal_new ("queue2",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, queue2),
-			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT_INT,
-			    G_TYPE_NONE,
-			    3,
-				G_TYPE_OBJECT,
-				G_TYPE_INT,
-				G_TYPE_INT);
+		g_signal_new ("queue",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, queue),
+			NULL, NULL,
+			lomo_marshal_VOID__OBJECT_INT_INT,
+			G_TYPE_NONE,
+			3,
+			G_TYPE_OBJECT,
+			G_TYPE_INT,
+			G_TYPE_INT);
 	/**
 	 * LomoPlayer::dequeue:
 	 * @lomo: the object that received the signal
@@ -429,17 +427,17 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 * Emitted when a #LomoStream is dequeue inside a #LomoPlayer
 	 */
 	player_signals[DEQUEUE] =
-		g_signal_new ("dequeue2",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, dequeue2),
-			    NULL, NULL,
-			    lomo_marshal_VOID__OBJECT_INT_INT,
-			    G_TYPE_NONE,
-			    3,
-				G_TYPE_OBJECT,
-				G_TYPE_INT,
-				G_TYPE_INT);
+		g_signal_new ("dequeue",
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, dequeue),
+			NULL, NULL,
+			lomo_marshal_VOID__OBJECT_INT_INT,
+			G_TYPE_NONE,
+			3,
+			G_TYPE_OBJECT,
+			G_TYPE_INT,
+			G_TYPE_INT);
 	/**
 	 * LomoPlayer::clear:
 	 * @lomo: the object that received the signal
@@ -448,13 +446,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[CLEAR] =
 		g_signal_new ("clear",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, clear),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, clear),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
 	/**
 	 * LomoPlayer::queue-clear:
 	 * @lomo: the object that received the signal
@@ -463,13 +461,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[QUEUE_CLEAR] =
 		g_signal_new ("queue-clear",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, queue_clear),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, queue_clear),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
 	/**
 	 *
 	 * E-API Signals (change not sure)
@@ -489,13 +487,13 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[PRE_CHANGE] =
 		g_signal_new ("pre-change",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, pre_change),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__VOID,
-			    G_TYPE_NONE,
-			    0);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, pre_change),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
 	/**
 	 * LomoPlayer::change:
 	 * @lomo: the object that received the signal
@@ -561,15 +559,15 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[ERROR] =
 		g_signal_new ("error",
-		G_OBJECT_CLASS_TYPE (object_class),
-		G_SIGNAL_RUN_LAST,
-		G_STRUCT_OFFSET (LomoPlayerClass, error),
-		NULL, NULL,
-		lomo_marshal_VOID__OBJECT_POINTER,
-		G_TYPE_NONE,
-		2,
-		G_TYPE_OBJECT,
-		G_TYPE_POINTER);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, error),
+			NULL, NULL,
+			lomo_marshal_VOID__OBJECT_POINTER,
+			G_TYPE_NONE,
+			2,
+			G_TYPE_OBJECT,
+			G_TYPE_POINTER);
 
 	#ifdef LOMO_PLAYER_E_API
 	/**
@@ -675,14 +673,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[REPEAT] =
 		g_signal_new ("repeat",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, repeat),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__BOOLEAN,
-			    G_TYPE_NONE,
-			    1,
-				G_TYPE_BOOLEAN);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, repeat),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__BOOLEAN,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_BOOLEAN);
 	/**
 	 * LomoPlayer::random:
 	 * @lomo: the object that received the signal
@@ -692,14 +690,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	player_signals[RANDOM] =
 		g_signal_new ("random",
-			    G_OBJECT_CLASS_TYPE (object_class),
-			    G_SIGNAL_RUN_LAST,
-			    G_STRUCT_OFFSET (LomoPlayerClass, random),
-			    NULL, NULL,
-			    g_cclosure_marshal_VOID__BOOLEAN,
-			    G_TYPE_NONE,
-			    1,
-				G_TYPE_BOOLEAN);
+			G_OBJECT_CLASS_TYPE (object_class),
+			G_SIGNAL_RUN_LAST,
+			G_STRUCT_OFFSET (LomoPlayerClass, random),
+			NULL, NULL,
+			g_cclosure_marshal_VOID__BOOLEAN,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_BOOLEAN);
 	#endif
 
 	/**
@@ -831,7 +829,6 @@ lomo_player_init (LomoPlayer *self)
 
 	// Shadow values
 	priv->_shadow_state     = LOMO_STATE_INVALID;
-	priv->_shadow_n_streams = -1;
 
 	g_signal_connect(priv->meta, "tag",      (GCallback) meta_tag_cb, self);
 	g_signal_connect(priv->meta, "all-tags", (GCallback) meta_all_tags_cb, self);
@@ -1191,9 +1188,9 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	}
 
 	// Check queue stuff
-	gint queue_index = lomo_player_queue2_get_stream_index(self, stream);
+	gint queue_index = lomo_player_queue_get_stream_index(self, stream);
 	if (queue_index >= 0)
-		lomo_player_dequeue2(self, queue_index);
+		lomo_player_dequeue(self, queue_index);
 
 	g_debug("Everything ok, fire notifies");
 	LomoState lomo_state = LOMO_STATE_STOP;
@@ -1831,10 +1828,6 @@ gint
 lomo_player_get_n_streams(LomoPlayer *self)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), 0);
-
-	if (self->priv->_shadow_n_streams >= 0)
-		return self->priv->_shadow_n_streams;
-
 	return lomo_playlist_get_n_streams(self->priv->playlist);
 }
 
@@ -1862,9 +1855,7 @@ lomo_player_clear(LomoPlayer *self)
 
 	// Exec action
 	// lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
-	// player_set_shadow_n_streams(self,  0);
 	lomo_player_set_current(self, -1, NULL); // This will also set stop
-	if (0) player_set_shadow_n_streams(self, -1);
 
 	lomo_playlist_clear(priv->playlist);
 	lomo_metadata_parser_clear(priv->meta);
@@ -1877,7 +1868,7 @@ lomo_player_clear(LomoPlayer *self)
 }
 
 /**
- * lomo_player_queue2:
+ * lomo_player_queue:
  * @self: a #LomoPlayer
  * @index: position of the element to queue
  *
@@ -1886,7 +1877,7 @@ lomo_player_clear(LomoPlayer *self)
  * Returns: index of the elemement in the queue
  */
 gint
-lomo_player_queue2(LomoPlayer *self, gint index)
+lomo_player_queue(LomoPlayer *self, gint index)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), -1);
 	g_return_val_if_fail((index >= 0) && (index < lomo_player_get_n_streams(self)), -1);
@@ -1909,7 +1900,7 @@ lomo_player_queue2(LomoPlayer *self, gint index)
 }
 
 /**
- * lomo_player_dequeue2:
+ * lomo_player_dequeue:
  * @self: a #LomoPlayer
  * @queue_index: Index of the queue to dequeue
  *
@@ -1918,7 +1909,7 @@ lomo_player_queue2(LomoPlayer *self, gint index)
  * Returns: %TRUE if element was dequeue, %FALSE if @queue_pos was invalid
  */
 gboolean
-lomo_player_dequeue2(LomoPlayer *self, gint queue_index)
+lomo_player_dequeue(LomoPlayer *self, gint queue_index)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
 	LomoPlayerPrivate *priv = self->priv;
@@ -1941,7 +1932,7 @@ lomo_player_dequeue2(LomoPlayer *self, gint queue_index)
 }
 
 /**
- * lomo_player_queue2_get_n_streams:
+ * lomo_player_queue_get_n_streams:
  * @self: A #LomoPlayer
  *
  * Returns the number of streams in the queue
@@ -1949,7 +1940,7 @@ lomo_player_dequeue2(LomoPlayer *self, gint queue_index)
  * Returns: Number of streams
  */
 gint
-lomo_player_queue2_get_n_streams(LomoPlayer *self)
+lomo_player_queue_get_n_streams(LomoPlayer *self)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), FALSE);
 	LomoPlayerPrivate *priv = self->priv;
@@ -1958,7 +1949,7 @@ lomo_player_queue2_get_n_streams(LomoPlayer *self)
 }
 
 /**
- * lomo_player_queue2_index:
+ * lomo_player_queue_index:
  * @self: a #LomoPlayer
  * @stream: a #LomoStream to find in queue
  *
@@ -1968,7 +1959,7 @@ lomo_player_queue2_get_n_streams(LomoPlayer *self)
  * is not found in the queue
  */
 gint
-lomo_player_queue2_get_stream_index(LomoPlayer *self, LomoStream *stream)
+lomo_player_queue_get_stream_index(LomoPlayer *self, LomoStream *stream)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), -1);
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), -1);
@@ -1977,7 +1968,7 @@ lomo_player_queue2_get_stream_index(LomoPlayer *self, LomoStream *stream)
 }
 
 /**
- * lomo_player_queue2_get_nth_stream:
+ * lomo_player_queue_get_nth_stream:
  * @self: a #LomoPlayer
  * @queue_index: The queue index of the element, starting from 0
  *
@@ -1987,22 +1978,22 @@ lomo_player_queue2_get_stream_index(LomoPlayer *self, LomoStream *stream)
  *          queue
  */
 LomoStream *
-lomo_player_queue2_get_nth_stream(LomoPlayer *self, gint queue_index)
+lomo_player_queue_get_nth_stream(LomoPlayer *self, gint queue_index)
 {
 	g_return_val_if_fail(LOMO_IS_PLAYER(self), NULL);
-	g_return_val_if_fail((queue_index >= 0) && (queue_index < lomo_player_queue2_get_n_streams(self)), NULL);
+	g_return_val_if_fail((queue_index >= 0) && (queue_index < lomo_player_queue_get_n_streams(self)), NULL);
 
 	return g_queue_peek_nth(self->priv->queue, queue_index);
 }
 
 /**
- * lomo_player_queue2_clear:
+ * lomo_player_queue_clear:
  * @self: a #LomoPlayer
  *
  * Removes all #LomoStream queued
  */
 void
-lomo_player_queue2_clear(LomoPlayer *self)
+lomo_player_queue_clear(LomoPlayer *self)
 {
 	g_return_if_fail(LOMO_IS_PLAYER(self));
 
@@ -2081,13 +2072,6 @@ player_set_shadow_state (LomoPlayer *self, LomoState state)
 {
 	g_return_if_fail(LOMO_IS_PLAYER(self));
 	self->priv->_shadow_state = state;
-}
-
-static void
-player_set_shadow_n_streams(LomoPlayer *self, gint n_streams)
-{
-	g_return_if_fail(LOMO_IS_PLAYER(self));
-	self->priv->_shadow_n_streams = n_streams;
 }
 
 static void

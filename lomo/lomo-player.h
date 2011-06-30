@@ -32,8 +32,8 @@ typedef struct {
 
 	void (*insert)        (LomoPlayer *self, LomoStream *stream, gint index);
 	void (*remove)        (LomoPlayer *self, LomoStream *stream, gint index);
-	void (*queue2)        (LomoPlayer *self, LomoStream *stream, gint index, gint queue_index);
-	void (*dequeue2)      (LomoPlayer *self, LomoStream *stream, gint index, gint queue_index);
+	void (*queue)         (LomoPlayer *self, LomoStream *stream, gint index, gint queue_index);
+	void (*dequeue)       (LomoPlayer *self, LomoStream *stream, gint index, gint queue_index);
 
 	void (*clear)         (LomoPlayer *self);
 	void (*queue_clear)   (LomoPlayer *self);
@@ -305,12 +305,12 @@ gint         lomo_player_get_n_streams   (LomoPlayer *self);
 gint         lomo_player_get_stream_index(LomoPlayer *self, LomoStream *stream);
 void         lomo_player_clear           (LomoPlayer *self);
 
-gint        lomo_player_queue2                  (LomoPlayer *self, gint index);
-gboolean    lomo_player_dequeue2                (LomoPlayer *self, gint queue_index);
-gint        lomo_player_queue2_get_n_streams    (LomoPlayer *self);
-gint        lomo_player_queue2_get_stream_index (LomoPlayer *self, LomoStream *stream);
-LomoStream* lomo_player_queue2_get_nth_stream   (LomoPlayer *self, gint queue_index);
-void        lomo_player_queue2_clear            (LomoPlayer *self);
+gint        lomo_player_queue                  (LomoPlayer *self, gint index);
+gboolean    lomo_player_dequeue                (LomoPlayer *self, gint queue_index);
+gint        lomo_player_queue_get_n_streams    (LomoPlayer *self);
+gint        lomo_player_queue_get_stream_index (LomoPlayer *self, LomoStream *stream);
+LomoStream* lomo_player_queue_get_nth_stream   (LomoPlayer *self, gint queue_index);
+void        lomo_player_queue_clear            (LomoPlayer *self);
 
 void lomo_player_hook_add(LomoPlayer *self, LomoPlayerHook func, gpointer data);
 void lomo_player_hook_remove(LomoPlayer *self, LomoPlayerHook func);

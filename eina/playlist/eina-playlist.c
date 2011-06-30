@@ -219,8 +219,8 @@ playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	g_signal_connect_swapped(lomo, "clear",    (GCallback) playlist_refresh_model,  self);
 	g_signal_connect_swapped(lomo, "change",   (GCallback) playlist_change_current, self);
 	g_signal_connect_swapped(lomo, "all-tags", (GCallback) playlist_update_stream,  self);
-	g_signal_connect_swapped(lomo, "queue2",       (GCallback) playlist_queue_stream,   self);
-	g_signal_connect_swapped(lomo, "dequeue2",     (GCallback) playlist_dequeue_stream, self);
+	g_signal_connect_swapped(lomo, "queue",    (GCallback) playlist_queue_stream,   self);
+	g_signal_connect_swapped(lomo, "dequeue",  (GCallback) playlist_dequeue_stream, self);
 
 	// g_signal_connect_swapped(lomo, "queue-clear", (GCallback) playlist_queue_clear,   self);
 	g_signal_connect_swapped(self->priv->tv, "row-activated",      (GCallback) playlist_change_to_activated, self);
@@ -516,11 +516,11 @@ playlist_queue_selected (EinaPlaylist *self)
 	for (guint i = 0; indices && (indices[i] != -1); i++)
 	{
 		LomoStream *stream = lomo_player_get_nth_stream(priv->lomo, indices[i]);
-		gint queue_index = lomo_player_queue2_get_stream_index(priv->lomo, stream);
+		gint queue_index = lomo_player_queue_get_stream_index(priv->lomo, stream);
 		if (queue_index >= 0)
-			lomo_player_dequeue2(priv->lomo, queue_index);
+			lomo_player_dequeue(priv->lomo, queue_index);
 		else
-			lomo_player_queue2(priv->lomo, indices[i]);
+			lomo_player_queue(priv->lomo, indices[i]);
 	}
 
 	g_free(indices);
@@ -555,12 +555,12 @@ playlist_dequeue_stream(EinaPlaylist *self, LomoStream *stream, gint index, gint
 
 	EinaPlaylistPrivate *priv = self->priv;
 
-	for (guint i = queue_index; i < lomo_player_queue2_get_n_streams(priv->lomo); i++)
+	for (guint i = queue_index; i < lomo_player_queue_get_n_streams(priv->lomo); i++)
 	{
 		gint stream_index = index;
 		if (i != queue_index)
 		{
-			LomoStream *stream = lomo_player_queue2_get_nth_stream(priv->lomo, i);
+			LomoStream *stream = lomo_player_queue_get_nth_stream(priv->lomo, i);
 			stream_index = lomo_player_get_stream_index(priv->lomo, stream);
 		}
 
