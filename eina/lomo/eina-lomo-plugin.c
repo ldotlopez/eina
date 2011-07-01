@@ -22,11 +22,6 @@
 GEL_DEFINE_QUARK_FUNC(eina_lomo_plugin)
 EINA_DEFINE_EXTENSION(EinaLomoPlugin, eina_lomo_plugin, EINA_TYPE_LOMO_PLUGIN)
 
-typedef struct {
-	GList *signals;
-	GList *handlers;
-} LomoEventHandlerGroup;
-
 static gboolean
 eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *application, GError **error)
 {
@@ -51,13 +46,6 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 	}
 	g_object_ref_sink(lomo);
 
-	GSettings *settings = eina_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
-
-	g_object_set((LomoPlayer *) lomo,
-		"repeat", g_settings_get_boolean(settings, EINA_LOMO_REPEAT_KEY),
-		"random", g_settings_get_boolean(settings, EINA_LOMO_RANDOM_KEY),
-		NULL);
-
 	static gchar *props[] = {
 		EINA_LOMO_VOLUME_KEY,
 		EINA_LOMO_MUTE_KEY,
@@ -65,8 +53,11 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 		EINA_LOMO_RANDOM_KEY,
 		EINA_LOMO_AUTO_PARSE_KEY,
 		EINA_LOMO_AUTO_PLAY_KEY,
-		NULL };
-	for (gint i = 0; props[i] ; i++)
+		EINA_LOMO_GAPLESS_MODE_KEY
+		};
+
+	GSettings *settings = eina_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
+	for (gint i = 0; i < G_N_ELEMENTS(props); i++)
 		g_settings_bind(settings, props[i], lomo, props[i], G_SETTINGS_BIND_DEFAULT);
 
 	return TRUE;

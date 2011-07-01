@@ -67,6 +67,7 @@ LomoPlayer* eina_application_get_lomo(EinaApplication *application);
 #define EINA_LOMO_RANDOM_KEY          "random"
 #define EINA_LOMO_AUTO_PARSE_KEY      "auto-parse"
 #define EINA_LOMO_AUTO_PLAY_KEY       "auto-play"
+#define EINA_LOMO_GAPLESS_MODE_KEY    "gapless-mode"
 
 G_END_DECLS
 

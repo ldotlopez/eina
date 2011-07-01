@@ -80,9 +80,13 @@
       <default>false</default>
 	  <_summary>Automatically play streams</_summary>
     </key>
-	<key name="auto-parse" type="b">
+    <key name="auto-parse" type="b">
       <default>true</default>
 	  <_summary>Automatically parse metadata on streams</_summary>
+    </key>
+	<key name="gapless-mode" type="b">
+      <default>false</default>
+	  <_summary>Enable gapless-mode</_summary>
     </key>
 	<key name="current-stream" type="i">
 	  <default>0</default>

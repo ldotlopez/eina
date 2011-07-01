@@ -120,10 +120,11 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 	
 	GSettings *lomo_sets = eina_application_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	eina_preferences_tab_bindv(__prefs_tab,
-		lomo_sets, "repeat", "repeat", "active",
-		lomo_sets, "random", "random", "active",
-		lomo_sets, "auto-play", "auto-play", "active",
-		lomo_sets, "auto-parse", "auto-parse", "active",
+		lomo_sets, "repeat",       "repeat",       "active",
+		lomo_sets, "random",       "random",       "active",
+		lomo_sets, "auto-play",    "auto-play",    "active",
+		lomo_sets, "auto-parse",   "auto-parse",   "active",
+		lomo_sets, "gapless-mode", "gapless-mode", "active",
 		NULL);
 
 	EinaPreferences *prefs = eina_application_get_preferences(app);

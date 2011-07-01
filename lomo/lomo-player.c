@@ -28,6 +28,7 @@ struct _LomoPlayerPrivate {
 	gboolean auto_parse, auto_play;
 	gboolean gapless_mode;
 
+	gboolean in_gapless_transition;
 	LomoState _shadow_state;
 };
 
@@ -43,7 +44,7 @@ enum {
 	PROPERTY_AUTO_PLAY,
 	PROPERTY_CAN_GO_PREVIOUS,
 	PROPERTY_CAN_GO_NEXT,
-	PROPERTY_GAPLESS
+	PROPERTY_GAPLESS_MODE
 };
 
 enum {
@@ -61,7 +62,7 @@ enum {
 	ERROR,
 
 	/* E-API */
-	PRE_CHANGE, // Can be replaced by about-to-finish from playbin2?
+	PRE_CHANGE,
 	CHANGE,
 
 	#ifdef LOMO_PLAYER_E_API
@@ -79,9 +80,9 @@ enum {
 };
 guint player_signals[LAST_SIGNAL] = { 0 };
 
-// --
-// VFuncs
-// --
+/*
+ * Default functions for LomoPlayer vtable
+ */
 static GstElement*
 set_uri(GstElement *old_pipeline, const gchar *uri, GHashTable *opts);
 static GstStateChangeReturn
@@ -155,10 +156,9 @@ static gboolean player_run_hooks(LomoPlayer *self, LomoPlayerHookType type, gpoi
 
 static void     meta_tag_cb     (LomoMetadataParser *parser, LomoStream *stream, const gchar *tag, LomoPlayer *self);
 static void     meta_all_tags_cb(LomoMetadataParser *parser, LomoStream *stream, LomoPlayer *self);
-static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self);
-#if 0
 static void     about_to_finish_cb(GstElement *pipeline, LomoPlayer *self);
-#endif
+static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self);
+
 #ifdef LOMO_PLAYER_E_API
 static void     player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data);
 #endif
@@ -219,7 +219,7 @@ player_get_property (GObject *object, guint property_id, GValue *value, GParamSp
 		g_value_set_boolean(value, lomo_player_get_can_go_previous(self));
 		break;
 
-	case PROPERTY_GAPLESS:
+	case PROPERTY_GAPLESS_MODE:
 		g_value_set_boolean(value, lomo_player_get_gapless_mode(self));
 		break;
 
@@ -272,7 +272,7 @@ player_set_property (GObject *object, guint property_id, const GValue *value, GP
 		lomo_player_set_auto_play(self, g_value_get_boolean(value));
 		break;
 
-	case PROPERTY_GAPLESS:
+	case PROPERTY_GAPLESS_MODE:
 		lomo_player_set_gapless_mode(self, g_value_get_boolean(value));
 		break;
 
@@ -812,9 +812,9 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 *
 	 * Enable or disable gapless mode
 	 */
-	g_object_class_install_property(object_class, PROPERTY_GAPLESS,
-		g_param_spec_boolean("gapless", "gapless", "Gapless mode",
-		TRUE, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property(object_class, PROPERTY_GAPLESS_MODE,
+		g_param_spec_boolean("gapless-mode", "gapless-mode", "Gapless mode",
+		TRUE, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -998,6 +998,16 @@ lomo_player_set_gapless_mode(LomoPlayer *self, gboolean gapless_mode)
 		return;
 
 	priv->gapless_mode = gapless_mode;
+
+	/* Apply setting on pipeline */
+	if (priv->pipeline)
+	{
+		if (priv->gapless_mode)
+			g_signal_connect(priv->pipeline, "about-to-finish", (GCallback) about_to_finish_cb, self);
+		else
+			g_signal_handlers_disconnect_by_func(priv->pipeline, about_to_finish_cb, self);
+	}
+
 	g_object_notify((GObject *) self, "gapless-mode");
 }
 
@@ -1129,18 +1139,17 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 
 	gint old_index = lomo_player_get_current(self);
 
-	#if 0
-	if (priv->using_gapless)
+	if (priv->in_gapless_transition)
 	{
 		lomo_playlist_set_current(priv->playlist, index);
 		g_signal_emit(self, player_signals[CHANGE], 0, old_index, index);
 		g_object_notify((GObject *) self, "current");
+		/*
 		g_object_notify((GObject *) self, "can-go-next");
 		g_object_notify((GObject *) self, "can-go-previous");
-		priv->using_gapless = FALSE;
+		*/
 		return TRUE;
 	}
-	#endif
 
 	gboolean ret = FALSE;
 	if (player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, &ret, old_index, index))
@@ -1182,8 +1191,10 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		}
 		lomo_playlist_set_current(priv->playlist, -1);
 		g_object_notify((GObject *) self, "current");
+		/*
 		g_object_notify((GObject *) self, "can-go-previous");
 		g_object_notify((GObject *) self, "can-go-next");
+		*/
 		g_signal_emit(self, player_signals[CHANGE], 0, old_index, -1);
 		return TRUE;
 	}
@@ -1235,9 +1246,8 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		lomo_player_set_volume(self, -1);         // Restore pipeline volume
 		lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
 		gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(new_pipeline)), (GstBusFunc) player_bus_watcher, self);
-		#if 0
-		g_signal_connect(new_pipeline, "about-to-finish", (GCallback) about_to_finish_cb, self);
-		#endif
+		if (priv->gapless_mode)
+			g_signal_connect(new_pipeline, "about-to-finish", (GCallback) about_to_finish_cb, self);
 	}
 
 	// Set URI stream on the pipeline
@@ -1267,8 +1277,10 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		player_set_shadow_state(self, lomo_state);
 	lomo_playlist_set_current(priv->playlist, index);
 	g_object_notify((GObject *) self, "current");
+	/*
 	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "can-go-next");
+	*/
 	player_set_shadow_state(self, LOMO_STATE_INVALID);
 	priv->vtable.set_state(priv->pipeline, state);
 	if (old_index == -1)
@@ -1929,8 +1941,10 @@ lomo_player_clear(LomoPlayer *self)
 	lomo_playlist_clear(priv->playlist);
 	lomo_metadata_parser_clear(priv->meta);
 
+	/*
 	g_object_notify((GObject *) self, "can-go-next");
 	g_object_notify((GObject *) self, "can-go-previous");
+	*/
 	g_object_notify((GObject *) self, "current");
 
 	g_signal_emit(G_OBJECT(self), player_signals[CLEAR], 0);
@@ -2317,6 +2331,8 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 	LomoStream *stream = NULL;
 	gint next;
 
+	LomoPlayerPrivate *priv = self->priv;
+
 	/*
 	g_debug("Got msg %s", GST_MESSAGE_TYPE_NAME(message));
 	print_stats(self);
@@ -2366,12 +2382,13 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			GstState oldstate, newstate, pending;
 
 			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
-			/*
+			#if 0
 			g_warning("Got state change from bus: old=%s, new=%s, pending=%s\n",
 				gst_state_to_str(oldstate),
 				gst_state_to_str(newstate),
 				gst_state_to_str(pending));
-			*/
+			#endif
+
 			if (pending != GST_STATE_VOID_PENDING)
 				break;
 
@@ -2381,9 +2398,10 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			case GST_STATE_READY:
 				break;
 			case GST_STATE_PAUSED:
-				// Ignore pause events before 50 miliseconds, gstreamer pauses
-				// pipeline after a first play event, returning to play state
-				// inmediatly. 
+				/* Ignore pause events before 50 miliseconds, gstreamer pauses
+				 * pipeline after a first play event, returning to play state
+				 * inmediatly.
+				 */
 				if ((lomo_player_get_position(self) / 1000000) <= 50)
 					return TRUE;
 				break;
@@ -2399,10 +2417,25 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 		}
 
 		case GST_MESSAGE_ELEMENT:
-			/*
-			if (message->structure)
-				gst_structure_foreach(message->structure, (GstStructureForeachFunc) analize_element_msg_cb, self);
-			*/
+			/* Pipeline can send GstMessageElement but it is only relevant
+			 * if gapless mode is active */
+			if (!priv->gapless_mode)
+				break;
+
+			/* Handle this message only in gapless transition */
+			if (!priv->in_gapless_transition)
+				break;
+
+			/* Jump to next element in the same way we do in GST_MESSAGE_EOS */
+			next = lomo_player_get_next(self);
+			if (next == -1)
+			{
+				lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
+				lomo_player_set_current(self, 0, NULL);
+			}
+			else
+				lomo_player_set_current(self, next, NULL);
+
 			break;
 
 		// Messages that can be ignored
@@ -2441,12 +2474,13 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 	return TRUE;
 }
 
-#if 0
 static void
 about_to_finish_cb(GstElement *pipeline, LomoPlayer *self)
 {
-	g_debug("Got about-to-finish");
-	print_stats(self);
+	LomoPlayerPrivate *priv = self->priv;
+
+	// g_debug("Got about-to-finish");
+	// print_stats(self);
 	gint next = lomo_player_get_next(self);
 	if (next < 0)
 		return;
@@ -2457,11 +2491,14 @@ about_to_finish_cb(GstElement *pipeline, LomoPlayer *self)
 	const gchar *uri = lomo_stream_get_tag(s, LOMO_TAG_URI);
 	g_return_if_fail(uri != NULL);
 
+	/* Emit EOS here, I dont know any other method to report EOS
+	 * in gapless-mode
+	 */
+	g_signal_emit(self, player_signals[EOS], 0);
+
 	g_object_set(self->priv->pipeline, "uri", uri, NULL);
-	self->priv->using_gapless = TRUE;
-	// lomo_player_set_current(self, next, NULL);
+	priv->in_gapless_transition = TRUE;
 }
-#endif
 
 #ifdef LOMO_PLAYER_E_API
 static void
@@ -2482,7 +2519,10 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		"can-go-next",
 		"auto-play",
 		"auto-parse",
+		"gapless-mode"
 		};
+
+	LomoPlayerPrivate *priv = self->priv;
 
 	for (guint i = 0; i < G_N_ELEMENTS(ignore); i++)
 		if (g_str_equal(pspec->name, ignore[i]))
@@ -2496,15 +2536,13 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 
 	if (g_str_equal(pspec->name, "current"))
 	{
-		#if 0
-		static gint prev_current = -1;
-		gint current = lomo_player_get_current(self);
-		if (current != prev_current)
-		{
-			g_signal_emit(self, player_signals[CHANGE], 0, prev_current, current);
-			prev_current = current;
-		}
-		#endif
+		/* LomoPlayer::change can also be emitted here but only
+		 * if a way to emit it on idle.
+		 */
+
+		priv->in_gapless_transition = FALSE;
+		g_object_notify((GObject *) self, "can-go-previous");
+		g_object_notify((GObject *) self, "can-go-next");
 		return;
 	}
 
