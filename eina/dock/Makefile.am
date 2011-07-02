@@ -1,9 +1,5 @@
 include $(top_srcdir)/build/Makefile.am.common
 
-AM_VALAFLAGS=--pkg gtk+-3.0
-vala_files=eina-dock-tab.vala
-include $(top_srcdir)/build/Makefile.am.vala
-
 plugindir = $(pkglibdir)/dock
 plugin_LTLIBRARIES = libdock.la
 
