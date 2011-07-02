@@ -377,6 +377,7 @@ player_update_information(EinaPlayer *self)
 			"selectable", FALSE,
 			"use-markup", TRUE,
 			"label", info,
+			"ellipsize", PANGO_ELLIPSIZE_NONE,
 			NULL);
 		if (window)
 			gtk_window_set_title(window, N_("Eina player"));
@@ -388,6 +389,7 @@ player_update_information(EinaPlayer *self)
 		"selectable", TRUE,
 		"use-markup", TRUE,
 		"label", info,
+		"ellipsize", PANGO_ELLIPSIZE_MIDDLE,
 		NULL);
 	g_free(info);
 

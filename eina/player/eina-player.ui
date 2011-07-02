@@ -102,7 +102,6 @@
                         <property name="use_markup">True</property>
                         <property name="wrap">True</property>
                         <property name="selectable">True</property>
-                        <property name="ellipsize">middle</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
