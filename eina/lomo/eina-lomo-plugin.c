@@ -19,8 +19,26 @@
 
 #include "eina-lomo-plugin.h"
 
+typedef struct {
+	gpointer dummy;
+} EinaLomoPluginPrivate;
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "eina-lomo-plugin.h"
+#include <eina/ext/eina-extension.h>
+
+#define EINA_TYPE_LOMO_PLUGIN         (eina_lomo_plugin_get_type ())
+#define EINA_LOMO_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
+#define EINA_LOMO_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
+#define EINA_IS_LOMO_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_LOMO_PLUGIN))
+#define EINA_IS_LOMO_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_LOMO_PLUGIN))
+#define EINA_LOMO_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_LOMO_PLUGIN, EinaLomoPluginClass
+
 GEL_DEFINE_QUARK_FUNC(eina_lomo_plugin)
-EINA_DEFINE_EXTENSION(EinaLomoPlugin, eina_lomo_plugin, EINA_TYPE_LOMO_PLUGIN)
+EINA_PLUGIN_REGISTER(EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin, eina_lomo_plugin)
 
 static void     schedule_save_playlist(LomoPlayer *lomo);
 static gboolean save_playlist         (LomoPlayer *lomo);

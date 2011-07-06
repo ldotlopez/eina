@@ -69,7 +69,6 @@ gpointer eina_activatable_get_data  (EinaActivatable *activatable);
 gpointer eina_activatable_steal_data(EinaActivatable *activatable);
 
 EinaApplication *eina_activatable_get_application(EinaActivatable *activatable);
-// const gchar     *eina_activatable_get_data_dir(EinaActivatable *activatable);
 
 G_END_DECLS
 

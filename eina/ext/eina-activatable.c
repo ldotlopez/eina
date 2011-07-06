@@ -135,7 +135,7 @@ eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *appli
 	if (iface->deactivate != NULL)
 		ret = iface->deactivate (activatable, application, error);
 
-	if (!ret && error && !(*error)) 
+	if (!ret && error && !(*error))
 		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_UNKNOW_ERROR, "Unknow error");
 
 	iface->priv->application = iface->priv->data = NULL;
