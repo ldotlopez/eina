@@ -23,6 +23,7 @@
 #include <eina/lomo/eina-lomo-plugin.h>
 
 typedef struct {
+	GQuark           magic;
 	EinaActivatable *plugin;
 	EinaApplication *app;
 
@@ -34,6 +35,8 @@ typedef struct {
 	gint            player_x, player_y;
 	gboolean        window_persistant;
 } EinaStatusIcon;
+#define SI_MAGIC (g_quark_from_string("EinaStatusIcon"))
+#define EINA_IS_STATUS_ICON(o) (o && (o->magic == SI_MAGIC))
 
 static void
 update_ui_manager(EinaStatusIcon *self);
@@ -131,6 +134,7 @@ eina_status_icon_plugin_activate(EinaActivatable *plugin, EinaApplication *app, 
 	#endif
 
 	EinaStatusIcon *data= g_new0(EinaStatusIcon, 1);
+	data->magic  = SI_MAGIC;
 	data->app    = app;
 	data->plugin = plugin;
 
