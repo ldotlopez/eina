@@ -4,18 +4,17 @@ SUBDIRS = ext   \
 	art           \
 	dbus          \
 	dock          \
+	fieshta       \
+	lastfm        \
 	lomo          \
+	mpris         \
 	player        \
 	playlist      \
 	preferences   \
+	pythonconsole \
+	pythonhello   \
 	status-icon
-#
-#	fieshta       \
-#	lastfm        
-#	mpris         \
-#	pythonconsole \
-#	pythonhello   \
-#	status-icon
+
 #if BUILD_ADB
 #SUBDIRS +=   \
 #	adb      \
@@ -25,10 +24,10 @@ SUBDIRS = ext   \
 #if BUILD_CLUTTY
 #SUBDIRS += clutty
 #endif
-#
-#if BUILD_NTFY
-#SUBDIRS += ntfy
-#endif
+
+if BUILD_NTFY
+SUBDIRS += ntfy
+endif
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
@@ -40,7 +39,7 @@ eina_LDFLAGS = \
 	-lgel-@GEL_API_VERSION@ -lgel-ui-@GEL_API_VERSION@ -llomo-@LOMO_API_VERSION@
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
-include_HEADERS = 
+include_HEADERS =
 
 
 eina_SOURCES = \
@@ -63,14 +62,14 @@ Eina_0_12_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
 Eina_0_12_gir_PROGRAM = $(top_builddir)/eina/eina
 Eina_0_12_gir_LDADD = $(top_builddir)/lomo/liblomo.la
 Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
-	$(top_srcdir)/eina/ext/eina-application.h \
-	$(top_srcdir)/eina/ext/eina-application.c \
-	$(top_srcdir)/eina/ext/eina-activatable.h \
-	$(top_srcdir)/eina/ext/eina-activatable.c \
-	$(top_srcdir)/eina/ext/eina-window.h \
-	$(top_srcdir)/eina/ext/eina-window.c \
+	$(top_srcdir)/eina/ext/eina-application.h  \
+	$(top_srcdir)/eina/ext/eina-application.c  \
+	$(top_srcdir)/eina/ext/eina-activatable.h  \
+	$(top_srcdir)/eina/ext/eina-activatable.c  \
+	$(top_srcdir)/eina/ext/eina-window.h       \
+	$(top_srcdir)/eina/ext/eina-window.c       \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h \
-	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c 
+	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c
 INTROSPECTION_GIRS += Eina-0.12.gir
 
 girdir = $(datadir)/gir-1.0

@@ -236,7 +236,7 @@ update_ui_manager(EinaStatusIconPlugin *plugin)
 }
 
 // --
-// Implement UI Callbacks 
+// Implement UI Callbacks
 // --
 static void
 action_activate_cb(GtkAction *action, EinaStatusIconPlugin *plugin)
@@ -262,8 +262,8 @@ action_activate_cb(GtkAction *action, EinaStatusIconPlugin *plugin)
 
 	else if (g_str_equal(name, "pause-action"))
 		lomo_player_pause(lomo, &error);
-	
-	else if (g_str_equal(name, "stop-action")) 
+
+	else if (g_str_equal(name, "stop-action"))
 		lomo_player_stop(lomo, &error);
 
 	else if (g_str_equal(name, "prev-action"))
@@ -277,10 +277,9 @@ action_activate_cb(GtkAction *action, EinaStatusIconPlugin *plugin)
 
 	else if (g_str_equal(name, "clear-action"))
 		lomo_player_clear(lomo);
-	
+
 	else if (g_str_equal(name, "quit-action"))
 		g_application_release(G_APPLICATION(app));
-		// gtk_application_quit(eina_plugin_get_application(self->plugin));
 
 	else
 		g_warning("Unknow action: %s", name);
@@ -316,8 +315,6 @@ status_icon_destroy_cb(GtkWidget *w, EinaStatusIconPlugin *plugin)
 	if (!gtk_widget_get_visible(window))
 		gtk_widget_show(window);
 
-	g_warning("Fixme");
-	// vogon_plugin_fini(eina_obj_get_app(self), gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
 	return FALSE;
 }
 

@@ -17,11 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-/* eina-mpris-player.h */
-
-#ifndef _EINA_MPRIS_PLAYER
-#define _EINA_MPRIS_PLAYER
+#ifndef __EINA_MPRIS_PLAYER_H__
+#define __EINA_MPRIS_PLAYER_H__
 
 #include <glib-object.h>
 #include <eina/ext/eina-application.h>
@@ -49,7 +46,7 @@ GType eina_mpris_player_get_type (void);
 
 EinaMprisPlayer* eina_mpris_player_new (EinaApplication *app, const gchar *bus_name_suffix);
 
-EinaApplication*  eina_mpris_player_get_application(EinaMprisPlayer *self);
+EinaApplication*  eina_mpris_player_get_application    (EinaMprisPlayer *self);
 const gchar*      eina_mpris_player_get_bus_name_suffix(EinaMprisPlayer *self);
 
 #if 0
@@ -69,4 +66,4 @@ void eina_mpris_player_quit (EinaMprisPlayer *self);
 
 G_END_DECLS
 
-#endif /* _EINA_MPRIS_PLAYER */
+#endif /* __EINA_MPRIS_PLAYER_H__ */

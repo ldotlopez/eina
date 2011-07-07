@@ -1,5 +1,5 @@
 /*
- * eina/ntfy/eina-ntfy-plugin.h
+ * plugins/fieshta/eina-fieshta-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,30 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __EINA_NTFY_PLUGIN_H__
-#define __EINA_NTFY_PLUGIN_H__
+#ifndef __EINA_FIESHTA_PLUGIN_H__
+#define __EINA_FIESHTA_PLUGIN_H__
 
 #include <eina/ext/eina-extension.h>
 
 G_BEGIN_DECLS
-
-/**
- * API
- */
-#define EINA_NTFY_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.ntfy"
-#define EINA_NTFY_ENABLED_KEY        "enabled"
-
-/**
- * EinaNtfyPluginError:
- * @EINA_NTFY_PLUGIN_ERROR_LIBRARY: Libray error
- * @EINA_NTFY_PLUGIN_ERROR_SETTNGS: Settings error
- */
-typedef enum {
-	EINA_NTFY_PLUGIN_ERROR_LIBRARY = 1,
-	EINA_NTFY_PLUGIN_ERROR_SETTNGS
-} EinaNtfyPluginError;
-
 G_END_DECLS
 
-#endif // __EINA_NTFY_PLUGIN_H__
+#endif // __EINA_FIESHTA_PLUGIN_H__
 
