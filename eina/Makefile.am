@@ -4,30 +4,31 @@ SUBDIRS = ext   \
 	art           \
 	dbus          \
 	dock          \
-	fieshta       \
-	lastfm        \
 	lomo          \
-	mpris         \
 	player        \
 	playlist      \
 	preferences   \
-	pythonconsole \
-	pythonhello   \
 	status-icon
-
-if BUILD_ADB
-SUBDIRS +=   \
-	adb      \
-	muine
-endif
-
-if BUILD_CLUTTY
-SUBDIRS += clutty
-endif
-
-if BUILD_NTFY
-SUBDIRS += ntfy
-endif
+#
+#	fieshta       \
+#	lastfm        
+#	mpris         \
+#	pythonconsole \
+#	pythonhello   \
+#	status-icon
+#if BUILD_ADB
+#SUBDIRS +=   \
+#	adb      \
+#	muine
+#endif
+#
+#if BUILD_CLUTTY
+#SUBDIRS += clutty
+#endif
+#
+#if BUILD_NTFY
+#SUBDIRS += ntfy
+#endif
 
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
