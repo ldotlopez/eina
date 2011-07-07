@@ -140,7 +140,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	PeasExtensionSet *es = peas_extension_set_new (engine,
 		EINA_TYPE_ACTIVATABLE,
 		NULL);
-
+	peas_extension_set_call(es, "activate", application, NULL);
 	g_signal_connect_after(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
 	g_signal_connect_after(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
 
