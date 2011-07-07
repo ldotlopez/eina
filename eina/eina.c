@@ -139,6 +139,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	// ExtensionSet
 	PeasExtensionSet *es = peas_extension_set_new (engine,
 		EINA_TYPE_ACTIVATABLE,
+		"application", application,
 		NULL);
 	peas_extension_set_call(es, "activate", application, NULL);
 
@@ -151,10 +152,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	{
 		PeasPluginInfo *info = peas_engine_get_plugin_info(engine, plugins[i]);
 		if (!info || !peas_engine_load_plugin(engine, info))
-		{
 			g_warning(N_("Unable to load required plugin '%s'"), plugins[i]);
-			return;
-		}
 	}
 	g_strfreev(plugins);
 	activated = TRUE;

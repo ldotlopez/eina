@@ -30,6 +30,9 @@
 #ifndef __EINA_PLUGIN_H__
 #define __EINA_PLUGIN_H__
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <glib/gi18n.h>
 #include <libpeas/peas.h>
 #include <gel/gel.h>
@@ -69,7 +72,7 @@ static void	eina_activatable_iface_init (EinaActivatableInterface *iface) { \
 	iface->deactivate = type_name##_deactivate; \
 } \
 \
-static void set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec) { \
+static void type_name##_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec) { \
 	switch (prop_id) { \
 	case PROP_APPLICATION:  \
 		g_object_set_data_full (object, "application", g_value_dup_object (value), g_object_unref);	\
@@ -80,10 +83,10 @@ static void set_property (GObject *object, guint prop_id, const GValue *value, G
 	} \
 } \
 \
-static void	get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec) { \
+static void	type_name##_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec) { \
 	switch (prop_id) { \
 		case PROP_APPLICATION: \
-		g_value_set_object (value, g_object_get_data (object, "object")); \
+		g_value_set_object (value, g_object_get_data (object, "application")); \
 		break; \
 	default: \
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec); \
@@ -92,8 +95,8 @@ static void	get_property (GObject *object, guint prop_id, GValue *value, GParamS
 } \
 static void type_name##_class_init (TypeName##Class *klass) { \
 	GObjectClass *object_class = G_OBJECT_CLASS (klass); \
-	object_class->set_property = set_property; \
-	object_class->get_property = get_property; \
+	object_class->set_property = type_name##_set_property; \
+	object_class->get_property = type_name##_get_property; \
 	g_object_class_override_property (object_class, PROP_APPLICATION, "application"); \
 	g_type_class_add_private (klass, sizeof (TypeName##Private)); \
 } \

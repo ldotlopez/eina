@@ -35,8 +35,6 @@ G_BEGIN_DECLS
 #define EINA_IS_ART_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_ART_PLUGIN))
 #define EINA_ART_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_ART_PLUGIN, EinaArtPluginClass))
 
-EINA_DEFINE_EXTENSION_HEADERS(EinaArtPlugin, eina_art_plugin)
-
 /**
  * EinaApplication accessors
  */

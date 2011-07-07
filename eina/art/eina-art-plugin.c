@@ -40,7 +40,10 @@ static void all_tags_cb  (LomoPlayer *lomo, LomoStream *stream, EinaArt *art);
 /**
  * EinaExtension code
  */
-EINA_DEFINE_EXTENSION(EinaArtPlugin, eina_art_plugin, EINA_TYPE_ART_PLUGIN)
+typedef struct {
+	gpointer dummy;
+} EinaArtPluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_ART_PLUGIN, EinaArtPlugin, eina_art_plugin)
 
 static gboolean
 eina_art_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
@@ -171,16 +174,8 @@ static void
 all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaArt *art)
 {
 	EinaArtSearch *search = eina_art_search(art, stream, art_search_cb, NULL);
-	if (search)
-	{
-		// g_warning(_("all-tags Search started: %p, setting loading cover"), search);
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[LOADING_COVER_URI], NULL);
-	}
-	else
-	{
-		// g_warning(_("alkl-tags Search doesnt started, set default cover"));
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
-	}
+	gpointer value = (gpointer) (search ? cover_strings[LOADING_COVER_URI] : cover_strings[DEFAULT_COVER_URI] );
+	lomo_stream_set_extended_metadata(stream, "art-uri", value, NULL);
 }
 
 

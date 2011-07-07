@@ -20,22 +20,9 @@
 #ifndef __EINA_STATUS_ICON_PLUGIN_H__
 #define __EINA_STATUS_ICON_PLUGIN_H__
 
-#include <eina/ext/eina-extension.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
-
-/**
- * EinaExtension boilerplate code
- */
-#define EINA_TYPE_STATUS_ICON_PLUGIN         (eina_status_icon_plugin_get_type ())
-#define EINA_STATUS_ICON_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPlugin))
-#define EINA_STATUS_ICON_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPlugin))
-#define EINA_IS_STATUS_ICON_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_STATUS_ICON_PLUGIN))
-#define EINA_IS_STATUS_ICON_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_STATUS_ICON_PLUGIN))
-#define EINA_STATUS_ICON_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPluginClass))
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaStatusIconPlugin, eina_status_icon_plugin)
-
 G_END_DECLS
 
 #endif  // __EINA_STATUS_ICON_PLUGIN_H__

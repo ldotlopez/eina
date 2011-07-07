@@ -20,22 +20,10 @@
 #ifndef __EINA_PLAYER_PLUGIN_H__
 #define __EINA_PLAYER_PLUGIN_H__
 
-#include <eina/ext/eina-extension.h>
+#include <eina/ext/eina-application.h>
 #include <eina/player/eina-player.h>
 
 G_BEGIN_DECLS
-
-/**
- * EinaExtension boilerplate code
- */
-#define EINA_TYPE_PLAYER_PLUGIN         (eina_player_plugin_get_type ())
-#define EINA_PLAYER_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
-#define EINA_PLAYER_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
-#define EINA_IS_PLAYER_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_PLAYER_PLUGIN))
-#define EINA_IS_PLAYER_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_PLAYER_PLUGIN))
-#define EINA_PLAYER_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPluginClass))
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaPlayerPlugin, eina_player_plugin)
 
 /**
  * EinaApplication accessors

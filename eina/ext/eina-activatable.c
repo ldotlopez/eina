@@ -49,12 +49,6 @@
 G_DEFINE_INTERFACE(EinaActivatable, eina_activatable, G_TYPE_OBJECT)
 GEL_DEFINE_QUARK_FUNC(eina_activatable)
 
-struct _EinaActivatableInterfacePrivate {
-	EinaApplication *application;
-	gpointer         data;
-};
-
-
 /**
  * eina_activatable_get_iface:
  * @object: A #GObject
@@ -72,7 +66,25 @@ eina_activatable_get_iface(GObject *object)
 void
 eina_activatable_default_init (EinaActivatableInterface *iface)
 {
-	iface->priv = g_new0(EinaActivatableInterfacePrivate, 1);
+	static gboolean initialized = FALSE;
+
+	if (!initialized)
+	{
+		/**
+		 * EinaActivatable:application:
+		 *
+		 * The application property contains the targetted application for this
+		 * #EinaActivatable instance.
+		 * It is set at construction time and won't change.
+		 */
+		g_object_interface_install_property (iface,
+			g_param_spec_object ("application",
+				"Application",
+				"Application",
+				EINA_TYPE_APPLICATION,
+				G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+		initialized = TRUE;
+	}
 }
 
 /**
@@ -97,8 +109,6 @@ eina_activatable_activate(EinaActivatable *activatable, EinaApplication *applica
 
 	gboolean ret = FALSE;
 	EinaActivatableInterface *iface = EINA_ACTIVATABLE_GET_IFACE (activatable);
-
-	iface->priv->application = application;
 
 	if (iface->activate != NULL)
 		ret = iface->activate(activatable, application, error);
@@ -138,8 +148,6 @@ eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *appli
 	if (!ret && error && !(*error))
 		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_UNKNOW_ERROR, "Unknow error");
 
-	iface->priv->application = iface->priv->data = NULL;
-
 	return ret;
 }
 
@@ -156,57 +164,8 @@ eina_activatable_get_application(EinaActivatable *activatable)
 {
 	g_return_val_if_fail(EINA_IS_ACTIVATABLE(activatable), NULL);
 
-	return EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->application;
-}
-
-/**
- * eina_activatable_set_data:
- * @activatable: An #EinaActivatable
- * @data: User data
- *
- * Attach userdata to @activatable
- */
-void
-eina_activatable_set_data  (EinaActivatable *activatable, gpointer data)
-{
-	g_return_if_fail(EINA_IS_ACTIVATABLE(activatable));
-
-	EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->data = data;
-}
-
-/**
- * eina_activatable_get_data:
- * @activatable: An #EinaActivatable
- *
- * Get userdata from @activatable
- *
- * Returns: (transfer none): userdata
- */
-gpointer
-eina_activatable_get_data  (EinaActivatable *activatable)
-{
-	g_return_val_if_fail(EINA_IS_ACTIVATABLE(activatable), NULL);
-
-	return EINA_ACTIVATABLE_GET_IFACE(activatable)->priv->data;
-}
-
-/**
- * eina_activatable_steal_data:
- * @activatable: An #EinaActivatable
- *
- * Steal userdata from @activatable
- *
- * Returns: (transfer full): userdata
- */
-gpointer
-eina_activatable_steal_data(EinaActivatable *activatable)
-{
-	g_return_val_if_fail(EINA_IS_ACTIVATABLE(activatable), NULL);
-
-	EinaActivatableInterface *iface = EINA_ACTIVATABLE_GET_IFACE(activatable);
-	gpointer ret = iface->priv->data;
-	iface->priv->data = NULL;
-
-	return ret;
+	EinaApplication *application = NULL;
+	g_object_get(G_OBJECT(activatable), "application", &application, NULL);
+	return EINA_APPLICATION(application);
 }
 

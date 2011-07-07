@@ -20,10 +20,26 @@
 #include "eina-player-plugin.h"
 #include <eina/ext/eina-fs.h>
 #include <eina/ext/eina-stock.h>
+#include <eina/ext/eina-extension.h>
 #include <eina/art/eina-art-plugin.h>
 #include <eina/dock/eina-dock-plugin.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>
+
+/**
+ * EinaExtension boilerplate code
+ */
+#define EINA_TYPE_PLAYER_PLUGIN         (eina_player_plugin_get_type ())
+#define EINA_PLAYER_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
+#define EINA_PLAYER_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
+#define EINA_IS_PLAYER_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_PLAYER_PLUGIN))
+#define EINA_IS_PLAYER_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_PLAYER_PLUGIN))
+#define EINA_PLAYER_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPluginClass))
+
+typedef struct {
+	gpointer dummy;
+} EinaPlayerPluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin, eina_player_plugin)
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
@@ -60,8 +76,6 @@ static GtkActionEntry ui_mng_actions[] = {
 static EinaDockTab *dock_tab;
 static guint __ui_merge_id = 0;
 static EinaPreferencesTab *__prefs_tab = NULL;
-
-EINA_DEFINE_EXTENSION(EinaPlayerPlugin, eina_player_plugin, EINA_TYPE_PLAYER_PLUGIN)
 
 static gboolean
 eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
@@ -127,8 +141,7 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 		lomo_sets, "gapless-mode", "gapless-mode", "active",
 		NULL);
 
-	EinaPreferences *prefs = eina_application_get_preferences(app);
-	eina_preferences_add_tab(prefs, __prefs_tab);
+	eina_application_add_preferences_tab(app, __prefs_tab);
 
 	return TRUE;
 }
@@ -149,11 +162,12 @@ eina_player_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GEr
 	{
 		GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
 		gtk_ui_manager_remove_ui(ui_mng, __ui_merge_id);
+		__ui_merge_id = 0;
 	}
 	if (__prefs_tab)
 	{
-		EinaPreferences *prefs = eina_application_get_preferences(app);
-		eina_preferences_remove_tab(prefs, __prefs_tab);
+		eina_application_remove_preferences_tab(app, __prefs_tab);
+		__prefs_tab = NULL;
 	}
 	return TRUE;
 }
