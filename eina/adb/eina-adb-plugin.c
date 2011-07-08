@@ -87,12 +87,17 @@ eina_adb_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, G
 	EinaAdbPlugin      *plugin = EINA_ADB_PLUGIN(activatable);
 	EinaAdbPluginPrivate *priv = plugin->priv;
 
-	LomoPlayer *lomo = eina_application_get_lomo(app);
-
 	eina_application_set_interface(app, "adb", NULL);
-	adb_register_stop(priv->adb, lomo);
-	g_object_unref(priv->adb);
-	priv->adb = NULL;
+
+	g_warn_if_fail(EINA_IS_ADB(priv->adb));
+	if (priv->adb)
+	{
+		LomoPlayer *lomo = eina_application_get_lomo(app);
+		adb_register_stop(priv->adb, lomo);
+
+		g_object_unref(priv->adb);
+		priv->adb = NULL;
+	}
 
 	return TRUE;
 }

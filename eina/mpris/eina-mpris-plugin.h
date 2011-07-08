@@ -1,5 +1,5 @@
 /*
- * plugins/fieshta/eina-fieshta-plugin.h
+ * eina/mpris/eina-mpris-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,13 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __EINA_FIESHTA_PLUGIN_H__
-#define __EINA_FIESHTA_PLUGIN_H__
+#ifndef __EINA_MPRIS_PLUGIN_H__
+#define __EINA_MPRIS_PLUGIN_H__
 
-#include <glib.h>
+#include <eina/mpris/eina-mpris-player.h>
 
 G_BEGIN_DECLS
 G_END_DECLS
 
-#endif // __EINA_FIESHTA_PLUGIN_H__
-
+#endif /* __EINA_MPRIS_PLUGIN_H__ */

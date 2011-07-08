@@ -20,6 +20,10 @@
 #include <eina/ext/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
+#define BUS_NAME  "org.gnome.SettingsDaemon"
+#define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"
+#define INTERFACE "org.gnome.SettingsDaemon.MediaKeys"
+
 #define EINA_TYPE_DBUS_PLUGIN         (eina_dbus_plugin_get_type ())
 #define EINA_DBUS_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin))
 #define EINA_DBUS_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin))
@@ -27,15 +31,7 @@
 #define EINA_IS_DBUS_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_DBUS_PLUGIN))
 #define EINA_DBUS_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_DBUS_PLUGIN, EinaDBusPluginClass))
 
-
-// EINA_DEFINE_EXTENSION_HEADERS(EinaDBusPlugin, eina_dbus_plugin)
-
-#define BUS_NAME  "org.gnome.SettingsDaemon"
-#define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"
-#define INTERFACE "org.gnome.SettingsDaemon.MediaKeys"
-
 typedef struct {
-	EinaApplication *app;
 	GDBusProxy      *mmkeys_proxy;
 } EinaDBusPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin, eina_dbus_plugin);
@@ -47,7 +43,7 @@ static gboolean
 eina_dbus_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
 	EinaDBusPluginPrivate *priv = EINA_DBUS_PLUGIN(plugin)->priv;
-	priv->app = app;
+
 	priv->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
 		NULL,
@@ -55,6 +51,7 @@ eina_dbus_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError 
 		NULL,
 		error
 		);
+
 	g_warn_if_fail(priv->mmkeys_proxy != NULL);
 	if (priv->mmkeys_proxy)
 		g_signal_connect (priv->mmkeys_proxy, "g-signal", G_CALLBACK (proxy_signal_cb), plugin);
@@ -77,15 +74,15 @@ static void
 proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusPlugin *plugin)
 {
 	g_return_if_fail(EINA_IS_DBUS_PLUGIN(plugin));
-	EinaDBusPluginPrivate *priv = plugin->priv;
+
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	LomoPlayer *lomo = eina_application_get_lomo(app);
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	g_return_if_fail(g_str_equal("(ss)", (gchar *) g_variant_get_type(parameters)));
 
 	GVariant *v_action = g_variant_get_child_value(parameters, 1);
 	const gchar *action = g_variant_get_string(v_action, NULL);
-
-	LomoPlayer *lomo = eina_application_get_lomo(priv->app);
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	GError *error = NULL;
 	if ((g_str_equal("Play", action) || g_str_equal("Pause", action)) && (lomo_player_get_current >= 0))

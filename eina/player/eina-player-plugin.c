@@ -37,7 +37,9 @@
 #define EINA_PLAYER_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPluginClass))
 
 typedef struct {
-	gpointer dummy;
+	EinaDockTab *dock_tab;
+	guint ui_merge_id;
+	EinaPreferencesTab *prefs_tab;
 } EinaPlayerPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin, eina_player_plugin)
 
@@ -73,13 +75,12 @@ static GtkActionEntry ui_mng_actions[] = {
 	{ "about-action", GTK_STOCK_ABOUT, N_("_About"),               NULL,    NULL, (GCallback) action_activated_cb }
 };
 
-static EinaDockTab *dock_tab;
-static guint __ui_merge_id = 0;
-static EinaPreferencesTab *__prefs_tab = NULL;
-
 static gboolean
-eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
+	EinaPlayerPlugin      *plugin = EINA_PLAYER_PLUGIN(activatable);
+	EinaPlayerPluginPrivate *priv = plugin->priv;
+
 	GSettings *settings = eina_application_get_settings(app, EINA_PLAYER_PREFERENCES_DOMAIN);
 
 	GtkWidget *player = eina_player_new();
@@ -106,12 +107,12 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 		"vexpand", FALSE,
 		NULL);
 
-	dock_tab = eina_application_add_dock_widget(app, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
+	priv->dock_tab = eina_application_add_dock_widget(app, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
 
 	// Attach menus
 	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
 	GError *e = NULL;
-	if ((__ui_merge_id = gtk_ui_manager_add_ui_from_string (ui_mng, ui_mng_xml, -1 , &e)) == 0)
+	if ((priv->ui_merge_id = gtk_ui_manager_add_ui_from_string (ui_mng, ui_mng_xml, -1 , &e)) == 0)
 	{
 		g_warning(N_("Unable to add UI to window GtkUIManager: '%s'"), e->message);
 		g_error_free(e);
@@ -126,14 +127,14 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 	g_free(datadir);
 	g_free(prefs_ui_file);
 
-	__prefs_tab = eina_preferences_tab_new();
-	g_object_set(G_OBJECT(__prefs_tab),
+	priv->prefs_tab = eina_preferences_tab_new();
+	g_object_set(priv->prefs_tab,
 		"label-text", N_("Player"),
 		"widget", widget,
 		NULL);
 	
 	GSettings *lomo_sets = eina_application_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
-	eina_preferences_tab_bindv(__prefs_tab,
+	eina_preferences_tab_bindv(priv->prefs_tab,
 		lomo_sets, "repeat",       "repeat",       "active",
 		lomo_sets, "random",       "random",       "active",
 		lomo_sets, "auto-play",    "auto-play",    "active",
@@ -141,33 +142,36 @@ eina_player_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GErro
 		lomo_sets, "gapless-mode", "gapless-mode", "active",
 		NULL);
 
-	eina_application_add_preferences_tab(app, __prefs_tab);
+	eina_application_add_preferences_tab(app, priv->prefs_tab);
 
 	return TRUE;
 }
 
 static gboolean
-eina_player_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_player_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
+	EinaPlayerPlugin      *plugin = EINA_PLAYER_PLUGIN(activatable);
+	EinaPlayerPluginPrivate *priv = plugin->priv;
+
 	GtkWidget *player = GTK_WIDGET(eina_application_get_player(app));
 	if (!player || !EINA_IS_PLAYER(player))
 		g_warn_if_fail(EINA_IS_PLAYER(player));
 	else
 	{
 		EinaDock *dock = eina_application_get_dock(app);
-		eina_dock_remove_widget(dock, dock_tab);
+		eina_dock_remove_widget(dock, priv->dock_tab);
 	}
 
-	if (__ui_merge_id > 0)
+	if (priv->ui_merge_id > 0)
 	{
 		GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
-		gtk_ui_manager_remove_ui(ui_mng, __ui_merge_id);
-		__ui_merge_id = 0;
+		gtk_ui_manager_remove_ui(ui_mng, priv->ui_merge_id);
+		priv->ui_merge_id = 0;
 	}
-	if (__prefs_tab)
+	if (priv->prefs_tab)
 	{
-		eina_application_remove_preferences_tab(app, __prefs_tab);
-		__prefs_tab = NULL;
+		eina_application_remove_preferences_tab(app, priv->prefs_tab);
+		priv->prefs_tab = NULL;
 	}
 	return TRUE;
 }

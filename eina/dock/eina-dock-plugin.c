@@ -176,6 +176,15 @@ eina_application_add_dock_widget(EinaApplication *application, const gchar *id, 
 	return eina_dock_add_widget(dock, id, widget, label, flags);
 }
 
+/**
+ * eina_application_switch_dock_widget:
+ * @application: An #EinaApplication
+ * @tab: (transfer none): An #EinaDockTab
+ *
+ * Switches visible dock tab to @tab
+ *
+ * Returns: %TRUE on successful.
+ */ 
 gboolean
 eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab)
 {
@@ -185,6 +194,15 @@ eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *t
 	return eina_dock_switch_widget(dock, tab);
 }
 
+/**
+ * eina_application_remove_dock_widget:
+ * @application: An #EinaApplication
+ * @tab: (transfer none): An #EinaDockTab
+ *
+ * Removes @tab from the @application dock
+ *
+ * Returns: %TRUE on successful.
+ */
 gboolean
 eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab)
 {

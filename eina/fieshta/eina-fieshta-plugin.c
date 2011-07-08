@@ -21,6 +21,9 @@
 #include <eina/ext/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
+#define DEBUG_PREFIX "EinaFieshta"
+#define debug(...)   g_debug(DEBUG_PREFIX" "__VA_ARGS__)
+
 /**
  * EinaExtension boilerplate code
  */
@@ -38,8 +41,8 @@ typedef struct {
 } EinaFieshtaPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_FIESHTA_PLUGIN, EinaFieshtaPlugin, eina_fieshta_plugin)
 
-static void fieshta_enable (EinaFieshtaPlugin *plugin);
-static void fieshta_disable(EinaFieshtaPlugin *plugin);
+static void fieshta_enable   (EinaFieshtaPlugin *plugin);
+static void fieshta_disable  (EinaFieshtaPlugin *plugin);
 static void action_toggled_cb(GtkToggleAction *action, EinaFieshtaPlugin *plugin);
 
 static gchar* ui_mng_str =
@@ -106,6 +109,7 @@ fieshta_enable(EinaFieshtaPlugin *plugin)
 	if (priv->enabled)
 		return;
 
+	debug("Enabling fieshta mode");
 	priv->behaviour = eina_fieshta_behaviour_new(
 		eina_application_get_lomo(eina_activatable_get_application(EINA_ACTIVATABLE(plugin))),
 		EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT);
@@ -122,6 +126,7 @@ fieshta_disable(EinaFieshtaPlugin *plugin)
 	if (!priv->enabled)
 		return;
 
+	debug("Disabling fieshta mode");
 	g_warn_if_fail(EINA_IS_FIESHTA_BEHAVIOUR(priv->behaviour));
 	if (priv->behaviour)
 	{
@@ -139,7 +144,6 @@ action_toggled_cb(GtkToggleAction *action, EinaFieshtaPlugin *plugin)
 
 	if (g_str_equal(name, "party-action"))
 	{
-		g_debug("Party mode: %s", state ? "on" : "off");
 		if (state)
 			fieshta_enable(plugin);
 		else

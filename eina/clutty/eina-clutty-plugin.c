@@ -30,6 +30,7 @@
 #define EINA_CLUTTY_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_CLUTTY_PLUGIN, EinaCluttyPluginClass))
 
 typedef struct {
+	GtkWidget *renderer;
 	GtkWidget *prev_render;
 } EinaCluttyPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_CLUTTY_PLUGIN, EinaCluttyPlugin, eina_clutty_plugin)
@@ -45,13 +46,16 @@ eina_clutty_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	EinaCover  *cover  = eina_player_get_cover_widget(player);
 
 	priv->prev_render = (GtkWidget *) eina_cover_get_renderer(cover);
-	g_return_val_if_fail(GTK_IS_WIDGET(priv->prev_render), TRUE);
 
-	g_object_ref(priv->prev_render);
+	g_warn_if_fail(GTK_IS_WIDGET(priv->prev_render));
+	if (GTK_IS_WIDGET(priv->prev_render))
+		g_object_ref(priv->prev_render);
 
 	gtk_clutter_init(NULL, NULL);
-	GtkWidget *new_cover = (GtkWidget *) eina_cover_clutter_new();
-	eina_cover_set_renderer(cover, new_cover);
+
+	priv->renderer = (GtkWidget *) eina_cover_clutter_new();
+	eina_cover_set_renderer(cover, priv->renderer);
+	g_object_ref(priv->renderer);
 
 	return TRUE;
 }
@@ -71,6 +75,13 @@ eina_clutty_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app
 		eina_cover_set_renderer(cover, priv->prev_render);
 		g_object_unref(priv->prev_render);
 		priv->prev_render = NULL;
+	}
+	
+	g_warn_if_fail(EINA_IS_COVER_CLUTTER(priv->renderer));
+	if (EINA_IS_COVER_CLUTTER(priv->renderer))
+	{
+		g_object_unref(priv->renderer);
+		priv->renderer = NULL;
 	}
 
 	return TRUE;
