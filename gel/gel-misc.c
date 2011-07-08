@@ -33,14 +33,6 @@ extern int errno;
 static gchar *_gel_package_name = NULL;
 static gchar *_gel_package_data_dir = NULL;
 static gchar *_gel_package_lib_dir  = NULL;
-static gint   _gel_debug_level = GEL_DEBUG_LEVEL_INFO;
-
-static GList *_gel_debug_handlers      = NULL;
-static GList *_gel_debug_handlers_data = NULL;
-
-void
-gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer);
-
 
 /**
  * SECTION:gel-initialization
@@ -53,8 +45,6 @@ _gel_atexit(void)
 {
 	gel_free_and_invalidate(_gel_package_name,        NULL, g_free);
 	gel_free_and_invalidate(_gel_package_data_dir,    NULL, g_free);
-	gel_free_and_invalidate(_gel_debug_handlers,      NULL, g_list_free);
-	gel_free_and_invalidate(_gel_debug_handlers_data, NULL, g_list_free);
 }
 
 /**
@@ -75,8 +65,6 @@ gel_init(const gchar *package_name, const gchar *lib_dir, const gchar *data_dir)
 	_gel_package_name     = g_strdup(package_name);
 	_gel_package_lib_dir  = g_strdup(lib_dir);
 	_gel_package_data_dir = g_strdup(data_dir);
-	_gel_debug_handlers      = g_list_append(NULL, gel_debug_default_handler);
-	_gel_debug_handlers_data = g_list_append(NULL, NULL);
 	atexit(_gel_atexit);
 }
 
@@ -358,25 +346,6 @@ gel_list_filter(GList *input, GelFilterFunc callback, gpointer user_data)
 		input = input->next;
 	}
 	return g_list_reverse(ret);
-}
-
-/**
- * gel_slist_differential_free:
- *
- * Deprecated: 1.2
- **/
-void
-gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data)
-{
-	while (list)
-	{
-		if (!compare(list->data, hold->data))
-		{
-			callback(list->data, user_data);
-			hold = hold->next;
-		}
-		list = list->next;
-	}
 }
 
 /**
@@ -674,96 +643,9 @@ gel_strv_delete(gchar **str, gint index)
 	return g_realloc(str, sizeof(gchar*) * i);
 }
 
-// --
-// Debug functions
-// --
-GelDebugLevel
-gel_get_debug_level(void)
-{
-	return _gel_debug_level;
-}
-
-void
-gel_set_debug_level(GelDebugLevel level)
-{
-	_gel_debug_level = level;
-}
-
-void
-gel_debug_add_handler(GelDebugHandler func, gpointer data)
-{
-	if ((_gel_debug_handlers != NULL) && (_gel_debug_handlers->next == NULL))
-	{
-		g_list_free(_gel_debug_handlers);
-		g_list_free(_gel_debug_handlers_data);
-		_gel_debug_handlers = NULL;
-		_gel_debug_handlers_data = NULL;
-	}
-
-	_gel_debug_handlers = g_list_append(_gel_debug_handlers, (gpointer) func);
-	_gel_debug_handlers_data = g_list_append(_gel_debug_handlers_data, (gpointer) data);
-}
-
-void
-gel_debug_remove_handler(GelDebugHandler func)
-{
-	gint index = g_list_index(_gel_debug_handlers, func);
-	if (index >= 0)
-	{
-		_gel_debug_handlers = g_list_remove_all(_gel_debug_handlers, (gpointer) func);
-		_gel_debug_handlers_data = g_list_remove_all(_gel_debug_handlers_data, g_list_nth_data(_gel_debug_handlers_data, index));
-	}
-
-	if (_gel_debug_handlers == NULL)
-	{
-		_gel_debug_handlers = g_list_append(NULL, gel_debug_default_handler);
-		_gel_debug_handlers_data = g_list_append(NULL, _gel_debug_handlers_data);
-	}
-}
-
-void
-gel_debug_default_handler(GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer)
-{
-	static const gchar *level_strs[] = {
-		"\033[1;41mSEVERE\033[m",
-		"\033[1;31mERROR\033[m",
-		"\033[1;33mWARN\033[m",
-		"\033[1mINFO\033[m",
-		"\033[1mDEBUG\033[m",
-		"\033[1mVERBOSE\033[m",
-		NULL
-	};
-
-	g_printf("[%s] [%s (%s:%d)] %s\n", level_strs[level], domain , file, line, buffer);
-}
-
-void
-gel_debug_real(const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...)
-{
-	va_list args;
-
-	if (level > _gel_debug_level)
-		return;
-
-	va_start(args, format);
-	gchar *buffer = g_strdup_vprintf(format, args);
-	va_end(args);
-
-	GList *iter = _gel_debug_handlers;
-	GList *data = _gel_debug_handlers_data;
-	while (iter)
-	{
-		GelDebugHandler callback = (GelDebugHandler) iter->data;
-		callback(level, domain, func, file, line, buffer, data ? data->data : NULL);
-		iter = iter->next;
-
-		if (data)
-			data = data->next;
-	}
-
-	g_free(buffer);
-}
-
+/**
+ * SECTION: GObject helper functions
+ */
 void
 gel_object_class_print_properties(GObjectClass *klass)
 {

@@ -29,30 +29,7 @@ G_BEGIN_DECLS
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**
- * GelDebugLevel:
- * @GEL_DEBUG_LEVEL_SEVERE: Severe error code
- * @GEL_DEBUG_LEVEL_ERROR: 'Normal' error code
- * @GEL_DEBUG_LEVEL_WARN: Warning code
- * @GEL_DEBUG_LEVEL_INFO: Detailed information
- * @GEL_DEBUG_LEVEL_DEBUG: Insane debug
- *
- * Codes for the gel debug system 
- *
- * Deprecated: 1.2: Use standard glib log system
- **/
-typedef enum GelDebugLevel
-{
-	GEL_DEBUG_LEVEL_SEVERE  = 0,
-	GEL_DEBUG_LEVEL_ERROR   = 1,
-	GEL_DEBUG_LEVEL_WARN    = 2,
-	GEL_DEBUG_LEVEL_INFO    = 3,
-	GEL_DEBUG_LEVEL_DEBUG   = 4,
-	GEL_N_DEBUG_LEVELS      = 5
-} GelDebugLevel;
-
-/**
  * GelPathComponent:
- *
  * @GEL_PATH_COMPONENT_BASENAME: Basename of a path string
  * @GEL_PATH_COMPONENT_DIRNAME: Dirname of a path string
  * @GEL_PATH_COMPONENT_PATHNAME: Full path string
@@ -267,9 +244,6 @@ GList*
 gel_list_filter(GList *input, GelFilterFunc callback, gpointer user_data);
 
 void
-gel_slist_differential_free(GSList *list, GSList *hold, GCompareFunc compare, GFunc callback, gpointer user_data);
-
-void
 gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func);
 
 /**
@@ -356,34 +330,6 @@ gel_strv_delete(gchar **strv, gint index);
 // --
 #define gel_str_or_text(str, text) (str ? str : text)
 
-// --
-// Debug functions
-// --
-typedef void (*GelDebugHandler) (GelDebugLevel level, const gchar *domain, const gchar *func, const gchar *file, gint line, const gchar *buffer, gpointer data);
-
-GelDebugLevel
-gel_get_debug_level(void);
-void
-gel_set_debug_level(GelDebugLevel level);
-
-void gel_debug_add_handler   (GelDebugHandler func, gpointer data);
-void gel_debug_remove_handler(GelDebugHandler func);
-
-
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#define _gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __func__, __FILE__, __LINE__, __VA_ARGS__)
-#elif defined(__GNUC__) && __GNUC__ >= 3
-#define _gel_debug(level,...) gel_debug_real (GEL_DOMAIN, level, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
-#else
-#define _gel_debug
-#endif
-
-// #define gel_verbose(...)    _gel_debug(GEL_DEBUG_LEVEL_VERBOSE, __VA_ARGS__)
-#define gel_debug(...)	    _gel_debug(GEL_DEBUG_LEVEL_DEBUG,   __VA_ARGS__)
-#define gel_info(...)       _gel_debug(GEL_DEBUG_LEVEL_INFO,    __VA_ARGS__)
-#define gel_warn(...)       _gel_debug(GEL_DEBUG_LEVEL_WARN,    __VA_ARGS__)
-#define gel_error(...)      _gel_debug(GEL_DEBUG_LEVEL_ERROR,   __VA_ARGS__)
-
 /*
  * gel_warn_fix_implementation:
  *
@@ -396,9 +342,6 @@ void
 gel_object_class_print_properties(GObjectClass *object);
 void
 gel_object_interface_print_properties(gpointer interface);
-
-void
-gel_debug_real  (const gchar *domain, GelDebugLevel level, const char *func, const char *file, int line, const char *format, ...);
 
 G_END_DECLS
 

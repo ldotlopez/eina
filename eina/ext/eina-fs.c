@@ -165,7 +165,7 @@ static void
 load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaApplication *app)
 {
 	gchar *uri = g_file_get_uri(source);
-	gel_warn(N_("'%s' throw an error: %s"), error->message);
+	g_warning(_("'%s' throw an error: %s"), uri, error->message);
 	g_free(uri);
 }
 
@@ -272,7 +272,7 @@ eina_fs_uri_get_children(const gchar *uri)
 	f = g_file_new_for_uri(uri);
 	f_enum = g_file_enumerate_children(f, "standard::*", 0, NULL, &err);
 	if (f == NULL) {
-		gel_error(err->message);
+		g_warning("%s", err->message);
 		g_error_free(err);
 		g_object_unref(f);
 		return NULL;
@@ -282,7 +282,7 @@ eina_fs_uri_get_children(const gchar *uri)
 	while ((f_inf = g_file_enumerator_next_file(f_enum, NULL, &err)) != NULL)
 	{
 		if (f_inf == NULL) {
-			gel_error(err->message);
+			g_warning("%s", err->message);
 			g_error_free(err);
 			continue;
 		}
@@ -326,14 +326,14 @@ GList *eina_fs_readdir(const gchar *path, gboolean abspath) {
 	gchar *real_path = g_filename_from_utf8(path, -1, NULL, NULL, &err);
 	if (err != NULL)
 	{
-		gel_error(_("Cannot convert UTF8 path '%s' to on-disk encoding: %s"), path, err->message);
+		g_warning(_("Cannot convert UTF8 path '%s' to on-disk encoding: %s"), path, err->message);
 		goto eina_fs_readdir_fail;
 	}
 
 	dir = g_dir_open(real_path, 0, &err);
 	if (err != NULL)
 	{
-		gel_error("Cannot open dir '%s': '%s'", real_path, err->message);
+		g_warning("Cannot open dir '%s': '%s'", real_path, err->message);
 		goto eina_fs_readdir_fail;
 	}
 
@@ -342,7 +342,7 @@ GList *eina_fs_readdir(const gchar *path, gboolean abspath) {
 		utf8_child = g_filename_to_utf8(child, -1, NULL, NULL, &err);
 		if (err)
 		{
-			gel_error(_("Cannot convert on-disk encoding '%s' to UTF8: %s"), path, err->message);
+			g_warning(_("Cannot convert on-disk encoding '%s' to UTF8: %s"), path, err->message);
 			g_error_free(err);
 			err = NULL;
 			continue;
@@ -441,7 +441,7 @@ gchar* eina_fs_utf8_to_ondisk(const gchar *path)
 	gchar *ret = g_filename_from_utf8(path, -1, NULL, NULL, &err);
 	if (err != NULL)
 	{
-		gel_error("Cannot convert UTF8 path '%s' to on-disk encoding: %s", path, err->message);
+		g_warning("Cannot convert UTF8 path '%s' to on-disk encoding: %s", path, err->message);
 		g_error_free(err);
 		return NULL;
 	}
@@ -465,7 +465,7 @@ gchar* eina_fs_ondisk_to_utf8(const gchar *path)
 	gchar *ret = g_filename_to_utf8(path, -1, NULL, NULL, &err);
 	if (err != NULL)
 	{
-		gel_error("Cannot convert on-disk encoding '%s' to UTF8 path: %s", path, err->message); g_error_free(err);
+		g_warning("Cannot convert on-disk encoding '%s' to UTF8 path: %s", path, err->message); g_error_free(err);
 		g_error_free(err);
 		return NULL;
 	}
