@@ -17,6 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:eina-application
+ * @title: EinaApplication
+ * @short_description: Application abstraction for Eina
+ *
+ * #EinaApplication is the central point or the hub for Eina. Every component is
+ * accesible from #EinaApplication via the eina_application_get_interface()
+ * call. Other functions for access main window interface, launch external
+ * programs or single instance model are provides by this class.
+ */
+
 #include "eina-application.h"
 #include <gel/gel.h>
 #include <glib/gi18n.h>
@@ -182,7 +193,7 @@ eina_application_launch_for_uri(EinaApplication *application, const gchar *uri, 
 /**
  * eina_application_get_argc:
  * @self: An #EinaApplication
- * 
+ *
  * Gets argc for current @self. The returned pointer is owned by
  * @application
  *
@@ -365,7 +376,7 @@ create_window(EinaApplication *self)
 		return self->priv->window;
 
 	self->priv->window = (EinaWindow *) eina_window_new();
-	
+
 	gtk_application_add_window((GtkApplication *) self, (GtkWindow *) self->priv->window);
 	g_signal_connect(self->priv->window, "delete-event", (GCallback) window_delete_event_cb, self);
 
@@ -383,5 +394,4 @@ window_delete_event_cb(EinaWindow *window, GdkEvent *ev, EinaApplication *self)
 
 	return FALSE;
 }
-
 

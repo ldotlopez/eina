@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_FILE_CHOOSER_DIALOG
-#define _EINA_FILE_CHOOSER_DIALOG
+#ifndef __EINA_FILE_CHOOSER_DIALOG_H__
+#define __EINA_FILE_CHOOSER_DIALOG_H__
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
@@ -72,7 +72,8 @@ typedef enum {
  * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_WARN: Warning message
  * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_ERROR: Error message
  *
- * Possible messages types
+ * Possible messages types, each message type uses diferent visual indicators,
+ * p.ex. icons.
  */
 typedef enum {
 	EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE,
@@ -91,4 +92,4 @@ GList *eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self);
 
 G_END_DECLS
 
-#endif /* _EINA_FILE_CHOOSER_DIALOG */
+#endif /* __EINA_FILE_CHOOSER_DIALOG_H__ */

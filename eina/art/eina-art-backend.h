@@ -55,7 +55,8 @@ typedef void (*EinaArtBackendFunc) (EinaArtBackend *backend, EinaArtSearch *sear
 
 GType eina_art_backend_get_type (void);
 
-EinaArtBackend* eina_art_backend_new (gchar *name, EinaArtBackendFunc search, EinaArtBackendFunc cancel, GDestroyNotify notify, gpointer data);
+EinaArtBackend* eina_art_backend_new (gchar *name,
+	EinaArtBackendFunc search, EinaArtBackendFunc cancel, GDestroyNotify notify, gpointer backend_data);
 const gchar *
 eina_art_backend_get_name(EinaArtBackend *backend);
 

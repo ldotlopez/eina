@@ -17,6 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION: eina-playlist
+ * @title: EinaPlaylist
+ * @short_description: UI component for playlist
+ *
+ * #EinaPlaylist is the UI component for display and control information
+ * relative to the playlist from #LomoPlayer
+ */
+
 #include "eina-playlist.h"
 #include "eina-playlist-ui.h"
 #include <glib/gi18n.h>
@@ -146,15 +155,40 @@ eina_playlist_class_init (EinaPlaylistClass *klass)
 	object_class->set_property = eina_playlist_set_property;
 	object_class->dispose = eina_playlist_dispose;
 
+	/**
+	 * EinaPlaylist:lomo-player:
+	 *
+	 * The #LomoPlayer associated with this object
+	 */
 	g_object_class_install_property(object_class, PROP_LOMO_PLAYER,
 		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
 			LOMO_TYPE_PLAYER, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * EinaPlaylist:stream-markup:
+	 *
+	 * Markup used to display items in the playlist. The markup will be
+	 * surrounded with &lt;b&gt;&lt;/b&gt; if the item is active.
+	 *
+	 * See SOME-UNDEF-SECTION for more information
+	 */
 	g_object_class_install_property(object_class, PROP_STREAM_MARKUP,
 		g_param_spec_string("stream-markup", "stream-markup", "stream-markup",
 			PROP_STREAM_MARKUP_DEFAULT, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 
-	playlist_signals[ACTION_ACTIVATED] = 
+	/**
+	 * EinaPlaylist::action-activated:
+	 *
+	 * Emitted if some action like random, repeat, open, etc is activated and
+	 * can be handled by external code
+	 *
+	 * @playlist: The #EinaPlaylist
+	 * @action: The activated #GtkAction
+	 *
+	 * Returns: %TRUE if action was handled and processing must be stopped,
+	 * %FALSE otherwise
+	 */
+	playlist_signals[ACTION_ACTIVATED] =
 		g_signal_new("action-activated",
 			G_OBJECT_CLASS_TYPE (object_class),
 			G_SIGNAL_RUN_LAST,
@@ -197,6 +231,14 @@ eina_playlist_new (LomoPlayer *lomo)
 	return self;
 }
 
+/**
+ * eina_playlist_get_lomo_player:
+ * @self: An #EinaPlaylist
+ *
+ * Gets the value of #EinaPlaylist:lomo-player property
+ *
+ * Returns: (transfer none): The property value
+ */
 LomoPlayer*
 eina_playlist_get_lomo_player(EinaPlaylist *self)
 {
@@ -239,8 +281,15 @@ playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 }
 
+/**
+ * eina_playlist_set_stream_markup:
+ * @self: An #EinaPlaylist
+ * @markup: Value for the property
+ *
+ * Sets the value of #EinaPlaylist:markup property
+ */
 void
-eina_playlist_set_stream_markup(EinaPlaylist *self, gchar *markup)
+eina_playlist_set_stream_markup(EinaPlaylist *self, const gchar *markup)
 {
 	g_return_if_fail(EINA_IS_PLAYLIST(self));
 	g_return_if_fail(markup != NULL);
@@ -253,6 +302,14 @@ eina_playlist_set_stream_markup(EinaPlaylist *self, gchar *markup)
 	g_object_notify((GObject *) self, "stream-markup");
 }
 
+/**
+ * eina_playlist_get_stream_markup:
+ * @self: An #EinaPlaylist
+ *
+ * Gets the value of #EinaPlaylist:markup property
+ *
+ * Returns: (transfer full): The property value
+ */
 gchar*
 eina_playlist_get_stream_markup(EinaPlaylist *self)
 {
@@ -319,10 +376,10 @@ playlist_refresh_model(EinaPlaylist *self)
 	EinaPlaylistPrivate *priv = self->priv;
 
 	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
-	gtk_notebook_set_current_page(nb, lomo_player_get_n_streams(priv->lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY);
+	gtk_notebook_set_current_page(nb,
+		lomo_player_get_n_streams(priv->lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY);
 
 	gtk_list_store_clear((GtkListStore *) priv->model);
-	
 
 	const GList *streams = lomo_player_get_playlist(priv->lomo);
 	GList *l = (GList *) streams;
@@ -455,7 +512,7 @@ playlist_get_selected_indices(EinaPlaylist *self)
 	EinaPlaylistPrivate *priv = self->priv;
 
 	GtkTreeSelection *selection = gel_ui_generic_get_typed(self, GTK_TREE_SELECTION, "treeview-selection");
-	
+
 	// Get selected
 	GList *rows = gtk_tree_selection_get_selected_rows(selection, &priv->model);
 	GList *l = rows;
@@ -615,11 +672,10 @@ gboolean playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 	{
 		GtkMenu *menu = gel_ui_generic_get_typed(self, GTK_MENU, "popup-menu");
 		g_return_val_if_fail(menu != NULL, FALSE);
-	
+
 		gtk_menu_popup(menu, NULL, NULL, NULL, NULL, ev_button->button, GDK_CURRENT_TIME);
 
 		return TRUE;
-	
 	}
 
 	if (event->type == GDK_KEY_PRESS)

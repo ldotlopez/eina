@@ -35,7 +35,7 @@ typedef struct {
 } EinaPlaylistPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYLIST_PLUGIN, EinaPlaylistPlugin, eina_playlist_plugin)
 
-#define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"                     
+#define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"
 #define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"
 
 static gboolean
@@ -59,7 +59,7 @@ eina_playlist_plugin_activate(EinaActivatable *activatable, EinaApplication *app
 		N_("Playlist"),
 		(GtkWidget *) g_object_ref(priv->playlist_widget),
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU),
-		EINA_DOCK_DEFAULT);
+		EINA_DOCK_FLAG_DEFAULT);
 
 	return TRUE;
 }

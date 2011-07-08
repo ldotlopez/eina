@@ -45,13 +45,6 @@ enum {
 	EINA_ACTIVATABLE_ERROR_INVALID_ARGS
 } EinaActivatableError;
 
-/**
- * EinaActivatableInterface:
- * @g_iface: Parent interface
- * @priv: Private data mean to be used by plugin implementation
- * @activate: Function to activate the plugin
- * @deactivate: Function to deactivate the plugin
-*/
 typedef struct _EinaActivatableInterfacePrivate EinaActivatableInterfacePrivate;
 struct _EinaActivatableInterface {
 	GTypeInterface g_iface;

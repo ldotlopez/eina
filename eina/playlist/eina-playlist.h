@@ -51,8 +51,8 @@ EinaPlaylist* eina_playlist_new (LomoPlayer *lomo);
 
 LomoPlayer *eina_playlist_get_lomo_player(EinaPlaylist *self);
 
-void   eina_playlist_set_stream_markup(EinaPlaylist *self, gchar *markup);
-gchar* eina_playlist_get_stream_markup(EinaPlaylist *);
+void   eina_playlist_set_stream_markup(EinaPlaylist *self, const gchar *markup);
+gchar* eina_playlist_get_stream_markup(EinaPlaylist *self);
 
 G_END_DECLS
 

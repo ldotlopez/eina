@@ -17,6 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:eina-art-backend
+ * @title:EinaArtBackend
+ * @short_description: Pluggable backends for art discovery
+ *
+ * EinaArtBackend is the way to enable alternative art discovery (searching in
+ * internet, hard-disk, tunesdb?). #EinaArtBackend handles #EinaArtSearch
+ * objects not #LomoStream or URIs
+ */
+
 #include "eina-art-backend.h"
 
 G_DEFINE_TYPE (EinaArtBackend, eina_art_backend, G_TYPE_OBJECT)
@@ -34,7 +44,6 @@ struct _EinaArtBackendPrivate {
 	GDestroyNotify      notify;
 	gpointer            backend_data;
 
-	// Searches in progress (uint > 0 if in idle, 0 in progress)
 	GHashTable *dict;
 };
 
@@ -93,6 +102,14 @@ eina_art_backend_class_init (EinaArtBackendClass *klass)
 
 	object_class->dispose = eina_art_backend_dispose;
 
+	/**
+	 * EinaArtBackend::finish
+	 * @backend: The #EinaArtBackend
+	 * @search: The finished #EinaArtSearch
+	 *
+	 * Emitted after the @search has beed finalized. This signal is mean to be
+	 * handled by #EinaArt not for direct use.
+	 */
 	signals[FINISH] = g_signal_new("finish",
 		G_OBJECT_CLASS_TYPE (object_class),
 		G_SIGNAL_RUN_LAST,
@@ -111,8 +128,19 @@ eina_art_backend_init (EinaArtBackend *self)
 	priv->dict = g_hash_table_new(g_direct_hash, g_direct_equal);
 }
 
+/**
+ * eina_art_backend_new:
+ * @name: A (unique) name for the backend
+ * @search: Function to search art data
+ * @cancel: Function to cancel a running search
+ * @notify: Destroy notify function to free @backend_data
+ * @backend_data: Specific backend data (like userdata)
+ *
+ * Returns: The backend
+ */
 EinaArtBackend*
-eina_art_backend_new (gchar *name, EinaArtBackendFunc search, EinaArtBackendFunc cancel, GDestroyNotify notify, gpointer backend_data)
+eina_art_backend_new (const gchar *name,
+	EinaArtBackendFunc search, EinaArtBackendFunc cancel, GDestroyNotify notify, gpointer backend_data)
 {
 	g_return_val_if_fail(name,   NULL);
 	g_return_val_if_fail(search, NULL);
@@ -128,6 +156,14 @@ eina_art_backend_new (gchar *name, EinaArtBackendFunc search, EinaArtBackendFunc
 	return backend;
 }
 
+/**
+ * eina_art_backend_get_name:
+ * @backend: An #EinaArtBackend
+ *
+ * Gets the name of the backend
+ *
+ * Returns: The name
+ */
 const gchar *
 eina_art_backend_get_name(EinaArtBackend *backend)
 {
@@ -154,6 +190,13 @@ eina_art_backend_run_real(backend_run_t *pack)
 	return FALSE;
 }
 
+/**
+ * eina_art_backend_run:
+ * @backend: An #EinaArtBackend
+ * @search: An #EinaArtSearch
+ *
+ * Runs @search in @backend. This will call search function from @backend
+ */
 void
 eina_art_backend_run(EinaArtBackend *backend, EinaArtSearch *search)
 {
@@ -181,6 +224,14 @@ eina_art_backend_run(EinaArtBackend *backend, EinaArtSearch *search)
 		GUINT_TO_POINTER(g_idle_add((GSourceFunc) eina_art_backend_run_real, pack)));
 }
 
+/**
+ * eina_art_backend_cancel:
+ * @backend: An #EinaArtBackend
+ * @search: An #EinaArtSearch
+ *
+ * Cancels running @search in @backend. This will call cancel function from
+ * @backend
+ */
 void
 eina_art_backend_cancel(EinaArtBackend *backend, EinaArtSearch *search)
 {
@@ -211,6 +262,16 @@ eina_art_backend_cancel(EinaArtBackend *backend, EinaArtSearch *search)
 	g_hash_table_remove(priv->dict, search);
 }
 
+/**
+ * eina_art_backend_finish:
+ * @backend: An #EinaArtBackend
+ * @search: An #EinaArtBackend
+ *
+ * Finalizes the seach in @backend, this function had to be called after the
+ * search function from @backend has do they job. If #EinaArtSearch has result
+ * it will be passed to #EinaArt object to be dispached, otherwise the next
+ * backend will try to find art data.
+ */
 void
 eina_art_backend_finish(EinaArtBackend *backend, EinaArtSearch *search)
 {

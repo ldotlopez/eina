@@ -17,6 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:eina-window
+ * @title: EinaWindow
+ * @short_description: Eina main window widget
+ *
+ * #EinaWindow is the widget used for the main Eina's window.
+ * It's a regular #GtkWindow plus a #GtkUIManager and the associated
+ * #GtkActionGroup. Aditionaly #EinaWindow can be persistant, this is the
+ * ability to automatically do hide-on-delete.
+ *
+ * If you want to add menus to main window use eina_window_get_ui_manager() and
+ * eina_window_get_action_group(). For persistance features see
+ * #EinaWindow:persistant property
+ *
+ * See also: #GtkWindow
+ */
+
 #include "eina-window.h"
 #include <glib/gi18n.h>
 #include <libpeas-gtk/peas-gtk.h>
@@ -24,9 +41,6 @@
 #include <eina/ext/eina-stock.h>
 
 G_DEFINE_TYPE (EinaWindow, eina_window, GTK_TYPE_WINDOW)
-
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_WINDOW, EinaWindowPrivate))
 
 struct _EinaWindowPrivate {
 	GtkBox    *container;
@@ -81,7 +95,7 @@ eina_window_container_add(GtkContainer *container, GtkWidget *widget)
 {
 	EinaWindow *self = EINA_WINDOW(container);
 	guint n_children = g_list_length(gtk_container_get_children(GTK_CONTAINER(self->priv->container)));
-	
+
 	g_return_if_fail(n_children <= 2);
 	gtk_box_pack_start(self->priv->container, widget, TRUE, TRUE, 0);
 }
@@ -134,7 +148,7 @@ eina_window_class_init (EinaWindowClass *klass)
 	object_class->dispose = eina_window_dispose;
 
 	/**
-	 * EinaWindow::persistant:
+	 * EinaWindow:persistant:
 	 *
 	 * Tell window if must be hide on delete-event or just hide
 	 */
@@ -143,9 +157,14 @@ eina_window_class_init (EinaWindowClass *klass)
 			FALSE, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * EinaWindow::activate:
+	 * EinaWindow::action-activate:
+	 * @window: The #EinaWindow
+	 * @action: #GtkAction that has been activated
 	 *
 	 * Emitted if some action is activated
+	 *
+	 * Returns: %TRUE if action was handed by callback and stop processing,
+	 * %FALSE if default handler need to be called.
 	 */
 	window_signals[ACTION_ACTIVATE] =
 		g_signal_new ("action-activate",
@@ -163,7 +182,7 @@ eina_window_class_init (EinaWindowClass *klass)
 static void
 eina_window_init (EinaWindow *self)
 {
-	self->priv = GET_PRIVATE(self);
+	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_WINDOW, EinaWindowPrivate));
 
 	self->priv->ag = gtk_action_group_new("_window");
 	gtk_action_group_add_actions(self->priv->ag, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions), self);
@@ -250,7 +269,7 @@ eina_window_get_action_group(EinaWindow *self)
  * @self: An #EinaWindow
  * @persistant: Value for the 'persistant' property
  *
- * Sets the ::persistant property
+ * Sets the #EinaWindow:persistant property
  */
 void
 eina_window_set_persistant(EinaWindow *self, gboolean persistant)

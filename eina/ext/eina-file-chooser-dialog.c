@@ -17,7 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GEL_DOMAIN "Eina::FileChooserDialog"
+/**
+ * SECTION:eina-file-chooser-dialog
+ * @title: EinaFileChooserDialog
+ * @short_description: Specialized FileChooser
+ *
+ * #EinaFileChooserDialog is an specialized #GtkFileChooserDialog providing
+ * async, recursive and filtering URI selection.
+ *
+ * Other UI improvements include the posibility of showing messages or
+ * canceling current operation
+ *
+ * See also: #GtkFileChooserDialog
+ */
 
 #include "eina-file-chooser-dialog.h"
 #include <glib.h>
@@ -32,7 +44,7 @@ G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CH
 
 struct _EinaFileChooserDialogPrivate {
 	EinaFileChooserDialogAction action;
-	GList *uris; // Store output from eina_file_chooser_dialog_run 
+	GList *uris; // Store output from eina_file_chooser_dialog_run
 
 	gboolean      user_cancel;
 	GtkBox       *info_box;    // Info widgets

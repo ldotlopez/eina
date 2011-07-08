@@ -17,6 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:eina-fieshta-behaviour
+ * @title:EinaFieshtaBehaviour
+ * @short_description: Behaviour control of #EinaFieshta
+ *
+ * #EinaFieshtaBehaviour is mean for controling which actions blocks
+ * #EinaFieshta and which are permited.
+ *
+ * #EinaFieshtaBehaviour is configured via #EinaFieshtaBehaviourOption
+ */
 #include "eina-fieshta-behaviour.h"
 #include <gel/gel.h>
 
@@ -32,12 +42,8 @@ enum {
 	PROP_OPTIONS
 };
 
-static void
-set_lomo_player(EinaFieshtaBehaviour *self, LomoPlayer *lomo);
-
-static gboolean
-lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent event, gpointer ret, EinaFieshtaBehaviour *self);
-
+static void     set_lomo_player(EinaFieshtaBehaviour *self, LomoPlayer *lomo);
+static gboolean lomo_hook_cb(LomoPlayer *lomo, LomoPlayerHookEvent event, gpointer ret, EinaFieshtaBehaviour *self);
 
 static void
 eina_fieshta_behaviour_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
@@ -96,14 +102,25 @@ eina_fieshta_behaviour_class_init (EinaFieshtaBehaviourClass *klass)
 	object_class->set_property = eina_fieshta_behaviour_set_property;
 	object_class->dispose = eina_fieshta_behaviour_dispose;
 
+	/**
+	 * EinaFieshtaBehaviour:lomo-player:
+	 *
+	 * #LomoPlayer object to attach to
+	 */
 	g_object_class_install_property(object_class, PROP_LOMO_PLAYER,
 		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
 			LOMO_TYPE_PLAYER,
 			G_PARAM_CONSTRUCT_ONLY|G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * EinaFieshtaBehaviour:options
+	 *
+	 * Options for the object expresed by a mask composed by one
+	 * or more #EinaFieshtaBehaviourOption
+	 */
 	g_object_class_install_property(object_class, PROP_OPTIONS,
 		g_param_spec_int( "options", "options", "options",
-			-1, 0x1111, EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT,
+			0, 0x1111, EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT,
 			G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 }
 
@@ -136,12 +153,12 @@ set_lomo_player(EinaFieshtaBehaviour *self, LomoPlayer *lomo)
 
 /**
  * eina_fieshta_behaviour_get_lomo_player:
- * @self: A #EinaFieshtaBehaviour
+ * @self: An #EinaFieshtaBehaviour
  *
  * Get the current #LomoPlayer object from the behaviour
  *
  * Returns: (transfer none): The #LomoPlayer
- **/
+ */
 LomoPlayer *
 eina_fieshta_behaviour_get_lomo_player(EinaFieshtaBehaviour *self)
 {
@@ -149,6 +166,14 @@ eina_fieshta_behaviour_get_lomo_player(EinaFieshtaBehaviour *self)
 	return self->priv->lomo;
 }
 
+/**
+ * eina_fieshta_behaviour_get_options:
+ * @self: An #EinaFieshtaBehaviour
+ *
+ * Gets the value of #EinaFieshtaBehaviour:options property
+ *
+ * Returns: The value of the property
+ */
 EinaFieshtaBehaviourOption
 eina_fieshta_behaviour_get_options(EinaFieshtaBehaviour *self)
 {
@@ -156,6 +181,13 @@ eina_fieshta_behaviour_get_options(EinaFieshtaBehaviour *self)
 	return self->priv->options;
 }
 
+/**
+ * eina_fieshta_behaviour_set_options:
+ * @self: An #EinaFieshtaBehaviour
+ * @options: A mask composed by one or more #EinaFieshtaBehaviourOption
+ *
+ * Sets the value of #EinaFieshtaBehaviour:options property
+ */
 void
 eina_fieshta_behaviour_set_options(EinaFieshtaBehaviour *self, EinaFieshtaBehaviourOption options)
 {

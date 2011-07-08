@@ -58,7 +58,7 @@ eina_muine_plugin_activate(EinaActivatable *activatable, EinaApplication *app, G
 		N_("Muine"),
 		(GtkWidget *) g_object_ref(priv->dock_widget),
 		gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU),
-		EINA_DOCK_DEFAULT);
+		EINA_DOCK_FLAG_DEFAULT);
 
 	return TRUE;
 }
