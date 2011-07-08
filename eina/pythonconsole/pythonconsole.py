@@ -59,7 +59,7 @@ ui_mng_str = """
 class PythonConsolePlugin(gobject.GObject, Eina.Activatable):
 	__gtype_name__ = 'EinaPythonConsolePlugin'
 
-	object = gobject.property(type = gobject.GObject)
+	application = gobject.property(type = gobject.GObject)
 
 	def __init__(self):
 		self.app    = None

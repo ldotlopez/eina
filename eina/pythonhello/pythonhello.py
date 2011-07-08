@@ -4,7 +4,7 @@ from gi.repository import Eina
 class PythonHelloPlugin(gobject.GObject, Eina.Activatable):
 	__gtype_name__ = 'PythonHelloPlugin'
 
-	# object = gobject.property(type=gobject.GObject)
+	application = gobject.property(type=gobject.GObject)
 
 	def do_activate(self, app):
 		print "Python test plugin, display current playlist:"
