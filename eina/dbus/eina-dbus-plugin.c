@@ -20,6 +20,10 @@
 #include <eina/ext/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
+#define BUS_NAME  "org.gnome.SettingsDaemon"
+#define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"
+#define INTERFACE "org.gnome.SettingsDaemon.MediaKeys"
+
 #define EINA_TYPE_DBUS_PLUGIN         (eina_dbus_plugin_get_type ())
 #define EINA_DBUS_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin))
 #define EINA_DBUS_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin))
@@ -27,63 +31,58 @@
 #define EINA_IS_DBUS_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_DBUS_PLUGIN))
 #define EINA_DBUS_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_DBUS_PLUGIN, EinaDBusPluginClass))
 
-EINA_DEFINE_EXTENSION_HEADERS(EinaDBusPlugin, eina_dbus_plugin)
-
-#define BUS_NAME  "org.gnome.SettingsDaemon"
-#define OBJECT    "/org/gnome/SettingsDaemon/MediaKeys"
-#define INTERFACE "org.gnome.SettingsDaemon.MediaKeys"
-
 typedef struct {
-	guint server_id;
-	EinaApplication *app;
 	GDBusProxy      *mmkeys_proxy;
-} EinaDBusData;
+} EinaDBusPluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_DBUS_PLUGIN, EinaDBusPlugin, eina_dbus_plugin);
 
 static void
-proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusData *data);
-
-EINA_DEFINE_EXTENSION(EinaDBusPlugin, eina_dbus_plugin, EINA_TYPE_DBUS_PLUGIN)
+proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusPlugin *plugin);
 
 static gboolean
 eina_dbus_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
-	EinaDBusData *data = g_new0(EinaDBusData, 1);
-	data->app = app;
-	data->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
+	EinaDBusPluginPrivate *priv = EINA_DBUS_PLUGIN(plugin)->priv;
+
+	priv->mmkeys_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
 		NULL,
 		BUS_NAME, OBJECT, INTERFACE,
 		NULL,
 		error
 		);
-	g_warn_if_fail(data->mmkeys_proxy != NULL);
-	if (data->mmkeys_proxy)
-		g_signal_connect (data->mmkeys_proxy, "g-signal", G_CALLBACK (proxy_signal_cb), data);
 
-	eina_activatable_set_data(plugin, data);
+	g_warn_if_fail(priv->mmkeys_proxy != NULL);
+	if (priv->mmkeys_proxy)
+		g_signal_connect (priv->mmkeys_proxy, "g-signal", G_CALLBACK (proxy_signal_cb), plugin);
 	return TRUE;
 }
 
 static gboolean
 eina_dbus_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
-	EinaDBusData *data = (EinaDBusData *) eina_activatable_steal_data(plugin);
-	g_return_val_if_fail(data != NULL, FALSE);
-
-	gel_free_and_invalidate(data->mmkeys_proxy, NULL, g_object_unref);
+	EinaDBusPluginPrivate *priv = EINA_DBUS_PLUGIN(plugin)->priv;
+	if (priv->mmkeys_proxy)
+	{
+		g_signal_handlers_disconnect_by_func(priv->mmkeys_proxy, proxy_signal_cb, plugin);
+		gel_free_and_invalidate(priv->mmkeys_proxy, NULL, g_object_unref);
+	}
 	return TRUE;
 }
 
 static void
-proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusData *data)
+proxy_signal_cb(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, EinaDBusPlugin *plugin)
 {
+	g_return_if_fail(EINA_IS_DBUS_PLUGIN(plugin));
+
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	LomoPlayer *lomo = eina_application_get_lomo(app);
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+
 	g_return_if_fail(g_str_equal("(ss)", (gchar *) g_variant_get_type(parameters)));
 
 	GVariant *v_action = g_variant_get_child_value(parameters, 1);
 	const gchar *action = g_variant_get_string(v_action, NULL);
-
-	LomoPlayer *lomo = eina_application_get_lomo(data->app);
-	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	GError *error = NULL;
 	if ((g_str_equal("Play", action) || g_str_equal("Pause", action)) && (lomo_player_get_current >= 0))

@@ -20,37 +20,20 @@
 #ifndef __EINA_DOCK_PLUGIN_H__
 #define __EINA_DOCK_PLUGIN_H__
 
-#include <eina/ext/eina-extension.h>
 #include <eina/dock/eina-dock.h>
+#include <eina/ext/eina-application.h>
 
 G_BEGIN_DECLS
 
 /**
- * EinaExtension boilerplate code
- */
-#define EINA_TYPE_DOCK_PLUGIN         (eina_dock_plugin_get_type ())
-#define EINA_DOCK_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))
-#define EINA_DOCK_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))
-#define EINA_IS_DOCK_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_DOCK_PLUGIN))
-#define EINA_IS_DOCK_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_DOCK_PLUGIN))
-#define EINA_DOCK_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_DOCK_PLUGIN, EinaDockPluginClass))
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaDockPlugin, eina_dock_plugin)
-
-/**
  * EinaApplication accessors and API
  */
-EinaDock*
-eina_application_get_dock(EinaApplication *application);
+EinaDock* eina_application_get_dock(EinaApplication *application);
 
-EinaDockTab*
-eina_application_add_dock_widget(EinaApplication *application, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
-
-gboolean
-eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab);
-
-gboolean
-eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab);
+EinaDockTab* eina_application_add_dock_widget   (EinaApplication *application,
+	const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+gboolean     eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab);
+gboolean     eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab);
 
 /**
  * Preferences keys

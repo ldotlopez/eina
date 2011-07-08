@@ -20,23 +20,11 @@
 #ifndef __EINA_LOMO_PLUGIN_H__
 #define __EINA_LOMO_PLUGIN_H__
 
-#include <eina/ext/eina-extension.h>
 #include <lomo/lomo-player.h>
 #include <lomo/lomo-util.h>
+#include <eina/ext/eina-application.h>
 
 G_BEGIN_DECLS
-
-/**
- * EinaExtension boilerplate code
- */
-#define EINA_TYPE_LOMO_PLUGIN         (eina_lomo_plugin_get_type ())
-#define EINA_LOMO_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
-#define EINA_LOMO_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
-#define EINA_IS_LOMO_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_LOMO_PLUGIN))
-#define EINA_IS_LOMO_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_LOMO_PLUGIN))
-#define EINA_LOMO_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_LOMO_PLUGIN, EinaLomoPluginClass))
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaLomoPlugin, eina_lomo_plugin)
 
 /**
  * EinaLomoPluginError:
@@ -46,11 +34,11 @@ EINA_DEFINE_EXTENSION_HEADERS(EinaLomoPlugin, eina_lomo_plugin)
  * @EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE: LomoPlayer engine cannot be
  *                                                destroyed
  */
-typedef enum { 
+typedef enum {
 	EINA_LOMO_PLUGIN_ERROR_CANNOT_CREATE_ENGINE = 1,
-	EINA_LOMO_PLUGIN_ERROR_CANNOT_SET_SHARED, 
-	EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE 
-} EinaLomoPluginError; 
+	EINA_LOMO_PLUGIN_ERROR_CANNOT_SET_SHARED,
+	EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE
+} EinaLomoPluginError;
 
 /**
  * EinaApplication accessors

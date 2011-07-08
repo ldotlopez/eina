@@ -81,7 +81,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		GtkWindow *window = GTK_WINDOW(eina_application_get_window(EINA_APPLICATION(application)));
 		if (!window || !GTK_IS_WINDOW(window))
 			g_warn_if_fail(GTK_IS_WINDOW(window));
-		gtk_window_present(window);                                   
+		gtk_window_present(window);
 		return;
 	}
 
@@ -139,10 +139,12 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	// ExtensionSet
 	PeasExtensionSet *es = peas_extension_set_new (engine,
 		EINA_TYPE_ACTIVATABLE,
+		"application", application,
 		NULL);
 	peas_extension_set_call(es, "activate", application, NULL);
-	g_signal_connect_after(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
-	g_signal_connect_after(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
+
+	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
+	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
 
 	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
@@ -150,10 +152,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	{
 		PeasPluginInfo *info = peas_engine_get_plugin_info(engine, plugins[i]);
 		if (!info || !peas_engine_load_plugin(engine, info))
-		{
 			g_warning(N_("Unable to load required plugin '%s'"), plugins[i]);
-			return;
-		}
 	}
 	g_strfreev(plugins);
 	activated = TRUE;

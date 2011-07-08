@@ -47,7 +47,7 @@ typedef struct {
 	GSettings *settings;
 
 	guint config_update_id;
-} EinaLastfmData;
+} EinaLastfmPluginPrivate;
 
 G_END_DECLS
 

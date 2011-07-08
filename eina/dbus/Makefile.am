@@ -9,7 +9,6 @@ libdbus_la_CFLAGS  = @EINA_CFLAGS@
 libdbus_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libdbus_la_SOURCES = \
 	$(include_HEADERS) \
-	lomo-player-instropection.xml.h \
 	eina-dbus-plugin.c
 
 plugin_DATA = dbus.plugin

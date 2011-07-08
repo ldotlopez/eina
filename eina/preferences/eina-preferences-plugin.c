@@ -18,33 +18,40 @@
  */
 
 #include "eina-preferences-plugin.h"
+#include <eina/ext/eina-extension.h>
 
-struct _EinaPreferences {
-	EinaActivatable *plugin;
+#define EINA_TYPE_PREFERENCES_PLUGIN         (eina_preferences_plugin_get_type ())
+#define EINA_PREFERENCES_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPlugin))
+#define EINA_PREFERENCES_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPlugin))
+#define EINA_IS_PREFERENCES_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_PREFERENCES_PLUGIN))
+#define EINA_IS_PREFERENCES_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_PREFERENCES_PLUGIN))
+#define EINA_PREFERENCES_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPluginClass))
 
+typedef struct {
 	EinaPreferencesDialog *dialog;
 	GList *tabs;
 
 	GtkActionGroup *ag;
 	guint ui_merge_id;
-};
+} EinaPreferencesPluginPrivate;
+
+EINA_PLUGIN_REGISTER(EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPlugin, eina_preferences_plugin)
 
 GEL_DEFINE_WEAK_REF_CALLBACK(preferences)
 
-static void
-preferences_attach_menu(EinaPreferences *self);
-static void
-preferences_deattach_menu(EinaPreferences *self);
-static void 
-preferences_deattach_all_tabs(EinaPreferences *self);
-static void
-menu_activate_cb(GtkAction *action, EinaPreferences *self);
+void preferences_plugin_add_tab   (EinaPreferencesPlugin *plugin, EinaPreferencesTab *tab);
+void preferences_plugin_remove_tab(EinaPreferencesPlugin *plugin, EinaPreferencesTab *tab);
+
+EinaPreferencesPlugin * application_get_preferences(EinaApplication *application);
+
+static void preferences_plugin_attach_menu      (EinaPreferencesPlugin *plugin);
+static void preferences_plugin_detach    (EinaPreferencesPlugin *plugin);
+static void preferences_plugin_detach_all_tabs(EinaPreferencesPlugin *plugin);
+static void menu_activate_cb(GtkAction *action, EinaPreferencesPlugin *plugin);
 
 // Dialog
-static void
-response_cb(GtkWidget *w, gint response, EinaPreferences *self);
-static gboolean
-delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self);
+static void     response_cb    (GtkWidget *w, gint response, EinaPreferencesPlugin *plugin);
+static gboolean delete_event_cb(GtkWidget *w, GdkEvent *ev,  EinaPreferencesPlugin *plugin);
 
 enum {
 	EINA_PREFERENCES_NO_ERROR = 0,
@@ -53,66 +60,62 @@ enum {
 	EINA_PREFERENCES_CANNOT_REGISTER_SHARED
 };
 
-EINA_DEFINE_EXTENSION(EinaPreferencesPlugin, eina_preferences_plugin, EINA_TYPE_PREFERENCES_PLUGIN)
+static EinaActivatable *_fixme_activatable = NULL;
 
 G_MODULE_EXPORT gboolean
-eina_preferences_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_preferences_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaPreferences *self = g_new0(EinaPreferences, 1);
-	self->plugin = plugin;
-	eina_activatable_set_data(plugin, self);
-	eina_application_set_interface(app, "preferences", self);
-
+	_fixme_activatable = activatable;
 	return TRUE;
 }
 
 G_MODULE_EXPORT gboolean
-eina_preferences_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_preferences_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaPreferences *self = (EinaPreferences *) eina_activatable_steal_data(plugin);
+	EinaPreferencesPlugin        *plugin = EINA_PREFERENCES_PLUGIN(activatable);
+	EinaPreferencesPluginPrivate *priv   = plugin->priv;
 
-	if (self->dialog)
+	if (priv->dialog)
 	{
-		preferences_deattach_all_tabs(self);
-		gtk_widget_destroy((GtkWidget *) self->dialog);
-		self->dialog = NULL;
+		preferences_plugin_detach_all_tabs(plugin);
+		gtk_widget_destroy((GtkWidget *) priv->dialog);
+		priv->dialog = NULL;
 	}
 
-	if (self->tabs)
+	if (priv->tabs)
 	{
-		GList *iter = self->tabs;
+		GList *iter = priv->tabs;
 		while (iter)
 		{
 			eina_application_remove_preferences_tab(app, EINA_PREFERENCES_TAB(iter->data));
-			iter = self->tabs;
+			iter = priv->tabs;
 		}
-		g_list_free(self->tabs);
-		self->tabs = NULL;
+		g_list_free(priv->tabs);
+		priv->tabs = NULL;
 		// Edit/Preferences menu is deattached automatically after remove last tab
 	}
 
+	_fixme_activatable = NULL;
 
-	g_free(self);
 	return TRUE;
 }
 
-EinaPreferences *
-eina_application_get_preferences(EinaApplication *application)
+EinaPreferencesPlugin *
+application_get_preferences(EinaApplication *application)
 {
 	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
-	return eina_application_get_interface(application, "preferences");
+	return EINA_PREFERENCES_PLUGIN(_fixme_activatable);
 }
-
 
 void
 eina_application_add_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab)
 {
 	g_return_if_fail(EINA_IS_APPLICATION(application));
 
-	EinaPreferences *preferences = eina_application_get_preferences(application);
-	g_return_if_fail(preferences != NULL);
+	EinaPreferencesPlugin *plugin = application_get_preferences(application);
+	g_return_if_fail(plugin != NULL);
 
-	eina_preferences_add_tab(preferences, tab);
+	preferences_plugin_add_tab(plugin, tab);
 }
 
 void
@@ -120,72 +123,87 @@ eina_application_remove_preferences_tab(EinaApplication *application, EinaPrefer
 {
 	g_return_if_fail(EINA_IS_APPLICATION(application));
 
-	EinaPreferences *preferences = eina_application_get_preferences(application);
-	g_return_if_fail(preferences != NULL);
+	EinaPreferencesPlugin *plugin = application_get_preferences(application);
+	g_return_if_fail(plugin != NULL);
 
-	eina_preferences_remove_tab(preferences, tab);
+	preferences_plugin_remove_tab(plugin, tab);
 }
 
 void
-eina_preferences_add_tab(EinaPreferences *self, EinaPreferencesTab *tab)
+preferences_plugin_add_tab(EinaPreferencesPlugin *plugin, EinaPreferencesTab *tab)
 {
-	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
-	g_return_if_fail(g_list_find(self->tabs, tab) == NULL);
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
 
-	self->tabs = g_list_prepend(self->tabs, g_object_ref(tab)); // owning
+	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
+	g_return_if_fail(g_list_find(priv->tabs, tab) == NULL);
+
+	priv->tabs = g_list_prepend(priv->tabs, g_object_ref(tab)); // owning
 	g_object_weak_ref((GObject *) tab, (GWeakNotify) preferences_weak_ref_cb, NULL);
 
-	if (self->dialog)
-		eina_preferences_dialog_add_tab(self->dialog, tab);
+	if (priv->dialog)
+		eina_preferences_dialog_add_tab(priv->dialog, tab);
 
 	// Just one tab
-	if (self->tabs && !self->tabs->next)
-		preferences_attach_menu(self);
+	if (priv->tabs && !priv->tabs->next)
+		preferences_plugin_attach_menu(plugin);
 }
 
 void
-eina_preferences_remove_tab(EinaPreferences *self, EinaPreferencesTab *tab)
+preferences_plugin_remove_tab(EinaPreferencesPlugin *plugin, EinaPreferencesTab *tab)
 {
-	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
-	g_return_if_fail(g_list_find(self->tabs, tab) != NULL);
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
 
-	if (self->dialog)
-		eina_preferences_dialog_remove_tab(self->dialog, tab);
+	g_return_if_fail(EINA_IS_PREFERENCES_TAB(tab));
+	g_return_if_fail(g_list_find(priv->tabs, tab) != NULL);
+
+	if (priv->dialog)
+		eina_preferences_dialog_remove_tab(priv->dialog, tab);
 
 	g_object_weak_unref((GObject *) tab, (GWeakNotify) preferences_weak_ref_cb, NULL);
-	self->tabs = g_list_remove(self->tabs, tab);
+	priv->tabs = g_list_remove(priv->tabs, tab);
 
 	g_object_unref(G_OBJECT(tab));
 
 	// No tabs
-	if (!self->tabs)
-		preferences_deattach_menu(self);
+	if (!priv->tabs)
+		preferences_plugin_detach(plugin);
 }
 
 static void
-build_dialog(EinaPreferences *self)
+preferences_plugin_build_dialog(EinaPreferencesPlugin *plugin)
 {
-	self->dialog = eina_preferences_dialog_new();
-	g_object_set((GObject*) self->dialog,
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
+	if (GTK_IS_DIALOG(priv->dialog))
+		return;
+
+	priv->dialog = eina_preferences_dialog_new();
+	g_object_set((GObject*) priv->dialog,
 		"title", N_("Preferences"),
 		"window-position", GTK_WIN_POS_CENTER_ON_PARENT,
 		"width-request",  600,
 		"height-request", 400,
 		NULL);
-	g_signal_connect(self->dialog, "response",     (GCallback) response_cb, self);
-	g_signal_connect(self->dialog, "delete-event", (GCallback) delete_event_cb, self);
+	g_signal_connect(priv->dialog, "response",     (GCallback) response_cb,     plugin);
+	g_signal_connect(priv->dialog, "delete-event", (GCallback) delete_event_cb, plugin);
 
-	GList *iter = g_list_last(self->tabs);
+	GList *iter = g_list_last(priv->tabs);
 	while (iter)
 	{
-		eina_preferences_dialog_add_tab(self->dialog, EINA_PREFERENCES_TAB(iter->data));
+		eina_preferences_dialog_add_tab(priv->dialog, EINA_PREFERENCES_TAB(iter->data));
 		iter = iter->prev;
 	}
 }
 
 static void
-preferences_attach_menu(EinaPreferences *self)
+preferences_plugin_attach_menu(EinaPreferencesPlugin *plugin)
 {
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
 	const GtkActionEntry action_entries[] = {
 		{ "preferences", GTK_STOCK_PREFERENCES, N_("Preferences"), "<Control>p", NULL, G_CALLBACK(menu_activate_cb) },
 	};
@@ -199,8 +217,8 @@ preferences_attach_menu(EinaPreferences *self)
 		"</menubar>"
 		"</ui>";
 
-	EinaApplication *app = eina_activatable_get_application(self->plugin);
-	GtkUIManager *ui_manager = eina_application_get_window_ui_manager(app);
+	EinaApplication *app        = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	GtkUIManager    *ui_manager = eina_application_get_window_ui_manager(app);
 
 	if (ui_manager == NULL)
 	{
@@ -209,84 +227,99 @@ preferences_attach_menu(EinaPreferences *self)
 	}
 
 	GError *err = NULL;
-	if ((self->ui_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager, ui_xml, -1, &err)) == 0)
+	if ((priv->ui_merge_id = gtk_ui_manager_add_ui_from_string(ui_manager, ui_xml, -1, &err)) == 0)
 	{
 		g_warning(N_("Cannot attach menu: %s"), err->message);
 		g_error_free(err);
 	}
 
-	self->ag = gtk_action_group_new("preferences");
-	gtk_action_group_add_actions(self->ag, action_entries, G_N_ELEMENTS(action_entries), self);
-	gtk_ui_manager_insert_action_group(ui_manager, self->ag, 1);
+	priv->ag = gtk_action_group_new("preferences");
+	gtk_action_group_add_actions(priv->ag, action_entries, G_N_ELEMENTS(action_entries), plugin);
+	gtk_ui_manager_insert_action_group(ui_manager, priv->ag, 1);
 	gtk_ui_manager_ensure_update(ui_manager);
 }
 
 static void
-preferences_deattach_menu(EinaPreferences *self)
+preferences_plugin_detach(EinaPreferencesPlugin *plugin)
 {
-	EinaApplication *app = eina_activatable_get_application(self->plugin);
-	GtkUIManager *ui_manager = eina_application_get_window_ui_manager(app);
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
+	EinaApplication *app        = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	GtkUIManager    *ui_manager = eina_application_get_window_ui_manager(app);
 	if (ui_manager == NULL)
 	{
 		g_warning(N_("Cannot get GtkUIManager for main menu, unable to deattach preferences menu"));
 		return;
 	}
 
-	g_warn_if_fail(self->ui_merge_id > 0);
-	if (self->ui_merge_id)
+	g_warn_if_fail(priv->ui_merge_id > 0);
+	if (priv->ui_merge_id)
 	{
-		gtk_ui_manager_remove_ui(ui_manager, self->ui_merge_id);
-		self->ui_merge_id = 0;
+		gtk_ui_manager_remove_ui(ui_manager, priv->ui_merge_id);
+		priv->ui_merge_id = 0;
 	}
 
-	g_warn_if_fail(self->ag != NULL);
-	if (self->ag)
+	g_warn_if_fail(priv->ag != NULL);
+	if (priv->ag)
 	{
-		gtk_ui_manager_remove_action_group(ui_manager, self->ag);
-		g_object_unref(self->ag);
-		self->ag = NULL;
+		gtk_ui_manager_remove_action_group(ui_manager, priv->ag);
+		g_object_unref(priv->ag);
+		priv->ag = NULL;
 	}
 }
 
 static void
-menu_activate_cb(GtkAction *action, EinaPreferences *self)
+menu_activate_cb(GtkAction *action, EinaPreferencesPlugin *plugin)
 {
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
 	if (g_str_equal(gtk_action_get_name(action), "preferences"))
 	{
-		build_dialog(self);
-		gtk_dialog_run(GTK_DIALOG(self->dialog));
+		preferences_plugin_build_dialog(plugin);
+		gtk_dialog_run(GTK_DIALOG(priv->dialog));
 	}
 }
 
 static void 
-preferences_deattach_all_tabs(EinaPreferences *self)
+preferences_plugin_detach_all_tabs(EinaPreferencesPlugin *plugin)
 {
-	g_warn_if_fail(self->dialog);
-	if (self->dialog)
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
+	g_warn_if_fail(priv->dialog);
+	if (priv->dialog)
 	{
-		GList *iter = self->tabs;
+		GList *iter = priv->tabs;
 		while (iter)
 		{
-			eina_preferences_dialog_remove_tab(self->dialog, EINA_PREFERENCES_TAB(iter->data));
+			eina_preferences_dialog_remove_tab(priv->dialog, EINA_PREFERENCES_TAB(iter->data));
 			iter = iter->next;
 		}
 	}
 }
 
 static void
-response_cb(GtkWidget *w, gint response, EinaPreferences *self)
+response_cb(GtkWidget *w, gint response, EinaPreferencesPlugin *plugin)
 {
-	preferences_deattach_all_tabs(self);
-	self->dialog = NULL;
+	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
+	preferences_plugin_detach_all_tabs(plugin);
+	priv->dialog = NULL;
 
 	gtk_widget_destroy(w);
 }
 
 static gboolean
-delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferences *self)
+delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferencesPlugin *plugin)
 {
-	preferences_deattach_all_tabs(self);
-	self->dialog = NULL;
+	g_return_val_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin), FALSE);
+	EinaPreferencesPluginPrivate *priv = plugin->priv;
+
+	preferences_plugin_detach_all_tabs(plugin);
+	priv->dialog = NULL;
 
 	return FALSE;
 }

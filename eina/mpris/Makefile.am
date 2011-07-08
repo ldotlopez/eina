@@ -4,14 +4,16 @@ plugindir = $(pkglibdir)/mpris
 plugin_LTLIBRARIES = libmpris.la
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/mpris
-include_HEADERS = 
+include_HEADERS =
 
 libmpris_la_CFLAGS  = @EINA_CFLAGS@
 libmpris_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 libmpris_la_SOURCES = \
-	eina-mpris-plugin.c \
+	eina-mpris-plugin.c      \
+	eina-mpris-plugin.h      \
 	eina-mpris-player-spec.h \
-	eina-mpris-player.c eina-mpris-player.h
+	eina-mpris-player.c      \
+	eina-mpris-player.h
 
 if BUILD_INDICATE
 libmpris_la_CFLAGS  += @INDICATE_CFLAGS@
