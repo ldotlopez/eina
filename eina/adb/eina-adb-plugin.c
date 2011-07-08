@@ -21,13 +21,29 @@
 #include "register.h"
 #include <eina/lomo/eina-lomo-plugin.h>
 
+/**
+ * EinaExtension boilerplate code
+ */
+#define EINA_TYPE_ADB_PLUGIN         (eina_adb_plugin_get_type ())
+#define EINA_ADB_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin))
+#define EINA_ADB_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin))
+#define EINA_IS_ADB_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_ADB_PLUGIN))
+#define EINA_IS_ADB_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_ADB_PLUGIN))
+#define EINA_ADB_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_ADB_PLUGIN, EinaAdbPluginClass))
+typedef struct {
+	EinaAdb *adb;
+} EinaAdbPluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin, eina_adb_plugin)
+
 GEL_DEFINE_QUARK_FUNC(eina_adb_plugin)
-EINA_DEFINE_EXTENSION(EinaAdbPlugin, eina_adb_plugin, EINA_TYPE_ADB_PLUGIN)
 
 static gboolean
 eina_adb_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaAdb *adb = eina_adb_new();
+	EinaAdbPlugin      *plugin = EINA_ADB_PLUGIN(activatable);
+	EinaAdbPluginPrivate *priv = plugin->priv;
+
+	priv->adb = eina_adb_new();
 
 	const gchar *conf_dir = g_get_user_config_dir();
 	if (!conf_dir)
@@ -39,26 +55,28 @@ eina_adb_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GEr
 	g_free(db_dirname);
 
 	gboolean ret;
-	if (!(ret = eina_adb_set_db_file(adb, db_path)))
+	if (!(ret = eina_adb_set_db_file(priv->adb, db_path)))
 	{
 		g_set_error(error, eina_adb_plugin_quark(),
 			EINA_ADB_PLUGIN_ERROR_UNABLE_TO_SET_DB_FILE, N_("Error setting database '%s'"), db_path);
 		g_free(db_path);
-		g_object_unref(adb);
+		g_object_unref(priv->adb);
+		priv->adb = NULL;
 		return FALSE;
 	}
 	g_free(db_path);
 
 	// Register into App
-	if (!eina_application_set_interface(app, "adb", adb))
+	if (!eina_application_set_interface(app, "adb", priv->adb))
 	{
 		g_set_error(error, eina_adb_plugin_quark(), 
 		            EINA_ADB_PLUGIN_ERROR_CANNOT_REGISTER_INTERFACE, N_("Cannot register ADB interface"));
-		g_object_unref(adb);
+		g_object_unref(priv->adb);
+		priv->adb = NULL;
 		return FALSE;
 	}
 
-	adb_register_start(adb, eina_application_get_interface(app, "lomo"));
+	adb_register_start(priv->adb, eina_application_get_lomo(app));
 
 	return ret;
 }
@@ -66,11 +84,15 @@ eina_adb_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GEr
 static gboolean
 eina_adb_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaAdb    *adb  = eina_application_get_adb (app);
+	EinaAdbPlugin      *plugin = EINA_ADB_PLUGIN(activatable);
+	EinaAdbPluginPrivate *priv = plugin->priv;
+
 	LomoPlayer *lomo = eina_application_get_lomo(app);
 
-	adb_register_stop(adb, lomo);
-	g_object_unref(adb);
+	eina_application_set_interface(app, "adb", NULL);
+	adb_register_stop(priv->adb, lomo);
+	g_object_unref(priv->adb);
+	priv->adb = NULL;
 
 	return TRUE;
 }

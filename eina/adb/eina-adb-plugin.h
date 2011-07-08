@@ -26,18 +26,6 @@
 G_BEGIN_DECLS
 
 /**
- * EinaExtension boilerplate code
- */
-#define EINA_TYPE_ADB_PLUGIN         (eina_adb_plugin_get_type ())
-#define EINA_ADB_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin))
-#define EINA_ADB_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin))
-#define EINA_IS_ADB_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_ADB_PLUGIN))
-#define EINA_IS_ADB_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_ADB_PLUGIN))
-#define EINA_ADB_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_ADB_PLUGIN, EinaAdbPluginClass))
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaAdbPlugin, eina_adb_plugin)
-
-/**
  * EinaApplication accessors
  */
 EinaAdb *

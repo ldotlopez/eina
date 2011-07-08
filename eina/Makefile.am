@@ -15,15 +15,15 @@ SUBDIRS = ext   \
 	pythonhello   \
 	status-icon
 
-#if BUILD_ADB
-#SUBDIRS +=   \
-#	adb      \
-#	muine
-#endif
-#
-#if BUILD_CLUTTY
-#SUBDIRS += clutty
-#endif
+if BUILD_ADB
+SUBDIRS +=   \
+	adb      \
+	muine
+endif
+
+if BUILD_CLUTTY
+SUBDIRS += clutty
+endif
 
 if BUILD_NTFY
 SUBDIRS += ntfy
