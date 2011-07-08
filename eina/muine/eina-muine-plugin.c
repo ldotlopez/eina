@@ -23,7 +23,7 @@
 #include <eina/dock/eina-dock-plugin.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
-/**
+/*
  * EinaExtension boilerplate code
  */
 #define EINA_TYPE_MUINE_PLUGIN         (eina_muine_plugin_get_type ())

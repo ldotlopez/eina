@@ -8,7 +8,6 @@
 G_BEGIN_DECLS
 
 #define LOMO_PLAYER_E_API
-// #define LOMO_PLAYER_COMPAT
 
 #define LOMO_TYPE_PLAYER lomo_player_get_type()
 

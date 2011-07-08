@@ -29,21 +29,13 @@
 /**
  * SECTION:eina-activatable
  * @short_description: Interface for activatable plugins.
- * @see_also: #PeasExtensionSet
+ * @see_also: #PeasExtensionSet, #PeasActivatable
  *
- * #EinaActivatable is an interface which should be implemented by plugins
- * that should be activated on an object of a certain type (depending on the
- * application). For instance, in a typical windowed application,
- * #EinaActivatable plugin instances could be bound to individual toplevel
- * windows.
+ * #EinaActivatable is an interface which should be implemented by plugins,
  *
  * It is typical to use #EinaActivatable along with #PeasExtensionSet in order
  * to activate and deactivate extensions automatically when plugins are loaded
  * or unloaded.
- *
- * You can also use the code of this interface as a base for your own
- * extension types, as illustrated by gedit's #GeditWindowActivatable and
- * #GeditDocumentActivatable interfaces.
  **/
 
 G_DEFINE_INTERFACE(EinaActivatable, eina_activatable, G_TYPE_OBJECT)
@@ -89,8 +81,8 @@ eina_activatable_default_init (EinaActivatableInterface *iface)
 
 /**
  * eina_activatable_activate:
- * @application: An #EinaApplication
  * @activatable: An #EinaActivatable
+ * @application: An #EinaApplication
  * @error: Location for returned error, or %NULL
  *
  * Activates an #EinaActivatable
@@ -102,7 +94,8 @@ eina_activatable_activate(EinaActivatable *activatable, EinaApplication *applica
 {
 	if (!EINA_IS_ACTIVATABLE(activatable) || !EINA_IS_APPLICATION(application))
 	{
-		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_INVALID_ARGS, "Invalid arguments");
+		g_set_error(error, eina_activatable_quark(),
+			EINA_ACTIVATABLE_ERROR_INVALID_ARGS, "Invalid arguments");
 		g_return_val_if_fail (EINA_IS_APPLICATION (application), FALSE);
 		g_return_val_if_fail (EINA_IS_ACTIVATABLE (activatable), FALSE);
 	}
@@ -113,8 +106,9 @@ eina_activatable_activate(EinaActivatable *activatable, EinaApplication *applica
 	if (iface->activate != NULL)
 		ret = iface->activate(activatable, application, error);
 
-	if (!ret && error && !(*error)) 
-		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_UNKNOW_ERROR, "Unknow error");
+	if (!ret && error && !(*error))
+		g_set_error(error, eina_activatable_quark(),
+			EINA_ACTIVATABLE_ERROR_UNKNOW, "Unknow error");
 
 	return ret;
 }
@@ -134,7 +128,8 @@ eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *appli
 {
 	if (!EINA_IS_ACTIVATABLE(activatable) || !EINA_IS_APPLICATION(application))
 	{
-		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_INVALID_ARGS, "Invalid arguments");
+		g_set_error(error, eina_activatable_quark(),
+			EINA_ACTIVATABLE_ERROR_INVALID_ARGS, "Invalid arguments");
 		g_return_val_if_fail (EINA_IS_APPLICATION (application), FALSE);
 		g_return_val_if_fail (EINA_IS_ACTIVATABLE (activatable), FALSE);
 	}
@@ -146,7 +141,8 @@ eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *appli
 		ret = iface->deactivate (activatable, application, error);
 
 	if (!ret && error && !(*error))
-		g_set_error(error, eina_activatable_quark(), EINA_ACTIVATABLE_UNKNOW_ERROR, "Unknow error");
+		g_set_error(error, eina_activatable_quark(),
+			EINA_ACTIVATABLE_ERROR_UNKNOW, "Unknow error");
 
 	return ret;
 }
@@ -155,7 +151,7 @@ eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *appli
  * eina_activatable_get_application:
  * @activatable: An #EinaApplication
  *
- * Get application from @activatable
+ * Get application associated to @activatable
  *
  * Returns: (transfer none): An #EinaApplication
  */

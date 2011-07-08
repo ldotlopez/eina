@@ -43,31 +43,43 @@ typedef struct {
 	GObjectClass parent_class;
 } EinaFieshtaBehaviourClass;
 
+/**
+ * EinaFieshtaBehaviourOption:
+ * @EINA_FIESHTA_BEHAVIOUR_OPTION_NONE: Dont block anything
+ * @EINA_FIESHTA_BEHAVIOUR_OPTION_SEEK_FF: Block forward seek
+ * @EINA_FIESHTA_BEHAVIOUR_OPTION_SEEK_REW: Block backward seek
+ * @EINA_FIESHTA_BEHAVIOUR_OPTION_INSERT: Block insert but at the end
+ * @EINA_FIESHTA_BEHAVIOUR_OPTION_CHANGE: Block change but to the next stream
+ * @EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT: Default options: SEEK_FF, SEEK_REW,
+ *                                         SEEK_INSERT and SEEK_CHANGE
+ *
+ * Defines the behaviour of an #EinaFieshtaBehaviour
+ */
 typedef enum {
 	EINA_FIESHTA_BEHAVIOUR_OPTION_NONE     = 0,
 	EINA_FIESHTA_BEHAVIOUR_OPTION_SEEK_FF  = 1,
 	EINA_FIESHTA_BEHAVIOUR_OPTION_SEEK_REW = 1 << 1,
 	EINA_FIESHTA_BEHAVIOUR_OPTION_INSERT   = 1 << 2,
 	EINA_FIESHTA_BEHAVIOUR_OPTION_CHANGE   = 1 << 3,
-	EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT  = 
+	EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT  =
 		EINA_FIESHTA_BEHAVIOUR_OPTION_SEEK_FF  |
 		EINA_FIESHTA_BEHAVIOUR_OPTION_SEEK_REW |
 		EINA_FIESHTA_BEHAVIOUR_OPTION_INSERT   |
 		EINA_FIESHTA_BEHAVIOUR_OPTION_CHANGE
-} EinaFieshtaBehaviourOptions;
+} EinaFieshtaBehaviourOption;
 
 GType eina_fieshta_behaviour_get_type (void);
 
-EinaFieshtaBehaviour* eina_fieshta_behaviour_new (LomoPlayer *lomo, EinaFieshtaBehaviourOptions options);
+EinaFieshtaBehaviour* eina_fieshta_behaviour_new (LomoPlayer *lomo, EinaFieshtaBehaviourOption options);
 
 LomoPlayer *
 eina_fieshta_behaviour_get_lomo_player(EinaFieshtaBehaviour *self);
 
-EinaFieshtaBehaviourOptions
+EinaFieshtaBehaviourOption
 eina_fieshta_behaviour_get_options(EinaFieshtaBehaviour *self);
 
 void
-eina_fieshta_behaviour_set_options(EinaFieshtaBehaviour *self, EinaFieshtaBehaviourOptions options);
+eina_fieshta_behaviour_set_options(EinaFieshtaBehaviour *self, EinaFieshtaBehaviourOption options);
 
 G_END_DECLS
 

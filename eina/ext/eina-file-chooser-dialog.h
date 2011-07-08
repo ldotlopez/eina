@@ -42,18 +42,18 @@ typedef struct {
 	GtkFileChooserDialogClass parent_class;
 } EinaFileChooserDialogClass;
 
-/*
+/**
  * EinaFileChooserDialogAction:
- * @EINA_FILE_CHOOSER_DIALOG_LOAD_FILES: Filechooser dialog will be used to
+ * @EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES: Filechooser dialog will be used to
  *                                       load files
  *
  * Possible actions for the filechooser dialog
  */
 typedef enum {
-	EINA_FILE_CHOOSER_DIALOG_LOAD_FILES
+	EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES
 } EinaFileChooserDialogAction;
 
-/*
+/**
  * EinaFileChooserDialogResponse:
  * @EINA_FILE_CHOOSER_RESPONSE_QUEUE: URIs were selected for queue
  * @EINA_FILE_CHOOSER_RESPONSE_PLAY: URIs were selected for play
@@ -65,7 +65,7 @@ typedef enum {
 	EINA_FILE_CHOOSER_RESPONSE_PLAY
 } EinaFileChooserDialogResponse;
 
-/*
+/**
  * EinaFileChooserDialogMsgType:
  * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_NONE: No type
  * @EINA_FILE_CHOOSER_DIALOG_MSG_TYPE_INFO: Information message

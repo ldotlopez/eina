@@ -20,9 +20,6 @@
 #include "eina-dock-plugin.h"
 #include <eina/ext/eina-extension.h>
 
-/**
- * EinaExtension boilerplate code
- */
 #define EINA_TYPE_DOCK_PLUGIN         (eina_dock_plugin_get_type ())
 #define EINA_DOCK_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))
 #define EINA_DOCK_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))
@@ -168,7 +165,8 @@ restore_size(EinaDockPlugin *plugin)
  * Returns: (transfer none): The #EinaDockTab
  */
 EinaDockTab*
-eina_application_add_dock_widget(EinaApplication *application, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags)
+eina_application_add_dock_widget(EinaApplication *application,
+	const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlag flags)
 {
 	EinaDock *dock = eina_application_get_dock(application);
 	g_return_val_if_fail(EINA_IS_DOCK(dock), FALSE);

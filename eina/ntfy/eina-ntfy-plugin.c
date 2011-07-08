@@ -22,7 +22,7 @@
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/art/eina-art-plugin.h>
 
-/**
+/*
  * EinaExtension boilerplate code
  */
 #define EINA_TYPE_NTFY_PLUGIN         (eina_ntfy_plugin_get_type ())
@@ -41,7 +41,6 @@ typedef struct {
 } EinaNtfyPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_NTFY_PLUGIN, EinaNtfyPlugin, eina_ntfy_plugin)
 
-// Mini API
 static gboolean ntfy_enable (EinaNtfyPlugin *plugin, GError **error);
 static void     ntfy_disable(EinaNtfyPlugin *plugin);
 static void     ntfy_sync   (EinaNtfyPlugin *plugin);
@@ -55,9 +54,6 @@ static void lomo_all_tags_cb    (LomoPlayer *lomo,   LomoStream *stream,        
 
 static void settings_changed_cb (GSettings *settings, const gchar *key, EinaNtfyPlugin *plugin);
 
-// ------------------
-// Init / fini plugin
-// ------------------
 static gboolean
 eina_ntfy_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {

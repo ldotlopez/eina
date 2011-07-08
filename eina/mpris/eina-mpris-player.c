@@ -578,7 +578,7 @@ server_name_lost_cb (GDBusConnection *connection, const gchar *name, gpointer us
 	g_warning("%s", __FUNCTION__);
 }
 
-/**
+/*
  * Section: DBus access functions
  */
 static void

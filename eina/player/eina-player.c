@@ -477,7 +477,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 	}
 }
 
-/**
+/*
  * GBindingTransformFuncs for object bindings
  */
 static gboolean

@@ -24,7 +24,7 @@ G_DEFINE_TYPE (EinaFieshtaBehaviour, eina_fieshta_behaviour, G_TYPE_OBJECT)
 
 struct _EinaFieshtaBehaviourPrivate {
 	LomoPlayer *lomo;
-	EinaFieshtaBehaviourOptions options;
+	EinaFieshtaBehaviourOption options;
 };
 
 enum {
@@ -64,7 +64,7 @@ eina_fieshta_behaviour_set_property (GObject *object, guint property_id, const G
 		set_lomo_player(EINA_FIESHTA_BEHAVIOUR(object), g_value_get_object(value));
 		return;
 	case PROP_OPTIONS:
-		eina_fieshta_behaviour_set_options(EINA_FIESHTA_BEHAVIOUR(object), (EinaFieshtaBehaviourOptions) g_value_get_int(value));
+		eina_fieshta_behaviour_set_options(EINA_FIESHTA_BEHAVIOUR(object), (EinaFieshtaBehaviourOption) g_value_get_int(value));
 		return;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -75,7 +75,7 @@ static void
 eina_fieshta_behaviour_dispose (GObject *object)
 {
 	EinaFieshtaBehaviour *self = EINA_FIESHTA_BEHAVIOUR(object);
-	
+
 	if (self->priv->lomo)
 	{
 		g_object_unref(self->priv->lomo);
@@ -100,12 +100,11 @@ eina_fieshta_behaviour_class_init (EinaFieshtaBehaviourClass *klass)
 		g_param_spec_object("lomo-player", "lomo-player", "lomo-player",
 			LOMO_TYPE_PLAYER,
 			G_PARAM_CONSTRUCT_ONLY|G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
-	
+
 	g_object_class_install_property(object_class, PROP_OPTIONS,
 		g_param_spec_int( "options", "options", "options",
 			-1, 0x1111, EINA_FIESHTA_BEHAVIOUR_OPTION_DEFAULT,
 			G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
-
 }
 
 static void
@@ -115,7 +114,7 @@ eina_fieshta_behaviour_init (EinaFieshtaBehaviour *self)
 }
 
 EinaFieshtaBehaviour*
-eina_fieshta_behaviour_new (LomoPlayer *lomo, EinaFieshtaBehaviourOptions options)
+eina_fieshta_behaviour_new (LomoPlayer *lomo, EinaFieshtaBehaviourOption options)
 {
 	return g_object_new (EINA_TYPE_FIESHTA_BEHAVIOUR,
 		"lomo-player", lomo,
@@ -150,7 +149,7 @@ eina_fieshta_behaviour_get_lomo_player(EinaFieshtaBehaviour *self)
 	return self->priv->lomo;
 }
 
-EinaFieshtaBehaviourOptions
+EinaFieshtaBehaviourOption
 eina_fieshta_behaviour_get_options(EinaFieshtaBehaviour *self)
 {
 	g_return_val_if_fail(EINA_IS_FIESHTA_BEHAVIOUR(self), -1);
@@ -158,7 +157,7 @@ eina_fieshta_behaviour_get_options(EinaFieshtaBehaviour *self)
 }
 
 void
-eina_fieshta_behaviour_set_options(EinaFieshtaBehaviour *self, EinaFieshtaBehaviourOptions options)
+eina_fieshta_behaviour_set_options(EinaFieshtaBehaviour *self, EinaFieshtaBehaviourOption options)
 {
 	g_return_if_fail(EINA_IS_FIESHTA_BEHAVIOUR(self));
 	self->priv->options = options;

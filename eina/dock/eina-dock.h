@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_DOCK
-#define _EINA_DOCK
+#ifndef __EINA_DOCK_H__
+#define __EINA_DOCK_H__
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
@@ -27,21 +27,11 @@
 G_BEGIN_DECLS
 
 #define EINA_TYPE_DOCK eina_dock_get_type()
-
-#define EINA_DOCK(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_DOCK, EinaDock))
-
-#define EINA_DOCK_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_DOCK, EinaDockClass))
-
-#define EINA_IS_DOCK(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_DOCK))
-
-#define EINA_IS_DOCK_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_DOCK))
-
-#define EINA_DOCK_GET_CLASS(obj) \
-  (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_DOCK, EinaDockClass))
+#define EINA_DOCK(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_DOCK, EinaDock))
+#define EINA_DOCK_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_DOCK, EinaDockClass))
+#define EINA_IS_DOCK(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_DOCK))
+#define EINA_IS_DOCK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_DOCK))
+#define EINA_DOCK_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_DOCK, EinaDockClass))
 
 typedef struct _EinaDockPrivate EinaDockPrivate;
 typedef struct {
@@ -55,11 +45,17 @@ typedef struct {
 	void (*widget_remove) (EinaDock *self, const gchar *id);
 } EinaDockClass;
 
-typedef enum
-{
-	EINA_DOCK_DEFAULT = 0,
-	EINA_DOCK_PRIMARY = 1
-} EinaDockFlags;
+/**
+ * EinaDockFlag:
+ * @EINA_DOCK_FLAG_DEFAULT: Add #EinaDockTab whatever fits better
+ * @EINA_DOCK_FLAG_PRIMARY: Add #EinaDockTab as primary if possible
+ *
+ * Define how #EinaDockTab are added to #EinaDock
+ */
+typedef enum {
+	EINA_DOCK_FLAG_DEFAULT = 0,
+	EINA_DOCK_FLAG_PRIMARY = 1
+} EinaDockFlag;
 
 GType eina_dock_get_type (void);
 
@@ -76,11 +72,12 @@ gboolean eina_dock_get_expanded(EinaDock *self);
 
 GtkWidget *eina_dock_get_widget(GtkWidget *owner);
 
-EinaDockTab *eina_dock_add_widget (EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+EinaDockTab *eina_dock_add_widget (EinaDock *self,
+	const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlag flags);
 gboolean eina_dock_remove_widget  (EinaDock *self, EinaDockTab *tab);
 gboolean eina_dock_switch_widget  (EinaDock *self, EinaDockTab *tab);
 guint    eina_dock_get_n_widgets  (EinaDock *self);
 
 G_END_DECLS
 
-#endif // _EINA_DOCK
+#endif // __EINA_DOCK_H__

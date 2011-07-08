@@ -25,13 +25,8 @@
 
 G_BEGIN_DECLS
 
-/**
- * EinaApplication accessors
- */
-void
-eina_application_add_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab);
-void
-eina_application_remove_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab);
+void eina_application_add_preferences_tab   (EinaApplication *application, EinaPreferencesTab *tab);
+void eina_application_remove_preferences_tab(EinaApplication *application, EinaPreferencesTab *tab);
 
 G_END_DECLS
 

@@ -425,14 +425,14 @@ dock_tab_label_fix_orientation(GtkWidget *label, GtkPositionType position)
  * @widget: The #GtkWidget to add into the dock
  * @label: (allow-none): Optional label, if NULL a #GtkLabel will be generated.
  *         This widget can be used to represent a shortcut to the item.
- * @flags: #EinaDockFlags to use when adding the widget
+ * @flags: #EinaDockFlag to use when adding the widget
  *
  * Adds a new widget to the dock
  *
  * Returns: A #EinaDockTab representing the widget
  */
 EinaDockTab *
-eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags)
+eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlag flags)
 {
 	g_return_val_if_fail(EINA_IS_DOCK(self), NULL);
 
@@ -449,7 +449,7 @@ eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidg
 
 	g_return_val_if_fail(g_list_find_custom(priv->tabs, id, (GCompareFunc) list_find_by_id) == NULL, NULL);
 
-	if (flags != EINA_DOCK_DEFAULT)
+	if (flags != EINA_DOCK_FLAG_DEFAULT)
 		g_warning("EinaDockFlags %x not supported", flags);
 
 	dock_tab_label_fix_orientation(label, gtk_notebook_get_tab_pos(priv->notebook));

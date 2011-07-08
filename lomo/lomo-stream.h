@@ -67,13 +67,13 @@ GList*       lomo_stream_get_tags     (LomoStream *self);
 
 GType   lomo_tag_get_gtype(const gchar *tag);
 
-/* 
+/*
  * To (re-)generate this list, run:
  *
  * echo -e "#define LOMO_TAG_INVALID NULL\n#define LOMO_TAG_URI \"uri\"" && \
  * grep '#define GST_TAG' /usr/include/gstreamer-0.10/gst/gsttaglist.h | \
  * grep -v '(' | \
- * sed -e 's/GST_/LOMO_/g' 
+ * sed -e 's/GST_/LOMO_/g'
  */
 
 /**

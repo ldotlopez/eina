@@ -25,9 +25,6 @@
 
 G_BEGIN_DECLS
 
-/**
- * EinaApplication accessors
- */
 EinaPlayer *eina_application_get_player(EinaApplication *application);
 
 G_END_DECLS

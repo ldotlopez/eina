@@ -26,9 +26,6 @@
 
 G_BEGIN_DECLS
 
-/*
- * Type checking and casting macros
- */
 #define EINA_TYPE_ACTIVATABLE           (eina_activatable_get_type ())
 #define EINA_ACTIVATABLE(obj)           (G_TYPE_CHECK_INSTANCE_CAST ((obj),    EINA_TYPE_ACTIVATABLE, EinaActivatable))
 #define EINA_ACTIVATABLE_IFACE(obj)     (G_TYPE_CHECK_CLASS_CAST ((obj),       EINA_TYPE_ACTIVATABLE, EinaActivatableInterface))
@@ -38,11 +35,23 @@ G_BEGIN_DECLS
 typedef struct _EinaActivatable          EinaActivatable; /* dummy typedef */
 typedef struct _EinaActivatableInterface EinaActivatableInterface;
 
+/**
+ * EinaActivatableError:
+ * @EINA_ACTIVATABLE_ERROR_UNKNOW: Unknow error
+ * @EINA_ACTIVATABLE_ERROR_INVALID_ARGS: Invalid arguments where passed
+ */
 enum {
-	EINA_ACTIVATABLE_UNKNOW_ERROR = 1,
-	EINA_ACTIVATABLE_INVALID_ARGS 
-};
+	EINA_ACTIVATABLE_ERROR_UNKNOW = 1,
+	EINA_ACTIVATABLE_ERROR_INVALID_ARGS
+} EinaActivatableError;
 
+/**
+ * EinaActivatableInterface:
+ * @g_iface: Parent interface
+ * @priv: Private data mean to be used by plugin implementation
+ * @activate: Function to activate the plugin
+ * @deactivate: Function to deactivate the plugin
+*/
 typedef struct _EinaActivatableInterfacePrivate EinaActivatableInterfacePrivate;
 struct _EinaActivatableInterface {
 	GTypeInterface g_iface;
@@ -53,9 +62,7 @@ struct _EinaActivatableInterface {
 	gboolean (*deactivate) (EinaActivatable *activatable, EinaApplication *application, GError **error);
 };
 
-/*
- * Public methods
- */
+
 EinaActivatableInterface* eina_activatable_get_iface(GObject *object);
 
 GType eina_activatable_get_type   (void)  G_GNUC_CONST;

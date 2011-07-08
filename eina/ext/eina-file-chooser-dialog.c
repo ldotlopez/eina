@@ -326,7 +326,7 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 	switch (action)
 	{
 	// Load or queue
-	case EINA_FILE_CHOOSER_DIALOG_LOAD_FILES:
+	case EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES:
 		filter = gtk_file_filter_new();
 		gtk_file_filter_add_mime_type(filter, "audio/*");
 		gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(self), filter);

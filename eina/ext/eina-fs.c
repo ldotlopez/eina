@@ -181,7 +181,7 @@ eina_fs_load_from_default_file_chooser(EinaApplication *app)
 {
 	g_return_if_fail(EINA_IS_APPLICATION(app));
 
-	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_LOAD_FILES);
+	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES);
 	g_object_set((GObject *) picker,
 		"title", N_("Add or queue files"),
 		NULL);

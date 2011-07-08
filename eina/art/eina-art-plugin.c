@@ -37,9 +37,6 @@ static void art_search_cb(EinaArtSearch *search, gpointer data);
 static void insert_cb    (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art);
 static void all_tags_cb  (LomoPlayer *lomo, LomoStream *stream, EinaArt *art);
 
-/**
- * EinaExtension code
- */
 typedef struct {
 	gpointer dummy;
 } EinaArtPluginPrivate;
@@ -116,6 +113,14 @@ eina_application_get_art(EinaApplication *application)
 	return art;
 }
 
+/**
+ * eina_art_plugin_init_stream:
+ * @art: An #EinaArt
+ * @stream: (transfer none): A #LomoStream to init
+ *
+ * Search art data for @stream. @stream while emit the
+ * LomoStream:extended-metadata-updated signal when finished
+ */
 void
 eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream)
 {
@@ -126,31 +131,59 @@ eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream)
 		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
 }
 
+/**
+ * eina_art_plugin_get_default_cover_path:
+ *
+ * Get the path for the default cover art.
+ *
+ * Returns: The path
+ */
 const gchar *
 eina_art_plugin_get_default_cover_path()
 {
 	return cover_strings[DEFAULT_COVER_PATH];
 }
 
+/**
+ * eina_art_plugin_get_default_cover_uri:
+ *
+ * Get the URI for the default cover art.
+ *
+ * Returns: The URI
+ */
 const gchar *
 eina_art_plugin_get_default_cover_uri()
 {
 	return cover_strings[DEFAULT_COVER_URI];
 }
 
+/**
+ * eina_art_plugin_get_loading_cover_path:
+ *
+ * Get the path for the loading cover art
+ *
+ * Returns: The path
+ */
 const gchar *
 eina_art_plugin_get_loading_cover_path()
 {
 	return cover_strings[LOADING_COVER_PATH];
 }
 
+/**
+ * eina_art_plugin_get_loading_cover_uri:
+ *
+ * Get the URI for the loading cover URI.
+ *
+ * Returns: The URI
+ */
 const gchar *
 eina_art_plugin_get_loading_cover_uri()
 {
 	return cover_strings[LOADING_COVER_URI];
 }
 
-/**
+/*
  * Callbacks
  */
 static void
@@ -177,5 +210,4 @@ all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaArt *art)
 	gpointer value = (gpointer) (search ? cover_strings[LOADING_COVER_URI] : cover_strings[DEFAULT_COVER_URI] );
 	lomo_stream_set_extended_metadata(stream, "art-uri", value, NULL);
 }
-
 

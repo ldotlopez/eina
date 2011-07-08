@@ -25,19 +25,13 @@
 
 G_BEGIN_DECLS
 
-/**
- * EinaApplication accessors and API
- */
 EinaDock* eina_application_get_dock(EinaApplication *application);
 
 EinaDockTab* eina_application_add_dock_widget   (EinaApplication *application,
-	const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlags flags);
+	const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlag flags);
 gboolean     eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab);
 gboolean     eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab);
 
-/**
- * Preferences keys
- */
 #define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
 #define EINA_DOCK_ORDER_KEY          "page-order"
 #define EINA_DOCK_EXPANDED_KEY       "expanded"

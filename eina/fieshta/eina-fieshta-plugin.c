@@ -24,9 +24,6 @@
 #define DEBUG_PREFIX "EinaFieshta"
 #define debug(...)   g_debug(DEBUG_PREFIX" "__VA_ARGS__)
 
-/**
- * EinaExtension boilerplate code
- */
 #define EINA_TYPE_FIESHTA_PLUGIN         (eina_fieshta_plugin_get_type ())
 #define EINA_FIESHTA_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_FIESHTA_PLUGIN, EinaFieshtaPlugin))
 #define EINA_FIESHTA_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_FIESHTA_PLUGIN, EinaFieshtaPlugin))

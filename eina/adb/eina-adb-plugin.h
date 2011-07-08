@@ -25,9 +25,6 @@
 
 G_BEGIN_DECLS
 
-/**
- * EinaApplication accessors
- */
 EinaAdb *
 eina_application_get_adb(EinaApplication *application);
 
@@ -36,6 +33,7 @@ eina_application_get_adb(EinaApplication *application);
  * @EINA_ADB_PLUGIN_ERROR_UNABLE_TO_SET_DB_FILE: Database is unusable
  * @EINA_ADB_PLUGIN_ERROR_CANNOT_REGISTER_INTERFACE: Unable to register adb
  *                                                   into application
+ * Errors associated with #EinaAdbPlugin
  */
 typedef enum {
 	EINA_ADB_PLUGIN_ERROR_UNABLE_TO_SET_DB_FILE = 1,

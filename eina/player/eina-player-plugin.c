@@ -26,9 +26,6 @@
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>
 
-/**
- * EinaExtension boilerplate code
- */
 #define EINA_TYPE_PLAYER_PLUGIN         (eina_player_plugin_get_type ())
 #define EINA_PLAYER_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
 #define EINA_PLAYER_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin))
@@ -107,7 +104,8 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 		"vexpand", FALSE,
 		NULL);
 
-	priv->dock_tab = eina_application_add_dock_widget(app, "player", player, gtk_label_new(_("Player")), EINA_DOCK_DEFAULT);
+	priv->dock_tab = eina_application_add_dock_widget(app,
+		"player", player, gtk_label_new(_("Player")), EINA_DOCK_FLAG_DEFAULT);
 
 	// Attach menus
 	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
@@ -132,7 +130,7 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 		"label-text", N_("Player"),
 		"widget", widget,
 		NULL);
-	
+
 	GSettings *lomo_sets = eina_application_get_settings(app, EINA_LOMO_PREFERENCES_DOMAIN);
 	eina_preferences_tab_bindv(priv->prefs_tab,
 		lomo_sets, "repeat",       "repeat",       "active",

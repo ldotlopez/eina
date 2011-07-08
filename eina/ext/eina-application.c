@@ -221,7 +221,7 @@ eina_application_get_argv(EinaApplication *self)
  * If @interface is %NULL it is deleted from @self and all references are
  * cleared
  *
- * Returns %TRUE if successfull, %FALSE otherwise
+ * Returns: %TRUE if successfull, %FALSE otherwise
  */
 gboolean
 eina_application_set_interface(EinaApplication *self, const gchar *name, gpointer interface)

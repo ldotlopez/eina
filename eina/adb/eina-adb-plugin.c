@@ -21,9 +21,6 @@
 #include "register.h"
 #include <eina/lomo/eina-lomo-plugin.h>
 
-/**
- * EinaExtension boilerplate code
- */
 #define EINA_TYPE_ADB_PLUGIN         (eina_adb_plugin_get_type ())
 #define EINA_ADB_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin))
 #define EINA_ADB_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_ADB_PLUGIN, EinaAdbPlugin))

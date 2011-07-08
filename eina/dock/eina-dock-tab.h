@@ -55,7 +55,7 @@ GtkWidget*   eina_dock_tab_get_label(EinaDockTab *self);
 gboolean     eina_dock_tab_get_primary(EinaDockTab *self);
 void         eina_dock_tab_set_primary(EinaDockTab *self, gboolean primary);
 
-gboolean     eina_dock_tab_equal(EinaDockTab *self, EinaDockTab *b);
+gboolean     eina_dock_tab_equal(EinaDockTab *a, EinaDockTab *b);
 
 G_END_DECLS
 
