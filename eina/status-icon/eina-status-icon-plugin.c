@@ -20,13 +20,17 @@
 #include "eina-status-icon-plugin.h"
 #include <eina/ext/eina-fs.h>
 #include <eina/ext/eina-stock.h>
+#include <eina/ext/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
-typedef struct {
-	GQuark           magic;
-	EinaActivatable *plugin;
-	EinaApplication *app;
+#define EINA_TYPE_STATUS_ICON_PLUGIN         (eina_status_icon_plugin_get_type ())
+#define EINA_STATUS_ICON_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPlugin))
+#define EINA_STATUS_ICON_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPlugin))
+#define EINA_IS_STATUS_ICON_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_STATUS_ICON_PLUGIN))
+#define EINA_IS_STATUS_ICON_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_STATUS_ICON_PLUGIN))
+#define EINA_STATUS_ICON_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPluginClass))
 
+typedef struct {
 	GtkStatusIcon  *icon;
 	GtkUIManager   *ui_mng;
 	guint           ui_mng_merge_id;
@@ -34,24 +38,23 @@ typedef struct {
 	GtkWidget      *menu;
 	gint            player_x, player_y;
 	gboolean        window_persistant;
-} EinaStatusIcon;
-#define SI_MAGIC (g_quark_from_string("EinaStatusIcon"))
-#define EINA_IS_STATUS_ICON(o) (o && (o->magic == SI_MAGIC))
+} EinaStatusIconPluginPrivate;
 
-static void
-update_ui_manager(EinaStatusIcon *self);
+EINA_PLUGIN_REGISTER(EINA_TYPE_STATUS_ICON_PLUGIN, EinaStatusIconPlugin, eina_status_icon_plugin)
+
+static void update_ui_manager(EinaStatusIconPlugin *plugin);
 
 // --
 // UI callbacks
 // --
 static void
-status_icon_activate_cb(GtkWidget *w , EinaStatusIcon *self);
+status_icon_activate_cb(GtkWidget *w , EinaStatusIconPlugin *plugin);
 static void
-action_activate_cb(GtkAction *action, EinaStatusIcon *self);
+action_activate_cb(GtkAction *action, EinaStatusIconPlugin *plugin);
 static void
-status_icon_popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaStatusIcon *self);
+status_icon_popup_menu_cb(GtkWidget *w, guint button, guint activate_time, EinaStatusIconPlugin *plugin);
 static gboolean
-status_icon_destroy_cb(GtkWidget *w, EinaStatusIcon *self);
+status_icon_destroy_cb(GtkWidget *w, EinaStatusIconPlugin *plugin);
 
 enum {
 	STATUS_ICON_NO_ERROR = 0,
@@ -100,31 +103,9 @@ static const GtkToggleActionEntry ui_toggle_actions[] = {
 };
 
 GEL_DEFINE_QUARK_FUNC(status_icon)
-EINA_DEFINE_EXTENSION(EinaStatusIconPlugin, eina_status_icon_plugin, EINA_TYPE_STATUS_ICON_PLUGIN)
-
-static void
-status_icon_data_destroy(EinaStatusIcon *data)
-{
-	g_return_if_fail(data);
-
-	gel_free_and_invalidate(data->icon, NULL, g_object_unref);
-	gel_free_and_invalidate(data->ag, NULL, g_object_unref);
-	eina_activatable_set_data(data->plugin, NULL);
-
-	// Disconnect signals
-	g_signal_handlers_disconnect_by_func(eina_application_get_lomo  (data->app), update_ui_manager, data);
-	g_signal_handlers_disconnect_by_func(eina_application_get_window(data->app), update_ui_manager, data);
-
-	// Free/unref objects
-	gel_free_and_invalidate(data->ui_mng, NULL, g_object_unref);
-	gel_free_and_invalidate(data->icon,   NULL, g_object_unref);
-	gel_free_and_invalidate(data->ag,     NULL, g_object_unref);
-
-	g_free(data);
-}
 
 static gboolean
-eina_status_icon_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_status_icon_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
 	// Systray is broken on OSX using Quartz backend
 	#if OSX_SYSTEM && defined __GDK_X11_H__
@@ -133,57 +114,54 @@ eina_status_icon_plugin_activate(EinaActivatable *plugin, EinaApplication *app, 
 	return FALSE;
 	#endif
 
-	EinaStatusIcon *data= g_new0(EinaStatusIcon, 1);
-	data->magic  = SI_MAGIC;
-	data->app    = app;
-	data->plugin = plugin;
+	EinaStatusIconPlugin *plugin = EINA_STATUS_ICON_PLUGIN(activatable);
+	EinaStatusIconPluginPrivate *priv = plugin->priv;
 
-	if (!(data->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON)))
+	if (!(priv->icon = gtk_status_icon_new_from_stock(EINA_STOCK_STATUS_ICON)))
 	{
 		g_set_error(error, status_icon_quark(), STATUS_ICON_ERROR_NO_STATUS_ICON,
 			N_("Cannot create status icon"));
-		status_icon_data_destroy(data);
 		return FALSE;
 	}
 
-	data->ui_mng = gtk_ui_manager_new();
-	gtk_ui_manager_add_ui_from_string(data->ui_mng, ui_def, -1, NULL);
+	priv->ui_mng = gtk_ui_manager_new();
+	gtk_ui_manager_add_ui_from_string(priv->ui_mng, ui_def, -1, NULL);
 
-	data->ag = gtk_action_group_new("default");
-	gtk_action_group_add_actions(data->ag, ui_actions, G_N_ELEMENTS(ui_actions), data);
-	gtk_action_group_add_toggle_actions(data->ag, ui_toggle_actions, G_N_ELEMENTS(ui_toggle_actions), data);
+	priv->ag = gtk_action_group_new("default");
+	gtk_action_group_add_actions(priv->ag, ui_actions, G_N_ELEMENTS(ui_actions), plugin);
+	gtk_action_group_add_toggle_actions(priv->ag, ui_toggle_actions, G_N_ELEMENTS(ui_toggle_actions), plugin);
 
 	// Setup properties on UI
 	LomoPlayer *lomo = eina_application_get_lomo(app);
 	g_object_bind_property(
 		lomo, "repeat",
-		gtk_action_group_get_action(data->ag, "repeat-action"), "active",
+		gtk_action_group_get_action(priv->ag, "repeat-action"), "active",
 		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 	g_object_bind_property(
 		lomo, "random",
-		gtk_action_group_get_action(data->ag, "random-action"), "active",
+		gtk_action_group_get_action(priv->ag, "random-action"), "active",
 		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 
 	// Check return
-	gtk_ui_manager_insert_action_group(data->ui_mng, data->ag, 0);
-	gtk_ui_manager_ensure_update(data->ui_mng);
-	data->menu = gtk_ui_manager_get_widget(data->ui_mng, "/Main");
-	update_ui_manager(data);
+	gtk_ui_manager_insert_action_group(priv->ui_mng, priv->ag, 0);
+	gtk_ui_manager_ensure_update(priv->ui_mng);
+	priv->menu = gtk_ui_manager_get_widget(priv->ui_mng, "/Main");
+	update_ui_manager(plugin);
 
 	// Connect signals
-	g_signal_connect(data->icon, "popup-menu",      G_CALLBACK(status_icon_popup_menu_cb), data);
-	g_signal_connect(data->icon, "activate",        G_CALLBACK(status_icon_activate_cb), data);
-	g_signal_connect(data->icon, "notify::destroy", G_CALLBACK(status_icon_destroy_cb), data);
+	g_signal_connect(priv->icon, "popup-menu",      G_CALLBACK(status_icon_popup_menu_cb), plugin);
+	g_signal_connect(priv->icon, "activate",        G_CALLBACK(status_icon_activate_cb),   plugin);
+	g_signal_connect(priv->icon, "notify::destroy", G_CALLBACK(status_icon_destroy_cb),    plugin);
 
-	g_signal_connect_swapped(lomo, "play",  G_CALLBACK(update_ui_manager), data);
-	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(update_ui_manager), data);
-	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(update_ui_manager), data);
+	g_signal_connect_swapped(lomo, "play",  G_CALLBACK(update_ui_manager), plugin);
+	g_signal_connect_swapped(lomo, "stop",  G_CALLBACK(update_ui_manager), plugin);
+	g_signal_connect_swapped(lomo, "pause", G_CALLBACK(update_ui_manager), plugin);
 
 	GtkWindow *window = (GtkWindow *) eina_application_get_window(app);
-	g_signal_connect_swapped(window, "show",  G_CALLBACK(update_ui_manager), data);
-	g_signal_connect_swapped(window, "hide",  G_CALLBACK(update_ui_manager), data);
+	g_signal_connect_swapped(window, "show",  G_CALLBACK(update_ui_manager), plugin);
+	g_signal_connect_swapped(window, "hide",  G_CALLBACK(update_ui_manager), plugin);
 
-	data->window_persistant = eina_window_get_persistant(EINA_WINDOW(window));
+	priv->window_persistant = eina_window_get_persistant(EINA_WINDOW(window));
 	eina_window_set_persistant(EINA_WINDOW(window), TRUE);
 
 	// Done, just a warning before
@@ -191,39 +169,38 @@ eina_status_icon_plugin_activate(EinaActivatable *plugin, EinaApplication *app, 
 	gel_warn(N_("Systray implementation is buggy on OSX. You have been warned, dont file any bugs about this."));
 	#endif
 
-	eina_activatable_set_data(plugin, data);
 	return TRUE;
 }
 
 static gboolean
-eina_status_icon_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError **error)
+eina_status_icon_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaStatusIcon *data = (EinaStatusIcon *) eina_activatable_get_data(plugin);
-
-	EinaWindow *window = eina_application_get_window(app);
-	eina_window_set_persistant(window, data->window_persistant);
+	EinaStatusIconPlugin *plugin = EINA_STATUS_ICON_PLUGIN(activatable);
+	EinaStatusIconPluginPrivate *priv = plugin->priv;
 
 	// Disconnect signals
-	g_signal_handlers_disconnect_by_func(eina_application_get_lomo(app), update_ui_manager, data);
-	g_signal_handlers_disconnect_by_func(window, update_ui_manager, data);
+	g_signal_handlers_disconnect_by_func(eina_application_get_window(app), update_ui_manager, plugin);
+	g_signal_handlers_disconnect_by_func(eina_application_get_lomo  (app), update_ui_manager, plugin);
 
 	// Free/unref objects
-	gel_free_and_invalidate(data->ui_mng, NULL, g_object_unref);
-	gel_free_and_invalidate(data->icon,   NULL, g_object_unref);
-
-	// Free self
-	g_free(data); 
+	gel_free_and_invalidate(priv->ui_mng, NULL, g_object_unref);
+	gel_free_and_invalidate(priv->icon,   NULL, g_object_unref);
+	gel_free_and_invalidate(priv->ag,     NULL, g_object_unref);
 
 	return TRUE;
 }
 
 static void
-update_ui_manager(EinaStatusIcon *self)
+update_ui_manager(EinaStatusIconPlugin *plugin)
 {
+	g_return_if_fail(EINA_IS_STATUS_ICON_PLUGIN(plugin));
+	EinaStatusIconPluginPrivate *priv = plugin->priv;
+
 	gchar *hide = NULL;
 	gchar *show = NULL;
 
-	LomoPlayer *lomo = eina_application_get_lomo(self->app);
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	LomoPlayer     *lomo = eina_application_get_lomo(app);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	LomoState state = lomo_player_get_state(lomo);
@@ -240,10 +217,10 @@ update_ui_manager(EinaStatusIcon *self)
 		show = "/Main/Play";
 		break;
 	}
-	gtk_widget_hide(gtk_ui_manager_get_widget(self->ui_mng, hide));
-	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
+	gtk_widget_hide(gtk_ui_manager_get_widget(priv->ui_mng, hide));
+	gtk_widget_show(gtk_ui_manager_get_widget(priv->ui_mng, show));
 
-	GtkWindow *window = (GtkWindow *) eina_application_get_window(self->app);
+	GtkWindow *window = (GtkWindow *) eina_application_get_window(app);
 	if (gtk_widget_get_visible(GTK_WIDGET(window)))
 	{
 		hide = "/Main/Show";
@@ -254,31 +231,22 @@ update_ui_manager(EinaStatusIcon *self)
 		show = "/Main/Show";
 		hide = "/Main/Hide";
 	}
-	gtk_widget_hide(gtk_ui_manager_get_widget(self->ui_mng, hide));
-	gtk_widget_show(gtk_ui_manager_get_widget(self->ui_mng, show));
+	gtk_widget_hide(gtk_ui_manager_get_widget(priv->ui_mng, hide));
+	gtk_widget_show(gtk_ui_manager_get_widget(priv->ui_mng, show));
 }
 
 // --
-// Implement UI Callbacks 
+// Implement UI Callbacks
 // --
 static void
-status_icon_popup_menu_cb (GtkWidget *w, guint button, guint activate_time, EinaStatusIcon *self)
+action_activate_cb(GtkAction *action, EinaStatusIconPlugin *plugin)
 {
-    gtk_menu_popup(
-        GTK_MENU(self->menu),
-        NULL, NULL, NULL, NULL,
-        button,
-        activate_time
-    );
-}
+	g_return_if_fail(EINA_IS_STATUS_ICON_PLUGIN(plugin));
 
-static void
-action_activate_cb(GtkAction *action, EinaStatusIcon *self)
-{
 	GError *error = NULL;
 	const gchar *name = gtk_action_get_name(action);
 
-	EinaApplication *app = self->app;
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
 
 	LomoPlayer *lomo   = eina_application_get_lomo(app);
 	EinaWindow *window = eina_application_get_window(app);
@@ -294,8 +262,8 @@ action_activate_cb(GtkAction *action, EinaStatusIcon *self)
 
 	else if (g_str_equal(name, "pause-action"))
 		lomo_player_pause(lomo, &error);
-	
-	else if (g_str_equal(name, "stop-action")) 
+
+	else if (g_str_equal(name, "stop-action"))
 		lomo_player_stop(lomo, &error);
 
 	else if (g_str_equal(name, "prev-action"))
@@ -309,10 +277,9 @@ action_activate_cb(GtkAction *action, EinaStatusIcon *self)
 
 	else if (g_str_equal(name, "clear-action"))
 		lomo_player_clear(lomo);
-	
+
 	else if (g_str_equal(name, "quit-action"))
 		g_application_release(G_APPLICATION(app));
-		// gtk_application_quit(eina_plugin_get_application(self->plugin));
 
 	else
 		g_warning("Unknow action: %s", name);
@@ -324,24 +291,41 @@ action_activate_cb(GtkAction *action, EinaStatusIcon *self)
 	}
 }
 
-static gboolean
-status_icon_destroy_cb(GtkWidget *w, EinaStatusIcon *self)
+
+static void
+status_icon_popup_menu_cb (GtkWidget *w, guint button, guint activate_time, EinaStatusIconPlugin *plugin)
 {
-	GtkWidget *window = GTK_WIDGET(eina_application_get_window(self->app));
+	g_return_if_fail(EINA_IS_STATUS_ICON_PLUGIN(plugin));
+    gtk_menu_popup(
+        GTK_MENU(plugin->priv->menu),
+        NULL, NULL, NULL, NULL,
+        button,
+        activate_time
+    );
+}
+
+static gboolean
+status_icon_destroy_cb(GtkWidget *w, EinaStatusIconPlugin *plugin)
+{
+	g_return_val_if_fail(EINA_IS_STATUS_ICON_PLUGIN(plugin), FALSE);
+
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	GtkWidget *window = GTK_WIDGET(eina_application_get_window(app));
 
 	if (!gtk_widget_get_visible(window))
 		gtk_widget_show(window);
 
-	g_warning("Fixme");
-	// vogon_plugin_fini(eina_obj_get_app(self), gel_app_shared_get(eina_obj_get_app(self), "vogon"), NULL);
 	return FALSE;
 }
 
 static void
-status_icon_activate_cb
-(GtkWidget *w, EinaStatusIcon *self)
+status_icon_activate_cb (GtkWidget *w, EinaStatusIconPlugin *plugin)
 {
-	GtkWindow *window = GTK_WINDOW(eina_application_get_window(self->app));
+	g_return_if_fail(EINA_IS_STATUS_ICON_PLUGIN(plugin));
+	EinaStatusIconPluginPrivate *priv = plugin->priv;
+
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
 
 	if (!window)
 		return;
@@ -349,14 +333,14 @@ status_icon_activate_cb
 	if (gtk_widget_get_visible(GTK_WIDGET(window)))
 	{
 		gtk_window_get_position(window,
-			&self->player_x,
-			&self->player_y);
+			&priv->player_x,
+			&priv->player_y);
 		gtk_widget_hide((GtkWidget *) window);
 	}
 	else
 	{
 		if (!gtk_widget_get_visible(GTK_WIDGET(window)))
-			gtk_window_move(window, self->player_x, self->player_y);
+			gtk_window_move(window, priv->player_x, priv->player_y);
 		gtk_window_present(window);
 	}
 }

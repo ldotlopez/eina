@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "eina-mpris-player.h"
 #include "eina-mpris-player-spec.h"
 #include <gel/gel.h>

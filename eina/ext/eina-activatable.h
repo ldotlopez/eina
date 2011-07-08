@@ -56,7 +56,6 @@ struct _EinaActivatableInterface {
 /*
  * Public methods
  */
-
 EinaActivatableInterface* eina_activatable_get_iface(GObject *object);
 
 GType eina_activatable_get_type   (void)  G_GNUC_CONST;
@@ -64,12 +63,7 @@ GType eina_activatable_get_type   (void)  G_GNUC_CONST;
 gboolean eina_activatable_activate  (EinaActivatable *activatable, EinaApplication *application, GError **error);
 gboolean eina_activatable_deactivate(EinaActivatable *activatable, EinaApplication *application, GError **error);
 
-void     eina_activatable_set_data  (EinaActivatable *activatable, gpointer data);
-gpointer eina_activatable_get_data  (EinaActivatable *activatable);
-gpointer eina_activatable_steal_data(EinaActivatable *activatable);
-
 EinaApplication *eina_activatable_get_application(EinaActivatable *activatable);
-// const gchar     *eina_activatable_get_data_dir(EinaActivatable *activatable);
 
 G_END_DECLS
 

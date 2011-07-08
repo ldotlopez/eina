@@ -247,23 +247,11 @@ AC_SUBST(GLIB_API_VERSION)
 AC_SUBST(GTK_API_VERSION)
 AC_SUBST(GST_API_VERSION)
 
-AC_PATH_PROG(CURL_CONFIG, curl-config)
-if test x$CURL_CONFIG = 'x'; then
-	echo "curl-config not found"
-	exit 1
-fi
-
-CURL_CFLAGS="`$CURL_CONFIG --cflags` $COMMON_CFLAGS"
-CURL_LIBS="`$CURL_CONFIG --libs`"
-AC_SUBST(CURL_CFLAGS)
-AC_SUBST(CURL_LIBS)
-
 EINA_CFLAGS="\
 	$GLIB_CFLAGS         \
 	$GTK_CFLAGS          \
 	$GST_CFLAGS          \
 	$PEAS_CFLAGS         \
-	$CURL_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
 	"
@@ -272,7 +260,6 @@ EINA_LIBS="\
 	$GTK_LIBS       \
 	$GST_LIBS       \
 	$PEAS_LIBS      \
-	$CURL_LIBS      \
 	$COMMON_LIBS    \
 	$EXPERIMENTAL_LIBS  \
 	"

@@ -31,27 +31,25 @@
 #define EINA_IS_MPRIS_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_MPRIS_PLUGIN))
 #define EINA_MPRIS_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_MPRIS_PLUGIN, EinaMprisPluginClass))
 
-EINA_DEFINE_EXTENSION_HEADERS(EinaMprisPlugin, eina_mpris_plugin)
-
 typedef struct {
 	EinaMprisPlayer *emp;
 	#if HAVE_INDICATE
 	IndicateServer  *is;
 	#endif
-} EinaMprisData;
-
-EINA_DEFINE_EXTENSION(EinaMprisPlugin, eina_mpris_plugin, EINA_TYPE_MPRIS_PLUGIN)
+} EinaMprisPluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_MPRIS_PLUGIN, EinaMprisPlugin, eina_mpris_plugin)
 
 static gboolean
 eina_mpris_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaMprisData *self = g_new(EinaMprisData, 1);
+	EinaMprisPlugin      *plugin = EINA_MPRIS_PLUGIN(activatable);
+	EinaMprisPluginPrivate *priv = plugin->priv;
 
-	self->emp = eina_mpris_player_new(app, PACKAGE);
+	priv->emp = eina_mpris_player_new(app, PACKAGE);
 
 	#if HAVE_INDICATE
-	self->is = indicate_server_ref_default();
-	indicate_server_set_type(self->is, "music."PACKAGE);
+	priv->is = indicate_server_ref_default();
+	indicate_server_set_type(priv->is, "music."PACKAGE);
 
 	gchar *uc_package = g_ascii_strup(PACKAGE, -1);
 	gchar *env_package_name = g_strconcat(uc_package, "_DESKTOP_FILE", NULL);
@@ -60,20 +58,18 @@ eina_mpris_plugin_activate(EinaActivatable *activatable, EinaApplication *app, G
 	{
 		g_free(uc_package);
 		g_free(env_package_name);
-		indicate_server_set_desktop_file(self->is, env_desktop_file);
+		indicate_server_set_desktop_file(priv->is, env_desktop_file);
 	}
 	else
 	{
 		gchar *tmp = g_strconcat(PACKAGE, ".desktop", NULL);
 		gchar *desktop_file = g_build_filename(PACKAGE_PREFIX, "share", "applications", tmp, NULL);
-		indicate_server_set_desktop_file(self->is, desktop_file);
+		indicate_server_set_desktop_file(priv->is, desktop_file);
 		g_free(tmp);
 		g_free(desktop_file);
 	}
-	indicate_server_show(self->is);
+	indicate_server_show(priv->is);
 	#endif
-
-	eina_activatable_set_data(activatable, self);
 
 	return TRUE;
 }
@@ -81,12 +77,13 @@ eina_mpris_plugin_activate(EinaActivatable *activatable, EinaApplication *app, G
 static gboolean
 eina_mpris_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaMprisData *self = eina_activatable_steal_data(activatable);
-	gel_free_and_invalidate(self->emp, NULL, g_object_unref);
+	EinaMprisPlugin      *plugin = EINA_MPRIS_PLUGIN(activatable);
+	EinaMprisPluginPrivate *priv = plugin->priv;
+
+	gel_free_and_invalidate(priv->emp, NULL, g_object_unref);
 	#if HAVE_INDICATE
-	gel_free_and_invalidate(self->is, NULL, g_object_unref);
+	gel_free_and_invalidate(priv->is,  NULL, g_object_unref);
 	#endif
-	g_free(self);
 
 	return TRUE;
 }

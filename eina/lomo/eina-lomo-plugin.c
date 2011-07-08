@@ -19,37 +19,60 @@
 
 #include "eina-lomo-plugin.h"
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "eina-lomo-plugin.h"
+#include <eina/ext/eina-extension.h>
+
+#define EINA_TYPE_LOMO_PLUGIN         (eina_lomo_plugin_get_type ())
+#define EINA_LOMO_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
+#define EINA_LOMO_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))
+#define EINA_IS_LOMO_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_LOMO_PLUGIN))
+#define EINA_IS_LOMO_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_LOMO_PLUGIN))
+#define EINA_LOMO_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_LOMO_PLUGIN, EinaLomoPluginClass
+
+typedef struct {
+	guint timeout_id;
+	LomoPlayer *lomo;
+} EinaLomoPluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin, eina_lomo_plugin)
+
 GEL_DEFINE_QUARK_FUNC(eina_lomo_plugin)
-EINA_DEFINE_EXTENSION(EinaLomoPlugin, eina_lomo_plugin, EINA_TYPE_LOMO_PLUGIN)
 
-static void     schedule_save_playlist(LomoPlayer *lomo);
-static gboolean save_playlist         (LomoPlayer *lomo);
-
-static guint timeout_id = 0;
+static void     schedule_save_playlist(EinaLomoPlugin *plugin);
+static gboolean save_playlist         (EinaLomoPlugin *plugin);
 
 static gboolean
 eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *application, GError **error)
 {
-	LomoPlayer *lomo = NULL;
+	EinaLomoPlugin      *plugin = EINA_LOMO_PLUGIN(activatable);
+	EinaLomoPluginPrivate *priv = plugin->priv;
+
+	priv->timeout_id = 0;
+	priv->lomo = NULL;
+
 	gint    *argc = eina_application_get_argc(application);
 	gchar ***argv = eina_application_get_argv(application);
 
 	lomo_init(argc, argv);
-	if ((lomo = lomo_player_new("audio-output", "autoaudiosink", NULL)) == NULL)
+	if ((priv->lomo = lomo_player_new("audio-output", "autoaudiosink", NULL)) == NULL)
 	{
 		g_set_error(error, eina_lomo_plugin_quark(),
 			EINA_LOMO_PLUGIN_ERROR_CANNOT_CREATE_ENGINE, N_("Cannot create engine"));
 		return FALSE;
 	}
 
-	if (!eina_application_set_interface(application, "lomo", lomo))
+	if (!eina_application_set_interface(application, "lomo", priv->lomo))
 	{
 		g_set_error(error, eina_lomo_plugin_quark(),
 			EINA_LOMO_PLUGIN_ERROR_CANNOT_SET_SHARED, N_("Cannot share engine"));
-		g_object_unref(lomo);
+		g_object_unref(priv->lomo);
+		priv->lomo = NULL;
 		return FALSE;
 	}
-	g_object_ref_sink(lomo);
+	g_object_ref(priv->lomo);
 
 	static gchar *props[] = {
 		EINA_LOMO_VOLUME_KEY,
@@ -63,10 +86,10 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 
 	GSettings *settings = eina_application_get_settings(application, EINA_LOMO_PREFERENCES_DOMAIN);
 	for (gint i = 0; i < G_N_ELEMENTS(props); i++)
-		g_settings_bind(settings, props[i], lomo, props[i], G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(settings, props[i], priv->lomo, props[i], G_SETTINGS_BIND_DEFAULT);
 
-	g_signal_connect(lomo, "insert", (GCallback) schedule_save_playlist, NULL);
-	g_signal_connect(lomo, "clear",  (GCallback) save_playlist, NULL);
+	g_signal_connect_swapped(priv->lomo, "insert", (GCallback) schedule_save_playlist, plugin);
+	g_signal_connect_swapped(priv->lomo, "clear",  (GCallback) save_playlist, plugin);
 
 	return TRUE;
 }
@@ -74,17 +97,22 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 static gboolean
 eina_lomo_plugin_deactivate (EinaActivatable *activatable, EinaApplication *application, GError **error)
 {
-	LomoPlayer *lomo = eina_application_steal_interface(application, "lomo");
-	if (!lomo)
+	EinaLomoPlugin      *plugin = EINA_LOMO_PLUGIN(activatable);
+	EinaLomoPluginPrivate *priv = plugin->priv;
+
+	EinaApplication *app = eina_activatable_get_application(activatable);
+	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
+	if (!LOMO_IS_PLAYER(lomo) || (lomo != priv->lomo))
 	{
 		g_set_error(error, eina_lomo_plugin_quark(),
 			EINA_LOMO_PLUGIN_ERROR_CANNOT_DESTROY_ENGINE, N_("Cannot destroy engine"));
 		return FALSE;
 	}
+	eina_application_set_interface(app, "lomo", NULL);
+	save_playlist(plugin);
 
-	save_playlist(lomo);
-
-	g_object_unref(G_OBJECT(lomo));
+	g_object_unref(priv->lomo);
+	priv->lomo = NULL;
 
 	return TRUE;
 }
@@ -110,11 +138,14 @@ eina_application_get_lomo(EinaApplication *application)
  * Schedules save_playlist after one second
  */
 static void
-schedule_save_playlist(LomoPlayer *lomo)
+schedule_save_playlist(EinaLomoPlugin *plugin)
 {
-	if (timeout_id)
-		g_source_remove(timeout_id);
-	timeout_id = g_timeout_add_seconds(1, (GSourceFunc) save_playlist, lomo);
+	g_return_if_fail(EINA_IS_LOMO_PLUGIN(plugin));
+	EinaLomoPluginPrivate *priv = plugin->priv;
+
+	if (priv->timeout_id)
+		g_source_remove(priv->timeout_id);
+	priv->timeout_id = g_timeout_add_seconds(1, (GSourceFunc) save_playlist, plugin);
 }
 
 /**
@@ -126,10 +157,14 @@ schedule_save_playlist(LomoPlayer *lomo)
  * Returns: %FALSE
  */
 static gboolean
-save_playlist(LomoPlayer *lomo)
+save_playlist(EinaLomoPlugin *plugin)
 {
-	timeout_id = 0;
+	g_return_val_if_fail(EINA_IS_LOMO_PLUGIN(plugin), FALSE);
+	EinaLomoPluginPrivate *priv = plugin->priv;
 
+	priv->timeout_id = 0;
+
+	LomoPlayer *lomo = priv->lomo;
 	g_return_val_if_fail(LOMO_IS_PLAYER(lomo), FALSE);
 
 	GString *gs = g_string_new(NULL);

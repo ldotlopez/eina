@@ -25,18 +25,6 @@
 G_BEGIN_DECLS
 
 /**
- * EinaExtension boilerplate code
- */
-#define EINA_TYPE_NTFY_PLUGIN         (eina_ntfy_plugin_get_type ())
-#define EINA_NTFY_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_NTFY_PLUGIN, EinaNtfyPlugin))
-#define EINA_NTFY_PLUGIN_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k),     EINA_TYPE_NTFY_PLUGIN, EinaNtfyPlugin))
-#define EINA_IS_NTFY_PLUGIN(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EINA_TYPE_NTFY_PLUGIN))
-#define EINA_IS_NTFY_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_NTFY_PLUGIN))
-#define EINA_NTFY_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_NTFY_PLUGIN, EinaNtfyPluginClass))
-
-EINA_DEFINE_EXTENSION_HEADERS(EinaNtfyPlugin, eina_ntfy_plugin)
-
-/**
  * API
  */
 #define EINA_NTFY_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.ntfy"
@@ -50,7 +38,7 @@ EINA_DEFINE_EXTENSION_HEADERS(EinaNtfyPlugin, eina_ntfy_plugin)
 typedef enum {
 	EINA_NTFY_PLUGIN_ERROR_LIBRARY = 1,
 	EINA_NTFY_PLUGIN_ERROR_SETTNGS
-} EinaNtfyError;
+} EinaNtfyPluginError;
 
 G_END_DECLS
 

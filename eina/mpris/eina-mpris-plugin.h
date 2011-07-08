@@ -1,5 +1,5 @@
 /*
- * eina/player/eina-player-plugin.h
+ * eina/mpris/eina-mpris-plugin.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,20 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __EINA_PLAYER_PLUGIN_H__
-#define __EINA_PLAYER_PLUGIN_H__
+#ifndef __EINA_MPRIS_PLUGIN_H__
+#define __EINA_MPRIS_PLUGIN_H__
 
-#include <eina/ext/eina-application.h>
-#include <eina/player/eina-player.h>
+#include <eina/mpris/eina-mpris-player.h>
 
 G_BEGIN_DECLS
-
-/**
- * EinaApplication accessors
- */
-EinaPlayer *eina_application_get_player(EinaApplication *application);
-
 G_END_DECLS
 
-#endif // __EINA_PLAYER_PLUGIN_H__
-
+#endif /* __EINA_MPRIS_PLUGIN_H__ */

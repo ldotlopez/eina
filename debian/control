@@ -3,13 +3,13 @@ Section: sound
 Priority: extra
 Maintainer: Ubuntu MOTU Developers <ubuntu-motu@lists.ubuntu.com>
 XSBC-Original-Maintainer: Luis Lopez <luis@cuarentaydos.com>
-Build-Depends: debhelper (>= 7.0.50~), quilt, autotools-dev, intltool, libtool, pkg-config, python2.7, libgstreamer0.10-dev, libgtk-3-dev, libcurl4-gnutls-dev, gtk-doc-tools, libsqlite3-dev, libclutter-gtk-1.0-dev, libnotify4-dev | libnotify-dev, libindicate-dev
+Build-Depends: debhelper (>= 7.0.50~), quilt, autotools-dev, intltool, libtool, pkg-config, python2.7, libgstreamer0.10-dev, libgtk-3-dev, gtk-doc-tools, libsqlite3-dev, libclutter-gtk-1.0-dev, libnotify4-dev | libnotify-dev, libindicate-dev
 Standards-Version: 3.8.3
 
 Package: eina-player
 Section: sound
 Architecture: any
-Depends: ${shlibs:Depends}, libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk-3-0, libcurl3-gnutls, libsqlite3-0, libclutter-gtk-1.0-0, libnotify4, libindicate5
+Depends: ${shlibs:Depends}, libgstreamer0.10-0, libgstreamer-plugins-base0.10-0, gstreamer0.10-plugins-good, libgtk-3-0, libsqlite3-0, libclutter-gtk-1.0-0, libnotify4, libindicate5
 Recommends: gstreamer0.10-ffmpeg, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-ugly
 Description: Music player based on gtk+-3.0 and gstreamer
  Eina is a classic player for the modern era. It features a small screen

@@ -33,29 +33,32 @@
 #define EINA_IS_MUINE_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_MUINE_PLUGIN))
 #define EINA_MUINE_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_MUINE_PLUGIN, EinaMuinePluginClass))
 
-EINA_DEFINE_EXTENSION_HEADERS(EinaMuinePlugin, eina_muine_plugin)
-EINA_DEFINE_EXTENSION(EinaMuinePlugin, eina_muine_plugin, EINA_TYPE_MUINE_PLUGIN)
+typedef struct {
+	EinaMuine   *dock_widget;
+	EinaDockTab *dock_tab;
+} EinaMuinePluginPrivate;
+EINA_PLUGIN_REGISTER(EINA_TYPE_MUINE_PLUGIN, EinaMuinePlugin, eina_muine_plugin)
 
 static gboolean
 eina_muine_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaMuine *d = eina_muine_new();
-	g_object_set((GObject *) d,
+	EinaMuinePlugin      *plugin = EINA_MUINE_PLUGIN(activatable);
+	EinaMuinePluginPrivate *priv = plugin->priv;
+
+	priv->dock_widget = eina_muine_new();
+	g_object_set((GObject *) priv->dock_widget,
 		"adb",         eina_application_get_adb(app),
 		"lomo-player", eina_application_get_lomo(app),
 		NULL);
 
 	GSettings *settings = eina_application_get_settings(app, EINA_MUINE_PREFERENCES_DOMAIN);
-	g_settings_bind(settings, EINA_MUINE_GROUP_BY_KEY, d, "mode", G_SETTINGS_BIND_DEFAULT);
+	g_settings_bind(settings, EINA_MUINE_GROUP_BY_KEY, priv->dock_widget, "mode", G_SETTINGS_BIND_DEFAULT);
 
-	EinaDockTab *tab = eina_application_add_dock_widget(app,
+	priv->dock_tab = eina_application_add_dock_widget(app,
 		N_("Muine"),
-		(GtkWidget *) g_object_ref(d),
+		(GtkWidget *) g_object_ref(priv->dock_widget),
 		gtk_image_new_from_stock("gtk-dnd-multiple", GTK_ICON_SIZE_MENU),
 		EINA_DOCK_DEFAULT);
-	g_object_set_data((GObject *) d, "x-muine-dock-tab", tab);
-
-	eina_activatable_set_data(activatable, d);
 
 	return TRUE;
 }
@@ -63,12 +66,19 @@ eina_muine_plugin_activate(EinaActivatable *activatable, EinaApplication *app, G
 static gboolean
 eina_muine_plugin_deactivate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
-	EinaMuine *d = eina_activatable_steal_data(activatable);
+	EinaMuinePlugin      *plugin = EINA_MUINE_PLUGIN(activatable);
+	EinaMuinePluginPrivate *priv = plugin->priv;
 
-	EinaDockTab *tab = (EinaDockTab *) g_object_get_data((GObject *) d, "x-muine-dock-tab");
-	eina_application_remove_dock_widget(app, tab);
-
-	g_object_unref(d);
+	if (priv->dock_tab)
+	{
+		eina_application_remove_dock_widget(app, priv->dock_tab);
+		priv->dock_tab = NULL;
+	}
+	if (priv->dock_widget)
+	{
+		g_object_unref(priv->dock_widget);
+		priv->dock_widget = NULL;
+	}
 
 	return TRUE;
 }
