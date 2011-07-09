@@ -4,6 +4,7 @@ IAge=2
 Depends=lomo;art
 Name=Notify plugin
 Description=Notify plugin
+Icon=ntfy.png
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@

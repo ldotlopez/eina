@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#define GEL_DOMAIN "EinaArtSearch"
+
 #include "eina-art-search.h"
 #include <gio/gio.h>
 #include <glib/gi18n.h>
@@ -24,19 +24,15 @@
 
 G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_SEARCH, EinaArtSearchPrivate))
+#define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_SEARCH, EinaArtSearchPrivate))
 
-#if EINA_ART_DEBUG 
-#define debug(...) gel_warn(__VA_ARGS__)
-#else
-#define debug(...) ;
-#endif
+#define DEBUG_PREFIX "EinaArtSearch"
+#define debug(...) g_debug(DEBUG_PREFIX" "__VA_ARGS__)
 
 typedef struct _EinaArtSearchPrivate EinaArtSearchPrivate;
 
 enum {
-	PROP_0 = 0,
+	PROP_0,
 	PROP_RESULT
 };
 
@@ -141,10 +137,15 @@ eina_art_search_class_init (EinaArtSearchClass *klass)
 	object_class->dispose = eina_art_search_dispose;
 	object_class->get_property = eina_art_get_property;
 
+	/**
+	 * EinaArtSearch:result:
+	 *
+	 * Result of the search. If search already has been finished and this
+	 * property is %NULL this means that search has been failed.
+	 */
 	g_object_class_install_property(object_class, PROP_RESULT,
 		g_param_spec_string("result", "result", "result",
 		NULL, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
-
 }
 
 static void
@@ -152,6 +153,16 @@ eina_art_search_init (EinaArtSearch *self)
 {
 }
 
+/**
+ * eina_art_search_new:
+ * @domain: Domain of the search
+ * @stream: #LomoStream relative to the search
+ * @callback: Function to be called after search is finished
+ * @callback_data: Data to pass to @callback
+ *
+ * Creates (but not initiates) a new art search. This function is not mean to
+ * be used directly but #EinaArt.
+ */
 EinaArtSearch*
 eina_art_search_new (GObject *domain, LomoStream *stream, EinaArtSearchCallback callback, gpointer callback_data)
 {
@@ -176,18 +187,41 @@ eina_art_search_new (GObject *domain, LomoStream *stream, EinaArtSearchCallback 
 	return search;
 }
 
+/**
+ * eina_art_search_get_domain:
+ * @search: An #EinaArtSearch
+ *
+ * Gets the domain of the search. Meant for be used by #EinaArt
+ *
+ * Returns: (transfer none): The domain
+ */
 GObject *
 eina_art_search_get_domain(EinaArtSearch *search)
 {
 	return GET_PRIVATE(search)->domain;
 }
 
+/**
+ * eina_art_search_get_stream:
+ * @search: An #EinaArtSearch
+ *
+ * Gets the stream of the search. Meant for be used by #EinaArt
+ *
+ * Returns: (transfer none): The #LomoStream
+ */
 LomoStream *
 eina_art_search_get_stream(EinaArtSearch *search)
 {
 	return GET_PRIVATE(search)->stream;
 }
 
+/**
+ * eina_art_search_set_bpointer:
+ * @search: An #EinaArtSearch
+ * @bpointer: (transfer none): The pointer
+ *
+ * Internal function, dont use.
+ */
 void
 eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer)
 {
@@ -204,12 +238,29 @@ eina_art_search_set_bpointer(EinaArtSearch *search, gpointer bpointer)
 	priv->bpointer = bpointer;
 }
 
+/**
+ * eina_art_search_get_bpointer:
+ * @search: An #EinaArtSearch
+ *
+ * Internal function, dont use.
+ *
+ * Returns: (transfer none): The pointer
+ */
 gpointer
 eina_art_search_get_bpointer(EinaArtSearch *search)
 {
 	return GET_PRIVATE(search)->bpointer;
 }
 
+/**
+ * eina_art_search_set_result:
+ * @search: The #EinaSearch
+ * @result: URI for art data
+ *
+ * Stores result into @search.
+ * This functions is meant to by used by #EinaArtBackend implementations to
+ * store result into #EinaArtSearch
+ */
 void
 eina_art_search_set_result(EinaArtSearch *search, const gchar *result)
 {
@@ -229,6 +280,15 @@ eina_art_search_set_result(EinaArtSearch *search, const gchar *result)
 	g_object_notify(G_OBJECT(search), "result");
 }
 
+/**
+ * eina_art_search_get_result:
+ * @search: An #EinaArtSearch
+ *
+ * Gets the result stored into @search. This function is usefull inside the
+ * callback function from eina_art_search() to get the result of the search
+ *
+ * Returns: The art URI for @search
+ */
 const gchar *
 eina_art_search_get_result(EinaArtSearch *search)
 {
@@ -238,7 +298,15 @@ eina_art_search_get_result(EinaArtSearch *search)
 	return priv->result;
 }
 
-/* transfer full */
+/**
+ * eina_art_search_get_result_as_pixbuf:
+ * @search: An #EinaArtSearch
+ *
+ * Gets the result of the search as a #GdkPixbuf
+ *
+ * See also: eina_art_search_get_result()
+ * Returns: (transfer full): The #GdkPixbuf
+ */
 GdkPixbuf *
 eina_art_search_get_result_as_pixbuf(EinaArtSearch *search)
 {
@@ -247,7 +315,7 @@ eina_art_search_get_result_as_pixbuf(EinaArtSearch *search)
 	EinaArtSearchPrivate *priv = GET_PRIVATE(search);
 	if (!priv->result)
 		return NULL;
-	
+
 	GError *error = NULL;
 
 	GFile *f = g_file_new_for_uri(priv->result);
@@ -274,6 +342,14 @@ eina_art_search_get_result_as_pixbuf(EinaArtSearch *search)
 	return ret;
 }
 
+/**
+ * eina_art_search_stringify:
+ * @search: An #EinaArtSearch
+ *
+ * Transforms @search into a string just for debugging purposes
+ *
+ * Returns: The strigified form of @search
+ */
 const gchar*
 eina_art_search_stringify(EinaArtSearch *search)
 {
@@ -290,6 +366,12 @@ eina_art_search_stringify(EinaArtSearch *search)
 	return priv->stringify;
 }
 
+/**
+ * eina_art_search_run_callback:
+ * @search: An #EinaArtSearch
+ *
+ * Runs the callback associated with @search 
+ */
 void
 eina_art_search_run_callback(EinaArtSearch *search)
 {
