@@ -534,7 +534,7 @@ gel_dir_read(gchar *path, gboolean absolute, GError **error)
 	d = g_dir_open(path, 0, error);
 	if (d == NULL)
 		return NULL;
-	
+
 	while ((entry = g_dir_read_name(d)) != NULL)
 	{
 		if (absolute)
@@ -542,6 +542,7 @@ gel_dir_read(gchar *path, gboolean absolute, GError **error)
 		else
 			ret = g_list_prepend(ret, g_strdup(entry));
 	}
+	g_dir_close(d);
 	return g_list_reverse(ret);
 }
 
