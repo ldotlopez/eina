@@ -62,11 +62,6 @@ eina_art_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError *
 	else
 		cover_strings[LOADING_COVER_URI] = g_filename_to_uri(cover_strings[LOADING_COVER_PATH], NULL, NULL);
 
-
-	null_backend = eina_art_class_add_backend(art_class,
-                                              "null",
-                                              eina_art_null_backend_search, NULL,
-                                              NULL, NULL);
 	infolder_backend = eina_art_class_add_backend(art_class,
                                               "infolder",
                                               eina_art_infolder_sync_backend_search, NULL,
@@ -89,8 +84,8 @@ eina_art_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GError
 	for (guint i = 0; i < COVER_N_STRINGS; i++)
 		gel_free_and_invalidate(cover_strings[i], NULL, g_free);
 
-	eina_art_class_remove_backend(art_class, null_backend);
 	eina_art_class_remove_backend(art_class, infolder_backend);
+
 	g_object_unref(art);
 
 	return TRUE;
@@ -190,7 +185,6 @@ static void
 art_search_cb(EinaArtSearch *search, gpointer data)
 {
 	const gchar *res = eina_art_search_get_result(search);
-	// g_warning(_("Search finished: %s"), res);
 	if (res)
 		lomo_stream_set_extended_metadata(eina_art_search_get_stream(search), "art-uri", (gpointer) g_strdup(res), g_free);
 	else
