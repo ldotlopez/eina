@@ -34,11 +34,13 @@ G_BEGIN_DECLS
 
 typedef struct _LomoStreamPrivate LomoStreamPrivate;
 typedef struct {
+	/* <private> */
 	GObject parent;
 	LomoStreamPrivate *priv;
 } LomoStream;
 
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 	void (*extended_metadata_updated) (LomoStream *self, const gchar *key);
 } LomoStreamClass;

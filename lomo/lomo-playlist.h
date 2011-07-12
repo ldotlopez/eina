@@ -16,11 +16,13 @@ G_BEGIN_DECLS
 
 typedef struct _LomoPlaylistPrivate LomoPlaylistPrivate;
 typedef struct {
+	/* <private> */
 	GObject parent;
 	LomoPlaylistPrivate *priv;
 } LomoPlaylist;
 
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 } LomoPlaylistClass;
 

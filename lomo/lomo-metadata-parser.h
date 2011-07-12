@@ -35,11 +35,13 @@ G_BEGIN_DECLS
 
 typedef struct _LomoMetadataParserPrivate LomoMetadataParserPrivate;
 typedef struct {
+	/* <private> */
 	GObject parent;
 	LomoMetadataParserPrivate *priv;
 } LomoMetadataParser;
 
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 
 	void (*tag)      (LomoMetadataParser *self, LomoStream *stream, const gchar *tag);

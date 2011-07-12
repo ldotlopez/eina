@@ -332,7 +332,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	object_class->set_property = player_set_property;
 	object_class->dispose      = player_dispose;
 
-	/**
+	/*
 	 *
 	 * Basic signals
 	 *
@@ -481,7 +481,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			g_cclosure_marshal_VOID__VOID,
 			G_TYPE_NONE,
 			0);
-	/**
+	/*
 	 *
 	 * E-API Signals (change not sure)
 	 *
@@ -713,11 +713,12 @@ lomo_player_class_init (LomoPlayerClass *klass)
 			G_TYPE_BOOLEAN);
 	#endif
 
-	/**
+	/*
 	 *
 	 * Basic properties
 	 *
 	 */
+
 	/**
 	 * LomoPlayer:auto-parse:
 	 *

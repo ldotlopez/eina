@@ -134,9 +134,10 @@ lomo_metadata_parser_init (LomoMetadataParser *self)
 
 /**
  * lomo_metadata_parser_new:
+ *
  * Creates a new #LomoMetadataParser object
  *
- * Returns: the object
+ * Returns: The object
  */
 LomoMetadataParser*
 lomo_metadata_parser_new (void)

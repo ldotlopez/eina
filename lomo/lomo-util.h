@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_UTIL
-#define _LOMO_UTIL
+#ifndef __LOMO_UTIL_H__
+#define __LOMO_UTIL_H__
 
 #include <gst/gst.h>
 #include <lomo/lomo-player.h>
@@ -61,5 +61,5 @@ const gchar *gst_state_change_return_to_str(GstStateChangeReturn s);
 
 G_END_DECLS
 
-#endif // _LOMO_UTIL_H
+#endif // __LOMO_UTIL_H__
 

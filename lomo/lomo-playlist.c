@@ -592,7 +592,7 @@ lomo_playlist_transform_index(LomoPlaylist *self, gint index, LomoPlaylistTransf
 
 /**
  * lomo_playlist_print:
- * self: a #LomoPlaylist
+ * @self: a #LomoPlaylist
  *
  * Print the internal playlist
  */

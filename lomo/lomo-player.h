@@ -19,11 +19,13 @@ G_BEGIN_DECLS
 
 typedef struct _LomoPlayerPrivate LomoPlayerPrivate;
 typedef struct {
+	/* <private> */
 	GObject parent;
 	LomoPlayerPrivate *priv;
 } LomoPlayer;
 
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 
 	void (*seek)          (LomoPlayer *self, gint old, gint new);
@@ -58,9 +60,23 @@ typedef struct {
 	#endif
 } LomoPlayerClass;
 
-/*
+/**
  * LomoPlayerVTable:
- * Override default methods from #LomoPlayer
+ * @set_uri: Method to create or reset a #GstElement for new URI
+ * @set_state: Method to set state on a #GstElement
+ * @get_state: Method to get state from a #GstElement
+ * @set_position: Method to set position from a #GstElement in the specified
+ *                format
+ * @get_position: Method to get position and format from a #GstElement
+ * @get_length: Method to get the lenght of the stream currently in #GstElement
+ * @set_volume: Method to set the volume on a #GstElement
+ * @get_volume: Method to get the volume from a #GstElement
+ * @get_state: Method to get volume from a #GstElement
+ * @set_mute: (allow-none): Method to set mute on a #GstElement
+ * @get_mute: (allow-none): Method to get mute on a #GstElement
+ *
+ * Override default methods from #LomoPlayer. This method for override methods
+ * will be replaced with class methods for #LomoPlayer in the future.
  */
 typedef struct {
 	GstElement*          (*set_uri)   (GstElement *old_pipeline, const gchar *uri, GHashTable *opts);
