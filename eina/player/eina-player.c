@@ -67,8 +67,6 @@ binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *ds
 static gboolean
 binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
 static gboolean
-binding_play_pause_lomo_state_to_image_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
-static gboolean
 binding_play_pause_lomo_state_to_action(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
 
 static void
@@ -274,12 +272,6 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-button"), "sensitive",
 			G_BINDING_SYNC_CREATE,
 			(GBindingTransformFunc) binding_play_pause_lomo_current_to_sensitive, NULL
-		},
-		{
-			"state",
-			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-image"), "stock",
-			G_BINDING_SYNC_CREATE,
-			(GBindingTransformFunc) binding_play_pause_lomo_state_to_image_stock, NULL
 		},
 		{
 			"state",
@@ -498,21 +490,6 @@ static gboolean
 binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
 {
 	g_value_set_boolean(dst, g_value_get_int(src) != -1);
-	return TRUE;
-}
-
-static gboolean
-binding_play_pause_lomo_state_to_image_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
-{
-	LomoState state = g_value_get_enum(src);
-	const gchar *stock = NULL;
-
-	if (state == LOMO_STATE_PLAY)
-		stock = "gtk-media-pause";
-	else
-		stock = "gtk-media-play";
-
-	g_value_set_static_string(dst, stock);
 	return TRUE;
 }
 
