@@ -45,11 +45,13 @@ G_BEGIN_DECLS
   (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_ART, EinaArtClass))
 
 typedef struct {
+	/* <private> */
 	GObject parent;
 } EinaArt;
 
 typedef struct _EinaArtClassPrivate EinaArtClassPrivate;
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 	EinaArtClassPrivate *priv;
 } EinaArtClass;

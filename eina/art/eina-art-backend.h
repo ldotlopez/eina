@@ -34,6 +34,7 @@ G_BEGIN_DECLS
 #define EINA_ART_BACKEND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_ART_BACKEND, EinaArtBackendClass))
 
 typedef struct {
+	/* <private> */
 	GObject parent;
 } EinaArtBackend;
 
