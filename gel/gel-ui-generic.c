@@ -67,7 +67,7 @@ gel_ui_generic_class_init (GelUIGenericClass *klass)
 	object_class->set_property = gel_ui_generic_set_property;
 	object_class->dispose = gel_ui_generic_dispose;
 
-	g_object_class_install_property(object_class, PROP_XML_STRING, 
+	g_object_class_install_property(object_class, PROP_XML_STRING,
 		g_param_spec_string("xml-string", "xml-string", "xml-string",
 		NULL, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 }
@@ -141,7 +141,7 @@ set_xml_string(GelUIGeneric *self, const gchar *xml_string)
 	g_return_if_fail(priv->builder == NULL);
 
 	priv->builder = gtk_builder_new();
-	
+
 	GError *error = NULL;
 	if (!gtk_builder_add_from_string(priv->builder, xml_string, -1, &error))
 	{
