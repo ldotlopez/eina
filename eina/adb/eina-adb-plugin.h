@@ -25,8 +25,7 @@
 
 G_BEGIN_DECLS
 
-EinaAdb *
-eina_application_get_adb(EinaApplication *application);
+EinaAdb *eina_application_get_adb(EinaApplication *application);
 
 /**
  * EinaAdbPluginError:

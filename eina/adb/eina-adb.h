@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_ADB
-#define _EINA_ADB
+#ifndef __EINA_ADB_H__
+#define __EINA_ADB_H__
 
 #include <glib-object.h>
 #include <lomo/lomo-player.h>
@@ -28,26 +28,19 @@ G_BEGIN_DECLS
 
 #define EINA_TYPE_ADB eina_adb_get_type()
 
-#define EINA_ADB(obj) \
-	 (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_ADB, EinaAdb))
-
-#define EINA_ADB_CLASS(klass) \
-	 (G_TYPE_CHECK_CLASS_CAST ((klass), EINA_TYPE_ADB, EinaAdbClass))
-
-#define EINA_IS_ADB(obj) \
-	 (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_ADB))
-
-#define EINA_IS_ADB_CLASS(klass) \
-	 (G_TYPE_CHECK_CLASS_TYPE ((klass), EINA_TYPE_ADB))
-
-#define EINA_ADB_GET_CLASS(obj) \
-	 (G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_ADB, EinaAdbClass))
+#define EINA_ADB(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_ADB, EinaAdb))
+#define EINA_ADB_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_ADB, EinaAdbClass))
+#define EINA_IS_ADB(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_ADB))
+#define EINA_IS_ADB_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_ADB))
+#define EINA_ADB_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_ADB, EinaAdbClass))
 
 typedef struct {
+	/* <private> */
 	GObject parent;
 } EinaAdb;
 
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 } EinaAdbClass;
 
@@ -66,73 +59,46 @@ GType eina_adb_get_type (void);
 
 EinaAdb* eina_adb_new (void);
 
-LomoPlayer*
-eina_adb_get_lomo_player(EinaAdb *self);
-void
-eina_adb_set_lomo_player(EinaAdb *self, LomoPlayer *lomo);
+LomoPlayer *eina_adb_get_lomo_player(EinaAdb *self);
+void        eina_adb_set_lomo_player(EinaAdb *self, LomoPlayer *lomo);
 
-gchar *
-eina_adb_get_db_file(EinaAdb *self);
-gboolean
-eina_adb_set_db_file(EinaAdb *self, const gchar *path);
+gchar    *eina_adb_get_db_file(EinaAdb *self);
+gboolean  eina_adb_set_db_file(EinaAdb *self, const gchar *path);
 
 // --
 // Query queue
 // --
-void
-eina_adb_queue_query(EinaAdb *self, gchar *query, ...);
-void
-eina_adb_flush(EinaAdb *self);
+void eina_adb_queue_query(EinaAdb *self, gchar *query, ...);
+void eina_adb_flush(EinaAdb *self);
 
 // --
-// Easy setup
+// Easy API
 // --
 
 typedef sqlite3_stmt EinaAdbResult;
 
-EinaAdbResult*
-eina_adb_query(EinaAdb *self, gchar *query, ...);
+EinaAdbResult* eina_adb_query(EinaAdb *self, gchar *query, ...);
+EinaAdbResult* eina_adb_query_raw(EinaAdb *self, gchar *query);
+gboolean       eina_adb_query_exec(EinaAdb *self, gchar *q, ...);
+gboolean       eina_adb_query_block_exec(EinaAdb *self, gchar *queries[], GError **error);
 
-EinaAdbResult*
-eina_adb_query_raw(EinaAdb *self, gchar *query);
+gint eina_adb_changes(EinaAdb *self);
 
-gboolean
-eina_adb_query_exec(EinaAdb *self, gchar *q, ...);
+gint     eina_adb_result_column_count(EinaAdbResult *result);
+gboolean eina_adb_result_step(EinaAdbResult *result);
+gboolean eina_adb_result_get (EinaAdbResult *result, ...);
+void     eina_adb_result_free(EinaAdbResult *result);
 
-gboolean
-eina_adb_query_block_exec(EinaAdb *self, gchar *queries[], GError **error);
+gchar    *eina_adb_get_variable(EinaAdb *self, gchar *variable);
+gboolean  eina_adb_set_variable(EinaAdb *self, gchar *variable, gchar *value);
 
-gint
-eina_adb_changes(EinaAdb *self);
+gint eina_adb_schema_get_version(EinaAdb *self, gchar *schema);
+void eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version);
 
-gint
-eina_adb_result_column_count(EinaAdbResult *result);
+gboolean eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], GError **error);
 
-gboolean
-eina_adb_result_step(EinaAdbResult *result);
-
-gboolean
-eina_adb_result_get(EinaAdbResult *result, ...);
-
-void
-eina_adb_result_free(EinaAdbResult *result);
-
-//
-gchar *
-eina_adb_get_variable(EinaAdb *self, gchar *variable);
-gboolean
-eina_adb_set_variable(EinaAdb *self, gchar *variable, gchar *value);
-gint
-eina_adb_schema_get_version(EinaAdb *self, gchar *schema);
-void
-eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version);
-
-gboolean
-eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], GError **error);
-
-sqlite3*
-eina_adb_get_handler(EinaAdb *self);
+sqlite3* eina_adb_get_handler(EinaAdb *self);
 
 G_END_DECLS
 
-#endif /* _EINA_ADB */
+#endif /* __EINA_ADB_H__ */

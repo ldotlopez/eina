@@ -17,16 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_ADB_LOMO
-#define _EINA_ADB_LOMO
+#ifndef __EINA_ADB_LOMO_H__
+#define __EINA_ADB_LOMO_H__
 
 #include <eina/adb/eina-adb.h>
 #include <lomo/lomo-player.h>
 
-gint
-eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream);
+G_BEGIN_DECLS
 
-gint
-eina_adb_lomo_stream_get_sid(EinaAdb *adb, LomoStream *stream);
+gint eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream);
+gint eina_adb_lomo_stream_get_sid(EinaAdb *adb, LomoStream *stream);
+
+G_END_DECLS
 
 #endif
