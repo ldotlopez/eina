@@ -20,11 +20,11 @@
 #ifndef _EINA_STOCK_H
 #define _EINA_STOCK_H
 
-#define EINA_STOCK_STATUS_ICON "status-icon"
+#define EINA_STOCK_STATUS_ICON "eina-status-icon"
 #define EINA_STOCK_RANDOM      "eina-random"
 #define EINA_STOCK_REPEAT      "eina-repeat"
-#define EINA_STOCK_QUEUE       "queue"
-#define EINA_STOCK_BUG         "bug"
+#define EINA_STOCK_QUEUE       "eina-queue"
+#define EINA_STOCK_BUG         "eina-bug"
 #define EINA_STOCK_PLUGIN      "eina-plugin"
 
 void

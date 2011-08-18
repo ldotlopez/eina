@@ -55,11 +55,11 @@ static const GtkStockItem stock_items [] = {
 
 void
 eina_stock_init(void)
-{        
+{
 	GtkIconFactory *factory;
 	GtkIconSource  *source;
 	gint             i;
-                    	
+
 	if (done)
 		return;
 	done = TRUE;
