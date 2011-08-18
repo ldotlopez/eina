@@ -1,47 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAction" id="about-action">
-    <property name="label">About</property>
-    <property name="short_label">About</property>
     <property name="stock_id">gtk-about</property>
   </object>
   <object class="GtkAction" id="bug-action">
-    <property name="label">Report a bug</property>
-    <property name="short_label">Report a bug</property>
-    <property name="stock_id">bug</property>
+    <property name="stock_id">eina-bug</property>
   </object>
   <object class="GtkAction" id="help-action">
-    <property name="label">Help</property>
-    <property name="short_label">Help</property>
     <property name="stock_id">gtk-help</property>
   </object>
   <object class="GtkAction" id="next-action">
-    <property name="label">Next stream</property>
-    <property name="short_label">Next</property>
     <property name="stock_id">gtk-media-next</property>
   </object>
   <object class="GtkAction" id="open-action">
-    <property name="label">_Play or queue</property>
-    <property name="short_label">_Open</property>
     <property name="stock_id">gtk-open</property>
   </object>
   <object class="GtkAction" id="pause-action">
     <property name="stock_id">gtk-media-pause</property>
-    <property name="always_show_image">True</property>
   </object>
   <object class="GtkAction" id="play-action">
     <property name="stock_id">gtk-media-play</property>
-    <property name="always_show_image">True</property>
   </object>
   <object class="GtkAction" id="prev-action">
-    <property name="label">Previous stream</property>
-    <property name="short_label">Previous</property>
     <property name="stock_id">gtk-media-previous</property>
   </object>
   <object class="GtkAction" id="quit-action">
-    <property name="label">_Quit Eina</property>
-    <property name="short_label">_Quit</property>
     <property name="stock_id">gtk-quit</property>
   </object>
   <object class="GtkWindow" id="dummy-window">
@@ -223,98 +207,81 @@
               </packing>
             </child>
             <child>
-              <object class="GtkHBox" id="actions-hbox">
+              <object class="GtkToolbar" id="playback-control-toolbar">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="spacing">5</property>
+                <property name="toolbar_style">icons</property>
+                <property name="show_arrow">False</property>
                 <child>
-                  <object class="GtkButton" id="prev-button">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="related_action">prev-action</property>
-                    <child>
-                      <object class="GtkImage" id="image2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-media-previous</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="play-pause-button">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
-                    <property name="related_action">play-action</property>
-                    <property name="use_action_appearance">False</property>
-                    <child>
-                      <object class="GtkImage" id="play-pause-image">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-media-play</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="next-button">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="related_action">next-action</property>
-                    <child>
-                      <object class="GtkImage" id="image4">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-media-next</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkAlignment" id="alignment2">
+                  <object class="GtkToolButton" id="prev-button">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
-                    <property name="xscale">0</property>
+                    <property name="related_action">prev-action</property>
+                    <property name="label" translatable="yes">Previous</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="play-pause-button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="related_action">play-action</property>
+                    <property name="label" translatable="yes">Play / Pause</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="next-button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="related_action">next-action</property>
+                    <property name="label" translatable="yes">Next</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolItem" id="toolbutton1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="use_action_appearance">False</property>
                     <child>
-                      <object class="GtkButton" id="open-button">
+                      <object class="GtkAlignment" id="alignment2">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="related_action">open-action</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkImage" id="image1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="stock">gtk-open</property>
-                          </object>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">3</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="open-button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="related_action">open-action</property>
+                    <property name="label" translatable="yes">Load music</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
                   </packing>
                 </child>
               </object>

@@ -111,7 +111,7 @@ eina_player_dispose (GObject *object)
 
 	gel_free_and_invalidate(priv->lomo,        NULL, g_object_unref);
 	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
-	
+
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
 }
 
@@ -189,23 +189,23 @@ eina_player_new (void)
 	gtk_widget_show(GTK_WIDGET(priv->cover));
 
 	// Actions
-	GtkBuilder *builder = gel_ui_generic_get_builder(GEL_UI_GENERIC(self));
-	const gchar *actions[] = {
-		"prev-action",
-		"next-action",
-		"play-action",
+	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
+	const gchar *const actions[] = {
+		"prev-action" ,
+		"next-action" ,
+		"play-action" ,
 		"pause-action",
-		"open-action"
-		};
+		"open-action" };
 	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
 	{
-		GtkAction *a = GTK_ACTION(gtk_builder_get_object(builder, actions[i]));
-		if (!a)
-			g_warning(N_("Action '%s' not found in widget"), actions[i]);
-		else
-			g_signal_connect(a, "activate", (GCallback) action_activated_cb, self);
+		GtkAction *action = GTK_ACTION(gtk_builder_get_object(builder, actions[i]));
+		if (!action)
+		{
+			g_warning("Action '%s' not found", actions[i]);
+			continue;
+		}
+		g_signal_connect(action, "activate", (GCallback) action_activated_cb, self);
 	}
-
 	return GTK_WIDGET(self);
 }
 
@@ -360,7 +360,7 @@ player_update_information(EinaPlayer *self)
 	g_return_if_fail(EINA_IS_PLAYER(self));
 	EinaPlayerPrivate *priv = self->priv;
 
-	gchar *info  = 
+	gchar *info  =
 		"<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n"
 		"<span size=\"x-large\" weight=\"normal\">\u200B</span>";
 
@@ -395,7 +395,7 @@ player_update_information(EinaPlayer *self)
 
 	if (window)
 	{
-		gchar *title = gel_str_parser("{%a - }%t", (GelStrParserFunc) lomo_stream_string_parser_cb, stream); 
+		gchar *title = gel_str_parser("{%a - }%t", (GelStrParserFunc) lomo_stream_string_parser_cb, stream);
 		gtk_window_set_title(window, title);
 		g_free(title);
 	}

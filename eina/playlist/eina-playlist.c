@@ -227,6 +227,9 @@ eina_playlist_new (LomoPlayer *lomo)
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
 	gtk_widget_set_visible(gel_ui_generic_get_typed(self, GTK_WIDGET, "search-frame"), ENABLE_EXPERIMENTAL);
+	gtk_activatable_set_related_action(
+		gel_ui_generic_get_typed(self, GTK_ACTIVATABLE, "alternative-add-button"),
+		gel_ui_generic_get_typed(self, GTK_ACTION, "add-action"));
 
 	return self;
 }
@@ -341,7 +344,7 @@ playlist_insert_stream(EinaPlaylist *self, LomoStream *stream, gint index)
 		-1);
 	g_free(value);
 
-	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
+	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "notebook");
 	gtk_notebook_set_current_page(nb,
 		(lomo_player_get_n_streams(priv->lomo) == 0) ? TAB_PLAYLIST_EMPTY : TAB_PLAYLIST_NON_EMPTY);
 }
@@ -358,7 +361,7 @@ playlist_remove_stream(EinaPlaylist *self, LomoStream *stream, gint index)
 	// deleted
 	g_return_if_fail((index >= 0) && (index <= lomo_player_get_n_streams(priv->lomo)));
 
-	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
+	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "notebook");
 	gtk_notebook_set_current_page(nb,
 		(lomo_player_get_n_streams(priv->lomo) == 0) ? TAB_PLAYLIST_EMPTY : TAB_PLAYLIST_NON_EMPTY);
 
@@ -375,7 +378,7 @@ playlist_refresh_model(EinaPlaylist *self)
 
 	EinaPlaylistPrivate *priv = self->priv;
 
-	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "playlist-notebook");
+	GtkNotebook *nb = gel_ui_generic_get_typed(self, GTK_NOTEBOOK, "notebook");
 	gtk_notebook_set_current_page(nb,
 		lomo_player_get_n_streams(priv->lomo) ? TAB_PLAYLIST_NON_EMPTY : TAB_PLAYLIST_EMPTY);
 
