@@ -21,6 +21,15 @@
 #include "eina-art-test-backends.h"
 #include <eina/lomo/eina-lomo-plugin.h>
 
+#define DEBUG 0
+#define PREFIX "EinaArtPlugin"
+
+#if DEBUG
+#	define debug(...) g_debug(PREFIX " " __VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
+
 enum {
 	DEFAULT_COVER_PATH,
 	LOADING_COVER_PATH,
@@ -34,7 +43,7 @@ static gchar *cover_strings[COVER_N_STRINGS] = { NULL };
 EinaArtBackend *null_backend, *infolder_backend;
 
 static void art_search_cb(EinaArtSearch *search, gpointer data);
-static void insert_cb    (LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art);
+static void change_cb    (LomoPlayer *lomo, gint from, gint to, EinaArt *art);
 static void all_tags_cb  (LomoPlayer *lomo, LomoStream *stream, EinaArt *art);
 
 typedef struct {
@@ -69,7 +78,7 @@ eina_art_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError *
 	eina_application_set_interface(app, "art", art);
 
 	LomoPlayer *lomo = eina_application_get_lomo(app);
-	g_signal_connect(lomo, "insert",   (GCallback) insert_cb,   art);
+	g_signal_connect(lomo, "change",   (GCallback) change_cb,   art);
 	g_signal_connect(lomo, "all-tags", (GCallback) all_tags_cb, art);
 
 	return TRUE;
@@ -119,11 +128,51 @@ eina_application_get_art(EinaApplication *application)
 void
 eina_art_plugin_init_stream(EinaArt *art, LomoStream *stream)
 {
+	g_return_if_fail(EINA_IS_ART(art));
+	g_return_if_fail(LOMO_IS_STREAM(stream));
+
+	const gchar *art_uri = lomo_stream_get_extended_metadata(stream, "art-uri");
+	if (art_uri)
+	{
+		if (g_str_equal(art_uri, eina_art_plugin_get_loading_cover_uri()))
+		{
+			debug("Stream %p already has art-uri and it's loading cover.", stream);
+			return;
+		}
+		if (!g_str_equal(art_uri, eina_art_plugin_get_default_cover_uri()))
+		{
+			debug("Stream %p has custom art-uri: %s", stream, art_uri);
+			return;
+		}
+	}
+
+	if (lomo_stream_get_all_tags_flag(stream))
+	{
+		EinaArtSearch *search = eina_art_search(art, stream, art_search_cb, NULL);
+		debug("Stream %p has all_tags flag, search started %p", stream, search);
+		if (search)
+			lomo_stream_set_extended_metadata(
+				stream,
+				"art-uri", (gchar *) eina_art_plugin_get_loading_cover_uri(), NULL);
+	}
+	else
+	{
+		debug("Stream %p doesnt have all_tags flags, wait for it. default cover is set", stream);
+		lomo_stream_set_extended_metadata(
+			stream,
+			"art-uri", (gchar *) eina_art_plugin_get_default_cover_uri(), NULL);
+	}
+	return;
+
 	EinaArtSearch *search = NULL;
 	if (lomo_stream_get_all_tags_flag(stream) && (search = eina_art_search(art, stream, art_search_cb, NULL)))
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[LOADING_COVER_URI], NULL);
+		lomo_stream_set_extended_metadata(
+			stream,
+			"art-uri", (gpointer) eina_art_plugin_get_loading_cover_uri(), NULL);
 	else
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) cover_strings[DEFAULT_COVER_URI], NULL);
+		lomo_stream_set_extended_metadata(
+			stream,
+			"art-uri", (gpointer) eina_art_plugin_get_default_cover_uri(), NULL);
 }
 
 /**
@@ -185,6 +234,11 @@ static void
 art_search_cb(EinaArtSearch *search, gpointer data)
 {
 	const gchar *res = eina_art_search_get_result(search);
+	#if DEBUG
+	LomoStream *stream = eina_art_search_get_stream(search);
+	debug ("Got result for stream %p: %p", stream, res);
+	#endif
+
 	if (res)
 		lomo_stream_set_extended_metadata(eina_art_search_get_stream(search), "art-uri", (gpointer) g_strdup(res), g_free);
 	else
@@ -192,16 +246,35 @@ art_search_cb(EinaArtSearch *search, gpointer data)
 }
 
 static void
-insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaArt *art)
+change_cb(LomoPlayer *lomo, gint from, gint to, EinaArt *art)
 {
-	eina_art_plugin_init_stream(art, stream);
+	g_return_if_fail(LOMO_IS_PLAYER(lomo));
+	g_return_if_fail(EINA_IS_ART(art));
+
+	if (to == -1)
+		return;
+
+	LomoStream *streams[2] = {
+		lomo_player_get_nth_stream(lomo, to),
+		lomo_player_get_nth_stream(lomo, lomo_player_get_next(lomo)) };
+
+	for (guint i = 0; i < G_N_ELEMENTS(streams); i++)
+	{
+		if (!streams[i])
+			continue;
+
+		eina_art_plugin_init_stream(art, streams[i]);
+	}
 }
 
 static void
 all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaArt *art)
 {
-	EinaArtSearch *search = eina_art_search(art, stream, art_search_cb, NULL);
-	gpointer value = (gpointer) (search ? cover_strings[LOADING_COVER_URI] : cover_strings[DEFAULT_COVER_URI] );
-	lomo_stream_set_extended_metadata(stream, "art-uri", value, NULL);
+	const gchar *stream_art_uri = lomo_stream_get_extended_metadata(stream, "art-uri");
+	if (g_strcmp0(stream_art_uri, eina_art_plugin_get_default_cover_uri()) == 0)
+	{
+		debug("Catch a stream all-tags signal for stream with default cover");
+		eina_art_plugin_init_stream(art, stream);
+	}
 }
 
