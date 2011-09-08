@@ -227,6 +227,7 @@ eina_playlist_new (LomoPlayer *lomo)
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
 	gtk_widget_set_visible(gel_ui_generic_get_typed(self, GTK_WIDGET, "search-frame"), ENABLE_EXPERIMENTAL);
+
 	gtk_activatable_set_related_action(
 		gel_ui_generic_get_typed(self, GTK_ACTIVATABLE, "alternative-add-button"),
 		gel_ui_generic_get_typed(self, GTK_ACTION, "add-action"));

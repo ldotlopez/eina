@@ -65,6 +65,8 @@ binding_volume_int_to_double_cb(GBinding *binding, const GValue *src, GValue *ds
 static gboolean
 binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data);
 static gboolean
+binding_lomo_state_to_gtk_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
+static gboolean
 binding_play_pause_lomo_current_to_sensitive(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
 static gboolean
 binding_play_pause_lomo_state_to_action(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self);
@@ -186,6 +188,16 @@ eina_player_new (void)
 	gtk_container_add(cover_container, (GtkWidget *) priv->cover);
 	gtk_widget_show(GTK_WIDGET(priv->cover));
 
+	GtkCssProvider *css = gtk_css_provider_get_default();
+	gtk_css_provider_load_from_data (css, "GtkToolbar {"
+		"-GtkToolbar-button-relief: 0;"
+		"-GtkToolbar-shadow-type: 1;"
+		"}",
+		-1, NULL);
+
+	GtkStyleContext *style_ctx = gtk_widget_get_style_context((GtkWidget *) self);
+	gtk_style_context_add_provider(style_ctx, (GtkStyleProvider *) css, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
 	// Actions
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
 	const gchar *const actions[] = {
@@ -272,6 +284,12 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-button"), "sensitive",
 			G_BINDING_SYNC_CREATE,
 			(GBindingTransformFunc) binding_play_pause_lomo_current_to_sensitive, NULL
+		},
+		{
+			"state",
+			gel_ui_generic_get_typed(self, G_OBJECT, "play-pause-image"), "icon-name",
+			G_BINDING_SYNC_CREATE,
+			(GBindingTransformFunc) binding_lomo_state_to_gtk_stock, NULL
 		},
 		{
 			"state",
@@ -483,6 +501,18 @@ static gboolean
 binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *dst, gpointer data)
 {
 	g_value_set_int(dst, (gint) CLAMP(g_value_get_double(src) * 100, 0, 100));
+	return TRUE;
+}
+
+static gboolean
+binding_lomo_state_to_gtk_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
+{
+	GtkTextDirection dir = gtk_widget_get_direction(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-image"));
+	LomoState state = g_value_get_enum(src);
+	if (state == LOMO_STATE_PLAY)
+		g_value_set_static_string(dst, "gtk-media-pause");
+	else
+		g_value_set_static_string(dst, dir == GTK_TEXT_DIR_LTR ?  "gtk-media-play-ltr" : "gtk-media-play-rtl");
 	return TRUE;
 }
 
