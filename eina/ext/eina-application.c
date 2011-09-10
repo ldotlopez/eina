@@ -252,7 +252,7 @@ eina_application_set_interface(EinaApplication *self, const gchar *name, gpointe
 }
 
 /**
- * eina_application_get_interface:
+ * eina_application_get_interface: (skip):
  * @self: An #EinaApplication
  * @name: The interface's name
  *
