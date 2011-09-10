@@ -1310,7 +1310,7 @@ lomo_player_get_volume(LomoPlayer *self)
 
 	if (priv->vtable.get_volume == NULL)
 		return priv->volume;
-	
+
 	gint ret = priv->vtable.get_volume(priv->pipeline);
 	if (ret == -1)
 		g_return_val_if_fail((ret >= 0) && (ret <= 100), -1);
@@ -1335,7 +1335,7 @@ lomo_player_set_volume(LomoPlayer *self, gint val)
 
 	check_method_or_return_val(self, set_volume, FALSE, NULL);
 	LomoPlayerPrivate *priv = self->priv;
-	
+
 	if (val == -1)
 		val = priv->volume;
 	val = CLAMP(val, 0, 100);
@@ -1388,7 +1388,7 @@ lomo_player_get_mute(LomoPlayer *self)
 /**
  * lomo_player_set_mute:
  * @self: a #LomoPlayer
- * @mute: new value for mute 
+ * @mute: new value for mute
  *
  * Sets mute
  *
@@ -1445,7 +1445,7 @@ lomo_player_set_mute(LomoPlayer *self, gboolean mute)
 /**
  * lomo_player_get_repeat:
  * @self: a #LomoPlayer
- * 
+ *
  * Gets current value of the repeat behaviour
  *
  * Returns: %TRUE if repeat is applied, %FALSE otherwise
@@ -1484,7 +1484,7 @@ lomo_player_set_repeat(LomoPlayer *self, gboolean val)
 /**
  * lomo_player_get_random:
  * @self: a #LomoPlayer
- * 
+ *
  * Gets current value of the random behaviour
  *
  * Returns: %TRUE if repeat is applied, %FALSE otherwise
@@ -1810,7 +1810,7 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 		l = l->next;
 	}
 
-	// emit change 
+	// emit change
 	if (emit_change                     &&
 	    lomo_player_get_n_streams(self) &&
 	    !player_run_hooks(self, LOMO_PLAYER_HOOK_CHANGE, NULL, -1, 0))
@@ -2544,6 +2544,12 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		priv->in_gapless_transition = FALSE;
 		g_object_notify((GObject *) self, "can-go-previous");
 		g_object_notify((GObject *) self, "can-go-next");
+
+		LomoStream *stream = lomo_player_get_current_stream(self);
+		gint queue_idx = lomo_player_queue_get_stream_index(self, stream);
+		if (queue_idx >= 0)
+			lomo_player_dequeue(self, queue_idx);
+
 		return;
 	}
 
@@ -2591,7 +2597,7 @@ set_uri(GstElement *old_pipeline, const gchar *uri, GHashTable *opts)
 	g_object_set(G_OBJECT(ret), "audio-sink", audio_sink, NULL);
 	g_object_set(G_OBJECT(ret), "uri", uri, NULL);
 
-	gst_element_set_state(ret, GST_STATE_READY); 
+	gst_element_set_state(ret, GST_STATE_READY);
 
 	return ret;
 }
@@ -2665,5 +2671,4 @@ lomo_player_length(LomoPlayer *self, LomoFormat format)
 
 	return lomo_player_get_length(self);
 }
-
 #endif
