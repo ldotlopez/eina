@@ -47,8 +47,6 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to);
 static void
 lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to);
 static void
-lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self);
-static void
 lomo_remove_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self);
 static void
 lomo_clear_cb(LomoPlayer *lomo, EinaAdb *self);
@@ -142,7 +140,7 @@ upgrade_3(EinaAdb *self, GError **error)
 		"DROP INDEX IF EXISTS stream_relationship_sid2_idx;"
 		"CREATE INDEX stream_relationship_sid_idx  ON stream_relationship(sid);"
 		"CREATE INDEX stream_relationship_sid2_idx ON stream_relationship(sid2);"
-		
+
 		"UPDATE streams SET timestamp = STRFTIME('%s', timestamp);",
 		"UPDATE streams SET played    = STRFTIME('%s', played) where played > 0;",
 		"UPDATE playlist_history SET timestamp = STRFTIME('%s', timestamp);",
@@ -153,7 +151,18 @@ upgrade_3(EinaAdb *self, GError **error)
 	return eina_adb_query_block_exec(self, qs, error);
 };
 
-static EinaAdbFunc upgrade_funcs[] = { upgrade_1, upgrade_2, upgrade_3, NULL };
+// Eina 0.12 updates
+static gboolean
+upgrade_4(EinaAdb *self, GError **error)
+{
+	gchar *qs[] = {
+		"DROP TABLE IF EXISTS stream_relationship;",
+		NULL
+	};
+	return eina_adb_query_block_exec(self, qs, error);
+};
+
+static EinaAdbFunc upgrade_funcs[] = { upgrade_1, upgrade_2, upgrade_3, upgrade_4, NULL };
 
 
 // Our data
@@ -176,7 +185,6 @@ struct {
 	{ "eos",        lomo_eos_cb      },
 	{ "change",     lomo_change_cb   },
 	{ "seek",       lomo_seek_cb     },
-	{ "insert",     lomo_insert_cb   },
 	{ "remove",     lomo_remove_cb   },
 	{ "clear",      lomo_clear_cb    },
 	{ "all-tags",   lomo_all_tags_cb },
@@ -267,7 +275,7 @@ lomo_state_change_cb(LomoPlayer *lomo)
 
 	case LOMO_STATE_STOP:
 		debug("stop signal, position may be 0");
-	
+
 	case LOMO_STATE_PAUSE:
 		// Add to counter secs from the last checkpoint
 		set_checkpoint(lomo_player_get_position(lomo), TRUE);
@@ -312,27 +320,6 @@ lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to)
 	// Move checkpoint to 'to' without adding
 	set_checkpoint(from, TRUE);
 	set_checkpoint(to,   FALSE);
-}
-
-static void
-lomo_insert_cb(LomoPlayer *lomo, LomoStream *stream, gint pos, EinaAdb *self)
-{
-	g_return_if_fail(LOMO_IS_STREAM(stream));
-	gint sid = eina_adb_lomo_stream_get_sid(self, stream);
-	g_return_if_fail(sid >= 0);
-
-	GList *iter = __playlist;
-
-	eina_adb_queue_query(self, "BEGIN TRANSACTION;");
-	while (iter)
-	{
-		eina_adb_queue_query(self, "INSERT INTO stream_relationship VALUES (%d,%d);", sid, GPOINTER_TO_INT(iter->data));
-		eina_adb_queue_query(self, "INSERT INTO stream_relationship VALUES (%d,%d);", GPOINTER_TO_INT(iter->data), sid);
-		iter = iter->next;
-	}
-	eina_adb_queue_query(self, "COMMIT TRANSACTION;");
-
-	__playlist = g_list_prepend(__playlist, GINT_TO_POINTER(sid));
 }
 
 static void
