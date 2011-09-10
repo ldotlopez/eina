@@ -13,7 +13,7 @@ static void
 notify_cb(LomoPlayer *lomo, GParamSpec *pspec, gpointer data)
 {
 	GValue value = {0};
-	
+
 	g_value_init(&value, pspec->value_type);
 	g_object_get_property((GObject *) lomo, pspec->name, &value);
 	gchar *value_str = g_strdup_value_contents(&value);

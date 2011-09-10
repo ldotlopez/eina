@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.11.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.12.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -21,8 +21,8 @@ AM_PATH_PYTHON
 #
 GETTEXT_PACKAGE="eina"
 EINA_API_VERSION="0.12"
-EINA_VERSION="0.11.0"
-EINA_CODENAME="Dead bodies everywhere"    # git codename
+EINA_VERSION="0.12.0"
+EINA_CODENAME="Rise"                      # Primal scream
 EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
 EINA_CODENAME_0_9_4="Trained"             # Najwa
 EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
@@ -170,7 +170,7 @@ AC_CHECK_FUNCS([strtol])
 
 # export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
-# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
+# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig
 
 
 #*******************************************************************************

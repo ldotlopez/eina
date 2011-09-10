@@ -16,7 +16,7 @@ include_HEADERS = \
 lomodir = $(libdir)
 liblomo_2_0_la_SOURCES = \
 	$(include_HEADERS)     \
-	lomo-logger.c \
+	lomo-logger.c          \
 	lomo-stats.h           \
 	lomo-playlist.h        \
 	lomo-marshallers.c     \
@@ -32,19 +32,10 @@ glib_marshallers_list = lomo-marshallers.list
 glib_marshallers_prefix = lomo_marshal
 include $(top_srcdir)/build/Makefile.am.marshallers
 
-## Vala bindings
-## /opt/gtk/bin/vala-gen-introspect  lomo-2.0 .
-# /opt/gtk/bin/vapigen-0.12 --pkg Gst-0.10 --pkg GLib-2.0 --library lomo-2.0  lomo-2.0.gi
-#lomo-2.0.gi:
-#	$(VALA_GEN_INTROSPECT) lomo-2.0 $(top_builddir)/lomo
-#	$(VAPIGEN) --pkg GLib-@GLIB_API_VERSION@ --pkg Gst-@GST_API_VERSION@ --library Lomo-2.0 lomo-2.0.gi
-#
-#BUILT_SOURCES += lomo-2.0.gi
-
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = --warn-all
-INTROSPECTION_COMPILER_ARGS = 
+INTROSPECTION_COMPILER_ARGS =
 
 if HAVE_INTROSPECTION
 Lomo-2.0.gir: liblomo-2.0.la

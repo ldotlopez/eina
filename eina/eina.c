@@ -111,6 +111,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		}
 	}
 
+
 	PeasEngine *engine = peas_engine_get_default();
 	peas_engine_enable_loader (engine, "python");
 
@@ -245,7 +246,6 @@ gint main(gint argc, gchar *argv[])
 {
 	g_type_init();
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
-	gtk_init(&argc, &argv);
 
 	for (guint i = 0; i < argc; i++)
 	{
@@ -255,6 +255,7 @@ gint main(gint argc, gchar *argv[])
 			return 0;
 		}
 	}
+	gtk_init(&argc, &argv);
 
 
 	gchar *tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);

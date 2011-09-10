@@ -8,6 +8,7 @@ includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
 include_HEADERS = \
 	eina-application.h         \
 	eina-activatable.h         \
+	eina-extension.h           \
 	eina-file-chooser-dialog.h \
 	eina-file-utils.h          \
 	eina-fs.h                  \

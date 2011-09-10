@@ -1,12 +1,12 @@
-diff -Nru a/configure.ac b/configure.ac
---- a/configure.ac	2011-06-10 20:45:30.000000000 +0200
-+++ b/configure.ac	2011-06-11 18:34:29.481302820 +0200
+diff -Nru eina-0.12.0.orig//configure.ac eina-0.12.0/configure.ac
+--- eina-0.12.0.orig//configure.ac	2011-09-10 15:29:14.000000000 +0200
++++ eina-0.12.0/configure.ac	2011-09-10 16:11:02.872500349 +0200
 @@ -1,7 +1,7 @@
  #
  # Init package
  #
--AC_INIT([Eina],[0.10.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
-+AC_INIT([Eina],[0.10.0],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
+-AC_INIT([Eina],[0.12.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
++AC_INIT([Eina],[0.12.0],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
  AC_CONFIG_HEADERS([config.h])
  
  #
@@ -16,6 +16,6 @@ diff -Nru a/configure.ac b/configure.ac
  #
 -GETTEXT_PACKAGE="eina"
 +GETTEXT_PACKAGE="eina-player"
- EINA_API_VERSION="0.10"
- EINA_VERSION="0.10.0"
- EINA_CODENAME="La primavera"              # Delafe y las flores azules
+ EINA_API_VERSION="0.12"
+ EINA_VERSION="0.12.0"
+ EINA_CODENAME="Rise"                      # Primal scream

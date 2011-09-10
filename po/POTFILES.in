@@ -1,36 +1,33 @@
 [encoding: UTF-8]
 gel/gel.h
-gel/gel-io.h
-gel/gel-io-scanner.c
-gel/gel-io-scanner.h
 gel/gel-job-queue.c
 gel/gel-job-queue.h
+gel/gel-marshallers.list
 gel/gel-misc.c
 gel/gel-misc.h
-gel/gel-plugin.c
-gel/gel-plugin-engine.c
-gel/gel-plugin-engine.h
-gel/gel-plugin.h
-gel/gel-plugin-info.c
-gel/gel-plugin-info.h
 gel/gel-string.c
 gel/gel-string.h
 gel/gel-str-parser.c
 gel/gel-str-parser.h
+
+gel/gel-io.h
+gel/gel-io-scanner.c
+gel/gel-io-scanner.h
+
+gel/gel-ui.h
 gel/gel-ui-dialogs.c
 gel/gel-ui-dialogs.h
 gel/gel-ui-generic.c
 gel/gel-ui-generic.h
-gel/gel-ui.h
-gel/gel-ui-plugin-manager.c
-gel/gel-ui-plugin-manager.h
+gel/gel-ui-scale.c
+gel/gel-ui-scale.h
 gel/gel-ui-utils.c
 gel/gel-ui-utils.h
-gel/gel-ui-utils.c
-gel/gel-ui-utils.h
-[type: gettext/glade]gel/gel-ui-plugin-manager.ui
+
 
 lomo/lomo.h
+lomo/lomo-logger.c
+lomo/lomo-logger.h
 lomo/lomo-metadata-parser.c
 lomo/lomo-metadata-parser.h
 lomo/lomo-player.c
@@ -44,10 +41,12 @@ lomo/lomo-stream.h
 lomo/lomo-util.c
 lomo/lomo-util.h
 
-eina/ext/curl-engine.c
-eina/ext/curl-engine.h
+
+eina/ext/eina-activatable.c
+eina/ext/eina-activatable.h
 eina/ext/eina-application.c
 eina/ext/eina-application.h
+eina/ext/eina-extension.h
 eina/ext/eina-file-chooser-dialog.c
 eina/ext/eina-file-chooser-dialog.h
 eina/ext/eina-file-utils.c
@@ -58,70 +57,80 @@ eina/ext/eina-stock.c
 eina/ext/eina-stock.h
 eina/ext/eina-window.c
 eina/ext/eina-window.h
-
 eina/eina.c
-eina/eina-plugin.c
-eina/eina-plugin.h
 
-eina/adb/adb.c
-eina/adb/adb.h
+
 eina/adb/eina-adb.c
 eina/adb/eina-adb.h
 eina/adb/eina-adb-lomo.c
 eina/adb/eina-adb-lomo.h
+eina/adb/eina-adb-plugin.c
+eina/adb/eina-adb-plugin.h
 eina/adb/eina-adb-upgrade.c
 eina/adb/register.c
 eina/adb/register.h
 
-eina/art/art.c
-eina/art/art.h
+
 eina/art/eina-art-backend.c
 eina/art/eina-art-backend.h
 eina/art/eina-art.c
 eina/art/eina-art.h
+eina/art/eina-art-plugin.c
+eina/art/eina-art-plugin.h
 eina/art/eina-art-search.c
 eina/art/eina-art-search.h
 eina/art/eina-art-test-backends.c
 eina/art/eina-art-test-backends.h
 
-eina/clutty/clutty.c
+
+eina/clutty/eina-clutty-plugin.c
 eina/clutty/eina-cover-clutter.c
 eina/clutty/eina-cover-clutter.h
 
-eina/dbus/dbus.c
-eina/dbus/lomo-player-instropection.xml.h
-eina/dock/dock.c
-eina/dock/dock.h
+
+eina/dbus/eina-dbus-plugin.c
+
+
 eina/dock/eina-dock.c
 eina/dock/eina-dock.h
+eina/dock/eina-dock-plugin.c
+eina/dock/eina-dock-plugin.h
 eina/dock/eina-dock-tab.c
 eina/dock/eina-dock-tab.h
 
-eina/fieshta/eina-fiestha-behaviour.c
-eina/fieshta/eina-fiestha-behaviour.h
-eina/fieshta/fieshta.c
-eina/fieshta/fieshta.h
 
-eina/lastfm/lastfm.c
+eina/fieshta/eina-fieshta-behaviour.c
+eina/fieshta/eina-fieshta-behaviour.h
+eina/fieshta/eina-fieshta-plugin.c
+eina/fieshta/eina-fieshta-plugin.h
+
+
+eina/lastfm/eina-lastfm-plugin.c
 eina/lastfm/lastfm-priv.h
 [type: gettext/glade]eina/lastfm/preferences.ui
 
-eina/lomo/lomo.c
-eina/lomo/lomo.h
+
+eina/lomo/eina-lomo-plugin.c
+eina/lomo/eina-lomo-plugin.h
+
 
 eina/mpris/eina-mpris-player.c
 eina/mpris/eina-mpris-player.h
 eina/mpris/eina-mpris-player-spec.h
-eina/mpris/mpris.c
+eina/mpris/eina-mpris-plugin.c
+eina/mpris/eina-mpris-plugin.h
+
 
 eina/muine/eina-muine.c
 eina/muine/eina-muine.h
-eina/muine/muine.c
-eina/muine/muine.h
+eina/muine/eina-muine-plugin.c
+eina/muine/eina-muine-plugin.h
 [type: gettext/glade]eina/muine/eina-muine.ui
 
-eina/ntfy/ntfy.c
-eina/ntfy/ntfy.h
+
+eina/ntfy/eina-ntfy-plugin.c
+eina/ntfy/eina-ntfy-plugin.h
+
 
 eina/player/eina-cover.c
 eina/player/eina-cover.h
@@ -129,26 +138,35 @@ eina/player/eina-cover-image.c
 eina/player/eina-cover-image.h
 eina/player/eina-player.c
 eina/player/eina-player.h
+eina/player/eina-player-plugin.c
+eina/player/eina-player-plugin.h
 eina/player/eina-seek.c
 eina/player/eina-seek.h
-eina/player/player.c
-eina/player/player.h
 [type: gettext/glade]eina/player/eina-player.ui
 [type: gettext/glade]eina/player/preferences.ui
 
+
 eina/playlist/eina-playlist.c
 eina/playlist/eina-playlist.h
-eina/playlist/eina-playlist-ui.h
-eina/playlist/playlist.c
-eina/playlist/playlist.h
+eina/playlist/eina-playlist-plugin.c
+eina/playlist/eina-playlist-plugin.h
 [type: gettext/glade]eina/playlist/eina-playlist.ui
+
 
 eina/preferences/eina-preferences-dialog.c
 eina/preferences/eina-preferences-dialog.h
+eina/preferences/eina-preferences-plugin.c
+eina/preferences/eina-preferences-plugin.h
 eina/preferences/eina-preferences-tab.c
 eina/preferences/eina-preferences-tab.h
-eina/preferences/preferences.c
-eina/preferences/preferences.h
 
-eina/statusicon/statusicon.c
 
+eina/pythonconsole/console.py
+eina/pythonconsole/pythonconsole.py
+
+
+eina/pythonhello/pythonhello.py
+
+
+eina/status-icon/eina-status-icon-plugin.c
+eina/status-icon/eina-status-icon-plugin.h
