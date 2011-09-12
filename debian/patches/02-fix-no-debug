@@ -1,0 +1,13 @@
+diff -Nru eina-0.12.0.orig//eina/art/eina-art-plugin.c eina-0.12.0/eina/art/eina-art-plugin.c
+--- eina-0.12.0.orig//eina/art/eina-art-plugin.c	2011-09-10 13:43:50.000000000 +0200
++++ eina-0.12.0/eina/art/eina-art-plugin.c	2011-09-12 19:57:31.782993390 +0200
+@@ -234,8 +234,8 @@
+ art_search_cb(EinaArtSearch *search, gpointer data)
+ {
+ 	const gchar *res = eina_art_search_get_result(search);
+-	#if DEBUG
+ 	LomoStream *stream = eina_art_search_get_stream(search);
++	#if DEBUG
+ 	debug ("Got result for stream %p: %p", stream, res);
+ 	#endif
+ 

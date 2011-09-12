@@ -1,1 +1,4 @@
-package-name
+00-package-name
+01-remove-debug
+02-fix-no-debug
+03-fix-po-skip

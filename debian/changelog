@@ -1,3 +1,17 @@
+eina-player (0.12.0-ppa3) natty; urgency=low
+
+  * [patch 01-remove-debug] Fix excesive debug
+  * [patch 02-fix-no-debug] Fix compilation with debug disabled
+  * [patch 03-fix-po-skip]  Fix 'make check'
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 12 Sep 2011 20:00:06 +0200
+
+eina-player (0.12.0-ppa2) natty; urgency=low
+
+  * Fix deps
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 12 Sep 2011 09:52:35 +0200
+
 eina-player (0.12.0-ppa1) natty; urgency=low
 
   * New upstream release
