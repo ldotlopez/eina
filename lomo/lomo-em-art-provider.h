@@ -38,6 +38,8 @@ GType lomo_em_art_provider_get_type (void);
 LomoEMArtProvider* lomo_em_art_provider_new (void);
 void               lomo_em_art_provider_set_player(LomoEMArtProvider *self, LomoPlayer *lomo);
 
+void               lomo_em_art_provider_init_stream(LomoEMArtProvider *self, LomoStream *stream);
+
 G_END_DECLS
 
 #endif /* __LOMO_EM_ART_PROVIDER_H__ */

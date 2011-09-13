@@ -2,6 +2,7 @@
 #include <glib/gi18n.h>
 #include "lomo/lomo-playlist.h"
 #include "lomo/lomo-metadata-parser.h"
+#include "lomo/lomo-em-art-provider.h"
 #include "lomo/lomo-stats.h"
 #include "lomo/lomo-util.h"
 #include "lomo/lomo-logger.h"
@@ -17,6 +18,7 @@ struct _LomoPlayerPrivate {
 	GQueue             *queue;
 	LomoMetadataParser *meta;
 	LomoStats          *stats;
+	LomoEMArtProvider  *art;
 
 	GList *hooks, *hooks_data;
 
@@ -296,6 +298,11 @@ player_dispose (GObject *object)
 	{
 		g_object_unref(priv->meta);
 		priv->meta = NULL;
+	}
+	if (priv->art)
+	{
+		g_object_unref(priv->art);
+		priv->art = NULL;
 	}
 	if (priv->queue)
 	{
@@ -846,6 +853,7 @@ lomo_player_init (LomoPlayer *self)
 	priv->mute     = FALSE;
 	priv->playlist = lomo_playlist_new();
 	priv->meta     = lomo_metadata_parser_new();
+	priv->art      = lomo_em_art_provider_new();
 	priv->queue    = g_queue_new();
 	priv->stats    = lomo_stats_watch(self);
 
@@ -862,6 +870,8 @@ lomo_player_init (LomoPlayer *self)
 	const gchar *lomo_debug_env = g_getenv("LIBLOMO_DEBUG");
 	if (lomo_debug_env && g_str_equal(lomo_debug_env, "1"))
 		lomo_player_start_logger(self);
+
+	lomo_em_art_provider_set_player(priv->art, self);
 }
 
 /**
