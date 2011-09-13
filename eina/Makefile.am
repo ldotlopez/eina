@@ -1,7 +1,6 @@
 include $(top_srcdir)/build/Makefile.am.common
 
 SUBDIRS = ext   \
-	art           \
 	dbus          \
 	dock          \
 	fieshta       \
