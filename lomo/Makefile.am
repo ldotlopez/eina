@@ -1,7 +1,7 @@
 include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = liblomo-2.0.la
-liblomo_2_0_la_LDFLAGS = -export-dynamic -version-info 2:0:0 @GST_LIBS@
+liblomo_2_0_la_LDFLAGS = -export-dynamic -version-info 2:0:0 -L$(top_builddir)/gel/.libs -lgel-2.0 @GST_LIBS@
 liblomo_2_0_la_CFLAGS = -DLOMO_COMPILATION @GST_CFLAGS@ @DEBUG_CFLAGS@
 
 includedir = $(prefix)/include/lomo-2.0/lomo
@@ -9,6 +9,8 @@ include_HEADERS = \
 	lomo.h                  \
 	lomo-em-art.h           \
 	lomo-em-art-backend.h   \
+	lomo-em-art-backends.h  \
+	lomo-em-art-provider.h  \
 	lomo-em-art-search.h    \
 	lomo-player.h           \
 	lomo-metadata-parser.h  \
@@ -21,6 +23,8 @@ liblomo_2_0_la_SOURCES = \
 	$(include_HEADERS)     \
 	lomo-em-art.c          \
 	lomo-em-art-backend.c  \
+	lomo-em-art-backends.c \
+	lomo-em-art-provider.c \
 	lomo-em-art-search.c   \
 	lomo-logger.c          \
 	lomo-stats.h           \
@@ -56,6 +60,7 @@ if HAVE_INTROSPECTION
 Lomo-2.0.gir: liblomo-2.0.la
 Lomo_2_0_gir_INCLUDES = Gst-@GST_API_VERSION@
 Lomo_2_0_gir_PACKAGES = gstreamer-@GST_API_VERSION@
+Lomo_2_0_gir_LDADD  = -L$(top_builddir)/gel/.libs -lgel-2.0
 Lomo_2_0_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
 Lomo_2_0_gir_LIBS = liblomo-2.0.la
 Lomo_2_0_gir_FILES = \

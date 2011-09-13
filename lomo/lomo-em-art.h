@@ -57,10 +57,9 @@ GType lomo_em_art_get_type (void);
 
 LomoEMArt* lomo_em_art_new (void);
 
-LomoEMArtSearch*
-lomo_em_art_search(LomoEMArt *art, LomoStream *stream, LomoEMArtSearchCallback callback, gpointer data);
-void
-lomo_em_art_cancel(LomoEMArt *art, LomoEMArtSearch *search);
+LomoEMArtSearch* lomo_em_art_search(LomoEMArt *art,
+	LomoStream *stream, LomoEMArtSearchCallback callback, gpointer data);
+void             lomo_em_art_cancel(LomoEMArt *art, LomoEMArtSearch *search);
 
 G_END_DECLS
 

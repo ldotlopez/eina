@@ -17,21 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_EM_ART_SEARCH
-#define _LOMO_EM_ART_SEARCH
+#ifndef __LOMO_EM_ART_SEARCH_H__
+#define __LOMO_EM_ART_SEARCH_H__
 
-#include <glib-object.h>
-#include <lomo/lomo-player.h>
+#include <lomo/lomo-stream.h>
 
 G_BEGIN_DECLS
 
-#define EINA_TYPE_ART_SEARCH lomo_em_art_search_get_type()
+#define LOMO_TYPE_EM_ART_SEARCH lomo_em_art_search_get_type()
 
-#define LOMO_EM_ART_SEARCH(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_ART_SEARCH, LomoEMArtSearch))
-#define LOMO_EM_ART_SEARCH_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_ART_SEARCH, LomoEMArtSearchClass))
-#define LOMO_IS_EM_ART_SEARCH(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_ART_SEARCH))
-#define LOMO_IS_EM_ART_SEARCH_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_ART_SEARCH))
-#define LOMO_EM_ART_SEARCH_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_ART_SEARCH, LomoEMArtSearchClass))
+#define LOMO_EM_ART_SEARCH(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_EM_ART_SEARCH, LomoEMArtSearch))
+#define LOMO_EM_ART_SEARCH_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  LOMO_TYPE_EM_ART_SEARCH, LomoEMArtSearchClass))
+#define LOMO_IS_EM_ART_SEARCH(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_EM_ART_SEARCH))
+#define LOMO_IS_EM_ART_SEARCH_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  LOMO_TYPE_EM_ART_SEARCH))
+#define LOMO_EM_ART_SEARCH_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  LOMO_TYPE_EM_ART_SEARCH, LomoEMArtSearchClass))
 
 typedef struct {
 	GObject parent;

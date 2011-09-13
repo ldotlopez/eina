@@ -23,11 +23,10 @@
 
 G_DEFINE_TYPE (LomoEMArtSearch, lomo_em_art_search, G_TYPE_OBJECT)
 
-#define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_SEARCH, LomoEMArtSearchPrivate))
+#define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_EM_ART_SEARCH, LomoEMArtSearchPrivate))
 
 #define DEBUG 0
 #define DEBUG_PREFIX "LomoEMArtSearch"
-
 #if DEBUG
 #	define debug(...) g_debug(DEBUG_PREFIX" "__VA_ARGS__)
 #else
@@ -42,10 +41,10 @@ enum {
 };
 
 struct _LomoEMArtSearchPrivate {
-	GObject               *domain;
-	LomoStream            *stream;
+	GObject                 *domain;
+	LomoStream              *stream;
 	LomoEMArtSearchCallback  callback;
-	gpointer               callback_data;
+	gpointer                 callback_data;
 
 	gchar *stringify;
 
@@ -59,7 +58,7 @@ static void lomo_em_art_search_weak_notify_cb(LomoEMArtSearch *search, GObject *
 	g_return_if_fail(LOMO_IS_EM_ART_SEARCH(search));
 	LomoEMArtSearchPrivate *priv = GET_PRIVATE(search);
 
-	g_warning(N_("Referenced %s from search '%s' was destroyed."),
+	g_warning(_("Referenced %s from search '%s' was destroyed."),
 		(old == priv->domain) ? "domain" : "stream",
 		lomo_em_art_search_stringify(search));
 }
@@ -72,7 +71,9 @@ lomo_em_art_search_dispose (GObject *object)
 
 	if (priv->bpointer)
 	{
-		g_warning(N_("Search '%s' is running at dispose phase, calling callback and expect problems."), lomo_em_art_search_stringify(search));
+		g_warning(
+			_("Search '%s' is running at dispose phase, calling callback and expect problems."),
+			lomo_em_art_search_stringify(search));
 		priv->bpointer = NULL;
 	}
 
@@ -112,12 +113,14 @@ lomo_em_art_search_dispose (GObject *object)
 }
 
 static void
-eina_art_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+lomo_em_art_search_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
+	LomoEMArtSearch *self = LOMO_EM_ART_SEARCH(object);
+
 	switch (property_id)
 	{
 	case PROP_RESULT:
-		g_value_set_string(value, lomo_em_art_search_get_result(LOMO_EM_ART_SEARCH(object)));
+		g_value_set_string(value, lomo_em_art_search_get_result(self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -133,7 +136,7 @@ lomo_em_art_search_class_init (LomoEMArtSearchClass *klass)
 	g_type_class_add_private (klass, sizeof (LomoEMArtSearchPrivate));
 
 	object_class->dispose = lomo_em_art_search_dispose;
-	object_class->get_property = eina_art_get_property;
+	object_class->get_property = lomo_em_art_search_get_property;
 
 	/**
 	 * LomoEMArtSearch:result:
@@ -159,7 +162,7 @@ lomo_em_art_search_init (LomoEMArtSearch *self)
  * @callback_data: Data to pass to @callback
  *
  * Creates (but not initiates) a new art search. This function is not mean to
- * be used directly but #EinaArt.
+ * be used directly but #LomoEMArt.
  */
 LomoEMArtSearch*
 lomo_em_art_search_new (GObject *domain, LomoStream *stream, LomoEMArtSearchCallback callback, gpointer callback_data)
@@ -168,7 +171,7 @@ lomo_em_art_search_new (GObject *domain, LomoStream *stream, LomoEMArtSearchCall
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), NULL);
 	g_return_val_if_fail(callback, NULL);
 
-	LomoEMArtSearch *search = g_object_new (EINA_TYPE_ART_SEARCH, NULL);
+	LomoEMArtSearch *search = g_object_new (LOMO_TYPE_EM_ART_SEARCH, NULL);
 	LomoEMArtSearchPrivate *priv = GET_PRIVATE(search);
 
 	priv->domain = g_object_ref(domain);
@@ -189,7 +192,7 @@ lomo_em_art_search_new (GObject *domain, LomoStream *stream, LomoEMArtSearchCall
  * lomo_em_art_search_get_domain:
  * @search: An #LomoEMArtSearch
  *
- * Gets the domain of the search. Meant for be used by #EinaArt
+ * Gets the domain of the search. Meant for be used by #LomoEMArt
  *
  * Returns: (transfer none): The domain
  */
@@ -203,7 +206,7 @@ lomo_em_art_search_get_domain(LomoEMArtSearch *search)
  * lomo_em_art_search_get_stream:
  * @search: An #LomoEMArtSearch
  *
- * Gets the stream of the search. Meant for be used by #EinaArt
+ * Gets the stream of the search. Meant for be used by #LomoEMArt
  *
  * Returns: (transfer none): The #LomoStream
  */
@@ -228,7 +231,7 @@ lomo_em_art_search_set_bpointer(LomoEMArtSearch *search, gpointer bpointer)
 
 	if (bpointer && priv->bpointer)
 	{
-		g_warning(N_("Trying to set a bpointer while search '%s' already has a bpointer, this is a bug. You should set bpointer to NULL before trying to do this."),
+		g_warning(_("Trying to set a bpointer while search '%s' already has a bpointer, this is a bug. You should set bpointer to NULL before trying to do this."),
 			lomo_em_art_search_stringify(search));
 		g_return_if_fail(priv->bpointer == NULL);
 	}
@@ -252,11 +255,11 @@ lomo_em_art_search_get_bpointer(LomoEMArtSearch *search)
 
 /**
  * lomo_em_art_search_set_result:
- * @search: The #EinaSearch
+ * @search: The #LomoEMArtSearch
  * @result: URI for art data
  *
  * Stores result into @search.
- * This functions is meant to by used by #EinaArtBackend implementations to
+ * This functions is meant to by used by #LomoEMArtBackend implementations to
  * store result into #LomoEMArtSearch
  */
 void
@@ -269,7 +272,7 @@ lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *result)
 
 	if (result && priv->result)
 	{
-		g_warning(N_("Trying to set a result in search '%s' while it already has one, this is a bug and will be ignored"),
+		g_warning(_("Trying to set a result in search '%s' while it already has one, this is a bug and will be ignored"),
 			lomo_em_art_search_stringify(search));
 		g_return_if_fail(priv->result == NULL);
 	}

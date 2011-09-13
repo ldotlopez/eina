@@ -18,7 +18,7 @@
  */
 
 /**
- * SECTION:eina-art-backend
+ * SECTION:lomo-em-art-backend
  * @title:LomoEMArtBackend
  * @short_description: Pluggable backends for art discovery
  *
@@ -32,7 +32,7 @@
 G_DEFINE_TYPE (LomoEMArtBackend, lomo_em_art_backend, G_TYPE_OBJECT)
 
 #define GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_BACKEND, LomoEMArtBackendPrivate))
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), LOMO_TYPE_EM_ART_BACKEND, LomoEMArtBackendPrivate))
 
 #define ENABLE_IDLE_RUN 1
 
@@ -56,7 +56,7 @@ enum {
 	FINISH,
 	LAST_SIGNAL
 };
-guint signals[LAST_SIGNAL] = { 0 };
+static guint signals[LAST_SIGNAL] = { 0 };
 
 static void
 lomo_em_art_backend_dispose (GObject *object)
@@ -108,7 +108,7 @@ lomo_em_art_backend_class_init (LomoEMArtBackendClass *klass)
 	 * @search: The finished #LomoEMArtSearch
 	 *
 	 * Emitted after the @search has beed finalized. This signal is mean to be
-	 * handled by #EinaArt not for direct use.
+	 * handled by #LomoEMArt not for direct use.
 	 */
 	signals[FINISH] = g_signal_new("finish",
 		G_OBJECT_CLASS_TYPE (object_class),
@@ -145,7 +145,7 @@ lomo_em_art_backend_new (const gchar *name,
 	g_return_val_if_fail(name,   NULL);
 	g_return_val_if_fail(search, NULL);
 
-	LomoEMArtBackend *backend = g_object_new (EINA_TYPE_ART_BACKEND, NULL);
+	LomoEMArtBackend *backend = g_object_new (LOMO_TYPE_EM_ART_BACKEND, NULL);
 	LomoEMArtBackendPrivate *priv = GET_PRIVATE(backend);
 	priv->name = g_strdup(name);
 	priv->search = search;
@@ -269,7 +269,7 @@ lomo_em_art_backend_cancel(LomoEMArtBackend *backend, LomoEMArtSearch *search)
  *
  * Finalizes the seach in @backend, this function had to be called after the
  * search function from @backend has do they job. If #LomoEMArtSearch has result
- * it will be passed to #EinaArt object to be dispached, otherwise the next
+ * it will be passed to #LomoEMArt object to be dispached, otherwise the next
  * backend will try to find art data.
  */
 void

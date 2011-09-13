@@ -25,13 +25,13 @@
 
 G_BEGIN_DECLS
 
-#define EINA_TYPE_ART_BACKEND lomo_em_art_backend_get_type()
+#define LOMO_TYPE_EM_ART_BACKEND lomo_em_art_backend_get_type()
 
-#define LOMO_EM_ART_BACKEND(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), EINA_TYPE_ART_BACKEND, LomoEMArtBackend))
-#define LOMO_EM_ART_BACKEND_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  EINA_TYPE_ART_BACKEND, LomoEMArtBackendClass))
-#define LOMO_IS_EM_ART_BACKEND(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EINA_TYPE_ART_BACKEND))
-#define LOMO_IS_EM_ART_BACKEND_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  EINA_TYPE_ART_BACKEND))
-#define LOMO_EM_ART_BACKEND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  EINA_TYPE_ART_BACKEND, LomoEMArtBackendClass))
+#define LOMO_EM_ART_BACKEND(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_EM_ART_BACKEND, LomoEMArtBackend))
+#define LOMO_EM_ART_BACKEND_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  LOMO_TYPE_EM_ART_BACKEND, LomoEMArtBackendClass))
+#define LOMO_IS_EM_ART_BACKEND(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_EM_ART_BACKEND))
+#define LOMO_IS_EM_ART_BACKEND_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  LOMO_TYPE_EM_ART_BACKEND))
+#define LOMO_EM_ART_BACKEND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  LOMO_TYPE_EM_ART_BACKEND, LomoEMArtBackendClass))
 
 typedef struct {
 	/* <private> */
@@ -39,6 +39,7 @@ typedef struct {
 } LomoEMArtBackend;
 
 typedef struct {
+	/* <private> */
 	GObjectClass parent_class;
 	void (*finish) (LomoEMArtBackend *backend, LomoEMArtSearch *search);
 } LomoEMArtBackendClass;
