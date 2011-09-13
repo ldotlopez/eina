@@ -1,3 +1,11 @@
+====== Eina 0.14.0 ======
+
+- Art metadata is now handled in liblomo
+  More sophisticated interfaces on top of liblomo
+
+- liblomo depends on libgel
+  [!] Try to revert this
+
 ====== Eina 0.12.0 ======
 
 Eina 0.12.0 is an stable release but should be understood as a tecnology preview
