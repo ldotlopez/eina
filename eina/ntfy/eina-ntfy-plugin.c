@@ -20,7 +20,6 @@
 #include "eina-ntfy-plugin.h"
 #include <libnotify/notify.h>
 #include <eina/lomo/eina-lomo-plugin.h>
-#include <eina/art/eina-art-plugin.h>
 
 /*
  * EinaExtension boilerplate code

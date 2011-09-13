@@ -47,8 +47,8 @@ eina_muine_plugin_activate(EinaActivatable *activatable, EinaApplication *app, G
 
 	priv->dock_widget = eina_muine_new();
 	g_object_set((GObject *) priv->dock_widget,
-		"adb",         eina_application_get_adb(app),
 		"lomo-player", eina_application_get_lomo(app),
+		"adb",         eina_application_get_adb(app),
 		NULL);
 
 	GSettings *settings = eina_application_get_settings(app, EINA_MUINE_PREFERENCES_DOMAIN);

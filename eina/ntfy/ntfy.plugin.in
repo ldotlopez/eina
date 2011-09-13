@@ -1,7 +1,7 @@
 [Plugin]
 Module=ntfy
 IAge=2
-Depends=lomo;art
+Depends=lomo
 Name=Notify plugin
 Description=Notify plugin
 Icon=ntfy.png

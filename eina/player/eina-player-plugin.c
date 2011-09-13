@@ -18,10 +18,10 @@
  */
 
 #include "eina-player-plugin.h"
+#include <lomo/lomo-em-art-provider.h>
 #include <eina/ext/eina-fs.h>
 #include <eina/ext/eina-stock.h>
 #include <eina/ext/eina-extension.h>
-#include <eina/art/eina-art-plugin.h>
 #include <eina/dock/eina-dock-plugin.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>
@@ -83,7 +83,7 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	GtkWidget *player = eina_player_new();
 	g_object_set(player,
 		"lomo-player",    eina_application_get_interface(app, "lomo"),
-		"default-pixbuf", gdk_pixbuf_new_from_file(eina_art_plugin_get_default_cover_path(), NULL),
+		"default-pixbuf", gdk_pixbuf_new_from_file(lomo_em_art_provider_get_default_cover_path(), NULL),
 		"stream-markup",  g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
 		NULL);
 	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, app);

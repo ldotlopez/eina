@@ -22,7 +22,7 @@
 #include "eina-muine-ui.h"
 
 #include <glib/gi18n.h>
-#include <eina/art/eina-art-plugin.h>
+#include <lomo/lomo-em-art-provider.h>
 
 G_DEFINE_TYPE (EinaMuine, eina_muine, GEL_UI_TYPE_GENERIC)
 
@@ -30,7 +30,7 @@ G_DEFINE_TYPE (EinaMuine, eina_muine, GEL_UI_TYPE_GENERIC)
 
 struct _EinaMuinePrivate {
 	// Props
-	EinaArt    *art;
+	LomoEMArtProvider *art;
 	EinaAdb    *adb;
 	LomoPlayer *lomo;
 	gint        mode;
@@ -156,7 +156,6 @@ static void
 eina_muine_init (EinaMuine *self)
 {
 	EinaMuinePrivate *priv = self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_MUINE, EinaMuinePrivate));
-	priv->art = eina_art_new();
 	priv->stream_iter_map = g_hash_table_new_full(g_direct_hash, g_direct_equal, (GDestroyNotify) g_object_unref, (GDestroyNotify) gtk_tree_iter_free);
 }
 
@@ -226,7 +225,9 @@ eina_muine_set_lomo_player(EinaMuine *self, LomoPlayer *lomo)
 
 	EinaMuinePrivate *priv = self->priv;
 	gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
-	
+
+	priv->art  = lomo_em_art_provider_new();
+	lomo_em_art_provider_set_player(priv->art, priv->lomo);
 	priv->lomo = g_object_ref(lomo);
 
 	g_object_notify((GObject *) self, "lomo-player");
@@ -417,7 +418,7 @@ muine_update(EinaMuine *self)
 
 		static GdkPixbuf *default_pb = NULL;
 		if (!default_pb)
-			default_pb = gdk_pixbuf_new_from_file_at_scale(eina_art_plugin_get_default_cover_path(), DEFAULT_SIZE, DEFAULT_SIZE, TRUE, NULL);
+			default_pb = gdk_pixbuf_new_from_file_at_scale(lomo_em_art_provider_get_default_cover_path(), DEFAULT_SIZE, DEFAULT_SIZE, TRUE, NULL);
 
 		GtkTreeIter iter;
 		gtk_list_store_insert_with_values(model, &iter, 0,
@@ -430,7 +431,7 @@ muine_update(EinaMuine *self)
 		g_hash_table_insert(priv->stream_iter_map, ds->stream, gtk_tree_iter_copy(&iter));
 		lomo_stream_set_all_tags_flag(ds->stream, TRUE);
 		g_signal_connect(ds->stream, "extended-metadata-updated", (GCallback) stream_em_updated_cb, self);
-		eina_art_plugin_init_stream(priv->art, ds->stream);
+		lomo_em_art_provider_init_stream(priv->art, ds->stream);
 
 		g_free(ds->artist);
 		g_free(ds->album);
@@ -452,7 +453,7 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 
 	static const gchar *loading_cover_uri = NULL;
 	if (!loading_cover_uri)
-		loading_cover_uri = eina_art_plugin_get_loading_cover_uri();
+		loading_cover_uri = lomo_em_art_provider_get_loading_cover_uri();
 
 	EinaMuinePrivate *priv = self->priv;
 

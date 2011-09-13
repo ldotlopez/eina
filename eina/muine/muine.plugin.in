@@ -1,7 +1,7 @@
 [Plugin]
 Module=muine
 IAge=2
-Depends=adb;lomo;art
+Depends=adb;lomo
 Name=Muine plugin
 Description=Muine plugin
 Authors=@EINA_AUTHORS@

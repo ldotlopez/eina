@@ -2,7 +2,7 @@
 Module=player
 IAge=2
 Hidden=1
-Depends=lomo;art;preferences;dock
+Depends=lomo;preferences;dock
 Name=Player plugin
 Description=Player plugin
 Authors=@EINA_AUTHORS@

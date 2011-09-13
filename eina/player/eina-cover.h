@@ -24,7 +24,6 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 #include <lomo/lomo-player.h>
-#include <eina/art/eina-art.h>
 
 G_BEGIN_DECLS
 
