@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.11.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.13.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -21,8 +21,9 @@ AM_PATH_PYTHON
 #
 GETTEXT_PACKAGE="eina"
 EINA_API_VERSION="0.12"
-EINA_VERSION="0.11.0"
+EINA_VERSION="0.13.0"
 EINA_CODENAME="Dead bodies everywhere"    # git codename
+EINA_CODENAME_0_12_0="Rise"               # Primal scream
 EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
 EINA_CODENAME_0_9_4="Trained"             # Najwa
 EINA_CODENAME_0_9_3="White rabbit"        # Jefferson airplane
