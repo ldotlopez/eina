@@ -31,6 +31,12 @@ gel/gel-ui-utils.h
 [type: gettext/glade]gel/gel-ui-plugin-manager.ui
 
 lomo/lomo.h
+lomo/lomo-em-art.c
+lomo/lomo-em-art.h
+lomo/lomo-em-art-backend.c
+lomo/lomo-em-art-backend.h
+lomo/lomo-em-art-search.c
+lomo/lomo-em-art-search.h
 lomo/lomo-metadata-parser.c
 lomo/lomo-metadata-parser.h
 lomo/lomo-player.c

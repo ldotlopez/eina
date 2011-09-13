@@ -7,6 +7,9 @@ liblomo_2_0_la_CFLAGS = -DLOMO_COMPILATION @GST_CFLAGS@ @DEBUG_CFLAGS@
 includedir = $(prefix)/include/lomo-2.0/lomo
 include_HEADERS = \
 	lomo.h                  \
+	lomo-em-art.h           \
+	lomo-em-art-backend.h   \
+	lomo-em-art-search.h    \
 	lomo-player.h           \
 	lomo-metadata-parser.h  \
 	lomo-stream.h           \
@@ -16,7 +19,10 @@ include_HEADERS = \
 lomodir = $(libdir)
 liblomo_2_0_la_SOURCES = \
 	$(include_HEADERS)     \
-	lomo-logger.c \
+	lomo-em-art.c          \
+	lomo-em-art-backend.c  \
+	lomo-em-art-search.c   \
+	lomo-logger.c          \
 	lomo-stats.h           \
 	lomo-playlist.h        \
 	lomo-marshallers.c     \
