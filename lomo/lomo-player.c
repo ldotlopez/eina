@@ -7,6 +7,14 @@
 #include "lomo/lomo-logger.h"
 #include "lomo-marshallers.h"
 
+#define DEBUG 0
+#define DEBUG_PREFIX "LomoPlayer"
+#if DEBUG
+#	define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
+
 G_DEFINE_TYPE (LomoPlayer, lomo_player, G_TYPE_OBJECT)
 
 struct _LomoPlayerPrivate {
@@ -1181,10 +1189,10 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	// Check if new index is -1 and delete everything
 	if (index == -1)
 	{
-		g_debug("Going to -1...");
+		debug("Going to -1...");
 		if (priv->pipeline != NULL)
 		{
-			g_debug("  nuking pipeline");
+			debug("  nuking pipeline");
 			lomo_player_set_state(self, LOMO_STATE_STOP, NULL);
 			priv->vtable.set_state(priv->pipeline, GST_STATE_NULL);
 			g_object_unref(priv->pipeline);
@@ -1200,13 +1208,13 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		return TRUE;
 	}
 
-	g_debug("Going to %d...", index);
+	debug("Going to %d...", index);
 
 	// Check stream, this should never happend
 	LomoStream *stream = lomo_player_get_nth_stream(self, index);
 	if (!LOMO_IS_STREAM(stream))
 	{
-		g_debug("  stream is fucked, reboot _set_current");
+		debug("  stream is fucked, reboot _set_current");
 		g_warn_if_fail(LOMO_IS_STREAM(stream));
 		lomo_player_set_current(self, -1, NULL);
 		return FALSE;
@@ -1234,7 +1242,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		// Wipe it
 		if (priv->pipeline)
 		{
-			g_debug("Old pipeline is going to be wiped");
+			debug("Old pipeline is going to be wiped");
 			check_method_or_warn(self, set_state);
 			if (priv->vtable.set_state)
 				priv->vtable.set_state(priv->pipeline, GST_STATE_NULL);
@@ -1242,7 +1250,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 		}
 
 		// Assume new pipeline
-		g_debug("new pipeline is assumed and default values assigned");
+		debug("new pipeline is assumed and default values assigned");
 		priv->pipeline = new_pipeline;
 		lomo_player_set_volume(self, -1);         // Restore pipeline volume
 		lomo_player_set_mute  (self, priv->mute); // Restore pipeline mute
@@ -1272,7 +1280,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	if (queue_index >= 0)
 		lomo_player_dequeue(self, queue_index);
 
-	g_debug("Everything ok, fire notifies");
+	debug("Everything ok, fire notifies");
 	LomoState lomo_state = LOMO_STATE_STOP;
 	if (lomo_state_from_gst(state, &lomo_state))
 		player_set_shadow_state(self, lomo_state);
@@ -2293,19 +2301,19 @@ analize_element_msg_cb(GQuark field_id, const GValue *value, LomoPlayer *self)
 		q = g_quark_from_static_string("uri");
 	if (q == field_id)
 	{
-		g_debug("Got URI");
+		debug("Got URI");
 		gint64 pos = lomo_player_get_position(self);
 		gint64 len =  lomo_player_get_length(self);
 		gint64 b;
 		g_object_get(self->priv->pipeline, "buffer-duration", &b, NULL);
-		g_debug("Pos.: %"G_GINT64_FORMAT", len: %"G_GINT64_FORMAT"", len, pos);
+		debug("Pos.: %"G_GINT64_FORMAT", len: %"G_GINT64_FORMAT"", len, pos);
 		pos += b;
-		g_debug("Pos.: %"G_GINT64_FORMAT", len: %"G_GINT64_FORMAT"", len, pos);
+		debug("Pos.: %"G_GINT64_FORMAT", len: %"G_GINT64_FORMAT"", len, pos);
 		return FALSE;
 	}
 	/*
 	gchar *v =   g_strdup_value_contents(value);
-	g_debug("  %s: %s", g_quark_to_string(field_id), v);
+	debug("  %s: %s", g_quark_to_string(field_id), v);
 	g_free(v);
 	*/
 	return TRUE;
@@ -2320,7 +2328,7 @@ print_stats(LomoPlayer *self)
 	gint64 bsize;
 	g_object_get(self->priv->pipeline, "buffer-duration", &bsize, NULL);
 
-	g_debug(" Current diff: %"G_GINT64_FORMAT" milisecs, buffer len: %"G_GINT64_FORMAT"", len - pos, bsize);
+	debug(" Current diff: %"G_GINT64_FORMAT" milisecs, buffer len: %"G_GINT64_FORMAT"", len - pos, bsize);
 }
 #endif
 
@@ -2335,7 +2343,7 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 	LomoPlayerPrivate *priv = self->priv;
 
 	/*
-	g_debug("Got msg %s", GST_MESSAGE_TYPE_NAME(message));
+	debug("Got msg %s", GST_MESSAGE_TYPE_NAME(message));
 	print_stats(self);
 
 	if (message->structure)
@@ -2468,7 +2476,7 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 		case GST_MESSAGE_ANY:
 			break;
 		default:
-			g_debug(_("Bus got something like... '%s'"), gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
+			debug(_("Bus got something like... '%s'"), gst_message_type_get_name(GST_MESSAGE_TYPE(message)));
 			break;
 		}
 
@@ -2480,7 +2488,7 @@ about_to_finish_cb(GstElement *pipeline, LomoPlayer *self)
 {
 	LomoPlayerPrivate *priv = self->priv;
 
-	// g_debug("Got about-to-finish");
+	// debug("Got about-to-finish");
 	// print_stats(self);
 	gint next = lomo_player_get_next(self);
 	if (next < 0)
