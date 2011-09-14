@@ -31,6 +31,13 @@
 #include <glib/gi18n.h>
 
 #define ENABLE_EXPERIMENTAL 0
+#define DEBUG 0
+#define DEBUG_PREFIX "EinaPlaylist"
+#if DEBUG
+#	define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
 
 G_DEFINE_TYPE (EinaPlaylist, eina_playlist, GEL_UI_TYPE_GENERIC)
 
@@ -302,7 +309,6 @@ eina_playlist_set_stream_markup(EinaPlaylist *self, const gchar *markup)
 	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
 	priv->stream_mrkp = markup ? g_strdup(markup) : NULL;
 
-	g_debug("Update current stream");
 	g_object_notify((GObject *) self, "stream-markup");
 }
 
