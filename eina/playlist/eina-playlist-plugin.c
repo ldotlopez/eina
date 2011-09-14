@@ -38,6 +38,8 @@ EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYLIST_PLUGIN, EinaPlaylistPlugin, eina_playlis
 #define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"
 #define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"
 
+static void
+playlist_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app);
 static gboolean
 action_activated_cb(EinaPlaylist *playlist, GtkAction *action, EinaApplication *app);
 
@@ -54,6 +56,8 @@ eina_playlist_plugin_activate(EinaActivatable *activatable, EinaApplication *app
 	priv->playlist_widget = eina_playlist_new(eina_application_get_interface(app, "lomo"));
 	eina_playlist_set_stream_markup(priv->playlist_widget, g_settings_get_string(settings, EINA_PLAYLIST_STREAM_MARKUP_KEY));
 	g_signal_connect(priv->playlist_widget, "action-activated", (GCallback) action_activated_cb, app);
+
+	gel_ui_widget_enable_drop((GtkWidget *) priv->playlist_widget, (GCallback) playlist_dnd_cb, app);
 
 	priv->dock_tab = eina_application_add_dock_widget(app,
 		N_("Playlist"),
@@ -87,6 +91,17 @@ eina_playlist_plugin_deactivate(EinaActivatable *activatable, EinaApplication *a
 	}
 
 	return TRUE;
+}
+
+static void
+playlist_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app)
+{
+    g_return_if_fail(type == G_TYPE_STRING);
+
+    gchar **uris = g_uri_list_extract_uris((gchar *) data);
+    if (uris && uris[0])
+        eina_fs_load_uri_strv(app, (const gchar * const*) uris);
+    g_strfreev(uris);
 }
 
 static gboolean
