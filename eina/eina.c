@@ -146,12 +146,20 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
 	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
 
+	guint  n_req_plugins = g_strv_length(req_plugins);
 	guint  n_plugins = g_strv_length(plugins);
 	guint  i;
 	for (i = 0; i < n_plugins; i++)
 	{
 		PeasPluginInfo *info = peas_engine_get_plugin_info(engine, plugins[i]);
-		if (!info || !peas_engine_load_plugin(engine, info))
+		if (!info)
+			g_warning(_("Unable to load plugin info"));
+
+		// If plugin is hidden and is optional dont load.
+		if (peas_plugin_info_is_hidden(info) && (i >= n_req_plugins))
+			continue;
+
+		if (!peas_engine_load_plugin(engine, info))
 			g_warning(N_("Unable to load required plugin '%s'"), plugins[i]);
 	}
 	g_strfreev(plugins);
