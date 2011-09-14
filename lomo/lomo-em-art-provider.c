@@ -4,7 +4,7 @@
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG_PREFIX "LomoEMArtProvider"
 #if DEBUG
 #	define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)
@@ -244,7 +244,7 @@ lomo_em_art_provider_init_stream(LomoEMArtProvider *self, LomoStream *stream)
 	if (art_uri)
 	{
 		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) art_uri, NULL);
-		g_object_set_data((GObject *) stream, "art-uri-searched", (gpointer) TRUE);
+		// g_object_set_data((GObject *) stream, "art-uri-searched", (gpointer) TRUE);
 	}
 }
 
