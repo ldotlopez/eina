@@ -197,7 +197,8 @@ eina_window_init (EinaWindow *self)
 	gtk_ui_manager_insert_action_group(self->priv->ui_manager, self->priv->ag, 0);
 	gtk_ui_manager_ensure_update(self->priv->ui_manager);
 
-	GtkBox *tmpbox = (GtkBox *) gtk_vbox_new(FALSE, 0);
+	GtkBox *tmpbox = (GtkBox *) gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_box_set_homogeneous(tmpbox, FALSE);
 
 	gtk_container_add(
 		(GtkContainer *) self,
@@ -213,9 +214,10 @@ eina_window_init (EinaWindow *self)
 		);
 	gtk_box_pack_start(
 		tmpbox,
-		(GtkWidget *) (self->priv->container = (GtkBox *) gtk_vbox_new(FALSE, 0)),
+		(GtkWidget *) (self->priv->container = (GtkBox *) gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)),
 		TRUE, TRUE, 0
 		);
+		gtk_box_set_homogeneous((GtkBox *) self->priv->container, FALSE);
 
 	gtk_widget_show_all((GtkWidget *) tmpbox);
 	gtk_window_add_accel_group((GtkWindow *) self, gtk_ui_manager_get_accel_group(self->priv->ui_manager));

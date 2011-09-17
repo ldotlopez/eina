@@ -43,11 +43,11 @@ G_BEGIN_DECLS
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTabClass))
 
 typedef struct {
-	GtkVBox parent;
+	GtkBox parent;
 } EinaPreferencesTab;
 
 typedef struct {
-	GtkVBoxClass parent_class;
+	GtkBoxClass parent_class;
 	void (*changed) (const gchar *key, GValue *value);
 } EinaPreferencesTabClass;
 

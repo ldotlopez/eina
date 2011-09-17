@@ -63,8 +63,11 @@ gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *titl
 	 */
 
 	// Boxes
-	GtkWidget *hbox     = (GtkWidget *) gtk_hbox_new(FALSE, 5);
-	GtkWidget *vbox     = (GtkWidget *) gtk_vbox_new(FALSE, 5);
+	GtkWidget *hbox     = (GtkWidget *) gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+	GtkWidget *vbox     = (GtkWidget *) gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+
+	gtk_box_set_homogeneous((GtkBox *) hbox, FALSE);
+	gtk_box_set_homogeneous((GtkBox *) vbox, FALSE);
 
 	// Build image with alignment
 	const gchar *stock = NULL;

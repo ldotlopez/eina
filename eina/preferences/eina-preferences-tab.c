@@ -22,7 +22,7 @@
 #include <gel/gel.h>
 #include <gel/gel-ui.h>
 
-G_DEFINE_TYPE (EinaPreferencesTab, eina_preferences_tab, GTK_TYPE_VBOX)
+G_DEFINE_TYPE (EinaPreferencesTab, eina_preferences_tab, GTK_TYPE_BOX)
 
 #define GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_PREFERENCES_TAB, EinaPreferencesTabPrivate))
@@ -394,7 +394,9 @@ preferences_tab_redo_widget(EinaPreferencesTab *self)
 	GtkLabel *label = (GtkLabel *) gtk_label_new(text);
 	gtk_widget_show((GtkWidget *) label);
 
-	priv->label_widget = gtk_hbox_new(FALSE, 5);
+	priv->label_widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+	gtk_box_set_homogeneous((GtkBox *) priv->label_widget, FALSE);
+
 	if (priv->label_image)
 	{
 		gtk_widget_show((GtkWidget *) image);
