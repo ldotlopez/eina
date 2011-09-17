@@ -21,7 +21,7 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
-G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
+G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_BOX)
 
 #define SIZE_HACKS 1
 
