@@ -314,6 +314,8 @@ gint64   lomo_player_get_position(LomoPlayer *self);
 gboolean lomo_player_set_position(LomoPlayer *self, gint64 position);
 gint64   lomo_player_get_length  (LomoPlayer *self);
 
+void     lomo_player_insert         (LomoPlayer *self, LomoStream *stream, gint pos);
+void     lomo_player_insert_uri     (LomoPlayer *self, const gchar *uri, gint pos);
 void     lomo_player_insert_strv    (LomoPlayer *self, const gchar *const *uris, gint index);
 void     lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint index);
 gboolean lomo_player_remove         (LomoPlayer *self, gint index);
