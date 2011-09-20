@@ -188,16 +188,6 @@ eina_player_new (void)
 	gtk_container_add(cover_container, (GtkWidget *) priv->cover);
 	gtk_widget_show(GTK_WIDGET(priv->cover));
 
-	GtkCssProvider *css = gtk_css_provider_get_default();
-	gtk_css_provider_load_from_data (css, "GtkToolbar {"
-		"-GtkToolbar-button-relief: 0;"
-		"-GtkToolbar-shadow-type: 1;"
-		"}",
-		-1, NULL);
-
-	GtkStyleContext *style_ctx = gtk_widget_get_style_context((GtkWidget *) self);
-	gtk_style_context_add_provider(style_ctx, (GtkStyleProvider *) css, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
 	// Actions
 	GtkBuilder *builder = gel_ui_generic_get_builder((GelUIGeneric *) self);
 	const gchar *const actions[] = {
