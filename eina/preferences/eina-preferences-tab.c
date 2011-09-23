@@ -181,6 +181,7 @@ eina_preferences_tab_class_init (EinaPreferencesTabClass *klass)
 static void
 eina_preferences_tab_init (EinaPreferencesTab *self)
 {
+	gtk_orientable_set_orientation((GtkOrientable *) self, GTK_ORIENTATION_VERTICAL);
 	g_signal_connect(self, "realize", (GCallback) realize_cb, NULL);
 }
 

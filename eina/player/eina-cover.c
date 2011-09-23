@@ -195,6 +195,7 @@ eina_cover_class_init (EinaCoverClass *klass)
 static void
 eina_cover_init (EinaCover *self)
 {
+	gtk_orientable_set_orientation((GtkOrientable *) self, GTK_ORIENTATION_VERTICAL);
 	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_COVER, EinaCoverPrivate));
 }
 
