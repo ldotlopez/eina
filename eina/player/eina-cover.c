@@ -21,12 +21,17 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
-G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_BOX)
+G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_GRID)
 
 #define SIZE_HACKS 1
+#define DEBUG 0
+#define DEBUG_PREFIX EinaCover
 
-// #define debug(...) g_warning(__VA_ARGS__)
-#define debug(...) ;
+#if DEBUG
+#	define debug(...) g_warning(DEBUG_PREFIX " " __VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
 
 struct _EinaCoverPrivate {
 	LomoPlayer *lomo;      // <Extern object, used for monitor changes
@@ -195,7 +200,6 @@ eina_cover_class_init (EinaCoverClass *klass)
 static void
 eina_cover_init (EinaCover *self)
 {
-	gtk_orientable_set_orientation((GtkOrientable *) self, GTK_ORIENTATION_VERTICAL);
 	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_COVER, EinaCoverPrivate));
 }
 
@@ -221,13 +225,14 @@ eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer)
 
 	// unset old object
 	if (priv->renderer)
-		gtk_container_remove((GtkContainer *) self, priv->renderer); 
+		gtk_container_remove((GtkContainer *) self, priv->renderer);
 
 	// setup new object if any
 	priv->renderer = renderer;
 	if (priv->renderer)
 	{
-		gtk_container_add(GTK_CONTAINER(self), renderer);
+		gtk_grid_attach((GtkGrid *) self, renderer, 0, 0, 1, 1);
+		// gtk_container_add(GTK_CONTAINER(self), renderer);
 		gtk_widget_set_visible(renderer, TRUE);
 		cover_set(self, NULL);
 	}
