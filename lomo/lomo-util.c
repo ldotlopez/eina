@@ -142,7 +142,8 @@ lomo_state_from_gst(GstState state, LomoState *lomo_state)
  * Returns: The string. This string is owner by liblomo and should not be
  *          freeded
  **/
-const gchar *lomo_state_to_str(LomoState state)
+const gchar*
+lomo_state_to_str(LomoState state)
 {
 	switch (state)
 	{
