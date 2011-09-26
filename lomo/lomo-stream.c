@@ -48,10 +48,46 @@ struct _LomoStreamPrivate {
 };
 
 enum {
+	PROP_0,
+	PROP_URI
+};
+
+enum {
 	SIGNAL_EXTENDED_METADATA_UPDATED,
 	LAST_SIGNAL
 };
 guint lomo_stream_signals[LAST_SIGNAL] = { 0 };
+
+static void
+stream_set_uri(LomoStream *self, const gchar *uri);
+
+static void
+lomo_stream_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+{
+	LomoStream *self = LOMO_STREAM(object);
+	switch (property_id)
+	{
+	case PROP_URI:
+		g_value_set_static_string(value, lomo_stream_get_tag(self, LOMO_TAG_URI));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+        }
+}
+
+static void
+lomo_stream_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
+{
+	LomoStream *self = LOMO_STREAM(object);
+	switch (property_id)
+	{
+	case PROP_URI:
+		stream_set_uri(self, g_value_get_string(value));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+        }
+}
 
 static void
 lomo_stream_dispose (GObject *object)
@@ -76,8 +112,27 @@ lomo_stream_class_init (LomoStreamClass *klass)
 
 	g_type_class_add_private (klass, sizeof (LomoStreamPrivate));
 
+	object_class->get_property = lomo_stream_get_property;
+	object_class->set_property = lomo_stream_set_property;
 	object_class->dispose = lomo_stream_dispose;
 
+	/**
+	 * LomoStream:uri:
+	 *
+	 * URI corresponding to the stream
+	 */
+	g_object_class_install_property(object_class, PROP_URI,
+		g_param_spec_string("uri", "uri", "uri",
+			NULL,  G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * LomoStream::extended-metadata-updated:
+	 * @stream: the object that recieved the signal
+	 * @key: Name of the updated metadata key
+	 *
+	 * Emitted when extended metadata (cover, lyrics, etc...) is updated
+	 * for the stream
+	 */
 	lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED] =
 		g_signal_new ("extended-metadata-updated",
 			G_OBJECT_CLASS_TYPE (object_class),
@@ -94,6 +149,7 @@ static void
 lomo_stream_init (LomoStream *self)
 {
 	LomoStreamPrivate *priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), LOMO_TYPE_STREAM, LomoStreamPrivate);
+
 	priv->all_tags = FALSE;
 	priv->tags     = NULL;
 }
@@ -109,31 +165,24 @@ lomo_stream_init (LomoStream *self)
 LomoStream*
 lomo_stream_new (const gchar *uri)
 {
-	LomoStream *self;
-	gint i;
+	return g_object_new (LOMO_TYPE_STREAM, "uri", uri, NULL);
+}
 
-	g_warn_if_fail(uri != NULL);
-	
-	if (uri)
-	{
-		// Check valid URI, more strict methods than this: g_uri_parse_scheme
-		for (i = 0; uri[i] != '\0'; i++)
-			if ((uri[i] < 20) || (uri[i] > 126))
-				g_warning(_("'%s' is not a valid URI"), uri);
+static void
+stream_set_uri(LomoStream *self, const gchar *uri)
+{
+	g_return_if_fail(LOMO_IS_STREAM(self));
+	g_return_if_fail(uri != NULL);
 
-		if (!uri && (strstr(uri, "://") == NULL))
+	// Check valid URI, more strict methods than this: g_uri_parse_scheme
+	for (guint i = 0; uri[i] != '\0'; i++)
+		if ((uri[i] < 20) || (uri[i] > 126))
 			g_warning(_("'%s' is not a valid URI"), uri);
-	}
 
-	// Create instance once URI
-	self = g_object_new (LOMO_TYPE_STREAM, NULL);
+	if (!uri && (strstr(uri, "://") == NULL))
+		g_warning(_("'%s' is not a valid URI"), uri);
 
-	if (uri)
-		g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
-	else
-		g_object_set_data(G_OBJECT(self), LOMO_TAG_URI, NULL);
-
-	return self;
+	g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
 }
 
 gchar *
@@ -161,7 +210,7 @@ lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
 /**
  * lomo_stream_get_tag:
  * @self: a #LomoStream
- * @tag: (in) (type gchar*) (transfer none): a #LomoTag
+ * @tag: a #LomoTag
  *
  * Gets a tag from #LomoStream. The returned value is owned by @stream, and
  * should not be modified (Internally it uses g_object_get_data).
@@ -172,11 +221,10 @@ const gchar*
 lomo_stream_get_tag(LomoStream *self, const gchar *tag)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
-
-	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 	g_return_val_if_fail(tag, NULL);
 
-	return g_object_get_data((GObject *) self, tag);
+	const gchar *ret = g_object_get_data((GObject *) self, tag);
+	return ret;
 }
 
 /**
@@ -287,23 +335,34 @@ lomo_stream_get_failed_flag(LomoStream *self)
 	return self->priv->failed;
 }
 
+static void
+destroy_gvalue(GValue *value)
+{
+	if (value != NULL)
+	{
+		g_return_if_fail(G_IS_VALUE(value));
+		g_value_unset(value);
+		g_free(value);
+	}
+}
+
 /**
  * lomo_stream_set_extended_metadata:
  * @self: A #LomoStream
  * @key: Key
- * @data: Data to store
- * @destroy: Function to free data
+ * @value: (transfer full): Value to store
  *
- * See g_object_set_data_full()
+ * Adds (or replaces) the value for the extended metadata for key
  */
 void
-lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer data, GDestroyNotify destroy)
+lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *value)
 {
 	g_return_if_fail(LOMO_IS_STREAM(self));
 	g_return_if_fail(key != NULL);
+	g_return_if_fail(G_IS_VALUE(value));
 
 	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
-	g_object_set_data_full(G_OBJECT(self), k, data, destroy);
+	g_object_set_data_full(G_OBJECT(self), k, value, (GDestroyNotify) destroy_gvalue);
 	g_free(k);
 
 	g_signal_emit(self, lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED], 0, key);
@@ -316,18 +375,34 @@ lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer d
  *
  * See g_object_get_data()
  *
- * Returns: (transfer none): The data associated with the key
+ * Returns: (transfer none): The value associated with the key
  */
-gpointer
+GValue*
 lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 
 	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
-	gpointer ret = g_object_get_data(G_OBJECT(self), k);
+	GValue *ret = g_object_get_data(G_OBJECT(self), k);
 	g_free(k);
 
 	return ret;
+}
+
+/**
+ * lomo_stream_get_extended_metadata_as_string
+ * @self: A #LomoStream
+ * @key: A Key
+ *
+ * See lomo_stream_get_extended_metadata()
+ *
+ * Returns: (transfer none): The value associated with the key
+ */
+const gchar *
+lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key)
+{
+	GValue *v = lomo_stream_get_extended_metadata(self, key);
+	return (v ? g_value_get_string(v) : NULL);
 }
 
 /**
