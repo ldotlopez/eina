@@ -38,7 +38,15 @@
 #	define debug(...) ;
 #endif
 
-struct _LomoStats {
+G_DEFINE_TYPE (LomoStats, lomo_stats, G_TYPE_OBJECT)
+
+enum {
+	PROP_0,
+	PROP_PLAYER
+};
+
+struct _LomoStatsPrivate {
+	/*< private >*/
 	LomoPlayer *player;
 
 	gboolean    submited;
@@ -48,14 +56,13 @@ struct _LomoStats {
 };
 
 static void
-stats_destroy_real(LomoStats *self, gboolean player_is_active);
+stats_set_player(LomoStats *self, LomoPlayer *player);
+
 static void
 stats_reset_counters(LomoStats *self);
 static void
 stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add);
 
-static void
-lomo_weak_ref_cb(LomoStats *self, LomoPlayer *invalid_player);
 static void
 lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self);
 static void
@@ -76,45 +83,111 @@ static struct {
 	{ "seek",            lomo_seek_cb     },
 };
 
-LomoStats*
-lomo_stats_watch(LomoPlayer *player)
+static void
+lomo_stats_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-	g_return_val_if_fail(LOMO_IS_PLAYER(player), NULL);
+	LomoStats *self = LOMO_STATS(object);
+	switch (property_id) {
+	case PROP_PLAYER:
+		g_value_set_object(value, lomo_stats_get_player(self));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
+}
 
-	LomoStats *self = g_new0(LomoStats, 1);
+static void
+lomo_stats_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
+{
+	LomoStats *self = LOMO_STATS(object);
+	switch (property_id) {
+	case PROP_PLAYER:
+		stats_set_player(self, g_value_get_object(value));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+	}
+}
 
-	self->player = player;
-	g_object_weak_ref((GObject *) player, (GWeakNotify) lomo_weak_ref_cb, self);
+static void
+lomo_stats_dispose (GObject *object)
+{
+	LomoStats *self = LOMO_STATS(object);
+	LomoStatsPrivate *priv = self->priv;
+
+	g_warn_if_fail(LOMO_IS_PLAYER(priv->player));
+	if (priv->player)
+	{
+		debug("Stop collecting from %p", self->player);
+
+		for (guint i = 0; i < G_N_ELEMENTS(__signal_table); i++)
+			g_signal_handlers_disconnect_by_func(priv->player, __signal_table[i].handler, self);
+
+		g_object_unref(priv->player);
+		priv->player = NULL;
+	}
+
+	G_OBJECT_CLASS (lomo_stats_parent_class)->dispose (object);
+}
+
+static void
+lomo_stats_class_init (LomoStatsClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (LomoStatsPrivate));
+
+	object_class->get_property = lomo_stats_get_property;
+	object_class->set_property = lomo_stats_set_property;
+	object_class->dispose = lomo_stats_dispose;
+
+	g_object_class_install_property(object_class, PROP_PLAYER,
+		g_param_spec_object("player", "player", "player",
+			LOMO_TYPE_PLAYER, G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|G_PARAM_STATIC_STRINGS));
+}
+
+static void
+lomo_stats_init (LomoStats *self)
+{
+	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), LOMO_TYPE_STATS, LomoStatsPrivate));
+}
+
+LomoStats*
+lomo_stats_new (LomoPlayer *player)
+{
+	return g_object_new (LOMO_TYPE_STATS, "player", player, NULL);
+}
+
+static void
+stats_set_player(LomoStats *self, LomoPlayer *player)
+{
+	g_return_if_fail(LOMO_IS_STATS(self));
+	g_return_if_fail(LOMO_IS_PLAYER(player));
+
+	LomoStatsPrivate *priv = self->priv;
+	g_return_if_fail(priv->player == NULL);
+
+	priv->player = player;
 
 	for (guint i = 0; i < G_N_ELEMENTS(__signal_table); i++)
 		g_signal_connect(player, __signal_table[i].signal, (GCallback) __signal_table[i].handler, self);
 
 	debug("Collecting statistics from LomoPlayer instance %p", self);
-	return self;
 }
 
-void
-lomo_stats_destroy(LomoStats *self)
+/**
+ * lomo_stats_get_player:
+ * @self: A #LomoStats
+ *
+ * Gets the #LomoPlayer associated with @self
+ *
+ * Returns: (transfer none): The #LomoPlayer
+ */
+LomoPlayer*
+lomo_stats_get_player(LomoStats *self)
 {
-	stats_destroy_real(self, TRUE);
-}
-
-void
-stats_destroy_real(LomoStats *self, gboolean player_is_active)
-{
-	g_return_if_fail(self != NULL);
-	if (player_is_active)
-	{
-		g_return_if_fail(LOMO_IS_PLAYER(self->player));
-		debug("Stop collecting from %p", self->player);
-
-		for (guint i = 0; i < G_N_ELEMENTS(__signal_table); i++)
-			g_signal_handlers_disconnect_by_func(self->player, __signal_table[i].handler, self);
-
-		g_object_weak_unref((GObject *) self->player, (GWeakNotify) lomo_weak_ref_cb, NULL);
-		g_object_unref(self->player);
-	}
-	g_free(self);
+	g_return_val_if_fail(LOMO_IS_STATS(self), NULL);
+	return self->priv->player;
 }
 
 /**
@@ -128,38 +201,41 @@ stats_destroy_real(LomoStats *self, gboolean player_is_active)
 gint64
 lomo_stats_get_time_played(LomoStats *self)
 {
-	return self->played;
+	g_return_val_if_fail(LOMO_IS_STATS(self), -1);
+	return self->priv->played;
 }
 
 static void
 stats_reset_counters(LomoStats *self)
 {
+	g_return_if_fail(LOMO_IS_STATS(self));
+	LomoStatsPrivate *priv = self->priv;
+
 	debug("Reseting counters");
-	self->submited = FALSE;
-	self->played = 0;
-	self->check_point = 0;
+	priv->submited = FALSE;
+	priv->played = 0;
+	priv->check_point = 0;
 }
 
 static void
 stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add)
 {
+	g_return_if_fail(LOMO_IS_STATS(self));
+	LomoStatsPrivate *priv = self->priv;
+
 	debug("Set checkpoint: %"G_GINT64_FORMAT" secs (%s)",
 		LOMO_NANOSECS_TO_SECS(check_point), add ? "adding" : "not adding");
 	if (add)
-		self->played += (check_point - self->check_point);
-	self->check_point = check_point;
+		priv->played += (check_point - priv->check_point);
+	priv->check_point = check_point;
 	debug("Currently %"G_GINT64_FORMAT" secs have been played", LOMO_NANOSECS_TO_SECS(self->played));
-}
-
-static void
-lomo_weak_ref_cb(LomoStats *self, LomoPlayer *invalid_player)
-{
-	stats_destroy_real(self, FALSE);
 }
 
 static void
 lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 {
+	g_return_if_fail(LOMO_IS_STATS(self));
+
 	if (!g_str_equal(pspec->name, "name"))
 		return;
 
@@ -188,6 +264,8 @@ lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 static void
 lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 {
+	g_return_if_fail(LOMO_IS_STATS(self));
+
 	if (!g_str_equal(pspec->name, "current"))
 		return;
 
@@ -202,13 +280,16 @@ lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, LomoStats *self)
 static void
 lomo_eos_cb(LomoPlayer *lomo, LomoStats *self)
 {
+	g_return_if_fail(LOMO_IS_STATS(self));
+	LomoStatsPrivate *priv = self->priv;
+
 	debug("Got EOS/PRE_CHANGE");
 	stats_set_checkpoint(self, lomo_player_get_position(lomo), TRUE);
 
-	if ((self->played >= 30) && (self->played >= (lomo_player_get_length(lomo) / 2)) && !self->submited)
+	if ((priv->played >= 30) && (priv->played >= (lomo_player_get_length(lomo) / 2)) && !priv->submited)
 	{
 		debug("30 secs or more than 50%% of stream has been played, considering it played");
-		self->submited = TRUE;
+		priv->submited = TRUE;
 	}
 	else
 		debug("Stream has length less than 30 secs or less that 50%% of stream has been played, "
@@ -218,6 +299,8 @@ lomo_eos_cb(LomoPlayer *lomo, LomoStats *self)
 static void
 lomo_seek_cb(LomoPlayer *lomo, gint64 from, gint64 to, LomoStats *self)
 {
+	g_return_if_fail(LOMO_IS_STATS(self));
+
 	stats_set_checkpoint(self, from, TRUE);
 	stats_set_checkpoint(self, to,   FALSE);
 }
