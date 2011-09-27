@@ -65,7 +65,11 @@ Lomo_2_0_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
 Lomo_2_0_gir_LIBS = liblomo-2.0.la
 Lomo_2_0_gir_FILES = \
 	lomo-player.h lomo-stream.h lomo-metadata-parser.h lomo-util.h \
-	lomo-player.c lomo-stream.c lomo-metadata-parser.c lomo-util.c
+	lomo-em-art.h lomo-em-art-backend.h lomo-em-art-backends.h lomo-em-art-provider.h lomo-em-art-search.h \
+    \
+	lomo-player.c lomo-stream.c lomo-metadata-parser.c lomo-util.c \
+	lomo-em-art.c lomo-em-art-backend.c lomo-em-art-backends.c lomo-em-art-provider.c lomo-em-art-search.c  
+
 INTROSPECTION_GIRS += Lomo-2.0.gir
 
 girdir = $(datadir)/gir-1.0
