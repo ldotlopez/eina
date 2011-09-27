@@ -19,20 +19,41 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOMO_STATS
-#define _LOMO_STATS
+#ifndef __LOMO_STATS_H__
+#define __LOMO_STATS_H__
 
 #include <lomo/lomo-player.h>
 
-/**
- * LomoStats:
- *
- * Opaque struct representing stats for #LomoPlayer
- */
-typedef struct _LomoStats LomoStats;
+G_BEGIN_DECLS
 
-LomoStats* lomo_stats_watch          (LomoPlayer *player);
-void       lomo_stats_destroy        (LomoStats *stats);
-gint64     lomo_stats_get_time_played(LomoStats *self);
+#define LOMO_TYPE_STATS lomo_stats_get_type()
 
-#endif
+#define LOMO_STATS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), LOMO_TYPE_STATS, LomoStats)) 
+#define LOMO_STATS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  LOMO_TYPE_STATS, LomoStatsClass)) 
+#define LOMO_IS_STATS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), LOMO_TYPE_STATS)) 
+#define LOMO_IS_STATS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  LOMO_TYPE_STATS)) 
+#define LOMO_STATS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  LOMO_TYPE_STATS, LomoStatsClass))
+
+typedef struct _LomoStatsPrivate LomoStatsPrivate;
+typedef struct {
+	/*< private >*/
+	GObject parent;
+	LomoStatsPrivate *priv;
+} LomoStats;
+
+typedef struct {
+	/*< private >*/
+	GObjectClass parent_class;
+} LomoStatsClass;
+
+GType lomo_stats_get_type (void);
+
+LomoStats* lomo_stats_new (LomoPlayer *player);
+
+LomoPlayer* lomo_stats_get_player     (LomoStats *self);
+gint64      lomo_stats_get_time_played(LomoStats *self);
+
+G_END_DECLS
+
+#endif /* __LOMO_STATS_H__ */
+
