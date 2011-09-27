@@ -806,7 +806,7 @@ build_metadata_variant_loop_next:
 	gel_list_deep_free(taglist, g_free);
 	g_variant_builder_add(builder, "{sv}",
 		"mpris:artUrl",
-		g_variant_new_string((const gchar *) lomo_stream_get_extended_metadata(stream, "art-uri")));
+		g_variant_new_string(lomo_stream_get_extended_metadata_as_string(stream, "art-uri")));
 
 	GVariant *ret = g_variant_builder_end(builder);
 	g_variant_builder_unref(builder);

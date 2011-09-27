@@ -347,7 +347,7 @@ static void
 stream_em_updated(LomoStream *stream, const gchar *key, EinaCover *self)
 {
 	if (g_str_equal(key, "art-uri"))
-		cover_set(self, (const gchar *) lomo_stream_get_extended_metadata(stream, key));
+		cover_set(self, lomo_stream_get_extended_metadata_as_string(stream, key));
 }
 
 static void
@@ -375,9 +375,9 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 		return;
 	}
 
-	gpointer d = lomo_stream_get_extended_metadata(priv->stream, "art-uri");
-	if (d)
-		cover_set(self, d);
+	const gchar *art_uri = lomo_stream_get_extended_metadata_as_string(priv->stream, "art-uri");
+	if (art_uri)
+		cover_set(self, art_uri);
 	priv->stream_em_handler = g_signal_connect(priv->stream, "extended-metadata-updated", (GCallback) stream_em_updated, self);
 }
 

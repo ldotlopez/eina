@@ -182,7 +182,7 @@ ntfy_sync(EinaNtfyPlugin *plugin)
 
 	notify_notification_update(priv->ntfy, N_("Playing now"), body, NULL);
 
-	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata(stream, "art-uri");
+	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata_as_string(stream, "art-uri");
 	if (!uri)
 	{
 		g_warn_if_fail(uri);
