@@ -134,7 +134,8 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 	g_signal_connect(GTK_FILE_CHOOSER(self), "selection-changed", (GCallback) gtk_widget_queue_draw, NULL);
 	#endif
 
-	priv->info_box = (GtkBox   *) gtk_hbox_new(FALSE, 5);
+	priv->info_box = (GtkBox   *) gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+	gtk_box_set_homogeneous(priv->info_box, FALSE);
 	gtk_widget_hide(GTK_WIDGET(priv->info_box));
 
 	gtk_box_pack_end(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))), GTK_WIDGET(priv->info_box), FALSE, TRUE, 0);

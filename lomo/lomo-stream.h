@@ -59,7 +59,7 @@ void lomo_stream_set_failed_flag  (LomoStream *self, gboolean value);
 gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
 
-void     lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer data, GDestroyNotify destroy);
+void     lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer data, GDestroyNotify destroy_func);
 gpointer lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key);
 
 gchar*       lomo_stream_get_tag_by_id(LomoStream *self, gchar id);

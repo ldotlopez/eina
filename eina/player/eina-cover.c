@@ -21,7 +21,7 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
-G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_VBOX)
+G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_BOX)
 
 #define SIZE_HACKS 1
 
@@ -195,6 +195,7 @@ eina_cover_class_init (EinaCoverClass *klass)
 static void
 eina_cover_init (EinaCover *self)
 {
+	gtk_orientable_set_orientation((GtkOrientable *) self, GTK_ORIENTATION_VERTICAL);
 	self->priv = (G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_COVER, EinaCoverPrivate));
 }
 

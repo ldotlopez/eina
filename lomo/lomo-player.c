@@ -329,7 +329,7 @@ player_dispose (GObject *object)
 	}
 	if (priv->stats)
 	{
-		lomo_stats_destroy(priv->stats);
+		g_object_unref(priv->stats);
 		priv->stats = NULL;
 	}
 
@@ -863,7 +863,7 @@ lomo_player_init (LomoPlayer *self)
 	priv->meta     = lomo_metadata_parser_new();
 	priv->art      = lomo_em_art_provider_new();
 	priv->queue    = g_queue_new();
-	priv->stats    = lomo_stats_watch(self);
+	priv->stats    = lomo_stats_new(self);
 
 	// Shadow values
 	priv->_shadow_state     = LOMO_STATE_INVALID;
@@ -1705,17 +1705,17 @@ lomo_player_get_length(LomoPlayer *self)
  * lomo_player_insert:
  * @self: a #LomoPlayer
  * @stream: (transfer none): a #LomoStream which will be owner by @self
- * @pos: position to insert the element, If this is negative, or is larger than
+ * @index: position to insert the element, If this is negative, or is larger than
  *       the number of elements in the list, the new element is added on to the end
  *       of the list.
  *
  * Inserts a #LomoStream in the internal playlist
  */
 void
-lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
+lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint index)
 {
 	GList *tmp = g_list_prepend(NULL, stream);
-	lomo_player_insert_multiple(self, tmp, pos);
+	lomo_player_insert_multiple(self, tmp, index);
 	g_list_free(tmp);
 }
 
@@ -1723,17 +1723,17 @@ lomo_player_insert(LomoPlayer *self, LomoStream *stream, gint pos)
  * lomo_player_insert_uri:
  * @self: a #LomoPlayer
  * @uri: a URI
- * @pos: position to insert the element, If this is negative, or is larger than
+ * @index: position to insert the element, If this is negative, or is larger than
  *       the number of elements in the list, the new element is added on to the end
  *       of the list.
  *
  * Inserts a #LomoStream in the internal playlist
  */
 void
-lomo_player_insert_uri(LomoPlayer *self, const gchar *uri, gint pos)
+lomo_player_insert_uri(LomoPlayer *self, const gchar *uri, gint index)
 {
 	const gchar *tmp[] = { uri, NULL };
-	lomo_player_insert_strv(self, tmp, pos);
+	lomo_player_insert_strv(self, tmp, index);
 }
 
 /**
