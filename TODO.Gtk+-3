@@ -1,8 +1,0 @@
-[Core,Dock,Player,Playlist]
-* Player should not ellipsize title if no stream is loaded
-* Check dispose methods and notify signals (Done: Player, Playlist)
-* Stock icons not working
-* EinaCover must be ported
-* Signals for actions must be proxied
-* Externalize file loading
-* GSettings sync review (needs dconf)
