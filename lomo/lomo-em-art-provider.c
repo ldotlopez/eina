@@ -211,7 +211,7 @@ lomo_em_art_provider_init_stream(LomoEMArtProvider *self, LomoStream *stream)
 		return;
 	}
 
-	const gchar *art_uri = lomo_stream_get_extended_metadata(stream, "art-uri");
+	const gchar *art_uri = lomo_stream_get_extended_metadata_as_string(stream, "art-uri");
 	debug("Init stream %p with art-uri: %s", stream, art_uri);
 	if (art_uri)
 	{
@@ -243,7 +243,9 @@ lomo_em_art_provider_init_stream(LomoEMArtProvider *self, LomoStream *stream)
 
 	if (art_uri)
 	{
-		lomo_stream_set_extended_metadata(stream, "art-uri", (gpointer) art_uri, NULL);
+		GValue *v = g_new0(GValue, 1);
+		g_value_set_string(g_value_init(v, G_TYPE_STRING), art_uri);
+		lomo_stream_set_extended_metadata(stream, "art-uri", v);
 		// g_object_set_data((GObject *) stream, "art-uri-searched", (gpointer) TRUE);
 	}
 }
@@ -269,17 +271,18 @@ art_search_cb(LomoEMArtSearch *search, gpointer data)
 	debug ("Got result for stream %p: %p", stream, res);
 	#endif
 
+	GValue *v = g_value_init(g_new0(GValue, 1), G_TYPE_STRING);
 	if (res)
-		lomo_stream_set_extended_metadata(lomo_em_art_search_get_stream(search),
-			"art-uri", (gpointer) g_strdup(res), g_free);
+		g_value_set_string(v, res);
 	else
-		lomo_stream_set_extended_metadata(lomo_em_art_search_get_stream(search),
-			"art-uri", cover_strings[DEFAULT_COVER_URI] , NULL);
+		g_value_set_static_string(v, cover_strings[DEFAULT_COVER_URI]);
+
+	lomo_stream_set_extended_metadata(lomo_em_art_search_get_stream(search), "art-uri", v);
 
 	g_object_set_data((GObject *) stream, "art-uri-searched", (gpointer) TRUE);
 
 	debug("Extended metadata set to: %s",
-		(gchar *) lomo_stream_get_extended_metadata(lomo_em_art_search_get_stream(search), "art-uri"));
+		lomo_stream_get_extended_metadata_as_string(lomo_em_art_search_get_stream(search), "art-uri"));
 }
 
 static void
@@ -307,7 +310,9 @@ change_cb(LomoPlayer *lomo, gint from, gint to, LomoEMArtProvider *self)
 static void
 all_tags_cb(LomoPlayer *lomo, LomoStream *stream, LomoEMArtProvider *self)
 {
-	const gchar *stream_art_uri = lomo_stream_get_extended_metadata(stream, "art-uri");
+	GValue *v = lomo_stream_get_extended_metadata(stream, "art-uri");
+	const gchar *stream_art_uri = v ? g_value_get_string(v) : NULL;
+
 	if (g_strcmp0(stream_art_uri, lomo_em_art_provider_get_default_cover_uri()) == 0)
 	{
 		debug("Catch a stream all-tags signal for stream with default cover");

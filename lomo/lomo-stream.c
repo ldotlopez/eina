@@ -62,6 +62,9 @@ static void
 stream_set_uri(LomoStream *self, const gchar *uri);
 
 static void
+destroy_gvalue(GValue *value);
+
+static void
 lomo_stream_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
 	LomoStream *self = LOMO_STREAM(object);
@@ -338,20 +341,20 @@ lomo_stream_get_failed_flag(LomoStream *self)
 /**
  * lomo_stream_set_extended_metadata:
  * @self: A #LomoStream
- * @key: Key
- * @data: (transfer full): Data to store
- * @destroy_func: Free value function
+ * @key: (transfer none): Key
+ * @value: (transfer full): Value to store
  *
  * Adds (or replaces) the value for the extended metadata for key
  */
 void
-lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer data, GDestroyNotify destroy_func)
+lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *value)
 {
 	g_return_if_fail(LOMO_IS_STREAM(self));
 	g_return_if_fail(key != NULL);
+	g_return_if_fail(G_IS_VALUE(value));
 
-	gchar *k = g_strconcat("x-lomo-extended-metadata-", data, NULL);
-	g_object_set_data_full(G_OBJECT(self), k, data, destroy_func);
+	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
+	g_object_set_data_full(G_OBJECT(self), k, value, (GDestroyNotify) destroy_gvalue);
 	g_free(k);
 
 	g_signal_emit(self, lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED], 0, key);
@@ -364,18 +367,35 @@ lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, gpointer d
  *
  * See g_object_get_data()
  *
- * Returns: (transfer none): The data associated with the key
+ * Returns: (transfer none): The value associated with the key
  */
-gpointer
+GValue *
 lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 
 	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
-	gpointer ret = g_object_get_data(G_OBJECT(self), k);
+	GValue *ret = g_object_get_data(G_OBJECT(self), k);
 	g_free(k);
 
 	return ret;
+}
+
+/**
+ * lomo_stream_get_extended_metadata_as_string
+ * @self: A #LomoStream
+ * @key: A Key
+ *
+ * See lomo_stream_get_extended_metadata()
+ *
+ * Returns: (transfer none): The value associated with the key as a string or
+ *          %NULL if not found or key is not a string
+ */
+const gchar *
+lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key)
+{
+	GValue *v = lomo_stream_get_extended_metadata(self, key);
+	return (v && G_VALUE_HOLDS_STRING(v) ? g_value_get_string(v) : NULL);
 }
 
 /**
@@ -423,3 +443,13 @@ lomo_tag_get_gtype(const gchar *tag)
 	return gst_tag_get_type(tag);
 }
 
+static void
+destroy_gvalue(GValue *value)
+{
+	if (value != NULL)
+	{
+		g_return_if_fail(G_IS_VALUE(value));
+		g_value_unset(value);
+		g_free(value);
+	}
+}

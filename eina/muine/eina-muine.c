@@ -458,7 +458,7 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	EinaMuinePrivate *priv = self->priv;
 
 	// Check URI != loading-uri
-	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata(stream, "art-uri");
+	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata_as_string(stream, "art-uri");
 	g_return_if_fail(uri);
 
 	if (g_str_equal(uri, loading_cover_uri))
