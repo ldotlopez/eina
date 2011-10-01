@@ -359,6 +359,25 @@ lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *va
 
 	g_signal_emit(self, lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED], 0, key);
 }
+/**
+ * lomo_stream_set_extended_metadata:
+ * @self: A #LomoStream
+ * @key: (transfer none): Key
+ * @value: (transfer none): Value to store
+ *
+ * Adds (or replaces) the value for the extended metadata for key
+ */
+void
+lomo_stream_set_extended_metadata_as_string(LomoStream *self, const gchar *key, const gchar *value)
+{
+	g_return_if_fail(LOMO_IS_STREAM(self));
+	g_return_if_fail(key);
+	g_return_if_fail(value);
+
+	GValue *v = g_new0(GValue, 1);
+	g_value_set_string(g_value_init(v, G_TYPE_STRING), value);
+	lomo_stream_set_extended_metadata(self, key, v);
+}
 
 /**
  * lomo_stream_get_extended_metadata:

@@ -60,6 +60,7 @@ gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
 
 void         lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *value);
+void         lomo_stream_set_extended_metadata_as_string(LomoStream *self, const gchar *key, const gchar *value);
 GValue*      lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key);
 const gchar* lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key);
 
