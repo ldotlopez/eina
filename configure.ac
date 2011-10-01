@@ -95,7 +95,7 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 dnl pkgconfig
 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$top_builddir/data"
 
-# Introspection, disable for now
+# Introspection
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 #
