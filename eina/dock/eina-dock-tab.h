@@ -46,13 +46,11 @@ GType eina_dock_tab_get_type (void);
 
 EinaDockTab* eina_dock_tab_new (const gchar *id, GtkWidget *widget, GtkWidget *label, gboolean primary);
 
-const gchar* eina_dock_tab_get_id(EinaDockTab *self);
-
-GtkWidget*   eina_dock_tab_get_widget(EinaDockTab *self);
-
-GtkWidget*   eina_dock_tab_get_label(EinaDockTab *self);
-
+const gchar* eina_dock_tab_get_id     (EinaDockTab *self);
+GtkWidget*   eina_dock_tab_get_widget (EinaDockTab *self);
+GtkWidget*   eina_dock_tab_get_label  (EinaDockTab *self);
 gboolean     eina_dock_tab_get_primary(EinaDockTab *self);
+
 void         eina_dock_tab_set_primary(EinaDockTab *self, gboolean primary);
 
 gboolean     eina_dock_tab_equal(EinaDockTab *a, EinaDockTab *b);

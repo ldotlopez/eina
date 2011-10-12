@@ -311,7 +311,7 @@ dock_reorder_pages(EinaDock *self)
 	}
 }
 
-/*
+/**
  * eina_dock_get_page_order:
  *
  * @self: The #EinaDock object
@@ -319,7 +319,7 @@ dock_reorder_pages(EinaDock *self)
  * Gets the value of the property 'page-order' as a NULL-terminated array
  * of strings representing the order of the widgets based on they IDs
  *
- * Returns: (element-type utf-8) (transfer full): the page-order property value
+ * Returns: (element-type utf8) (transfer full): the page-order property value
  */
 gchar **
 eina_dock_get_page_order(EinaDock *self)
@@ -328,18 +328,18 @@ eina_dock_get_page_order(EinaDock *self)
 	return gel_strv_copy(self->priv->page_order, TRUE);
 }
 
-/*
+/**
  * eina_dock_set_page_order:
  *
  * @self: The #EinaDock object
- * @page_order: (transfer none): A NULL-terminated array of strings representing the order of
- *              widgets based on they IDs
+ * @order: (transfer none): A NULL-terminated array of strings representing the order of
+ *         widgets based on they IDs
  *
  * Sets the value of the property page-order
  */
 void
 eina_dock_set_page_order(EinaDock *self, gchar **order)
-{	
+{
 	g_return_if_fail(EINA_IS_DOCK(self));
 	g_return_if_fail(order);
 
@@ -358,7 +358,7 @@ eina_dock_set_page_order(EinaDock *self, gchar **order)
 	g_object_notify((GObject *) self, "page-order");
 }
 
-/*
+/**
  * eina_dock_set_resizable:
  *
  * @self: The #EinaDock object
@@ -374,7 +374,7 @@ eina_dock_set_resizable(EinaDock *self, gboolean resizable)
 	gtk_expander_set_expanded(self->priv->expander, resizable);
 }
 
-/*
+/**
  * eina_dock_get_resizable:
  *
  * @self: The #EinaDock object
@@ -417,7 +417,7 @@ dock_tab_label_fix_orientation(GtkWidget *label, GtkPositionType position)
 	gtk_label_set_angle(GTK_LABEL(label), angle);
 }
 
-/*
+/**
  * eina_dock_add_widget:
  * 
  * @self: The #EinaDock object
@@ -429,7 +429,7 @@ dock_tab_label_fix_orientation(GtkWidget *label, GtkPositionType position)
  *
  * Adds a new widget to the dock
  *
- * Returns: A #EinaDockTab representing the widget
+ * Returns: (transfer none): A #EinaDockTab representing the widget
  */
 EinaDockTab *
 eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlag flags)
@@ -497,7 +497,7 @@ eina_dock_add_widget(EinaDock *self, const gchar *id, GtkWidget *widget, GtkWidg
 	return tab;
 }
 
-/*
+/**
  * eina_dock_remove_widget:
  * @self: The #EinaDock object.
  * @tab: A #EinaDockTab representing the widget to remove.
@@ -557,7 +557,7 @@ eina_dock_remove_widget_by_id(EinaDock *self, gchar *id)
 	return eina_dock_remove_widget(self, (EinaDockTab *) link->data);
 }
 
-/*
+/**
  * eina_dock_switch_widget:
  * @self: The #EinaDock object.
  * @tab: A #EinaDockTab object representing the widget.
@@ -588,7 +588,7 @@ eina_dock_switch_widget(EinaDock *self, EinaDockTab *tab)
 	#endif
 }
 
-/*
+/**
  * eina_dock_get_n_widgets:
  * @self: The #EinaDock object
  *

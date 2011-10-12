@@ -17,6 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:eina-dock-tab
+ * @title: EinaDockTab
+ * @short_description: Tab management
+ *
+ * #EinaDockTab represents in an abstract way a #EinaDock tab. It is not
+ * a #GtkWidget but a #GObject, functions like eina_dock_tab_get_widget()
+ * or eina_dock_tab_get_label() are the way to get internal widgets.
+ */
+
 #include "eina-dock-tab.h"
 
 G_DEFINE_TYPE (EinaDockTab, eina_dock_tab, G_TYPE_OBJECT)
@@ -177,14 +187,14 @@ eina_dock_tab_init (EinaDockTab *self)
 
 /**
  * eina_dock_tab_new:
- * @id: The Unique ID
- * @widget: (transfer none): Main widget
- * @label: (transfer none): Label widget
+ * @id: Unique ID for the tab. NOT checked ATM
+ * @widget: (transfer none): Main widget for the tab
+ * @label: (transfer none): Label widget for the tab
  * @primary: Whatever is primary or not
  *
  * Creates a new #EinaDockTab
  *
- * Returns: The tab
+ * Returns: (type Eina.DockTab) (transfer full): The tab
  */
 EinaDockTab*
 eina_dock_tab_new (const gchar *id, GtkWidget *widget, GtkWidget *label, gboolean primary)

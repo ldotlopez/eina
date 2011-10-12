@@ -54,6 +54,9 @@ LomoPlayer *eina_playlist_get_lomo_player(EinaPlaylist *self);
 void   eina_playlist_set_stream_markup(EinaPlaylist *self, const gchar *markup);
 gchar* eina_playlist_get_stream_markup(EinaPlaylist *self);
 
+GtkTreeView  *eina_playlist_get_view (EinaPlaylist *self);
+GtkTreeModel *eina_playlist_get_model(EinaPlaylist *self);
+
 G_END_DECLS
 
 #endif /* __EINA_PLAYLIST_H__ */

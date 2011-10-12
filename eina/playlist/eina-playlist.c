@@ -214,6 +214,14 @@ eina_playlist_init (EinaPlaylist *self)
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(self), GTK_ORIENTATION_VERTICAL);
 }
 
+/**
+ * eina_playlist_new:
+ * @lomo: (transfer none): A #LomoPlayer
+ *
+ * Creates a new #EinaPlaylist based on @lomo
+ *
+ * Returns: The #EinaPlaylist object
+ */
 EinaPlaylist*
 eina_playlist_new (LomoPlayer *lomo)
 {
@@ -325,6 +333,36 @@ eina_playlist_get_stream_markup(EinaPlaylist *self)
 {
 	g_return_val_if_fail(EINA_IS_PLAYLIST(self), NULL);
 	return g_strdup(self->priv->stream_mrkp);
+}
+
+/**
+ * eina_playlist_get_view:
+ * @self: An #EinaPlaylist
+ *
+ * Gets the correspondent view from @self
+ *
+ * Returns: (transfer none): The view
+ */
+GtkTreeView*
+eina_playlist_get_view (EinaPlaylist *self)
+{
+	g_return_val_if_fail(EINA_IS_PLAYLIST(self), NULL);
+	return self->priv->tv;
+}
+
+/**
+ * eina_playlist_get_model:
+ * @self: An #EinaPlaylist
+ *
+ * Gets the correspondent model (a #GtkListModel) from @self
+ *
+ * Returns: (transfer none): The model
+ */
+GtkTreeModel*
+eina_playlist_get_model(EinaPlaylist *self)
+{
+	g_return_val_if_fail(EINA_IS_PLAYLIST(self), NULL);
+	return self->priv->model;
 }
 
 static void

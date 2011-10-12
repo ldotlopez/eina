@@ -59,7 +59,10 @@ Eina-0.12.gir: eina
 Eina_0_12_gir_INCLUDES = Lomo-2.0 GelUI-2.0 Peas-1.0
 Eina_0_12_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
 Eina_0_12_gir_PROGRAM = $(top_builddir)/eina/eina
-Eina_0_12_gir_LDADD = $(top_builddir)/lomo/liblomo.la
+Eina_0_12_gir_LDADD = \
+	$(top_builddir)/lomo/liblomo.la \
+	$(top_builddir)/dock/libdock.la \
+	$(top_builddir)/playlist/libplaylist.la
 Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/ext/eina-application.h  \
 	$(top_srcdir)/eina/ext/eina-application.c  \
@@ -67,8 +70,21 @@ Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/ext/eina-activatable.c  \
 	$(top_srcdir)/eina/ext/eina-window.h       \
 	$(top_srcdir)/eina/ext/eina-window.c       \
+	\
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h \
-	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c
+	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c \
+	\
+	$(top_srcdir)/eina/dock/eina-dock-plugin.h \
+	$(top_srcdir)/eina/dock/eina-dock-plugin.c \
+	$(top_srcdir)/eina/dock/eina-dock.h \
+	$(top_srcdir)/eina/dock/eina-dock.c \
+	$(top_srcdir)/eina/dock/eina-dock-tab.h \
+	$(top_srcdir)/eina/dock/eina-dock-tab.c \
+	\
+	$(top_srcdir)/eina/playlist/eina-playlist-plugin.h \
+	$(top_srcdir)/eina/playlist/eina-playlist-plugin.c \
+	$(top_srcdir)/eina/playlist/eina-playlist.h \
+	$(top_srcdir)/eina/playlist/eina-playlist.c
 INTROSPECTION_GIRS += Eina-0.12.gir
 
 girdir = $(datadir)/gir-1.0

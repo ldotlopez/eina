@@ -70,8 +70,6 @@ gboolean eina_dock_get_resizable(EinaDock *self);
 void     eina_dock_set_expanded(EinaDock *self, gboolean expanded);
 gboolean eina_dock_get_expanded(EinaDock *self);
 
-GtkWidget *eina_dock_get_widget(GtkWidget *owner);
-
 EinaDockTab *eina_dock_add_widget (EinaDock *self,
 	const gchar *id, GtkWidget *widget, GtkWidget *label, EinaDockFlag flags);
 gboolean eina_dock_remove_widget  (EinaDock *self, EinaDockTab *tab);

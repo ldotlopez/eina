@@ -37,11 +37,13 @@ G_BEGIN_DECLS
 
 typedef struct _EinaApplicationPrivate EinaApplicationPrivate;
 typedef struct {
+	/*< private >*/
 	GtkApplication parent;
 	EinaApplicationPrivate *priv;
 } EinaApplication;
 
 typedef struct {
+	/*< private >*/
 	GtkApplicationClass parent_class;
 	gboolean (*action_activate) (EinaApplication *application, GtkAction *action);
 } EinaApplicationClass;

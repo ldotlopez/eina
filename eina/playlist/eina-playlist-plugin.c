@@ -65,6 +65,8 @@ eina_playlist_plugin_activate(EinaActivatable *activatable, EinaApplication *app
 		gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_MENU),
 		EINA_DOCK_FLAG_DEFAULT);
 
+	eina_application_set_interface(app, "playlist", priv->playlist_widget);
+
 	return TRUE;
 }
 
@@ -91,6 +93,21 @@ eina_playlist_plugin_deactivate(EinaActivatable *activatable, EinaApplication *a
 	}
 
 	return TRUE;
+}
+
+/**
+ * eina_application_get_playlist:
+ * @application: An #EinaApplication
+ *
+ * Returns the EinaPlaylist object from @application
+ *
+ * Returns: (transfer none): The #EinaPlaylist
+ */
+EinaPlaylist *
+eina_application_get_playlist(EinaApplication *application)
+{
+	g_return_val_if_fail(EINA_IS_APPLICATION(application), NULL);
+	return EINA_PLAYLIST(eina_application_get_interface(application, "playlist"));
 }
 
 static void
