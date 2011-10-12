@@ -72,6 +72,76 @@ extension_set_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, 
 	}
 }
 
+static PeasEngine*
+initialize_peas_engine(gboolean from_source)
+{
+	gchar *builddir = NULL;
+	if (from_source)
+	{
+		g_type_init();
+		gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
+	}
+
+	// Setup girepository
+	if (from_source)
+	{
+		builddir = g_path_get_dirname(g_get_current_dir());
+		const gchar *subs[] = { "gel", "lomo", "eina" , NULL };
+		for (guint i = 0; subs[i]; i++)
+		{
+			gchar *tmp = g_build_filename(builddir, subs[i], NULL);
+			g_debug("Add girepository search path: %s", tmp);
+			g_irepository_prepend_search_path(tmp);
+			g_free(tmp);
+		}
+	}
+
+	const gchar *g_ir_req_full[] = { PACKAGE_NAME, EINA_API_VERSION, NULL };
+	const gchar *g_ir_req_src[]  = { "Gel", GEL_API_VERSION, "Lomo", LOMO_API_VERSION, NULL };
+	const gchar **g_ir_reqs = (const gchar **) (from_source ? g_ir_req_src : g_ir_req_full);
+
+	GError *error = NULL;
+	GIRepository *repo = g_irepository_get_default();
+	for (guint i = 0; g_ir_reqs[i] != NULL; i = i + 2)
+	{
+		if (!g_irepository_require(repo, g_ir_reqs[i], g_ir_reqs[i+1], G_IREPOSITORY_LOAD_FLAG_LAZY, &error))
+		{
+			g_warning(N_("Unable to load typelib %s %s: %s"), g_ir_reqs[i], g_ir_reqs[i+1], error->message);
+			g_error_free(error);
+			return NULL;
+		}
+	}
+
+	PeasEngine *engine = peas_engine_get_default();
+	peas_engine_enable_loader (engine, "python");
+
+	if (from_source)
+	{
+		gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player", NULL };
+		for (guint i = 0; plugins[i]; i++)
+		{
+			gchar *tmp = g_build_filename(builddir, "eina", plugins[i], NULL);
+			g_debug("Add PeasEngine search path: %s", tmp);
+			peas_engine_add_search_path(engine, tmp, tmp);
+			g_free(tmp);
+		}
+	}
+	else
+	{
+		const gchar *libdir = NULL;
+
+		if ((libdir = gel_get_package_lib_dir()) != NULL);
+			peas_engine_add_search_path(engine, gel_get_package_lib_dir(), gel_get_package_lib_dir());
+
+		if ((libdir = g_getenv("EINA_LIB_PATH")) != NULL)
+			peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
+	}
+
+	gel_free_and_invalidate(builddir, NULL, g_free);
+
+	return engine;
+}
+
 static void
 app_activate_cb (GApplication *application, gpointer user_data)
 {
@@ -85,6 +155,8 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		return;
 	}
 
+	gtk_init(NULL, NULL);
+
 	// Initialize stock icons stuff
 	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
 	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
@@ -94,34 +166,7 @@ app_activate_cb (GApplication *application, gpointer user_data)
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
 	eina_stock_init();
 
-	// Setup PeasEngine
-	const gchar *g_ir_reqs[] = {
-		PACKAGE_NAME, EINA_API_VERSION,
-		NULL };
-
-	GError *error = NULL;
-	GIRepository *repo = g_irepository_get_default();
-	for (guint i = 0; g_ir_reqs[i] != NULL; i = i + 2)
-	{
-		if (!g_irepository_require(repo, g_ir_reqs[i], g_ir_reqs[i+1], G_IREPOSITORY_LOAD_FLAG_LAZY, &error))
-		{
-			g_warning(N_("Unable to load typelib %s %s: %s"), g_ir_reqs[i], g_ir_reqs[i+1], error->message);
-			g_error_free(error);
-			return;
-		}
-	}
-
-	PeasEngine *engine = peas_engine_get_default();
-	peas_engine_enable_loader (engine, "python");
-
-	const gchar *libdir = NULL;
-
-	if ((libdir = gel_get_package_lib_dir()) != NULL);
-		peas_engine_add_search_path(engine, gel_get_package_lib_dir(), gel_get_package_lib_dir());
-
-	if ((libdir = g_getenv("EINA_LIB_PATH")) != NULL)
-		peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
-
+	PeasEngine *engine = initialize_peas_engine(FALSE);
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
 	gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
@@ -253,12 +298,15 @@ gint main(gint argc, gchar *argv[])
 {
 	g_type_init();
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
-	gtk_init(&argc, &argv);
 
 	for (guint i = 0; i < argc; i++)
 	{
 		if (g_str_has_prefix(argv[i], "--introspect-dump="))
 		{
+			PeasEngine *engine = initialize_peas_engine(TRUE);
+			gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player", NULL };
+			for (guint i = 0; plugins[i]; i++)
+				peas_engine_load_plugin(engine, peas_engine_get_plugin_info(engine, plugins[i]));
 			g_irepository_dump(argv[i] + strlen("--introspect-dump="), NULL);
 			return 0;
 		}
