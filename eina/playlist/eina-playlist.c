@@ -48,7 +48,11 @@ struct _EinaPlaylistPrivate {
 
 	// Internals
 	GtkTreeView  *tv;
-	GtkTreeModel *model; // Model, tv has a filter attached
+	GtkTreeModel *model;
+
+	// Filtering
+	GtkTreeModelFilter *filter;
+	gchar *filter_str;
 };
 
 /*
@@ -100,6 +104,9 @@ static void     playlist_handle_action      (EinaPlaylist *self, GtkAction *acti
 static gboolean playlist_get_iter_from_index(EinaPlaylist *self, GtkTreeIter *iter, gint index);
 static gint*    playlist_get_selected_indices(EinaPlaylist *self);
 
+static void     playlist_filter_model(EinaPlaylist *self);
+static gboolean playlist_filter_cb(GtkTreeModel *model, GtkTreeIter *iter, EinaPlaylist *self);
+
 static gchar* format_stream(LomoStream *stream, gchar *fmt);
 static gchar* format_stream_cb(gchar key, LomoStream *stream);
 
@@ -145,8 +152,9 @@ eina_playlist_dispose (GObject *object)
 
 	if (priv->lomo)
 		playlist_set_lomo_player(self, NULL);
-	if (priv->stream_mrkp)
-		gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
+
+	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
+	gel_free_and_invalidate(priv->filter_str, NULL, g_free);
 
 	G_OBJECT_CLASS (eina_playlist_parent_class)->dispose (object);
 }
@@ -230,8 +238,10 @@ eina_playlist_new (LomoPlayer *lomo)
 		NULL);
 
  	EinaPlaylistPrivate *priv = self->priv;
-	priv->tv    = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_VIEW,  "playlist-treeview");
-	priv->model = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_MODEL, "playlist-model");
+	priv->tv     = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_VIEW,         "playlist-treeview");
+	priv->model  = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_MODEL,        "playlist-model");
+	priv->filter = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_MODEL_FILTER, "playlist-model-filter");
+	gtk_tree_model_filter_set_visible_func(priv->filter, (GtkTreeModelFilterVisibleFunc) playlist_filter_cb,self, NULL);
 
 	playlist_set_lomo_player(self, lomo);
 	g_object_set(
@@ -241,7 +251,10 @@ eina_playlist_new (LomoPlayer *lomo)
 		NULL);
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(priv->tv), GTK_SELECTION_MULTIPLE);
 
-	gtk_widget_set_visible(gel_ui_generic_get_typed(self, GTK_WIDGET, "search-frame"), ENABLE_EXPERIMENTAL);
+	GtkEntry *entry = gel_ui_generic_get_typed(self, GTK_ENTRY, "search-entry");
+	GObject *buffer = G_OBJECT(gtk_entry_get_buffer(entry));
+	g_signal_connect_swapped(buffer, "inserted-text", (GCallback) playlist_filter_model, self);
+	g_signal_connect_swapped(buffer, "deleted-text",  (GCallback) playlist_filter_model, self);
 
 	gtk_activatable_set_related_action(
 		gel_ui_generic_get_typed(self, GTK_ACTIVATABLE, "alternative-add-button"),
@@ -274,6 +287,7 @@ playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	self->priv->lomo = g_object_ref(lomo);
 
 	playlist_refresh_model(self);
+
 	g_signal_connect_swapped(lomo, "notify::state", (GCallback) playlist_update_state, self);
 	g_signal_connect_swapped(lomo, "insert",   (GCallback) playlist_insert_stream,  self);
 	g_signal_connect_swapped(lomo, "remove",   (GCallback) playlist_remove_stream,  self);
@@ -475,8 +489,8 @@ playlist_update_state(EinaPlaylist *self)
 		-1);
 }
 
-static
-void playlist_change_current(EinaPlaylist *self, gint from, gint to)
+static void
+playlist_change_current(EinaPlaylist *self, gint from, gint to)
 {
 	g_return_if_fail(EINA_IS_PLAYLIST(self));
 
@@ -592,7 +606,8 @@ playlist_get_selected_indices(EinaPlaylist *self)
 	return ret;
 }
 
-static void playlist_remove_selected(EinaPlaylist *self)
+static void
+playlist_remove_selected(EinaPlaylist *self)
 {
 	g_return_if_fail(EINA_IS_PLAYLIST(self));
 	EinaPlaylistPrivate *priv = self->priv;
@@ -691,6 +706,10 @@ playlist_change_to_activated(EinaPlaylist *self,  GtkTreePath *path, GtkTreeView
 
 	EinaPlaylistPrivate *priv = self->priv;
 
+	GtkTreeModel *curr_model = gtk_tree_view_get_model(self->priv->tv);
+	if (curr_model == (GtkTreeModel *) self->priv->filter)
+		path = gtk_tree_model_filter_convert_path_to_child_path(self->priv->filter, path);
+
 	gint *indices = gtk_tree_path_get_indices(path);
 	g_return_if_fail(indices && (indices[0] >= 0));
 
@@ -712,8 +731,8 @@ playlist_change_to_activated(EinaPlaylist *self,  GtkTreePath *path, GtkTreeView
 		}
 }
 
-static
-gboolean playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
+static gboolean
+playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 {
 	GdkEventButton *ev_button = (GdkEventButton *) event;
 	if ((event->type == GDK_BUTTON_PRESS) && (ev_button->button == 3))
@@ -739,7 +758,7 @@ gboolean playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 			break;
 
 		default:
-			return FALSE;
+			break;
 		}
 	}
 	return FALSE;
@@ -791,6 +810,53 @@ playlist_get_iter_from_index(EinaPlaylist *self, GtkTreeIter *iter, gint index)
 	}
 	gtk_tree_path_free(path);
 	return TRUE;
+}
+
+static void
+playlist_filter_model(EinaPlaylist *self)
+{
+	g_return_if_fail(EINA_IS_PLAYLIST(self));
+	EinaPlaylistPrivate *priv = self->priv;
+
+	GtkEntry *entry = gel_ui_generic_get_typed(self, GTK_ENTRY, "search-entry");
+	const gchar *text = gtk_entry_get_text(entry);
+
+	GtkTreeModel *curr_model = gtk_tree_view_get_model(priv->tv);
+	gel_free_and_invalidate(priv->filter_str, NULL, g_free);
+
+	if (!text || (text[0] == '\0'))
+	{
+		if (curr_model != priv->model)
+		{
+			gel_free_and_invalidate(priv->filter_str, NULL, g_free);
+			gtk_tree_view_set_model(priv->tv, priv->model);
+		}
+		return;
+	}
+
+	if (curr_model != (GtkTreeModel *) priv->filter)
+		gtk_tree_view_set_model(priv->tv, (GtkTreeModel *) priv->filter);
+
+	priv->filter_str = g_strdup(text);
+	gtk_tree_model_filter_refilter((GtkTreeModelFilter *) priv->filter);
+}
+
+static gboolean
+playlist_filter_cb(GtkTreeModel *model, GtkTreeIter *iter, EinaPlaylist *self)
+{
+	EinaPlaylistPrivate *priv = self->priv;
+	if (!priv->filter_str || !priv->filter_str[0])
+		return TRUE;
+
+	gchar *text;
+	gtk_tree_model_get(model, iter, PLAYLIST_COLUMN_TEXT, &text, -1);
+
+	if (!text || !text[0])
+		return FALSE;
+
+	gboolean ret = (strstr(text, priv->filter_str) != NULL);
+
+	return ret;
 }
 
 static gchar *
