@@ -104,6 +104,8 @@ static void     playlist_handle_action      (EinaPlaylist *self, GtkAction *acti
 static gboolean playlist_get_iter_from_index(EinaPlaylist *self, GtkTreeIter *iter, gint index);
 static gint*    playlist_get_selected_indices(EinaPlaylist *self);
 
+static void     playlist_search_hide (EinaPlaylist *self);
+static void     playlist_search_clear(EinaPlaylist *self);
 static void     playlist_filter_model(EinaPlaylist *self);
 static gboolean playlist_filter_cb(GtkTreeModel *model, GtkTreeIter *iter, EinaPlaylist *self);
 
@@ -301,6 +303,14 @@ playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	g_signal_connect_swapped(self->priv->tv, "row-activated",      (GCallback) playlist_change_to_activated, self);
 	g_signal_connect_swapped(self->priv->tv, "key-press-event",    (GCallback) playlist_react_to_event, self);
 	g_signal_connect_swapped(self->priv->tv, "button-press-event", (GCallback) playlist_react_to_event, self);
+
+	g_signal_connect(gel_ui_generic_get_object(GEL_UI_GENERIC(self), "search-box"),
+		"grab-focus", (GCallback) gtk_widget_show, NULL);
+
+	g_signal_connect_swapped(gel_ui_generic_get_object(GEL_UI_GENERIC(self), "search-entry"),
+		"icon-press", (GCallback) playlist_search_clear, self);
+	g_signal_connect_swapped(gel_ui_generic_get_object(GEL_UI_GENERIC(self), "search-close-button"),
+		"clicked", (GCallback) playlist_search_hide, self);
 
 	gchar *actions[] = { "add-action", "remove-action", "clear-action" };
 	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
@@ -837,8 +847,32 @@ playlist_filter_model(EinaPlaylist *self)
 	if (curr_model != (GtkTreeModel *) priv->filter)
 		gtk_tree_view_set_model(priv->tv, (GtkTreeModel *) priv->filter);
 
-	priv->filter_str = g_strdup(text);
+	priv->filter_str = g_utf8_casefold(text, -1);
+
 	gtk_tree_model_filter_refilter((GtkTreeModelFilter *) priv->filter);
+}
+
+static void
+playlist_search_hide(EinaPlaylist *self)
+{
+	g_return_if_fail(EINA_IS_PLAYLIST(self));
+
+	GtkWidget *widget = gel_ui_generic_get_widget(GEL_UI_GENERIC(self), "search-box");
+	g_return_if_fail(GTK_IS_WIDGET(widget));
+
+	gtk_widget_hide(widget);
+	playlist_search_clear(self);
+}
+
+static void
+playlist_search_clear(EinaPlaylist *self)
+{
+	g_return_if_fail(EINA_IS_PLAYLIST(self));
+
+	GtkEntry *entry = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_ENTRY, "search-entry");
+	g_return_if_fail(GTK_IS_ENTRY(entry));
+
+	gtk_entry_set_text(entry, "");
 }
 
 static gboolean
@@ -854,7 +888,11 @@ playlist_filter_cb(GtkTreeModel *model, GtkTreeIter *iter, EinaPlaylist *self)
 	if (!text || !text[0])
 		return FALSE;
 
-	gboolean ret = (strstr(text, priv->filter_str) != NULL);
+	gchar *cf = g_utf8_casefold(text, -1);
+	gboolean ret = (strstr(cf, priv->filter_str) != NULL);
+
+	g_free(text);
+	g_free(cf);
 
 	return ret;
 }
