@@ -182,7 +182,7 @@ AC_CHECK_FUNCS([strtol])
 # Some flags
 TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 	-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
-	-DGDK_MULTIHEAD_SAFE -DGTK_MULTIHEAD_SAFE -DGSEAL_ENABLE"
+	-DGTK_MULTIHEAD_SAFE -DGSEAL_ENABLE"
 
 AC_ARG_ENABLE(release-build, [  --enable-release-build      Build in release mode (-debug,+optimizations)], release_build=yes, release_build=no)
 AC_ARG_ENABLE(experimental,  [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
@@ -257,6 +257,8 @@ EINA_CFLAGS="\
 	$PEAS_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
+	-L$top_builddir/gel/.libs \
+	-L$top_builddir/lomo/.libs \
 	"
 EINA_LIBS="\
 	$GLIB_LIBS      \
@@ -264,7 +266,10 @@ EINA_LIBS="\
 	$GST_LIBS       \
 	$PEAS_LIBS      \
 	$COMMON_LIBS    \
-	$EXPERIMENTAL_LIBS  \
+	$EXPERIMENTAL_LIBS        \
+	-llomo-$LOMO_API_VERSION  \
+	-lgel-$GEL_API_VERSION    \
+	-lgel-ui-$GEL_API_VERSION \
 	"
 GLIB_CFLAGS+=" $COMMON_CFLAGS"
 AC_SUBST(GLIB_CFLAGS)
