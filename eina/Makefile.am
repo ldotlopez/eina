@@ -32,10 +32,7 @@ bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_LDFLAGS = \
-	@EINA_LIBS@ \
-	-L$(top_builddir)/gel/.libs  \
-	-L$(top_builddir)/lomo/.libs \
-	-lgel-@GEL_API_VERSION@ -lgel-ui-@GEL_API_VERSION@ -llomo-@LOMO_API_VERSION@
+	@EINA_LIBS@
 
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS =

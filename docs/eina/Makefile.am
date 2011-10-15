@@ -49,13 +49,9 @@ FIXXREF_OPTIONS=
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
 HFILE_GLOB=$(top_srcdir)/eina/ext/*.h   \
-	$(top_srcdir)/eina/art/eina-art.h          \
-	$(top_srcdir)/eina/art/eina-art-plugin.h   \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h
 
 CFILE_GLOB=$(top_srcdir)/eina/ext/*.c     \
-	$(top_srcdir)/eina/art/eina-art.c          \
-	$(top_srcdir)/eina/art/eina-art-plugin.c   \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c
 
 # Header files to ignore when scanning.
@@ -100,11 +96,7 @@ GTKDOC_CFLAGS += @NOTIFY_CFLAGS@
 endif
 
 GTKDOC_LIBS= \
-	-L$(top_builddir)/gel/.libs  \
-	-L$(top_builddir)/lomo/.libs \
-	-lgel-ui-@GEL_API_VERSION@   \
-	-lgel-@GEL_API_VERSION@      \
-	-llomo-@LOMO_API_VERSION@
+	@EINA_LIBS@
 
 if BUILD_ADB
 GTKDOC_LIBS += @SQLITE3_LIBS@
@@ -118,7 +110,6 @@ endif
 
 GTKDOC_LIBS += \
 	$(top_builddir)/eina/ext/libeinaext.la            \
-	$(top_builddir)/eina/art/.libs/libart.a           \
 	$(top_builddir)/eina/dock/.libs/libdock.a         \
 	$(top_builddir)/eina/fieshta/.libs/libfieshta.a   \
 	$(top_builddir)/eina/lastfm/.libs/liblastfm.a     \
@@ -141,7 +132,7 @@ GTKDOC_LIBS += \
 	$(top_builddir)/eina/ntfy/.libs/libntfy.a
 endif
 
-#	$(top_builddir)/eina/mpris/.libs/libmpris.a 
+#	$(top_builddir)/eina/mpris/.libs/libmpris.a
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/docs/gtk-doc.make
