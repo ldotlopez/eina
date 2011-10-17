@@ -30,7 +30,6 @@ G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 struct _EinaPlayerPrivate {
 	// Props.
 	LomoPlayer *lomo;
-	gchar      *stream_mrkp;
 
 	EinaSeek  *seek;
 	EinaCover *cover;
@@ -39,7 +38,6 @@ struct _EinaPlayerPrivate {
 enum {
 	PROP_LOMO_PLAYER = 1,
 	PROP_DEFAULT_PIXBUF,
-	PROP_STREAM_MARKUP
 };
 
 enum {
@@ -91,10 +89,6 @@ eina_player_set_property (GObject *object, guint property_id, const GValue *valu
 		eina_player_set_default_pixbuf((EinaPlayer *) object, (GdkPixbuf *) g_value_get_object(value));
 		break;
 
-	case PROP_STREAM_MARKUP:
-		eina_player_set_stream_markup((EinaPlayer *) object, (gchar *) g_value_get_string(value));
-		break;
-
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -106,8 +100,7 @@ eina_player_dispose (GObject *object)
 	EinaPlayer *self = EINA_PLAYER(object);
 	EinaPlayerPrivate *priv = self->priv;
 
-	gel_free_and_invalidate(priv->lomo,        NULL, g_object_unref);
-	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
+	gel_free_and_invalidate(priv->lomo, NULL, g_object_unref);
 
 	G_OBJECT_CLASS (eina_player_parent_class)->dispose (object);
 }
@@ -131,11 +124,6 @@ eina_player_class_init (EinaPlayerClass *klass)
 	g_object_class_install_property(object_class, PROP_DEFAULT_PIXBUF,
 		g_param_spec_object("default-pixbuf", "default-pixbuf", "default-pixbuf",
 		GDK_TYPE_PIXBUF, G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS
-		));
-
-	g_object_class_install_property(object_class, PROP_STREAM_MARKUP,
-		g_param_spec_string("stream-markup", "stream-markup", "stream-markup",
-		"%t", G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS
 		));
 
 	eina_player_signals[ACTION_ACTIVATED] =
@@ -312,22 +300,6 @@ eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo)
 	player_update_information(self);
 
 	g_object_notify(G_OBJECT(self), "lomo-player");
-}
-
-void
-eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup)
-{
-	g_return_if_fail(EINA_IS_PLAYER(self));
-	g_return_if_fail(stream_markup != NULL);
-
-	EinaPlayerPrivate *priv = self->priv;
-
-	gel_free_and_invalidate(priv->stream_mrkp, NULL, g_free);
-	priv->stream_mrkp = g_strdup(stream_markup);
-
-	player_update_information(self);
-
-	g_object_notify((GObject *) self, "stream-markup");
 }
 
 void
