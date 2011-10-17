@@ -54,8 +54,6 @@ player_update_information(EinaPlayer *self);
 static void
 lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self);
 
-static gchar *
-stream_info_parser_cb(gchar key, LomoStream *stream);
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self);
 
@@ -359,44 +357,70 @@ player_update_information(EinaPlayer *self)
 	g_return_if_fail(EINA_IS_PLAYER(self));
 	EinaPlayerPrivate *priv = self->priv;
 
-	gchar *info  =
-		"<span size=\"x-large\" weight=\"bold\">Eina music player</span>\n"
-		"<span size=\"x-large\" weight=\"normal\">\u200B</span>";
-
-	GtkWidget *label   = gel_ui_generic_get_typed(self, GTK_WIDGET, "stream-info-label");
 	LomoStream *stream = lomo_player_get_current_stream(priv->lomo);
 
+	const gchar *line1 = NULL;
+	const gchar *line2 = NULL;
+	gchar *fallback = NULL;
+
+	// Build text for labels
+	if (stream)
+	{
+		line1 = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+		line2 = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+
+		if (line1 == NULL)
+		{
+			gchar *uri_unescaped = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+			gchar *basename      = g_path_get_basename(uri_unescaped);
+			fallback = g_markup_escape_text(basename, -1);
+			g_free(uri_unescaped);
+			g_free(basename);
+		}
+	}
+	else
+	{
+		line1 = _("Eina music player");
+		line2 = "\u200B";
+	}
+
+	// Setup labels
+	struct {
+		gchar *widget_name;
+		gchar *markup;
+	} markups[2] = 
+	{
+		{ "stream-title-label",  NULL },
+		{ "stream-artist-label", NULL }
+	};
+	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>",   line1 ? line1 : fallback);
+	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>", line2 ? line2 : "\u200B");
+	gel_free_and_invalidate(fallback, NULL, g_free);
+
+	for (guint i = 0; i < G_N_ELEMENTS(markups); i++)
+	{
+		g_object_set(gel_ui_generic_get_object(GEL_UI_GENERIC(self), markups[i].widget_name),
+			"label", markups[i].markup,
+			"ellipsize", stream ? PANGO_ELLIPSIZE_MIDDLE : PANGO_ELLIPSIZE_NONE,
+			NULL);
+		g_free(markups[i].markup);
+	}
+
+	// Window title
 	GtkWindow *window = (GtkWindow *) gtk_widget_get_toplevel((GtkWidget *) self);
 	if (window && (!GTK_IS_WINDOW(window) || !gtk_widget_is_toplevel((GtkWidget *) window)))
 		window = NULL;
 
-	if (!stream)
-	{
-		g_object_set(label,
-			"selectable", FALSE,
-			"use-markup", TRUE,
-			"label", info,
-			"ellipsize", PANGO_ELLIPSIZE_NONE,
-			NULL);
-		if (window)
-			gtk_window_set_title(window, N_("Eina player"));
-		return;
-	}
-
-	info = gel_str_parser(priv->stream_mrkp, (GelStrParserFunc) stream_info_parser_cb, stream);
-	g_object_set(label,
-		"selectable", TRUE,
-		"use-markup", TRUE,
-		"label", info,
-		"ellipsize", PANGO_ELLIPSIZE_MIDDLE,
-		NULL);
-	g_free(info);
-
 	if (window)
 	{
-		gchar *title = gel_str_parser("{%a - }%t", (GelStrParserFunc) lomo_stream_string_parser_cb, stream);
-		gtk_window_set_title(window, title);
-		g_free(title);
+		if (!stream)
+			gtk_window_set_title(window, N_("Eina player"));
+		else
+		{
+			gchar *title = gel_str_parser("{%a - }%t", (GelStrParserFunc) lomo_stream_string_parser_cb, stream);
+			gtk_window_set_title(window, title);
+			g_free(title);
+		}
 	}
 }
 
@@ -409,7 +433,7 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 	if (stream == lomo_player_get_current_stream(lomo))
 		player_update_information(self);
 }
-
+/*
 static gchar *
 stream_info_parser_cb(gchar key, LomoStream *stream)
 {
@@ -434,6 +458,7 @@ stream_info_parser_cb(gchar key, LomoStream *stream)
 	}
 	return ret;
 }
+*/
 
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self)
