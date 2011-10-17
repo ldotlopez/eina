@@ -257,8 +257,8 @@ EINA_CFLAGS="\
 	$PEAS_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
-	-L$top_builddir/gel/.libs \
-	-L$top_builddir/lomo/.libs \
+	-L\$(top_builddir)/gel/.libs \
+	-L\$(top_builddir)/lomo/.libs \\
 	"
 EINA_LIBS="\
 	$GLIB_LIBS      \
