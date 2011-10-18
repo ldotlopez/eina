@@ -53,7 +53,7 @@ typedef struct {
 GType eina_preferences_dialog_get_type (void);
 
 EinaPreferencesDialog*
-eina_preferences_dialog_new (void);
+eina_preferences_dialog_new (GtkWindow *parent);
 
 void
 eina_preferences_dialog_add_tab(EinaPreferencesDialog *self, EinaPreferencesTab *tab);

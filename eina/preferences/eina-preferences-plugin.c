@@ -180,7 +180,8 @@ preferences_plugin_build_dialog(EinaPreferencesPlugin *plugin)
 	if (GTK_IS_DIALOG(priv->dialog))
 		return;
 
-	priv->dialog = eina_preferences_dialog_new();
+	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
+	priv->dialog = eina_preferences_dialog_new((GtkWindow *) eina_application_get_window(app));
 	g_object_set((GObject*) priv->dialog,
 		"title", N_("Preferences"),
 		"window-position", GTK_WIN_POS_CENTER_ON_PARENT,
