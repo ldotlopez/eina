@@ -312,7 +312,10 @@ playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	g_signal_connect_swapped(gel_ui_generic_get_object(GEL_UI_GENERIC(self), "search-close-button"),
 		"clicked", (GCallback) playlist_search_hide, self);
 
-	gchar *actions[] = { "add-action", "remove-action", "clear-action" };
+	gchar *actions[] = {
+		"add-action",   "remove-action",
+		"queue-action", "dequeue-action",
+		"clear-action" };
 	for (guint i = 0; i < G_N_ELEMENTS(actions); i++)
 		g_signal_connect_swapped(gel_ui_generic_get_object(self, actions[i]), "activate", (GCallback) playlist_handle_action, self);
 
@@ -757,6 +760,8 @@ playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 
 	if (event->type == GDK_KEY_PRESS)
 	{
+		gboolean ret = TRUE;
+
 		switch (event->key.keyval)
 		{
 		case GDK_KEY_q:
@@ -777,9 +782,10 @@ playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 			break;
 
 		default:
+			ret = FALSE;
 			break;
 		}
-		return TRUE;
+		return ret;
 	}
 	return FALSE;
 }
@@ -799,7 +805,10 @@ playlist_handle_action(EinaPlaylist *self, GtkAction *action)
 
         const gchar *name = gtk_action_get_name(action);
 
-	if (g_str_equal("remove-action", name))
+	if (g_str_equal("queue-action", name) || g_str_equal("dequeue-action", name))
+		playlist_queue_selected(self);
+
+	else if (g_str_equal("remove-action", name))
 		playlist_remove_selected(self);
 
 	else if (g_str_equal("clear-action", name))
