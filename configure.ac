@@ -257,19 +257,16 @@ EINA_CFLAGS="\
 	$PEAS_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
-	-L\$(top_builddir)/gel/.libs \
-	-L\$(top_builddir)/lomo/.libs \\
 	"
 EINA_LIBS="\
-	$GLIB_LIBS      \
-	$GTK_LIBS       \
-	$GST_LIBS       \
-	$PEAS_LIBS      \
-	$COMMON_LIBS    \
-	$EXPERIMENTAL_LIBS        \
-	-llomo-$LOMO_API_VERSION  \
-	-lgel-$GEL_API_VERSION    \
-	-lgel-ui-$GEL_API_VERSION \
+	$GLIB_LIBS         \
+	$GTK_LIBS          \
+	$GST_LIBS          \
+	$PEAS_LIBS         \
+	$COMMON_LIBS       \
+	$EXPERIMENTAL_LIBS \
+	-L\$(top_builddir)/gel/.libs -lgel-$GEL_API_VERSION -lgel-ui-$GEL_API_VERSION \
+	-L\$(top_builddir)/lomo/.libs -llomo-$LOMO_API_VERSION \
 	"
 GLIB_CFLAGS+=" $COMMON_CFLAGS"
 AC_SUBST(GLIB_CFLAGS)
