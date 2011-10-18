@@ -2,8 +2,8 @@
 Module=status-icon
 IAge=2
 Depends=lomo
-Name=StatusIcon plugin
-Description=StatusIcon plugin
+Name=Status Icon
+Description=Add a status icon to the system tray
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@

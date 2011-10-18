@@ -2,8 +2,8 @@
 Module=lastfm
 IAge=2
 Depends=lomo
-Name=LastFM plugin
-Description=LastFM plugin
+Name=LastFM
+Description=Submit played tracks to last.fm
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@

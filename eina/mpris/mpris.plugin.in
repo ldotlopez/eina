@@ -2,8 +2,8 @@
 Module=mpris
 IAge=2
 Depends=lomo
-Name=MPRIS plugin
-Description=MPRIS plugin
+Name=MPRIS
+Description=Control @PACKAGE_NAME@ remotely with an MPRIS-compatible client
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@
