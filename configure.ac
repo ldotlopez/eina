@@ -420,11 +420,8 @@ bundle/Info.plist
 data/Makefile
 data/eina.desktop
 data/gel-${GEL_API_VERSION}.pc
-data/gel-${GEL_API_VERSION}-uninstalled.pc
 data/gel-ui-${GEL_API_VERSION}.pc
-data/gel-ui-${GEL_API_VERSION}-uninstalled.pc
 data/lomo-${LOMO_API_VERSION}.pc
-data/lomo-${LOMO_API_VERSION}-uninstalled.pc
 data/eina-${EINA_API_VERSION}.pc
 data/net.sourceforge.eina.gschema.xml.in
 docs/Makefile
