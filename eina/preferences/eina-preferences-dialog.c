@@ -62,10 +62,13 @@ eina_preferences_dialog_init (EinaPreferencesDialog *self)
 }
 
 EinaPreferencesDialog*
-eina_preferences_dialog_new (void)
+eina_preferences_dialog_new (GtkWindow *parent)
 {
 	EinaPreferencesDialog *self = g_object_new (EINA_TYPE_PREFERENCES_DIALOG, NULL);
 	EinaPreferencesDialogPrivate *priv = GET_PRIVATE(self);
+	
+	if (parent && GTK_IS_WINDOW(parent))
+		gtk_window_set_transient_for((GtkWindow *) self, parent);
 
 	priv->notebook = (GtkNotebook *) gtk_notebook_new();
 	gtk_notebook_set_show_tabs(priv->notebook, TRUE);

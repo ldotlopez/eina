@@ -50,17 +50,10 @@ GType eina_player_get_type (void);
 
 GtkWidget* eina_player_new (void);
 
-void
-eina_player_set_lomo_player(EinaPlayer *self, LomoPlayer *lomo);
-LomoPlayer *
-eina_player_get_lomo_player(EinaPlayer *self);
-void
-eina_player_set_stream_markup(EinaPlayer *self, gchar *stream_markup);
-void
-eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf);
-
-EinaCover *
-eina_player_get_cover_widget(EinaPlayer *self);
+LomoPlayer *eina_player_get_lomo_player   (EinaPlayer *self);
+void        eina_player_set_lomo_player   (EinaPlayer *self, LomoPlayer *lomo);
+EinaCover  *eina_player_get_cover_widget  (EinaPlayer *self);
+void        eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf);
 
 G_END_DECLS
 

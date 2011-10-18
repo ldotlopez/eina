@@ -2,8 +2,8 @@
 Module=ntfy
 IAge=2
 Depends=lomo
-Name=Notify plugin
-Description=Notify plugin
+Name=Notify
+Description=Show notifications on the desktop
 Icon=ntfy.png
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@

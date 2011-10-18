@@ -49,8 +49,6 @@ static gboolean
 player_action_activated_cb(EinaPlayer *player, GtkAction *action, EinaApplication *app);
 static void 
 action_activated_cb(GtkAction *action, EinaPlayer *player);
-static void
-settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player);
 
 static const gchar *ui_mng_xml = 
 "<menubar name='Main'>"
@@ -78,13 +76,10 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	EinaPlayerPlugin      *plugin = EINA_PLAYER_PLUGIN(activatable);
 	EinaPlayerPluginPrivate *priv = plugin->priv;
 
-	GSettings *settings = eina_application_get_settings(app, EINA_PLAYER_PREFERENCES_DOMAIN);
-
 	GtkWidget *player = eina_player_new();
 	g_object_set(player,
 		"lomo-player",    eina_application_get_interface(app, "lomo"),
 		"default-pixbuf", gdk_pixbuf_new_from_file(lomo_em_art_provider_get_default_cover_path(), NULL),
-		"stream-markup",  g_settings_get_string(settings, EINA_PLAYER_STREAM_MARKUP_KEY),
 		NULL);
 	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, app);
 
@@ -93,7 +88,6 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 
 	// Connect actions
 	g_signal_connect(player,   "action-activated", (GCallback) player_action_activated_cb, app);
-	g_signal_connect(settings, "changed",          (GCallback) settings_changed_cb, player);
 
 	// Export
 	eina_application_set_interface(app, "player", player);
@@ -304,19 +298,5 @@ action_activated_cb(GtkAction *action, EinaPlayer *player)
 	
 	else
 		g_warning(N_("Unknow action: %s"), gtk_action_get_name(action));
-}
-
-static void
-settings_changed_cb(GSettings *settings, gchar *key, EinaPlayer *player)
-{
-	if (g_str_equal(key, EINA_PLAYER_STREAM_MARKUP_KEY))
-	{
-		eina_player_set_stream_markup(player, g_settings_get_string(settings, key));
-	}
-
-	else
-	{
-		g_warning(N_("Unhanded key '%s'"), key);
-	}
 }
 

@@ -157,6 +157,12 @@ app_activate_cb (GApplication *application, gpointer user_data)
 
 	gtk_init(NULL, NULL);
 
+	GtkSettings *gtk_settings = gtk_settings_get_default();
+	g_setenv("PULSE_PROP_media.role", "audio", TRUE);
+
+	gtk_settings = gtk_settings_get_default ();
+	g_object_set (G_OBJECT (gtk_settings), "gtk-application-prefer-dark-theme", TRUE, NULL);
+
 	// Initialize stock icons stuff
 	gchar *themedir = g_build_filename(PACKAGE_DATA_DIR, "icons", NULL);
 	gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);

@@ -49,13 +49,9 @@ FIXXREF_OPTIONS=
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
 HFILE_GLOB=$(top_srcdir)/eina/ext/*.h   \
-	$(top_srcdir)/eina/art/eina-art.h          \
-	$(top_srcdir)/eina/art/eina-art-plugin.h   \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h
 
 CFILE_GLOB=$(top_srcdir)/eina/ext/*.c     \
-	$(top_srcdir)/eina/art/eina-art.c          \
-	$(top_srcdir)/eina/art/eina-art-plugin.c   \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c
 
 # Header files to ignore when scanning.
@@ -118,7 +114,6 @@ endif
 
 GTKDOC_LIBS += \
 	$(top_builddir)/eina/ext/libeinaext.la            \
-	$(top_builddir)/eina/art/.libs/libart.a           \
 	$(top_builddir)/eina/dock/.libs/libdock.a         \
 	$(top_builddir)/eina/fieshta/.libs/libfieshta.a   \
 	$(top_builddir)/eina/lastfm/.libs/liblastfm.a     \
