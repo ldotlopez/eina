@@ -30,7 +30,6 @@
 #include "eina-playlist-ui.h"
 #include <glib/gi18n.h>
 
-#define ENABLE_EXPERIMENTAL 0
 #define DEBUG 0
 #define DEBUG_PREFIX "EinaPlaylist"
 #if DEBUG
@@ -104,6 +103,7 @@ static void     playlist_handle_action      (EinaPlaylist *self, GtkAction *acti
 static gboolean playlist_get_iter_from_index(EinaPlaylist *self, GtkTreeIter *iter, gint index);
 static gint*    playlist_get_selected_indices(EinaPlaylist *self);
 
+static void     playlist_search_show (EinaPlaylist *self, gboolean focus);
 static void     playlist_search_hide (EinaPlaylist *self);
 static void     playlist_search_clear(EinaPlaylist *self);
 static void     playlist_filter_model(EinaPlaylist *self);
@@ -767,9 +767,19 @@ playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 			playlist_remove_selected(self);
 			break;
 
+		case GDK_KEY_Escape:
+			playlist_search_hide(self);
+			break;
+
+		case GDK_KEY_f:
+			if (event->key.state == GDK_CONTROL_MASK)
+				playlist_search_show(self, TRUE);
+			break;
+
 		default:
 			break;
 		}
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -850,6 +860,22 @@ playlist_filter_model(EinaPlaylist *self)
 	priv->filter_str = g_utf8_casefold(text, -1);
 
 	gtk_tree_model_filter_refilter((GtkTreeModelFilter *) priv->filter);
+}
+
+static void
+playlist_search_show(EinaPlaylist *self, gboolean focus)
+{
+	g_return_if_fail(EINA_IS_PLAYLIST(self));
+
+	GtkWidget *widget = gel_ui_generic_get_widget(GEL_UI_GENERIC(self), "search-box");
+	g_return_if_fail(GTK_IS_WIDGET(widget));
+
+	gtk_widget_show(widget);
+	if (focus)
+	{
+		GtkWidget *entry = gel_ui_generic_get_widget(GEL_UI_GENERIC(self), "search-entry");
+		gtk_widget_grab_focus(entry);
+	}
 }
 
 static void
