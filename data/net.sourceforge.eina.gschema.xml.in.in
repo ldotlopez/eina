@@ -113,10 +113,6 @@
 
   <!-- player -->
   <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.player" path="/apps/@PACKAGE@/preferences/player/">
-    <key name="stream-markup" type="s">
-      <default>'&lt;span size="x-large" weight="bold"&gt;%t&lt;/span&gt;\n&lt;span size="x-large" weight="normal"&gt;{%a}&lt;/span&gt;'</default>
-      <_summary>Format to use for display stream title's</_summary>
-    </key>
   </schema>
 
   <!-- playlist -->

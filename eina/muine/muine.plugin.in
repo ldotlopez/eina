@@ -2,8 +2,8 @@
 Module=muine
 IAge=2
 Depends=adb;lomo
-Name=Muine plugin
-Description=Muine plugin
+Name=Muine
+Description=Mimic Muine music played (based on albums and artists)
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@

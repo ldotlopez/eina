@@ -2,8 +2,8 @@
 Module=fieshta
 IAge=2
 Depends=lomo
-Name=Fieshta plugin
-Description=Fieshta plugin
+Name=Fieshta
+Description=Basic restrictions on playback control, designed for parties.
 Authors=@EINA_AUTHORS@
 Copyright=@EINA_ONELINE_COPYRIGHT@
 Website=@EINA_URL@

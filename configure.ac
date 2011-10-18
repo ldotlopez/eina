@@ -42,7 +42,6 @@ AC_SUBST(EINA_URL_BUGS)
 AC_SUBST(EINA_ONELINE_COPYRIGHT)
 AC_SUBST(EINA_AUTHORS)
 
-# Setup gel
 GEL_MAJOR=2
 GEL_MINOR=0
 GEL_MICRO=0
@@ -53,8 +52,6 @@ AC_SUBST(GEL_VERSION)
 AC_SUBST(GEL_MAJOR)
 AC_SUBST(GEL_MINOR)
 AC_SUBST(GEL_MICRO)
-
-# Setup lomo
 LOMO_MAJOR=2
 LOMO_MINOR=0
 LOMO_MICRO=0
@@ -66,7 +63,6 @@ AC_SUBST(LOMO_MAJOR)
 AC_SUBST(LOMO_MINOR)
 AC_SUBST(LOMO_MICRO)
 
-# Setup eina
 AC_DEFINE_UNQUOTED(EINA_CODENAME,"$EINA_CODENAME", [Eina version codename])
 AC_DEFINE_UNQUOTED(EINA_URL, "$EINA_URL", [Eina URL])
 AC_DEFINE_UNQUOTED(EINA_URL_HELP, "$EINA_URL_HELP", [Eina help URL])
@@ -74,11 +70,11 @@ AC_DEFINE_UNQUOTED(EINA_URL_BUGS, "$EINA_URL_BUGS", [Eina bugs URL])
 AC_DEFINE_UNQUOTED(GEL_API_VERSION,  "$GEL_API_VERSION",  [Gel API version] )
 AC_DEFINE_UNQUOTED(LOMO_API_VERSION, "$LOMO_API_VERSION", [Lomo API version] )
 AC_DEFINE_UNQUOTED(EINA_API_VERSION,"$EINA_API_VERSION",  [Eina API version])
+
 AC_SUBST(EINA_VERSION)
 AC_SUBST(EINA_CODENAME)
 AC_SUBST(EINA_API_VERSION)
 
-# Misc
 PACKAGE_RELEASE_DATE="`date '+%a, %d %b %Y %H:%m:%S %z'`"
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
@@ -121,6 +117,9 @@ GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
 AC_SUBST(GLIB_GENMARSHAL)
 AC_SUBST(GLIB_COMPILE_SCHEMAS)
 AC_SUBST(GDK_PIXBUF_CSOURCE)
+#AC_SUBST(VALA_GEN_INTROSPECT)
+#AC_SUBST(VAPIGEN)
+#AC_SUBST(DBUS_BINDING_TOOL)
 
 #
 # checks for libraries
@@ -132,6 +131,14 @@ AC_SEARCH_LIBS([strerror],[cposix])
 #
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h])
+
+# Detect OSX
+#AC_LANG_PUSH([Objective C])
+#OLD_AM_CFLAGS="$AM_CFLAGS"
+#AM_CFLAGS="$AM_CFLAGS -framework Cocoa"
+#AC_CHECK_HEADERS([/System/Library/Frameworks/Cocoa.framework/Headers/Cocoa.h], [HAVE_COCOA_H="yes"], [HAVE_COCOA_H="no"])
+#AM_CFLAGS="$OLD_AM_CFLAGS"
+#AC_LANG_POP([Objective C])
 
 #
 # checks for types
@@ -236,11 +243,6 @@ PKG_CHECK_MODULES(GTK,  $gtk_modules)
 PKG_CHECK_MODULES(GST,  $gst_modules)
 PKG_CHECK_MODULES(PEAS, $peas_modules)
 
-#_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
-#PKG_CHECK_MODULES(LOMO, "lomo-$LOMO_API_VERSION" >= $LOMO_VERSION)
-#PKG_CHECK_MODULES(GEL,  "gel-ui-$GEL_API_VERSION" >= $GEL_VERSION)
-#PKG_CONFIG_PATH="$_PKG_CONFIG_PATH"
-
 GDK_QUARTZ_BACKEND="`pkg-config --variable=target gdk-3.0`"
 AC_DEFINE([GDK_QUARTZ_BACKEND], [1], [Define if GDK is using the quartz backend])
 
@@ -252,25 +254,19 @@ EINA_CFLAGS="\
 	$GLIB_CFLAGS         \
 	$GTK_CFLAGS          \
 	$GST_CFLAGS          \
-	$LOMO_CFLAGS         \
-	$GEL_CFLAGS          \
 	$PEAS_CFLAGS         \
 	$COMMON_CFLAGS       \
 	$EXPERIMENTAL_CFLAGS \
-	-L\$(top_builddir)/lomo/.libs \
-	-L\$(top_builddir)/gel/.libs \
 	"
 EINA_LIBS="\
-	$GLIB_LIBS      \
-	$GTK_LIBS       \
-	$GST_LIBS       \
-	$LOMO_LIBS      \
-	$GEL_LIBS       \
-	$PEAS_LIBS      \
-	$COMMON_LIBS    \
+	$GLIB_LIBS         \
+	$GTK_LIBS          \
+	$GST_LIBS          \
+	$PEAS_LIBS         \
+	$COMMON_LIBS       \
 	$EXPERIMENTAL_LIBS \
-	-lgel-ui-$GEL_API_VERSION \
-	-llomo-$LOMO_API_VERSION \
+	-L\$(top_builddir)/gel/.libs -lgel-$GEL_API_VERSION -lgel-ui-$GEL_API_VERSION \
+	-L\$(top_builddir)/lomo/.libs -llomo-$LOMO_API_VERSION \
 	"
 GLIB_CFLAGS+=" $COMMON_CFLAGS"
 AC_SUBST(GLIB_CFLAGS)
@@ -423,6 +419,13 @@ bundle/build
 bundle/Info.plist
 data/Makefile
 data/eina.desktop
+data/gel-${GEL_API_VERSION}.pc
+data/gel-${GEL_API_VERSION}-uninstalled.pc
+data/gel-ui-${GEL_API_VERSION}.pc
+data/gel-ui-${GEL_API_VERSION}-uninstalled.pc
+data/lomo-${LOMO_API_VERSION}.pc
+data/lomo-${LOMO_API_VERSION}-uninstalled.pc
+data/eina-${EINA_API_VERSION}.pc
 data/net.sourceforge.eina.gschema.xml.in
 docs/Makefile
 docs/gel/Makefile
