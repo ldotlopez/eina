@@ -790,6 +790,7 @@ playlist_react_to_event(EinaPlaylist *self, GdkEvent *event)
 		}
 		return ret;
 	}
+
 	return FALSE;
 }
 
@@ -938,7 +939,7 @@ playlist_filter_cb(GtkTreeModel *model, GtkTreeIter *iter, EinaPlaylist *self)
 static gchar *
 format_stream(LomoStream *stream, gchar *fmt)
 {
-	if (lomo_stream_get_all_tags_flag(stream))
+	if (lomo_stream_get_has_all_tags(stream))
 		return gel_str_parser(fmt, (GelStrParserFunc) format_stream_cb, stream);
 	else
 	{

@@ -44,12 +44,14 @@ static struct TagFmt tag_fmt_table [] = {
 
 struct _LomoStreamPrivate {
 	gboolean all_tags, failed;
-	GList *tags;
+	GList *tags, *em_keys;
 };
 
 enum {
 	PROP_0,
-	PROP_URI
+	PROP_URI,
+	PROP_HAS_ALL_TAGS,
+	PROP_FAILED
 };
 
 enum {
@@ -73,9 +75,18 @@ lomo_stream_get_property(GObject *object, guint property_id, GValue *value, GPar
 	case PROP_URI:
 		g_value_set_static_string(value, lomo_stream_get_tag(self, LOMO_TAG_URI));
 		break;
+
+	case PROP_HAS_ALL_TAGS:
+		g_value_set_boolean(value, lomo_stream_get_has_all_tags(self));
+		break;
+
+	case PROP_FAILED:
+		g_value_set_boolean(value, lomo_stream_get_failed(self));
+		break;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-        }
+	}
 }
 
 static void
@@ -87,9 +98,10 @@ lomo_stream_set_property (GObject *object, guint property_id, const GValue *valu
 	case PROP_URI:
 		stream_set_uri(self, g_value_get_string(value));
 		break;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-        }
+	}
 }
 
 static void
@@ -102,6 +114,13 @@ lomo_stream_dispose (GObject *object)
 		g_list_foreach(priv->tags, (GFunc) g_free, NULL);
 		g_list_free(priv->tags);
 		priv->tags = NULL;
+	}
+
+	if (priv->em_keys)
+	{
+		g_list_foreach(priv->em_keys, (GFunc) g_free, NULL);
+		g_list_free(priv->em_keys);
+		priv->em_keys = NULL;
 	}
 
 	if (G_OBJECT_CLASS (lomo_stream_parent_class)->dispose)
@@ -127,6 +146,22 @@ lomo_stream_class_init (LomoStreamClass *klass)
 	g_object_class_install_property(object_class, PROP_URI,
 		g_param_spec_string("uri", "uri", "uri",
 			NULL,  G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|G_PARAM_STATIC_STRINGS));
+	/**
+	 * LomoStream:has-all-tags:
+	 *
+	 * Whatever all-tags have been parsed
+	 */
+	 g_object_class_install_property(object_class, PROP_HAS_ALL_TAGS,
+	 	g_param_spec_boolean("has-all-tags", "has-all-tags", "has-all-tags",
+			FALSE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
+	/**
+	 * LomoStream:failed:
+	 *
+	 * Whatever stream has been marked has failed for any reason
+	 */
+	 g_object_class_install_property(object_class, PROP_FAILED,
+	 	g_param_spec_boolean("failed", "failed", "failed",
+			FALSE, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * LomoStream::extended-metadata-updated:
@@ -264,38 +299,34 @@ lomo_stream_set_tag(LomoStream *self, const gchar *tag, gpointer value)
  * lomo_stream_get_tags:
  * @self: a #LomoStream
  *
- * Gets the list of #const gchar *for a #LomoStream
+ * Gets the list tags for a #LomoStream
  *
- * Return value: (element-type utf8) (transfer full): a #GList, it must be freed when no longer needed, data too
+ * Returns: (element-type utf8) (transfer none): The tags. list and elements
+ *          should not be freed
  */
-GList*
+const GList*
 lomo_stream_get_tags(LomoStream *self)
 {
-	GList *ret = NULL;
-	GList *iter = self->priv->tags;
-	while (iter)
-	{
-		ret = g_list_prepend(ret, g_strdup((gchar *) iter->data));
-		iter = iter->next;
-	}
-	return ret;
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+	return (const GList *) self->priv->tags;
 }
 
 /**
- * lomo_stream_set_all_tags_flag:
+ * lomo_stream_set_has_all_tags:
  * @self: a #LomoStream
  * @value: (in): value for flag
  *
  * Sets the all_tags flag to value
- **/
+ */
 void
-lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value)
+lomo_stream_set_has_all_tags(LomoStream *self, gboolean value)
 {
 	self->priv->all_tags = value;
+	g_object_notify((GObject *) self, "has-all-tags");
 }
 
 /**
- * lomo_stream_get_all_tags_flag:
+ * lomo_stream_get_has_all_tags:
  * @self: a #LomoStream
  *
  * Gets value of all_tags flag
@@ -303,26 +334,27 @@ lomo_stream_set_all_tags_flag(LomoStream *self, gboolean value)
  * Returns: the value of all_tags flag
  */
 gboolean
-lomo_stream_get_all_tags_flag(LomoStream *self)
+lomo_stream_get_has_all_tags(LomoStream *self)
 {
 	return self->priv->all_tags;
 }
 
 /**
- * lomo_stream_set_failed_flag:
+ * lomo_stream_set_failed:
  * @self: a #LomoStream
  * @value: (in): value for flag
  *
  * Sets the failed flag to value
  */
 void
-lomo_stream_set_failed_flag(LomoStream *self, gboolean value)
+lomo_stream_set_failed(LomoStream *self, gboolean value)
 {
 	self->priv->failed = value;
+	g_object_notify((GObject *) self, "failed");
 }
 
 /**
- * lomo_stream_get_failed_flag:
+ * lomo_stream_get_failed:
  * @self: a #LomoStream
  *
  * Gets value of failed flag
@@ -330,9 +362,35 @@ lomo_stream_set_failed_flag(LomoStream *self, gboolean value)
  * Returns: the value of failed flag
  */
 gboolean
-lomo_stream_get_failed_flag(LomoStream *self)
+lomo_stream_get_failed(LomoStream *self)
 {
 	return self->priv->failed;
+}
+
+/**
+ * lomo_stream_get_extended_metadata_keys:
+ * @self: A #LomoStream
+ *
+ * Gets the list of extended metadata keys set on @self
+ *
+ * Returns: (element-type utf8) (transfer none): The keys, list and
+ *          elements should be free when no longer needed
+ */
+const GList*
+lomo_stream_get_extended_metadata_keys(LomoStream *self)
+{
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+	return (const GList *) self->priv->em_keys;
+	/*
+	GList *ret = NULL;
+	GList *l = self->priv->em_keys;
+	while (l)
+	{
+		ret = g_list_prepend(l, (gpointer) g_strdup((gchar *) l->data));
+		l = l->next;
+	}
+	return ret;
+	*/
 }
 
 /**
@@ -351,6 +409,7 @@ lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *va
 	g_return_if_fail(G_IS_VALUE(value));
 
 	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
+	self->priv->em_keys = g_list_prepend(self->priv->em_keys, g_strdup(key));
 	g_object_set_data_full(G_OBJECT(self), k, value, (GDestroyNotify) destroy_gvalue);
 	g_free(k);
 

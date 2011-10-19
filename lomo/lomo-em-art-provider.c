@@ -228,7 +228,7 @@ lomo_em_art_provider_init_stream(LomoEMArtProvider *self, LomoStream *stream)
 	}
 
 	art_uri = NULL;
-	if (lomo_stream_get_all_tags_flag(stream))
+	if (lomo_stream_get_has_all_tags(stream))
 	{
 		LomoEMArtSearch *search = lomo_em_art_search(self->priv->art, stream, art_search_cb, NULL);
 		debug("Stream %p has all_tags flag, search started %p", stream, search);

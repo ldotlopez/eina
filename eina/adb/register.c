@@ -370,8 +370,8 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaAdb *self)
 	g_return_if_fail(EINA_IS_ADB(self));
 
 	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
-	GList *tags = lomo_stream_get_tags(stream);
-	GList *iter = tags;
+	const GList *tags = lomo_stream_get_tags(stream);
+	GList *iter = (GList *) tags;
 	while (iter)
 	{
 		gchar *tag = iter->data;
@@ -386,7 +386,6 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaAdb *self)
 			"VALUES((SELECT sid FROM streams WHERE uri='%q'), '%q', '%q');", uri, tag, value);
 		iter = iter->next;
 	}
-	gel_list_deep_free(tags, (GFunc) g_free);
 }
 
 

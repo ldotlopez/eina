@@ -429,7 +429,7 @@ muine_update(EinaMuine *self)
 			-1);
 
 		g_hash_table_insert(priv->stream_iter_map, ds->stream, gtk_tree_iter_copy(&iter));
-		lomo_stream_set_all_tags_flag(ds->stream, TRUE);
+		lomo_stream_set_has_all_tags(ds->stream, TRUE);
 		g_signal_connect(ds->stream, "extended-metadata-updated", (GCallback) stream_em_updated_cb, self);
 		lomo_em_art_provider_init_stream(priv->art, ds->stream);
 

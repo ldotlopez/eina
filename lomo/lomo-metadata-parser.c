@@ -314,7 +314,7 @@ disconnect:
 	lomo_stream_set_tag(priv->stream, LOMO_TAG_URI, g_strdup(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI)));
 	g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0,  priv->stream, LOMO_TAG_URI);
 
-	lomo_stream_set_all_tags_flag(priv->stream, TRUE);
+	lomo_stream_set_has_all_tags(priv->stream, TRUE);
 	g_signal_emit(self, lomo_metadata_parser_signals[ALL_TAGS], 0, priv->stream);
 	g_object_unref(priv->stream);
 

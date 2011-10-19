@@ -545,7 +545,7 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaMprisPlayer *self)
 	LomoStream *stream = lomo_player_get_nth_stream(lomo, to);
 	g_return_if_fail(LOMO_IS_STREAM(stream));
 
-	if (lomo_stream_get_all_tags_flag(stream))
+	if (lomo_stream_get_has_all_tags(stream))
 	{
 		g_hash_table_insert(self->priv->prop_changes, g_strdup("Metadata"), build_metadata_variant(stream));
 		emit_properties_change(self);
@@ -759,8 +759,8 @@ build_metadata_variant(LomoStream *stream)
 	GVariantBuilder *builder = g_variant_builder_new(G_VARIANT_TYPE ("a{sv}"));
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), g_variant_builder_end(builder));
 
-	GList *taglist = lomo_stream_get_tags(stream);
-	GList *l = taglist;
+	const GList *taglist = lomo_stream_get_tags(stream);
+	GList *l = (GList *) taglist;
 	while (l)
 	{
 		const gchar *tag = (const gchar *) l->data;
@@ -803,7 +803,6 @@ build_metadata_variant(LomoStream *stream)
 build_metadata_variant_loop_next:
 		l = l->next;
 	}
-	gel_list_deep_free(taglist, g_free);
 	g_variant_builder_add(builder, "{sv}",
 		"mpris:artUrl",
 		g_variant_new_string(lomo_stream_get_extended_metadata_as_string(stream, "art-uri")));

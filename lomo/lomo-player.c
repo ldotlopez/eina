@@ -2396,7 +2396,7 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 
 			// Exec action
 			if (stream != NULL)
-				lomo_stream_set_failed_flag(stream, TRUE);
+				lomo_stream_set_failed(stream, TRUE);
 
 			g_signal_emit(G_OBJECT(self), player_signals[ERROR], 0, stream, err);
 			g_error_free(err);
