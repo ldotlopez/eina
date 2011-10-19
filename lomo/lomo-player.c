@@ -777,7 +777,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 *
 	 * Number of streams
 	 */
-	g_object_class_install_property(object_class, PROPERTY_CURRENT,
+	g_object_class_install_property(object_class, PROPERTY_N_STREAMS,
 		g_param_spec_int("n-streams", "n-streams", "Number of streams",
 		-1, G_MAXINT, 0, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 	/**
@@ -1926,6 +1926,7 @@ lomo_player_remove(LomoPlayer *self, gint index)
 	g_signal_emit(G_OBJECT(self), player_signals[REMOVE], 0, stream, index);
 	g_object_notify((GObject *) self, "can-go-previous");
 	g_object_notify((GObject *) self, "can-go-next");
+	g_object_notify((GObject *) self, "n-streams");
 	g_object_unref(stream);
 
 	return TRUE;
@@ -2560,7 +2561,8 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		"can-go-next",
 		"auto-play",
 		"auto-parse",
-		"gapless-mode"
+		"gapless-mode",
+		"n-streams"
 		};
 
 	LomoPlayerPrivate *priv = self->priv;
