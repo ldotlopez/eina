@@ -29,16 +29,67 @@ def serialize_object(obj):
 def serialize_player(player):
 	return serialize_object(player)
 
+def serialize_stream(stream):
+	ret = serialize_object(stream)
+	for tag in stream.get_tags():
+		try:
+			ret[tag] = stream.get_tag(tag)
+		except Exception as e:
+			print "[E] %s" % repr(e)
+	return ret
+
 
 class ThreadedHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def do_GET(self):
 		global lomo
+		params = self.path.lstrip('/').split('/')
 
+		(code, body) = (200, '')
+		try:
+			target = params[0]
+			if len(params) > 1:
+				params = params[1:]
+			else:
+				params = ()
+
+			if target == 'player':
+				if len(params) == 0:
+					body = json.dumps(serialize_player(lomo))
+				else:
+					method = params[0]
+					try:
+						params = params[1:]
+					except Exception:
+						pass
+					else:
+						params = ()
+					body = json.dumps(lomo.__getattribute__(method)(params))
+
+			elif target == 'stream':
+				n = int(params[0])
+				stream = lomo.get_nth_stream(n)
+				if stream is None:
+					raise Exception('Invalid stream')
+				body = json.dumps(serialize_stream(stream))
+
+			else:
+				code = 404
+				body = json.dumps({
+                          		'error'  :'unknow',
+					'detail' : 'not found'})
+
+		except Exception as e:
+			self.send_response(404)
+			self.end_headers()
+			self.wfile.write(json.dumps({
+				'error'  :'unknow',
+				'detail' : repr(e)}) + "\n")
+		
 		self.send_response(200)
 		self.send_header('Content-type','text/plain')
 		self.end_headers()
-		self.wfile.write(repr(serialize_player(lomo)))
-		self.wfile.write('\n')
+
+		self.wfile.write(body + "\n")
 		return
 
 class ThreadingHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
