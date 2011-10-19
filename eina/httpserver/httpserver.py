@@ -13,17 +13,13 @@ lomo = None
 def serialize_object(obj):
 	ret = {}
 	for pspec in GObject.list_properties(obj):
-		try:
-			name  = pspec.name
-			vtype = pspec.value_type
-			value = obj.get_property(name)
-			
-			if hasattr(value, '__enum_values__'):
-				value = int(value)
-			ret[name] = value
+		name  = pspec.name
+		value = obj.get_property(name)
 
-		except Exception as e:
-			print "[E] %s" % repr(e)
+		if hasattr(value, '__enum_values__'):
+			value = int(value)
+		ret[name] = value
+
 	return ret
 
 def serialize_player(player):
@@ -31,11 +27,22 @@ def serialize_player(player):
 
 def serialize_stream(stream):
 	ret = serialize_object(stream)
-	for tag in stream.get_tags():
+
+	# Add all tags except uri (already a property)
+	ret['tags'] = {}
+	for tag in [x for x in stream.get_tags() if x != 'uri']:
 		try:
-			ret[tag] = stream.get_tag(tag)
+			ret['tags'][tag] = stream.get_tag(tag)
 		except Exception as e:
 			print "[E] %s" % repr(e)
+
+	ret['extended-metadata'] = {}
+	for key in stream.get_extended_metadata_keys():
+		try:
+			ret['extended-metadata'][key] = stream.get_extended_metadata_as_string(key)
+		except Exception as e:
+			print "[E] %s" % repr(e)
+
 	return ret
 
 
@@ -84,7 +91,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.wfile.write(json.dumps({
 				'error'  :'unknow',
 				'detail' : repr(e)}) + "\n")
-		
+
 		self.send_response(200)
 		self.send_header('Content-type','text/plain')
 		self.end_headers()
