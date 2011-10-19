@@ -1,5 +1,4 @@
 from gi.repository import GObject, Lomo, Eina
-import types
 import simplejson as json
 
 def serialize_object(obj):
@@ -21,8 +20,8 @@ def serialize_object(obj):
 def serialize_player(player):
 	return serialize_object(player)
 
-class PythonHelloPlugin(GObject.Object, Eina.Activatable):
-	__gtype_name__ = 'PythonHelloPlugin'
+class HTTPServerPlugin(GObject.Object, Eina.Activatable):
+	__gtype_name__ = 'HTTPServerPlugin'
 
 	application = GObject.property(type=GObject.Object)
 
@@ -32,5 +31,4 @@ class PythonHelloPlugin(GObject.Object, Eina.Activatable):
 
 	def do_deactivate(self, app):
 		return True
-
 
