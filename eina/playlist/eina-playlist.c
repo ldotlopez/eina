@@ -589,7 +589,8 @@ playlist_get_selected_indices(EinaPlaylist *self)
 	GtkTreeSelection *selection = gel_ui_generic_get_typed(self, GTK_TREE_SELECTION, "treeview-selection");
 
 	// Get selected
-	GList *rows = gtk_tree_selection_get_selected_rows(selection, &priv->model);
+	GtkTreeModel *curr_model = gtk_tree_view_get_model(priv->tv);
+	GList *rows = gtk_tree_selection_get_selected_rows(selection, &curr_model);
 	GList *l = rows;
 
 	// Create an integer list
@@ -598,6 +599,8 @@ playlist_get_selected_indices(EinaPlaylist *self)
 	while (l)
 	{
 		GtkTreePath *path = (GtkTreePath *) l->data;
+		if (curr_model == (GtkTreeModel *) priv->filter)
+			path = gtk_tree_model_filter_convert_path_to_child_path(priv->filter, path);
 		gint *indices = gtk_tree_path_get_indices(path);
 
 		if (!indices || (indices[0] < 0))
