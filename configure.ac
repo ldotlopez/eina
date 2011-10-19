@@ -446,6 +446,8 @@ eina/dock/dock.plugin
 eina/dock/Makefile
 eina/fieshta/fieshta.plugin
 eina/fieshta/Makefile
+eina/httpserver/httpserver.plugin
+eina/httpserver/Makefile
 eina/lastfm/lastfm.plugin
 eina/lastfm/Makefile
 eina/lomo/lomo.plugin

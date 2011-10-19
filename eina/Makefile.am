@@ -4,6 +4,7 @@ SUBDIRS = ext   \
 	dbus          \
 	dock          \
 	fieshta       \
+	httpserver    \
 	lastfm        \
 	lomo          \
 	mpris         \

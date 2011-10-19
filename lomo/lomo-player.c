@@ -45,6 +45,7 @@ struct _LomoPlayerPrivate {
 enum {
 	PROPERTY_STATE = 1,
 	PROPERTY_CURRENT,
+	PROPERTY_N_STREAMS,
 	PROPERTY_POSITION,
 	PROPERTY_VOLUME,
 	PROPERTY_MUTE,
@@ -195,6 +196,10 @@ player_get_property (GObject *object, guint property_id, GValue *value, GParamSp
 
 	case PROPERTY_CURRENT:
 		g_value_set_int(value, lomo_player_get_current(self));
+		break;
+
+	case PROPERTY_N_STREAMS:
+		g_value_set_int(value, lomo_player_get_n_streams(self));
 		break;
 
 	case PROPERTY_POSITION:
@@ -767,6 +772,14 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	g_object_class_install_property(object_class, PROPERTY_CURRENT,
 		g_param_spec_int("current", "current", "Current stream",
 		-1, G_MAXINT, -1, G_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_STATIC_STRINGS));
+	/**
+	 * LomoPlayer:n-streams:
+	 *
+	 * Number of streams
+	 */
+	g_object_class_install_property(object_class, PROPERTY_CURRENT,
+		g_param_spec_int("n-streams", "n-streams", "Number of streams",
+		-1, G_MAXINT, 0, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:state:
 	 *
@@ -1860,6 +1873,7 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 	{
 		g_object_notify((GObject *) self, "can-go-previous");
 		g_object_notify((GObject *) self, "can-go-next");
+		g_object_notify((GObject *) self, "n-streams");
 	}
 }
 

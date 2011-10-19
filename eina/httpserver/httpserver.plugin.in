@@ -1,0 +1,10 @@
+[Plugin]
+Module=httpserver
+Loader=python
+IAge=2
+Name=HTTP server
+Description=Export @PACKAGE_NAME@'s state over HTTP
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@
