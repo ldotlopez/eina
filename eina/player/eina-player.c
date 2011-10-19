@@ -344,18 +344,17 @@ player_update_information(EinaPlayer *self)
 		if (line1 == NULL)
 		{
 			gchar *uri_unescaped = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
-			gchar *basename      = g_path_get_basename(uri_unescaped);
-			fallback = g_markup_escape_text(basename, -1);
+			fallback = g_path_get_basename(uri_unescaped);
 			g_free(uri_unescaped);
-			g_free(basename);
 		}
 	}
-	else
-	{
-		line1 = _("Eina music player");
-		line2 = "\u200B";
-	}
 
+	if (!line1)
+		line1 = _("Eina music player");
+		
+	if (!line2)
+		line2 = "\u200B";
+	
 	// Setup labels
 	struct {
 		gchar *widget_name;
@@ -365,8 +364,10 @@ player_update_information(EinaPlayer *self)
 		{ "stream-title-label",  NULL },
 		{ "stream-artist-label", NULL }
 	};
-	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>",   line1 ? line1 : fallback);
-	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>", line2 ? line2 : "\u200B");
+	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>",
+		g_markup_escape_text(line1 ? line1 : fallback, -1));
+	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>",
+		g_markup_escape_text(line2, -1));
 	gel_free_and_invalidate(fallback, NULL, g_free);
 
 	for (guint i = 0; i < G_N_ELEMENTS(markups); i++)
