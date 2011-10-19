@@ -1,6 +1,0 @@
-Name: Lomo
-Description: GStreamer based playback library, not installed
-Version: @LOMO_VERSION@
-Requires: gstreamer-@GST_API_VERSION@ gobject-@GLIB_API_VERSION@
-Libs: ${pc_top_builddir}/lomo/liblomo-@LOMO_API_VERSION@.la
-Cflags: -I${pc_top_builddir}
