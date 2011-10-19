@@ -1,10 +1,9 @@
-import gobject
-from gi.repository import Eina
+from gi.repository import GObject, Eina
 
-class PythonHelloPlugin(gobject.GObject, Eina.Activatable):
+class PythonHelloPlugin(GObject.Object, Eina.Activatable):
 	__gtype_name__ = 'PythonHelloPlugin'
 
-	application = gobject.property(type=gobject.GObject)
+	application = GObject.property(type=GObject.GObject)
 
 	def do_activate(self, app):
 		print "Python test plugin, display current playlist:"

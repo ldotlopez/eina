@@ -195,10 +195,7 @@ lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
 	gchar *tag_str = lomo_stream_get_tag_by_id(self, tag_key);
 
 	if (tag_str != NULL)
-	{
-		ret = g_markup_escape_text(tag_str, -1);
-		g_free(tag_str);
-	}
+		return tag_str;
 
 	if ((tag_key == 't') && (ret == NULL))
 	{

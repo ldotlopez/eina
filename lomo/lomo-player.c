@@ -197,6 +197,10 @@ player_get_property (GObject *object, guint property_id, GValue *value, GParamSp
 		g_value_set_int(value, lomo_player_get_current(self));
 		break;
 
+	case PROPERTY_POSITION:
+		g_value_set_int64(value, lomo_player_get_position(self));
+		break;
+
 	case PROPERTY_RANDOM:
 		g_value_set_boolean(value, lomo_player_get_random(self));
 		break;
@@ -256,6 +260,10 @@ player_set_property (GObject *object, guint property_id, const GValue *value, GP
 
 	case PROPERTY_CURRENT:
 		lomo_player_set_current(self, g_value_get_int(value), NULL);
+		break;
+
+	case PROPERTY_POSITION:
+		lomo_player_set_position(self, g_value_get_int64(value));
 		break;
 
 	case PROPERTY_RANDOM:
@@ -774,7 +782,7 @@ lomo_player_class_init (LomoPlayerClass *klass)
 	 */
 	g_object_class_install_property(object_class, PROPERTY_POSITION,
 		g_param_spec_int64("position", "position", "Player position",
-		-1, G_MAXINT64, 0, G_PARAM_WRITABLE|G_PARAM_STATIC_STRINGS));
+		-1, G_MAXINT64, 0, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 	/**
 	 * LomoPlayer:volume:
 	 *
