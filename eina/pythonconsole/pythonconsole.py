@@ -36,11 +36,7 @@ from console import PythonConsole
 
 __all__ = ('PythonConsole', 'OutFile')
 
-from gi.repository import Peas
-from gi.repository import Gtk
-from gi.repository import Eina
-from gi.repository import Lomo
-import gobject
+from gi.repository import GObject, Peas, Gtk, Eina, Lomo
 
 import gettext
 gettext.textdomain("eina")
@@ -55,13 +51,14 @@ ui_mng_str = """
 </ui>
 """
 
-
-class PythonConsolePlugin(gobject.GObject, Eina.Activatable):
+class PythonConsolePlugin(GObject.Object, Eina.Activatable):
 	__gtype_name__ = 'EinaPythonConsolePlugin'
 
-	application = gobject.property(type = gobject.GObject)
+	application = GObject.property (type = GObject.Object)
 
 	def __init__(self):
+		GObject.Object.__init__ (self)
+
 		self.app    = None
 		self.window = None
 		self.action = None
