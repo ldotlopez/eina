@@ -7,6 +7,10 @@
       <default>[]</default>
       <_summary>Plugins to load</_summary>
     </key>
+    <key name="prefer-dark-theme" type="b">
+      <default>true</default>
+      <_summary>Prefer dark theme</_summary>
+    </key>
   </schema>
 
   <!--
