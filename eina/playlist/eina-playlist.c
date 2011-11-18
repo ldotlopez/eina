@@ -487,11 +487,11 @@ playlist_update_state(EinaPlaylist *self)
 	gchar *stock = NULL;
 	switch (state)
 	{
-	case LOMO_STATE_STOP:  stock = GTK_STOCK_MEDIA_STOP ; break;
-	case LOMO_STATE_PAUSE: stock = GTK_STOCK_MEDIA_PAUSE; break;
+	case LOMO_STATE_STOP:  stock = "media-playback-stop-symbolic"  /* GTK_STOCK_MEDIA_STOP */ ; break;
+	case LOMO_STATE_PAUSE: stock = "media-playback-pause-symbolic" /* GTK_STOCK_MEDIA_PAUSE */; break;
 	case LOMO_STATE_PLAY:
-		stock = ((gtk_widget_get_direction((GtkWidget *) self) == GTK_TEXT_DIR_RTL) ?
-			"gtk-media-play-rtl" : "gtk-media-play-ltr");
+		stock = "media-playback-start-symbolic"; /* ((gtk_widget_get_direction((GtkWidget *) self) == GTK_TEXT_DIR_RTL) ?
+			"gtk-media-play-rtl" : "gtk-media-play-ltr"); */
 		break;
 	default:
 		g_warning(_("Unhanded state: %d"), state);
