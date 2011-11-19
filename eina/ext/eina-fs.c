@@ -146,7 +146,7 @@ load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, 
 		GFile     *file = G_FILE(l->data);
 		GFileInfo *info = g_object_get_data((GObject *) file, "g-file-info");
 		gchar *uri = g_file_get_uri(file);
-	
+
 		if ((g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR) &&
 			(eina_file_utils_is_supported_extension(uri)))
 			uri_strv[i++] = uri;
@@ -181,9 +181,19 @@ eina_fs_load_from_default_file_chooser(EinaApplication *app)
 {
 	g_return_if_fail(EINA_IS_APPLICATION(app));
 
-	EinaFileChooserDialog *picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES);
+	static EinaFileChooserDialog *picker = NULL;
+
+	if (picker)
+	{
+		gtk_window_present((GtkWindow *) picker);
+		return;
+	}
+
+	picker = (EinaFileChooserDialog *) eina_file_chooser_dialog_new(
+		(GtkWindow *) eina_application_get_window(app),
+		EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES);
 	g_object_set((GObject *) picker,
-		"title", N_("Add or queue files"),
+		"title", _("Add or queue files"),
 		NULL);
 	GSettings *settings = eina_application_get_settings(app, EINA_FS_STATE_DOMAIN);
 
@@ -198,6 +208,51 @@ eina_fs_load_from_default_file_chooser(EinaApplication *app)
 	g_free(curr_folder_uri);
 
 	gtk_widget_destroy((GtkWidget *) picker);
+	picker = NULL;
+}
+
+void
+_eina_fs_dialog_subloop_response(EinaFileChooserDialog *dialog, gint response, EinaApplication *app)
+{
+	g_warn_if_fail(gtk_main_level() > 1);
+
+	gint run = TRUE;
+
+	if ((response != EINA_FILE_CHOOSER_RESPONSE_PLAY) && (response != EINA_FILE_CHOOSER_RESPONSE_QUEUE))
+	{
+		gtk_main_quit();
+		return;
+	}
+
+	GList *uris = eina_file_chooser_dialog_get_uris(dialog);
+	if (uris == NULL)
+		return;
+
+	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
+	if (response == EINA_FILE_CHOOSER_RESPONSE_PLAY)
+	{
+		run = FALSE;
+		lomo_player_clear(lomo);
+	}
+
+	gboolean do_play = (lomo_player_get_n_streams(lomo) == 0);
+	gchar **tmp = gel_list_to_strv(uris, FALSE);
+	lomo_player_insert_strv(lomo, (const gchar * const*) tmp, -1);
+	g_free(tmp);
+	gel_list_deep_free(uris, (GFunc) g_free);
+
+	if (do_play)
+		lomo_player_play(lomo, NULL);
+
+	if (!run)
+		gtk_main_quit();
+}
+
+static gboolean
+_eina_fs_dialog_subloop_delete_event_cb(EinaFileChooserDialog *dialog, GdkEvent *ev, EinaApplication *app)
+{
+	gtk_dialog_response((GtkDialog *) dialog, GTK_RESPONSE_CLOSE);
+	return TRUE;
 }
 
 /*
@@ -215,7 +270,13 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 	g_return_if_fail(EINA_IS_APPLICATION(app));
 	g_return_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(dialog));
 
-	gboolean run = TRUE;
+	g_signal_connect((GObject *) dialog, "response", (GCallback) _eina_fs_dialog_subloop_response, app);
+	g_signal_connect((GObject *) dialog, "delete-event", (GCallback) _eina_fs_dialog_subloop_delete_event_cb, app);
+	gtk_widget_show((GtkWidget *) dialog);
+	gtk_window_present((GtkWindow *) dialog);
+	gtk_main();
+
+	/*
 	while (run)
 	{
 		gint response = gtk_dialog_run((GtkDialog *) dialog);
@@ -245,6 +306,7 @@ eina_fs_load_from_file_chooser(EinaApplication *app, EinaFileChooserDialog *dial
 		if (do_play)
 			lomo_player_play(lomo, NULL);
 	}
+	*/
 }
 
 /*

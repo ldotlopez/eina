@@ -274,7 +274,7 @@ player_action_activated_cb(EinaPlayer *player, GtkAction *action, EinaApplicatio
 	return TRUE;
 }
 
-static void 
+static void
 action_activated_cb(GtkAction *action, EinaPlayer *player)
 {
 	g_return_if_fail(GTK_IS_ACTION(action));
@@ -294,7 +294,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *player)
 
 	else if (g_str_equal("about-action", name))
 		about_show(player);
-	
+
 	else
 		g_warning(N_("Unknow action: %s"), gtk_action_get_name(action));
 }

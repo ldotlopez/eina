@@ -145,6 +145,7 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
 
 /*
  * eina_file_chooser_dialog_new:
+ * @parent: Parent #GtkWindow or %NULL
  * @action: Action to perform
  *
  * Creates new #EinaFileChooserDialog designed to perform a concrete action
@@ -152,12 +153,17 @@ eina_file_chooser_dialog_init (EinaFileChooserDialog *self)
  * Returns: The new EinaFileChooserDialog
  */
 EinaFileChooserDialog*
-eina_file_chooser_dialog_new (EinaFileChooserDialogAction action)
+eina_file_chooser_dialog_new (GtkWindow *parent, EinaFileChooserDialogAction action)
 {
 	EinaFileChooserDialog *self = g_object_new (EINA_TYPE_FILE_CHOOSER_DIALOG, "local-only", FALSE, NULL);
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_FILE_CHOOSER_DIALOG, EinaFileChooserDialogPrivate);
 	self->priv->action = action;
 
+	g_object_set((GObject *) self,
+		"transient-for", parent,
+		"modal", FALSE,
+		"destroy-with-parent", TRUE,
+		NULL);
 	set_action(self, action);
 
 	return self;

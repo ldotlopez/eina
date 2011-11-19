@@ -84,7 +84,7 @@ typedef enum {
 
 GType eina_file_chooser_dialog_get_type (void);
 
-EinaFileChooserDialog* eina_file_chooser_dialog_new (EinaFileChooserDialogAction action);
+EinaFileChooserDialog* eina_file_chooser_dialog_new (GtkWindow *parent, EinaFileChooserDialogAction action);
 void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	EinaFileChooserDialogMsgType type, const gchar *msg);
 
