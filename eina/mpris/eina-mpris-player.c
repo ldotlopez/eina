@@ -453,6 +453,13 @@ set_bus_name_suffix(EinaMprisPlayer *self, const gchar *bus_name_suffix)
 	g_object_notify((GObject *) self, "bus-name-suffix");
 }
 
+const gchar*
+eina_mpris_player_get_bus_name_suffix(EinaMprisPlayer *self)
+{
+	g_return_val_if_fail(EINA_IS_MPRIS_PLAYER(self), NULL);
+	return self->priv->bus_name_suffix;
+}
+
 static gboolean
 emit_properties_change_idle_cb(EinaMprisPlayer *self)
 {
