@@ -1,17 +1,16 @@
-# German translation for eina
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# Slovak translation for eina
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the eina package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-11-10 19:34+0100\n"
-"PO-Revision-Date: 2011-07-24 09:07+0000\n"
-"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
-"Language-Team: German <de@li.org>\n"
-"Language: de\n"
+"PO-Revision-Date: 2011-02-24 09:15+0000\n"
+"Last-Translator: DAG Software <Unknown>\n"
+"Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -22,13 +21,11 @@ msgstr ""
 #, c-format
 msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
 msgstr ""
-"%d Plugins sind beim Beenden aktiv. Verwenden Sie eine Anordnugsfunktion um "
-"sie zu deaktivieren."
 
 #: ../gel/gel-app.c:114
 #, c-format
 msgid "  %s (usage:%d enabled:%d locked:%d %s)"
-msgstr "  %s (Verwendung:%d Aktiv:%d Gesperrt:%d %s)"
+msgstr "  %s (využitie:%d povolených:%d uzamknutých:%d %s)"
 
 #: ../gel/gel-app.c:129
 #, c-format
@@ -36,123 +33,118 @@ msgid ""
 "%d plugins still loaded, will be leaked. Use a dispose func "
 "(gel_app_set_dispose_func) to unload them at exit"
 msgstr ""
-"%d Plug-ins sind schon geladen, wird zugespielt. Verwenden Sie eine "
-"Ordnungsfunktion (gel_app_set_dispose_func), um diese beim Beenden zu "
-"entladen."
 
 #: ../gel/gel-app.c:317
 msgid "Invalid arguments"
-msgstr "Ungültige Argumente"
+msgstr "Neplatné parametre"
 
 #: ../gel/gel-app.c:361
 msgid "Plugin not found"
-msgstr "Plugin nicht gefunden"
+msgstr "Plugin nenalezen"
 
 #: ../gel/gel-app.c:392
 #, c-format
 msgid "Cannot load %s: %s"
-msgstr "Problem beim Laden von %s: %s"
+msgstr ""
 
 #: ../gel/gel-app.c:426
 #, c-format
 msgid "Dependecy %s for %s not found"
-msgstr "Abhängigkeit %s für %s nicht gefunden"
+msgstr "Závislosť %s pre %s nenájdená"
 
 #: ../gel/gel-app.c:444
 #, c-format
 msgid "Invalid arguments, set breakpoint on %s to debug"
-msgstr "Ungültiges Argument, setze Breakpoint bei %s um zu debugen"
+msgstr ""
 
 #: ../gel/gel-app.c:460
 #, c-format
 msgid "Plugin %p has NULL name"
-msgstr "Plugin %p hat NULL Namen"
+msgstr ""
 
 #: ../gel/gel-app.c:572 ../gel/gel-app.c:574
 #, c-format
 msgid "Cannot unload plugin %s, its used by %d plugins"
-msgstr "Konnte Plugin %s nicht entfernen, er wird %d Plugins verwendet"
+msgstr ""
 
 #: ../gel/gel-app.c:586 ../gel/gel-plugin.c:421
 #, c-format
 msgid "Cannot finalize plugin %s: %s"
-msgstr "Konnte Plugin %s nicht finalisieren: %s"
+msgstr ""
 
 #: ../gel/gel-app.c:601
 #, c-format
 msgid "Dependency %s for plugin %s not found"
-msgstr "Abhängigkeit %s für Plugin %s nicht gefunden"
+msgstr "Závislosť %s pluginu %s nenájdená"
 
 #: ../gel/gel-app.c:613
 #, c-format
 msgid "Cannot free plugin after all: %s"
-msgstr "Konnte Plugin nach allem nicht freischalten: %s"
+msgstr ""
 
 #: ../gel/gel-app.c:645
 #, c-format
 msgid "Cannot free plugin %s: %s"
-msgstr "Konnte Plugin %s nicht freischalten: %s"
+msgstr "Nedá sa uvoľniť plugin %s: %s"
 
 #: ../gel/gel-plugin.c:62
 msgid "Module loading is not supported on this platform"
-msgstr "Das Laden von Modulen wird auf dieser Plattform nicht unterstützt"
+msgstr "Načítanie modulov nie je na tejto platforme podporované"
 
 #: ../gel/gel-plugin.c:69
 #, c-format
 msgid "%s is not loadable"
-msgstr "%s ist nicht ladbar"
+msgstr ""
 
 #: ../gel/gel-plugin.c:76
 #, c-format
 msgid "Cannot find symbol %s in %s"
-msgstr "Konnte Symbol %s nicht in %s finden"
+msgstr "Nedá sa nájsť symbol %s v %s"
 
 #: ../gel/gel-plugin.c:84
 #, c-format
 msgid "Invalid serial in object %s:%s (app:%d, plugin:%d)"
-msgstr "Ungültiger Serial im Object %s:%s (app:%d, plugin:%d)"
+msgstr ""
 
 #: ../gel/gel-plugin.c:99
 #, c-format
 msgid ""
 "%s plugin has no deps, are you sure? if you are sure use GEL_PLUGIN_NO_DEPS"
 msgstr ""
-"Der Plugin %s hat keine deps, fortfahren? Wenn sie sich sicher sind "
-"verwenden Sie GEL_PLUGIN_NO_DEPS"
 
 #: ../gel/gel-plugin.c:111
 #, c-format
 msgid "Plugin %s created"
-msgstr "Plugin %s erzeugt"
+msgstr "Plugin %s vytvorený"
 
 #: ../gel/gel-plugin.c:124
 #, c-format
 msgid "Plugin %s is in use"
-msgstr "Plugin %s wird verwendet"
+msgstr "Plugin %s sa používa"
 
 #: ../gel/gel-plugin.c:132
 #, c-format
 msgid "Plugin %s is still enabled"
-msgstr "Plugin %s ist bereits aktiviert"
+msgstr "Plugin %s je stále povolený"
 
 #: ../gel/gel-plugin.c:140
 #, c-format
 msgid "Plugin %s is locked"
-msgstr "Plugin %s ist gesperrt"
+msgstr "Plugin %s je zamknutý"
 
 #: ../gel/gel-plugin.c:144
 #, c-format
 msgid "Plugin %s destroyed"
-msgstr "Plugin %s zerstört"
+msgstr ""
 
 #: ../gel/gel-plugin.c:201 ../gel/gel-plugin.c:219
 #, c-format
 msgid "Invalid reference from %s on %s"
-msgstr "Ungültige Referenz von %s bei %s"
+msgstr ""
 
 #: ../gel/gel-plugin.c:209 ../gel/gel-plugin.c:228
 msgid "none"
-msgstr "Keine"
+msgstr "žiadne"
 
 #: ../gel/gel-plugin.c:270
 #, c-format
@@ -166,251 +158,240 @@ msgid ""
 "Set breakpoint on '%s if plugin == 0' to find the caller for this "
 "invocation\n"
 msgstr ""
-"Sie rufen %s mit Plugin == NULL, es ist OK aber:\n"
-"- %s ist gedacht um es mit Plugin def zu verwenden\n"
-"- Generell, non-plugin abhängige Version des %s verwendet die Hülle "
-"gel_resource_locate\n"
-"- Wenn keine Punkte auf ihre Wünsche zutreffen, geben Sie eine "
-"Pluginvariable in diese Funktion\n"
-"Setze Haltemarke in '%s wenn Plugin == 0' um den Aufrufer dieses Aufrufes zu "
-"finden.\n"
 
 #: ../gel/gel-plugin.c:367
 #, c-format
 msgid "Plugin %s already initialized"
-msgstr "Plugin %s wurde bereits initialisiert"
+msgstr "Plugin %s bol už inicializovaný"
 
 #: ../gel/gel-plugin.c:374
 #, c-format
 msgid "Plugin %s has not init hook"
-msgstr "Plugin %s hat hook nicht iniziert"
+msgstr ""
 
 #: ../gel/gel-plugin.c:381
 #, c-format
 msgid "Cannot init plugin %s: %s"
-msgstr "Konnte Plugin %s nicht initialisieren: %s"
+msgstr ""
 
 #: ../gel/gel-plugin.c:386
 #, c-format
 msgid "Cannot init plugin %s, unknow reason"
-msgstr "Konnte Plugin %s nicht initialisieren, unbekannter Grund"
+msgstr "Nedá sa spustiť plugin %s, dôvod neznámy"
 
 #: ../gel/gel-plugin.c:390
 #, c-format
 msgid "Plugin %s initialized"
-msgstr "Plugin %s initialisiert"
+msgstr "Plugin %s inicializovaný"
 
 #: ../gel/gel-plugin.c:401
 #, c-format
 msgid "Plugin %s is not initialized"
-msgstr "Plugin %s ist nicht initialisiert"
+msgstr "Nedá sa inicializovať plugin %s"
 
 #: ../gel/gel-plugin.c:426
 #, c-format
 msgid "Cannot finalize plugin %s: unknow reason"
-msgstr "Konnte Plugin %s nicht finalisieren: Unbekannter Grund"
+msgstr "Nedá sa ukončiť plugin %s: dôvod neznámy"
 
 #: ../gel/gel-plugin.c:430
 #, c-format
 msgid "Plugin %s finalized"
-msgstr "Plugin %s finalisiert"
+msgstr "Plugin %s ukončený"
 
 #: ../gel/gel-ui.c:49 ../eina/cover.c:356
 #, c-format
 msgid "Cannot locate resource '%s'"
-msgstr "Konnte Ressourcen nicht lokalisieren '%s'"
+msgstr "Zdroj '%s' nenájdený"
 
 #: ../gel/gel-ui.c:153
 #, c-format
 msgid "Invalid GtkTreePath in selection, use %s only with ListModels"
-msgstr "Ungültiger GtkTreePath in der Auswahl, verwende %s nur mit ListModels"
+msgstr ""
 
 #: ../lomo/lomo-player.c:108 ../lomo/lomo-player.c:119
 #: ../lomo/lomo-player.c:121
 #, c-format
 msgid "Missing method %s"
-msgstr "Vermisse Methode %s"
+msgstr "Chýbajúca metóda %s"
 
 #: ../lomo/lomo-player.c:859
 msgid "Cannot create pipeline for NULL stream"
-msgstr "Konnte keine Pipeline für NULL Stream erzeugen"
+msgstr ""
 
 #: ../lomo/lomo-player.c:867
 #, c-format
 msgid "Cannot create pipeline for stream %s"
-msgstr "Konnte keine Pipeline für den Stream %s erzeugen"
+msgstr ""
 
 #: ../lomo/lomo-player.c:966
 msgid "Cannot set state: missing pipeline"
-msgstr "Konnte Status nicht setzen: Fehlende Pipeline"
+msgstr ""
 
 #: ../lomo/lomo-player.c:983
 msgid "Error setting state"
-msgstr "Fehler Status setzen"
+msgstr "Chyba pri nastavovaní stavu"
 
 #: ../lomo/lomo-player.c:1063
 msgid "Player not seekable"
-msgstr "Spieler nicht suchbar"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1071
 msgid "Invalid format"
-msgstr "Ungültiges Format"
+msgstr "Neplatný formát"
 
 #: ../lomo/lomo-player.c:1089
 msgid "Error seeking"
-msgstr "Fehler suchen"
+msgstr "Chyba vyhľadávania"
 
 #: ../lomo/lomo-player.c:1169
 msgid "Error setting volume"
-msgstr "Fehler Volumen setzen"
+msgstr "Chyba nastavovania hlasitosti"
 
 #: ../lomo/lomo-player.c:1199
 msgid "Error getting volume"
-msgstr "Fehler Volumen bekommen"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1217
 msgid "Missing set_mute and set_volume methods, cannot mute"
 msgstr ""
-"Vermisse set_mute und set_volume Methoden, stumm schalten nicht möglich"
 
 #: ../lomo/lomo-player.c:1248
 msgid "Error setting mute"
-msgstr "Fehler Stumm Setzen"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1426
 #, c-format
 msgid "Error creating pipeline: %s"
-msgstr "Fehler Erzeugen der Pipeline: %s"
+msgstr ""
 
 #: ../lomo/lomo-player.c:1709
 msgid "Cannot change stream, it's in queue but can't dequeue it"
 msgstr ""
-"Konnte Stream nicht wechseln, er ist in der Warteschlange konnte aber von "
-"dort nicht entfernt werden"
 
 #: ../lomo/lomo-player.c:1728
 msgid "Action blocked by hook"
-msgstr "Aktion von hook geblockt"
+msgstr ""
 
 #: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
 msgid "Unknow error"
-msgstr "Unbekannter Fehler"
+msgstr "Neznáma chyba"
 
 #: ../eina/ext/eina-file-chooser-dialog.c:288
 msgid "Loading files..."
-msgstr "Lade Dateien.."
+msgstr "Načítavajú sa súbory..."
 
 #: ../eina/ext/eina-file-chooser-dialog.c:342 ../eina/fs.c:64
 msgid "Add or queue files"
-msgstr "Datei Hinzufügen oder in Warteschlange einfügen"
+msgstr ""
 
 #: ../eina/ext/eina-file-chooser-dialog.c:414
 #, c-format
 msgid "Found %d streams"
-msgstr "%d Streams gefunden"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-dialog.c:180 ../eina/plugins.c:53
 msgid "Select plugins"
-msgstr "Wähle Plugins"
+msgstr "Vybrať pluginy"
 
 #: ../eina/ext/eina-plugin-dialog.c:334
 #, c-format
 msgid "Loaded unknow plugin: %s"
-msgstr "Unbekannten Plugin geladen: %s"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-properties.c:157
 msgid "No name"
-msgstr "Keine Name"
+msgstr "Bez názvu"
 
 #: ../eina/ext/eina-plugin-properties.c:158
 msgid "No description"
-msgstr "Keine Beschreibung"
+msgstr "Bez popisu"
 
 #: ../eina/ext/eina-plugin-properties.c:159
 msgid "No more information"
-msgstr "Keine weiteren Informationen"
+msgstr "Žiadne ďalšie informácie"
 
 #: ../eina/ext/eina-plugin-properties.c:161
 msgid "[Internal plugin]"
-msgstr "[Interner Plugin]"
+msgstr ""
 
 #: ../eina/ext/eina-plugin-properties.c:163
 msgid "No dependencies"
-msgstr "Keine Abhängigkeiten"
+msgstr "Bez závislostí"
 
 #: ../eina/ext/eina-plugin-properties.c:166
 msgid "No reverse dependencies"
-msgstr "Keine entgegengesetzten Abhängigkeiten"
+msgstr "Bez reverzních závislostí"
 
 #: ../eina/ext/eina-stock.c:44
 msgid "Status icon"
-msgstr "Status Icon"
+msgstr "Stavová ikona"
 
 #: ../eina/ext/eina-stock.c:45
 msgid "_Random"
-msgstr "_Zufällig"
+msgstr "_Náhodné"
 
 #: ../eina/ext/eina-stock.c:46
 msgid "_Shuffle"
-msgstr "_Mischen"
+msgstr "_Zamiešať"
 
 #: ../eina/ext/eina-stock.c:47
 msgid "_Queue"
-msgstr "_Warteschlange"
+msgstr "_Fronta"
 
 #: ../eina/ext/eina-stock.c:48
 msgid "Report a bug"
-msgstr "Bug melden"
+msgstr "Nahlásiť chybu"
 
 #: ../eina/ext/eina-window.c:60
 msgid "_File"
-msgstr "_Datei"
+msgstr "_Súbor"
 
 #: ../eina/ext/eina-window.c:61
 msgid "_Edit"
-msgstr "_Editieren"
+msgstr "_Upraviť"
 
 #: ../eina/ext/eina-window.c:62
 msgid "_Add-ons"
-msgstr "_Add-ons"
+msgstr ""
 
 #: ../eina/ext/eina-window.c:63
 msgid "_Help"
-msgstr "_Hilfe"
+msgstr "_Nápoveda"
 
 #: ../eina/about.c:88
 #, c-format
 msgid "Missing resource: %s"
-msgstr "Vermisste Ressourcen: %s"
+msgstr ""
 
 #: ../eina/about.c:95
 msgid "A classic player for the modern era"
-msgstr "Ein klassischer Player für die moderne Ära"
+msgstr "Klasický prehrávač pre modernú dobu"
 
 #: ../eina/about.c:108
 msgid "About Eina"
-msgstr "Über Eina"
+msgstr "O programe"
 
 #: ../eina/about.c:130
 msgid "About window plugin"
-msgstr "Über Fenster Plugin"
+msgstr ""
 
 #: ../eina/art.c:736
 msgid "Art"
-msgstr "Erscheinungsbild"
+msgstr "Umenie"
 
 #: ../eina/art.c:736
 msgid "Art framework"
-msgstr "Rahmen Erscheinungsbild"
+msgstr ""
 
 #: ../eina/cover.c:366
 #, c-format
 msgid "Cannot load resource '%s': '%s'"
-msgstr "Konnte Ressourcen '%s' nicht laden: '%s'"
+msgstr ""
 
 #: ../eina/cover.c:382
 msgid "Invalid cover mask"
-msgstr "Ungültige Cover Maske"
+msgstr ""
 
 #. version
 #. deps
@@ -418,16 +399,16 @@ msgstr "Ungültige Cover Maske"
 #. url
 #: ../eina/cover.c:411
 msgid "Cover plugin"
-msgstr "Cover Plugin"
+msgstr ""
 
 #: ../eina/dbus.c:93
 msgid "Cannot get DBus proxy"
-msgstr "Konnte DBus proxy nicht erreichen"
+msgstr ""
 
 #: ../eina/dbus.c:124
 #, c-format
 msgid "Cannot register DBus server: %s"
-msgstr "Konnte DBus Server nicht registrieren: %s"
+msgstr ""
 
 #. version
 #. deps
@@ -435,7 +416,7 @@ msgstr "Konnte DBus Server nicht registrieren: %s"
 #. url
 #: ../eina/dbus.c:198
 msgid "DBus interface for Eina"
-msgstr "DBus Interface für Eina"
+msgstr ""
 
 #. version
 #. deps
@@ -443,97 +424,97 @@ msgstr "DBus Interface für Eina"
 #. url
 #: ../eina/dock.c:305
 msgid "Build-in dock plugin"
-msgstr "Eingebautes Dock-Plug-in"
+msgstr ""
 
 #: ../eina/eina-ige.c:62
 #, c-format
 msgid "Cannot locate %s"
-msgstr "Konnte %s nicht lokalisieren"
+msgstr ""
 
 #: ../eina/eina-ige.c:65
 #, c-format
 msgid "Cannot load '%s': '%s'"
-msgstr "Konnte '%s' nicht laden: '%s'"
+msgstr "Nedá sa načítať '%s': '%s'"
 
 #: ../eina/eina-ige.c:148
 msgid "OSX integration"
-msgstr "OSX Integration"
+msgstr ""
 
 #: ../eina/eina-obj.c:53
 msgid "Trying to free a NULL pointer"
-msgstr "Versuche einen NULL Pointer zu befreien"
+msgstr ""
 
 #: ../eina/eina-obj.c:107
 #, c-format
 msgid "Resource not found: %s"
-msgstr "Ressourcen nicht gefunden: %s"
+msgstr ""
 
 #: ../eina/log.c:196
 #, c-format
 msgid "Cannot load UI from %s: %s"
-msgstr "Konnte UI nicht von %s laden: %s"
+msgstr "Nedá sa načítať UI z %s: %s"
 
 #: ../eina/log.c:212
 msgid "Not all required widgets are valids"
-msgstr "Nicht alle benötigten widgets sind gültig"
+msgstr "Nie všetky požadované widgety sú valídne"
 
 #: ../eina/log.c:230
 #, c-format
 msgid "Cannot create menu item: %s"
-msgstr "Konnte Menü-Eintrag nicht erstellen: %s"
+msgstr "Nedá sa vytvoriť položka v menu: %s"
 
 #: ../eina/log.c:236
 msgid "Debug window"
-msgstr "Debug Fenster"
+msgstr "Okno ladenia"
 
 #: ../eina/log.c:300
 msgid "Severe errors"
-msgstr "Schwerwiegende Fehler"
+msgstr "Závažné chyby"
 
 #: ../eina/log.c:301
 msgid "Errors"
-msgstr "Fehler"
+msgstr "Chyby"
 
 #: ../eina/log.c:302
 msgid "Warnings"
-msgstr "Warnungen"
+msgstr "Varovania"
 
 #: ../eina/log.c:303
 msgid "Information messages"
-msgstr "Informations Nachrichten"
+msgstr "Informačná správa"
 
 #: ../eina/log.c:304
 msgid "Debug information"
-msgstr "Debug Informationen"
+msgstr "Ladiace informácie"
 
 #: ../eina/log.c:305
 msgid "Full debug"
-msgstr "Vollständiger Debug"
+msgstr "Plné ladenie"
 
 #: ../eina/log.c:310
 #, c-format
 msgid "Set level to %s"
-msgstr "Setze Level zu %s"
+msgstr "Nastaviť úroveň na %s"
 
 #: ../eina/log.c:406
 msgid "Cannot not shot dialog, it doest exists"
-msgstr "Konnte Dialog nicht aufnehmen, er existiert nicht"
+msgstr "Nedal sa vytvorit dialóg, neexistuje"
 
 #: ../eina/log.c:455
 msgid "Build-in log"
-msgstr "Eingebautes Protokoll"
+msgstr "Vstavaný log"
 
 #: ../eina/lomo.c:42
 msgid "Cannot create engine"
-msgstr "Konnte Engine nicht erzeugen"
+msgstr "Nedá sa vytvoriť engine"
 
 #: ../eina/lomo.c:50
 msgid "Cannot share engine"
-msgstr "konnte Engine nicht verbreiten"
+msgstr "Nedá sa zdieľať engine"
 
 #: ../eina/lomo.c:74
 msgid "Cannot destroy engine"
-msgstr "Konnte engine nicht stoppen"
+msgstr "Nedá sa ukončiť engine"
 
 #. version
 #. deps
@@ -541,55 +522,55 @@ msgstr "Konnte engine nicht stoppen"
 #. url
 #: ../eina/lomo.c:111
 msgid "Build-in lomo plugin"
-msgstr "Eingebautes lomo-Plug-in"
+msgstr "Vstavaný plugin lomo"
 
 #: ../eina/player.c:170
 #, c-format
 msgid "Cannot merge with UI Manager: %s"
-msgstr "Konnte nicht mit UI Manager verbinden: %s"
+msgstr ""
 
 #: ../eina/player.c:388 ../eina/plugins.c:123
 #, c-format
 msgid "Unknow action: %s"
-msgstr "Unbekannte Aktion: %s"
+msgstr "Neznáma akcia: %s"
 
 #: ../eina/player.c:394
 #, c-format
 msgid "Unable to complete action '%s': %s"
-msgstr "Fertigstellen der Aktion '%s' ist nicht möglich: %s"
+msgstr "Nedá sa dokončiť akcia '%s': %s"
 
 #: ../eina/player.c:603 ../eina/playlist.c:1119
 #, c-format
 msgid "Error on file %s: %s"
-msgstr "Fehler in Datei %s: %s"
+msgstr "Chyba v súbore %s: %s"
 
 #: ../eina/player.c:616
 msgid "Build-in player plugin"
-msgstr "Build-in Player Plugin"
+msgstr ""
 
 #: ../eina/playlist.c:219
 msgid "Cannot init dock widget"
-msgstr "Dock-Steuerelement kann nicht initialisiert werden"
+msgstr ""
 
 #: ../eina/playlist.c:235
 #, c-format
 msgid "Missing action: %s"
-msgstr "Vermisse Aktion: %s"
+msgstr "Chúbajúce akcie: %s"
 
 #: ../eina/playlist.c:702
 #, c-format
 msgid "Cannot go to stream #%d: '%s'"
-msgstr "Konnte Stream #%d nicht erreichen: '%s'"
+msgstr ""
 
 #: ../eina/playlist.c:712
 #, c-format
 msgid "Cannot set state to LOMO_STATE_PLAY: '%s'"
-msgstr "Status kann nicht auf LOMO_STATE_PLAY: '%s' gesetzt werden"
+msgstr "Nedá sa nastaviť status na LOMO_STATE_PLAY: '%s'"
 
 #: ../eina/playlist.c:1011
 #, c-format
 msgid "Cannot find index for stream %p (%s)"
-msgstr "Konnte den Indes für den Stream %p nicht finden (%s)"
+msgstr ""
 
 #: ../eina/playlist.c:1019
 #, c-format
@@ -602,184 +583,182 @@ msgstr ""
 #. url
 #: ../eina/playlist.c:1526
 msgid "Build-in playlist plugin"
-msgstr "Build-in Playlist Plugin"
+msgstr ""
 
 #: ../eina/plugins.c:52
 msgid "Plugins"
-msgstr "Plugins"
+msgstr "Pluginy"
 
 #: ../eina/plugins.c:80
 #, c-format
 msgid "Cannot merge menu: %s"
-msgstr "Konnte Menü nicht verknüpfen: %s"
+msgstr ""
 
 #: ../eina/plugins.c:136
 msgid "No plugin selected"
-msgstr "Kein Plugin ausgewählt"
+msgstr "Nebol vybraný žiadny modul"
 
 #: ../eina/plugins.c:158
 msgid "Build-in plugin manager plugin"
-msgstr "Build-in plugin Manager plugin"
+msgstr ""
 
 #: ../eina/preferences.c:67 ../eina/preferences.c:117
 msgid "Preferences"
-msgstr "Einstellungen"
+msgstr "Nastavenia"
 
 #: ../eina/preferences.c:180
 msgid "Build-in preferences plugin"
-msgstr "Build-in Einstellungen Plugin"
+msgstr ""
 
 #: ../eina/settings.c:46
 #, c-format
 msgid "Cannot create config folder %s"
-msgstr "Konnte Konfigurations Ordner nicht erstellen %s"
+msgstr "Nedá sa vytvoriť konfiguračný priečinok %s"
 
 #: ../eina/settings.c:77
 msgid "Conf object not found"
-msgstr "Konfigurations Objekt nicht gefunden"
+msgstr "Konfiguračný objekt nenájdený"
 
 #: ../eina/settings.c:92
 msgid "Build-in settings plugin"
-msgstr "Build-in Einstellungen Plugin"
+msgstr "Vstavaný plugin pre nastavenia"
 
 #: ../eina/template.c:95
 msgid "Build-in template plugin"
-msgstr "Build-in Vorlage Plugin"
+msgstr ""
 
 #: ../eina/vogon-app.c:398
 #, c-format
 msgid "Cannot find loaded plugin %s"
-msgstr "Konnte geladenen Plugin %s nicht finden"
+msgstr ""
 
 #: ../eina/vogon-app.c:405
 #, c-format
 msgid "Cannot fini plugin %s: %s"
-msgstr "Konnte Plugin %s nicht fertigstellen: %s"
+msgstr ""
 
 #: ../eina/vogon.c:94 ../plugins/recently/recently.c:357
 msgid "Play"
-msgstr "Play"
+msgstr "Hrať"
 
 #: ../eina/vogon.c:95
 msgid "Pause"
-msgstr "Pause"
+msgstr "Pozastaviť"
 
 #: ../eina/vogon.c:96
 msgid "Next"
-msgstr "Nächstes"
+msgstr "Ďalší"
 
 #: ../eina/vogon.c:96
 msgid "Next stream"
-msgstr "Nächster Stream"
+msgstr ""
 
 #: ../eina/vogon.c:97
 msgid "Previous"
-msgstr "Vorheriges"
+msgstr "Predchádzajúci"
 
 #: ../eina/vogon.c:97
 msgid "Previous stream"
-msgstr "Vorheriger Stream"
+msgstr ""
 
 #: ../eina/vogon.c:98
 msgid "_Open"
-msgstr "_Öffnen"
+msgstr "_Otvoriť"
 
 #: ../eina/vogon.c:98
 msgid "Add or queue stream(s)"
-msgstr "Stream(s) hinzufügen oder in Warteschlange einfügen"
+msgstr ""
 
 #: ../eina/vogon.c:99
 msgid "C_lear"
-msgstr "B_reinigen"
+msgstr "_Vyčistit"
 
 #: ../eina/vogon.c:99
 msgid "Clear playlist"
-msgstr "Playlist bereinigen"
+msgstr "Vyprázdniť playlist"
 
 #: ../eina/vogon.c:100
 msgid "_Quit"
-msgstr "_Beenden"
+msgstr "_Ukončiť"
 
 #: ../eina/vogon.c:100
 msgid "Quit Eina"
-msgstr "Eina beenden"
+msgstr ""
 
 #: ../eina/vogon.c:103
 msgid "Random"
-msgstr "Zufällig"
+msgstr "Náhodné"
 
 #: ../eina/vogon.c:103
 msgid "Random playlist"
-msgstr "Zufällige Playlist"
+msgstr ""
 
 #: ../eina/vogon.c:104
 msgid "Repeat"
-msgstr "Wiederholen"
+msgstr "Opakovať"
 
 #: ../eina/vogon.c:104
 msgid "Repeat playlist"
-msgstr "Playlist wiederholen"
+msgstr "Opakovať playlist"
 
 #: ../eina/vogon.c:110
 msgid "Gtk+ X11 backend is not supported"
-msgstr "Gtk+ X11 backend wird nicht unterstützt"
+msgstr ""
 
 #: ../eina/vogon.c:133
 msgid "Cannot create status icon"
-msgstr "Konnte Status Icon nicht erzeugen"
+msgstr "Nedá sa vytvoriť stavová ikona"
 
 #: ../eina/vogon.c:173
 msgid ""
 "Systray implementation is buggy on OSX. You have been warned, dont file any "
 "bugs about this."
 msgstr ""
-"Systray Implimentation im OSX ist buggy. Sie wurden gewarnt, melden Sie "
-"keine Bugs."
 
 #: ../eina/vogon.c:365
 msgid "Build-in systray and notification plugin"
-msgstr "Build-in Benachrichtigungs und Systemablage Plugin"
+msgstr ""
 
 #: ../eina/window.c:35
 msgid "Cannot register EinaWindow object into GelApp"
-msgstr "Konnte EinaWindow Objekt nicht im GelApp registrieren"
+msgstr ""
 
 #: ../eina/window.c:57
 msgid "EinaWindow not found in GelApp"
-msgstr "EinaWindow konnte im GelApp nicht gefunden werden"
+msgstr ""
 
 #: ../eina/window.c:72
 msgid "Main window plugin"
-msgstr "Haupt-Fenster Plugin"
+msgstr ""
 
 #: ../plugins/adb/adb.c:51
 #, c-format
 msgid "Version mismatch. source:%s runtime:%s"
-msgstr "Versions Unterschied. Quelle:%s Laufzeit:%s"
+msgstr ""
 
 #: ../plugins/adb/adb.c:208
 msgid "Cannot get schema version"
-msgstr "Konnte Schema Version nicht bekommen"
+msgstr ""
 
 #: ../plugins/adb/iface.c:35
 msgid "Cannot access lomo"
-msgstr "Kein zugriff auf lomo"
+msgstr ""
 
 #: ../plugins/adb/iface.c:44
 msgid "Cannot register ADB object into GelApp"
-msgstr "Konnte ADB Objekt nicht in GelApp registrieren"
+msgstr ""
 
 #: ../plugins/adb/iface.c:66
 msgid "Audio database"
-msgstr "Audio Datenbank"
+msgstr ""
 
 #: ../plugins/coverplus/iface.c:63
 msgid "Art object not found"
-msgstr "Erscheinungsbild Objekt nicht gefunden"
+msgstr ""
 
 #: ../plugins/coverplus/iface.c:118
 msgid "Enhace your covers"
-msgstr "Eigene Covers erstellen"
+msgstr ""
 
 #: ../plugins/coverplus/iface.c:119
 msgid ""
@@ -787,119 +766,116 @@ msgid ""
 "· In-folder cover discover\n"
 "· Banshee (on Linux) covers"
 msgstr ""
-"Bringt Eina einige einfache aber fundamentale Cover-Provider wie:\n"
-"· In-folder cover discover\n"
-"· Banshee (auf Linux) covers"
 
 #: ../plugins/fieshta/fieshta.c:99
 msgid "Fieshta"
-msgstr "Fieshta"
+msgstr ""
 
 #: ../plugins/fieshta/fieshta.c:103
 msgid "Set fieshta mode"
-msgstr "Fieshta Modus einstellen"
+msgstr ""
 
 #: ../plugins/fieshta/fieshta.c:338
 msgid "Party plugin"
-msgstr "Party Plugin"
+msgstr ""
 
 #: ../plugins/ntfy/ntfy.c:92
 msgid "Cannot get settings object"
-msgstr "Konnte Einstellungen Objekt nicht bekommen"
+msgstr ""
 
 #: ../plugins/ntfy/ntfy.c:171 ../plugins/ntfy/ntfy.c:173
 msgid "Playing:"
-msgstr "Wiedergabe:"
+msgstr "Prehráva sa:"
 
 #: ../plugins/ntfy/ntfy.c:238
 msgid "Show notifications"
-msgstr "Zeige Anzeigen"
+msgstr "Zobrazovať upozornenia"
 
 #: ../plugins/ntfy/ntfy.c:392
 msgid "Notifications plugin"
-msgstr "Anzeigen Plugin"
+msgstr ""
 
 #: ../plugins/recently/recently.c:215
 msgid "Unable to find matching row for search"
-msgstr "Eine mit der Suche übereinstimmende Zeile konnte nicht gefunden werden"
+msgstr ""
 
 #: ../plugins/recently/recently.c:231
 msgid "Cannot get resource cover-default.png"
-msgstr "Ressource cover-default.png konnte nicht erreicht werden"
+msgstr ""
 
 #: ../plugins/recently/recently.c:239
 #, c-format
 msgid "Cannot load pixbuf from %s: %s"
-msgstr "pixbuf von %s: %s konnte nicht geladen werden"
+msgstr ""
 
 #: ../plugins/recently/recently.c:264
 msgid "Monday"
-msgstr "Montag"
+msgstr "Pondelok"
 
 #: ../plugins/recently/recently.c:265
 msgid "Tuesday"
-msgstr "Dienstag"
+msgstr "Utorok"
 
 #: ../plugins/recently/recently.c:266
 msgid "Wednesday"
-msgstr "Mittwoch"
+msgstr "Streda"
 
 #: ../plugins/recently/recently.c:267
 msgid "Thursday"
-msgstr "Donnerstag"
+msgstr "Štvrtok"
 
 #: ../plugins/recently/recently.c:268
 msgid "Saturday"
-msgstr "Samstag"
+msgstr "Sobota"
 
 #: ../plugins/recently/recently.c:269
 msgid "Sunday"
-msgstr "Sonntag"
+msgstr "Nedeľa"
 
 #: ../plugins/recently/recently.c:274
 msgid "Today"
-msgstr "Heute"
+msgstr "Dnes"
 
 #: ../plugins/recently/recently.c:276
 msgid "Yesterday"
-msgstr "Gestern"
+msgstr "Včera"
 
 #: ../plugins/recently/recently.c:286
 msgid "More than 7 days ago"
-msgstr "Vor mehr als 7 Tagen"
+msgstr ""
 
 #: ../plugins/recently/recently.c:288
 msgid "More than a month ago"
-msgstr "Vor mehr als einem Monat"
+msgstr ""
 
 #: ../plugins/recently/recently.c:290
 msgid "More than a year ago"
-msgstr "Vor mehr als einm Jahr"
+msgstr ""
 
 #: ../plugins/recently/recently.c:307
 #, c-format
 msgid "Cannot load ui from %s: %s"
-msgstr "Konnte ui nocht von %s laden: %s"
+msgstr ""
 
 #: ../plugins/recently/recently.c:340
 msgid "Timestamp"
-msgstr "Zeitstempel"
+msgstr "Časová značka"
 
 #: ../plugins/recently/recently.c:347
 msgid "Cover"
-msgstr "Cover"
+msgstr "Obal"
 
 #: ../plugins/recently/recently.c:352
 msgid "Title"
-msgstr "Titel"
+msgstr "Názov"
 
 #: ../plugins/recently/recently.c:362
 msgid "Enqueue"
-msgstr "In Warteschlange einreihen"
+msgstr "Zaradiť do fronty"
 
 #: ../plugins/recently/recently.c:367
 msgid "Delete"
-msgstr "Löschen"
+msgstr "Vymazať"
 
 #: ../plugins/recently/recently.c:805
 msgid ", "
@@ -907,22 +883,22 @@ msgstr ", "
 
 #: ../plugins/recently/recently.c:807
 msgid " and "
-msgstr " und "
+msgstr " a "
 
 #: ../plugins/recently/recently.c:883
 #, c-format
 msgid "Error %d with query %s: %s"
-msgstr "Fehler %d mit Abfrage %s: %s"
+msgstr ""
 
 #: ../plugins/recently/recently.c:923
 #, c-format
 msgid "Cannot prepare query %s: (%d) %s"
-msgstr "Konnte Abfrage %s nicht bevorzugen: (%d) %s"
+msgstr ""
 
 #: ../plugins/recently/recently.c:997
 #, c-format
 msgid "Cannot prepare query %s: %s"
-msgstr "Konnte Abfrage nicht vorbereiten %s: %s"
+msgstr ""
 
 #: ../plugins/recently/recently.c:1013
 #, c-format
@@ -930,8 +906,6 @@ msgid ""
 "<b>%s (Artist)</b>\n"
 " %d matches"
 msgstr ""
-"<b>%s (Interpred)</b>\n"
-" %d Übereinstimmungen"
 
 #: ../plugins/recently/recently.c:1016
 #, c-format
@@ -940,7 +914,7 @@ msgid ""
 " %d matches"
 msgstr ""
 "<b>%s (Album)</b>\n"
-" %d Übereinstimmungen"
+" %d matches"
 
 #: ../plugins/recently/recently.c:1019
 #, c-format
@@ -949,19 +923,19 @@ msgstr "<b>%s</b>\n"
 
 #: ../plugins/recently/recently.c:1182
 msgid "Cannot get first iter"
-msgstr "Konnte ersten iter nicht bekommen"
+msgstr ""
 
 #: ../plugins/recently/recently.c:1211
 msgid "Cannot fetch Adb object"
-msgstr "Konnte Adb Objekt nicht holen"
+msgstr ""
 
 #: ../plugins/recently/recently.c:1250
 msgid "Stores your recent playlists"
-msgstr "Speichert Ihre neusten Playlists"
+msgstr ""
 
 #: ../plugins/recently/recently.c:1251
 msgid "Recently plugin. ADB based version"
-msgstr "Neuer Plugin. ADB basierende Version"
+msgstr ""
 
 #: ../ui/dock.ui.h:1
 msgid "\t"
@@ -969,11 +943,11 @@ msgstr "\t"
 
 #: ../ui/dock.ui.h:2
 msgid "Dock"
-msgstr "Dock"
+msgstr "Dokovať"
 
 #: ../ui/log.ui.h:1
 msgid "<b>Log level:</b> "
-msgstr "<b>Log Level:</b> "
+msgstr "<b>Úroveň zaznamenávania:</b> "
 
 #: ../ui/log.ui.h:2
 msgid "gtk-clear"
@@ -985,19 +959,19 @@ msgstr "gtk-close"
 
 #: ../ui/log.ui.h:4 ../ui/plugins.ui.h:15
 msgid "label"
-msgstr "Label"
+msgstr "štítok"
 
 #: ../ui/player-preferences.ui.h:1
 msgid "<b>Information format</b>"
-msgstr "<b>Informations Format</b>"
+msgstr "<b>Formát informácií</b>"
 
 #: ../ui/player-preferences.ui.h:2
 msgid "Custom format:"
-msgstr "Benutzerdefiniertes Format:"
+msgstr "Vlastný formát"
 
 #: ../ui/player-preferences.ui.h:3
 msgid "More info about Pango markup language"
-msgstr "Mehr Informationen über Pango markup language"
+msgstr "Viac informácií o značkovacom jazyku Pango"
 
 #: ../ui/player-preferences.ui.h:5
 #, no-c-format
@@ -1010,14 +984,14 @@ msgid ""
 "Embracing any text with curly brackets makes it optional, disapearing if no "
 "matches for its content is found.\n"
 msgstr ""
-"Dieses Format verwendet Pango markup, folgen Sie den nächsten Link um mehr "
-"darüber zu erfahren.\n"
+"Tento formát používa značky Pango, nasledujte nasledujúci odkaz aby ste sa o "
+"ňom poučili.\n"
 "\n"
-"Die folgenden 'Tags' könne verwendet werden: %a für Interpred, %b für Album, "
-"%t für Titel und %n für Tracknummer.\n"
+"Nasledujúce \"tagy\" môžu byť použité: %a - autor, %b - album, %t názov "
+"skladby, %n - číslo skladby.\n"
 "\n"
-"Umfasst jeden Text in geschwungene Klammern macht es optional, es "
-"verschwindet wenn kein Inhalt übereinstimmt.\n"
+"Uzavretie textu do zložených zátvoriek ho urobí prípadným, nevidno ho, ak sa "
+"nenašla zhoda s obsahom.\n"
 
 #: ../ui/player.ui.h:1
 msgid "<small><tt></tt></small>"
@@ -1034,7 +1008,7 @@ msgstr ""
 
 #: ../ui/playlist.ui.h:1
 msgid "Filter"
-msgstr "Filter"
+msgstr "Filtrovať"
 
 #: ../ui/playlist.ui.h:2
 msgid "Playlist"
@@ -1047,11 +1021,11 @@ msgstr "%s"
 
 #: ../ui/plugins.ui.h:3
 msgid "<b>Description</b>"
-msgstr "<b>Beschreibung</b>"
+msgstr "<b>Popis</b>"
 
 #: ../ui/plugins.ui.h:4
 msgid "<b>Filename</b>"
-msgstr "<b>Dateiname</b>"
+msgstr "<b>Názov súboru</b>"
 
 #: ../ui/plugins.ui.h:6
 #, no-c-format
@@ -1068,9 +1042,6 @@ msgid ""
 "\n"
 "There are no plugins instaled on your system"
 msgstr ""
-"<big><b>Keine Plugins verfügbar</b></big>\n"
-"\n"
-"Es sind keine Plugins auf Ihren system installiert"
 
 #: ../ui/plugins.ui.h:11
 msgid "Contact"
@@ -1078,51 +1049,51 @@ msgstr "Kontakt"
 
 #: ../ui/plugins.ui.h:12
 msgid "Eina plugins"
-msgstr "Eina Plugins"
+msgstr ""
 
 #: ../ui/plugins.ui.h:13
 msgid "Show internal plugins"
-msgstr "Zeige interne Plugins"
+msgstr ""
 
 #: ../ui/plugins.ui.h:14
 msgid "Website"
-msgstr "Website"
+msgstr "Web stránka"
 
 #: ../ui/plugins.ui.h:16 ../plugins/recently/dock.ui.h:5
 msgid "page 1"
-msgstr "Seite 1"
+msgstr "strana 1"
 
 #: ../ui/plugins.ui.h:17 ../plugins/recently/dock.ui.h:6
 msgid "page 2"
-msgstr "Seite 2"
+msgstr "strana 2"
 
 #: ../plugins/lastfm/lastfm.ui.h:1
 msgid "<b>Password</b>"
-msgstr "<b>Passwort</b>"
+msgstr "<b>Heslo</b>"
 
 #: ../plugins/lastfm/lastfm.ui.h:2
 msgid "<b>Username</b>"
-msgstr "<b>Benutzername</b>"
+msgstr ""
 
 #: ../plugins/lastfm/lastfm.ui.h:3
 msgid "<big><b>Last FM configuration</b></big>"
-msgstr "<big><b>Last FM konfiguration</b></big>"
+msgstr ""
 
 #: ../plugins/lastfm/lastfm.ui.h:4
 msgid "New to Last FM?, get an account"
-msgstr "Neu bei Last FM?, erstelle einen Account"
+msgstr ""
 
 #: ../plugins/lastfm/lastfm.ui.h:5
 msgid "Submit played tracks to Last.fm"
-msgstr "Abgespielte Titel an Last.fm übergeben"
+msgstr ""
 
 #: ../plugins/recently/dock.ui.h:1
 msgid "<b>Search</b>"
-msgstr "<b>Suche</b>"
+msgstr "<b>Hľadať</b>"
 
 #: ../plugins/recently/dock.ui.h:2
 msgid "<span color=\"#666\">Type at least 3 characters</span>"
-msgstr "<span color=\"#666\">Mindestens 3 Zeichen eingeben</span>"
+msgstr ""
 
 #: ../plugins/recently/dock.ui.h:3
 msgid ""
@@ -1130,11 +1101,7 @@ msgid ""
 "It seems you dont listen anything, so, there is nothing to see, come back "
 "later"
 msgstr ""
-"Hier finden Sie Ihre alte Playlist, Sie können sie wiederherstellen oder sie "
-"durchsuchen.\n"
-"Es scheint das Sie keine Musik höhren, also, ist hier nichts zu sehen, "
-"kommen Sie später nocht einmal vorbei."
 
 #: ../plugins/recently/dock.ui.h:7
 msgid "page 3"
-msgstr "Seite 3"
+msgstr "strana 3"
