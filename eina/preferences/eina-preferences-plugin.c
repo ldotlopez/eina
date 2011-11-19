@@ -50,6 +50,7 @@ static void preferences_plugin_detach_all_tabs(EinaPreferencesPlugin *plugin);
 static void menu_activate_cb(GtkAction *action, EinaPreferencesPlugin *plugin);
 
 // Dialog
+static void     dialog_cleanup (EinaPreferencesPlugin *plugin);
 static void     response_cb    (GtkWidget *w, gint response, EinaPreferencesPlugin *plugin);
 static gboolean delete_event_cb(GtkWidget *w, GdkEvent *ev,  EinaPreferencesPlugin *plugin);
 
@@ -75,12 +76,7 @@ eina_preferences_plugin_deactivate(EinaActivatable *activatable, EinaApplication
 	EinaPreferencesPlugin        *plugin = EINA_PREFERENCES_PLUGIN(activatable);
 	EinaPreferencesPluginPrivate *priv   = plugin->priv;
 
-	if (priv->dialog)
-	{
-		preferences_plugin_detach_all_tabs(plugin);
-		gtk_widget_destroy((GtkWidget *) priv->dialog);
-		priv->dialog = NULL;
-	}
+	dialog_cleanup(plugin);
 
 	if (priv->tabs)
 	{
@@ -181,13 +177,9 @@ preferences_plugin_build_dialog(EinaPreferencesPlugin *plugin)
 		return;
 
 	EinaApplication *app = eina_activatable_get_application(EINA_ACTIVATABLE(plugin));
-	priv->dialog = eina_preferences_dialog_new((GtkWindow *) eina_application_get_window(app));
-	g_object_set((GObject*) priv->dialog,
-		"title", N_("Preferences"),
-		"window-position", GTK_WIN_POS_CENTER_ON_PARENT,
-		"width-request",  600,
-		"height-request", 400,
-		NULL);
+	GtkWindow *main_window = GTK_WINDOW(eina_application_get_window(app));
+
+	priv->dialog = eina_preferences_dialog_new(main_window);
 	g_signal_connect(priv->dialog, "response",     (GCallback) response_cb,     plugin);
 	g_signal_connect(priv->dialog, "delete-event", (GCallback) delete_event_cb, plugin);
 
@@ -279,11 +271,11 @@ menu_activate_cb(GtkAction *action, EinaPreferencesPlugin *plugin)
 	if (g_str_equal(gtk_action_get_name(action), "preferences"))
 	{
 		preferences_plugin_build_dialog(plugin);
-		gtk_dialog_run(GTK_DIALOG(priv->dialog));
+		gtk_window_present(GTK_WINDOW(priv->dialog));
 	}
 }
 
-static void 
+static void
 preferences_plugin_detach_all_tabs(EinaPreferencesPlugin *plugin)
 {
 	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
@@ -302,26 +294,26 @@ preferences_plugin_detach_all_tabs(EinaPreferencesPlugin *plugin)
 }
 
 static void
-response_cb(GtkWidget *w, gint response, EinaPreferencesPlugin *plugin)
+dialog_cleanup(EinaPreferencesPlugin *plugin)
 {
 	g_return_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin));
 	EinaPreferencesPluginPrivate *priv = plugin->priv;
 
 	preferences_plugin_detach_all_tabs(plugin);
+	gtk_widget_destroy((GtkWidget *) priv->dialog);
 	priv->dialog = NULL;
+}
 
-	gtk_widget_destroy(w);
+static void
+response_cb(GtkWidget *w, gint response, EinaPreferencesPlugin *plugin)
+{
+	dialog_cleanup(plugin);
 }
 
 static gboolean
 delete_event_cb(GtkWidget *w, GdkEvent *ev, EinaPreferencesPlugin *plugin)
 {
-	g_return_val_if_fail(EINA_IS_PREFERENCES_PLUGIN(plugin), FALSE);
-	EinaPreferencesPluginPrivate *priv = plugin->priv;
-
-	preferences_plugin_detach_all_tabs(plugin);
-	priv->dialog = NULL;
-
+	dialog_cleanup(plugin);
 	return FALSE;
 }
 

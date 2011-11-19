@@ -17,10 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "eina-preferences-dialog.h"
 #include <glib/gi18n.h>
-
-#define EINA_HIG_BOX_SPACING 5
 
 G_DEFINE_TYPE (EinaPreferencesDialog, eina_preferences_dialog, GTK_TYPE_DIALOG)
 
@@ -59,28 +60,30 @@ eina_preferences_dialog_class_init (EinaPreferencesDialogClass *klass)
 static void
 eina_preferences_dialog_init (EinaPreferencesDialog *self)
 {
-}
-
-EinaPreferencesDialog*
-eina_preferences_dialog_new (GtkWindow *parent)
-{
-	EinaPreferencesDialog *self = g_object_new (EINA_TYPE_PREFERENCES_DIALOG, NULL);
 	EinaPreferencesDialogPrivate *priv = GET_PRIVATE(self);
-	
-	if (parent && GTK_IS_WINDOW(parent))
-		gtk_window_set_transient_for((GtkWindow *) self, parent);
 
 	priv->notebook = (GtkNotebook *) gtk_notebook_new();
-	gtk_notebook_set_show_tabs(priv->notebook, TRUE);
+	gtk_notebook_set_show_tabs(priv->notebook, FALSE);
 	gtk_widget_show_all(GTK_WIDGET(priv->notebook));
 
 	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
-
 	gtk_box_pack_start(
 		GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(self))),
 	 	GTK_WIDGET(priv->notebook),
 		TRUE, TRUE, 0);
 
+	gchar *title = g_strdup_printf(_("%s preferences"), PACKAGE_NAME);
+	gtk_window_set_title((GtkWindow *) self, title);
+	g_free(title);
+
+	gtk_window_set_destroy_with_parent((GtkWindow *) self, TRUE);
+}
+
+EinaPreferencesDialog*
+eina_preferences_dialog_new (GtkWindow *parent)
+{
+	EinaPreferencesDialog *self = g_object_new(EINA_TYPE_PREFERENCES_DIALOG, NULL);
+	gtk_window_set_transient_for((GtkWindow *) self, parent);
 	return self;
 }
 

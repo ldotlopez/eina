@@ -48,9 +48,12 @@ struct _EinaWindowPrivate {
 	GtkActionGroup *ag;
 	GtkUIManager   *ui_manager;
 
+	GtkDialog *plugin_dialog;
 	gulong   persistant_handler_id;
 };
 
+static gboolean
+plugin_dialog_cleanup(EinaWindow *self);
 static void
 action_activated_cb(GtkAction *action, EinaWindow *self);
 
@@ -131,8 +134,9 @@ eina_window_dispose (GObject *object)
 {
 	EinaWindow *self = EINA_WINDOW(object);
 
-	gel_free_and_invalidate(self->priv->ag,         NULL, g_object_unref);
-	gel_free_and_invalidate(self->priv->ui_manager, NULL, g_object_unref);
+	plugin_dialog_cleanup(self);
+	gel_free_and_invalidate(self->priv->ag,            NULL, g_object_unref);
+	gel_free_and_invalidate(self->priv->ui_manager,    NULL, g_object_unref);
 	G_OBJECT_CLASS (eina_window_parent_class)->dispose (object);
 }
 
@@ -312,12 +316,18 @@ eina_window_get_persistant(EinaWindow *self)
 }
 
 static gboolean
-gc_idle_cb(void)
+plugin_dialog_cleanup(EinaWindow *self)
 {
+	g_return_val_if_fail(EINA_IS_WINDOW(self), FALSE);
+	if (!self->priv->plugin_dialog)
+		return FALSE;
+
+	gtk_widget_destroy((GtkWidget *) self->priv->plugin_dialog);
 	peas_engine_garbage_collect(peas_engine_get_default());
+	self->priv->plugin_dialog = NULL;
+
 	return FALSE;
 }
-
 
 static void
 action_activated_cb(GtkAction *action, EinaWindow *self)
@@ -343,27 +353,25 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 
 	else if (g_str_equal(name, "plugins-action"))
 	{
-		GtkWidget *dialog = gtk_dialog_new_with_buttons(_("Select plugins"),
-			(GtkWindow *) self,
-			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
-			NULL);
-		GtkWidget *pm = (GtkWidget *) peas_gtk_plugin_manager_new(NULL);
-		gtk_box_pack_start((GtkBox*) gtk_dialog_get_content_area((GtkDialog *) dialog),
-			pm,
-			TRUE, TRUE, 0);
+		if (!self->priv->plugin_dialog)
+		{
+			self->priv->plugin_dialog = (GtkDialog *) gtk_dialog_new_with_buttons(_("Select plugins"),
+				(GtkWindow *) self,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
+				NULL);
 
-		GdkScreen *screen = gtk_window_get_screen((GtkWindow *) dialog);
-		gint w = gdk_screen_get_width(screen)  / 4;
-		gint h = gdk_screen_get_height(screen) / 2;
-		gtk_window_resize((GtkWindow *) dialog, w, h);
+			GtkWidget *pm = (GtkWidget *) peas_gtk_plugin_manager_new(NULL);
+			gtk_box_pack_start((GtkBox*) gtk_dialog_get_content_area(self->priv->plugin_dialog),
+				pm,
+				TRUE, TRUE, 0);
+			gtk_widget_show_all(pm);
 
-		g_signal_connect(dialog, "destroy", (GCallback) gc_idle_cb, NULL);
+			g_signal_connect_swapped(self->priv->plugin_dialog, "destroy",  (GCallback) plugin_dialog_cleanup, self);
+			g_signal_connect_swapped(self->priv->plugin_dialog, "response", (GCallback) plugin_dialog_cleanup, self);
+		}
 
-		gtk_widget_show_all(pm);
-		gtk_dialog_run((GtkDialog *) dialog);
-		gtk_widget_destroy(dialog);
-
+		gtk_window_present((GtkWindow *) self->priv->plugin_dialog);
 		return;
 	}
 
