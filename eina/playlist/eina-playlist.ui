@@ -89,7 +89,7 @@
                               <object class="GtkImage" id="image7">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="stock">gtk-open</property>
+                                <property name="icon_name">document-open-symbolic</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -306,7 +306,7 @@
                   <object class="GtkImage" id="image1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="stock">eina-random</property>
+                    <property name="icon_name">media-playlist-shuffle-symbolic</property>
                   </object>
                 </child>
               </object>
@@ -329,7 +329,7 @@
                   <object class="GtkImage" id="image3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="stock">eina-repeat</property>
+                    <property name="icon_name">media-playlist-repeat-symbolic</property>
                   </object>
                 </child>
               </object>
@@ -366,7 +366,7 @@
                   <object class="GtkImage" id="image4">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="stock">gtk-add</property>
+                    <property name="icon_name">list-add-symbolic</property>
                   </object>
                 </child>
               </object>
@@ -389,7 +389,7 @@
                   <object class="GtkImage" id="image5">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="stock">gtk-remove</property>
+                    <property name="icon_name">list-remove-symbolic</property>
                   </object>
                 </child>
               </object>

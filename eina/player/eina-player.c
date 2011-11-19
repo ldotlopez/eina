@@ -494,12 +494,8 @@ binding_volume_double_to_int_cb(GBinding *binding, const GValue *src, GValue *ds
 static gboolean
 binding_lomo_state_to_gtk_stock(GBinding *binding, const GValue *src, GValue *dst, EinaPlayer *self)
 {
-	GtkTextDirection dir = gtk_widget_get_direction(gel_ui_generic_get_typed(self, GTK_WIDGET, "play-pause-image"));
-	LomoState state = g_value_get_enum(src);
-	if (state == LOMO_STATE_PLAY)
-		g_value_set_static_string(dst, "gtk-media-pause");
-	else
-		g_value_set_static_string(dst, dir == GTK_TEXT_DIR_LTR ?  "gtk-media-play-ltr" : "gtk-media-play-rtl");
+	g_value_set_static_string(dst, (g_value_get_enum(src) == LOMO_STATE_PLAY) ?
+		"media-playback-pause-symbolic" : "media-playback-start-symbolic");
 	return TRUE;
 }
 
