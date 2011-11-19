@@ -87,7 +87,7 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	g_object_set_data((GObject *) player, "eina-plugin", plugin);
 
 	// Connect actions
-	g_signal_connect(player,   "action-activated", (GCallback) player_action_activated_cb, app);
+	g_signal_connect(player, "action-activated", (GCallback) player_action_activated_cb, app);
 
 	// Export
 	eina_application_set_interface(app, "player", player);
@@ -213,14 +213,16 @@ about_show(EinaPlayer *player)
 
 	gchar *comments = g_strconcat("(" EINA_CODENAME ")\n\n", N_("A classic player for the modern era"), NULL);
 	gchar *title = g_strdup_printf(_("About %s"), PACKAGE_NAME);
-	GtkWidget *about = gtk_about_dialog_new();
-	g_object_set((GObject *) about,
+
+	gtk_show_about_dialog(
+	    GTK_WINDOW(eina_application_get_window(EINA_APPLICATION(g_object_get_data((GObject *) player, "eina-application")))),
 		"artists", artists,
 		"authors", authors,
 		"program-name", PACKAGE_NAME,
 		"copyright", "Copyright © 2003-2011 Luis Lopez\nCopyright © 2003-2005 Luis Lopez and Daniel Ripolles",
 		"comments", comments,
 		"website", EINA_URL,
+		"website-label", EINA_URL,
 		"license", license,
 		"version", PACKAGE_VERSION,
 		"wrap-license", TRUE,
@@ -229,9 +231,6 @@ about_show(EinaPlayer *player)
 		NULL);
 	g_free(comments);
 	g_free(title);
-
-	g_signal_connect(about, "response", (GCallback) gtk_widget_destroy, NULL);
-	gtk_widget_show(about);
 }
 
 static void
