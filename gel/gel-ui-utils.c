@@ -97,7 +97,7 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
  *                      Not used if def.data is not %NULL
  *
  * Connects the signal from @def on @ui parameter for g_signal_connect()
- * If def.data is %NULL, the @data parameter is used as an alternative userdata 
+ * If def.data is %NULL, the @data parameter is used as an alternative userdata
  * for callback
  *
  * Returns: %TRUE is successful, %FALSE otherwise.
@@ -117,13 +117,13 @@ gel_ui_builder_connect_signal_from_def(GtkBuilder *ui,
 /*
  * gel_ui_builder_connect_signal_from_def_multiple:
  * @ui: A #GtkBuilder.
- * @defs: An array of #GelSignalDef 
+ * @defs: An array of #GelSignalDef
  * @n_entries: Number of elements in @def
  * @data: (allow-none): Userdata to pass to callback.
  *                      Not used if def[x].data is not %NULL
  * @count: (out caller-allocates) (allow-none): Location for store the number
  *         of successful connected signals.
- * 
+ *
  * Calls gel_ui_builder_connect_signal_from_def() for each signal definition
  * in def
  *
@@ -206,9 +206,15 @@ gel_ui_container_replace_children(GtkContainer *container, GtkWidget *widget)
 {
 	g_return_if_fail(GTK_IS_CONTAINER(container));
 	g_return_if_fail(GTK_IS_WIDGET(widget));
-	
+
 	gtk_container_foreach(container, (GtkCallback) gtk_widget_destroy, NULL);
-	gtk_box_pack_start(GTK_BOX(container), widget, TRUE, TRUE, 0); 
+	if (GTK_IS_BOX(container))
+		gtk_box_pack_start(GTK_BOX(container), widget, TRUE, TRUE, 0);
+	else if (GTK_IS_GRID(container))
+	{
+		gtk_grid_attach(GTK_GRID(container), widget, 0, 0, 1, 1);
+		g_object_set((GObject *) widget, "hexpand", TRUE, "vexpand", TRUE, NULL);
+	}
 }
 
 
@@ -360,7 +366,7 @@ gel_ui_list_store_set_at_index(GtkListStore *model, gint index, ...)
 
 	GtkTreeIter iter;
 	g_return_if_fail(gel_ui_list_model_get_iter_from_index(model, &iter, index));
-		
+
 	va_start(args, index);
 	gtk_list_store_set_valist(GTK_LIST_STORE(model), &iter, args);
 	va_end(args);
@@ -477,7 +483,7 @@ gel_ui_widget_enable_drop(GtkWidget *widget, GCallback callback, gpointer user_d
 		return;
 	}
 
-	gtk_drag_dest_set (widget, 
+	gtk_drag_dest_set (widget,
 		GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION | GTK_DEST_DEFAULT_HIGHLIGHT,
 		target_list,
 		G_N_ELEMENTS(target_list),
