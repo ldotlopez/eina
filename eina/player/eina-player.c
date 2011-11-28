@@ -169,8 +169,9 @@ eina_player_new (void)
 		"renderer", g_object_new(EINA_TYPE_COVER_IMAGE, NULL),
 		NULL);
 	GtkContainer *cover_container = gel_ui_generic_get_typed(self, GTK_CONTAINER, "cover-container");
-	gtk_container_foreach(cover_container, (GtkCallback) gtk_widget_destroy, NULL);
-	gtk_container_add(cover_container, (GtkWidget *) priv->cover);
+	gel_ui_container_replace_children(cover_container, (GtkWidget *) priv->cover);
+	g_object_set((GObject *) priv->cover, "hexpand", FALSE, NULL);
+
 	gtk_widget_show(GTK_WIDGET(priv->cover));
 
 	// Actions
@@ -191,6 +192,7 @@ eina_player_new (void)
 		}
 		g_signal_connect(action, "activate", (GCallback) action_activated_cb, self);
 	}
+
 	return GTK_WIDGET(self);
 }
 
@@ -351,15 +353,15 @@ player_update_information(EinaPlayer *self)
 
 	if (!line1)
 		line1 = _("Eina music player");
-		
+
 	if (!line2)
 		line2 = "\u200B";
-	
+
 	// Setup labels
 	struct {
 		gchar *widget_name;
 		gchar *markup;
-	} markups[2] = 
+	} markups[2] =
 	{
 		{ "stream-title-label",  NULL },
 		{ "stream-artist-label", NULL }
