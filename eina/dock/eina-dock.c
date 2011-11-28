@@ -249,7 +249,6 @@ dock_update_properties(EinaDock *self)
 	EinaDockPrivate *priv = self->priv;
 
 	// Update misc properties
-	
 	g_object_set((GObject *) self,
 		"visible", dock_is_visible(self),
 		NULL);
@@ -279,7 +278,7 @@ dock_update_properties(EinaDock *self)
 			gtk_expander_set_label(priv->expander, markup);
 			g_free(markup);
 		}
-	}	
+	}
 }
 
 static gboolean
@@ -419,7 +418,7 @@ dock_tab_label_fix_orientation(GtkWidget *label, GtkPositionType position)
 
 /**
  * eina_dock_add_widget:
- * 
+ *
  * @self: The #EinaDock object
  * @id: A string identifying the widget, must be unique
  * @widget: The #GtkWidget to add into the dock
@@ -549,7 +548,7 @@ eina_dock_remove_widget_by_id(EinaDock *self, gchar *id)
 	g_return_val_if_fail(EINA_IS_DOCK(self), FALSE);
 	g_return_val_if_fail(id, FALSE);
 
-	EinaDockPrivate *priv = self->priv;	
+	EinaDockPrivate *priv = self->priv;
 
 	GList *link = g_list_find_custom(priv->tabs, (gpointer) id, (GCompareFunc) list_find_by_id);
 	g_return_val_if_fail((link != NULL) && EINA_IS_DOCK_TAB(link->data), FALSE);

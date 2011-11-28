@@ -103,7 +103,7 @@ eina_dock_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GErro
  * Gets the #EinaDock from #EinaApplication
  *
  * Returns: (transfer none): The #EinaDock
- */ 
+ */
 EinaDock *eina_application_get_dock(EinaApplication *application)
 {
 	return (EinaDock *) eina_application_get_interface(application, "dock");
@@ -112,7 +112,7 @@ EinaDock *eina_application_get_dock(EinaApplication *application)
 /*
  * Internal API
  */
-static void 
+static void
 save_size(EinaDockPlugin *plugin)
 {
 	g_return_if_fail(EINA_IS_DOCK_PLUGIN(plugin));
@@ -133,7 +133,7 @@ save_size(EinaDockPlugin *plugin)
 	g_settings_set_int(settings, EINA_DOCK_WINDOW_H_KEY, h);
 }
 
-static void 
+static void
 restore_size(EinaDockPlugin *plugin)
 {
 	g_return_if_fail(EINA_IS_DOCK_PLUGIN(plugin));
@@ -182,7 +182,7 @@ eina_application_add_dock_widget(EinaApplication *application,
  * Switches visible dock tab to @tab
  *
  * Returns: %TRUE on successful.
- */ 
+ */
 gboolean
 eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab)
 {
