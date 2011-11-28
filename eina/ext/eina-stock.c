@@ -37,8 +37,6 @@ static const  struct {
 	#else
 	{ EINA_STOCK_STATUS_ICON, "standard-status-icon" },
 	#endif
-	{ EINA_STOCK_RANDOM,      "random"      },
-	{ EINA_STOCK_REPEAT,      "repeat"      },
 	{ EINA_STOCK_QUEUE ,      "queue"       },
 	{ EINA_STOCK_BUG,         "bug"         },
 	{ EINA_STOCK_PLUGIN,      "plugin"      }
@@ -46,8 +44,6 @@ static const  struct {
 
 static const GtkStockItem stock_items [] = {
 	{ EINA_STOCK_STATUS_ICON, N_("Status icon"),  0, 0, GETTEXT_PACKAGE },
-	{ EINA_STOCK_RANDOM,      N_("_Random"),      0, 0, GETTEXT_PACKAGE },
-	{ EINA_STOCK_REPEAT,      N_("_Shuffle"),     0, 0, GETTEXT_PACKAGE },
 	{ EINA_STOCK_QUEUE,       N_("_Queue"),       0, 0, GETTEXT_PACKAGE },
 	{ EINA_STOCK_BUG,         N_("Report a bug"), 0, 0, GETTEXT_PACKAGE },
 	{ EINA_STOCK_PLUGIN,      NULL,               0, 0, GETTEXT_PACKAGE }
