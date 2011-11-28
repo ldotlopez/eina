@@ -47,10 +47,10 @@ static void
 player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app);
 static gboolean
 player_action_activated_cb(EinaPlayer *player, GtkAction *action, EinaApplication *app);
-static void 
+static void
 action_activated_cb(GtkAction *action, EinaPlayer *player);
 
-static const gchar *ui_mng_xml = 
+static const gchar *ui_mng_xml =
 "<menubar name='Main'>"
 "  <menu name='File' action='file-menu'>"
 "    <menuitem name='Open' action='open-action' position='top'/>"
@@ -70,6 +70,36 @@ static GtkActionEntry ui_mng_actions[] = {
 	{ "about-action", GTK_STOCK_ABOUT, N_("_About"),               NULL,    NULL, (GCallback) action_activated_cb }
 };
 
+static void
+toplevel_notify_cb(GtkWindow *toplevel, GParamSpec *pspec, EinaPlayer *player)
+{
+	if (g_str_equal(pspec->name, "resizable"))
+	{
+		return;
+
+		gboolean is_resizable = gtk_window_get_resizable(toplevel);
+		gint req = is_resizable ? 20 : -1;
+		g_debug("Resizable event: is %s resizable", is_resizable ? "" : "NOT");
+
+		GtkWidget *label = gel_ui_generic_get_typed(player, GTK_WIDGET, "stream-title-label");
+		gtk_widget_set_size_request(label, req, -1);
+		label = gel_ui_generic_get_typed(player, GTK_WIDGET, "stream-artist-label");
+		gtk_widget_set_size_request(label, req, -1);
+	}
+}
+
+static void
+player_hierarchy_changed_cb(GtkWidget *player, GtkWidget *previous_toplevel, EinaApplication *app)
+{
+	if (previous_toplevel)
+		g_signal_handlers_disconnect_by_func(previous_toplevel, toplevel_notify_cb, player);
+
+	GtkWidget *toplevel = gtk_widget_get_toplevel(player);
+	if (toplevel)
+		g_signal_connect(toplevel, "notify::resizable", (GCallback) toplevel_notify_cb, player);
+}
+
+
 static gboolean
 eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GError **error)
 {
@@ -88,6 +118,7 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 
 	// Connect actions
 	g_signal_connect(player, "action-activated", (GCallback) player_action_activated_cb, app);
+	g_signal_connect(player, "hierarchy-changed", (GCallback) player_hierarchy_changed_cb, app);
 
 	// Export
 	eina_application_set_interface(app, "player", player);
@@ -132,9 +163,11 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 		lomo_sets, "auto-play",    "auto-play",    "active",
 		lomo_sets, "auto-parse",   "auto-parse",   "active",
 		lomo_sets, "gapless-mode", "gapless-mode", "active",
+		eina_application_get_settings(app, EINA_DOMAIN), "prefer-dark-theme", "prefer-dark-theme", "active",
 		NULL);
 
 	eina_application_add_preferences_tab(app, priv->prefs_tab);
+
 
 	return TRUE;
 }
@@ -194,7 +227,7 @@ about_show(EinaPlayer *player)
 		"Luis Lopez <luis@cuarentaydos.com>",
 		NULL
 	};
-	gchar *license = 
+	gchar *license =
 	N_("Eina is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.\n"
 	"\n"
 	"Eina is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n"
@@ -298,4 +331,5 @@ action_activated_cb(GtkAction *action, EinaPlayer *player)
 	else
 		g_warning(N_("Unknow action: %s"), gtk_action_get_name(action));
 }
+
 
