@@ -9,7 +9,6 @@ R="$D/tools/run"
 [ -e "$R" ] && rm -rf -- "$R"
 
 # Setup path for libs
-unset GTK_MODULES
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$D/eina/ext/.libs:$LD_LIBRARY_PATH"
 export GI_TYPELIB_PATH="$D/lomo:$D/gel:$D/eina:$GI_TYPELIB_PATH"
 export EINA_TYPELIB_DIR="$D/eina"
@@ -112,7 +111,7 @@ if [ ! -z "$1" ]; then
 			"$BIN" "$@"
 			;;
 	esac
-else 
+else
 	"$BIN" "$@"
 fi
 
