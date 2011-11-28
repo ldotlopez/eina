@@ -1,10 +1,24 @@
 ====== Eina 0.14.0 ======
 
+- Support for gtk-3.2 with -DDISABLE_DEPRECATED
+
+- Better HIG compilance for dialogs and modal windows
+
 - Art metadata is now handled in liblomo
   More sophisticated interfaces on top of liblomo
 
 - liblomo depends on libgel
   [!] Try to revert this
+
+- Playlist has built-in search (try control+f)
+
+- Dark theme used by default
+
+- Update translations
+
+- More documentation and gobject-introspection coverage
+
+- New APIs for EinaPlaylist
 
 ====== Eina 0.12.0 ======
 
