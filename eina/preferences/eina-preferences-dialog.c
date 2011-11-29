@@ -62,8 +62,10 @@ eina_preferences_dialog_init (EinaPreferencesDialog *self)
 {
 	EinaPreferencesDialogPrivate *priv = GET_PRIVATE(self);
 
-	priv->notebook = (GtkNotebook *) gtk_notebook_new();
-	gtk_notebook_set_show_tabs(priv->notebook, FALSE);
+	priv->notebook = GTK_NOTEBOOK(g_object_new(GTK_TYPE_NOTEBOOK,
+		"border-width", 12,
+		"show-tabs", FALSE,
+		NULL));
 	gtk_widget_show_all(GTK_WIDGET(priv->notebook));
 
 	gtk_dialog_add_button(GTK_DIALOG(self), GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE);
@@ -73,18 +75,19 @@ eina_preferences_dialog_init (EinaPreferencesDialog *self)
 		TRUE, TRUE, 0);
 
 	gchar *title = g_strdup_printf(_("%s preferences"), PACKAGE_NAME);
-	gtk_window_set_title((GtkWindow *) self, title);
+	g_object_set((GObject *) self,
+		"title", title,
+		"destroy-with-parent", TRUE,
+		NULL);
 	g_free(title);
-
-	gtk_window_set_destroy_with_parent((GtkWindow *) self, TRUE);
 }
 
 EinaPreferencesDialog*
 eina_preferences_dialog_new (GtkWindow *parent)
 {
-	EinaPreferencesDialog *self = g_object_new(EINA_TYPE_PREFERENCES_DIALOG, NULL);
-	gtk_window_set_transient_for((GtkWindow *) self, parent);
-	return self;
+	return EINA_PREFERENCES_DIALOG(g_object_new(EINA_TYPE_PREFERENCES_DIALOG,
+		"transient-for", parent,
+		NULL));
 }
 
 void
