@@ -325,6 +325,14 @@ eina_player_get_cover_widget(EinaPlayer *self)
 	return self->priv->cover;
 }
 
+/**
+ * eina_player_get_plugins_area:
+ * @self: An #EinaPlayer
+ *
+ * Gets the content area (a GtkHBox for now) avaliable for place widgets from plugins
+ *
+ * Returns: (transfer none): The content area
+ */
 GtkWidget *
 eina_player_get_plugins_area(EinaPlayer *self)
 {

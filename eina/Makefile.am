@@ -81,7 +81,15 @@ Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/playlist/eina-playlist-plugin.h \
 	$(top_srcdir)/eina/playlist/eina-playlist-plugin.c \
 	$(top_srcdir)/eina/playlist/eina-playlist.h \
-	$(top_srcdir)/eina/playlist/eina-playlist.c
+	$(top_srcdir)/eina/playlist/eina-playlist.c \
+	\
+	$(top_srcdir)/eina/player/eina-player-plugin.h \
+	$(top_srcdir)/eina/player/eina-player-plugin.c \
+	$(top_srcdir)/eina/player/eina-player.h \
+	$(top_srcdir)/eina/player/eina-player.c \
+	$(top_srcdir)/eina/player/eina-cover.c  \
+	$(top_srcdir)/eina/player/eina-cover.h
+
 INTROSPECTION_GIRS += Eina-0.12.gir
 
 girdir = $(datadir)/gir-1.0
