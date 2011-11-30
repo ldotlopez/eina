@@ -325,6 +325,13 @@ eina_player_get_cover_widget(EinaPlayer *self)
 	return self->priv->cover;
 }
 
+GtkWidget *
+eina_player_get_plugins_area(EinaPlayer *self)
+{
+	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
+	return gel_ui_generic_get_widget(GEL_UI_GENERIC(self), "plugins-content-area");
+}
+
 static void
 player_update_information(EinaPlayer *self)
 {

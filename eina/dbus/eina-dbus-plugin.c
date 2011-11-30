@@ -66,20 +66,20 @@ media_player_key_pressed (GDBusProxy * proxy,
 	gchar *key;
 	gchar *application;
 
-	if (g_str_equal(signal, "MediaPlayerKeyPressed"))
+	if (!g_str_equal(signal, "MediaPlayerKeyPressed"))
 	{
 		  g_warning
 		      ("got unexpected signal '%s' from media player keys",
 		       signal);
 		  return;
-	  }
+	}
 
 	g_variant_get (parameters, "(ss)", &application, &key);
 
 	debug ("got media key '%s' for application '%s'",
 	       key, application);
 
-	if (g_str_equal(application, PACKAGE_NAME))
+	if (!g_str_equal(application, PACKAGE_NAME))
 	{
 		g_warning ("Got media player key signal for unexpected application '%s'", application);
 		return;
@@ -95,17 +95,17 @@ media_player_key_pressed (GDBusProxy * proxy,
 		lomo_player_set_state (lomo, state, &error);
 	}
 
-	else if (strcmp (key, "Stop") == 0)
+	else if (g_str_equal(key, "Stop"))
 		lomo_player_set_state (lomo, LOMO_STATE_STOP, &error);
 
-	else if (strcmp (key, "Previous") == 0)
+	else if (g_str_equal(key, "Previous"))
 		lomo_player_go_previous (lomo, &error);
 
-	else if (strcmp (key, "Next") == 0)
+	else if (g_str_equal(key, "Next"))
 		lomo_player_go_next (lomo, &error);
 
-	else if ((strcmp (key, "Repeat") == 0) ||
-	         (strcmp (key, "Random") == 0))
+	else if (g_str_equal(key, "Repeat") ||
+	         g_str_equal(key, "Random"))
 	{
 		  const gchar *prop = g_str_equal(key, "Random") ? "random" : "repeat";
 		  gboolean value;

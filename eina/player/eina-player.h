@@ -54,6 +54,7 @@ LomoPlayer *eina_player_get_lomo_player   (EinaPlayer *self);
 void        eina_player_set_lomo_player   (EinaPlayer *self, LomoPlayer *lomo);
 EinaCover  *eina_player_get_cover_widget  (EinaPlayer *self);
 void        eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf);
+GtkWidget  *eina_player_get_plugins_area  (EinaPlayer *self);
 
 G_END_DECLS
 
