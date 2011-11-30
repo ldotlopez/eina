@@ -463,6 +463,8 @@ eina/pythonconsole/pythonconsole.plugin
 eina/pythonconsole/Makefile
 eina/pythonhello/pythonhello.plugin
 eina/pythonhello/Makefile
+eina/stars/stars.plugin
+eina/stars/Makefile
 eina/status-icon/status-icon.plugin
 eina/status-icon/Makefile
 Makefile
