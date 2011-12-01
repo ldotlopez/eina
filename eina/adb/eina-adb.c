@@ -30,8 +30,10 @@ G_DEFINE_TYPE (EinaAdb, eina_adb, G_TYPE_OBJECT)
 
 GEL_DEFINE_QUARK_FUNC(eina_adb);
 
-typedef struct _EinaAdbPrivate EinaAdbPrivate;
+#define SQLITE3_STMT(x) ((sqlite3_stmt *) x)
+typedef sqlite3_stmt _EinaAdbResult;
 
+typedef struct _EinaAdbPrivate EinaAdbPrivate;
 struct _EinaAdbPrivate {
 	gchar      *db_file;
 	sqlite3    *db;
@@ -195,6 +197,15 @@ eina_adb_set_db_file(EinaAdb *self, const gchar *path)
 //
 // Easy query
 //
+/**
+ * eina_adb_query: (skip):
+ * @self: An #EinaAdb
+ * @query: Query to execute in sqlite format, see %sqlite3_vmprintf
+ *
+ * Builds and executes query
+ *
+ * Returns: (transfer none): An #EinaAdbResult
+ */
 EinaAdbResult*
 eina_adb_query(EinaAdb *self, gchar *query, ...)
 {
@@ -208,17 +219,26 @@ eina_adb_query(EinaAdb *self, gchar *query, ...)
 
 	g_return_val_if_fail(q != NULL, NULL);
 
-	sqlite3_stmt *stmt = NULL;
-	if (!(stmt = eina_adb_query_raw(self, q)))
+	EinaAdbResult *res = NULL;
+	if (!(res = eina_adb_query_raw(self, q)))
 	{
 		sqlite3_free(q);
-		g_return_val_if_fail(stmt != NULL, NULL);
+		g_return_val_if_fail(res != NULL, NULL);
 	}
 
 	sqlite3_free(q);
-	return stmt;
+	return res;
 }
 
+/**
+ * eina_adb_query_raw:
+ * @self: An #EinaAdb
+ * @query: Query to execute
+ *
+ * Executes query
+ *
+ * Returns: (transfer none): An #EinaAdbResult
+ */
 EinaAdbResult*
 eina_adb_query_raw(EinaAdb *self, gchar *query)
 {
@@ -228,41 +248,68 @@ eina_adb_query_raw(EinaAdb *self, gchar *query)
 	EinaAdbPrivate *priv = GET_PRIVATE(self);
 
 	int code;
-	sqlite3_stmt *stmt = NULL;
-	if ((code = sqlite3_prepare_v2(priv->db, query, -1, &stmt, NULL)) != SQLITE_OK)
+	EinaAdbResult *res = NULL;
+	if ((code = sqlite3_prepare_v2(priv->db, query, -1, (sqlite3_stmt **) &res, NULL)) != SQLITE_OK)
 		g_warning("Query failed with code %d, query was: '%s'", code, query);
-	return stmt;
+	return res;
 }
 
+/**
+ * eina_adb_query_exec_raw:
+ * @self: A #EinaAdb
+ * @query: A query
+ *
+ * Executes @query
+ *
+ * Returns: %TRUE on successful, %FALSE othewise
+ */
 gboolean
-eina_adb_query_exec(EinaAdb *self, gchar *q, ...)
+eina_adb_query_exec_raw(EinaAdb *self, const gchar *query)
 {
 	g_return_val_if_fail(EINA_IS_ADB(self), FALSE);
-	EinaAdbPrivate *priv = GET_PRIVATE(self);
-
-	va_list args;
-	va_start(args, q);
-	gchar *query = sqlite3_vmprintf(q, args);
-	va_end(args);
 	g_return_val_if_fail((query != NULL), FALSE);
+	EinaAdbPrivate *priv = GET_PRIVATE(self);
 
 	char *msg = NULL;
 	int ret = sqlite3_exec(priv->db, query, NULL, NULL, &msg);
 
 	if (ret == 0)
-	{
-		sqlite3_free(query);
 		return TRUE;
-	}
 	else
 	{
 		g_warning(N_("Error %d in query '%s'"), ret, msg);
 		sqlite3_free(msg);
-		sqlite3_free(query);
 		return FALSE;
 	}
 }
 
+gboolean
+eina_adb_query_exec(EinaAdb *self, const gchar *query, ...)
+{
+	g_return_val_if_fail(EINA_IS_ADB(self), FALSE);
+
+	va_list args;
+	va_start(args, query);
+	gchar *_query = sqlite3_vmprintf(query, args);
+	va_end(args);
+	g_return_val_if_fail((query != NULL), FALSE);
+
+	gboolean ret = eina_adb_query_exec_raw(self, _query);
+	sqlite3_free(_query);
+
+	return ret;
+}
+
+/**
+ * eina_adb_query_block_exec:
+ * @self: An #EinaAdb
+ * @queries: (element-type utf8) (array zero-terminated=1): Array of queries
+ * @error: Location for errors
+ *
+ * Executes safelly a block of queries. A ROLLBACK is executed if any of them fails
+ *
+ * Returns: %TRUE on successful, %FALSE othewise
+ */
 gboolean
 eina_adb_query_block_exec(EinaAdb *self, gchar *queries[], GError **error)
 {
@@ -313,7 +360,7 @@ gint
 eina_adb_result_column_count(EinaAdbResult *result)
 {
 	g_return_val_if_fail(result != NULL, -1);
-	return sqlite3_column_count((sqlite3_stmt *) result);
+	return sqlite3_column_count(SQLITE3_STMT(result));
 }
 
 gboolean
@@ -321,7 +368,7 @@ eina_adb_result_step(EinaAdbResult *result)
 {
 	g_return_val_if_fail(result != NULL, FALSE);
 
-	int ret = sqlite3_step(result);
+	int ret = sqlite3_step(SQLITE3_STMT(result));
 	if (ret == SQLITE_DONE)
 		return FALSE;
 
@@ -347,15 +394,15 @@ eina_adb_result_get(EinaAdbResult *result, ...)
 		{
 		case G_TYPE_STRING:
 			str = va_arg(args, gchar**);
-			*str = g_strdup((gchar *) sqlite3_column_text(result, column));
+			*str = g_strdup((gchar *) sqlite3_column_text(SQLITE3_STMT(result), column));
 			break;
 		case G_TYPE_INT:
 			i = va_arg(args, gint*);
-			*i = (gint) sqlite3_column_int(result, column);
+			*i = (gint) sqlite3_column_int(SQLITE3_STMT(result), column);
 			break;
 		case G_TYPE_UINT:
 			u = va_arg(args, guint*);
-			*u = (guint) sqlite3_column_int(result, column);
+			*u = (guint) sqlite3_column_int(SQLITE3_STMT(result), column);
 			break;
 		default:
 			g_warning(N_("Unhandled type '%s' in %s. Aborting"), g_type_name(type), __FUNCTION__);
@@ -370,7 +417,7 @@ void
 eina_adb_result_free(EinaAdbResult *result)
 {
 	g_return_if_fail(result != NULL);
-	sqlite3_finalize(result);
+	sqlite3_finalize(SQLITE3_STMT(result));
 }
 
 // --
@@ -474,7 +521,7 @@ eina_adb_set_variable(EinaAdb *self, gchar *variable, gchar *value)
 }
 
 gint
-eina_adb_schema_get_version(EinaAdb *self, gchar *schema)
+eina_adb_schema_get_version(EinaAdb *self, const gchar *schema)
 {
 	g_return_val_if_fail(EINA_IS_ADB(self), -1);
 	g_return_val_if_fail(schema != NULL, -1);
@@ -503,7 +550,7 @@ eina_adb_schema_get_version(EinaAdb *self, gchar *schema)
 }
 
 void
-eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version)
+eina_adb_schema_set_version(EinaAdb *self, const gchar *schema, gint version)
 {
 	g_return_if_fail(EINA_IS_ADB(self));
 	g_return_if_fail(schema != NULL);
@@ -515,6 +562,14 @@ eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version)
 	}
 }
 
+/**
+ * eina_adb_get_handler: (skip):
+ * @self: An #EinaAdb
+ *
+ * Returns the low level sqlite3 handler for the bbdd
+ *
+ * Returns: (transfer none): Then sqlite3 handler
+ */
 sqlite3*
 eina_adb_get_handler(EinaAdb *self)
 {

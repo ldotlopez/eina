@@ -20,6 +20,15 @@
 #include "eina-adb-lomo.h"
 #include <glib/gi18n.h>
 
+/**
+ * eina_adb_lomo_stream_attach_sid:
+ * @adb: An #EinaAdb
+ * @stream: A #LomoStream
+ *
+ * Gets (if not has its created) a SID, stream ID, for the @stream
+ *
+ * Returns: The SID or -1 if there is an error
+ */
 gint
 eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 {
@@ -73,6 +82,15 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 	return sid;
 }
 
+/**
+ * eina_adb_lomo_stream_get_sid:
+ * @adb: An #EinaAdb
+ * @stream: A #LomoStream
+ *
+ * Gets the SID associated with @stream:
+ *
+ * Returns: @stream's SID
+ */
 gint
 eina_adb_lomo_stream_get_sid(EinaAdb *adb, LomoStream *stream)
 {

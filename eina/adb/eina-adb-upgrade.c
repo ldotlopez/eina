@@ -21,8 +21,19 @@
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 
+/**
+ * eina_adb_upgrade_schema:
+ * @self: An #EinaAdb
+ * @schema: Schema name
+ * @callbacks: (array zero-terminated=1) : set of callbacks
+ * @error: Location for errors
+ *
+ * Does magic
+ *
+ * Returns: %TRUE on successful, %FALSE otherwise
+ */
 gboolean
-eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], GError **error)
+eina_adb_upgrade_schema(EinaAdb *self, const gchar *schema, EinaAdbFunc callbacks[], GError **error)
 {
 	g_return_val_if_fail(EINA_IS_ADB(self), FALSE);
 
@@ -40,5 +51,4 @@ eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], G
 
 	return (callbacks[i] == NULL);
 }
-
 
