@@ -1,5 +1,6 @@
+import os
 from gi.repository import Gtk, Eina, GObject
-
+from widgets import EinaStars
 import gettext
 gettext.textdomain("eina")
 
@@ -12,15 +13,15 @@ class StarsPlugin(GObject.Object, Eina.Activatable):
 		GObject.Object.__init__ (self)
 
 	def do_activate(self, app):
-		self.grid = Gtk.Grid()
-		for i in xrange(0, 5):
-			img = Gtk.Image.new_from_stock(Gtk.STOCK_OK, Gtk.IconSize.SMALL_TOOLBAR)
-			img.set_valign(Gtk.Align.CENTER)
-			img.set_vexpand(True)
-			self.grid.attach(img, i, 0, 1, 1)
-		self.grid.show_all()
 		box = app.get_player().get_plugins_area()
-		box.pack_start(self.grid, True, True, 0)
+
+		p = os.path.dirname(__file__)
+		stars = EinaStars(
+			on_image = os.path.join(p, "star-on.svg"),
+			off_image = os.path.join(p, "star-off.svg"))
+		stars.show_all()
+	
+		box.pack_start(stars, True, True, 0)
 		return True
 
 	def do_deactivate(self, app):
