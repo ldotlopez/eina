@@ -1,6 +1,7 @@
 [Plugin]
 Loader=python
 Module=stars
+Depends=adb;lomo;player
 IAge=2
 Name=Stars
 Description=Stars
