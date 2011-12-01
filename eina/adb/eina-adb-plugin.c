@@ -52,7 +52,7 @@ eina_adb_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GEr
 	g_free(db_dirname);
 
 	gboolean ret;
-	if (!(ret = eina_adb_set_db_file(priv->adb, db_path)))
+	if (!(ret = eina_adb_set_db_filename(priv->adb, db_path)))
 	{
 		g_set_error(error, eina_adb_plugin_quark(),
 			EINA_ADB_PLUGIN_ERROR_UNABLE_TO_SET_DB_FILE, N_("Error setting database '%s'"), db_path);
@@ -66,7 +66,7 @@ eina_adb_plugin_activate(EinaActivatable *activatable, EinaApplication *app, GEr
 	// Register into App
 	if (!eina_application_set_interface(app, "adb", priv->adb))
 	{
-		g_set_error(error, eina_adb_plugin_quark(), 
+		g_set_error(error, eina_adb_plugin_quark(),
 		            EINA_ADB_PLUGIN_ERROR_CANNOT_REGISTER_INTERFACE, N_("Cannot register ADB interface"));
 		g_object_unref(priv->adb);
 		priv->adb = NULL;

@@ -15,9 +15,9 @@ SUBDIRS = ext   \
 	status-icon
 
 if BUILD_ADB
-SUBDIRS +=   \
-	adb   \
-	muine \
+SUBDIRS += \
+	adb    \
+	muine  \
 	stars
 endif
 
@@ -96,10 +96,12 @@ Eina_0_12_gir_FILES += \
 	$(top_srcdir)/eina/adb/eina-adb-plugin.c  \
 	$(top_srcdir)/eina/adb/eina-adb-plugin.h  \
 	$(top_srcdir)/eina/adb/eina-adb.h         \
-	$(top_srcdir)/eina/adb/eina-adb-upgrade.c \
-	$(top_srcdir)/eina/adb/eina-adb-lomo.c \
-	$(top_srcdir)/eina/adb/eina-adb-lomo.h \
-	$(top_srcdir)/eina/adb/eina-adb.c 
+	$(top_srcdir)/eina/adb/eina-adb.c         \
+	$(top_srcdir)/eina/adb/eina-adb-result.h  \
+	$(top_srcdir)/eina/adb/eina-adb-result.c  \
+	$(top_srcdir)/eina/adb/eina-adb-lomo.c    \
+	$(top_srcdir)/eina/adb/eina-adb-lomo.h    \
+	$(top_srcdir)/eina/adb/eina-adb-upgrade.c
 endif
 
 INTROSPECTION_GIRS += Eina-0.12.gir
