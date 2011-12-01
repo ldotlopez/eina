@@ -335,20 +335,16 @@ muine_update(EinaMuine *self)
 		if (ds == NULL)
 			ds = g_new0(data_set_t, 1);
 
-		if (!eina_adb_result_get(r,
-		     0, G_TYPE_UINT,   &(ds->count),
-		     1, G_TYPE_STRING, &(ds->artist),
-		     2, G_TYPE_STRING, &(ds->album),
-		     -1))
-		{
-			g_warning(N_("Failed to get result row"));
-			continue;
-		}
+		eina_adb_result_get(r,
+			  0, G_TYPE_UINT,   &(ds->count),
+			  1, G_TYPE_STRING, &(ds->artist),
+			  2, G_TYPE_STRING, &(ds->album),
+		     -1);
 
 		db_data = g_list_prepend(db_data, ds);
 		ds = NULL;
 	}
-	eina_adb_result_free(r);
+	g_object_unref(r);
 
 	// Try to get a sample for each item
 	// q = "select uri from streams where sid = (select sid from fast_meta where lower(%s)=lower('%q') limit 1 offset %d)";
@@ -363,18 +359,21 @@ muine_update(EinaMuine *self)
 	{
 		data_set_t *ds = (data_set_t *) ds_p->data;
 
-		char *q2 = sqlite3_mprintf(q, 
+		char *q2 = sqlite3_mprintf(q,
 			field,
 			key = ((mode == EINA_MUINE_MODE_ALBUM) ? ds->album : ds->artist),
 			g_random_int_range(0, ds->count));
-			
+
 		EinaAdbResult *sr = eina_adb_query_raw(adb, q2);
-		if (!sr || !eina_adb_result_step(sr) || !eina_adb_result_get(sr, 0, G_TYPE_STRING, &sample_uri, -1))
+		if (!sr || !eina_adb_result_step(sr))
 		{
 			g_warning(N_("Unable to fetch sample URI for %s '%s', query was %s"), field, key, q2);
 			sample_uri = g_strdup("file:///nonexistent");
 		}
-		gel_free_and_invalidate(sr, NULL, eina_adb_result_free);
+		else
+			eina_adb_result_get(sr, 0, G_TYPE_STRING, &sample_uri, -1);
+
+		gel_free_and_invalidate(sr, NULL, g_object_unref);
 		gel_free_and_invalidate(q2, NULL, sqlite3_free);
 
 		ds->stream = lomo_stream_new(sample_uri);
@@ -499,7 +498,7 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	gtk_tree_model_get((GtkTreeModel *) muine_get_filter(self), iter,
 		COMBO_COLUMN_ID, &id,
 		-1);
-	
+
 	char *q = NULL;
 	switch (eina_muine_get_mode(self))
 	{
@@ -526,9 +525,11 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	GList *uris = NULL;
 	gchar *uri;
 	while (eina_adb_result_step(r))
-		if (eina_adb_result_get(r, 0, G_TYPE_STRING, &uri, -1))
-			uris = g_list_prepend(uris, uri);
-	eina_adb_result_free(r);
+	{
+		eina_adb_result_get(r, 0, G_TYPE_STRING, &uri, -1);
+		uris = g_list_prepend(uris, uri);
+	}
+	g_object_unref(r);
 
 	return g_list_reverse(uris);
 }
@@ -659,7 +660,7 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 		lomo_player_clear(lomo);
 
 	gchar **uri_strv = gel_list_to_strv(uris, FALSE);
-	lomo_player_insert_strv(lomo, (const gchar * const*) uri_strv, -1); 
+	lomo_player_insert_strv(lomo, (const gchar * const*) uri_strv, -1);
 
 	g_free(uri_strv);
 	gel_list_deep_free(uris, g_free);
