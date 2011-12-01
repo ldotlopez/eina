@@ -240,6 +240,14 @@ eina_cover_set_renderer(EinaCover *self, GtkWidget *renderer)
 	g_object_notify((GObject *) self, "renderer");
 }
 
+/**
+ * eina_cover_get_renderer:
+ * @self: An #EinaCover
+ *
+ * Get renderer from the cover widget
+ *
+ * Returns: (transfer none): The renderer widget
+ */
 GtkWidget*
 eina_cover_get_renderer(EinaCover *self)
 {
@@ -247,6 +255,13 @@ eina_cover_get_renderer(EinaCover *self)
 	return self->priv->renderer;
 }
 
+/**
+ * eina_cover_set_lomo_player:
+ * @self: An #EinaCover
+ * @lomo: A #LomoPlayer
+ *
+ * Links @self and @lomo
+ */
 void
 eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo)
 {
@@ -275,6 +290,14 @@ eina_cover_set_lomo_player(EinaCover *self, LomoPlayer *lomo)
 	g_object_notify((GObject *) self, "lomo-player");
 }
 
+/**
+ * eina_cover_get_lomo_player:
+ * @self: An #EinaCover
+ *
+ * Gets the associated #LomoPlayer
+ *
+ * Returns: (transfer none): The #LomoPlayer
+ */
 LomoPlayer*
 eina_cover_get_lomo_player(EinaCover *self)
 {

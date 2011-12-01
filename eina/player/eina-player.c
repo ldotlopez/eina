@@ -153,6 +153,13 @@ eina_player_new (void)
 		NULL));
 	EinaPlayerPrivate *priv = self->priv;
 
+	g_object_set(gel_ui_generic_get_object(self, "stream-title-label"),
+		"width-chars", 10,
+		NULL);
+	g_object_set(gel_ui_generic_get_object(self, "stream-artist-label"),
+		"width-chars", 10,
+		NULL);
+
 	// Seek widget
 	g_object_set(priv->seek = eina_seek_new(),
 		"current-label",   gel_ui_generic_get_typed(self, GTK_LABEL, "time-current-label"),
@@ -196,8 +203,16 @@ eina_player_new (void)
 	return GTK_WIDGET(self);
 }
 
-static LomoPlayer *
-player_get_lomo_player(EinaPlayer *self)
+/**
+ * eina_player_get_lomo_player:
+ * @self: An #EinaPlayer
+ *
+ * Returns the associated #LomoPlayer
+ *
+ * Returns: (transfer none): the #LomoPlayer
+ */
+LomoPlayer *
+eina_player_get_lomo_player(EinaPlayer *self)
 {
 	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
 	return self->priv->lomo;
@@ -318,6 +333,14 @@ eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf)
 	g_object_notify(G_OBJECT(self), "default-pixbuf");
 }
 
+/**
+ * eina_player_get_cover_widget:
+ * @self: An #EinaPlayer
+ *
+ * Returns the associated #EinaCover
+ *
+ * Returns: (transfer none): the #EinaCover
+ */
 EinaCover *
 eina_player_get_cover_widget(EinaPlayer *self)
 {
@@ -462,7 +485,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 	const gchar *name = gtk_action_get_name(action);
 	g_return_if_fail(name != NULL);
 
-	LomoPlayer  *lomo = player_get_lomo_player(self);
+	LomoPlayer  *lomo = eina_player_get_lomo_player(self);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	GError *error = NULL;
