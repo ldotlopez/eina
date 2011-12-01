@@ -20,7 +20,7 @@ class EinaStars(Gtk.Grid):
 
 		alloc = self.get_allocation()
 		h = int(alloc.height / 2)
-		w = int((alloc.width / 5) *0.80)
+		w = int((alloc.width / self.max_stars) *0.80)
 
 		if h > w:
 			h = -1
@@ -33,13 +33,16 @@ class EinaStars(Gtk.Grid):
 		for i in xrange(0, self.n_stars):
 			self.imgs[i].set_from_pixbuf(pb_on)
 
-		for i in xrange(self.n_stars, 5):
+		for i in xrange(self.n_stars, self.max_stars):
 			self.imgs[i].set_from_pixbuf(pb_off)
 
 		self.notify("n-stars")
 
+	max_stars = GObject.property(nick='max-stars', type = int,
+		minimum = 1, default = 5,
+		flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
 	n_stars = GObject.property (nick='n-stars', type = int,
-		minimum = 0, maximum = 5, default = 0,
+		minimum = 0, default = 0,
 		setter = set_n_stars, getter = get_n_stars)
 	on_image  = GObject.property (nick='on-image',  type = str) #, flags = GObject.PARAM_CONSTRUCT_ONLY)
 	off_image = GObject.property (nick='off-image', type = str) #, flags = GObject.PARAM_CONSTRUCT_ONLY)
@@ -47,7 +50,7 @@ class EinaStars(Gtk.Grid):
 	def __init__ (self, *args, **kwargs):
 		Gtk.Grid.__init__ (self, *args, **kwargs)
 		self.imgs = []
-		for i in xrange(0, 5):
+		for i in xrange(0, self.max_stars):
 			img = Gtk.Image.new()
 
 			ev = Gtk.EventBox()
@@ -67,7 +70,7 @@ class EinaStars(Gtk.Grid):
 
 	def click_cb(self, w, ev):
 		img = w.get_child()
-		for i in xrange(0, 5):
+		for i in xrange(0, self.max_stars):
 			if img == self.imgs[i]:
 				if i == 0 and (self.n_stars == 1):
 					i = -1
@@ -76,10 +79,15 @@ class EinaStars(Gtk.Grid):
 		return False
 
 # Testing code
+
 if __name__ == '__main__':
+	def notify_n_stars_cb(w, prop):
+		print "Stars: %d" % w.n_stars
+
 	Gtk.init([])
 	w = Gtk.Window()
-	s = Stars(n_stars = 2, on_image = 'star-on.svg', off_image = 'star-off.svg')
+	s = EinaStars(max_stars = 7, n_stars = 2, on_image = 'star-on.svg', off_image = 'star-off.svg')
+	s.connect("notify::n-stars", notify_n_stars_cb)
 	s.set_hexpand(True)
 	s.set_vexpand(True)
 
