@@ -632,9 +632,13 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 
 	const gchar *name = gtk_action_get_name(action);
 	gboolean do_clear = FALSE;
+	gboolean do_play  = FALSE;
 
 	if (g_str_equal(name, "play-action"))
+	{
 		do_clear = TRUE;
+		do_play  = TRUE;
+	}
 	else if (g_str_equal(name, "queue-action"))
 		do_clear = FALSE;
 	else
@@ -664,5 +668,8 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 
 	g_free(uri_strv);
 	gel_list_deep_free(uris, g_free);
+
+	if (do_play)
+		lomo_player_set_state(lomo, LOMO_STATE_PLAY, NULL);
 }
 
