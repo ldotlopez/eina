@@ -54,8 +54,14 @@ G_DEFINE_TYPE (EinaArt, eina_art, G_TYPE_OBJECT)
 
 #define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART, EinaArtPrivate))
 
+#define DEBUG 0
 #define DEBUG_PREFIX "EinaArt"
+
+#if DEBUG
 #define debug(...) g_debug(DEBUG_PREFIX" "__VA_ARGS__)
+#else
+#define debug(...) ;
+#endif
 
 typedef struct _EinaArtPrivate EinaArtPrivate;
 struct _EinaArtClassPrivate {

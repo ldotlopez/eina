@@ -9,6 +9,7 @@
 
 #define DEBUG 0
 #define DEBUG_PREFIX "LomoPlayer"
+
 #if DEBUG
 #	define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)
 #else

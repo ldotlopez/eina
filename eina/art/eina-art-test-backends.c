@@ -56,7 +56,7 @@ eina_art_infolder_sync_backend_search(EinaArtBackend *backend, EinaArtSearch *se
 {
 	// Create regexes
 	if (_infolder_regexes[0] == NULL)
-	{	
+	{
 		for (guint i = 0; _infolder_regexes_str[i] != NULL; i++)
 		{
 			GError *error = NULL;

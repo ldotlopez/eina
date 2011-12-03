@@ -103,7 +103,7 @@ lomo_stream_init (LomoStream *self)
  * @uri: An uri to create a #LomoStream from.
  *
  * Create a new #LomoStream from an uri
- * 
+ *
  * Returns: A new #LomoStream
  */
 LomoStream*
@@ -113,7 +113,7 @@ lomo_stream_new (const gchar *uri)
 	gint i;
 
 	g_warn_if_fail(uri != NULL);
-	
+
 	if (uri)
 	{
 		// Check valid URI, more strict methods than this: g_uri_parse_scheme
@@ -370,7 +370,7 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 GType
 lomo_tag_get_gtype(const gchar *tag)
 {
-	if (g_str_equal(tag, "uri")) 
+	if (g_str_equal(tag, "uri"))
 		return G_TYPE_STRING;
 	return gst_tag_get_type(tag);
 }

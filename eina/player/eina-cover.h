@@ -38,12 +38,12 @@ G_BEGIN_DECLS
 
 typedef struct _EinaCoverPrivate EinaCoverPrivate;
 typedef struct {
-	GtkVBox parent;
+	GtkBox parent;
 	EinaCoverPrivate *priv;
 } EinaCover;
 
 typedef struct {
-	GtkVBoxClass parent_class;
+	GtkBoxClass parent_class;
 } EinaCoverClass;
 
 GType eina_cover_get_type (void);

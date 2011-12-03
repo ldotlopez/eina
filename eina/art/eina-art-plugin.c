@@ -23,6 +23,7 @@
 
 #define DEBUG 0
 #define PREFIX "EinaArtPlugin"
+
 #if DEBUG
 #	define debug(...) g_debug(PREFIX " " __VA_ARGS__)
 #else

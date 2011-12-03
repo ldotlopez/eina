@@ -30,6 +30,15 @@
 #include <glib/gi18n.h>
 #include "lomo.h"
 
+#define DEBUG 0
+#define DEBUG_PREFIX "LomoStats "
+
+#if DEBUG
+#	define debug(...) g_debug(DEBUG_PREFIX __VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
+
 struct _LomoStats {
 	LomoPlayer *player;
 
@@ -38,9 +47,6 @@ struct _LomoStats {
 	gint64      check_point;
 	gboolean    submit;
 };
-
-#define DEBUG_PREFIX "LomoStats "
-#define debug(...)   g_debug(DEBUG_PREFIX __VA_ARGS__)
 
 static void
 stats_destroy_real(LomoStats *self, gboolean player_is_active);
