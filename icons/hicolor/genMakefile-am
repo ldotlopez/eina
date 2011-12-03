@@ -21,7 +21,7 @@ do
 done
 
 cat <<EOF
-EXTRA_DIST = $THEME_DATA"
-
+EXTRA_DIST = $THEME_DATA
+-include \$(top_srcdir)/git.mk
 EOF
 
