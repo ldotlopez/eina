@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=@includedir@/@PACKAGE@-@EINA_VERSION@
+datarootdir=${prefix}/share
+datadir=${datarootdir}
+sysconfdir=@sysconfdir@
+pluginsdir=${exec_prefix}/lib/@PACKAGE@-@EINA_API_VERSION@
+
+Name: @PACKAGE_NAME@
+Description: @PACKAGE_NAME@ music player
+Version: @EINA_VERSION@
+Requires: gtk+-@GTK_API_VERSION@ gstreamer-@GST_API_VERSION@ lomo-@LOMO_API_VERSION@ gel-@GEL_API_VERSION@
+Cflags: -I${includedir}/@PACKAGE_NAME@-@EINA_API_VERSION@
+
