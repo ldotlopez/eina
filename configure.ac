@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.13.90],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.15.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -20,9 +20,10 @@ AM_PATH_PYTHON
 # Package information
 #
 GETTEXT_PACKAGE="eina"
-EINA_API_VERSION="0.14"
-EINA_VERSION="0.14.0"
-EINA_CODENAME="Too drunk to fuck"         # Nouveau vague
+EINA_API_VERSION="0.16"
+EINA_VERSION="0.15.0"
+EINA_CODENAME="Dead bodies everywhere"    # git codename
+EINA_CODENAME_0_14_0="Too drunk to fuck"  # Nouveau vague
 EINA_CODENAME_0_12_0="Rise"               # Primal scream
 EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
 EINA_CODENAME_0_9_4="Trained"             # Najwa
@@ -34,7 +35,7 @@ EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 EINA_URL="http://eina.sourceforge.net/"
 EINA_URL_HELP="http://eina.sourceforge.net/"
 EINA_URL_BUGS="https://bugs.launchpad.net/eina"
-EINA_ONELINE_COPYRIGHT="Copyright 2004-2011 Eina authors"
+EINA_ONELINE_COPYRIGHT="Copyright 2004-2012 Eina authors"
 EINA_AUTHORS="Eina authors"
 AC_SUBST(EINA_URL)
 AC_SUBST(EINA_URL_HELP)
