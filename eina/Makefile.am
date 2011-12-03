@@ -38,7 +38,6 @@ eina_LDFLAGS = \
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS =
 
-
 eina_SOURCES = \
 	eina.c
 
@@ -57,10 +56,12 @@ Eina-0.12.gir: eina
 Eina_0_12_gir_INCLUDES = Lomo-2.0 GelUI-2.0 Peas-1.0
 Eina_0_12_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
 Eina_0_12_gir_PROGRAM = $(top_builddir)/eina/eina
+# Not needed??
 #Eina_0_12_gir_LDADD = \
 #	$(top_builddir)/lomo/liblomo.la \
 #	$(top_builddir)/dock/libdock.la \
 #	$(top_builddir)/playlist/libplaylist.la
+#   ...
 Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/ext/eina-application.h  \
 	$(top_srcdir)/eina/ext/eina-application.c  \

@@ -48,15 +48,14 @@ FIXXREF_OPTIONS=
 # Used for dependencies. The docs will be rebuilt if any of these change.
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
-HFILE_GLOB=$(top_srcdir)/eina/ext/*.h   \
-	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h
+HFILE_GLOB=$(top_srcdir)/eina/*/*.h
 
-CFILE_GLOB=$(top_srcdir)/eina/ext/*.c     \
-	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c
+CFILE_GLOB=$(top_srcdir)/eina/*/*.c \
+	$(top_srcdir)/eina/eina.c
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES= \
+IGNORE_HFILES=
 	fieshta-stage.h     \
 	fieshta-stream.h    \
 	eina-mpris-player.h \
@@ -110,6 +109,7 @@ endif
 
 GTKDOC_LIBS += \
 	$(top_builddir)/eina/ext/libeinaext.la            \
+	$(top_builddir)/eina/adb/.libs/libadb.a           \
 	$(top_builddir)/eina/dock/.libs/libdock.a         \
 	$(top_builddir)/eina/fieshta/.libs/libfieshta.a   \
 	$(top_builddir)/eina/lastfm/.libs/liblastfm.a     \
