@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.13.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.13.90],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -20,9 +20,9 @@ AM_PATH_PYTHON
 # Package information
 #
 GETTEXT_PACKAGE="eina"
-EINA_API_VERSION="0.12"
-EINA_VERSION="0.13.0"
-EINA_CODENAME="Dead bodies everywhere"    # git codename
+EINA_API_VERSION="0.14"
+EINA_VERSION="0.14.0"
+EINA_CODENAME="Too drunk to fuck"         # Nouveau vague
 EINA_CODENAME_0_12_0="Rise"               # Primal scream
 EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
 EINA_CODENAME_0_9_4="Trained"             # Najwa
@@ -173,7 +173,7 @@ AC_CHECK_FUNCS([strtol])
 
 # export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
-# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
+# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig
 
 
 #*******************************************************************************
@@ -463,8 +463,6 @@ eina/pythonconsole/pythonconsole.plugin
 eina/pythonconsole/Makefile
 eina/pythonhello/pythonhello.plugin
 eina/pythonhello/Makefile
-eina/stars/stars.plugin
-eina/stars/Makefile
 eina/status-icon/status-icon.plugin
 eina/status-icon/Makefile
 Makefile
