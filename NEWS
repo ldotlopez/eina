@@ -8,7 +8,6 @@
   More sophisticated interfaces on top of liblomo
 
 - liblomo depends on libgel
-  [!] Try to revert this
 
 - Playlist has built-in search (try control+f)
 
