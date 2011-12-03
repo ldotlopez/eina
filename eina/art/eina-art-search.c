@@ -26,8 +26,14 @@ G_DEFINE_TYPE (EinaArtSearch, eina_art_search, G_TYPE_OBJECT)
 
 #define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), EINA_TYPE_ART_SEARCH, EinaArtSearchPrivate))
 
+#define DEBUG 0
 #define DEBUG_PREFIX "EinaArtSearch"
-#define debug(...) g_debug(DEBUG_PREFIX" "__VA_ARGS__)
+
+#if DEBUG
+#	define debug(...) g_debug(DEBUG_PREFIX" "__VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
 
 typedef struct _EinaArtSearchPrivate EinaArtSearchPrivate;
 
@@ -370,7 +376,7 @@ eina_art_search_stringify(EinaArtSearch *search)
  * eina_art_search_run_callback:
  * @search: An #EinaArtSearch
  *
- * Runs the callback associated with @search 
+ * Runs the callback associated with @search
  */
 void
 eina_art_search_run_callback(EinaArtSearch *search)

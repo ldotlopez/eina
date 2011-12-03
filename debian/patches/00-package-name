@@ -1,14 +1,14 @@
-diff -Nru eina-0.12.0.orig//configure.ac eina-0.12.0/configure.ac
---- eina-0.12.0.orig//configure.ac	2011-09-10 15:29:14.000000000 +0200
-+++ eina-0.12.0/configure.ac	2011-09-10 16:11:02.872500349 +0200
+diff -Nru eina-0.12.1.orig//configure.ac eina-0.12.1/configure.ac
+--- eina-0.12.1.orig//configure.ac	2011-09-10 15:29:14.000000000 +0200
++++ eina-0.12.1/configure.ac	2011-09-10 16:11:02.872500349 +0200
 @@ -1,7 +1,7 @@
  #
  # Init package
  #
--AC_INIT([Eina],[0.12.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
-+AC_INIT([Eina],[0.12.0],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
+-AC_INIT([Eina],[0.12.1],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
++AC_INIT([Eina],[0.12.1],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
  AC_CONFIG_HEADERS([config.h])
- 
+
  #
 @@ -19,7 +19,7 @@
  #
@@ -17,5 +17,5 @@ diff -Nru eina-0.12.0.orig//configure.ac eina-0.12.0/configure.ac
 -GETTEXT_PACKAGE="eina"
 +GETTEXT_PACKAGE="eina-player"
  EINA_API_VERSION="0.12"
- EINA_VERSION="0.12.0"
+ EINA_VERSION="0.12.1"
  EINA_CODENAME="Rise"                      # Primal scream

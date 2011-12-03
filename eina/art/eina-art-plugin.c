@@ -21,7 +21,7 @@
 #include "eina-art-test-backends.h"
 #include <eina/lomo/eina-lomo-plugin.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define PREFIX "EinaArtPlugin"
 
 #if DEBUG
@@ -234,8 +234,8 @@ static void
 art_search_cb(EinaArtSearch *search, gpointer data)
 {
 	const gchar *res = eina_art_search_get_result(search);
-	#if DEBUG
 	LomoStream *stream = eina_art_search_get_stream(search);
+	#if DEBUG
 	debug ("Got result for stream %p: %p", stream, res);
 	#endif
 
