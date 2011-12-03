@@ -1,3 +1,9 @@
+eina-player (0.12.1-ppa1) natty; urgency=low
+
+  * Upstream bugfix release
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sat, 03 Dec 2011 13:37:48 +0100
+
 eina-player (0.12.0-ppa3) natty; urgency=low
 
   * [patch 01-remove-debug] Fix excesive debug
