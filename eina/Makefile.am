@@ -40,7 +40,7 @@ include_HEADERS =
 eina_SOURCES = \
 	eina.c
 
--include $(INTROSPECTION_MAKEFILE)
+include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = \
 	--warn-all \
@@ -50,7 +50,9 @@ INTROSPECTION_COMPILER_ARGS = \
 	--includedir=$(top_builddir)/lomo \
 	--includedir=$(top_builddir)/gel
 
-if HAVE_INTROSPECTION
+#
+# Introspection
+#
 Eina-0.14.gir: eina
 Eina_0_14_gir_INCLUDES = Lomo-2.0 GelUI-2.0 Peas-1.0
 Eina_0_14_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
@@ -112,7 +114,8 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
+#
+# Misc
+#
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
-endif
-
 -include $(top_srcdir)/git.mk
