@@ -51,12 +51,11 @@ include $(top_srcdir)/build/Makefile.am.marshallers
 #
 #BUILT_SOURCES += lomo-2.0.gi
 
--include $(INTROSPECTION_MAKEFILE)
+include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = --warn-all
-INTROSPECTION_COMPILER_ARGS = 
+INTROSPECTION_COMPILER_ARGS =
 
-if HAVE_INTROSPECTION
 Lomo-2.0.gir: liblomo-2.0.la
 Lomo_2_0_gir_INCLUDES = Gst-@GST_API_VERSION@
 Lomo_2_0_gir_PACKAGES = gstreamer-@GST_API_VERSION@
@@ -68,7 +67,7 @@ Lomo_2_0_gir_FILES = \
 	lomo-em-art.h lomo-em-art-backend.h lomo-em-art-backends.h lomo-em-art-provider.h lomo-em-art-search.h \
     \
 	lomo-player.c lomo-stream.c lomo-metadata-parser.c lomo-util.c \
-	lomo-em-art.c lomo-em-art-backend.c lomo-em-art-backends.c lomo-em-art-provider.c lomo-em-art-search.c  
+	lomo-em-art.c lomo-em-art-backend.c lomo-em-art-backends.c lomo-em-art-provider.c lomo-em-art-search.c
 
 INTROSPECTION_GIRS += Lomo-2.0.gir
 
@@ -79,6 +78,5 @@ typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
-endif
 
 -include $(top_srcdir)/git.mk

@@ -1,3 +1,27 @@
+eina-player (0.13.90-ppa5) oneiric; urgency=low
+
+  * [patch 002-gtk-doc-fix] Fix build of docs
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Tue, 06 Dec 2011 12:00:54 +0100
+
+eina-player (0.13.90-ppa4) oneiric; urgency=low
+
+  * Update Build-deps
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 05 Dec 2011 14:08:15 +0100
+
+eina-player (0.13.90-ppa3) oneiric; urgency=low
+
+  * [patch 001-instrospection-fix] Updated patch
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sun, 04 Dec 2011 21:15:16 +0100
+
+eina-player (0.13.90-ppa2) oneiric; urgency=low
+
+  * [patch 001-instrospection-fix] Patch introspection
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sun, 04 Dec 2011 20:15:16 +0100
+
 eina-player (0.13.90-ppa1) oneiric; urgency=low
 
   * Test package for 0.14.0

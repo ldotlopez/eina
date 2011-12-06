@@ -341,6 +341,7 @@ audio-volume-medium-symbolic</property>
                     <property name="label" translatable="yes">&lt;span size="x-large" weight="bold"&gt;Title&lt;/span&gt;</property>
                     <property name="use_markup">True</property>
                     <property name="single_line_mode">True</property>
+                    <property name="max_width_chars">0</property>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>
