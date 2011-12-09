@@ -3,12 +3,8 @@ gel/gel.h
 gel/gel-io.h
 gel/gel-io-scanner.c
 gel/gel-io-scanner.h
-gel/gel-job-queue.c
-gel/gel-job-queue.h
 gel/gel-misc.c
 gel/gel-misc.h
-gel/gel-string.c
-gel/gel-string.h
 gel/gel-str-parser.c
 gel/gel-str-parser.h
 gel/gel-ui-dialogs.c

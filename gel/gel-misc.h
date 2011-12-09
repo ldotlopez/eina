@@ -312,6 +312,9 @@ gel_8601_date_now(void);
 			obj = value; \
 		} \
 	} while(0)
+#define gel_object_free_and_invalidate(obj) gel_free_and_invalidate(obj,NULL,g_object_unref)
+#define gel_str_free_and_invalidate(obj)    gel_free_and_invalidate(obj,NULL,g_free)
+
 
 // --
 // Totally misc functions
