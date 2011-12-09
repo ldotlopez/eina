@@ -131,10 +131,10 @@ lomo_em_art_backend_init (LomoEMArtBackend *self)
 /**
  * lomo_em_art_backend_new:
  * @name: A (unique) name for the backend
- * @search: Function to search art data
- * @cancel: Function to cancel a running search
- * @notify: Destroy notify function to free @backend_data
- * @backend_data: Specific backend data (like userdata)
+ * @search: (scope call) (closure backend_data): Function to search art data
+ * @cancel: (scope call) (closure backend_data): Function to cancel a running search
+ * @notify: (scope notified): Destroy notify function to free @backend_data
+ * @backend_data: (closure): Specific backend data (like userdata)
  *
  * Returns: The backend
  */

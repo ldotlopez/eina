@@ -158,8 +158,8 @@ lomo_em_art_search_init (LomoEMArtSearch *self)
  * lomo_em_art_search_new:
  * @domain: Domain of the search
  * @stream: #LomoStream relative to the search
- * @callback: Function to be called after search is finished
- * @callback_data: Data to pass to @callback
+ * @callback: (scope call) (closure callback_data):Function to be called after search is finished
+ * @callback_data: (closure): Data to pass to @callback
  *
  * Creates (but not initiates) a new art search. This function is not mean to
  * be used directly but #LomoEMArt.
@@ -256,28 +256,28 @@ lomo_em_art_search_get_bpointer(LomoEMArtSearch *search)
 /**
  * lomo_em_art_search_set_result:
  * @search: The #LomoEMArtSearch
- * @result: URI for art data
+ * @uri: URI for art data
  *
  * Stores result into @search.
  * This functions is meant to by used by #LomoEMArtBackend implementations to
  * store result into #LomoEMArtSearch
  */
 void
-lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *result)
+lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *uri)
 {
 	g_return_if_fail(LOMO_IS_EM_ART_SEARCH(search));
-	g_return_if_fail(result != NULL);
+	g_return_if_fail(uri != NULL);
 
 	LomoEMArtSearchPrivate *priv = GET_PRIVATE(search);
 
-	if (result && priv->result)
+	if (uri && priv->result)
 	{
 		g_warning(_("Trying to set a result in search '%s' while it already has one, this is a bug and will be ignored"),
 			lomo_em_art_search_stringify(search));
 		g_return_if_fail(priv->result == NULL);
 	}
 
-	priv->result = g_strdup(result);
+	priv->result = g_strdup(uri);
 	g_object_notify(G_OBJECT(search), "result");
 }
 
@@ -327,7 +327,7 @@ lomo_em_art_search_stringify(LomoEMArtSearch *search)
  * lomo_em_art_search_run_callback:
  * @search: An #LomoEMArtSearch
  *
- * Runs the callback associated with @search 
+ * Runs the callback associated with @search
  */
 void
 lomo_em_art_search_run_callback(LomoEMArtSearch *search)
