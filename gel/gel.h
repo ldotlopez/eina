@@ -24,10 +24,8 @@
 #include <glib-object.h>
 #include <gmodule.h>
 
-#include <gel/gel-job-queue.h>
 #include <gel/gel-marshallers.h>
 #include <gel/gel-misc.h>
-#include <gel/gel-string.h>
 #include <gel/gel-str-parser.h>
 
 #endif // _GEL_H

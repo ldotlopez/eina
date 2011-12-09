@@ -158,7 +158,7 @@ gel_object_get_type_name(GObject *object)
  */
 
 /**
- * gel_list_to_strv:
+ * gel_list_to_strv: (skip):
  *
  * @list: A #GList to convert to gchar**
  * @copy: if %TRUE the data is also copied
@@ -189,14 +189,16 @@ gel_list_to_strv(GList *list, gboolean copy)
 }
 
 /**
- * gel_strv_to_list:
+ * gel_strv_to_list: (skip):
  *
  * @strv: A %NULL-terminated array of strings
  * @copy: if %TRUE the data is also copied
  *
  * Coverts a gchar** to a #GList, see also gel_list_to_strv()
  *
- * Returns: A #GList with the elements of @strv
+ * Returns: A #GList with the elements of @strv. Returned list should be
+ * free when no longer needed, data should or shouldn't be free depending on
+ * the value of @copy
  **/
 GList *
 gel_strv_to_list(gchar **strv, gboolean copy)
@@ -285,76 +287,12 @@ gel_strv_concat(gchar **strv_a, ...)
 }
 
 /**
- * gel_list_bisect:
- *
- * @input: A #GList to bisect
- * @accepted: (inout): A #GList to store accepted elements, %NULL is not
- *                     allowed
- * @rejected: (inout): A #GList to store rejected elements, %NULL is not
- *                     allowed
- * @callback: A #GelFilterFunc
- * @data: data to pass to @callback
- *
- * Bisect (split) a #GList based on the criteria of @callback. Callback is
- * called in form of callback(element,data). If @callback returns %TRUE
- * element is stored in accepted, else element is stored in rejected.
- *
- * Original list is completly freeded, since all of his elements are moved to
- * @accepted or @rejected. Neither of @accepted or @rejected can be %NULL
- * because elements will be leaked.
- **/
-void
-gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data)
-{
-	GList *iter = input;
-	while (iter)
-	{
-		input = g_list_remove_link(input, iter);
-		if (callback(iter->data, data))
-			*accepted = g_list_concat(*accepted, iter);
-		else
-			*rejected = g_list_concat(*rejected, iter);
-		iter = input;
-	}
-}
-
-/**
- * gel_list_filter:
- *
- * @input: A #GList to filter
- * @callback: A #GelFilterFunc used for filtering
- * @user_data: data to pass to @callback
- *
- * Filters @input's elements to return a newly created #GList based on the
- * criteria of @callback, if %TRUE is returned, element is included in the
- * returned list.
- *
- * Note that elements itself are not copied.
- *
- * See also: gel_list_bisect()
- *
- * Returns: (transfer container): The filtered list
- **/
-GList*
-gel_list_filter(GList *input, GelFilterFunc callback, gpointer user_data)
-{
-	GList *ret = NULL;
-	while (input)
-	{
-		if (callback(input->data, user_data))
-			ret = g_list_prepend(ret, input->data);
-		input = input->next;
-	}
-	return g_list_reverse(ret);
-}
-
-/**
  * gel_list_printf:
- * 
- * @list: A #GList
+ *
+ * @list: (transfer none) (element-type utf8): A #GList
  * @format: (allow-none): Format to use for print each the stringified element. By default
  *                        "%s\n"
- * @stringify_func: The #GelPrintFunc to use for stringify elements
+ * @stringify_func: (scope call): The #GelPrintFunc to use for stringify elements
  *
  * Prints a #GList to stdout using @format for each element and @stringify_func
  * to stringify elements.
@@ -436,7 +374,7 @@ gel_resource_type_get_system_dir(GelResourceType type)
 		if (data_val)
 			ret = g_build_filename(data_val, "pixmaps", NULL);
 		break;
-		
+
 	case GEL_RESOURCE_TYPE_UI:
 		if (data_val)
 			ret = g_build_filename(data_val, "ui", NULL);
@@ -472,7 +410,7 @@ gel_resource_locate_list(GelResourceType type, gchar *resource)
 	if (searchpath)
 	{
 		gchar **searchpaths = g_strsplit(searchpath, G_SEARCHPATH_SEPARATOR_S, -1);
-	
+
 		GList *ret = NULL;
 		gint i = 0;
 		while (searchpaths[i] && searchpaths[i][0])
@@ -524,6 +462,17 @@ gel_resource_locate(GelResourceType type, gchar *resource)
 // --
 // File system utilities
 // --
+
+/**
+ * gel_dir_read:
+ * @path: Pathname for the directory
+ * @absolute: Whatever returned values should be absolute paths or not
+ * @error: Return location for errors
+ *
+ * Reads the directory indicated in @path returning children.
+ *
+ * Returns: (element-type utf8) (transfer full): Children of @path.
+ */
 GList *
 gel_dir_read(gchar *path, gboolean absolute, GError **error)
 {
@@ -546,17 +495,6 @@ gel_dir_read(gchar *path, gboolean absolute, GError **error)
 	return g_list_reverse(ret);
 }
 
-gchar **
-gel_file_strings(gchar *pathname)
-{
-	gchar **ret = g_new0(gchar*, GEL_PATH_N_COMPONENTS);
-	ret[GEL_PATH_COMPONENT_PATHNAME] = g_strdup(pathname);
-	ret[GEL_PATH_COMPONENT_BASENAME] = g_path_get_basename(pathname);
-	ret[GEL_PATH_COMPONENT_DIRNAME]  = g_path_get_dirname(pathname);
-
-	return ret;
-}
-
 // --
 // Timeout functions
 // --
@@ -574,7 +512,7 @@ gel_run_once_callback_helper(gpointer data)
 	return FALSE;
 }
 
-static void 
+static void
 gel_run_once_destroy_helper(gpointer data)
 {
 	GelRunOnce *ro = (GelRunOnce *) data;
@@ -617,7 +555,16 @@ gel_8601_date_now(void)
 // --
 // strv funcs
 // --
-gchar **
+/**
+ * gel_strv_copy: (skip):
+ * @strv: A #GStrv
+ * @deep: Use deep copy method
+ *
+ * Copy (deep or not) @strv
+ *
+ * Returns: Duplicated @strv with elements duplicated if @deep is %TRUE
+ */
+gchar**
 gel_strv_copy(gchar **strv, gboolean deep)
 {
 	gchar **ret = g_new0(gchar *, g_strv_length(strv) + 1);
@@ -629,19 +576,28 @@ gel_strv_copy(gchar **strv, gboolean deep)
 	return ret;
 }
 
-gchar **
-gel_strv_delete(gchar **str, gint index)
+/**
+ * gel_strv_delete: (skip):
+ * @strv: A #GStrv
+ * @index: Index to delete
+ *
+ * Deletes the element at @index, reorganizing @str
+ *
+ * Returns: @str with the element deleted
+ */
+gchar**
+gel_strv_delete(gchar **strv, gint index)
 {
-	g_return_val_if_fail(str != NULL, NULL);
-	g_return_val_if_fail((index > 0) && (index < g_strv_length(str)), NULL);
+	g_return_val_if_fail(strv != NULL, NULL);
+	g_return_val_if_fail((index > 0) && (index < g_strv_length(strv)), NULL);
 
 	guint  i = index;
-	gchar *p = str[i];
-	for (i = index; str[i]; i++)
-		str[i] = str[i+1];
+	gchar *p = strv[i];
+	for (i = index; strv[i]; i++)
+		strv[i] = strv[i+1];
 	g_free(p);
 
-	return g_realloc(str, sizeof(gchar*) * i);
+	return g_realloc(strv, sizeof(gchar*) * i);
 }
 
 /**
@@ -652,14 +608,14 @@ gel_object_class_print_properties(GObjectClass *klass)
 {
 	guint n_specs;
 	GParamSpec **specs = g_object_class_list_properties(klass, &n_specs);
-	const gchar *class_name = G_OBJECT_CLASS_NAME(klass); 
+	const gchar *class_name = G_OBJECT_CLASS_NAME(klass);
 	for (guint i = 0; i < n_specs; i++)
 	{
 		g_debug("%s:%s %s", class_name,
 			g_param_spec_get_name(specs[i]),
 			g_type_name(specs[i]->value_type)
 			);
-	} 
+	}
 }
 
 void

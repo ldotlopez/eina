@@ -23,6 +23,6 @@
 #include <glib.h>
 
 typedef gchar* (*GelStrParserFunc)(gchar key, gpointer data);
-gchar *gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer data);
+gchar *gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer user_data);
 
 #endif // _GEL_STR_PARSER_H
