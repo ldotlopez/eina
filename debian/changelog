@@ -1,3 +1,9 @@
+eina-player (0.13.91-ppa0) oneiric; urgency=low
+
+  * New upstream release
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Tue, 06 Dec 2011 13:30:17 +0100
+
 eina-player (0.13.90-ppa5) oneiric; urgency=low
 
   * [patch 002-gtk-doc-fix] Fix build of docs
