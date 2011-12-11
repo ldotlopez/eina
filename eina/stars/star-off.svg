@@ -13,16 +13,16 @@
    id="Layer_1"
    x="0px"
    y="0px"
-   width="339.6875"
-   height="324.875"
-   viewBox="0 0 339.6875 324.875"
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
    enable-background="new 0 0 800 600"
    xml:space="preserve"
    inkscape:version="0.48.2 r9819"
-   sodipodi:docname="star-on.svg"><metadata
+   sodipodi:docname="star-off.svg"><metadata
    id="metadata25"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
    id="defs23" /><sodipodi:namedview
    pagecolor="#ffffff"
    bordercolor="#666666"
@@ -40,13 +40,14 @@
    fit-margin-left="0"
    fit-margin-right="0"
    fit-margin-bottom="0"
-   inkscape:zoom="0.39333333"
-   inkscape:cx="2.7759534"
+   inkscape:zoom="0.5"
+   inkscape:cx="-316.29185"
    inkscape:cy="155.0625"
    inkscape:window-x="547"
-   inkscape:window-y="123"
+   inkscape:window-y="124"
    inkscape:window-maximized="0"
-   inkscape:current-layer="Layer_1" />
+   inkscape:current-layer="Layer_1"
+   inkscape:showpageshadow="false" />
 <radialGradient
    id="SVGID_1_"
    cx="178.93159"
@@ -77,7 +78,7 @@
    cx="666.52728"
    cy="302.66019"
    r="51.559799"
-   gradientTransform="matrix(1,0,0,-1,-494.31075,464.6055)"
+   gradientTransform="matrix(0.68492509,0,0,-0.68493151,-326.89609,334.96438)"
    gradientUnits="userSpaceOnUse">
 	<stop
    offset="0"
@@ -90,8 +91,8 @@
 </radialGradient>
 <path
    stroke-miterlimit="10"
-   d="m 221.40425,162.4375 c 0,28.474 -23.111,51.56 -51.56,51.56 -28.499,0 -51.561,-23.086 -51.561,-51.56 0,-28.474 23.062,-51.56 51.561,-51.56 28.449,-0.001 51.56,23.085 51.56,51.56 z"
+   d="m 163.31507,128 c 0,19.50272 -15.82929,35.31507 -35.31474,35.31507 -19.51968,0 -35.315401,-15.81235 -35.315401,-35.31507 0,-19.50274 15.795721,-35.31507 35.315401,-35.31507 19.48545,-7e-4 35.31474,15.81163 35.31474,35.31507 z"
    id="path19"
    inkscape:connector-curvature="0"
-   style="fill:url(#SVGID_2_);stroke:#ffffff;stroke-width:2;stroke-miterlimit:10" />
+   style="fill:url(#SVGID_2_);stroke:#ffffff;stroke-width:1.3698566;stroke-miterlimit:10" />
 </svg>
