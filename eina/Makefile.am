@@ -17,8 +17,7 @@ SUBDIRS = ext   \
 if BUILD_ADB
 SUBDIRS += \
 	adb    \
-	muine  \
-	stars
+	muine
 endif
 
 if BUILD_CLUTTY
@@ -38,11 +37,10 @@ eina_LDFLAGS = \
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS =
 
-
 eina_SOURCES = \
 	eina.c
 
--include $(INTROSPECTION_MAKEFILE)
+include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = \
 	--warn-all \
@@ -52,16 +50,26 @@ INTROSPECTION_COMPILER_ARGS = \
 	--includedir=$(top_builddir)/lomo \
 	--includedir=$(top_builddir)/gel
 
-if HAVE_INTROSPECTION
-Eina-0.12.gir: eina
-Eina_0_12_gir_INCLUDES = Lomo-2.0 GelUI-2.0 Peas-1.0
-Eina_0_12_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
-Eina_0_12_gir_PROGRAM = $(top_builddir)/eina/eina
-#Eina_0_12_gir_LDADD = \
+Eina-0.16.gir: eina
+Eina_0_16_gir_INCLUDES = Lomo-2.0 GelUI-2.0 Peas-1.0
+Eina_0_16_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
+Eina_0_16_gir_PROGRAM = $(top_builddir)/eina/eina
+
+#
+# Introspection
+#
+Eina-0.14.gir: eina
+Eina_0_14_gir_INCLUDES = Lomo-2.0 GelUI-2.0 Peas-1.0
+Eina_0_14_gir_CFLAGS = $(INCLUDES) -I$(top_srcdir)
+Eina_0_14_gir_PROGRAM = $(top_builddir)/eina/eina
+
+# Not needed??
+#Eina_0_16_gir_LDADD = \
 #	$(top_builddir)/lomo/liblomo.la \
 #	$(top_builddir)/dock/libdock.la \
 #	$(top_builddir)/playlist/libplaylist.la
-Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
+#   ...
+Eina_0_16_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/ext/eina-application.h  \
 	$(top_srcdir)/eina/ext/eina-application.c  \
 	$(top_srcdir)/eina/ext/eina-activatable.h  \
@@ -92,7 +100,7 @@ Eina_0_12_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
 	$(top_srcdir)/eina/player/eina-cover.h
 
 if BUILD_ADB
-Eina_0_12_gir_FILES += \
+Eina_0_16_gir_FILES += \
 	$(top_srcdir)/eina/adb/eina-adb-plugin.c  \
 	$(top_srcdir)/eina/adb/eina-adb-plugin.h  \
 	$(top_srcdir)/eina/adb/eina-adb.h         \
@@ -104,7 +112,7 @@ Eina_0_12_gir_FILES += \
 	$(top_srcdir)/eina/adb/eina-adb-upgrade.c
 endif
 
-INTROSPECTION_GIRS += Eina-0.12.gir
+INTROSPECTION_GIRS += Eina-0.16.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
@@ -112,7 +120,8 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
+#
+# Misc
+#
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
-endif
-
 -include $(top_srcdir)/git.mk

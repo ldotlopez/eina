@@ -1,6 +1,0 @@
-Name: Gel
-Description: GLib-@GLIB_API_VERSION@ Extensions Library
-Version: @GEL_VERSION@
-Requires: glib-@GLIB_API_VERSION@
-Libs: ${pc_top_builddir}/gel/libgel-@GEL_API_VERSION@.la
-Cflags: -I${pc_top_builddir}

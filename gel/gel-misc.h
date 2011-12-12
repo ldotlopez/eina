@@ -186,9 +186,6 @@ gel_list_to_strv(GList *list, gboolean copy);
 GList *
 gel_strv_to_list(gchar **strv, gboolean copy);
 
-gchar *
-gel_list_join(const gchar *separator, GList *list);
-
 gchar **
 gel_strv_concat(gchar **strv_a, ...);
 
@@ -238,12 +235,6 @@ gel_strv_concat(gchar **strv_a, ...);
 	} while (0)
 
 void
-gel_list_bisect(GList *input, GList **accepted, GList **rejected, GelFilterFunc callback, gpointer data);
-
-GList*
-gel_list_filter(GList *input, GelFilterFunc callback, gpointer user_data);
-
-void
 gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func);
 
 /**
@@ -272,8 +263,14 @@ gel_resource_locate(GelResourceType type, gchar *resource);
 GList *
 gel_dir_read(gchar *path, gboolean absolute, GError **error);
 
+// --
+// strv funcs
+// --
 gchar **
-gel_file_strings(gchar *pathname);
+gel_strv_copy(gchar **strv, gboolean deep);
+
+gchar **
+gel_strv_delete(gchar **strv, gint index);
 
 // --
 // XDG related
@@ -315,15 +312,9 @@ gel_8601_date_now(void);
 			obj = value; \
 		} \
 	} while(0)
+#define gel_object_free_and_invalidate(obj) gel_free_and_invalidate(obj,NULL,g_object_unref)
+#define gel_str_free_and_invalidate(obj)    gel_free_and_invalidate(obj,NULL,g_free)
 
-// --
-// strv funcs
-// --
-gchar **
-gel_strv_copy(gchar **strv, gboolean deep);
-
-gchar **
-gel_strv_delete(gchar **strv, gint index);
 
 // --
 // Totally misc functions

@@ -64,7 +64,7 @@ enum {
 
 	LAST_SIGNAL
 };
-static guint scanner_signals[LAST_SIGNAL] = { 0 }; 
+static guint scanner_signals[LAST_SIGNAL] = { 0 };
 
 static void
 gel_io_scanner_dispose (GObject *object)
@@ -242,11 +242,11 @@ gel_io_scanner_scan(GelIOScanner *self, GList *uris, const gchar *attributes, gb
 
 /**
  * gel_io_scanner_flatten_result:
- * @forest: (transfer none): A #GList of #GNode to flat
+ * @forest: (element-type GNode) (transfer none): A #GList of #GNode to flat
  *
  * Flatens a forest (a list of trees) of results
  *
- * Returns: (transfer container): The forest in a 'flatten' state. Data from
+ * Returns: (element-type GNode) (transfer container): The forest in a 'flatten' state. Data from
  *                                forest is reutilized in the returned #GList.
  */
 GList*
@@ -260,7 +260,7 @@ gel_io_scanner_flatten_result(GList *forest)
 		g_node_traverse((GNode *) iter->data, G_PRE_ORDER, G_TRAVERSE_ALL, -1, (GNodeTraverseFunc) _scanner_traverse_cb, &ret);
 		iter = iter->next;
 	}
-	return g_list_reverse(ret); 
+	return g_list_reverse(ret);
 }
 
 static void
@@ -388,7 +388,7 @@ _scanner_run_queue(GelIOScanner *self)
 		{
 			GNode *root = (GNode *) l->data;
 			_scanner_sort_children(root);
-	
+
 			l = l->next;
 		}
 
@@ -430,7 +430,7 @@ _scanner_run_queue(GelIOScanner *self)
 				priv->cancellable, (GAsyncReadyCallback) _scanner_enumerate_children_cb, self);
 		else if (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR)
 			_scanner_run_queue(self);
-		else 
+		else
 		{
 			g_warning("Unknow file type");
 			_scanner_run_queue(self);

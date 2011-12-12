@@ -1,3 +1,65 @@
+eina-player (0.13.91-ppa0) oneiric; urgency=low
+
+  * New upstream release
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Tue, 06 Dec 2011 13:30:17 +0100
+
+eina-player (0.13.90-ppa5) oneiric; urgency=low
+
+  * [patch 002-gtk-doc-fix] Fix build of docs
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Tue, 06 Dec 2011 12:00:54 +0100
+
+eina-player (0.13.90-ppa4) oneiric; urgency=low
+
+  * Update Build-deps
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 05 Dec 2011 14:08:15 +0100
+
+eina-player (0.13.90-ppa3) oneiric; urgency=low
+
+  * [patch 001-instrospection-fix] Updated patch
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sun, 04 Dec 2011 21:15:16 +0100
+
+eina-player (0.13.90-ppa2) oneiric; urgency=low
+
+  * [patch 001-instrospection-fix] Patch introspection
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sun, 04 Dec 2011 20:15:16 +0100
+
+eina-player (0.13.90-ppa1) oneiric; urgency=low
+
+  * Test package for 0.14.0
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sat, 03 Dec 2011 17:06:06 +0100
+
+eina-player (0.12.1-ppa1) natty; urgency=low
+
+  * Upstream bugfix release
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sat, 03 Dec 2011 13:37:48 +0100
+
+eina-player (0.12.0-ppa3) natty; urgency=low
+
+  * [patch 01-remove-debug] Fix excesive debug
+  * [patch 02-fix-no-debug] Fix compilation with debug disabled
+  * [patch 03-fix-po-skip]  Fix 'make check'
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 12 Sep 2011 20:00:06 +0200
+
+eina-player (0.12.0-ppa2) natty; urgency=low
+
+  * Fix deps
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Mon, 12 Sep 2011 09:52:35 +0200
+
+eina-player (0.12.0-ppa1) natty; urgency=low
+
+  * New upstream release
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sat, 10 Sep 2011 16:13:06 +0200
+
 eina-player (0.10.0.2-ppa1) natty; urgency=low
 
   * New subrelease for debian/ubuntu
@@ -50,7 +112,7 @@ eina-player (0.9.2+git20100407-5) karmic; urgency=low
 
 eina-player (0.9.2+git20100407-4) karmic; urgency=low
 
-  * Fix cover-clutter issues 
+  * Fix cover-clutter issues
 
  -- Luis Lopez <luis.lopez@cuarentaydos.com>  Wed, 07 Apr 2010 17:51:13 +0200
 
@@ -74,7 +136,7 @@ eina-player (0.9.2+git20100405-1) karmic; urgency=low
 
 eina-player (0.9.1+git20100213-4) karmic; urgency=low
 
-  * Add libnotify-dev to dependencies 
+  * Add libnotify-dev to dependencies
 
  -- Luis Lopez <xuzo@cuarentaydos.com>  Sat, 13 Feb 2010 20:01:29 +0100
 
@@ -92,7 +154,7 @@ eina-player (0.9.1+git20100213-2) karmic; urgency=low
 
 eina-player (0.9.1+git20100213-1) karmic; urgency=low
 
-  * Fix debian/rules (s,dpatch,quilt,) 
+  * Fix debian/rules (s,dpatch,quilt,)
 
  -- Luis Lopez <xuzo@cuarentaydos.com>  Sat, 13 Feb 2010 17:43:07 +0100
 

@@ -5,10 +5,10 @@ diff -Nru a/configure.ac b/configure.ac
  #
  # Init package
  #
--AC_INIT([Eina],[0.10.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
-+AC_INIT([Eina],[0.10.0],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
+-AC_INIT([Eina],[0.15.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
++AC_INIT([Eina],[0.15.0],[https://bugs.launchpad.net/eina],[eina-player],[http://eina.sourceforge.net/])
  AC_CONFIG_HEADERS([config.h])
- 
+
  #
 @@ -19,7 +19,7 @@
  #
@@ -16,6 +16,6 @@ diff -Nru a/configure.ac b/configure.ac
  #
 -GETTEXT_PACKAGE="eina"
 +GETTEXT_PACKAGE="eina-player"
- EINA_API_VERSION="0.10"
- EINA_VERSION="0.10.0"
- EINA_CODENAME="La primavera"              # Delafe y las flores azules
+ EINA_API_VERSION="0.16"
+ EINA_VERSION="0.15.0"
+ EINA_CODENAME="Dead bodies everywhere"    # git codename

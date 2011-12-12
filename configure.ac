@@ -1,7 +1,7 @@
 #
 # Init package
 #
-AC_INIT([Eina],[0.13.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
+AC_INIT([Eina],[0.15.0],[https://bugs.launchpad.net/eina],[eina],[http://eina.sourceforge.net/])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -20,9 +20,10 @@ AM_PATH_PYTHON
 # Package information
 #
 GETTEXT_PACKAGE="eina"
-EINA_API_VERSION="0.12"
-EINA_VERSION="0.13.0"
+EINA_API_VERSION="0.16"
+EINA_VERSION="0.15.0"
 EINA_CODENAME="Dead bodies everywhere"    # git codename
+EINA_CODENAME_0_14_0="Too drunk to fuck"  # Nouveau vague
 EINA_CODENAME_0_12_0="Rise"               # Primal scream
 EINA_CODENAME_0_10_0="La primavera"       # Delafe y las flores azules
 EINA_CODENAME_0_9_4="Trained"             # Najwa
@@ -34,7 +35,7 @@ EINA_CODENAME_0_9_0="They don't believe"  # Russian Red
 EINA_URL="http://eina.sourceforge.net/"
 EINA_URL_HELP="http://eina.sourceforge.net/"
 EINA_URL_BUGS="https://bugs.launchpad.net/eina"
-EINA_ONELINE_COPYRIGHT="Copyright 2004-2011 Eina authors"
+EINA_ONELINE_COPYRIGHT="Copyright 2004-2012 Eina authors"
 EINA_AUTHORS="Eina authors"
 AC_SUBST(EINA_URL)
 AC_SUBST(EINA_URL_HELP)
@@ -173,7 +174,7 @@ AC_CHECK_FUNCS([strtol])
 
 # export PKG_CONFIG_PATH=/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:\
 # /Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig:\
-# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig 
+# /Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig
 
 
 #*******************************************************************************
@@ -184,13 +185,13 @@ TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 	-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
 	-DGTK_MULTIHEAD_SAFE -DGSEAL_ENABLE"
 
-AC_ARG_ENABLE(release-build, [  --enable-release-build      Build in release mode (-debug,+optimizations)], release_build=yes, release_build=no)
-AC_ARG_ENABLE(experimental,  [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
+AC_ARG_ENABLE(debug,        [  --enable-debug              Build with enabled debug (+debug,-optimizations)], debug=no,  debug=yes)
+AC_ARG_ENABLE(experimental, [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
 
-if test x$release_build = 'xyes'; then
-	DEBUG_CFLAGS="-O2"
-else
+if test x$debug = 'xyes'; then
 	DEBUG_CFLAGS="-ggdb -O0"
+else
+	DEBUG_CFLAGS="-O2"
 fi
 AC_SUBST(DEBUG_CFLAGS)
 
@@ -463,8 +464,6 @@ eina/pythonconsole/pythonconsole.plugin
 eina/pythonconsole/Makefile
 eina/pythonhello/pythonhello.plugin
 eina/pythonhello/Makefile
-eina/stars/stars.plugin
-eina/stars/Makefile
 eina/status-icon/status-icon.plugin
 eina/status-icon/Makefile
 Makefile

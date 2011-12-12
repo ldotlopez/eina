@@ -27,7 +27,7 @@ simple_solver(gchar *str, GelStrParserFunc func, gpointer data)
 	gchar *ret = NULL;
 	gchar *tag_value = NULL;
 	gint i = 0;
-	
+
 	for (i = 0; str[i] != '\0'; i++)
 	{
 		// Literal '%'
@@ -65,7 +65,7 @@ find_closer(gchar *str)
 	gint tokens = 0;
 	gint i;
 
-	for (i = 1; str[i] != '\0'; i+=sizeof(gchar))
+	for (i = 1; str[i] != '\0'; i += sizeof(gchar))
 	{
 		switch (str[i])
 		{
@@ -88,8 +88,20 @@ find_closer(gchar *str)
 	return NULL;
 }
 
+/**
+ * gel_str_parser:
+ * @str: Input string
+ * @callback: (scope call) (closure user_data): Function to call for each key
+ * @user_data: (closure) (allow-none): User data to pass to @callback
+ *
+ * This function calls @callback for each key found on @str. Each key is
+ * substutued by the returned value of @callback. After parsing all the keys
+ * the new string is returned
+ *
+ * Returns: (transfer full): The parsed string
+ */
 gchar *
-gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer data)
+gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer user_data)
 {
 	GString *buffer = g_string_new(str), *buffer2;
 	gchar *token1, *token2;
@@ -99,16 +111,16 @@ gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer data)
 	{
 		if ((token2 = find_closer(token1)) == NULL)
 			goto transform_fail;
-		
+
 		// g_printf("Got token: %s\n", token2);
 
 		// Got two tokens
 		buffer2 = g_string_new_len(buffer->str, token1 - buffer->str);
-		
+
 		tmp = g_strndup(token1 + 1, token2 - token1 - 1);
 		if (tmp)
 		{
-			tmp2 = gel_str_parser(tmp, callback, data);
+			tmp2 = gel_str_parser(tmp, callback, user_data);
 			if ((tmp2 != NULL) && strcmp(tmp,tmp2))
 			{
 				buffer2 = g_string_append(buffer2, tmp2);
@@ -123,7 +135,7 @@ gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer data)
 		buffer = buffer2;
 	}
 
-	ret = simple_solver(buffer->str, callback, data);
+	ret = simple_solver(buffer->str, callback, user_data);
 	// g_printf("Resolving: '%s' => '%s'\n", buffer->str, ret);
 	g_string_free(buffer, TRUE);
 	return ret;

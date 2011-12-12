@@ -20,6 +20,7 @@
 #include "eina-cover.h"
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
+#include <gel/gel.h>
 
 G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_GRID)
 
@@ -37,6 +38,8 @@ struct _EinaCoverPrivate {
 	LomoPlayer *lomo;      // <Extern object, used for monitor changes
 	GtkWidget  *renderer;  // <Renderer
 	GdkPixbuf  *default_pb;
+
+	gchar *current_uri;
 
 	gboolean has_cover;
 
@@ -103,11 +106,8 @@ eina_cover_dispose (GObject *object)
 		priv->stream_em_handler = 0;
 	}
 
-	if (priv->default_pb)
-	{
-		g_object_unref(priv->default_pb);
-		priv->default_pb = NULL;
-	}
+	gel_object_free_and_invalidate(priv->default_pb);
+	gel_str_free_and_invalidate(priv->current_uri);
 
 	G_OBJECT_CLASS (eina_cover_parent_class)->dispose (object);
 }
@@ -339,11 +339,16 @@ cover_set(EinaCover *self, const gchar *uri)
 	priv->has_cover = FALSE;
 	if (uri == NULL)
 	{
+		gel_str_free_and_invalidate(priv->current_uri);
 		g_object_set((GObject *) priv->renderer, "cover", priv->default_pb, NULL);
 		return;
 	}
 	else
 	{
+		if (priv->current_uri && g_str_equal(priv->current_uri, uri))
+			return;
+		gel_str_free_and_invalidate(priv->current_uri);
+
 		GFile *f = g_file_new_for_uri(uri);
 		GError *error = NULL;
 		GInputStream *input = G_INPUT_STREAM(g_file_read(f, NULL, &error));
@@ -365,6 +370,7 @@ cover_set(EinaCover *self, const gchar *uri)
 			return;
 		}
 		g_object_unref(input);
+		priv->current_uri = g_strdup(uri);
 		g_object_set((GObject *) priv->renderer, "cover", pb, NULL);
 		g_object_unref(pb);
 		priv->has_cover = TRUE;
