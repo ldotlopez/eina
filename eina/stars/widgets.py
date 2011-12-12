@@ -1,129 +1,184 @@
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GelUI
+import os
 
-class EinaStars(Gtk.Grid):
-    __gtype_name__ = 'EinaStars'
+class Stars(Gtk.AspectFrame):
+	__gtype_name__ = 'EinaStarsSelector'
 
-    #
-    # Handle n-stars 
-    # 
-    def get_n_stars(self):
-        try:
-            n = self.prop_n_stars
-        except AttributeError:
-            return 0
-        return self.prop_n_stars
+	#
+	# Handle n-stars
+	#
+	def get_n_stars(self):
+		try:
+			n = self._prop_n_stars
+		except AttributeError:
+			return 0
+		return self._prop_n_stars
 
-    def set_n_stars(self, n):
-        self.prop_n_stars = n
-        self.draw_stars()
+	def set_n_stars(self, n):
+		self._prop_n_stars = n
+		self._draw_stars()
 
-    #
-    # Properties
-    #
+	def set_max_stars(self, max_stars):
+		self.prop_max_stars = max_stars
+		self.ratio = float(1) / float(max_stars)
 
-    # Number of stars available
-    max_stars = GObject.property(nick='max-stars', type = int,
-        minimum = 1, default = 5,
-        flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
+	def get_max_stars(self):
+		try:
+			return self.prop_max_stars
+		except AttributeError:
+			return 5
 
-    # Active stars
-    n_stars = GObject.property (nick='n-stars', type = int,
-        minimum = 0, default = 0,
-        setter = set_n_stars, getter = get_n_stars)
+	#
+	# Properties
+	#
 
-    # Filename for the "active" star
-    on_image  = GObject.property (nick='on-image',  type = str,
-        flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
+	# Number of stars available
+	max_stars = GObject.property(nick='max-stars', type = int,
+		minimum = 1, default = 5,
+		setter = set_max_stars, getter = get_max_stars,
+		flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
 
-    # Filename for the "inactive" star
-    off_image = GObject.property (nick='off-image', type = str,
-        flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
+	# Active stars
+	n_stars = GObject.property (nick='n-stars', type = int,
+		minimum = 0, default = 0,
+		setter = set_n_stars, getter = get_n_stars)
 
-    def __init__ (self, *args, **kwargs):
-        Gtk.Grid.__init__ (self, *args, **kwargs)
-        self.imgs = []
-        for i in xrange(0, self.max_stars):
-            img = Gtk.Image.new()
+	# Allow zero
+	allow_zero = GObject.property (nick='allow-zero', type = bool, default = True)
 
-            ev = Gtk.EventBox()
-            ev.add(img)
-            ev.connect('button-press-event', self.click_cb)
+	# Filename for the "active" star
+	on_image  = GObject.property (nick='on-image',  type = str,
+		default = os.path.join(os.path.dirname(__file__), "star-on.svg"),
+		flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
 
-            self.attach (ev, i, 0, 1, 1)
-            self.imgs.append(img)
-            img.show ()
+	# Filename for the "inactive" star
+	off_image = GObject.property (nick='off-image', type = str,
+		default = os.path.join(os.path.dirname(__file__), "star-off.svg"),
+		flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
 
-        self.set_column_homogeneous(True)
-        self.set_row_homogeneous(True)
-        self.connect('size-allocate', self.size_allocate_cb)
+	def __init__ (self, *args, **kwargs):
+		try:
+			tmp_max_stars = kwargs['max_stars']
+		except KeyError:
+			tmp_max_stars = 5
+		Gtk.AspectFrame.__init__ (self, obey_child = False, ratio = tmp_max_stars / float(1), **kwargs)
 
-    def do_get_preferred_width(self):
-	#print "do_get_preferred_width (height:%d)" % self.get_allocation().height
-	return (self.max_stars * 8, self.max_stars * 8)
+		grid = Gtk.Grid(column_homogeneous = True, row_homogeneous = True)
+		self._imgs = []
+		for i in xrange(0, self.max_stars):
+			img = Gtk.Image()
+			self._imgs.append(img)
+			img.show ()
 
-    def do_get_preferred_height(self):
-	#print "do_get_preferred_height (width:%d)" % self.get_allocation().width
-	p = self.get_parent()
-	if p is None:
-		return (8, 8)
-	else:
-		return (p.get_allocation().height, p.get_allocation().height)
+			ev = Gtk.EventBox()
+			ev.add(img)
+			ev.connect('button-press-event', self.__click_cb)
 
-    def go_get_preferred_width_for_height(self, height):
-        return (height * self.max_stars, height * self.max_stars)
+			grid.attach (ev, i, 0, 1, 1)
 
-    def go_get_preferred_height_for_width(self, width):
-        return (width / self.max_stars, width / self.max_stars)
+		self.add(grid)
+		self.connect('size-allocate', self._size_allocate_cb)
+		self.vexpand = False
+		self.vexpand_set = True
 
-    def draw_stars(self):
-        if not self.get_realized():
-            return
+	def _draw_stars(self):
+		if not self.get_realized():
+			return
 
-        for i in xrange(0, self.n_stars):
-            self.imgs[i].set_from_pixbuf(self.pb_on)
+		for i in xrange(0, self.n_stars):
+			self._imgs[i].set_from_pixbuf(self._pb_on)
 
-        for i in xrange(self.n_stars, self.max_stars):
-            self.imgs[i].set_from_pixbuf(self.pb_off)
+		for i in xrange(self.n_stars, self.max_stars):
+			self._imgs[i].set_from_pixbuf(self._pb_off)
 
-    def size_allocate_cb(self, w, alloc):
-        h = max(int(alloc.height / 2), 1)
-        w = max(int((alloc.width / self.max_stars) * 0.80), 1)
+	def _size_allocate_cb(self, w, alloc):
+		h = max(int(alloc.height / 2), 1)
+		w = max(int(alloc.width / self.max_stars), 1)
 
-        if h > w:
-            h = -1
-        else:
-            w = -1
+		w = h = min(w, h)
+		if h > w:
+			h = -1
+		else:
+			w = -1
 
-        self.pb_on  = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.on_image,  w , h , True)
-        self.pb_off = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.off_image, w , h , True)
+		self._pb_on  = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.on_image,  w , h, True)
+		self._pb_off = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.off_image, w , h, True)
 
-        self.draw_stars()
+		self._draw_stars()
 
-    def click_cb(self, w, ev):
-        img = w.get_child()
-        for i in xrange(0, self.max_stars):
-            if img == self.imgs[i]:
-                if i == 0 and (self.n_stars == 1):
-                    i = -1
-                self.n_stars = i + 1
-                return False
-        return False
+	def __click_cb(self, w, ev):
+		img = w.get_child()
+		for i in xrange(0, self.max_stars):
+			if img == self._imgs[i]:
+				if i == 0 and (self.n_stars == 1) and self.allow_zero:
+					i = -1
+				self.n_stars = i + 1
+				return False
+		return False
+
+class Dock(GelUI.Generic):
+	__gtype_name__ = 'EinaStarsDock'
+	__gsignals__ = {
+		'action-activate-with-amount': (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE,
+			(Gtk.Action.__gtype__,GObject.TYPE_INT))
+	}
+
+	def __init__(self, *args, **kwargs):
+		fh = open(os.path.join(os.path.dirname(__file__), 'dock.ui'))
+		buff = "".join(fh.readlines())
+		fh.close()
+
+		GelUI.Generic.__init__(self, xml_string = buff)
+
+		self._stars = Stars(
+			n_stars = 3,
+			vexpand = True,
+			allow_zero = False)
+
+		self._builder = self.get_builder()
+
+		grid = self._builder.get_object('stars-grid')
+		grid.attach(self._stars, 0, 1, 1, 1)
+		grid.set_vexpand(False)
+
+		for i in ('star-play-action', 'top-rated-play-action', 'random-play-action'):
+			self._builder.get_object(i).connect('activate', self._action_activate_cb)
+
+	def _get_action_amount(self, action_name):
+		if action_name == 'star-play-action':
+			return self._stars.n_stars
+
+		elif action_name == 'top-rated-play-action':
+			r = self._builder.get_object('top-rated-25')
+
+		elif action_name == 'random-play-action':
+			r = self._builder.get_object('random-25')
+
+		if r is None:
+			raise Exception('Unknow toggle %s' % str(toggle))
+
+		for rr in r.get_group():
+			if rr.get_active():
+				return int(Gtk.Buildable.get_name(rr).split('-')[-1])
+
+		raise Exception('Unable to find amount')
+
+	def _action_activate_cb(self, action):
+		self.emit('action-activate-with-amount', action, self._get_action_amount(action.get_name()))
 
 # Testing code
-
 if __name__ == '__main__':
-    def notify_n_stars_cb(w, prop):
-        print "Stars: %d" % w.n_stars
+	Gtk.init([])
 
-    Gtk.init([])
-    w = Gtk.Window()
-    s = EinaStars(max_stars = 7, n_stars = 2, on_image = 'star-on.svg', off_image = 'star-off.svg')
-    s.connect("notify::n-stars", notify_n_stars_cb)
-    s.set_hexpand(True)
-    s.set_vexpand(True)
+	w = Gtk.Window()
+	w.add(Dock(None, vexpand = False))
 
-    w.add(s)
-    w.show_all()
-    w.connect('delete-event', lambda w,ev : Gtk.main_quit())
-    Gtk.main()
+	w2 = Gtk.Window()
+	w2.resize(200, 200)
+	w2.add(Stars(n_stars = 3))
+
+	for i in (w, w2):
+		i.show_all()
+		i.connect('delete-event', lambda w, ev: Gtk.main_quit())
+	Gtk.main()
 

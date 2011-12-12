@@ -17,7 +17,8 @@ SUBDIRS = ext   \
 if BUILD_ADB
 SUBDIRS += \
 	adb    \
-	muine
+	muine  \
+	stars
 endif
 
 if BUILD_CLUTTY
