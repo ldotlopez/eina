@@ -185,11 +185,11 @@ TOPAZ_CFLAGS="-DATK_DISABLE_DEPRECATED -DPANGO_DISABLE_DEPRECATED \
 	-DG_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED \
 	-DGTK_MULTIHEAD_SAFE -DGSEAL_ENABLE"
 
-AC_ARG_ENABLE(debug,        [  --enable-debug              Build with enabled debug (+debug,-optimizations)], debug=no,  debug=yes)
+AC_ARG_ENABLE(debug,        [  --enable-debug              Build with enabled debug (+debug,-optimizations)], enable_debug=yes, enable_debug=no)
 AC_ARG_ENABLE(experimental, [  --enable-experimental       Compile with experimental features], enable_experimental=yes, enable_experimental=no)
 
-if test x$debug = 'xyes'; then
-	DEBUG_CFLAGS="-ggdb -O0"
+if test x$enable_debug = 'xyes'; then
+	DEBUG_CFLAGS="-O0 -g"
 else
 	DEBUG_CFLAGS="-O2"
 fi
