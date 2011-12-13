@@ -57,7 +57,7 @@ struct _LomoMetadataParserPrivate {
 	gboolean    got_state_signal;
 	gboolean    got_new_clock_signal;
 
-	// Watchers 
+	// Watchers
 	guint       bus_id;
 	guint       idle_id;
 };
@@ -233,11 +233,11 @@ lomo_metadata_parser_clear(LomoMetadataParser *self)
 static void
 reset_internals(LomoMetadataParser *self)
 {
-	LomoMetadataParserPrivate *priv = self->priv;
-	GstElement *audio, *video;
+	g_return_if_fail(LOMO_IS_METADATA_PARSER(self));
 
-	if (priv->pipeline)
-		g_object_unref(priv->pipeline);
+	LomoMetadataParserPrivate *priv = self->priv;
+
+	gel_object_free_and_invalidate(priv->pipeline);
 
 	priv->stream = NULL;
 	priv->failure = FALSE;
@@ -245,11 +245,11 @@ reset_internals(LomoMetadataParser *self)
 	priv->got_new_clock_signal = FALSE;
 
 	/* Generate pipeline */
-	audio   = gst_element_factory_make ("fakesink", "fakesink");
-	video   = gst_element_factory_make ("fakesink", "fakesink");
-	priv->pipeline     = gst_element_factory_make ("playbin", "playbin");
-	g_object_set(G_OBJECT(priv->pipeline), "audio-sink", audio, NULL);
-	g_object_set(G_OBJECT(priv->pipeline), "video-sink", video, NULL);
+	priv->pipeline = gst_element_factory_make ("playbin", "playbin");
+	g_object_set (G_OBJECT (priv->pipeline),
+		"audio-sink", gst_element_factory_make ("fakesink", "fakesink"),
+		"video-sink", gst_element_factory_make ("fakesink", "fakesink"),
+		NULL);
 
 	/* Add watcher to bus */
 	if (priv->bus_id > 0)
@@ -278,12 +278,13 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 	case GST_MESSAGE_TAG:
 		gst_message_parse_tag(message, &tags);
 		gst_tag_list_foreach(tags, (GstTagForeachFunc) foreach_tag_cb, (gpointer) self);
+		gst_tag_list_free(tags);
 		break;
 
 	case GST_MESSAGE_STATE_CHANGED:
 		gst_message_parse_state_changed(message, &old, &new, &pending);
 		if ((old == GST_STATE_READY) && (new = GST_STATE_PAUSED)) {
-			if (priv->got_state_signal == FALSE) 
+			if (priv->got_state_signal == FALSE)
 				priv->got_state_signal = TRUE;
 		}
 		break;
@@ -303,7 +304,7 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 
 	// Got the state-change and new-clock signal, this means that all is ok.
 	// We can disconnect
-	if ( (priv->got_state_signal == TRUE) && (priv->got_new_clock_signal == TRUE)) 
+	if ((priv->got_state_signal == TRUE) && (priv->got_new_clock_signal == TRUE))
 		goto disconnect;
 
 	// Stay on the bus
@@ -352,7 +353,7 @@ static gboolean
 run_queue(LomoMetadataParser *self)
 {
 	LomoMetadataParserPrivate *priv = self->priv;
-	
+
 	if (!g_queue_is_empty(priv->queue))
 	{
 		reset_internals(self);

@@ -674,7 +674,6 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 
 	gchar **uri_strv = gel_list_to_strv(uris, FALSE);
 	lomo_player_insert_strv(lomo, (const gchar * const*) uri_strv, -1);
-
 	g_free(uri_strv);
 	gel_list_deep_free(uris, g_free);
 

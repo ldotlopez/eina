@@ -170,24 +170,16 @@ gel_get_package_data_dir(void);
 // GObject functions
 // --
 
-guint
-gel_object_get_ref_count(GObject *object);
-
-const gchar*
-gel_object_get_type_name(GObject *object);
+gint         gel_object_get_ref_count(GObject *object);
+const gchar* gel_object_get_type_name(GObject *object);
 
 // --
 // Utilities for GList/GSList
 // --
 
-gchar **
-gel_list_to_strv(GList *list, gboolean copy);
+gchar** gel_list_to_strv(GList *list, gboolean copy);
+gchar** gel_strv_concat(gchar **strv_a, ...);
 
-GList *
-gel_strv_to_list(gchar **strv, gboolean copy);
-
-gchar **
-gel_strv_concat(gchar **strv_a, ...);
 
 /**
  * gel_slist_deep_free:
@@ -247,15 +239,12 @@ gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func);
 // --
 // App resources functions
 // --
-const gchar *
-gel_resource_type_get_env(GelResourceType type);
-gchar *
-gel_resource_type_get_user_dir(GelResourceType type);
-gchar *
-gel_resource_type_get_system_dir(GelResourceType type);
+const gchar* gel_resource_type_get_env       (GelResourceType type);
+gchar*       gel_resource_type_get_user_dir  (GelResourceType type);
+gchar*       gel_resource_type_get_system_dir(GelResourceType type);
 
-gchar *
-gel_resource_locate(GelResourceType type, gchar *resource);
+gchar* gel_resource_locate     (GelResourceType type, const gchar *resource);
+GList* gel_resource_locate_list(GelResourceType type, const gchar *resource);
 
 // --
 // File system utilities

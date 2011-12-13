@@ -406,11 +406,16 @@ player_update_information(EinaPlayer *self)
 		{ "stream-title-label",  NULL },
 		{ "stream-artist-label", NULL }
 	};
-	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>",
-		g_markup_escape_text(fallback ? fallback : line1, -1));
-	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>",
-		g_markup_escape_text(line2, -1));
-	gel_free_and_invalidate(fallback, NULL, g_free);
+
+	gchar *tmp = g_markup_escape_text(fallback ? fallback : line1, -1);
+	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", tmp);
+	g_free(tmp);
+
+	tmp = g_markup_escape_text(line2, -1);
+	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>", tmp);
+	g_free(tmp);
+
+	gel_str_free_and_invalidate(fallback);
 
 	for (guint i = 0; i < G_N_ELEMENTS(markups); i++)
 	{

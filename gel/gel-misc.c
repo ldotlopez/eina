@@ -43,8 +43,9 @@ static gchar *_gel_package_lib_dir  = NULL;
 static void
 _gel_atexit(void)
 {
-	gel_free_and_invalidate(_gel_package_name,        NULL, g_free);
-	gel_free_and_invalidate(_gel_package_data_dir,    NULL, g_free);
+	gel_str_free_and_invalidate(_gel_package_name);
+	gel_str_free_and_invalidate(_gel_package_data_dir);
+	gel_str_free_and_invalidate(_gel_package_lib_dir);
 }
 
 /**
@@ -73,9 +74,9 @@ gel_init(const gchar *package_name, const gchar *lib_dir, const gchar *data_dir)
  *
  * Get package name from libgel
  *
- * Returns: (transfer none): package name of the app using libgel.
+ * Returns: package name of the app using libgel.
  *          This string is owned by libgel and should NOT be freeded.
- **/
+ */
 const gchar*
 gel_get_package_name(void)
 {
@@ -87,9 +88,9 @@ gel_get_package_name(void)
  *
  * Get package libdir from libgel
  *
- * Returns: (transfer none): package libdir of the app using libgel
+ * Returns: package libdir of the app using libgel
  *          This string is owned by libgel and should NOT be freeded.
- **/
+ */
 const gchar*
 gel_get_package_lib_dir(void)
 {
@@ -101,9 +102,9 @@ gel_get_package_lib_dir(void)
  *
  * Get package data_dir from libgel
  *
- * Returns: (transfer none): package data_dir of the app using libgel
+ * Returns: package data_dir of the app using libgel
  *          This string is owned by libgel and should NOT be freeded.
- **/
+ */
 const gchar*
 gel_get_package_data_dir(void)
 {
@@ -127,9 +128,10 @@ gel_get_package_data_dir(void)
  *
  * Returns: The number of references
  **/
-guint
+gint
 gel_object_get_ref_count(GObject *object)
 {
+	g_return_val_if_fail(G_IS_OBJECT(object), -1);
 	return G_OBJECT(object)->ref_count;
 }
 
@@ -146,12 +148,13 @@ gel_object_get_ref_count(GObject *object)
 const gchar*
 gel_object_get_type_name(GObject *object)
 {
+	g_return_val_if_fail(G_IS_OBJECT(object), NULL);
 	return G_OBJECT_TYPE_NAME(object);
 }
 
 /**
  * SECTION:gel-list
- * @short_description: GList/GSList support function
+ * @short_description: GList support function
  * @see_also: #GList, #GSList
  *
  * libgel support for lists
@@ -160,7 +163,7 @@ gel_object_get_type_name(GObject *object)
 /**
  * gel_list_to_strv: (skip):
  *
- * @list: A #GList to convert to gchar**
+ * @list: (element-type utf8): A #GList to convert to gchar**
  * @copy: if %TRUE the data is also copied
  *
  * Converts a #GList to a gchar** optionally copying data (a gchar element-type is
@@ -171,75 +174,20 @@ gel_object_get_type_name(GObject *object)
 gchar **
 gel_list_to_strv(GList *list, gboolean copy)
 {
-	GList *iter;
-	guint len;
-	gchar **ret;
-	gint i;
+	g_return_val_if_fail(list, NULL);
 
-	g_return_val_if_fail(list != NULL, NULL);
-
-	len = g_list_length(list);
+	guint len = g_list_length(list);
 	g_return_val_if_fail(len > 0, NULL);
 
-	ret = g_new0(gchar*, len + 1);
+	gchar **ret = g_new0(gchar*, len + 1);
+
+	GList *iter = NULL;
+	guint  i    = 0;
 	for (iter = list, i = 0; iter != NULL; iter = iter->next, i++)
-		ret[i] = copy ? g_strdup((gchar *) iter->data) : iter->data;
-
-	return ret;
-}
-
-/**
- * gel_strv_to_list: (skip):
- *
- * @strv: A %NULL-terminated array of strings
- * @copy: if %TRUE the data is also copied
- *
- * Coverts a gchar** to a #GList, see also gel_list_to_strv()
- *
- * Returns: A #GList with the elements of @strv. Returned list should be
- * free when no longer needed, data should or shouldn't be free depending on
- * the value of @copy
- **/
-GList *
-gel_strv_to_list(gchar **strv, gboolean copy)
-{
-	GList *ret = NULL;
-	gint i = 0;
-
-	while (strv[i] != NULL)
-	{
 		if (copy)
-			ret = g_list_prepend(ret, g_strdup(strv[i]));
+			ret[i] = g_strdup((gchar *) iter->data);
 		else
-			ret = g_list_prepend(ret, strv[i]);
-		i++;
-	}
-
-	return g_list_reverse(ret);
-}
-
-/**
- * gel_strlist_join:
- *
- * @separator: Separator for use
- * @list: A #GList to join
- *
- * Joins a #GList into a single string using @separator as union, see also
- * #g_strjoinv
- *
- * Returns: A newly allocated string which must be freeded when it is not
- *          necessary.
- */
-gchar *
-gel_strlist_join(const gchar *separator, GList *list)
-{
-	gchar *ret;
-	gchar **tmp = gel_list_to_strv(list, FALSE);
-
-	if (tmp == NULL)
-		return NULL;
-	ret = g_strjoinv(separator, tmp);
-	g_free(tmp);
+			ret[i] = iter->data;
 
 	return ret;
 }
@@ -261,6 +209,7 @@ gel_strv_concat(gchar **strv_a, ...)
 	g_return_val_if_fail(strv_a != NULL, NULL);
 
 	gchar **ret = NULL;
+
 	va_list strvs;
 	va_start(strvs, strv_a);
 
@@ -306,8 +255,7 @@ gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func)
 		gchar *str = stringify_func((const gpointer) list->data);
 		g_printf("[%p] ", list->data);
 		g_printf(format ? format : "%s\n", str ? str : "(NULL)");
-		if (str != NULL)
-			g_free(str);
+		gel_str_free_and_invalidate(str);
 		list = list->next;
 	}
 	g_printf("End of list\n");
@@ -316,6 +264,15 @@ gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func)
 // --
 // App resources functions
 // --
+
+/**
+ * gel_resource_type_get_env:
+ * @type: Resource type
+ *
+ * Gets the environment key for resources of type @type
+ *
+ * Return: Location for resources of type @type from the enviroment
+ */
 const gchar *
 gel_resource_type_get_env(GelResourceType type)
 {
@@ -324,15 +281,23 @@ gel_resource_type_get_env(GelResourceType type)
 		return NULL;
 
 	gchar *upper_prgname = g_ascii_strup((const gchar*) g_get_prgname(), -1);
-
 	gchar *env_name = g_strconcat(upper_prgname, "_", map_table[type], "_", "PATH", NULL);
 	g_free(upper_prgname);
+
 	const gchar *ret = g_getenv(env_name);
 	g_free(env_name);
 
 	return ret;
 }
 
+/**
+ * gel_resource_type_get_user_dir:
+ * @type: Resource type
+ *
+ * Gets the user dir key for resources of type @type
+ *
+ * Return: Location for resources of type @type from the user dir
+ */
 gchar *
 gel_resource_type_get_user_dir(GelResourceType type)
 {
@@ -348,19 +313,28 @@ gel_resource_type_get_user_dir(GelResourceType type)
 	return ret;
 }
 
-#define g_strdup_safe(x) (x ? g_strdup(x) : NULL)
+/**
+ * gel_resource_type_get_system_dir:
+ * @type: Resource type
+ *
+ * Gets the system dir key for resources of type @type
+ *
+ * Return: Location for resources of type @type from the system dir
+ */
 gchar *
 gel_resource_type_get_system_dir(GelResourceType type)
 {
+	#define g_strdup_safe(x) (x ? g_strdup(x) : NULL)
+
 	gchar *prgupper = g_ascii_strup(g_get_prgname(), -1);
 	gchar *data_key = g_strconcat(prgupper, "_DATA_PREFIX", NULL);
 	gchar *lib_key  = g_strconcat(prgupper, "_LIB_PREFIX",  NULL);
+	gel_str_free_and_invalidate(prgupper);
 
 	gchar *data_val = g_strdup_safe(g_getenv(data_key));
 	gchar *lib_val  = g_strdup_safe(g_getenv(lib_key));
-
-	g_free(data_key);
-	g_free(lib_key);
+	gel_str_free_and_invalidate(data_key);
+	gel_str_free_and_invalidate(lib_key);
 
 	if (!data_val)
 		data_val = g_strdup(gel_get_package_data_dir());
@@ -392,14 +366,23 @@ gel_resource_type_get_system_dir(GelResourceType type)
 		break;
 	}
 
-	g_free(data_val);
-	g_free(lib_val);
+	gel_str_free_and_invalidate(data_val);
+	gel_str_free_and_invalidate(lib_val);
 
 	return ret;
 }
 
+/**
+ * gel_resource_locate_list:
+ * @type: Type of resource
+ * @resource: Name of resource
+ *
+ * Get list of posible resources
+ *
+ * Returns: (transfer full) (element-type utf8): List of paths
+ */
 GList *
-gel_resource_locate_list(GelResourceType type, gchar *resource)
+gel_resource_locate_list(GelResourceType type, const gchar *resource)
 {
 	// Search precedence
 	// 1. Enviroment variables
@@ -440,8 +423,17 @@ gel_resource_locate_list(GelResourceType type, gchar *resource)
 	return g_list_reverse(ret);
 }
 
+/**
+ * gel_resource_locate:
+ * @type: Type of resource
+ * @resource: Resource name
+ *
+ * Filters gel_resource_locate_list() and extracts the first existing resource
+ *
+ * Returns: (transfer full): The path for resource
+ */
 gchar *
-gel_resource_locate(GelResourceType type, gchar *resource)
+gel_resource_locate(GelResourceType type, const gchar *resource)
 {
 	GList *candidates = gel_resource_locate_list(type, resource);
 	GList *iter = candidates;
@@ -492,6 +484,7 @@ gel_dir_read(gchar *path, gboolean absolute, GError **error)
 			ret = g_list_prepend(ret, g_strdup(entry));
 	}
 	g_dir_close(d);
+
 	return g_list_reverse(ret);
 }
 
@@ -521,6 +514,16 @@ gel_run_once_destroy_helper(gpointer data)
 	g_free(ro);
 }
 
+/**
+ * gel_run_once_on_idle:
+ * @callback: (scope call) (closure data): Callback to run
+ * @data: (closure): Data to pass to @callback
+ * @destroy: (scope notified): Callback to free @data
+ *
+ * Run @callback only one time in idle
+ *
+ * Returns: ID for cancel operation, see g_idle_add_full()
+ */
 guint
 gel_run_once_on_idle(GSourceFunc callback, gpointer data, GDestroyNotify destroy)
 {
@@ -531,6 +534,17 @@ gel_run_once_on_idle(GSourceFunc callback, gpointer data, GDestroyNotify destroy
 	return g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, gel_run_once_callback_helper, ro, gel_run_once_destroy_helper);
 }
 
+/**
+ * gel_run_once_on_timeout:
+ * @interval: Timeout
+ * @callback: (scope call) (closure data): Callback to run
+ * @data: (closure): Data to pass to @callback
+ * @destroy: (scope notified): Callback to free @data
+ *
+ * Run @callback only one time in idle
+ *
+ * Returns: ID for cancel operation, see g_idle_add_full()
+ */
 guint
 gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDestroyNotify destroy)
 {
@@ -545,6 +559,14 @@ gel_run_once_on_timeout(guint interval, GSourceFunc callback, gpointer data, GDe
 // --
 // Date time
 // --
+
+/**
+ * gel_8601_date_now:
+ *
+ * Current time in 8601 format
+ *
+ * Returns: (transfer full): Current time
+ */
 gchar *
 gel_8601_date_now(void)
 {
@@ -555,6 +577,7 @@ gel_8601_date_now(void)
 // --
 // strv funcs
 // --
+
 /**
  * gel_strv_copy: (skip):
  * @strv: A #GStrv
