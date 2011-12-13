@@ -16,8 +16,9 @@ SUBDIRS = ext   \
 
 if BUILD_ADB
 SUBDIRS += \
-	adb    \
-	muine  \
+	adb      \
+	importer \
+	muine    \
 	stars
 endif
 
