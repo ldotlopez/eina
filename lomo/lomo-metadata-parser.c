@@ -17,8 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define DEBUG 0
+#if DEBUG
+#	define debug(...) g_debug(__VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
+
 #include "lomo-metadata-parser.h"
 
+#include <glib/gi18n.h>
 #include <gst/gst.h>
 #include "lomo-marshallers.h"
 
@@ -311,7 +319,6 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 disconnect:
 	gst_element_set_state(priv->pipeline, GST_STATE_NULL);
 
-	lomo_stream_set_tag(priv->stream, LOMO_TAG_URI, g_strdup(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI)));
 	g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0,  priv->stream, LOMO_TAG_URI);
 
 	lomo_stream_set_all_tags_flag(priv->stream, TRUE);
@@ -329,73 +336,15 @@ static void
 foreach_tag_cb(const GstTagList *list, const gchar *tag, LomoMetadataParser *self)
 {
 	LomoMetadataParserPrivate *priv = self->priv;
-	GType     type;
 
-	gchar   *string_tag;
-	gint     int_tag;
-	guint    uint_tag;
-	guint64  uint64_tag;
-	gboolean bool_tag;
-	gpointer pointer;
-
-	type = lomo_tag_get_gtype(tag);
-
-	switch (type)
+	GValue value = { 0 };
+	if (!gst_tag_list_copy_value(&value, list, tag))
+		g_warning(_("Unable to copy GstTagList for %s"), tag);
+	else
 	{
-		case G_TYPE_STRING:
-			if (!gst_tag_list_get_string(list, tag, &string_tag))
-				break;
-
-			lomo_stream_set_tag(priv->stream, tag, g_strdup(string_tag));
-			g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0, priv->stream, tag);
-			break;
-
-		case G_TYPE_UINT:
-			if (!gst_tag_list_get_uint(list, tag, &uint_tag))
-				break;
-
-			pointer = g_new0(guint, 1);
-			*((guint*) pointer) = uint_tag;
-			lomo_stream_set_tag(priv->stream, tag, pointer);
-			g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0, priv->stream, tag);
-			break;
-
-		case G_TYPE_UINT64:
-			if (!gst_tag_list_get_uint64(list, tag, &uint64_tag))
-				break;
-			pointer = g_new0(guint64, 1);
-			*((guint64*) pointer) = uint64_tag;
-			lomo_stream_set_tag(priv->stream, tag, pointer);
-			g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0, priv->stream, tag);
-			break;
-
-		case G_TYPE_INT:
-			if (!gst_tag_list_get_int(list, tag, &int_tag))
-				break;
-			pointer = g_new0(gint, 1);
-			*((guint*) pointer) = int_tag;
-			lomo_stream_set_tag(priv->stream, tag, pointer);
-			g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0, priv->stream, tag);
-			break;
-
-		case G_TYPE_BOOLEAN:
-			if (!gst_tag_list_get_boolean(list, tag, &bool_tag))
-				break;
-			pointer = g_new0(gboolean, 1);
-			*((gboolean*) pointer) = bool_tag;
-			lomo_stream_set_tag(priv->stream, tag, pointer);
-			g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0, priv->stream, tag);
-			break;
-
-		default:
-			/*
-			meta.c:364 Found date but type GstDate is not handled
-			meta.c:364 Found private-id3v2-frame but type GstBuffer is not handled
-
-			g_debug("%s:%d Found %s but type %s is not handled\n",
-				__FILE__, __LINE__, tag, g_type_name(type));
-			*/
-			break;
+		lomo_stream_set_tag(priv->stream, tag, &value);
+		g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0, priv->stream, tag);
+		g_value_unset(&value);
 	}
 }
 
@@ -408,9 +357,9 @@ run_queue(LomoMetadataParser *self)
 	{
 		reset_internals(self);
 		priv->stream = g_queue_pop_head(priv->queue);
-		g_object_set(
-			G_OBJECT(priv->pipeline), "uri",
-			g_object_get_data(G_OBJECT(priv->stream), LOMO_TAG_URI), NULL);
+		g_object_set( G_OBJECT(priv->pipeline),
+			"uri", lomo_stream_get_uri(priv->stream),
+			NULL);
 		gst_element_set_state(priv->pipeline, GST_STATE_PLAYING);
 	}
 

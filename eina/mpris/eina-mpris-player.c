@@ -786,8 +786,9 @@ build_metadata_variant(LomoStream *stream)
 		else if (g_str_equal(LOMO_TAG_ARTIST, tag))
 		{
 			xesam_tag = "artist";
-			const gchar const *artists[] = { lomo_stream_get_tag(stream, tag), NULL };
-			tag_variant = g_variant_new_strv(artists, -1);
+			gchar *artists[] = { lomo_stream_strdup_tag_value(stream, tag), NULL };
+			tag_variant = g_variant_new_strv((const gchar * const *) artists, -1);
+			g_free(artists[0]);
 		}
 
 		else
@@ -795,9 +796,10 @@ build_metadata_variant(LomoStream *stream)
 
 		if (tag_variant == NULL)
 		{
-			const gchar *tag_str = lomo_stream_get_tag(stream, tag);
+			gchar *tag_str = lomo_stream_strdup_tag_value(stream, tag);
 			if (tag_str)
 				tag_variant = g_variant_new_string(tag_str);
+			g_free(tag_str);
 		}
 
 		if (!xesam_tag || !tag_variant)

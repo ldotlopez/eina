@@ -41,7 +41,7 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 		return g_value_get_int(v);
 
 	// Try INSERT or IGNORE INTO streams
-	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
+	const gchar *uri = lomo_stream_get_uri(stream);
 
 	if (!eina_adb_query_exec(adb, "INSERT OR IGNORE INTO streams (uri,timestamp) VALUES('%q',STRFTIME('%%s',DATETIME('now')));", uri))
 	{

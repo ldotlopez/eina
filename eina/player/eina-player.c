@@ -378,12 +378,14 @@ player_update_information(EinaPlayer *self)
 	// Build text for labels
 	if (stream)
 	{
-		line1 = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
-		line2 = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+		const GValue *title_v  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+		const GValue *artist_v = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+		line1 = title_v  ? g_value_get_string(title_v)  : NULL;
+		line2 = artist_v ? g_value_get_string(artist_v) : NULL;
 
 		if (line1 == NULL)
 		{
-			gchar *uri_unescaped = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+			gchar *uri_unescaped = g_uri_unescape_string(lomo_stream_get_uri(stream), NULL);
 			fallback = g_path_get_basename(uri_unescaped);
 			g_free(uri_unescaped);
 		}
@@ -405,7 +407,7 @@ player_update_information(EinaPlayer *self)
 		{ "stream-artist-label", NULL }
 	};
 	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>",
-		g_markup_escape_text(line1 ? line1 : fallback, -1));
+		g_markup_escape_text(fallback ? fallback : line1, -1));
 	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>",
 		g_markup_escape_text(line2, -1));
 	gel_free_and_invalidate(fallback, NULL, g_free);
@@ -446,32 +448,6 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 	if (stream == lomo_player_get_current_stream(lomo))
 		player_update_information(self);
 }
-/*
-static gchar *
-stream_info_parser_cb(gchar key, LomoStream *stream)
-{
-	gchar *ret = NULL;
-	gchar *tag_str = lomo_stream_get_tag_by_id(stream, key);
-
-	if (tag_str != NULL)
-	{
-		ret = g_markup_escape_text(tag_str, -1);
-		g_free(tag_str);
-	}
-
-	if ((key == 't') && (ret == NULL))
-	{
-		const gchar *uri     = lomo_stream_get_tag(stream, LOMO_TAG_URI);
-		gchar *uri_unescaped = g_uri_unescape_string(uri, NULL);
-		gchar *basename      = g_path_get_basename(uri_unescaped);
-		ret  = g_markup_escape_text(basename, -1);
-
-		g_free(uri_unescaped);
-		g_free(basename);
-	}
-	return ret;
-}
-*/
 
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self)

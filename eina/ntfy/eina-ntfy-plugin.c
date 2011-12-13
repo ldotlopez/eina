@@ -170,15 +170,16 @@ ntfy_sync(EinaNtfyPlugin *plugin)
 	GdkPixbuf *scaled = NULL;
 
 	// Build body
-	gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+	gchar *tmp = g_path_get_basename(lomo_stream_get_uri(stream));
 	gchar *bname = g_uri_unescape_string(tmp, NULL);
 	g_free(tmp);
 
-	const gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-	const gchar *title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+	gchar *artist = lomo_stream_strdup_tag_value(stream, LOMO_TAG_ARTIST);
+	gchar *title  = lomo_stream_strdup_tag_value(stream, LOMO_TAG_TITLE);
 	gchar *body = g_strdup_printf("<b>%s</b>\n%s", title ? title : bname, artist ? artist : "");
-
-	gel_free_and_invalidate(bname, NULL, g_free);
+	gel_str_free_and_invalidate(artist);
+	gel_str_free_and_invalidate(title);
+	gel_str_free_and_invalidate(bname);
 
 	notify_notification_update(priv->ntfy, N_("Playing now"), body, NULL);
 

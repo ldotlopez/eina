@@ -315,7 +315,7 @@ lomo_em_art_search_stringify(LomoEMArtSearch *search)
 
 	if (!priv->stringify)
 	{
-		gchar *unescape = g_uri_unescape_string(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI), NULL);
+		gchar *unescape = g_uri_unescape_string(lomo_stream_get_uri(priv->stream), NULL);
 		priv->stringify = g_path_get_basename(unescape);
 		g_free(unescape);
 		g_return_val_if_fail(priv->stringify, NULL);

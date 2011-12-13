@@ -1226,7 +1226,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	// Check for a reusable pipeline
 	GstElement *new_pipeline = priv->vtable.set_uri(
 		priv->pipeline,
-		lomo_stream_get_tag(stream, LOMO_TAG_URI),
+		lomo_stream_get_uri(stream),
 		priv->options);
 
 	// Old pipeline is not reusable
@@ -2490,7 +2490,7 @@ about_to_finish_cb(GstElement *pipeline, LomoPlayer *self)
 	LomoStream *s = lomo_player_get_nth_stream(self, next);
 	g_return_if_fail(LOMO_IS_STREAM(s));
 
-	const gchar *uri = lomo_stream_get_tag(s, LOMO_TAG_URI);
+	const gchar *uri = lomo_stream_get_uri(s);
 	g_return_if_fail(uri != NULL);
 
 	/* Emit EOS here, I dont know any other method to report EOS

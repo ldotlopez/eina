@@ -388,6 +388,10 @@ muine_update(EinaMuine *self)
 	ds_p = db_data;
 	GtkListStore *model = muine_get_model(self);
 	gchar *artist = NULL, *album = NULL; gchar *markup = NULL;
+
+	GValue v = { 0 };
+	g_value_init(&v, G_TYPE_STRING);
+
 	while (ds_p)
 	{
 		data_set_t *ds = (data_set_t *) ds_p->data;
@@ -395,13 +399,17 @@ muine_update(EinaMuine *self)
 		if (ds->artist)
 		{
 			artist = g_markup_escape_text(ds->artist, -1);
-			lomo_stream_set_tag(ds->stream, LOMO_TAG_ARTIST, g_strdup(ds->artist));
+
+			g_value_set_static_string(&v, artist);
+			lomo_stream_set_tag(ds->stream, LOMO_TAG_ARTIST, &v);
 		}
 
 		if (ds->album)
 		{
 			album  = g_markup_escape_text(ds->album,  -1);
-			lomo_stream_set_tag(ds->stream, LOMO_TAG_ALBUM, g_strdup(ds->album));
+
+			g_value_set_static_string(&v, album);
+			lomo_stream_set_tag(ds->stream, LOMO_TAG_ALBUM, &v);
 		}
 
 		switch (mode)
@@ -441,6 +449,7 @@ muine_update(EinaMuine *self)
 
 		ds_p = ds_p->next;
 	}
+	g_value_reset(&v);
 	g_list_free(db_data);
 }
 

@@ -29,17 +29,16 @@ G_DEFINE_TYPE (LomoStream, lomo_stream, G_TYPE_OBJECT)
 struct TagFmt {
 	gchar   key;
 	const gchar *tag;
-	gchar  *fmt;
 };
 
 static struct TagFmt tag_fmt_table [] = {
-	{ 'a', LOMO_TAG_ARTIST       , "%s"  },
-	{ 'b', LOMO_TAG_ALBUM        , "%s"  },
-	{ 't', LOMO_TAG_TITLE        , "%s"  },
-	{ 'g', LOMO_TAG_GENRE        , "%s"  },
-	{ 'n', LOMO_TAG_TRACK_NUMBER , "%02d"},
-	{ 'd', LOMO_TAG_DATE         , "%s"  },
-	{   0, LOMO_TAG_INVALID      , "%p"  }
+	{ 'a', LOMO_TAG_ARTIST       },
+	{ 'b', LOMO_TAG_ALBUM        },
+	{ 't', LOMO_TAG_TITLE        },
+	{ 'g', LOMO_TAG_GENRE        },
+	{ 'n', LOMO_TAG_TRACK_NUMBER },
+	{ 'd', LOMO_TAG_DATE         },
+	{   0, LOMO_TAG_INVALID      }
 };
 
 struct _LomoStreamPrivate {
@@ -71,7 +70,7 @@ lomo_stream_get_property(GObject *object, guint property_id, GValue *value, GPar
 	switch (property_id)
 	{
 	case PROP_URI:
-		g_value_set_static_string(value, lomo_stream_get_tag(self, LOMO_TAG_URI));
+		g_value_set_static_string(value, lomo_stream_get_uri(self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -185,9 +184,21 @@ stream_set_uri(LomoStream *self, const gchar *uri)
 	if (!uri && (strstr(uri, "://") == NULL))
 		g_warning(_("'%s' is not a valid URI"), uri);
 
-	g_object_set_data_full(G_OBJECT(self), LOMO_TAG_URI, g_strdup(uri), g_free);
+	GValue v = { 0 };
+	g_value_set_static_string(g_value_init(&v, G_TYPE_STRING), uri);
+	lomo_stream_set_tag(self, "uri", &v);
+	g_value_reset(&v);
 }
 
+/**
+ * lomo_stream_string_parser_cb:
+ * @tag_key: Key for tag
+ * @self: A #LomoStream
+ *
+ * Default callback for format a stream, see gel_str_parse()
+ *
+ * Returns: (transfer full): String for @tag_key
+ */
 gchar *
 lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
 {
@@ -199,7 +210,7 @@ lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
 
 	if ((tag_key == 't') && (ret == NULL))
 	{
-		const gchar *tmp = lomo_stream_get_tag(self, LOMO_TAG_URI);
+		const gchar *tmp = lomo_stream_get_uri(self);
 		gchar *tmp2 = g_uri_unescape_string(tmp, NULL);
 		ret = g_path_get_basename(tmp2);
 		g_free(tmp2);
@@ -208,63 +219,106 @@ lomo_stream_string_parser_cb(gchar tag_key, LomoStream *self)
 }
 
 /**
- * lomo_stream_get_tag:
- * @self: a #LomoStream
- * @tag: a #LomoTag
+ * lomo_stream_strdup_tag_value:
+ * @self: A #LomoStream
+ * @tag: A #LomoTag
  *
- * Gets a tag from #LomoStream. The returned value is owned by @stream, and
- * should not be modified (Internally it uses g_object_get_data).
+ * Get the @tag as string
  *
- * Returns: A pointer to the tag value
+ * Returns: (transfer full): Tag as string. Must be free
  */
-const gchar*
+gchar*
+lomo_stream_strdup_tag_value(LomoStream *self, const gchar *tag)
+{
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+	g_return_val_if_fail(tag, NULL);
+	
+	const GValue *v = lomo_stream_get_tag(self, tag);
+	if (!v)
+		return NULL;
+
+	GValue v2 = { 0 };
+	g_value_init(&v2, G_TYPE_STRING);
+	if (g_value_transform(v, &v2))
+	{
+		gchar *ret = g_strdup(g_value_get_string(&v2));
+		g_value_unset(&v2);
+		return ret;
+	}
+	else
+		return g_strdup_value_contents(v);
+}
+
+/**
+ * lomo_stream_get_tag:
+ * @self: A #LomoStream
+ * @tag: A #LomoTag
+ *
+ * Gets the value for @tag
+ *
+ * Returns: (transfer none): #GValue for @tag
+ */
+const GValue*
 lomo_stream_get_tag(LomoStream *self, const gchar *tag)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 	g_return_val_if_fail(tag, NULL);
 
-	const gchar *ret = g_object_get_data((GObject *) self, tag);
+	LomoStreamPrivate *priv = self->priv;
+	if (!g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp))
+		return NULL;
+
+	const GValue *ret = g_object_get_data((GObject *) self, tag);
+
+	if (ret)
+		g_return_val_if_fail(G_IS_VALUE(ret), NULL);
+
 	return ret;
 }
 
 /**
  * lomo_stream_set_tag:
- * @self: a #LomoStream
- * @tag: (in) (type gchar*) (transfer none): a #const gchar *to set
- * @value: (in) (type gchar*) (transfer none): value for tag, must not be modified. It becomes owned by #LomoStream
+ * @self: A #LomoStream
+ * @tag: A #LomoTag
+ * @value: (transfer none): A #GValue for the value
  *
- * Sets a tag in a #LomoStream
+ * Sets the value for @tag
  */
 void
-lomo_stream_set_tag(LomoStream *self, const gchar *tag, gpointer value)
+lomo_stream_set_tag(LomoStream *self, const gchar *tag, const GValue *value)
 {
+	g_return_if_fail(LOMO_IS_STREAM(self));
+	g_return_if_fail(tag);
+	if (value)
+		g_return_if_fail(G_IS_VALUE(value));
+
 	LomoStreamPrivate *priv = self->priv;
+
+	GValue *v2 = g_value_init(g_new0(GValue, 1), G_VALUE_TYPE(value));
+	g_value_copy(value, v2);
+
+	g_object_set_data_full((GObject *) self, tag, v2, (GDestroyNotify) destroy_gvalue);
+
 	GList *link = g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp);
 
-	if (tag != NULL)
-	{
-		if (link != NULL)
-		{
-			g_free(link->data);
-			link->data = g_strdup(tag);
-		}
-		else
-			priv->tags = g_list_prepend(priv->tags, g_strdup(tag));
-	}
-	else
+	// Add tag to tag list 
+	if ((value != NULL) && (link == NULL))
+		priv->tags = g_list_prepend(priv->tags, g_strdup(tag));
+
+	// Remove tag from list
+	if ((value == NULL) && (link != NULL))
 	{
 		priv->tags = g_list_remove_link(priv->tags, link);
 		g_free(link->data);
 		g_list_free(link);
 	}
-	g_object_set_data_full(G_OBJECT(self), tag, value, g_free);
 }
 
 /**
  * lomo_stream_get_tags:
  * @self: a #LomoStream
  *
- * Gets the list of #const gchar *for a #LomoStream
+ * Gets the list of tags
  *
  * Return value: (element-type utf8) (transfer full): a #GList, it must be freed when no longer needed, data too
  */
@@ -417,30 +471,20 @@ lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key)
 /**
  * lomo_stream_get_tag_by_id:
  * @self: a #LomoStream
- * @id: (in): identifier for tag (t = title, b = album, etc...)
+ * @id: identifier for tag (t = title, b = album, etc...)
  *
  * Gets the tag value as string for the matching id
  *
- * Retuns: the tag value as string
+ * Returns: (transfer full): the tag value as string, must be free
  */
 gchar *
 lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 {
-	gint i;
-	gchar *ret = NULL;
-
-	for (i = 0; tag_fmt_table[i].key != 0; i++)
-	{
+	for (guint i = 0; tag_fmt_table[i].key != 0; i++)
 		if (tag_fmt_table[i].key == id)
-		{
-			const gchar *tag_str = lomo_stream_get_tag(self, tag_fmt_table[i].tag);
-			if (tag_str == NULL)
-				return NULL;
-			ret = g_strdup_printf(tag_fmt_table[i].fmt, tag_str);
-			break;
-		}
-	}
-	return ret;
+			return lomo_stream_strdup_tag_value(self, tag_fmt_table[i].tag);
+
+	return NULL;
 }
 
 /*

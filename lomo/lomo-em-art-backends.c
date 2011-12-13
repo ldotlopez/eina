@@ -53,7 +53,7 @@ lomo_em_art_infolder_sync_backend_search(LomoEMArtBackend *backend, LomoEMArtSea
 	}
 
 	LomoStream *stream = lomo_em_art_search_get_stream(search);
-	const gchar *uri = lomo_stream_get_tag(stream, LOMO_TAG_URI);
+	const gchar *uri = lomo_stream_get_uri(stream);
 
 	if (g_str_equal(uri,"file:///nonexistent"))
 	{

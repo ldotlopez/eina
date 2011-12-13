@@ -64,10 +64,13 @@ void         lomo_stream_set_extended_metadata_as_string(LomoStream *self, const
 GValue*      lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key);
 const gchar* lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key);
 
-gchar*       lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
-const gchar* lomo_stream_get_tag      (LomoStream *self, const gchar *tag);
-void         lomo_stream_set_tag      (LomoStream *self, const gchar *tag, gpointer value);
-GList*       lomo_stream_get_tags     (LomoStream *self);
+gchar*       lomo_stream_get_tag_by_id(LomoStream *self, const gchar id);
+
+#define       lomo_stream_get_uri(self) ((const gchar *) g_value_get_string(lomo_stream_get_tag(self, LOMO_TAG_URI)))
+const GValue* lomo_stream_get_tag(LomoStream *self, const gchar *tag);
+void          lomo_stream_set_tag(LomoStream *self, const gchar *tag, const GValue *value);
+GList*        lomo_stream_get_tags(LomoStream *self);
+gchar*        lomo_stream_strdup_tag_value(LomoStream *self, const gchar *tag);
 
 GType   lomo_tag_get_gtype(const gchar *tag);
 

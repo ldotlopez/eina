@@ -942,7 +942,7 @@ format_stream(LomoStream *stream, gchar *fmt)
 		return gel_str_parser(fmt, (GelStrParserFunc) format_stream_cb, stream);
 	else
 	{
-		gchar *unescape_uri = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+		gchar *unescape_uri = g_uri_unescape_string(lomo_stream_get_uri(stream), NULL);
 		gchar *ret = g_path_get_basename(unescape_uri);
 		g_free(unescape_uri);
 		return ret;
@@ -955,7 +955,7 @@ format_stream_cb(gchar key, LomoStream *stream)
 	gchar *tag = lomo_stream_get_tag_by_id(stream, key);
 	if ((tag == NULL) && (key == 't'))
 	{
-		gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+		gchar *tmp = g_path_get_basename(lomo_stream_get_uri(stream));
 		tag = g_uri_unescape_string(tmp, NULL);
 		g_free(tmp);
 	}
