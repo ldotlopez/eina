@@ -1,5 +1,15 @@
 import os, stat, sys, urllib, pyinotify
-from gi.repository import GObject, Lomo, Eina
+from gi.repository import GObject, Lomo, Eina, Gtk
+
+ui_mng_str = """
+<ui>
+  <menubar name='Main' >
+    <menu name='Tools' action='plugins-menu' >
+      <menuitem name='Bulk import' action='bulk-import-action' />
+    </menu>
+  </menubar>
+</ui>
+"""
 
 class Importer:
 	EXTS = "mp3 ogg wav wma".split(" ")
@@ -61,12 +71,43 @@ class ImporterPlugin(GObject.Object, Eina.Activatable):
 		GObject.Object.__init__ (self)
 
 	def do_activate(self, app):
-		self._importer = Importer(app.get_adb())
-		self._importer.scan((GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC),))
+		self._app = app
+
+                self._action = Gtk.Action(name = 'bulk-import-action',
+			label = _(u'Bulk import'),
+			tooltip = _(u"Import lots of file"),
+			stock_id = None)
+                self._action.connect('activate', self._on_action_activate)
+
+		ag = self._app.get_window_action_group()
+                ag.add_action(self._action)
+
+                ui_mng = self._app.get_window_ui_manager()
+                self._ui_merge_id = ui_mng.add_ui_from_string(ui_mng_str)
+                ui_mng.ensure_update()
+
 		return True
 
 	def do_deactivate(self, app):
 		return True
+
+		#self._importer = Importer(app.get_adb())
+		# self._importer.scan((GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC),))
+
+	def _on_action_activate(self, action):
+		dialog = Gtk.FileChooserDialog(title = _(u'Choose the directory to import'),
+			parent = self._app.get_window(),
+			action = Gtk.FileChooserAction.SELECT_FOLDER)
+		dialog.add_button(Gtk.STOCK_OK, 1)
+
+		code = dialog.run()
+		if code == 1:
+			dialog.hide()
+			uri = dialog.get_filename()
+			if uri:
+				importer = Importer(self._app.get_adb())
+				importer.scan((uri,))
+		dialog.destroy()
 
 if __name__ == '__main__':
 	def do_run():
