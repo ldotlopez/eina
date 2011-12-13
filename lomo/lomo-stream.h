@@ -83,6 +83,8 @@ GType   lomo_tag_get_gtype(const gchar *tag);
  * sed -e 's/GST_/LOMO_/g'
  */
 
+
+
 /**
  * LOMO_TAG_INVALID:
  *
@@ -454,6 +456,27 @@ GType   lomo_tag_get_gtype(const gchar *tag);
  */
 #define LOMO_TAG_GEO_LOCATION_LONGITUDE               "geo-location-longitude"
 
+#define LOMO_TAG_GEO_LOCATION_ELEVATION               "geo-location-elevation"
+#define LOMO_TAG_GEO_LOCATION_COUNTRY                 "geo-location-country"
+#define LOMO_TAG_GEO_LOCATION_CITY                    "geo-location-city"
+#define LOMO_TAG_GEO_LOCATION_SUBLOCATION             "geo-location-sublocation"
+#define LOMO_TAG_GEO_LOCATION_HORIZONTAL_ERROR   "geo-location-horizontal-error"
+#define LOMO_TAG_GEO_LOCATION_MOVEMENT_SPEED       "geo-location-movement-speed"
+#define LOMO_TAG_GEO_LOCATION_MOVEMENT_DIRECTION "geo-location-movement-direction"
+#define LOMO_TAG_GEO_LOCATION_CAPTURE_DIRECTION  "geo-location-capture-direction"
+#define LOMO_TAG_SHOW_NAME                         "show-name"
+#define LOMO_TAG_SHOW_SORTNAME                     "show-sortname"
+#define LOMO_TAG_SHOW_EPISODE_NUMBER               "show-episode-number"
+#define LOMO_TAG_SHOW_SEASON_NUMBER                "show-season-number"
+#define LOMO_TAG_LYRICS                            "lyrics"
+#define LOMO_TAG_COMPOSER_SORTNAME                 "composer-sortname"
+#define LOMO_TAG_GROUPING                          "grouping"
+#define LOMO_TAG_USER_RATING                       "user-rating"
+#define LOMO_TAG_DEVICE_MANUFACTURER               "device-manufacturer"
+#define LOMO_TAG_DEVICE_MODEL                      "device-model"
+#define LOMO_TAG_APPLICATION_NAME                  "application-name"
+#define LOMO_TAG_APPLICATION_DATA          "application-data"
+#define LOMO_TAG_IMAGE_ORIENTATION            "image-orientation"
 
 G_END_DECLS
 
