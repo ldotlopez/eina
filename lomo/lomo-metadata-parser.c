@@ -28,6 +28,7 @@
 
 #include <glib/gi18n.h>
 #include <gst/gst.h>
+#include <gel/gel-misc.h>
 #include "lomo-marshallers.h"
 
 G_DEFINE_TYPE (LomoMetadataParser, lomo_metadata_parser, G_TYPE_OBJECT)
