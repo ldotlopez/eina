@@ -1,3 +1,15 @@
+eina-player (0.14.0-ppa0) oneiric; urgency=low
+
+  * Final release of 0.14.0
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Sat, 17 Dec 2011 01:47:22 +0100
+
+eina-player (0.13.92-ppa0) oneiric; urgency=low
+
+  * Release test before 0.14.0
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Fri, 16 Dec 2011 19:55:23 +0100
+
 eina-player (0.13.91-ppa0) oneiric; urgency=low
 
   * New upstream release
