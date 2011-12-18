@@ -326,6 +326,25 @@ PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
 dnl
+dnl clastfm
+dnl
+CLASTFM_VERSION="0.4"
+clastfm_modules="libclastfm >= $CLASTFM_VERSION"
+PKG_CHECK_MODULES(CLASTFM, $clastfm_modules,
+[
+	AC_SUBST(CLASTFM_CFLAGS)
+	AC_SUBST(CLASTFM_LIBS)
+	HAVE_CLASTFM=yes
+	EINA_CFLAGS="$EINA_CFLAGS $CLASTFM_CFLAGS -DHAVE_CLASTFM=1"
+	EINA_LIBS="$EINA_LIBS $CLASTFM_LIBS"
+],
+[
+	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLASTFM=0"
+	HAVE_CLASTFM=no
+])
+AM_CONDITIONAL(USE_CLASTFM, test x"$HAVE_CLASTFM" = "xyes")
+
+dnl
 dnl notify (ntfy)
 dnl
 notify_modules="libnotify >= 0.7.0"
@@ -409,6 +428,7 @@ dnl Conditionals
 dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
 AM_CONDITIONAL(BUILD_CALLHOME, test x"$HAVE_UUID"        = "xyes")
+AM_CONDITIONAL(BUILD_HIPSTER,  test x"$HAVE_CLASTFM"     = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
 AM_CONDITIONAL(BUILD_INDICATE, test x"$HAVE_INDICATE"    = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
@@ -444,6 +464,8 @@ eina/dock/dock.plugin
 eina/dock/Makefile
 eina/fieshta/fieshta.plugin
 eina/fieshta/Makefile
+eina/hipster/hipster.plugin
+eina/hipster/Makefile
 eina/importer/importer.plugin
 eina/importer/Makefile
 eina/lastfm/lastfm.plugin

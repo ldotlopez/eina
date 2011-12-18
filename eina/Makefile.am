@@ -22,6 +22,11 @@ SUBDIRS += \
 	stars
 endif
 
+if BUILD_HIPSTER
+SUBDIRS += \
+	hipster
+endif
+
 if BUILD_CLUTTY
 SUBDIRS += clutty
 endif
