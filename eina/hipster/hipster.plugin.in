@@ -1,7 +1,7 @@
 [Plugin]
 Module=hipster
 IAge=2
-Depends=lomo,preferences
+Depends=lomo;preferences
 Name=Be a hispter
 Description=Deep integration of Last.FM
 Authors=@EINA_AUTHORS@

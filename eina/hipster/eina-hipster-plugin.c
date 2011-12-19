@@ -53,7 +53,7 @@ typedef struct {
 EINA_PLUGIN_REGISTER(EINA_TYPE_CLASTFM_PLUGIN, EinaCLastFMPlugin, eina_clastfm_plugin)
 
 void     clastfm_plugin_save_timestamp   (EinaCLastFMPlugin *self);
-void     clastfm_plugin_submit_stream    (EinaCLastFMPlugin *self);
+gboolean clastfm_plugin_submit_stream    (EinaCLastFMPlugin *self);
 gboolean clastfm_plugin_run_commands     (EinaCLastFMPlugin *self);
 void     clastfm_plugin_push_command     (EinaCLastFMPlugin *self, GVariant *packed_cmd);
 gpointer clastfm_plugin_run_command_real (EinaCLastFMPlugin *self);
@@ -70,6 +70,8 @@ eina_clastfm_plugin_activate (EinaActivatable *plugin, EinaApplication *app, GEr
 	priv->queue = g_queue_new ();
 	priv->queue_mutex = g_mutex_new ();
 	priv->sess_mutex = g_mutex_new ();
+
+	clastfm_plugin_save_timestamp(self);
 
 	priv->lomo = eina_application_get_lomo (app);
 	g_signal_connect_swapped ((GObject *) priv->lomo, "change",     (GCallback) clastfm_plugin_save_timestamp, self);
@@ -147,17 +149,30 @@ eina_clastfm_plugin_deactivate (EinaActivatable *plugin, EinaApplication *app, G
 	return TRUE;
 }
 
+/**
+ * clastfm_plugin_save_timestamp:
+ * @self: An #EinaCLastFMPlugin
+ *
+ * Saves current timestamp into @self
+ */
 void
 clastfm_plugin_save_timestamp (EinaCLastFMPlugin *self)
 {
 	g_return_if_fail (EINA_IS_CLASTFM_PLUGIN(self));
 
 	struct timeval tv;
-    gettimeofday (&tv, NULL);
+	gettimeofday (&tv, NULL);
 
 	self->priv->stamp = (guint64) tv.tv_sec;
 }
 
+/**
+ * clastfm_plugin_schedule_reload:
+ * @self: An #EinaCLastFMPlugin
+ *
+ * Schedules @self to reload settings. If another reques has been request but
+ * hasn't been run it's rescheduled.
+ */
 void
 clastfm_plugin_schedule_reload(EinaCLastFMPlugin *self)
 {
@@ -169,21 +184,31 @@ clastfm_plugin_schedule_reload(EinaCLastFMPlugin *self)
 	priv->reload_timeout_id = g_timeout_add_seconds(5, (GSourceFunc) reload_timeout_cb, self);
 }
 
-void
+/**
+ * clastfm_plugin_submit_stream:
+ * @self: An #EinaCLastFMPlugin
+ *
+ * Submits or not current stream from internal #LomoPlayer if it matches
+ * some conditions
+ *
+ * Returns: Whatever or not stream is submited
+ */
+gboolean
 clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 {
-	g_return_if_fail (EINA_IS_CLASTFM_PLUGIN(self));
-
+	g_return_val_if_fail (EINA_IS_CLASTFM_PLUGIN(self), FALSE);
 	EinaCLastFMPluginPrivate *priv = self->priv;
 
 	LomoStream *stream = lomo_player_get_current_stream (priv->lomo);
+	g_return_val_if_fail(LOMO_IS_STREAM(stream), FALSE);
+
 	gint64 len    = LOMO_NANOSECS_TO_SECS (lomo_player_get_length (priv->lomo));
 	gint64 played = LOMO_NANOSECS_TO_SECS (lomo_player_stats_get_stream_time_played (priv->lomo));
 
 	if ((len < 30) || (played < (len/2)))
 	{
 		debug ("Stream hasn't been played enough");
-		return;
+		return FALSE;
 	}
 
 	GVariant *cmd = g_variant_new ("(sssstt)",
@@ -194,8 +219,18 @@ clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 		(guint64) priv->stamp,
 		(guint64) LOMO_NANOSECS_TO_SECS(lomo_player_get_length (priv->lomo)));
 	clastfm_plugin_push_command (self, cmd);
+	return TRUE;
 }
 
+/**
+ * clastfm_plugin_run_commands:
+ * @self: An #EinaCLastFMPlugin
+ *
+ * Creates an new thread to run the older command pushed in queue.
+ * This function is meant to be runned as a #GSourceFunc
+ *
+ * Returns: %FALSE
+ */
 gboolean
 clastfm_plugin_run_commands (EinaCLastFMPlugin *self)
 {
@@ -203,6 +238,14 @@ clastfm_plugin_run_commands (EinaCLastFMPlugin *self)
 	return FALSE;
 }
 
+/**
+ * clastfm_plugin_push_command:
+ * @self: An #EinaCLastFMPlugin
+ * @packed_cmd: Command packed into a #GVariant
+ *
+ * Pushes @packed_cmd into internal queue of commands. Those commands are
+ * executed in a separated thread.
+ */
 void
 clastfm_plugin_push_command (EinaCLastFMPlugin *self, GVariant *packed_cmd)
 {
@@ -216,6 +259,15 @@ clastfm_plugin_push_command (EinaCLastFMPlugin *self, GVariant *packed_cmd)
 	clastfm_plugin_run_commands (self);
 }
 
+/**
+ * clastfm_plugin_run_command_real:
+ * @self: An #EinaCLastFMPlugin
+ *
+ * Runs the older command in queue. This function is meant to be runned by
+ * g_thread_create()
+ *
+ * Returns: %NULL
+ */
 gpointer
 clastfm_plugin_run_command_real (EinaCLastFMPlugin *self)
 {
@@ -259,7 +311,6 @@ clastfm_plugin_run_command_real (EinaCLastFMPlugin *self)
 		}
 	}
 
-
 	/*
 	 * login
 	 */
@@ -275,8 +326,7 @@ clastfm_plugin_run_command_real (EinaCLastFMPlugin *self)
 		g_mutex_lock (priv->sess_mutex);
 		gint rv = LASTFM_login (priv->s, user, pass);
 		priv->logged = (rv == 0);
-		debug ("Login returned=%d", rv);
-		debug ("      status=%s", LASTFM_status (priv->s));
+		debug ("Login %s, status: '%s'", priv->logged ? "ok" : "fail", LASTFM_status (priv->s));
 		g_mutex_unlock (priv->sess_mutex);
 
 		g_variant_unref (v[0]);
@@ -299,12 +349,12 @@ clastfm_plugin_run_command_real (EinaCLastFMPlugin *self)
 			(char *) g_variant_get_string (v[0], NULL), // title          (char*)
 			(char *) g_variant_get_string (v[1], NULL), // album          (char *)
 			(char *) g_variant_get_string (v[2], NULL), // artist         (char *)
-			g_variant_get_uint64(v[3]),                // start time     (time_t)
-			g_variant_get_uint64(v[4]),                // length in secs (unsigned int)
-			0,                                         // track no       (unsigned int)
-			0,                                         // md ID          (unsigned int)
-			NULL);                                     // result         (LFMList **)
-		debug ("status=%s\n", LASTFM_status (priv->s));
+			g_variant_get_uint64(v[3]),                 // start time     (time_t)
+			g_variant_get_uint64(v[4]),                 // length in secs (unsigned int)
+			0,                                          // track no       (unsigned int)
+			0,                                          // md ID          (unsigned int)
+			NULL);                                      // result         (LFMList **)
+		debug ("status: %s\n", LASTFM_status (priv->s));
 		g_mutex_unlock (priv->sess_mutex);
 
 		for (guint i = 0; i < G_N_ELEMENTS(v); i++)
@@ -350,6 +400,15 @@ clastfm_plugin_run_command_real (EinaCLastFMPlugin *self)
 	return NULL;
 }
 
+/**
+ * reload_timeout_cb: (skip):
+ * @self: An #EinaCLastFMPlugin
+ *
+ * Reloads settings from #GSettings. This function is meant to be runned as a
+ * #GSourceFunc
+ *
+ * Returns: %FALSE
+ */
 gboolean
 reload_timeout_cb(EinaCLastFMPlugin *self)
 {
