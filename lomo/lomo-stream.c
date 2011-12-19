@@ -48,7 +48,8 @@ struct _LomoStreamPrivate {
 
 enum {
 	PROP_0,
-	PROP_URI
+	PROP_URI,
+	PROP_LENGTH
 };
 
 enum {
@@ -71,6 +72,9 @@ lomo_stream_get_property(GObject *object, guint property_id, GValue *value, GPar
 	{
 	case PROP_URI:
 		g_value_set_static_string(value, lomo_stream_get_uri(self));
+		break;
+	case PROP_LENGTH:
+		g_value_set_int64(value, lomo_stream_get_length(self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -126,6 +130,10 @@ lomo_stream_class_init (LomoStreamClass *klass)
 	g_object_class_install_property(object_class, PROP_URI,
 		g_param_spec_string("uri", "uri", "uri",
 			NULL,  G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property(object_class, PROP_LENGTH,
+		g_param_spec_int64("length", "length", "length",
+			-1, G_MAXINT64, -1,  G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * LomoStream::extended-metadata-updated:
@@ -188,6 +196,8 @@ stream_set_uri(LomoStream *self, const gchar *uri)
 	g_value_set_static_string(g_value_init(&v, G_TYPE_STRING), uri);
 	lomo_stream_set_tag(self, "uri", &v);
 	g_value_reset(&v);
+
+	g_object_notify(G_OBJECT(self), "uri");
 }
 
 /**
@@ -485,6 +495,45 @@ lomo_stream_get_tag_by_id(LomoStream *self, gchar id)
 			return lomo_stream_strdup_tag_value(self, tag_fmt_table[i].tag);
 
 	return NULL;
+}
+
+/**
+ * lomo_stream_get_length:
+ * self: A #LomoStream
+ *
+ * Gets the lenght or duration of @self in nanoseconds
+ *
+ * Returns: The length of stream or -1 if undefined
+ */
+gint64
+lomo_stream_get_length(LomoStream *self)
+{
+	g_return_val_if_fail(LOMO_IS_STREAM(self), -1);
+	gpointer p = g_object_get_data(G_OBJECT(self), "length");
+	if (p)
+		return *((gint64*) p);
+	else
+		return -1;
+}
+
+/**
+ * lomo_stream_set_length:
+ * @self: A #LomoStream
+ * @length: private
+ *
+ * This function is private. Don't use it unless you know what are you doing
+ */
+void
+lomo_stream_set_length(LomoStream *self, gint64 length)
+{
+	g_return_if_fail(LOMO_IS_STREAM(self));
+	g_return_if_fail(length >= 0);
+
+	gint64 *v = g_new0(gint64, 1);
+	*v = length;
+	g_object_set_data_full(G_OBJECT(self), "length", v, g_free);
+
+	g_object_notify(G_OBJECT(self), "length");
 }
 
 /*

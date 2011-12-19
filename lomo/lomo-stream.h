@@ -72,6 +72,11 @@ void          lomo_stream_set_tag(LomoStream *self, const gchar *tag, const GVal
 GList*        lomo_stream_get_tags(LomoStream *self);
 gchar*        lomo_stream_strdup_tag_value(LomoStream *self, const gchar *tag);
 
+gint64 lomo_stream_get_length(LomoStream *self);
+#if (defined LOMO_COMPILATION) || (defined LIBLOMO_USE_PRIVATE_API)
+void   lomo_stream_set_length(LomoStream *self, gint64 length);
+#endif
+
 GType   lomo_tag_get_gtype(const gchar *tag);
 
 /*

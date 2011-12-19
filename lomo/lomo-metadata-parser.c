@@ -268,6 +268,9 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 	GstState old, new, pending;
 	GstTagList *tags = NULL;
 
+	GstFormat duration_format = GST_FORMAT_TIME;
+	gint64 duration = -1;
+
 	// Handle some messages
 	switch (GST_MESSAGE_TYPE(message))
 	{
@@ -319,12 +322,30 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 	 * 4. Check if more streams are in queue and start again
 	 */
 disconnect:
+
+	// Set duration on LomoStream
+	if (gst_element_query_duration(priv->pipeline, &duration_format, &duration))
+	{
+		if (duration_format != GST_FORMAT_TIME)
+		{
+			g_warn_if_fail(duration_format == GST_FORMAT_TIME);
+			duration = -1;
+		}
+		lomo_stream_set_length(priv->stream, duration);
+	}
+	else
+		g_warning("Unable to query duration");
+
 	gst_element_set_state(priv->pipeline, GST_STATE_NULL);
 
+	// Final emission for URI, not sure why
 	g_signal_emit(self, lomo_metadata_parser_signals[TAG], 0,  priv->stream, LOMO_TAG_URI);
 
+	// Emission for all-tags signal on LomoMetadataParser
+	// XXX: Stream should also emit all-tags
 	lomo_stream_set_all_tags_flag(priv->stream, TRUE);
 	g_signal_emit(self, lomo_metadata_parser_signals[ALL_TAGS], 0, priv->stream);
+
 	g_object_unref(priv->stream);
 
 	// If there are more streams to parse schudele ourselves
