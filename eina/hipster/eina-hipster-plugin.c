@@ -192,6 +192,13 @@ clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 	return TRUE;
 }
 
+void
+login_cb(gpointer data)
+{
+	g_debug("Login was finished. I'm in thread %p . Data:%d", g_thread_self(), GPOINTER_TO_INT(data));
+}
+
+
 /**
  * reload_timeout_cb: (skip):
  * @self: An #EinaCLastFMPlugin
@@ -217,6 +224,7 @@ reload_timeout_cb(EinaCLastFMPlugin *self)
 
 	else
 	{
+		g_debug("Login has begin. I'm in thread %p", g_thread_self());
 		LastFMThreadMethodCall
 			dinit = { .method_name = "dinit" },
 			init  = { .method_name = "init", .api_key = API_KEY, .api_secret = API_SECRET },
@@ -225,7 +233,7 @@ reload_timeout_cb(EinaCLastFMPlugin *self)
 				.password = g_settings_get_string(priv->settings,  CLASTFM_PASSWORD_KEY) };
 		lastfm_thread_call(priv->th, &dinit);
 		lastfm_thread_call(priv->th, &init);
-		lastfm_thread_call(priv->th, &login);
+		lastfm_thread_call_full(priv->th, &login, (GCallback) login_cb, GINT_TO_POINTER(42), NULL);
 	}
 
 	return FALSE;

@@ -32,12 +32,15 @@ lastfm_thread_dispose (GObject *object)
 	LastFMThread *self = LASTFM_THREAD(object);
 	LastFMThreadPrivate *priv = self->priv;
 
+	g_mutex_lock(priv->queue_mutex);
 	if (!g_queue_is_empty(priv->queue))
 	{
 		g_mutex_lock(priv->queue_mutex);
-		// Destroy packed cmd
-		// g_queue_foreach(...)
-		g_queue_clear(priv->queue);
+
+		g_queue_foreach(priv->queue, (GFunc) thread_call_destroy, NULL);
+		g_queue_free(priv->queue);
+		priv->queue = NULL;
+
 		g_mutex_unlock(priv->queue_mutex);
 
 		GMutex *m = priv->queue_mutex; // not sure why I'm doing this, but sounds good
@@ -111,6 +114,22 @@ lastfm_thread_call_full (LastFMThread *self, const LastFMThreadMethodCall *call,
 	g_mutex_unlock(priv->subthread_mutex);
 }
 
+typedef void(*callback_t)(gpointer user_data);
+
+gboolean
+callback_wrapper(ThreadFuncData *tdata)
+{
+	if (tdata->callback)
+	{
+		callback_t f = (callback_t) tdata->callback;
+		f(tdata->user_data);
+		if (tdata->notify)
+			tdata->notify(tdata->user_data);
+	}
+	thread_call_destroy(tdata);
+	return FALSE;
+}
+
 gpointer
 _lastfm_thread_worker(LastFMThread *self)
 {
@@ -124,6 +143,8 @@ _lastfm_thread_worker(LastFMThread *self)
 		g_mutex_unlock(priv->queue_mutex);
 
 		LastFMThreadMethodCall *call = tdata->call;
+
+		gboolean know_cmd = TRUE;
 
 		if (g_str_equal("init", call->method_name))
 		{
@@ -185,8 +206,12 @@ _lastfm_thread_worker(LastFMThread *self)
 		else
 		{
 			g_debug("Unknow method called: %s", tdata->call->method_name);
+			know_cmd = FALSE;
 		}
-		thread_call_destroy(tdata);
+		if ((know_cmd && FALSE) || tdata->callback)
+			g_idle_add((GSourceFunc) callback_wrapper, tdata);
+
+		// thread_call_destroy(tdata);
 	}
 	g_mutex_unlock(priv->queue_mutex);
 
