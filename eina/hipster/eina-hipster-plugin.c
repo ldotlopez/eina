@@ -10,6 +10,7 @@
 #include <eina/preferences/eina-preferences-plugin.h>
 #include <glib/gstdio.h>
 #include <clastfm.h>
+#include "lastfm-thread.h"
 
 #define DEBUG 1
 #define DEBUG_PREFIX "EinaCLastFMPlugin "
@@ -48,9 +49,24 @@ typedef struct {
 	gboolean  logged;
 	guint64   stamp;
 
+
+	LastFMThread *th;
 } EinaCLastFMPluginPrivate;
 
 EINA_PLUGIN_REGISTER(EINA_TYPE_CLASTFM_PLUGIN, EinaCLastFMPlugin, eina_clastfm_plugin)
+
+typedef struct {
+	EinaCLastFMPlugin *self;
+	const gchar *method;
+	void (*callback)(EinaCLastFMPlugin *self, int code, const gchar *status);
+	gchar *user, *pass;
+
+	LomoStream *stream;
+	gchar *artist, *album, *title;
+
+	time_t start_time;
+	guint   length;
+} EinaCLastFMAPICommand;
 
 void     clastfm_plugin_save_timestamp   (EinaCLastFMPlugin *self);
 gboolean clastfm_plugin_submit_stream    (EinaCLastFMPlugin *self);
@@ -77,6 +93,8 @@ eina_clastfm_plugin_activate (EinaActivatable *plugin, EinaApplication *app, GEr
 	g_signal_connect_swapped ((GObject *) priv->lomo, "change",     (GCallback) clastfm_plugin_save_timestamp, self);
 	g_signal_connect_swapped ((GObject *) priv->lomo, "eos",        (GCallback) clastfm_plugin_submit_stream,  self);
 	g_signal_connect_swapped ((GObject *) priv->lomo, "pre-change", (GCallback) clastfm_plugin_submit_stream,  self);
+
+	priv->th = lastfm_thread_new();
 
 	gchar *datadir = peas_extension_base_get_data_dir (PEAS_EXTENSION_BASE(plugin));
 	gchar *prefs_ui_path = g_build_filename (datadir, "preferences.ui", NULL);
@@ -202,6 +220,16 @@ clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 	LomoStream *stream = lomo_player_get_current_stream (priv->lomo);
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), FALSE);
 
+	LastFMThreadMethodCall call = { .method_name = "track_scrobble",
+		.title  = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "title")),
+		.album  = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "album")),
+		.artist = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "artist")),
+		.start_stamp = (guint64) priv->stamp,
+		.length = (guint64) LOMO_NANOSECS_TO_SECS(lomo_player_get_length (priv->lomo)) };
+
+	lastfm_thread_call(priv->th, &call);
+	return FALSE;
+
 	gint64 len    = LOMO_NANOSECS_TO_SECS (lomo_player_get_length (priv->lomo));
 	gint64 played = LOMO_NANOSECS_TO_SECS (lomo_player_stats_get_stream_time_played (priv->lomo));
 
@@ -211,6 +239,7 @@ clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 		return FALSE;
 	}
 
+	return FALSE;
 	GVariant *cmd = g_variant_new ("(sssstt)",
 		"track_scrobble",
 		g_value_get_string (lomo_stream_get_tag (stream, "title")),
@@ -419,17 +448,30 @@ reload_timeout_cb(EinaCLastFMPlugin *self)
 	gboolean enabled = g_settings_get_boolean(priv->settings, CLASTFM_SUBMIT_ENABLED_KEY);
 	if (!enabled)
 	{
-		clastfm_plugin_push_command(self, g_variant_new("(s)", "dinit"));
+		// clastfm_plugin_push_command(self, g_variant_new("(s)", "dinit"));
+		LastFMThreadMethodCall dinit = { .method_name = "dinit" };
+		lastfm_thread_call(priv->th, &dinit);
 	}
 
 	else
 	{
+		/*
 		gchar *d[2] = {
 			g_settings_get_string(priv->settings,  CLASTFM_USERNAME_KEY),
 			g_settings_get_string(priv->settings,  CLASTFM_PASSWORD_KEY)
 		};
 		clastfm_plugin_push_command(self, g_variant_new("(s)", "dinit"));
 		clastfm_plugin_push_command(self, g_variant_new("(sss)", "login", d[0], d[1]));
+		*/
+		LastFMThreadMethodCall
+			dinit = { .method_name = "dinit" },
+			init  = { .method_name = "init", .api_key = API_KEY, .api_secret = API_SECRET },
+			login = { .method_name = "login",
+				.username = g_settings_get_string(priv->settings,  CLASTFM_USERNAME_KEY),
+				.password = g_settings_get_string(priv->settings,  CLASTFM_PASSWORD_KEY) };
+		lastfm_thread_call(priv->th, &dinit);
+		lastfm_thread_call(priv->th, &init);
+		lastfm_thread_call(priv->th, &login);
 	}
 
 	return FALSE;
