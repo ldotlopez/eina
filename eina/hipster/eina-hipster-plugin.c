@@ -35,46 +35,22 @@
 #define CLASTFM_PASSWORD_KEY       "password"
 
 typedef struct {
-
 	LomoPlayer *lomo;
 	GSettings *settings;
-
-	LASTFM_SESSION *s;
-	GQueue   *queue;
-	GMutex   *queue_mutex, *sess_mutex;
+	time_t stamp;
 
 	EinaPreferencesTab *prefs_tab;
 
 	guint     reload_timeout_id;
-	gboolean  logged;
-	guint64   stamp;
-
 
 	LastFMThread *th;
 } EinaCLastFMPluginPrivate;
 
 EINA_PLUGIN_REGISTER(EINA_TYPE_CLASTFM_PLUGIN, EinaCLastFMPlugin, eina_clastfm_plugin)
 
-typedef struct {
-	EinaCLastFMPlugin *self;
-	const gchar *method;
-	void (*callback)(EinaCLastFMPlugin *self, int code, const gchar *status);
-	gchar *user, *pass;
-
-	LomoStream *stream;
-	gchar *artist, *album, *title;
-
-	time_t start_time;
-	guint   length;
-} EinaCLastFMAPICommand;
-
 void     clastfm_plugin_save_timestamp   (EinaCLastFMPlugin *self);
 gboolean clastfm_plugin_submit_stream    (EinaCLastFMPlugin *self);
-gboolean clastfm_plugin_run_commands     (EinaCLastFMPlugin *self);
-void     clastfm_plugin_push_command     (EinaCLastFMPlugin *self, GVariant *packed_cmd);
-gpointer clastfm_plugin_run_command_real (EinaCLastFMPlugin *self);
 void     clastfm_plugin_schedule_reload  (EinaCLastFMPlugin *self);
-
 gboolean reload_timeout_cb(EinaCLastFMPlugin *self);
 
 gboolean
@@ -82,10 +58,6 @@ eina_clastfm_plugin_activate (EinaActivatable *plugin, EinaApplication *app, GEr
 {
 	EinaCLastFMPlugin *self = EINA_CLASTFM_PLUGIN(plugin);
 	EinaCLastFMPluginPrivate *priv = self->priv;
-
-	priv->queue = g_queue_new ();
-	priv->queue_mutex = g_mutex_new ();
-	priv->sess_mutex = g_mutex_new ();
 
 	clastfm_plugin_save_timestamp(self);
 
@@ -135,34 +107,14 @@ eina_clastfm_plugin_deactivate (EinaActivatable *plugin, EinaApplication *app, G
 	EinaCLastFMPluginPrivate *priv = self->priv;
 
 	// Remove UI
-	eina_application_remove_preferences_tab(app, priv->prefs_tab);
 	if (priv->reload_timeout_id > 0)
 	{
 		g_source_remove(priv->reload_timeout_id);
 		priv->reload_timeout_id = 0;
 	}
+	eina_application_remove_preferences_tab(app, priv->prefs_tab);
 
-	// Clear cmds queue
-	g_mutex_lock(priv->queue_mutex);
-	if (priv->queue)
-	{
-		g_queue_foreach (priv->queue, (GFunc) g_variant_unref, NULL);
-		g_queue_free (priv->queue);
-		priv->queue = NULL;
-	}
-	g_mutex_unlock(priv->queue_mutex);
-
-	// Destroy session
-	g_mutex_lock   (priv->sess_mutex);
-	LASTFM_dinit   (priv->s);
-	g_mutex_unlock (priv->sess_mutex);
-
-	// Free resources
-	gel_free_and_invalidate (priv->queue_mutex, NULL, g_mutex_free);
-	gel_free_and_invalidate (priv->sess_mutex, NULL, g_mutex_free);
-
-	priv->logged = FALSE;
-	priv->stamp  = 0;
+	gel_object_free_and_invalidate(priv->th);
 
 	return TRUE;
 }
@@ -181,7 +133,7 @@ clastfm_plugin_save_timestamp (EinaCLastFMPlugin *self)
 	struct timeval tv;
 	gettimeofday (&tv, NULL);
 
-	self->priv->stamp = (guint64) tv.tv_sec;
+	self->priv->stamp = tv.tv_sec;
 }
 
 /**
@@ -220,16 +172,6 @@ clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 	LomoStream *stream = lomo_player_get_current_stream (priv->lomo);
 	g_return_val_if_fail(LOMO_IS_STREAM(stream), FALSE);
 
-	LastFMThreadMethodCall call = { .method_name = "track_scrobble",
-		.title  = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "title")),
-		.album  = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "album")),
-		.artist = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "artist")),
-		.start_stamp = (guint64) priv->stamp,
-		.length = (guint64) LOMO_NANOSECS_TO_SECS(lomo_player_get_length (priv->lomo)) };
-
-	lastfm_thread_call(priv->th, &call);
-	return FALSE;
-
 	gint64 len    = LOMO_NANOSECS_TO_SECS (lomo_player_get_length (priv->lomo));
 	gint64 played = LOMO_NANOSECS_TO_SECS (lomo_player_stats_get_stream_time_played (priv->lomo));
 
@@ -239,194 +181,15 @@ clastfm_plugin_submit_stream (EinaCLastFMPlugin *self)
 		return FALSE;
 	}
 
-	return FALSE;
-	GVariant *cmd = g_variant_new ("(sssstt)",
-		"track_scrobble",
-		g_value_get_string (lomo_stream_get_tag (stream, "title")),
-		g_value_get_string (lomo_stream_get_tag (stream, "album")),
-		g_value_get_string (lomo_stream_get_tag (stream, "artist")),
-		(guint64) priv->stamp,
-		(guint64) LOMO_NANOSECS_TO_SECS(lomo_player_get_length (priv->lomo)));
-	clastfm_plugin_push_command (self, cmd);
+	LastFMThreadMethodCall call = { .method_name = "track_scrobble",
+		.title  = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "title")),
+		.album  = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "album")),
+		.artist = (gchar *) g_value_get_string (lomo_stream_get_tag (stream, "artist")),
+		.start_stamp = (guint64) priv->stamp,
+		.length = (guint64) LOMO_NANOSECS_TO_SECS(lomo_player_get_length (priv->lomo)) };
+
+	lastfm_thread_call(priv->th, &call);
 	return TRUE;
-}
-
-/**
- * clastfm_plugin_run_commands:
- * @self: An #EinaCLastFMPlugin
- *
- * Creates an new thread to run the older command pushed in queue.
- * This function is meant to be runned as a #GSourceFunc
- *
- * Returns: %FALSE
- */
-gboolean
-clastfm_plugin_run_commands (EinaCLastFMPlugin *self)
-{
-	g_thread_create ((GThreadFunc) clastfm_plugin_run_command_real, self, FALSE, NULL);
-	return FALSE;
-}
-
-/**
- * clastfm_plugin_push_command:
- * @self: An #EinaCLastFMPlugin
- * @packed_cmd: Command packed into a #GVariant
- *
- * Pushes @packed_cmd into internal queue of commands. Those commands are
- * executed in a separated thread.
- */
-void
-clastfm_plugin_push_command (EinaCLastFMPlugin *self, GVariant *packed_cmd)
-{
-	g_return_if_fail (EINA_IS_CLASTFM_PLUGIN(self));
-	EinaCLastFMPluginPrivate *priv = self->priv;
-
-	g_mutex_lock      (priv->queue_mutex);
-	g_queue_push_tail (priv->queue, packed_cmd);
-	g_mutex_unlock    (priv->queue_mutex);
-
-	clastfm_plugin_run_commands (self);
-}
-
-/**
- * clastfm_plugin_run_command_real:
- * @self: An #EinaCLastFMPlugin
- *
- * Runs the older command in queue. This function is meant to be runned by
- * g_thread_create()
- *
- * Returns: %NULL
- */
-gpointer
-clastfm_plugin_run_command_real (EinaCLastFMPlugin *self)
-{
-	g_return_val_if_fail (EINA_IS_CLASTFM_PLUGIN(self), FALSE);
-	EinaCLastFMPluginPrivate *priv = self->priv;
-
-	if (!g_mutex_trylock (priv->queue_mutex))
-	{
-		g_timeout_add (500, (GSourceFunc) clastfm_plugin_run_commands, self);
-		g_thread_exit (0);
-		return NULL;
-	}
-	GVariant *packed_cmd = g_queue_pop_head (priv->queue);
-	g_mutex_unlock (priv->queue_mutex);
-
-	GVariant *cmd_ = g_variant_get_child_value (packed_cmd, 0);
-	const gchar *cmd = g_variant_get_string (cmd_, NULL);
-
-	debug("Run command %s", cmd);
-
-	/* All commands but dinit and login need a valid session and loggedin */
-	if (!(g_str_equal("dinit", cmd) || g_str_equal("login", cmd)))
-		g_return_val_if_fail(priv->s && priv->logged, NULL);
-
-	// Auto create LASTFM session
-	if (!priv->s)
-	{
-		g_mutex_lock (priv->sess_mutex);
-		priv->s = LASTFM_init(API_KEY, API_SECRET);
-		g_mutex_unlock (priv->sess_mutex);
-	}
-
-	if (g_str_equal("dinit", cmd))
-	{
-		if (priv->s)
-		{
-			g_mutex_lock (priv->sess_mutex);
-			LASTFM_dinit(priv->s);
-			priv->s = NULL;
-			g_mutex_unlock (priv->sess_mutex);
-		}
-	}
-
-	/*
-	 * login
-	 */
-	else if (g_str_equal ("login", cmd))
-	{
-		GVariant *v[2] = {
-			g_variant_get_child_value (packed_cmd, 1),
-			g_variant_get_child_value (packed_cmd, 2)
-		};
-		const gchar *user = g_variant_get_string (v[0], NULL);
-		const gchar *pass = g_variant_get_string (v[1], NULL);
-
-		g_mutex_lock (priv->sess_mutex);
-		gint rv = LASTFM_login (priv->s, user, pass);
-		priv->logged = (rv == 0);
-		debug ("Login %s, status: '%s'", priv->logged ? "ok" : "fail", LASTFM_status (priv->s));
-		g_mutex_unlock (priv->sess_mutex);
-
-		g_variant_unref (v[0]);
-		g_variant_unref (v[1]);
-	}
-
-	/*
-	 * scrobble
-	 */
-	else if (g_str_equal ("track_scrobble", cmd))
-	{
-		g_return_val_if_fail (priv->logged, NULL);
-
-		GVariant *v[5] = { NULL };
-		for (guint i = 0; i < G_N_ELEMENTS(v); i++)
-			v[i] = g_variant_get_child_value (packed_cmd, i+1);
-
- 		g_mutex_lock (priv->sess_mutex);
-		LASTFM_track_scrobble (priv->s,       // session
-			(char *) g_variant_get_string (v[0], NULL), // title          (char*)
-			(char *) g_variant_get_string (v[1], NULL), // album          (char *)
-			(char *) g_variant_get_string (v[2], NULL), // artist         (char *)
-			g_variant_get_uint64(v[3]),                 // start time     (time_t)
-			g_variant_get_uint64(v[4]),                 // length in secs (unsigned int)
-			0,                                          // track no       (unsigned int)
-			0,                                          // md ID          (unsigned int)
-			NULL);                                      // result         (LFMList **)
-		debug ("status: %s\n", LASTFM_status (priv->s));
-		g_mutex_unlock (priv->sess_mutex);
-
-		for (guint i = 0; i < G_N_ELEMENTS(v); i++)
-			g_variant_unref (v[i]);
-	}
-
-	/*
-	 * album_get_info
-	 */
-	else if (g_str_equal ("-album_get_info", cmd))
-	{
-		GVariant *v[2] = {
-			g_variant_get_child_value (packed_cmd, 1),
-			g_variant_get_child_value (packed_cmd, 2)
-		};
-		const gchar *artist = g_variant_get_string (v[0], NULL);
-		const gchar *album  = g_variant_get_string (v[1], NULL);
-
-		g_warn_if_fail (artist && album);
-		if (artist && album)
-		{
-			g_mutex_lock (priv->sess_mutex);
-			LASTFM_ALBUM_INFO *album_info = LASTFM_album_get_info (priv->s, artist, album);
-			g_mutex_unlock (priv->sess_mutex);
-			LASTFM_print_album_info (stdout,album_info);
-			LASTFM_free_album_info (album_info);
-		}
-
-		g_variant_unref (v[0]);
-		g_variant_unref (v[1]);
-	}
-
-	else
-	{
-		g_warning ("Unknow cmd %s", cmd);
-	}
-
-	g_variant_unref (cmd_);
-
-	g_mutex_unlock (priv->queue_mutex);
-	g_thread_exit (0);
-
-	return NULL;
 }
 
 /**
@@ -448,21 +211,12 @@ reload_timeout_cb(EinaCLastFMPlugin *self)
 	gboolean enabled = g_settings_get_boolean(priv->settings, CLASTFM_SUBMIT_ENABLED_KEY);
 	if (!enabled)
 	{
-		// clastfm_plugin_push_command(self, g_variant_new("(s)", "dinit"));
 		LastFMThreadMethodCall dinit = { .method_name = "dinit" };
 		lastfm_thread_call(priv->th, &dinit);
 	}
 
 	else
 	{
-		/*
-		gchar *d[2] = {
-			g_settings_get_string(priv->settings,  CLASTFM_USERNAME_KEY),
-			g_settings_get_string(priv->settings,  CLASTFM_PASSWORD_KEY)
-		};
-		clastfm_plugin_push_command(self, g_variant_new("(s)", "dinit"));
-		clastfm_plugin_push_command(self, g_variant_new("(sss)", "login", d[0], d[1]));
-		*/
 		LastFMThreadMethodCall
 			dinit = { .method_name = "dinit" },
 			init  = { .method_name = "init", .api_key = API_KEY, .api_secret = API_SECRET },
@@ -476,5 +230,4 @@ reload_timeout_cb(EinaCLastFMPlugin *self)
 
 	return FALSE;
 }
-
 

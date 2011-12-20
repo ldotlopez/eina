@@ -80,30 +80,6 @@ lastfm_thread_init (LastFMThread *self)
 	priv->queue = g_queue_new();
 }
 
-static void
-_ensure_session(LastFMThread *self)
-{
-	return;
-	g_return_if_fail(LASTFM_IS_THREAD(self));
-	LastFMThreadPrivate *priv = self->priv;
-	if (!priv->sess)
-	{
-		gchar *api_key, *api_secret;
-		g_object_get((GObject *) self,
-			"api-key", &api_key,
-			"api-secret", &api_secret,
-			NULL);
-		g_return_if_fail(api_key && api_secret);
-
-		g_mutex_lock(priv->sess_mutex);
-		priv->sess = LASTFM_init(api_key, api_secret);
-		g_debug("init with %s:%s", api_key, api_secret);
-		g_mutex_unlock(priv->sess_mutex);
-
-		g_return_if_fail(priv->sess);
-	}	
-}
-
 LastFMThread*
 lastfm_thread_new (void)
 {
@@ -123,7 +99,6 @@ lastfm_thread_call_full (LastFMThread *self, const LastFMThreadMethodCall *call,
 	g_return_if_fail (LASTFM_IS_THREAD (self));
 	LastFMThreadPrivate *priv = self->priv;
 
-	_ensure_session(self);
 	ThreadFuncData *packed_call = thread_data_create(self, call, callback, user_data, notify);
 
 	g_mutex_lock      (priv->queue_mutex);
@@ -164,6 +139,17 @@ _lastfm_thread_worker(LastFMThread *self)
 				g_mutex_unlock(priv->sess_mutex);
 
 			}
+		}
+
+		else if (g_str_equal("dinit", call->method_name))
+		{
+			g_mutex_lock(priv->sess_mutex);
+			if (priv->sess)
+			{
+				LASTFM_dinit(priv->sess);
+				priv->sess = NULL;
+			}
+			g_mutex_unlock(priv->sess_mutex);
 		}
 
 		else if (g_str_equal("login", call->method_name))
