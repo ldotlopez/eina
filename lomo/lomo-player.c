@@ -2561,7 +2561,7 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 			return;
 		}
 
-	g_warning(_("Unhanded notify::%s"), pspec->name);
+	// g_warning(_("Unhanded notify::%s"), pspec->name);
 }
 
 #endif

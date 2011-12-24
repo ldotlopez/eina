@@ -118,7 +118,7 @@ lomo_stats_dispose (GObject *object)
 	g_warn_if_fail(LOMO_IS_PLAYER(priv->player));
 	if (priv->player)
 	{
-		debug("Stop collecting from %p", self->player);
+		debug("Stop collecting from %p", priv->player);
 
 		for (guint i = 0; i < G_N_ELEMENTS(__signal_table); i++)
 			g_signal_handlers_disconnect_by_func(priv->player, __signal_table[i].handler, self);
@@ -228,7 +228,7 @@ stats_set_checkpoint(LomoStats *self, gint64 check_point, gboolean add)
 	if (add)
 		priv->played += (check_point - priv->check_point);
 	priv->check_point = check_point;
-	debug("Currently %"G_GINT64_FORMAT" secs have been played", LOMO_NANOSECS_TO_SECS(self->played));
+	debug("Currently %"G_GINT64_FORMAT" secs have been played", LOMO_NANOSECS_TO_SECS(priv->played));
 }
 
 static void

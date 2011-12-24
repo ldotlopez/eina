@@ -62,7 +62,10 @@ class StarsPlugin(GObject.Object, Eina.Activatable):
 		self.dock_widget.show_all()
 
 		dock = app.get_dock()
-		self.dock_tab = dock.add_widget("stars", self.dock_widget, None, 0)
+		self.dock_tab = dock.add_widget("stars",
+			self.dock_widget,
+			Gtk.Image.new_from_icon_name("emblem-favorite", Gtk.IconSize.MENU),
+			0)
 
 		# Actions
 		self.dock_widget.connect('action-activate-with-amount', self.dock_action_activate_with_mount_cb)

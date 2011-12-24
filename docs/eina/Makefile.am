@@ -82,6 +82,7 @@ expand_content_files=
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 GTKDOC_CFLAGS= \
+	-Wl,--no-as-needed \
 	@EINA_CFLAGS@
 
 #if BUILD_ADB
