@@ -1,4 +1,9 @@
+usr/include/gel-2.0
+usr/include/lomo-2.0
 usr/include/eina-player-0.14
+usr/lib/pkgconfig/gel-2.0.pc
+usr/lib/pkgconfig/gel-ui-2.0.pc
+usr/lib/pkgconfig/lomo-2.0.pc
 usr/lib/pkgconfig/eina-player-0.14.pc
 usr/lib/libgel-ui-2.0.a
 usr/lib/libgel-2.0.a
