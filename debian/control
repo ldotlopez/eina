@@ -1,8 +1,7 @@
 Source: eina-player
 Section: sound
 Priority: extra
-Maintainer: Ubuntu MOTU Developers <ubuntu-motu@lists.ubuntu.com>
-XSBC-Original-Maintainer: Luis Lopez <luis@cuarentaydos.com>
+Maintainer: Luis Lopez <luis@cuarentaydos.com>
 Build-Depends: debhelper (>= 7.0.50~), quilt, autotools-dev, intltool, libtool, pkg-config, python2.7, libgstreamer0.10-dev, gobject-introspection (>= 1.30), libpeas-dev (>= 1.0), libgtk-3-dev, gtk-doc-tools, libsqlite3-dev, libclutter-gtk-1.0-dev, libnotify4-dev | libnotify-dev, libindicate-dev
 Standards-Version: 3.8.3
 
@@ -18,7 +17,7 @@ Description: Music player based on gtk+-3.0 and gstreamer
 Package: eina-player-dev
 Section: devel
 Architecture: any
-Depends: ${shlibs:Depends}, eina (= ${source:Version}), libgtk-3-dev, libgstreamer0.10-dev (>= 0.10.0), libsqlite3-dev
+Depends: ${shlibs:Depends}, eina-player (= ${source:Version}), libgtk-3-dev, libgstreamer0.10-dev (>= 0.10.0), libsqlite3-dev
 Suggests: eina-player-doc
 Description: Music player based on gtk+-3.0 and gstreamer - Development files
  This package contains the headers and other development files not included in
@@ -31,25 +30,3 @@ Depends: lynx | www-browser
 Description: Music player based on gtk+-3.0 and gstreamer - Documentation
  Eina is a classic player for the modern era. It features a small screen
  footprint, network capabilites and extensible functionality through plugins.
-
-Package: eina
-Section: sound
-Architecture: any
-Depends: eina-player
-Description: Dummy package for eina -> eina-player
- Dummy package for eina -> eina-player
-
-Package: eina-dev
-Section: devel
-Architecture: any
-Depends: eina-player-dev
-Description: Dummy package for eina-dev -> eina-player-dev
- Dummy package for eina-dev -> eina-player-dev
-
-Package: eina-doc
-Section: doc
-Architecture: any
-Depends: eina-player-doc
-Description: Dummy package for eina -> eina-player-doc
- Dummy package for eina-doc -> eina-player-doc
-
