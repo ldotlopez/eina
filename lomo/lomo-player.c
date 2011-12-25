@@ -1269,9 +1269,12 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	}
 
 	// Check queue stuff
-	gint queue_index = lomo_player_queue_get_stream_index(self, stream);
-	if (queue_index >= 0)
-		lomo_player_dequeue(self, queue_index);
+	if (stream)
+	{
+		gint queue_index = lomo_player_queue_get_stream_index(self, stream);
+		if (queue_index >= 0)
+			lomo_player_dequeue(self, queue_index);
+	}
 
 	debug("Everything ok, fire notifies");
 	LomoState lomo_state = LOMO_STATE_STOP;
@@ -2547,9 +2550,12 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		g_object_notify((GObject *) self, "can-go-next");
 
 		LomoStream *stream = lomo_player_get_current_stream(self);
-		gint queue_idx = lomo_player_queue_get_stream_index(self, stream);
-		if (queue_idx >= 0)
-			lomo_player_dequeue(self, queue_idx);
+		if (stream)
+		{
+			gint queue_idx = lomo_player_queue_get_stream_index(self, stream);
+			if (queue_idx >= 0)
+				lomo_player_dequeue(self, queue_idx);
+		}
 
 		return;
 	}
