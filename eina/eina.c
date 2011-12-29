@@ -134,7 +134,7 @@ initialize_peas_engine(gboolean from_source)
 	{
 		const gchar *libdir = NULL;
 
-		if ((libdir = gel_get_package_lib_dir()) != NULL);
+		if ((libdir = gel_get_package_lib_dir()) != NULL)
 			peas_engine_add_search_path(engine, gel_get_package_lib_dir(), gel_get_package_lib_dir());
 
 		if ((libdir = g_getenv("EINA_LIB_PATH")) != NULL)
