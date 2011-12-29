@@ -20,14 +20,13 @@
 #ifndef __EINA_LOMO_PLUGIN_H__
 #define __EINA_LOMO_PLUGIN_H__
 
-#include <lomo/lomo-player.h>
-#include <lomo/lomo-util.h>
+#include <lomo/lomo.h>
 #include <eina/ext/eina-application.h>
 
 G_BEGIN_DECLS
 
 /**
- * SECTION: eina-lomo-plugin 
+ * SECTION: eina-lomo-plugin
  * @short_description: The lomo plugin
  *
  * #EinaLomoPlugin provides the interface to liblomo in Eina

@@ -33,8 +33,8 @@
  * LomoEMArtSearch *_search;
  *
  * void callback(LomoEMArtSearch *search) {
- *   const gchar *art_uri = lomo_em_art_search_get_result(search);
- *   [do something with art_uri]
+ *   const GValue *art_data = lomo_em_art_search_get_result(search);
+ *   [do something with art_data]
  * 	 *_search = NULL;
  * }
  *

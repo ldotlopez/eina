@@ -23,6 +23,7 @@
 #define __LOMO_H__
 
 #include <lomo/lomo-player.h>
+#include <lomo/lomo-em-art-provider.h>
 #include <lomo/lomo-util.h>
 
 #endif /* __LOMO_H__ */

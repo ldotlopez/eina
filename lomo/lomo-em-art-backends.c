@@ -16,8 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#define DEBUG 0
+#define DEBUX_PREFIX "LomoEmArtBackends"
+
+#if DEBUG
+#	define debug(...) g_debug(DEBUX_PREFIX __VA_ARGS__)
+#else
+#	define debug(...) ;
+#endif
+
 #include "lomo-em-art-backends.h"
 #include <glib/gi18n.h>
+#include <gio/gio.h>
+#include <gst/gst.h>
 #include <gel/gel.h>
 
 // --
@@ -107,7 +119,12 @@ lomo_em_art_infolder_sync_backend_search(LomoEMArtBackend *backend, LomoEMArtSea
 		gchar *cover_pathname = g_build_filename(dirname, winner, NULL);
 		gchar *cover_uri = g_filename_to_uri(cover_pathname, NULL, NULL);
 		if (cover_uri)
-			lomo_em_art_search_set_result(search, cover_uri);
+		{
+			GValue v = { 0 };
+			g_value_set_static_string(g_value_init(&v, G_TYPE_STRING), cover_uri);
+			lomo_em_art_search_set_result(search, &v);
+			g_value_reset(&v);
+		}
 		g_free(cover_pathname);
 		g_free(cover_uri);
 	}
@@ -115,6 +132,46 @@ lomo_em_art_infolder_sync_backend_search(LomoEMArtBackend *backend, LomoEMArtSea
 	// Free used data
 	gel_list_deep_free(children, g_free);
 	g_free(dirname);
+
+	lomo_em_art_backend_finish(backend, search);
+}
+
+void
+lomo_em_art_embeded_metadata_backend_search(LomoEMArtBackend *backend, LomoEMArtSearch *search, gpointer data)
+{
+	LomoStream *stream = lomo_em_art_search_get_stream(search);
+
+	debug("Stream %p all-tags: %s", stream, lomo_stream_get_all_tags_flag(stream) ? "yes" : "no");
+
+	const GValue *v = lomo_stream_get_tag(stream, "image");
+	if (!v)
+	{
+		lomo_em_art_backend_finish(backend, search);
+		return;
+	}
+
+    GstBuffer *buffer  = GST_BUFFER(gst_value_get_buffer (v));
+	GstCaps *caps = GST_BUFFER_CAPS(buffer);
+
+	guint n_structs = gst_caps_get_size(caps);
+	for (guint i = 0; i < n_structs; i++)
+	{
+		GstStructure *s = gst_caps_get_structure(caps, i);
+		debug("Struct #%d: %s", i, gst_structure_get_name(s));
+
+		if (!g_str_has_prefix(gst_structure_get_name(s), "image/"))
+			continue;
+
+		GInputStream *stream = g_memory_input_stream_new_from_data (g_memdup(buffer->data, buffer->size), buffer->size, g_free);
+
+		GValue v = { 0 };
+		g_value_init(&v, G_TYPE_INPUT_STREAM);
+		g_value_take_object(&v, stream);
+		lomo_em_art_search_set_result(search, &v);
+		g_value_reset(&v);
+
+		break;
+	}
 
 	lomo_em_art_backend_finish(backend, search);
 }

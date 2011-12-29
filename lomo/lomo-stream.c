@@ -169,7 +169,7 @@ lomo_stream_init (LomoStream *self)
  * @uri: An uri to create a #LomoStream from.
  *
  * Create a new #LomoStream from an uri
- * 
+ *
  * Returns: A new #LomoStream
  */
 LomoStream*
@@ -242,7 +242,7 @@ lomo_stream_strdup_tag_value(LomoStream *self, const gchar *tag)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 	g_return_val_if_fail(tag, NULL);
-	
+
 	const GValue *v = lomo_stream_get_tag(self, tag);
 	if (!v)
 		return NULL;
@@ -304,14 +304,14 @@ lomo_stream_set_tag(LomoStream *self, const gchar *tag, const GValue *value)
 
 	LomoStreamPrivate *priv = self->priv;
 
-	GValue *v2 = g_value_init(g_new0(GValue, 1), G_VALUE_TYPE(value));
-	g_value_copy(value, v2);
+	GValue *v = g_value_init(g_new0(GValue, 1), G_VALUE_TYPE(value));
+	g_value_copy(value, v);
 
-	g_object_set_data_full((GObject *) self, tag, v2, (GDestroyNotify) destroy_gvalue);
+	g_object_set_data_full((GObject *) self, tag, v, (GDestroyNotify) destroy_gvalue);
 
 	GList *link = g_list_find_custom(priv->tags, tag, (GCompareFunc) strcmp);
 
-	// Add tag to tag list 
+	// Add tag to tag list
 	if ((value != NULL) && (link == NULL))
 		priv->tags = g_list_prepend(priv->tags, g_strdup(tag));
 
@@ -403,25 +403,29 @@ lomo_stream_get_failed_flag(LomoStream *self)
  * lomo_stream_set_extended_metadata:
  * @self: A #LomoStream
  * @key: (transfer none): Key
- * @value: (transfer full): Value to store
+ * @value: (transfer none): Value to store
  *
  * Adds (or replaces) the value for the extended metadata for key
  */
 void
-lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *value)
+lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, const GValue *value)
 {
 	g_return_if_fail(LOMO_IS_STREAM(self));
 	g_return_if_fail(key != NULL);
 	g_return_if_fail(G_IS_VALUE(value));
 
 	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
-	g_object_set_data_full(G_OBJECT(self), k, value, (GDestroyNotify) destroy_gvalue);
+
+	GValue *v = g_new0(GValue, 1);
+	g_value_copy(value, g_value_init(v, G_VALUE_TYPE(value)));
+	g_object_set_data_full(G_OBJECT(self), k, v, (GDestroyNotify) destroy_gvalue);
 	g_free(k);
 
 	g_signal_emit(self, lomo_stream_signals[SIGNAL_EXTENDED_METADATA_UPDATED], 0, key);
 }
+
 /**
- * lomo_stream_set_extended_metadata:
+ * lomo_stream_set_extended_metadata_as_string:
  * @self: A #LomoStream
  * @key: (transfer none): Key
  * @value: (transfer none): Value to store
@@ -436,8 +440,9 @@ lomo_stream_set_extended_metadata_as_string(LomoStream *self, const gchar *key, 
 	g_return_if_fail(value);
 
 	GValue *v = g_new0(GValue, 1);
-	g_value_set_string(g_value_init(v, G_TYPE_STRING), value);
+	g_value_set_static_string(g_value_init(v, G_TYPE_STRING), value);
 	lomo_stream_set_extended_metadata(self, key, v);
+	g_free(v);
 }
 
 /**
@@ -449,13 +454,13 @@ lomo_stream_set_extended_metadata_as_string(LomoStream *self, const gchar *key, 
  *
  * Returns: (transfer none): The value associated with the key
  */
-GValue *
+const GValue *
 lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key)
 {
 	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
 
 	gchar *k = g_strconcat("x-lomo-extended-metadata-", key, NULL);
-	GValue *ret = g_object_get_data(G_OBJECT(self), k);
+	const GValue *ret = (const GValue *) g_object_get_data(G_OBJECT(self), k);
 	g_free(k);
 
 	return ret;
@@ -474,7 +479,10 @@ lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key)
 const gchar *
 lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key)
 {
-	GValue *v = lomo_stream_get_extended_metadata(self, key);
+	g_return_val_if_fail(LOMO_IS_STREAM(self), NULL);
+	g_return_val_if_fail(key != NULL, NULL);
+
+	const GValue *v = lomo_stream_get_extended_metadata(self, key);
 	return (v && G_VALUE_HOLDS_STRING(v) ? g_value_get_string(v) : NULL);
 }
 
@@ -547,7 +555,7 @@ lomo_stream_set_length(LomoStream *self, gint64 length)
 GType
 lomo_tag_get_gtype(const gchar *tag)
 {
-	if (g_str_equal(tag, "uri")) 
+	if (g_str_equal(tag, "uri"))
 		return G_TYPE_STRING;
 	return gst_tag_get_type(tag);
 }
@@ -558,7 +566,7 @@ destroy_gvalue(GValue *value)
 	if (value != NULL)
 	{
 		g_return_if_fail(G_IS_VALUE(value));
-		g_value_unset(value);
+		g_value_reset(value);
 		g_free(value);
 	}
 }

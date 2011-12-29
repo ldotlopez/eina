@@ -21,6 +21,7 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 #include <gel/gel.h>
+#include <gel/gel-ui.h>
 
 G_DEFINE_TYPE (EinaCover, eina_cover, GTK_TYPE_GRID)
 
@@ -39,8 +40,6 @@ struct _EinaCoverPrivate {
 	GtkWidget  *renderer;  // <Renderer
 	GdkPixbuf  *default_pb;
 
-	gchar *current_uri;
-
 	gboolean has_cover;
 
 	LomoStream *stream;
@@ -54,7 +53,7 @@ enum {
 };
 
 static void
-cover_set(EinaCover *self, const gchar *uri);
+cover_set(EinaCover *self, const GValue *value);
 static void
 lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self);
 static void
@@ -107,7 +106,6 @@ eina_cover_dispose (GObject *object)
 	}
 
 	gel_object_free_and_invalidate(priv->default_pb);
-	gel_str_free_and_invalidate(priv->current_uri);
 
 	G_OBJECT_CLASS (eina_cover_parent_class)->dispose (object);
 }
@@ -331,57 +329,29 @@ eina_cover_set_default_pixbuf(EinaCover *self, GdkPixbuf *pixbuf)
 }
 
 static void
-cover_set(EinaCover *self, const gchar *uri)
+cover_set(EinaCover *self, const GValue *value)
 {
 	g_return_if_fail(EINA_IS_COVER(self));
 	EinaCoverPrivate *priv = self->priv;
 
 	priv->has_cover = FALSE;
-	if (uri == NULL)
+	if (value == NULL)
 	{
-		gel_str_free_and_invalidate(priv->current_uri);
 		g_object_set((GObject *) priv->renderer, "cover", priv->default_pb, NULL);
 		return;
 	}
-	else
-	{
-		if (priv->current_uri && g_str_equal(priv->current_uri, uri))
-			return;
-		gel_str_free_and_invalidate(priv->current_uri);
 
-		GFile *f = g_file_new_for_uri(uri);
-		GError *error = NULL;
-		GInputStream *input = G_INPUT_STREAM(g_file_read(f, NULL, &error));
-		if (error)
-		{
-			g_warning("Unable to read uri '%s': '%s", uri, error->message);
-			g_error_free(error);
-			g_object_unref(f);
-			return;
-		}
-		g_object_unref(f);
-
-		GdkPixbuf *pb = gdk_pixbuf_new_from_stream(input, NULL, &error);
-		if (error)
-		{
-			g_warning("Unable to load cover from uri '%s': '%s", uri, error->message);
-			g_error_free(error);
-			g_object_unref(input);
-			return;
-		}
-		g_object_unref(input);
-		priv->current_uri = g_strdup(uri);
-		g_object_set((GObject *) priv->renderer, "cover", pb, NULL);
+	GdkPixbuf *pb = gel_ui_pixbuf_from_value(value);
+	g_object_set((GObject *) priv->renderer, "cover", pb ? pb : priv->default_pb, NULL);
+	if (pb)
 		g_object_unref(pb);
-		priv->has_cover = TRUE;
-	}
 }
 
 static void
 stream_em_updated(LomoStream *stream, const gchar *key, EinaCover *self)
 {
-	if (g_str_equal(key, "art-uri"))
-		cover_set(self, lomo_stream_get_extended_metadata_as_string(stream, key));
+	if (g_str_equal(key, LOMO_STREAM_EM_ART_DATA))
+		cover_set(self, lomo_stream_get_extended_metadata(stream, key));
 }
 
 static void
@@ -409,9 +379,10 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaCover *self)
 		return;
 	}
 
-	const gchar *art_uri = lomo_stream_get_extended_metadata_as_string(priv->stream, "art-uri");
-	if (art_uri)
-		cover_set(self, art_uri);
+	const GValue *art_data = lomo_stream_get_extended_metadata(priv->stream, LOMO_STREAM_EM_ART_DATA);
+	if (art_data)
+		cover_set(self, art_data);
+
 	priv->stream_em_handler = g_signal_connect(priv->stream, "extended-metadata-updated", (GCallback) stream_em_updated, self);
 }
 

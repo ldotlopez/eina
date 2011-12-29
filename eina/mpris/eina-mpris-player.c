@@ -419,7 +419,7 @@ set_application(EinaMprisPlayer *self, EinaApplication *app)
 {
 	g_return_if_fail(EINA_IS_MPRIS_PLAYER(self));
 	g_return_if_fail(EINA_IS_APPLICATION(app));
-	
+
 	g_return_if_fail(self->priv->app == NULL);
 
 	self->priv->app = g_object_ref(app);
@@ -732,7 +732,7 @@ player_method_call_cb(GDBusConnection *connection,
 		lomo_player_go_next(lomo, NULL);
 		return;
 	}
-	
+
 	else if (g_str_equal("Previous", method_name))
 	{
 		lomo_player_go_previous(lomo, NULL);
@@ -813,9 +813,12 @@ build_metadata_variant_loop_next:
 		l = l->next;
 	}
 	gel_list_deep_free(taglist, g_free);
-	g_variant_builder_add(builder, "{sv}",
-		"mpris:artUrl",
-		g_variant_new_string(lomo_stream_get_extended_metadata_as_string(stream, "art-uri")));
+
+	const GValue *art_value = lomo_stream_get_extended_metadata(stream, LOMO_STREAM_EM_ART_DATA);
+	if (art_value && G_VALUE_HOLDS_STRING(art_value))
+		g_variant_builder_add(builder, "{sv}",
+			"mpris:artUrl",
+			g_variant_new_string(g_value_get_string(art_value)));
 
 	GVariant *ret = g_variant_builder_end(builder);
 	g_variant_builder_unref(builder);
@@ -956,7 +959,7 @@ player_set_property_cb (GDBusConnection *connection,
 	EinaMprisPlayer *self)
 {
 	// g_warning("%s.%s", interface_name, property_name);
-	
+
 	const gchar *props[] = { "LoopStatus", "Rate", "Shuffle", "Volume" };
 	for (guint i = 0; i < G_N_ELEMENTS(props); i++)
 		if (g_str_equal(props[i], property_name))

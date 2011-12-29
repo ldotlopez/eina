@@ -285,7 +285,7 @@ stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaMuine *self)
 	g_return_if_fail(key);
 	g_return_if_fail(LOMO_IS_STREAM(stream));
 
-	if (g_str_equal(key, "art-uri"))
+	if (g_str_equal(key, LOMO_STREAM_EM_ART_DATA))
 	{
 		muine_update_icon(self, stream);
 	}
@@ -466,10 +466,10 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	EinaMuinePrivate *priv = self->priv;
 
 	// Check URI != loading-uri
-	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata_as_string(stream, "art-uri");
-	g_return_if_fail(uri);
+	const GValue *art_value = lomo_stream_get_extended_metadata(stream, LOMO_STREAM_EM_ART_DATA);
+	g_return_if_fail(art_value);
 
-	if (g_str_equal(uri, loading_cover_uri))
+	if (lomo_em_art_provider_value_is_loading(art_value))
 		return;
 
 	// Check for matching iter
@@ -477,19 +477,9 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	g_return_if_fail(iter);
 
 	// Load pixbuf
-	GFile        *f = NULL;
-	GInputStream *is = NULL;
-	GdkPixbuf    *pb = NULL;
-	if (!(f = g_file_new_for_uri(uri)) ||
-	    !(is = G_INPUT_STREAM(g_file_read(f, NULL, NULL))) ||
-		!(pb = gdk_pixbuf_new_from_stream(is, NULL, NULL)))
-	{
-		g_warning(_("Unable to load artwork from '%s'"), uri);
-		gel_free_and_invalidate(is, NULL, g_object_unref);
-		gel_free_and_invalidate(f,  NULL, g_object_unref);
-	}
-	gel_free_and_invalidate(is, NULL, g_object_unref);
-	gel_free_and_invalidate(f,  NULL, g_object_unref);
+	GdkPixbuf *pb = gel_ui_pixbuf_from_value(art_value);
+	g_return_if_fail(GDK_IS_PIXBUF(pb));
+
 	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pb, DEFAULT_SIZE, DEFAULT_SIZE, GDK_INTERP_NEAREST);
 	g_object_unref(pb);
 
@@ -497,6 +487,7 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	gtk_list_store_set(muine_get_model(self), iter,
 		COMBO_COLUMN_ICON, scaled,
 		-1);
+	g_object_unref(scaled);
 }
 
 static GList *
