@@ -53,10 +53,13 @@
               <object class="GtkAlignment" id="alignment2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="yalign">0.30000001192092896</property>
+                <property name="yalign">0.25</property>
                 <property name="xscale">0</property>
                 <property name="yscale">0</property>
                 <property name="top_padding">12</property>
+                <property name="bottom_padding">48</property>
+                <property name="left_padding">12</property>
+                <property name="right_padding">12</property>
                 <child>
                   <object class="GtkVBox" id="vbox1">
                     <property name="visible">True</property>
