@@ -4,7 +4,7 @@
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #define DEBUG_PREFIX "LomoEMArtProvider"
 #if DEBUG
 #	define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)
@@ -75,9 +75,10 @@ lomo_em_art_provider_init (LomoEMArtProvider *self)
 	lomo_em_art_class_add_backend(art_class, "embeded",
 		lomo_em_art_embeded_metadata_backend_search, NULL,
 		NULL, NULL);
+/*
 	lomo_em_art_class_add_backend(art_class, "infolder",
 		lomo_em_art_infolder_sync_backend_search, NULL,
-		NULL, NULL);
+		NULL, NULL); */
 }
 
 LomoEMArtProvider*
