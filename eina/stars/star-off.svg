@@ -40,11 +40,11 @@
    fit-margin-left="0"
    fit-margin-right="0"
    fit-margin-bottom="0"
-   inkscape:zoom="0.5"
-   inkscape:cx="-316.29185"
-   inkscape:cy="155.0625"
-   inkscape:window-x="547"
-   inkscape:window-y="124"
+   inkscape:zoom="1.90625"
+   inkscape:cx="128"
+   inkscape:cy="128"
+   inkscape:window-x="156"
+   inkscape:window-y="63"
    inkscape:window-maximized="0"
    inkscape:current-layer="Layer_1"
    inkscape:showpageshadow="false" />
@@ -78,7 +78,7 @@
    cx="666.52728"
    cy="302.66019"
    r="51.559799"
-   gradientTransform="matrix(0.68492509,0,0,-0.68493151,-326.89609,334.96438)"
+   gradientTransform="matrix(0.34246255,0,0,-0.34246576,-99.448045,231.48219)"
    gradientUnits="userSpaceOnUse">
 	<stop
    offset="0"
@@ -91,8 +91,8 @@
 </radialGradient>
 <path
    stroke-miterlimit="10"
-   d="m 163.31507,128 c 0,19.50272 -15.82929,35.31507 -35.31474,35.31507 -19.51968,0 -35.315401,-15.81235 -35.315401,-35.31507 0,-19.50274 15.795721,-35.31507 35.315401,-35.31507 19.48545,-7e-4 35.31474,15.81163 35.31474,35.31507 z"
+   d="m 145.65753,128 c 0,9.75136 -7.91464,17.65753 -17.65737,17.65753 -9.75984,0 -17.6577,-7.90617 -17.6577,-17.65753 0,-9.75137 7.89786,-17.65754 17.6577,-17.65754 9.74273,-3.5e-4 17.65737,7.90582 17.65737,17.65754 z"
    id="path19"
    inkscape:connector-curvature="0"
-   style="fill:url(#SVGID_2_);stroke:#ffffff;stroke-width:1.3698566;stroke-miterlimit:10" />
+   style="fill:url(#SVGID_2_);stroke:#ffffff;stroke-width:0.6849283;stroke-miterlimit:10" />
 </svg>

@@ -19,9 +19,8 @@
 
 #define DEBUG 0
 #define DEBUX_PREFIX "LomoEmArtBackends"
-
 #if DEBUG
-#	define debug(...) g_debug(DEBUX_PREFIX __VA_ARGS__)
+#	define debug(...) g_debug(DEBUX_PREFIX" " __VA_ARGS__)
 #else
 #	define debug(...) ;
 #endif
@@ -144,13 +143,15 @@ lomo_em_art_embeded_metadata_backend_search(LomoEMArtBackend *backend, LomoEMArt
 	debug("Stream %p all-tags: %s", stream, lomo_stream_get_all_tags_flag(stream) ? "yes" : "no");
 
 	const GValue *v = lomo_stream_get_tag(stream, "image");
+	if (!v) 
+		v = lomo_stream_get_tag(stream, "preview-image");
 	if (!v)
 	{
 		lomo_em_art_backend_finish(backend, search);
 		return;
 	}
 
-    GstBuffer *buffer  = GST_BUFFER(gst_value_get_buffer (v));
+	GstBuffer *buffer  = GST_BUFFER(gst_value_get_buffer (v));
 	GstCaps *caps = GST_BUFFER_CAPS(buffer);
 
 	guint n_structs = gst_caps_get_size(caps);

@@ -49,7 +49,6 @@ class StarsPlugin(GObject.Object, Eina.Activatable):
 		self.stars = widgets.Stars(
 			hexpand = False,
 			xalign = 0.0,
-			on_image = os.path.join(p, "star-on.svg"),
 			off_image = os.path.join(p, "star-off.svg"))
 		self.stars.connect('notify::n-stars', self.stars_notify_n_stars_cb)
 		self.stars.show_all()
