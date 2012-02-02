@@ -72,11 +72,11 @@ lomo_em_art_provider_init (LomoEMArtProvider *self)
 
 	LomoEMArtClass *art_class = LOMO_EM_ART_CLASS(G_OBJECT_GET_CLASS(self->priv->art));
 
-	lomo_em_art_class_add_backend(art_class, "embeded",
-		lomo_em_art_embeded_metadata_backend_search, NULL,
-		NULL, NULL);
 	lomo_em_art_class_add_backend(art_class, "infolder",
 		lomo_em_art_infolder_sync_backend_search, NULL,
+		NULL, NULL);
+	lomo_em_art_class_add_backend(art_class, "embeded",
+		lomo_em_art_embeded_metadata_backend_search, NULL,
 		NULL, NULL);
 }
 
