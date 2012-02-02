@@ -4,7 +4,7 @@
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG_PREFIX "LomoEMArtProvider"
 #if DEBUG
 #	define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)

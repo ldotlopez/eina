@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GelUI
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio, GObject, GelUI
 import os
 
 class Stars(Gtk.AspectFrame):
@@ -46,9 +46,9 @@ class Stars(Gtk.AspectFrame):
 	# Allow zero
 	allow_zero = GObject.property (nick='allow-zero', type = bool, default = True)
 
-	# Filename for the "active" star
-	on_image  = GObject.property (nick='on-image',  type = str,
-		default = os.path.join(os.path.dirname(__file__), "star-on.svg"),
+	# Icon name for the "active" star
+	on_icon_name = GObject.property (nick='on-icon-name',  type = str,
+		default = "emblem-favorite",
 		flags = GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT_ONLY)
 
 	# Filename for the "inactive" star
@@ -86,7 +86,7 @@ class Stars(Gtk.AspectFrame):
 			return
 
 		for i in xrange(0, self.n_stars):
-			self._imgs[i].set_from_pixbuf(self._pb_on)
+			self._imgs[i].set_from_icon_name(self.on_icon_name, Gtk.IconSize.SMALL_TOOLBAR)
 
 		for i in xrange(self.n_stars, self.max_stars):
 			self._imgs[i].set_from_pixbuf(self._pb_off)
@@ -101,9 +101,7 @@ class Stars(Gtk.AspectFrame):
 		else:
 			w = -1
 
-		self._pb_on  = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.on_image,  w , h, True)
 		self._pb_off = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.off_image, w , h, True)
-
 		self._draw_stars()
 
 	def __click_cb(self, w, ev):

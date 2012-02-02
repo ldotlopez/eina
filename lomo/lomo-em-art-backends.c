@@ -17,9 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUX_PREFIX "LomoEmArtBackends"
-
 #if DEBUG
 #	define debug(...) g_debug(DEBUX_PREFIX" " __VA_ARGS__)
 #else
