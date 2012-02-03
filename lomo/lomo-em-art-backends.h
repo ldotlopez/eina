@@ -22,7 +22,9 @@
 
 #include <lomo/lomo-em-art-backend.h>
 
-void
-lomo_em_art_infolder_sync_backend_search(LomoEMArtBackend *backend, LomoEMArtSearch *search, gpointer data);
+void lomo_em_art_infolder_sync_backend_search(LomoEMArtBackend *backend,
+	LomoEMArtSearch *search, gpointer data);
+void lomo_em_art_embeded_metadata_backend_search(LomoEMArtBackend *backend,
+	LomoEMArtSearch *search, gpointer data);
 
 #endif /* __LOMO_EM_ART_BACKENDS_H__ */

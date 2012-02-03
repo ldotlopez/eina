@@ -153,6 +153,13 @@ eina_player_new (void)
 		NULL));
 	EinaPlayerPrivate *priv = self->priv;
 
+	g_object_set(gel_ui_generic_get_object(self, "stream-title-label"),
+		"width-chars", 10,
+		NULL);
+	g_object_set(gel_ui_generic_get_object(self, "stream-artist-label"),
+		"width-chars", 10,
+		NULL);
+
 	// Seek widget
 	g_object_set(priv->seek = eina_seek_new(),
 		"current-label",   gel_ui_generic_get_typed(self, GTK_LABEL, "time-current-label"),
@@ -196,8 +203,16 @@ eina_player_new (void)
 	return GTK_WIDGET(self);
 }
 
-static LomoPlayer *
-player_get_lomo_player(EinaPlayer *self)
+/**
+ * eina_player_get_lomo_player:
+ * @self: An #EinaPlayer
+ *
+ * Returns the associated #LomoPlayer
+ *
+ * Returns: (transfer none): the #LomoPlayer
+ */
+LomoPlayer *
+eina_player_get_lomo_player(EinaPlayer *self)
 {
 	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
 	return self->priv->lomo;
@@ -318,11 +333,34 @@ eina_player_set_default_pixbuf(EinaPlayer *self, GdkPixbuf *pixbuf)
 	g_object_notify(G_OBJECT(self), "default-pixbuf");
 }
 
+/**
+ * eina_player_get_cover_widget:
+ * @self: An #EinaPlayer
+ *
+ * Returns the associated #EinaCover
+ *
+ * Returns: (transfer none): the #EinaCover
+ */
 EinaCover *
 eina_player_get_cover_widget(EinaPlayer *self)
 {
 	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
 	return self->priv->cover;
+}
+
+/**
+ * eina_player_get_plugins_area:
+ * @self: An #EinaPlayer
+ *
+ * Gets the content area (a GtkHBox for now) avaliable for place widgets from plugins
+ *
+ * Returns: (transfer none): The content area
+ */
+GtkWidget *
+eina_player_get_plugins_area(EinaPlayer *self)
+{
+	g_return_val_if_fail(EINA_IS_PLAYER(self), NULL);
+	return gel_ui_generic_get_widget(GEL_UI_GENERIC(self), "plugins-content-area");
 }
 
 static void
@@ -340,12 +378,14 @@ player_update_information(EinaPlayer *self)
 	// Build text for labels
 	if (stream)
 	{
-		line1 = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
-		line2 = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+		const GValue *title_v  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+		const GValue *artist_v = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
+		line1 = title_v  ? g_value_get_string(title_v)  : NULL;
+		line2 = artist_v ? g_value_get_string(artist_v) : NULL;
 
 		if (line1 == NULL)
 		{
-			gchar *uri_unescaped = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+			gchar *uri_unescaped = g_uri_unescape_string(lomo_stream_get_uri(stream), NULL);
 			fallback = g_path_get_basename(uri_unescaped);
 			g_free(uri_unescaped);
 		}
@@ -366,11 +406,16 @@ player_update_information(EinaPlayer *self)
 		{ "stream-title-label",  NULL },
 		{ "stream-artist-label", NULL }
 	};
-	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>",
-		g_markup_escape_text(line1 ? line1 : fallback, -1));
-	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>",
-		g_markup_escape_text(line2, -1));
-	gel_free_and_invalidate(fallback, NULL, g_free);
+
+	gchar *tmp = g_markup_escape_text(fallback ? fallback : line1, -1);
+	markups[0].markup = g_strdup_printf("<span size=\"x-large\" weight=\"bold\">%s</span>", tmp);
+	g_free(tmp);
+
+	tmp = g_markup_escape_text(line2, -1);
+	markups[1].markup = g_strdup_printf("<span size=\"x-large\" weight=\"normal\">%s</span>", tmp);
+	g_free(tmp);
+
+	gel_str_free_and_invalidate(fallback);
 
 	for (guint i = 0; i < G_N_ELEMENTS(markups); i++)
 	{
@@ -408,32 +453,6 @@ lomo_all_tags_cb(LomoPlayer *lomo, LomoStream *stream, EinaPlayer *self)
 	if (stream == lomo_player_get_current_stream(lomo))
 		player_update_information(self);
 }
-/*
-static gchar *
-stream_info_parser_cb(gchar key, LomoStream *stream)
-{
-	gchar *ret = NULL;
-	gchar *tag_str = lomo_stream_get_tag_by_id(stream, key);
-
-	if (tag_str != NULL)
-	{
-		ret = g_markup_escape_text(tag_str, -1);
-		g_free(tag_str);
-	}
-
-	if ((key == 't') && (ret == NULL))
-	{
-		const gchar *uri     = lomo_stream_get_tag(stream, LOMO_TAG_URI);
-		gchar *uri_unescaped = g_uri_unescape_string(uri, NULL);
-		gchar *basename      = g_path_get_basename(uri_unescaped);
-		ret  = g_markup_escape_text(basename, -1);
-
-		g_free(uri_unescaped);
-		g_free(basename);
-	}
-	return ret;
-}
-*/
 
 static void
 action_activated_cb(GtkAction *action, EinaPlayer *self)
@@ -447,7 +466,7 @@ action_activated_cb(GtkAction *action, EinaPlayer *self)
 	const gchar *name = gtk_action_get_name(action);
 	g_return_if_fail(name != NULL);
 
-	LomoPlayer  *lomo = player_get_lomo_player(self);
+	LomoPlayer  *lomo = eina_player_get_lomo_player(self);
 	g_return_if_fail(LOMO_IS_PLAYER(lomo));
 
 	GError *error = NULL;

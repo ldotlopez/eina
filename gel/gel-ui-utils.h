@@ -35,7 +35,7 @@ GelUIImageDef;
 
 enum {
 	GEL_UI_ERROR_NO_ERROR = 0,
-    GEL_UI_ERROR_RESOURCE_NOT_FOUND 
+    GEL_UI_ERROR_RESOURCE_NOT_FOUND
 };
 
 #ifdef GEL_UI_COMPILATION
@@ -68,6 +68,11 @@ gel_ui_load_image_from_def(GtkBuilder *ui, GelUIImageDef *def, GError **error);
 
 gboolean
 gel_ui_load_image_from_def_multiple(GtkBuilder *ui, GelUIImageDef defs[], guint *count);
+
+GdkPixbuf *gel_ui_pixbuf_from_uri    (const gchar *uri);
+GdkPixbuf *gel_ui_pixbuf_from_file   (const GFile *file);
+GdkPixbuf *gel_ui_pixbuf_from_stream (const GInputStream *stream);
+GdkPixbuf *gel_ui_pixbuf_from_value  (const GValue *value);
 
 /*
  * Widget utils

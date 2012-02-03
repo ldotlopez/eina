@@ -33,8 +33,8 @@
  * LomoEMArtSearch *_search;
  *
  * void callback(LomoEMArtSearch *search) {
- *   const gchar *art_uri = lomo_em_art_search_get_result(search);
- *   [do something with art_uri]
+ *   const GValue *art_data = lomo_em_art_search_get_result(search);
+ *   [do something with art_data]
  * 	 *_search = NULL;
  * }
  *
@@ -112,10 +112,10 @@ lomo_em_art_new (void)
  * lomo_em_art_class_add_backend:
  * @art_class: An #LomoEMArtClass
  * @name: An (unique) name for the backend
- * @search: Search function
- * @cancel: Cancel function
- * @notify: Notify function
- * @data: User data
+ * @search: (scope call) (closure data): Search function
+ * @cancel: (scope call) (closure data): Cancel function
+ * @notify: (scope notified): Notify function
+ * @data: (closure): User data
  *
  * Adds a new backend to #LomoEMArtClass, see lomo_em_art_backend_new() for details.
  * Note that this function adds backend to the class instead of the instance.
@@ -212,8 +212,8 @@ lomo_em_art_class_try_next_backend(LomoEMArtClass *art_class, LomoEMArtSearch *s
  * lomo_em_art_search:
  * @art: An #LomoEMArt
  * @stream: #LomoStream
- * @callback: Function to be called after search is finished
- * @data: User data for @callback
+ * @callback: (scope call) (closure data): Function to be called after search is finished
+ * @data: (closure): User data for @callback
  *
  * Search art data for @stream. @callback will be called after the search is
  * finished, @callback must NOT free any resource from #LomoEMArt or related

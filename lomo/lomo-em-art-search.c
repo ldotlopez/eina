@@ -50,7 +50,7 @@ struct _LomoEMArtSearchPrivate {
 
 	gpointer bpointer;
 
-	gchar *result;
+	GValue *result;
 };
 
 static void lomo_em_art_search_weak_notify_cb(LomoEMArtSearch *search, GObject *old)
@@ -105,6 +105,7 @@ lomo_em_art_search_dispose (GObject *object)
 
 	if (priv->result)
 	{
+		g_value_reset(priv->result);
 		g_free(priv->result);
 		priv->result = NULL;
 	}
@@ -120,7 +121,7 @@ lomo_em_art_search_get_property (GObject *object, guint property_id, GValue *val
 	switch (property_id)
 	{
 	case PROP_RESULT:
-		g_value_set_string(value, lomo_em_art_search_get_result(self));
+		g_value_set_pointer(value, (gpointer) lomo_em_art_search_get_result(self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -145,8 +146,7 @@ lomo_em_art_search_class_init (LomoEMArtSearchClass *klass)
 	 * property is %NULL this means that search has been failed.
 	 */
 	g_object_class_install_property(object_class, PROP_RESULT,
-		g_param_spec_string("result", "result", "result",
-		NULL, G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
+		g_param_spec_pointer("result", "result", "result", G_PARAM_READABLE|G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -158,8 +158,8 @@ lomo_em_art_search_init (LomoEMArtSearch *self)
  * lomo_em_art_search_new:
  * @domain: Domain of the search
  * @stream: #LomoStream relative to the search
- * @callback: Function to be called after search is finished
- * @callback_data: Data to pass to @callback
+ * @callback: (scope call) (closure callback_data):Function to be called after search is finished
+ * @callback_data: (closure): Data to pass to @callback
  *
  * Creates (but not initiates) a new art search. This function is not mean to
  * be used directly but #LomoEMArt.
@@ -256,17 +256,17 @@ lomo_em_art_search_get_bpointer(LomoEMArtSearch *search)
 /**
  * lomo_em_art_search_set_result:
  * @search: The #LomoEMArtSearch
- * @result: URI for art data
+ * @result: (transfer none): Result
  *
  * Stores result into @search.
  * This functions is meant to by used by #LomoEMArtBackend implementations to
  * store result into #LomoEMArtSearch
  */
 void
-lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *result)
+lomo_em_art_search_set_result(LomoEMArtSearch *search, const GValue *result)
 {
 	g_return_if_fail(LOMO_IS_EM_ART_SEARCH(search));
-	g_return_if_fail(result != NULL);
+	g_return_if_fail(G_IS_VALUE(result));
 
 	LomoEMArtSearchPrivate *priv = GET_PRIVATE(search);
 
@@ -277,7 +277,9 @@ lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *result)
 		g_return_if_fail(priv->result == NULL);
 	}
 
-	priv->result = g_strdup(result);
+	priv->result = g_value_init(g_new0(GValue, 1), G_VALUE_TYPE(result));
+	g_value_copy(result, priv->result);
+
 	g_object_notify(G_OBJECT(search), "result");
 }
 
@@ -288,9 +290,9 @@ lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *result)
  * Gets the result stored into @search. This function is usefull inside the
  * callback function from lomo_em_art_search() to get the result of the search
  *
- * Returns: The art URI for @search
+ * Returns: The art result for @search
  */
-const gchar *
+const GValue *
 lomo_em_art_search_get_result(LomoEMArtSearch *search)
 {
 	g_return_val_if_fail(LOMO_IS_EM_ART_SEARCH(search), NULL);
@@ -315,7 +317,7 @@ lomo_em_art_search_stringify(LomoEMArtSearch *search)
 
 	if (!priv->stringify)
 	{
-		gchar *unescape = g_uri_unescape_string(lomo_stream_get_tag(priv->stream, LOMO_TAG_URI), NULL);
+		gchar *unescape = g_uri_unescape_string(lomo_stream_get_uri(priv->stream), NULL);
 		priv->stringify = g_path_get_basename(unescape);
 		g_free(unescape);
 		g_return_val_if_fail(priv->stringify, NULL);
@@ -327,7 +329,7 @@ lomo_em_art_search_stringify(LomoEMArtSearch *search)
  * lomo_em_art_search_run_callback:
  * @search: An #LomoEMArtSearch
  *
- * Runs the callback associated with @search 
+ * Runs the callback associated with @search
  */
 void
 lomo_em_art_search_run_callback(LomoEMArtSearch *search)

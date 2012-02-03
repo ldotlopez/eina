@@ -20,6 +20,15 @@
 #include "eina-adb-lomo.h"
 #include <glib/gi18n.h>
 
+/**
+ * eina_adb_lomo_stream_attach_sid:
+ * @adb: An #EinaAdb
+ * @stream: A #LomoStream
+ *
+ * Gets (if not has its created) a SID, stream ID, for the @stream
+ *
+ * Returns: The SID or -1 if there is an error
+ */
 gint
 eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 {
@@ -32,7 +41,7 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 		return g_value_get_int(v);
 
 	// Try INSERT or IGNORE INTO streams
-	gchar *uri = (gchar *) lomo_stream_get_tag(stream, LOMO_TAG_URI);
+	const gchar *uri = lomo_stream_get_uri(stream);
 
 	if (!eina_adb_query_exec(adb, "INSERT OR IGNORE INTO streams (uri,timestamp) VALUES('%q',STRFTIME('%%s',DATETIME('now')));", uri))
 	{
@@ -50,16 +59,17 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 	gint sid = -1;
 	if (
 		!(res = eina_adb_query_raw(adb, q)) ||
-		!eina_adb_result_step(res) ||
-		!eina_adb_result_get(res, 0, G_TYPE_INT, &sid, -1))
+		!eina_adb_result_step(res))
 	{
 		sqlite3_free(q);
 		if (res)
-			eina_adb_result_free(res);
+			g_object_unref(res);
 		g_warning(N_("Unable to retrieve sid for stream"));
 		return -1;
 	}
-	eina_adb_result_free(res);
+
+	eina_adb_result_get(res, 0, G_TYPE_INT, &sid, -1);
+	g_object_unref(res);
 	sqlite3_free(q);
 
 	g_return_val_if_fail(sid >= 0, -1);
@@ -73,6 +83,15 @@ eina_adb_lomo_stream_attach_sid(EinaAdb *adb, LomoStream *stream)
 	return sid;
 }
 
+/**
+ * eina_adb_lomo_stream_get_sid:
+ * @adb: An #EinaAdb
+ * @stream: A #LomoStream
+ *
+ * Gets the SID associated with @stream:
+ *
+ * Returns: @stream's SID
+ */
 gint
 eina_adb_lomo_stream_get_sid(EinaAdb *adb, LomoStream *stream)
 {

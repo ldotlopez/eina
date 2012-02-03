@@ -452,7 +452,7 @@ GList *eina_fs_recursive_readdir(const gchar *path, gboolean abspath)
 
 	l = children = eina_fs_readdir(path, abspath);
 	while (l) {
-		if (eina_fs_file_test((gchar*) l->data, G_FILE_TEST_IS_DIR)) 
+		if (eina_fs_file_test((gchar*) l->data, G_FILE_TEST_IS_DIR))
 			ret = g_list_concat(ret, eina_fs_recursive_readdir((gchar*) l->data, abspath));
 		else
 			ret = g_list_append(ret, (gchar*) l->data);
@@ -482,7 +482,7 @@ eina_fs_prepend_dirname(const gchar *dirname, GList *list)
 		ret = g_list_append(ret, g_build_filename(dirname, l->data, NULL));
 		l = l->next;
 	}
-	
+
 	return g_list_reverse(ret);
 }
 
@@ -512,7 +512,7 @@ gchar* eina_fs_utf8_to_ondisk(const gchar *path)
 
 /*
  * eina_fs_ondisk_to_utf8:
- * @path: Path in disk encoding 
+ * @path: Path in disk encoding
  *
  * Converts a path encoded in disk charset to utf8
  *

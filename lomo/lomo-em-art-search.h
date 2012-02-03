@@ -57,8 +57,8 @@ GObject     *lomo_em_art_search_get_domain(LomoEMArtSearch *search);
 void     lomo_em_art_search_set_bpointer(LomoEMArtSearch *search, gpointer bpointer);
 gpointer lomo_em_art_search_get_bpointer(LomoEMArtSearch *search);
 
-void         lomo_em_art_search_set_result(LomoEMArtSearch *search, const gchar *uri);
-const gchar *lomo_em_art_search_get_result(LomoEMArtSearch *search);
+void          lomo_em_art_search_set_result(LomoEMArtSearch *search, const GValue *result);
+const GValue *lomo_em_art_search_get_result(LomoEMArtSearch *search);
 
 void
 lomo_em_art_search_run_callback(LomoEMArtSearch *search);

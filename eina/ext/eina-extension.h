@@ -1,7 +1,7 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
+/*
+ * eina/ext/eina-extension.h
  *
- * Plugin engine for Eina, heavily based on the code from Rhythmbox,
- * which is based heavily on the code from eina.
+ * Plugin engine for Eina, heavily based on the code from Rhythmbox
  *
  * Copyright (C) 2002-2005 Paolo Maggi
  *               2006 James Livingston  <jrl@ids.org.au>

@@ -14,9 +14,7 @@ libgel_includedir = $(common_includedir)
 libgel_include_HEADERS = \
 	gel.h                   \
 	gel-misc.h              \
-	gel-string.h            \
 	gel-str-parser.h        \
-	gel-job-queue.h         \
 	gel-io.h                \
 	gel-io-scanner.h
 
@@ -34,9 +32,7 @@ libgeldir = $(common_geldir)
 libgel_2_0_la_SOURCES = \
 	$(libgel_include_HEADERS) \
 	gel-misc.c                \
-	gel-string.c              \
 	gel-str-parser.c          \
-	gel-job-queue.c           \
 	gel-marshallers.c         \
 	gel-io-scanner.c
 
@@ -52,13 +48,15 @@ glib_marshallers_list = gel-marshallers.list
 glib_marshallers_prefix = gel_marshal
 include $(top_srcdir)/build/Makefile.am.marshallers
 
+#
+# Introspection stuff
+#
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 
-INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_builddir)/gel --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_builddir)/gel
 
-if HAVE_INTROSPECTION
 Gel-2.0.gir: libgel-2.0.la
 Gel_2_0_gir_INCLUDES = GObject-2.0 Gio-2.0
 Gel_2_0_gir_CFLAGS = -I$(top_srcdir)
@@ -80,8 +78,9 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
+#
+# Misc
+#
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
-endif
-
 -include $(top_srcdir)/git.mk
 

@@ -299,41 +299,15 @@ player_dispose (GObject *object)
 	LomoPlayer *self = LOMO_PLAYER(object);
 	LomoPlayerPrivate *priv = self->priv;
 
-	if (priv->pipeline)
-	{
-		g_object_unref(priv->pipeline);
-		priv->pipeline = NULL;
-	}
-	if (priv->meta)
-	{
-		g_object_unref(priv->meta);
-		priv->meta = NULL;
-	}
-	if (priv->art)
-	{
-		g_object_unref(priv->art);
-		priv->art = NULL;
-	}
-	if (priv->queue)
-	{
-		g_queue_free(priv->queue);
-		priv->queue = NULL;
-	}
-	if (priv->options)
-	{
-		g_hash_table_destroy(priv->options);
-		priv->options = NULL;
-	}
-	if (priv->playlist)
-	{
-		g_object_unref(priv->playlist);
-		priv->playlist = NULL;
-	}
-	if (priv->stats)
-	{
-		g_object_unref(priv->stats);
-		priv->stats = NULL;
-	}
+	gel_object_free_and_invalidate(priv->pipeline);
+	gel_object_free_and_invalidate(priv->meta);
+	gel_object_free_and_invalidate(priv->art);
+
+	gel_free_and_invalidate(priv->queue,   NULL, g_queue_free);
+	gel_free_and_invalidate(priv->options, NULL, g_hash_table_destroy);
+
+	gel_object_free_and_invalidate(priv->playlist);
+	gel_object_free_and_invalidate(priv->stats);
 
 	G_OBJECT_CLASS (lomo_player_parent_class)->dispose (object);
 }
@@ -1245,7 +1219,7 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	// Check for a reusable pipeline
 	GstElement *new_pipeline = priv->vtable.set_uri(
 		priv->pipeline,
-		lomo_stream_get_tag(stream, LOMO_TAG_URI),
+		lomo_stream_get_uri(stream),
 		priv->options);
 
 	// Old pipeline is not reusable
@@ -1288,9 +1262,12 @@ lomo_player_set_current(LomoPlayer *self, gint index, GError **error)
 	}
 
 	// Check queue stuff
-	gint queue_index = lomo_player_queue_get_stream_index(self, stream);
-	if (queue_index >= 0)
-		lomo_player_dequeue(self, queue_index);
+	if (stream)
+	{
+		gint queue_index = lomo_player_queue_get_stream_index(self, stream);
+		if (queue_index >= 0)
+			lomo_player_dequeue(self, queue_index);
+	}
 
 	debug("Everything ok, fire notifies");
 	LomoState lomo_state = LOMO_STATE_STOP;
@@ -1781,7 +1758,7 @@ lomo_player_insert_strv(LomoPlayer *self, const gchar *const *uris, gint index)
 /**
  * lomo_player_insert_multiple:
  * @self: a #LomoPlayer
- * @streams: (transfer none): a #GList of #LomoStream which will be owned by @self
+ * @streams: (element-type Lomo.Stream) (transfer none): a #GList of #LomoStream which will be owned by @self
  * @index: Index to insert the elements, If this is negative, or is larger
  *         than the number of elements in the list, the new elements are added on to the
  *         end of the list.
@@ -1822,7 +1799,7 @@ lomo_player_insert_multiple(LomoPlayer *self, GList *streams, gint position)
 		// Insert and auto-parse
 		lomo_playlist_insert(self->priv->playlist, stream, position++);
 		g_signal_emit(self, player_signals[INSERT], 0, stream, position - 1);
-		if (lomo_player_get_auto_parse(self));
+		if (lomo_player_get_auto_parse(self))
 			lomo_metadata_parser_parse(self->priv->meta, stream, LOMO_METADATA_PARSER_PRIO_DEFAULT);
 
 		// Fire change after the first insert
@@ -2405,9 +2382,9 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			gst_message_parse_state_changed(message, &oldstate, &newstate, &pending);
 			#if 0
 			g_warning("Got state change from bus: old=%s, new=%s, pending=%s\n",
-				gst_state_to_str(oldstate),
-				gst_state_to_str(newstate),
-				gst_state_to_str(pending));
+				lomo_gst_state_to_str(oldstate),
+				lomo_gst_state_to_str(newstate),
+				lomo_gst_state_to_str(pending));
 			#endif
 
 			if (pending != GST_STATE_VOID_PENDING)
@@ -2429,7 +2406,7 @@ player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer *self)
 			case GST_STATE_PLAYING:
 				break;
 			default:
-				g_warning("ERROR: Unknow state transition: %s\n", gst_state_to_str(newstate));
+				g_warning("ERROR: Unknow state transition: %s\n", lomo_gst_state_to_str(newstate));
 				return TRUE;
 			}
 
@@ -2509,7 +2486,7 @@ about_to_finish_cb(GstElement *pipeline, LomoPlayer *self)
 	LomoStream *s = lomo_player_get_nth_stream(self, next);
 	g_return_if_fail(LOMO_IS_STREAM(s));
 
-	const gchar *uri = lomo_stream_get_tag(s, LOMO_TAG_URI);
+	const gchar *uri = lomo_stream_get_uri(s);
 	g_return_if_fail(uri != NULL);
 
 	/* Emit EOS here, I dont know any other method to report EOS
@@ -2566,9 +2543,12 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 		g_object_notify((GObject *) self, "can-go-next");
 
 		LomoStream *stream = lomo_player_get_current_stream(self);
-		gint queue_idx = lomo_player_queue_get_stream_index(self, stream);
-		if (queue_idx >= 0)
-			lomo_player_dequeue(self, queue_idx);
+		if (stream)
+		{
+			gint queue_idx = lomo_player_queue_get_stream_index(self, stream);
+			if (queue_idx >= 0)
+				lomo_player_dequeue(self, queue_idx);
+		}
 
 		return;
 	}
@@ -2580,7 +2560,7 @@ player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data)
 			return;
 		}
 
-	g_warning(_("Unhanded notify::%s"), pspec->name);
+	// g_warning(_("Unhanded notify::%s"), pspec->name);
 }
 
 #endif

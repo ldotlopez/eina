@@ -361,10 +361,11 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 				GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 				NULL);
 
+			GtkWidget *container = (GtkWidget *) gtk_dialog_get_content_area(self->priv->plugin_dialog);
+			g_object_set((GObject *) container, "margin", 12, NULL);
+
 			GtkWidget *pm = (GtkWidget *) peas_gtk_plugin_manager_new(NULL);
-			gtk_box_pack_start((GtkBox*) gtk_dialog_get_content_area(self->priv->plugin_dialog),
-				pm,
-				TRUE, TRUE, 0);
+			gtk_box_pack_start((GtkBox*) container, pm, TRUE, TRUE, 0);
 			gtk_widget_show_all(pm);
 
 			g_signal_connect_swapped(self->priv->plugin_dialog, "destroy",  (GCallback) plugin_dialog_cleanup, self);

@@ -59,15 +59,23 @@ void lomo_stream_set_failed_flag  (LomoStream *self, gboolean value);
 gboolean lomo_stream_get_all_tags_flag(LomoStream *self);
 gboolean lomo_stream_get_failed_flag  (LomoStream *self);
 
-void         lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, GValue *value);
-void         lomo_stream_set_extended_metadata_as_string(LomoStream *self, const gchar *key, const gchar *value);
-GValue*      lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key);
-const gchar* lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key);
+void          lomo_stream_set_extended_metadata(LomoStream *self, const gchar *key, const GValue *value);
+void          lomo_stream_set_extended_metadata_as_string(LomoStream *self, const gchar *key, const gchar *value);
+const GValue* lomo_stream_get_extended_metadata(LomoStream *self, const gchar *key);
+const gchar*  lomo_stream_get_extended_metadata_as_string(LomoStream *self, const gchar *key);
 
-gchar*       lomo_stream_get_tag_by_id(LomoStream *self, gchar id);
-const gchar* lomo_stream_get_tag      (LomoStream *self, const gchar *tag);
-void         lomo_stream_set_tag      (LomoStream *self, const gchar *tag, gpointer value);
-GList*       lomo_stream_get_tags     (LomoStream *self);
+gchar*       lomo_stream_get_tag_by_id(LomoStream *self, const gchar id);
+
+#define       lomo_stream_get_uri(self) ((const gchar *) g_value_get_string(lomo_stream_get_tag(self, LOMO_TAG_URI)))
+const GValue* lomo_stream_get_tag(LomoStream *self, const gchar *tag);
+void          lomo_stream_set_tag(LomoStream *self, const gchar *tag, const GValue *value);
+GList*        lomo_stream_get_tags(LomoStream *self);
+gchar*        lomo_stream_strdup_tag_value(LomoStream *self, const gchar *tag);
+
+gint64 lomo_stream_get_length(LomoStream *self);
+#if (defined LOMO_COMPILATION) || (defined LIBLOMO_USE_PRIVATE_API)
+void   lomo_stream_set_length(LomoStream *self, gint64 length);
+#endif
 
 GType   lomo_tag_get_gtype(const gchar *tag);
 
@@ -79,6 +87,8 @@ GType   lomo_tag_get_gtype(const gchar *tag);
  * grep -v '(' | \
  * sed -e 's/GST_/LOMO_/g'
  */
+
+
 
 /**
  * LOMO_TAG_INVALID:
@@ -451,6 +461,27 @@ GType   lomo_tag_get_gtype(const gchar *tag);
  */
 #define LOMO_TAG_GEO_LOCATION_LONGITUDE               "geo-location-longitude"
 
+#define LOMO_TAG_GEO_LOCATION_ELEVATION               "geo-location-elevation"
+#define LOMO_TAG_GEO_LOCATION_COUNTRY                 "geo-location-country"
+#define LOMO_TAG_GEO_LOCATION_CITY                    "geo-location-city"
+#define LOMO_TAG_GEO_LOCATION_SUBLOCATION             "geo-location-sublocation"
+#define LOMO_TAG_GEO_LOCATION_HORIZONTAL_ERROR   "geo-location-horizontal-error"
+#define LOMO_TAG_GEO_LOCATION_MOVEMENT_SPEED       "geo-location-movement-speed"
+#define LOMO_TAG_GEO_LOCATION_MOVEMENT_DIRECTION "geo-location-movement-direction"
+#define LOMO_TAG_GEO_LOCATION_CAPTURE_DIRECTION  "geo-location-capture-direction"
+#define LOMO_TAG_SHOW_NAME                         "show-name"
+#define LOMO_TAG_SHOW_SORTNAME                     "show-sortname"
+#define LOMO_TAG_SHOW_EPISODE_NUMBER               "show-episode-number"
+#define LOMO_TAG_SHOW_SEASON_NUMBER                "show-season-number"
+#define LOMO_TAG_LYRICS                            "lyrics"
+#define LOMO_TAG_COMPOSER_SORTNAME                 "composer-sortname"
+#define LOMO_TAG_GROUPING                          "grouping"
+#define LOMO_TAG_USER_RATING                       "user-rating"
+#define LOMO_TAG_DEVICE_MANUFACTURER               "device-manufacturer"
+#define LOMO_TAG_DEVICE_MODEL                      "device-model"
+#define LOMO_TAG_APPLICATION_NAME                  "application-name"
+#define LOMO_TAG_APPLICATION_DATA          "application-data"
+#define LOMO_TAG_IMAGE_ORIENTATION            "image-orientation"
 
 G_END_DECLS
 

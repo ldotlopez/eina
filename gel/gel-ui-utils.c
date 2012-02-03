@@ -73,6 +73,115 @@ gel_ui_load_resource(gchar *ui_filename, GError **error)
 	return ret;
 }
 
+/**
+ * gel_ui_pixbuf_from_uri:
+ * @uri: (transfer none): An URI
+ *
+ * Creates a #GdkPixbuf from an URI
+ *
+ * Returns: (transfer full): The new #GdkPixbuf or %NULL
+ */
+GdkPixbuf*
+gel_ui_pixbuf_from_uri(const gchar *uri)
+{
+	g_return_val_if_fail(uri, NULL);
+
+	GFile *f = g_file_new_for_uri(uri);
+	GdkPixbuf *ret = gel_ui_pixbuf_from_file(f);
+	g_object_unref(f);
+
+	return ret;
+}
+/**
+ * gel_ui_pixbuf_from_file:
+ * @file: (transfer none): A #GFile
+ *
+ * Creates a #GdkPixbuf from a #GFile
+ *
+ * Returns: (transfer full): The new #GdkPixbuf or %NULL
+ */
+GdkPixbuf *
+gel_ui_pixbuf_from_file(const GFile *file)
+{
+	g_return_val_if_fail(G_IS_FILE(file), NULL);
+
+	GFile *f = (GFile *) file;
+
+	GError *error = NULL;
+	GInputStream *input = (GInputStream *) g_file_read(f, NULL, &error);
+
+	if (input == NULL)
+	{
+		gchar *uri = g_file_get_uri(f);
+		g_warning("Unable to read GFile('%s'): %s", uri, error->message);
+		g_free(uri);
+		g_error_free(error);
+		return NULL;
+	}
+
+	GdkPixbuf *ret = gel_ui_pixbuf_from_stream(input);
+	g_object_unref(input);
+
+	return ret;
+}
+
+/**
+ * gel_ui_pixbuf_from_stream:
+ * @stream: (transfer none): A #GInputStream
+ *
+ * Creates a #GdkPixbuf from a #GInputStream
+ *
+ * Returns: (transfer full): The new #GdkPixbuf or %NULL
+ */
+GdkPixbuf*
+gel_ui_pixbuf_from_stream(const GInputStream *stream)
+{
+	g_return_val_if_fail(G_IS_INPUT_STREAM(stream), NULL);
+
+	g_seekable_seek((GSeekable *) stream, 0, G_SEEK_SET, NULL, NULL);
+
+	GError *error = NULL;
+	GdkPixbuf *ret = gdk_pixbuf_new_from_stream((GInputStream *) stream, NULL, &error);
+	if (ret == NULL)
+	{
+		g_warning("Unable to set cover from stream %p: %s", stream, error->message);
+		g_error_free(error);
+		return NULL;
+	}
+	return ret;
+}
+
+/**
+ * gel_ui_pixbuf_from_value:
+ * @value: (transfer none): A #GValue
+ *
+ * Creates a #GdkPixbuf from a #GValue
+ *
+ * Returns: (transfer full): The new #GdkPixbuf or %NULL
+ */
+GdkPixbuf *
+gel_ui_pixbuf_from_value(const GValue *value)
+{
+	g_return_val_if_fail(G_IS_VALUE(value), NULL);
+
+	GType type = G_VALUE_TYPE(value);
+
+	if (type == G_TYPE_STRING)
+		return gel_ui_pixbuf_from_uri(g_value_get_string(value));
+
+	else if (type == G_TYPE_FILE)
+		return gel_ui_pixbuf_from_file((GFile *) g_value_get_object(value));
+
+	else if (type == G_TYPE_INPUT_STREAM)
+		return gel_ui_pixbuf_from_stream((GInputStream *) g_value_get_object(value));
+
+	else
+	{
+		g_warning("Unable to create a GdkPixbuf from type %s, please file a bug", g_type_name(type));
+		return NULL;
+	}
+}
+
 #define _ui_signal_connect_from_def(ui,def,data,ret) \
 	do { \
 		GObject *object = (GObject *) gtk_builder_get_object(ui, def.object);     \

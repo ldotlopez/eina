@@ -3,12 +3,8 @@ gel/gel.h
 gel/gel-io.h
 gel/gel-io-scanner.c
 gel/gel-io-scanner.h
-gel/gel-job-queue.c
-gel/gel-job-queue.h
 gel/gel-misc.c
 gel/gel-misc.h
-gel/gel-string.c
-gel/gel-string.h
 gel/gel-str-parser.c
 gel/gel-str-parser.h
 gel/gel-ui-dialogs.c
@@ -26,6 +22,8 @@ lomo/lomo-em-art.c
 lomo/lomo-em-art.h
 lomo/lomo-em-art-backend.c
 lomo/lomo-em-art-backend.h
+lomo/lomo-em-art-backends.c
+lomo/lomo-em-art-provider.c
 lomo/lomo-em-art-search.c
 lomo/lomo-em-art-search.h
 lomo/lomo-metadata-parser.c
@@ -58,6 +56,7 @@ eina/eina.c
 
 eina/adb/eina-adb-plugin.c
 eina/adb/eina-adb-plugin.h
+eina/adb/eina-adb.c
 eina/adb/eina-adb.h
 eina/adb/eina-adb-lomo.c
 eina/adb/eina-adb-lomo.h

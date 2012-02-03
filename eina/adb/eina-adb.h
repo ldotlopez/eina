@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <lomo/lomo-player.h>
 #include <sqlite3.h>
+#include <eina/adb/eina-adb-result.h>
 
 G_BEGIN_DECLS
 
@@ -59,11 +60,8 @@ GType eina_adb_get_type (void);
 
 EinaAdb* eina_adb_new (void);
 
-LomoPlayer *eina_adb_get_lomo_player(EinaAdb *self);
-void        eina_adb_set_lomo_player(EinaAdb *self, LomoPlayer *lomo);
-
-gchar    *eina_adb_get_db_file(EinaAdb *self);
-gboolean  eina_adb_set_db_file(EinaAdb *self, const gchar *path);
+const gchar *eina_adb_get_db_filename(EinaAdb *self);
+gboolean     eina_adb_set_db_filename(EinaAdb *self, const gchar *path);
 
 // --
 // Query queue
@@ -75,27 +73,21 @@ void eina_adb_flush(EinaAdb *self);
 // Easy API
 // --
 
-typedef sqlite3_stmt EinaAdbResult;
-
 EinaAdbResult* eina_adb_query(EinaAdb *self, gchar *query, ...);
 EinaAdbResult* eina_adb_query_raw(EinaAdb *self, gchar *query);
-gboolean       eina_adb_query_exec(EinaAdb *self, gchar *q, ...);
+gboolean       eina_adb_query_exec(EinaAdb *self, const gchar *query, ...);
+gboolean       eina_adb_query_exec_raw(EinaAdb *self, const gchar *query);
 gboolean       eina_adb_query_block_exec(EinaAdb *self, gchar *queries[], GError **error);
 
 gint eina_adb_changes(EinaAdb *self);
 
-gint     eina_adb_result_column_count(EinaAdbResult *result);
-gboolean eina_adb_result_step(EinaAdbResult *result);
-gboolean eina_adb_result_get (EinaAdbResult *result, ...);
-void     eina_adb_result_free(EinaAdbResult *result);
-
 gchar    *eina_adb_get_variable(EinaAdb *self, gchar *variable);
 gboolean  eina_adb_set_variable(EinaAdb *self, gchar *variable, gchar *value);
 
-gint eina_adb_schema_get_version(EinaAdb *self, gchar *schema);
-void eina_adb_schema_set_version(EinaAdb *self, gchar *schema, gint version);
+gint eina_adb_schema_get_version(EinaAdb *self, const gchar *schema);
+void eina_adb_schema_set_version(EinaAdb *self, const gchar *schema, gint version);
 
-gboolean eina_adb_upgrade_schema(EinaAdb *self, gchar *schema, EinaAdbFunc callbacks[], GError **error);
+gboolean eina_adb_upgrade_schema(EinaAdb *self, const gchar *schema, EinaAdbFunc callbacks[], GError **error);
 
 sqlite3* eina_adb_get_handler(EinaAdb *self);
 

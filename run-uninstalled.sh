@@ -58,7 +58,7 @@ do
 	[ -f "$plugindir/$plugin.plugin" ] || continue
 
 	mkdir -p "$R/plugins/$plugin"
-	for ext in so ui png jpg gif plugin py
+	for ext in so ui png jpg gif plugin py svg
 	do
 		for obj in $(find "$plugindir" -name "*.$ext")
 		do

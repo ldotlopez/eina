@@ -86,7 +86,7 @@ initialize_peas_engine(gboolean from_source)
 	if (from_source)
 	{
 		builddir = g_path_get_dirname(g_get_current_dir());
-		const gchar *subs[] = { "gel", "lomo", "eina" , NULL };
+		const gchar *subs[] = { "gel", "lomo", "eina", NULL };
 		for (guint i = 0; subs[i]; i++)
 		{
 			gchar *tmp = g_build_filename(builddir, subs[i], NULL);
@@ -117,7 +117,11 @@ initialize_peas_engine(gboolean from_source)
 
 	if (from_source)
 	{
-		gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player", NULL };
+		gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player",
+			#if HAVE_SQLITE3
+			"adb", "muine",
+			#endif
+			NULL };
 		for (guint i = 0; plugins[i]; i++)
 		{
 			gchar *tmp = g_build_filename(builddir, "eina", plugins[i], NULL);
@@ -130,7 +134,7 @@ initialize_peas_engine(gboolean from_source)
 	{
 		const gchar *libdir = NULL;
 
-		if ((libdir = gel_get_package_lib_dir()) != NULL);
+		if ((libdir = gel_get_package_lib_dir()) != NULL)
 			peas_engine_add_search_path(engine, gel_get_package_lib_dir(), gel_get_package_lib_dir());
 
 		if ((libdir = g_getenv("EINA_LIB_PATH")) != NULL)
@@ -310,7 +314,11 @@ gint main(gint argc, gchar *argv[])
 		if (g_str_has_prefix(argv[i], "--introspect-dump="))
 		{
 			PeasEngine *engine = initialize_peas_engine(TRUE);
-			gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player", NULL };
+			gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player",
+			#if HAVE_SQLITE3
+			"adb", "muine",
+			#endif
+			NULL };
 			for (guint i = 0; plugins[i]; i++)
 				peas_engine_load_plugin(engine, peas_engine_get_plugin_info(engine, plugins[i]));
 			g_irepository_dump(argv[i] + strlen("--introspect-dump="), NULL);

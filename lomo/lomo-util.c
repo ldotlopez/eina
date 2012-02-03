@@ -161,7 +161,7 @@ lomo_state_to_str(LomoState state)
 }
 
 /**
- * gst_state_to_str: (skip):
+ * lomo_gst_state_to_str: (skip):
  * @state: #GstState state
  *
  * Returns the string corresponding to the @state
@@ -170,7 +170,7 @@ lomo_state_to_str(LomoState state)
  *          freeded
  **/
 const gchar *
-gst_state_to_str(GstState state)
+lomo_gst_state_to_str(GstState state)
 {
 	switch (state)
 	{
@@ -189,7 +189,7 @@ gst_state_to_str(GstState state)
 }
 
 /**
- * gst_state_change_return_to_str: (skip):
+ * lomo_gst_state_change_return_to_str: (skip):
  * @s: #GstStateChangeReturn state
  *
  * Returns the string corresponding to the @s
@@ -198,7 +198,7 @@ gst_state_to_str(GstState state)
  *          freeded
  **/
 const gchar*
-gst_state_change_return_to_str(GstStateChangeReturn s)
+lomo_gst_state_change_return_to_str(GstStateChangeReturn s)
 {
 	switch(s)
 	{

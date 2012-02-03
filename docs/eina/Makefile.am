@@ -21,7 +21,14 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 # gtk-doc will search all .c & .h files beneath here for inline comments
 # documenting the functions and macros.
 # e.g. DOC_SOURCE_DIR=../../../gtk
-DOC_SOURCE_DIR=../../eina
+DOC_SOURCE_DIR=\
+	../../eina/ext         \
+	../../eina/dock        \
+	../../eina/lomo        \
+	../../eina/player      \
+	../../eina/playlist    \
+	../../eina/preferences \
+	../../eina/status-icon
 
 # Extra options to pass to gtkdoc-scangobj. Not normally needed.
 SCANGOBJ_OPTIONS=
@@ -48,21 +55,13 @@ FIXXREF_OPTIONS=
 # Used for dependencies. The docs will be rebuilt if any of these change.
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
-HFILE_GLOB=$(top_srcdir)/eina/ext/*.h   \
-	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h
-
-CFILE_GLOB=$(top_srcdir)/eina/ext/*.c     \
-	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c
+HFILE_GLOB=$(top_srcdir)/eina/ext/*.h
+CFILE_GLOB=$(top_srcdir)/eina/ext/*.c
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES= \
-	fieshta-stage.h     \
-	fieshta-stream.h    \
-	eina-mpris-player.h \
-	eina-mpris-plugin.h \
-	eina-muine.h        \
-	eina-muine-plugin.h
+IGNORE_HFILES=$(top_srcdir)
+#	fieshta-stage.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
@@ -83,56 +82,53 @@ expand_content_files=
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 GTKDOC_CFLAGS= \
+	-Wl,--no-as-needed \
 	@EINA_CFLAGS@
 
-if BUILD_ADB
-GTKDOC_CFLAGS += @SQLITE3_CFLAGS@
-endif
-if BUILD_CLUTTY
-GTKDOC_CFLAGS += @CLUTTER_GTK_CFLAGS@
-endif
-if BUILD_NTFY
-GTKDOC_CFLAGS += @NOTIFY_CFLAGS@
-endif
+#if BUILD_ADB
+#GTKDOC_CFLAGS += @SQLITE3_CFLAGS@
+#endif
+#if BUILD_CLUTTY
+#GTKDOC_CFLAGS += @CLUTTER_GTK_CFLAGS@
+#endif
+#if BUILD_NTFY
+#GTKDOC_CFLAGS += @NOTIFY_CFLAGS@
+#endif
 
-GTKDOC_LIBS= \
+GTKDOC_LIBS = \
 	@EINA_LIBS@
 
-if BUILD_ADB
-GTKDOC_LIBS += @SQLITE3_LIBS@
-endif
-if BUILD_CLUTTY
-GTKDOC_LIBS += @CLUTTER_GTK_LIBS@
-endif
-if BUILD_NTFY
-GTKDOC_LIBS += @NOTIFY_LIBS@
-endif
+#if BUILD_ADB
+#GTKDOC_LIBS +=	$(top_builddir)/eina/adb/.libs/libadb.a
+#endif
+#if BUILD_CLUTTY
+#GTKDOC_LIBS += $(top_builddir)/eina/clutty/.libs/libclutty.a
+#endif
+#if BUILD_NTFY
+#GTKDOC_LIBS += $(top_builddir)/eina/ntfy/.libs/libntfy.a
+#endif
+GTKDOC_LIBS += \
+	$(top_builddir)/eina/ext/libeinaext.la                  \
+	$(top_builddir)/eina/dock/.libs/libdock.a               \
+	$(top_builddir)/eina/lomo/.libs/liblomo.a               \
+	$(top_builddir)/eina/player/.libs/libplayer.a           \
+	$(top_builddir)/eina/playlist/.libs/libplaylist.a       \
+	$(top_builddir)/eina/preferences/.libs/libpreferences.a \
+	$(top_builddir)/eina/status-icon/.libs/libstatus-icon.a \
+	-lcairo \
+	-lgel-ui-@GEL_API_VERSION@ -L$(top_builddir)/gel/.libs \
+	-llomo-@LOMO_API_VERSION@  -L$(top_builddir)/lomo/.libs
 
-GTKDOC_LIBS += \
-	$(top_builddir)/eina/ext/libeinaext.la            \
-	$(top_builddir)/eina/dock/.libs/libdock.a         \
-	$(top_builddir)/eina/fieshta/.libs/libfieshta.a   \
-	$(top_builddir)/eina/lastfm/.libs/liblastfm.a     \
-	$(top_builddir)/eina/lomo/.libs/liblomo.a         \
-	$(top_builddir)/eina/player/.libs/libplayer.a     \
-	$(top_builddir)/eina/playlist/.libs/libplaylist.a \
-	$(top_builddir)/eina/status-icon/.libs/libstatus-icon.a   \
-	$(top_builddir)/eina/preferences/.libs/libpreferences.a
-
-if BUILD_ADB
-GTKDOC_LIBS += \
-	$(top_builddir)/eina/adb/.libs/libadb.a
-endif
-if BUILD_CLUTTY
-GTKDOC_LIBS += \
-	$(top_builddir)/eina/clutty/.libs/libclutty.a
-endif
-if BUILD_NTFY
-GTKDOC_LIBS += \
-	$(top_builddir)/eina/ntfy/.libs/libntfy.a
-endif
-
-#	$(top_builddir)/eina/mpris/.libs/libmpris.a
+#if BUILD_ADB
+#GTKDOC_LIBS += \
+#GTKDOC_LIBS += @SQLITE3_LIBS@
+#endif
+#if BUILD_CLUTTY
+#GTKDOC_LIBS += @CLUTTER_GTK_LIBS@
+#endif
+#if BUILD_NTFY
+#GTKDOC_LIBS += @NOTIFY_LIBS@
+#endif
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/docs/gtk-doc.make

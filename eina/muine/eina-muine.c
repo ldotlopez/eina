@@ -285,7 +285,7 @@ stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaMuine *self)
 	g_return_if_fail(key);
 	g_return_if_fail(LOMO_IS_STREAM(stream));
 
-	if (g_str_equal(key, "art-uri"))
+	if (g_str_equal(key, LOMO_STREAM_EM_ART_DATA))
 	{
 		muine_update_icon(self, stream);
 	}
@@ -335,20 +335,16 @@ muine_update(EinaMuine *self)
 		if (ds == NULL)
 			ds = g_new0(data_set_t, 1);
 
-		if (!eina_adb_result_get(r,
-		     0, G_TYPE_UINT,   &(ds->count),
-		     1, G_TYPE_STRING, &(ds->artist),
-		     2, G_TYPE_STRING, &(ds->album),
-		     -1))
-		{
-			g_warning(N_("Failed to get result row"));
-			continue;
-		}
+		eina_adb_result_get(r,
+			  0, G_TYPE_UINT,   &(ds->count),
+			  1, G_TYPE_STRING, &(ds->artist),
+			  2, G_TYPE_STRING, &(ds->album),
+		     -1);
 
 		db_data = g_list_prepend(db_data, ds);
 		ds = NULL;
 	}
-	eina_adb_result_free(r);
+	g_object_unref(r);
 
 	// Try to get a sample for each item
 	// q = "select uri from streams where sid = (select sid from fast_meta where lower(%s)=lower('%q') limit 1 offset %d)";
@@ -363,18 +359,21 @@ muine_update(EinaMuine *self)
 	{
 		data_set_t *ds = (data_set_t *) ds_p->data;
 
-		char *q2 = sqlite3_mprintf(q, 
+		char *q2 = sqlite3_mprintf(q,
 			field,
 			key = ((mode == EINA_MUINE_MODE_ALBUM) ? ds->album : ds->artist),
 			g_random_int_range(0, ds->count));
-			
+
 		EinaAdbResult *sr = eina_adb_query_raw(adb, q2);
-		if (!sr || !eina_adb_result_step(sr) || !eina_adb_result_get(sr, 0, G_TYPE_STRING, &sample_uri, -1))
+		if (!sr || !eina_adb_result_step(sr))
 		{
 			g_warning(N_("Unable to fetch sample URI for %s '%s', query was %s"), field, key, q2);
 			sample_uri = g_strdup("file:///nonexistent");
 		}
-		gel_free_and_invalidate(sr, NULL, eina_adb_result_free);
+		else
+			eina_adb_result_get(sr, 0, G_TYPE_STRING, &sample_uri, -1);
+
+		gel_free_and_invalidate(sr, NULL, g_object_unref);
 		gel_free_and_invalidate(q2, NULL, sqlite3_free);
 
 		ds->stream = lomo_stream_new(sample_uri);
@@ -389,6 +388,10 @@ muine_update(EinaMuine *self)
 	ds_p = db_data;
 	GtkListStore *model = muine_get_model(self);
 	gchar *artist = NULL, *album = NULL; gchar *markup = NULL;
+
+	GValue v = { 0 };
+	g_value_init(&v, G_TYPE_STRING);
+
 	while (ds_p)
 	{
 		data_set_t *ds = (data_set_t *) ds_p->data;
@@ -396,13 +399,17 @@ muine_update(EinaMuine *self)
 		if (ds->artist)
 		{
 			artist = g_markup_escape_text(ds->artist, -1);
-			lomo_stream_set_tag(ds->stream, LOMO_TAG_ARTIST, g_strdup(ds->artist));
+
+			g_value_set_static_string(&v, artist);
+			lomo_stream_set_tag(ds->stream, LOMO_TAG_ARTIST, &v);
 		}
 
 		if (ds->album)
 		{
 			album  = g_markup_escape_text(ds->album,  -1);
-			lomo_stream_set_tag(ds->stream, LOMO_TAG_ALBUM, g_strdup(ds->album));
+
+			g_value_set_static_string(&v, album);
+			lomo_stream_set_tag(ds->stream, LOMO_TAG_ALBUM, &v);
 		}
 
 		switch (mode)
@@ -442,6 +449,7 @@ muine_update(EinaMuine *self)
 
 		ds_p = ds_p->next;
 	}
+	g_value_reset(&v);
 	g_list_free(db_data);
 }
 
@@ -458,10 +466,10 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	EinaMuinePrivate *priv = self->priv;
 
 	// Check URI != loading-uri
-	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata_as_string(stream, "art-uri");
-	g_return_if_fail(uri);
+	const GValue *art_value = lomo_stream_get_extended_metadata(stream, LOMO_STREAM_EM_ART_DATA);
+	g_return_if_fail(art_value);
 
-	if (g_str_equal(uri, loading_cover_uri))
+	if (lomo_em_art_provider_value_is_loading(art_value))
 		return;
 
 	// Check for matching iter
@@ -469,19 +477,9 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	g_return_if_fail(iter);
 
 	// Load pixbuf
-	GFile        *f = NULL;
-	GInputStream *is = NULL;
-	GdkPixbuf    *pb = NULL;
-	if (!(f = g_file_new_for_uri(uri)) ||
-	    !(is = G_INPUT_STREAM(g_file_read(f, NULL, NULL))) ||
-		!(pb = gdk_pixbuf_new_from_stream(is, NULL, NULL)))
-	{
-		g_warning(_("Unable to load artwork from '%s'"), uri);
-		gel_free_and_invalidate(is, NULL, g_object_unref);
-		gel_free_and_invalidate(f,  NULL, g_object_unref);
-	}
-	gel_free_and_invalidate(is, NULL, g_object_unref);
-	gel_free_and_invalidate(f,  NULL, g_object_unref);
+	GdkPixbuf *pb = gel_ui_pixbuf_from_value(art_value);
+	g_return_if_fail(GDK_IS_PIXBUF(pb));
+
 	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pb, DEFAULT_SIZE, DEFAULT_SIZE, GDK_INTERP_NEAREST);
 	g_object_unref(pb);
 
@@ -489,6 +487,7 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 	gtk_list_store_set(muine_get_model(self), iter,
 		COMBO_COLUMN_ICON, scaled,
 		-1);
+	g_object_unref(scaled);
 }
 
 static GList *
@@ -499,7 +498,7 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	gtk_tree_model_get((GtkTreeModel *) muine_get_filter(self), iter,
 		COMBO_COLUMN_ID, &id,
 		-1);
-	
+
 	char *q = NULL;
 	switch (eina_muine_get_mode(self))
 	{
@@ -526,9 +525,11 @@ muine_get_uris_from_tree_iter(EinaMuine *self, GtkTreeIter *iter)
 	GList *uris = NULL;
 	gchar *uri;
 	while (eina_adb_result_step(r))
-		if (eina_adb_result_get(r, 0, G_TYPE_STRING, &uri, -1))
-			uris = g_list_prepend(uris, uri);
-	eina_adb_result_free(r);
+	{
+		eina_adb_result_get(r, 0, G_TYPE_STRING, &uri, -1);
+		uris = g_list_prepend(uris, uri);
+	}
+	g_object_unref(r);
 
 	return g_list_reverse(uris);
 }
@@ -631,9 +632,13 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 
 	const gchar *name = gtk_action_get_name(action);
 	gboolean do_clear = FALSE;
+	gboolean do_play  = FALSE;
 
 	if (g_str_equal(name, "play-action"))
+	{
 		do_clear = TRUE;
+		do_play  = TRUE;
+	}
 	else if (g_str_equal(name, "queue-action"))
 		do_clear = FALSE;
 	else
@@ -659,9 +664,11 @@ action_activate_cb(GtkAction *action, EinaMuine *self)
 		lomo_player_clear(lomo);
 
 	gchar **uri_strv = gel_list_to_strv(uris, FALSE);
-	lomo_player_insert_strv(lomo, (const gchar * const*) uri_strv, -1); 
-
+	lomo_player_insert_strv(lomo, (const gchar * const*) uri_strv, -1);
 	g_free(uri_strv);
 	gel_list_deep_free(uris, g_free);
+
+	if (do_play)
+		lomo_player_set_state(lomo, LOMO_STATE_PLAY, NULL);
 }
 

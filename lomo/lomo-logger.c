@@ -3,7 +3,7 @@
 static gchar*
 format_stream(LomoStream *stream)
 {
-	gchar *unscape = g_uri_unescape_string(lomo_stream_get_tag(stream, LOMO_TAG_URI), NULL);
+	gchar *unscape = g_uri_unescape_string(lomo_stream_get_uri(stream), NULL);
 	gchar *ret = g_path_get_basename(unscape);
 	g_free(unscape);
 	return ret;

@@ -1,0 +1,10 @@
+[Plugin]
+Loader=python
+Module=stars
+Depends=adb;lomo;player
+IAge=2
+Name=Stars
+Description=Stars
+Authors=Steve Frécinaux <steve@istique.net>
+Copyright=Copyright © 2006 Steve Frécinaux
+Website=http://www.gnome.org/projects/totem/

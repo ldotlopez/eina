@@ -19,6 +19,7 @@
 
 #include "eina-ntfy-plugin.h"
 #include <libnotify/notify.h>
+#include <gel/gel-ui.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
 /*
@@ -170,39 +171,23 @@ ntfy_sync(EinaNtfyPlugin *plugin)
 	GdkPixbuf *scaled = NULL;
 
 	// Build body
-	gchar *tmp = g_path_get_basename(lomo_stream_get_tag(stream, LOMO_TAG_URI));
+	gchar *tmp = g_path_get_basename(lomo_stream_get_uri(stream));
 	gchar *bname = g_uri_unescape_string(tmp, NULL);
 	g_free(tmp);
 
-	const gchar *artist = lomo_stream_get_tag(stream, LOMO_TAG_ARTIST);
-	const gchar *title  = lomo_stream_get_tag(stream, LOMO_TAG_TITLE);
+	gchar *artist = lomo_stream_strdup_tag_value(stream, LOMO_TAG_ARTIST);
+	gchar *title  = lomo_stream_strdup_tag_value(stream, LOMO_TAG_TITLE);
 	gchar *body = g_strdup_printf("<b>%s</b>\n%s", title ? title : bname, artist ? artist : "");
-
-	gel_free_and_invalidate(bname, NULL, g_free);
+	gel_str_free_and_invalidate(artist);
+	gel_str_free_and_invalidate(title);
+	gel_str_free_and_invalidate(bname);
 
 	notify_notification_update(priv->ntfy, N_("Playing now"), body, NULL);
 
-	const gchar *uri = (const gchar *) lomo_stream_get_extended_metadata_as_string(stream, "art-uri");
-	if (!uri)
+	GdkPixbuf *pb = gel_ui_pixbuf_from_value(lomo_stream_get_extended_metadata(stream, LOMO_STREAM_EM_ART_DATA));
+	if (!pb || !GDK_IS_PIXBUF(pb))
 	{
-		g_warn_if_fail(uri);
-		goto ntfy_sync_show;
-	}
-
-	GFile *f = g_file_new_for_uri(uri);
-	GInputStream *s = G_INPUT_STREAM(g_file_read(f, NULL, NULL));
-	g_object_unref(f);
-	if (!G_IS_INPUT_STREAM(s))
-	{
-		g_warn_if_fail(G_IS_INPUT_STREAM(s));
-		goto ntfy_sync_show;
-	}
-
-	GdkPixbuf *pb = gdk_pixbuf_new_from_stream(s, NULL, NULL);
-	g_object_unref(s);
-	if (!GDK_IS_PIXBUF(pb))
-	{
-		g_warn_if_fail(GDK_IS_PIXBUF(pb));
+		g_warn_if_fail(pb && GDK_IS_PIXBUF(pb));
 		goto ntfy_sync_show;
 	}
 
@@ -214,6 +199,7 @@ ntfy_sync(EinaNtfyPlugin *plugin)
 
 	scaled = gdk_pixbuf_scale_simple(pb, dx, dy, GDK_INTERP_NEAREST);
 	g_object_unref(pb);
+
 	notify_notification_set_icon_from_pixbuf(priv->ntfy, scaled);
 
 ntfy_sync_show:
@@ -272,7 +258,7 @@ stream_em_updated_cb(LomoStream *stream, const gchar *key, EinaNtfyPlugin *plugi
 	g_return_if_fail(LOMO_IS_STREAM(stream));
 	g_return_if_fail(key);
 
-	if (!g_str_equal(key, "art-uri"))
+	if (!g_str_equal(key, LOMO_STREAM_EM_ART_DATA))
 		return;
 	ntfy_sync(plugin);
 }

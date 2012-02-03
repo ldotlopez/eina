@@ -171,7 +171,7 @@ save_playlist(EinaLomoPlugin *plugin)
 	GList *i = (GList *) lomo_player_get_playlist(lomo);
 	while (i)
 	{
-		gs = g_string_append(gs, lomo_stream_get_tag(LOMO_STREAM(i->data), LOMO_TAG_URI));
+		gs = g_string_append(gs, lomo_stream_get_uri(LOMO_STREAM(i->data)));
 		gs = g_string_append_c(gs, '\n');
 		i = i->next;
 	}

@@ -407,7 +407,6 @@ lastfm_submit_write_config_wrapper(EinaLastfmPlugin *plugin)
 // --
 // Callbacks
 // --
-
 static gchar *
 str_parser_cb(gchar key, LomoStream *stream)
 {
@@ -426,8 +425,7 @@ str_parser_cb(gchar key, LomoStream *stream)
 	default:
 		return NULL;
 	}
-	const gchar *ret = lomo_stream_get_tag(stream, tag);
-	return (gchar *) ret ? g_strdup(ret) : NULL;
+	return lomo_stream_strdup_tag_value(stream, tag);
 }
 
 #if DEBUG_DAEMON

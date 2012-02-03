@@ -36,8 +36,8 @@ GstStateChangeReturn lomo_state_change_return_to_gst(GstStateChangeReturn ret);
 
 const gchar *lomo_state_to_str(LomoState state);
 
-const gchar *gst_state_to_str(GstState state);
-const gchar *gst_state_change_return_to_str(GstStateChangeReturn s);
+const gchar *lomo_gst_state_to_str(GstState state);
+const gchar *lomo_gst_state_change_return_to_str(GstStateChangeReturn s);
 
 /**
  * LOMO_NANOSECS_TO_SECS:

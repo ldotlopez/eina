@@ -1,0 +1,11 @@
+[Plugin]
+Module=importer
+Loader=python
+IAge=2
+Depends=adb;lomo
+Name=Importer
+Description=Import files
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

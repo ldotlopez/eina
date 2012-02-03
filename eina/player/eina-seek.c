@@ -83,9 +83,9 @@ button_release_event_cb (GtkWidget *w, GdkEventButton *ev, EinaSeek *self);
 // --
 // Lomo callbacks
 // --
-void 
+void
 lomo_notify_current_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaSeek *self);
-void 
+void
 lomo_notify_state_cb(LomoPlayer *lomo, GParamSpec *pspec, EinaSeek *self);
 
 // --
@@ -229,7 +229,7 @@ EinaSeek*
 eina_seek_new (void)
 {
 	EinaSeek *self = g_object_new (EINA_TYPE_SEEK, NULL);
-	
+
 	// FIXME: Move to EinaSeek.init
 	gtk_scale_set_draw_value(GTK_SCALE(self), FALSE);
 	gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
@@ -389,7 +389,7 @@ updater_timeout_cb(EinaSeek *self)
 	EinaSeekPrivate *priv = self->priv;
 	gint64 length = 0, position = 0;
 	gdouble percent;
-	
+
 	length = lomo_player_get_length(priv->lomo);
 	if (length == -1)
 	{
@@ -504,8 +504,8 @@ value_changed_cb(GtkWidget *w, EinaSeek *self)
 {
 	EinaSeekPrivate *priv = self->priv;
 
-	/* 
-	 * Stop the fastscan timeout function if any 
+	/*
+	 * Stop the fastscan timeout function if any
 	 */
 	if (priv->fast_scan_timeout_id > 0)
 		g_source_remove(priv->fast_scan_timeout_id);
