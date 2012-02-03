@@ -5,32 +5,39 @@ from gi.repository import Clutter, ClutterX11, Mx
 
 class CoverWidget(Clutter.Box):
 	def __init__(self, *args, **kwargs):
-		Clutter.Box.__init__(self,
-			layout_manager = Clutter.BinLayout(),
-			width = 200, height = 200)
+		Clutter.Box.__init__(self)
+		self.layout = Clutter.BinLayout()
+		self.set_layout_manager(self.layout)
 		self.actors    = []
 		self.timelines = []
 
 	def set_from_file(self, filename):
 		try:
 			w = self.get_width()
-			texture = Clutter.Texture(filename = filename,
-				width = 200 , height = 200,
+			texture = Clutter.Texture(
+				filename = filename,
+				sync_size = True,
+				keep_aspect_ratio = True,
 				opacity = 0x00)
 		except Exception as e:
 			print repr(e)
 			return
-
-		self.add_actor(texture)
 
 		timeline = Clutter.Timeline(duration = 1000)
 		texture.animate_with_timelinev(Clutter.AnimationMode.LINEAR, timeline,
 			("opacity",), (0xff,))
 		timeline.connect('completed', self.timeline_completed_cb)
 
+		if len(self.actors) > 0:
+			t = self.actors[-1]
+			t.animatev(Clutter.AnimationMode.LINEAR, 1000,
+				("opacity",) , (0x00,))
+
 		self.actors.append(texture)
 		self.timelines.append(timeline)
 
+		self.layout.add(texture,
+			Clutter.BinAlignment.CENTER,Clutter.BinAlignment.CENTER)
 		texture.show()
 
 	def timeline_completed_cb(self, timeline):
@@ -54,54 +61,78 @@ class CoverWidget(Clutter.Box):
 class Controls(Clutter.Box):
 	def __init__(self, *args, **kwargs):
 		Clutter.Box.__init__(self, *args, **kwargs)
-		self.set_layout_manager(Clutter.FixedLayout(
-			#homogeneous= False, column_spacing = 0.0,
-			#orientation = Clutter.FlowOrientation.HORIZONTAL
-			))
 
-		self.buttons = dict()
+		self.layout = Clutter.TableLayout()
+		self.set_layout_manager(self.layout)
+
 		d = (
 			('previous', 'media-skip-backward'),
 			('playctl', 'media-playback-start'),
 			('next', 'media-skip-forward')
 		)
-		x = 0
-		for (id_, icon_name) in d:
-			icon = Mx.Icon(icon_name = icon_name, icon_size = 32)
 
+		self.buttons = dict()
+		for index, (id_, icon_name) in enumerate(d):
 			button = Mx.Button()
-			button.add_actor(icon)
-
+			button.add_actor(Mx.Icon(
+				icon_name = icon_name,
+				icon_size = 32))
 			button.show_all()
-			self.add_actor(button)
+
+			self.layout.pack(button, index, 0)
 			self.buttons[id_] =  button
-			self.buttons[id_].set_x(x)
-			x = x + (32 * 11.0/6.0)
-			
+
 class App(Clutter.Stage):
 	def __init__(self, covers):
-		Clutter.Stage.__init__(self)
-
-		bg_color = Clutter.Color()
-		bg_color.from_string('#00000099')
-		self.set_color(bg_color)
-		self.set_use_alpha(True)
-		self.set_size(200, 200)
+		Clutter.Stage.__init__(self,
+			use_alpha = True,
+			user_resizable = True,
+			min_height = 200,
+			min_width  = 200)
 
 		self.i = 0
 		self.files = covers
 
-		self.cover = CoverWidget(width = self.get_width(), height = self.get_height())
-		self.cover.set_reactive(True)
-		self.cover.show()
-		self.cover.connect('button-press-event', self.click_cb)
-		self.add_actor(self.cover)
+		bg_color = Clutter.Color()
+		bg_color.from_string('#000000ff')
+		self.set_color(bg_color)
 
+		# Setup main container
+		self.box = Clutter.Box(layout_manager = Clutter.BinLayout())
+		self.box.add_constraint(Clutter.BindConstraint.new(self, Clutter.BindCoordinate.SIZE, 0.0))
+		self.box.show()
+		self.add_actor(self.box)
+
+		self.box_layout = self.box.get_layout_manager()
+
+		# Setup cover (or background)
+		self.cover = CoverWidget()
+		self.cover.set_reactive(True)
 		self.cover.set_from_file(self.next_cover())
 
-		controls = Controls(width=100, height=50)
-		controls.show()
-		self.add_actor(controls)
+		self.cover.connect('button-press-event', self.click_cb)
+		self.cover.show()
+		self.box_layout.add(self.cover, Clutter.BinAlignment.FILL, Clutter.BinAlignment.FILL)
+
+		# Setup controls
+		self.controls = Controls(opacity = 0x00)
+
+		#ctls_h_const = Clutter.BindConstraint.new(self, Clutter.BindCoordinate.HEIGHT, 0.0)
+		#self.controls.add_constraint(ctls_h_const)
+
+		self.controls.show()
+		self.box_layout.add(self.controls, Clutter.BinAlignment.CENTER, Clutter.BinAlignment.END)
+
+		self.connect('enter-event', self.fade_in)
+		self.connect('leave-event', self.fade_out)
+
+	def fade_in(self, actor, ev):
+		self.controls.animatev(Clutter.AnimationMode.EASE_OUT_EXPO, 500,
+			("opacity",), (0xff,))
+
+	def fade_out(self, actor, ev):
+		self.controls.animatev(Clutter.AnimationMode.EASE_OUT_EXPO, 500,
+			("opacity",), (0x00,))
 
 	def click_cb(self, cover, ev):
 		cover.set_from_file(self.next_cover())
