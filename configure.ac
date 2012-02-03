@@ -497,6 +497,7 @@ lomo/Makefile
 pixmaps/Makefile
 plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
 po/Makefile.in
+osx/Makefile
 ])
 AC_OUTPUT
 

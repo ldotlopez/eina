@@ -76,14 +76,16 @@ done
 # Find real binary
 P=${P:="eina"}
 
-BIN=""
-for i in $(find "$D/eina" -name "$P" -type f -perm -0700 )
-do
-	if [ "$(file -ib "$i" | cut -d '/' -f 1)" = "application" ]; then
-		BIN="$i"
-		break;
-	fi
-done
+BIN=${BIN:="bin"}
+if [ -z "$BIN" ]; then
+	for i in $(find "$D/eina" -name "$P" -type f -perm -0700 )
+	do
+		if [ "$(file -ib "$i" | cut -d '/' -f 1)" = "application" ]; then
+			BIN="$i"
+			break;
+		fi
+	done
+fi
 if [ ! -x  "$BIN" ]; then
 	echo "Unable to find executable"
 	exit 1

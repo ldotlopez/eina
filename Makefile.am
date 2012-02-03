@@ -7,7 +7,8 @@ SUBDIRS = \
 	data    \
 	docs    \
 	icons   \
-	po
+	po      \
+	osx
 
 EXTRA_DIST = \
 	git.mk run-uninstalled.sh \
