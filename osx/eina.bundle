@@ -1,0 +1,143 @@
+<?xml version="1.0" standalone="no"?> <!--*- mode: xml -*-->
+<app-bundle>
+
+  <meta>
+    <!-- Where to pick up the GTK+ installation, icon themes,
+         etc. Note that "${env:JHBUILD_PREFIX}" is evaluated to the
+         value of the environment variable JHBUILD_PREFIX. You can
+         define additional prefixes and refer to them in paths
+         throughout this file on the form "${prefix:name}". This is
+         useful for installing certain libraries or even the
+         application itself separately. Note that JHBUILD_PREFIX is
+         defined by jhbuild, so it you are not using jhbuild you can
+         either define your own or just hardcode the path here.
+    -->
+    <gtk>gtk+-3.0</gtk>
+    <prefix name="default">${env:JHBUILD_PREFIX}</prefix>
+
+    <!-- The project directory is the default location of the created
+         app. If you leave out the path, the current directory is
+         used. Note the usage of an environment variable here again.
+    <destination overwrite="yes">${env:HOME}/Desktop</destination>
+    -->
+    
+    <image>
+      <!-- Not implemented yet (DMG image). -->
+    </image>
+
+    <!-- Optionally specify a launcher script to use. If the
+         application sets up everything needed itself, like
+         environment variable, linker paths, etc, a launcher script is
+         not needed. If the source path is left out, the default
+         script will be used.
+    -->
+    <launcher-script>${project}/launcher.sh</launcher-script>
+  </meta>
+
+  <!-- The special macro "${project}" refers to the directory where
+       this bundle file is located. The application name and bundle
+       identifier are taken from the plist file.
+  -->
+  <plist>${project}/Info.plist</plist>
+
+  <main-binary>${prefix}/bin/eina</main-binary>
+
+  <!-- Copy in GTK+ printer backends -->
+  <!-- <binary>${prefix}/lib/gtk-3.0/${pkg:gtk+-3.0:gtk_binary_version}/printbackends/*.so</binary> -->
+
+  <!-- Copy in GTK+ im modules -->
+  <binary>${prefix}/lib/gtk-3.0/${pkg:gtk+-3.0:gtk_binary_version}/immodules/*.so</binary>
+
+  <!-- Copy in GTK+ theming engines -->
+  <binary>${prefix}/lib/gtk-3.0/${pkg:gtk+-3.0:gtk_binary_version}/theming-engines/*.so</binary>
+
+  <!-- Copy in pango modules -->
+  <binary>${prefix}/lib/pango/${pkg:pango:pango_module_version}/modules/*.so</binary>
+
+  <!-- Copy in gdk pixbuf loader modules -->
+  <binary>${prefix}/lib/gdk-pixbuf-2.0/${pkg:gdk-pixbuf-2.0:gdk_pixbuf_binary_version}/loaders/*.so</binary>
+
+  <!-- Copy in plugins and plugin loaders -->
+  <binary>${prefix}/lib/libpeas-1.0/loaders/*.so</binary>
+  <binary>${prefix}/lib/eina/plugins/*.so</binary>
+  <!-- data!! -->
+
+  <!-- Take the applespell enchant provider -->
+  <!-- <binary>${prefix}/lib/enchant/libenchant_applespell.so</binary> -->
+
+  <!-- Copy in gio modules -->
+  <binary>${prefix}/lib/gio/modules/*.so</binary>
+
+  <!-- Copy in girepository typelibs -->
+  <data>${prefix}/lib/girepository-1.0</data>
+
+  <!-- DBUS -->
+  <binary>${prefix}/bin/dbus-*</binary>
+  <data>${prefix}/etc/dbus-1</data>
+  <data>${prefix}/share/dbus-1</data>
+  <binary>${prefix}/libexec/dbus-daemon-launch-helper</binary>
+
+  <!-- Copy in peas modules -->
+  <binary>${prefix}/lib/libpeas-1.0/loaders/*.so</binary>
+
+  <!-- python -->
+  <binary>${prefix}/lib/python2.7/site-packages/cairo/*.so</binary>
+  <binary>${prefix}/lib/python2.7/site-packages/gi/*.so</binary>
+  <binary>${prefix}/lib/python2.7/site-packages/gi/_glib/*.so</binary>
+  <binary>${prefix}/lib/python2.7/site-packages/gi/_gobject/*.so</binary>
+  <binary>${prefix}/lib/python2.7/site-packages/libxml2mod.so</binary>
+
+  <data>${prefix}/lib/python2.7/site-packages/cairo</data>
+  <data>${prefix}/lib/python2.7/site-packages/gi</data>
+  <data>${prefix}/lib/python2.7/site-packages/libxml2.py</data>
+  <data>${prefix}/include/python2.7/pyconfig.h</data>
+
+  <binary>${prefix}/lib/python2.7/lib-dynload/*.so</binary>
+  <data>${prefix}/lib/python2.7</data>
+  <binary>${prefix}/bin/python*</binary>
+
+  <!-- GTK+3 data -->
+  <data>${prefix}/etc/gtk-3.0/*</data>
+
+  <!-- dconf -->
+  <binary>${prefix}/libexec/dconf-service</binary>
+
+  <!-- gvfs -->
+  <binary>${prefix}/libexec/gvfsd-*</binary>
+  <data>${prefix}/share/gvfs</data>
+
+  <!-- gtksourceview -->
+  <!-- <data>${prefix}/share/gtksourceview-3.0</data> -->
+
+  <!-- eina -->
+  <data>${prefix}/share/eina</data>
+  <data>${prefix}/lib/eina</data>
+
+  <!-- locale (TODO: trim) -->
+  <data>${prefix}/share/locale</data>
+  <data>${prefix}/lib/charset.alias</data>
+
+  <!-- mime database -->
+  <data>${prefix}/share/mime</data>
+
+  <!-- Themes -->
+  <data>${prefix}/share/themes/Default</data>
+  <data>${prefix}/share/themes/Adwaita</data>
+
+  <!-- App icon -->
+  <data dest="${bundle}/Contents/Resources">${project}/eina.icns</data>
+  <data dest="${bundle}/Contents/Resources">${project}/eina.icns</data>
+
+  <!-- gsettings schema -->
+  <data>${prefix}/share/glib-2.0/schemas/gschemas.compiled</data>
+
+  <data dest="${bundle}/Contents/Resources/etc/gtk-3.0/settings.ini">${project}/settings.ini</data>
+
+  <!-- Icon theme -->
+  <icon-theme icons="auto">gnome</icon-theme>
+  <!--<data>${prefix}/share/icons/gnome/16x16/apps/system-file-manager.png</data>
+  <data>${prefix}/share/icons/gnome/22x22/apps/system-file-manager.png</data>
+  <data>${prefix}/share/icons/gnome/24x24/apps/system-file-manager.png</data>
+  <data>${prefix}/share/icons/gnome/32x32/apps/system-file-manager.png</data>
+  <data>${prefix}/share/icons/gnome/scalable/apps/system-file-manager.svg</data>-->
+</app-bundle>

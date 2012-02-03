@@ -1,0 +1,398 @@
+<?xml version="1.0"?>
+<!DOCTYPE moduleset SYSTEM "moduleset.dtd">
+<?xml-stylesheet type="text/xsl" href="moduleset.xsl"?>
+<moduleset>
+  <include href="https://raw.github.com/jralls/gtk-osx-build/master/modulesets-stable/gtk-osx.modules"/>
+  <repository type="git" name="git.gnome.org"
+              href="git://git.gnome.org/"/>
+  <repository type="tarball" name="ftp.gnome.org" default="yes"
+              href="http://ftp.gnome.org/pub/GNOME/sources/"/>
+  <repository type="git" name="github" href="git://github.com/"/>
+  <repository type="tarball" name="ftp.gnupg.org" href="ftp://ftp.gnupg.org/" />
+  <repository type="tarball" name="ftp.gnu.org" href="ftp://ftp.gnu.org/gnu/"/>
+  <repository type="tarball" name="launchpad" href="http://edge.launchpad.net/"/>
+  <repository type="git" name="cairographics" 
+              href="git://anongit.freedesktop.org/git/"/>
+  <repository type="svn" name="libarchive" href="http://libarchive.googlecode.com/svn/trunk/"/>
+  <repository type="tarball" name="iso-codes"
+              href="http://pkg-isocodes.alioth.debian.org/downloads/"/>
+  <repository type="tarball" name="abisource/enchant"
+              href="http://www.abisource.com/downloads/enchant/" />
+  <repository type="tarball" name="sourceware.org"
+                href="ftp://sourceware.org/pub/"/>
+  <repository type="tarball" name="dbus.freedesktop.org"
+	      href="http://dbus.freedesktop.org/releases/"/>
+
+  <!-- mine -->
+  <repository type="tarball" name="liboil"
+                href="http://liboil.freedesktop.org/download/"/>
+  <repository type="tarball" name="gst-plugins-ugly"
+              href="http://gstreamer.freedesktop.org/src/gst-plugins-ugly/"/>
+  <repository type="tarball" name="gst-plugins-bad"
+              href="http://gstreamer.freedesktop.org/src/gst-plugins-bad/"/>
+  <repository type="tarball" name="gst-ffmpeg"
+              href="http://gstreamer.freedesktop.org/src/gst-ffmpeg/"/>
+  <repository type="tarball" name="libmad"
+              href="http://downloads.sourceforge.net/project/mad/libmad/0.15.1b/"/>
+
+  <autotools id="iso-codes" autogen-sh="configure" >
+    <branch repo="iso-codes" version="3.32"
+            module="iso-codes-3.32.tar.bz2"/>
+
+  </autotools>
+
+   <autotools id="pygobject3" autogen-sh="configure" >
+    <branch version="3.0.3" module="pygobject/3.0/pygobject-3.0.3.tar.xz"
+            hash="sha256:088b1e682be02a969a0a3f2e650e4fe72bb3638ee8229819841d3e8f4cde2d7c"/>
+    <dependencies>
+      <dep package="meta-gtk-osx-gtk3"/>
+    </dependencies>
+    <after>
+      <dep package="python"/>
+    </after>
+  </autotools>
+<!--
+  <autotools id="gtksourceview" autogenargs="DATADIRNAME=share">
+    <branch module="gtksourceview/3.2/gtksourceview-3.2.3.tar.bz2"
+            version="3.2.3"
+            hash="sha256:b6a62a41d84ec2f6264a2b6126950ca1b49488b4cd084a894c39535f60f95f6c"/>
+    <dependencies>
+      <dep package="intltool"/>
+      <dep package="libxml2"/>
+      <dep package="shared-mime-info"/>
+      <dep package="gtk+-3.0"/>
+    </dependencies>
+  </autotools>
+-->
+  <autotools id="gtk+-3.0" autogen-sh="configure"
+             autogenargs="--enable-quartz-backend">
+    <branch module="gtk+/3.2/gtk+-3.2.3.tar.xz" version="3.2.3"
+            hash="sha256:e2cf20f2510ebbc7be122a1a33dd1f472a7d06aaf16b4f2a63eb048cd9141d3d">
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/0001-Bug-571582-GtkSelection-implementation-for-quartz.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/gtk-settings-ini-xdg.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/gtk-dnd-offscreen.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/gtk-introspection.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="glib-gtk3"/>
+      <dep package="pango-gtk3"/>
+      <dep package="atk"/>
+      <dep package="gdk-pixbuf"/>
+      <dep package="gobject-introspection-gtk3"/>
+    </dependencies>
+    <after>
+      <dep package="meta-gtk-osx-bootstrap"/>
+    </after>
+  </autotools>
+
+  <autotools id="pango-gtk3"  autogen-sh="configure"
+             autogenargs="--without-x"
+             makeargs="-k -C modules; make">
+    <branch version="1.29.4" module="pango/1.29/pango-1.29.4.tar.bz2"
+            hash="sha256:f15deecaecf1e9dcb7db0e4947d12b5bcff112586434f8d30a5afd750747ff2b">
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/pangoatsui-fontname.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/0001-Make-ATSUI-backend-compile-again.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/pango-coretext-invisible.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="cairo"/>
+      <dep package="fontconfig"/>
+      <dep package="glib-gtk3"/>
+      <dep package="gobject-introspection-gtk3"/>
+    </dependencies>
+    <after>
+      <dep package="meta-gtk-osx-bootstrap"/>
+    </after>
+  </autotools>
+
+  <autotools id="libpeas" autogenargs="DATADIRNAME=share">
+    <branch module="libpeas/1.2/libpeas-1.2.0.tar.bz2"
+            version="1.2.0"
+            hash="sha256:d4a4cf804d59e602ff73b33ba41d37d8c1f9bb3ce7f0533d9181d96d88e4a508">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/libpeas-pygobject-api.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="meta-gtk-osx-gtk3"/>
+      <dep package="pycairo-python2.6"/>
+      <dep package="pygobject3"/>
+    </dependencies>
+  </autotools>
+
+  <autotools id="dconf" autogen-sh="autoreconf">
+    <branch module="dconf/0.10/dconf-0.10.0.tar.bz2"
+            version="0.10.0"
+            hash="sha256:4b034e9e5560ab703f60bb2b6dc1ada7856416660af7dd1207c2c3ab9c9d533b">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/dconf-dylib.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/dconf-echo-escape.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="glib-gtk3"/>
+      <dep package="vala"/>
+    </dependencies>
+  </autotools>
+
+  <autotools id="vala">
+    <branch module="vala/0.14/vala-0.14.0.tar.bz2"
+            version="0.14.0"
+            hash="sha256:4cbca602e2e2a09803ae33fd7324219bc2c611db5a62a52e733e7d8806acb6f5">
+    </branch>
+    <dependencies>
+    </dependencies>
+  </autotools>
+<!--
+  <autotools id="gvfs">
+    <branch module="gvfs/1.10/gvfs-1.10.1.tar.bz2"
+            version="1.10.1"
+            hash="sha256:417a15e53fc20c2e1a1de5ea5903430b0ac2e98178d2fcbcfc8fba3082e801ea">
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="glib-gtk3"/>
+    </dependencies>
+  </autotools>
+-->
+  <autotools id="gsettings-desktop-schemas">
+    <branch module="gsettings-desktop-schemas/3.2/gsettings-desktop-schemas-3.2.0.tar.bz2"
+            version="3.2.0"
+            hash="sha256:4a99260fddc4c9ae797c61d55d37e893b0c26261d86676a9f26b6b8ab5a99d3c">
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="glib-gtk3"/>
+    </dependencies>
+  </autotools>
+
+  <autotools id="gnome-themes-standard">
+    <branch module="gnome-themes-standard/3.2/gnome-themes-standard-3.2.1.tar.bz2"
+            version="3.2.1"
+            hash="sha256:e0acbcbf5663c14a324999a4ff8ca5b88253d4e5dea6cd1aef428f3bb09e6476">
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="meta-gtk-osx-gtk3"/>
+      <dep package="librsvg"/>
+    </dependencies>
+  </autotools>
+
+  <autotools id="gnome-icon-theme-extras">
+    <branch module="gnome-icon-theme-extras/3.0/gnome-icon-theme-extras-3.0.0.tar.bz2"
+            version="3.0.0"
+            hash="sha256:b9e4af7cb9cce3123da257f70223ee3fd78e0963a040386aaef449b111f862eb">
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="glib-gtk3"/>
+    </dependencies>
+  </autotools>
+
+  <autotools id="gnome-icon-theme-symbolic">
+    <branch module="gnome-icon-theme-symbolic/3.2/gnome-icon-theme-symbolic-3.2.1.tar.bz2"
+            version="3.2.1"
+            hash="sha256:7943659c8e2174cdc3c5fa33d3294de5d209bf45bb040462945713f012d2c001">
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="glib-gtk3"/>
+    </dependencies>
+  </autotools>
+<!--
+  <autotools id="gedit-plugins" autogenargs="DATADIRNAME=share" autogen="autogen.sh">
+    <branch module="gedit-plugins/3.2/gedit-plugins-3.2.1.tar.bz2"
+            version="3.2.1"
+            hash="sha256:8f6b5bc88ca61d8f0bc4dd54b2dc82473acfefd90453e4d4ffc3ca88d4182f4d">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/gedit-plugins-disable-terminal.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="gedit"/>
+    </dependencies>
+  </autotools>
+-->
+<!--
+  <autotools id="libsoup">
+    <branch module="libsoup/2.4/libsoup-2.4.1.tar.bz2"
+            version="2.4.1"
+            hash="sha256:774094746748fb0c8985210de0994accdc7095c222fba42c5623e2137443b6cd">
+    </branch>
+    <dependencies>
+      <dep package="glib-gtk3"/>
+      <dep package="libxml2"/>
+      <dep package="libgnome-keyring"/>
+      <dep package="glib-networking"/>
+      <dep package="gobject-introspection-gtk3"/>
+    </dependencies>
+  </autotools>
+-->
+  <autotools id="gobject-introspection-gtk3">
+    <branch module="gobject-introspection/1.30/gobject-introspection-1.30.0.tar.bz2"
+            version="1.30.0"
+            hash="sha256:72f5b8886d23d4bfff1f9824df00831b48b7ebb98d35a50a8f322cb7ff037d12">
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/girscanner-objc.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/0001-scanner-split-CC-environment-variable.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/gobject-introspection-casecmp.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="glib-gtk3"/>
+      <dep package="cairo"/>
+    </dependencies>
+  </autotools>
+<!--
+  <autotools id="enchant" autogen-sh="autogen.sh">
+    <branch module="1.6.0/enchant-1.6.0.tar.gz" version="1.6.0"
+	    repo="abisource/enchant">
+	  <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/enchant-applespell.patch" strip="1"/>
+	</branch>
+    <dependencies>
+      <dep package="glib-gtk3"/>
+    </dependencies>
+  </autotools>
+-->
+  <tarball id="shared-mime-info" supports-non-srcdir-builds="no" version="0.71">
+    <source href="http://people.freedesktop.org/~hadess/shared-mime-info-0.71.tar.bz2"
+            hash="sha256:1d8f97f17de77ae0d8a3a4ef357280ef444da87f4ce19170392712d0c2f6d04f"
+            md5sum="0a90508234d415f761a79fbffdff74f4" size="493216"/>
+    <dependencies>
+      <dep package="intltool"/>
+      <dep package="libxml2"/>
+      <dep package="glib-gtk3"/>
+    </dependencies>
+  </tarball>
+<!--
+  <autotools id="libgnome-keyring">
+    <branch module="libgnome-keyring/3.2/libgnome-keyring-3.2.2.tar.bz2"
+            version="3.2.2"
+            hash="sha256:5332e1e428aa7c1cece68fb37799681df30eeb8a73d96c354969d401fdfeddd7">
+    </branch>
+    <dependencies>
+      <dep package="intltool"/>
+      <dep package="dbus"/>
+      <dep package="libgcrypt"/>
+    </dependencies>
+  </autotools>
+-->
+  <autotools id="dbus" autogen-sh='configure'
+	   autogenargs="--disable-selinux --without-x --disable-launchd
+	   --with-session-socket-dir=/var/tmp">
+    <branch module="dbus/dbus-1.4.1.tar.gz"  version="1.4.1"
+	    repo="dbus.freedesktop.org">
+		<!-- Missing patches?
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/dbus-install.patch"/>
+      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/dbus-msg-nosignal.patch" strip="1"/>
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/dbus-relocatable-services.patch" strip="1"/>
+	  -->
+    </branch>
+    <after>
+      <dep package="gtk+-3.0"/>
+    </after>
+  </autotools>
+ 
+  <autotools id="libgcrypt" autogen-sh="configure" autogenargs="--disable-asm --disable-aesni-support">
+    <branch repo='ftp.gnupg.org' version='1.5.0'
+	    module='gcrypt/libgcrypt/libgcrypt-1.5.0.tar.bz2'/>
+    <dependencies>
+      <dep package="libgpg-error" />
+    </dependencies>
+  </autotools>
+
+  <autotools id="eina" autogenargs="DATADIRNAME=share">
+    <branch repo="github" module="ldotlopez/eina" revision="osx" />
+  </autotools>
+<!--
+  <autotools id="gedit" autogenargs="DATADIRNAME=share">
+    <branch repo="git.gnome.org" module="gedit" revision="3.2.6-osx-3"/>
+    <dependencies>
+      <dep package="meta-gtk-osx-bootstrap"/>
+      <dep package="meta-gtk-osx-gtk3"/>
+      <dep package="libpeas"/>
+      <dep package="gtksourceview"/>
+      <dep package="libsoup"/>
+      <dep package="enchant"/>
+      <dep package="dconf"/>
+      <dep package="gvfs"/>
+      <dep package="gsettings-desktop-schemas"/>
+      <dep package="gnome-themes-standard"/>
+      <dep package="icon-naming-utils"/>
+      <dep package="gnome-icon-theme"/>
+      <dep package="gnome-icon-theme-extras"/>
+      <dep package="gnome-icon-theme-symbolic"/>
+      <dep package="iso-codes"/>
+    </dependencies>
+  </autotools>
+-->
+  <autotools id="libffi" autogenargs="--disable-builddir">
+    <branch module="libffi/libffi-3.0.10.tar.gz" repo="sourceware.org"
+            version="3.0.10" checkoutdir="atgreen-libffi-873d687">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/ffi-darwin11.patch" strip="1"/>
+    </branch>
+  </autotools>
+
+  <autotools id="gtk-mac-integration" autogen-sh="configure"
+             autogenargs="--disable-python">
+    <branch module="gtk-mac-integration/1.0/gtk-mac-integration-1.0.1.tar.bz2"
+            version="1.0.1"
+            hash="sha256:417773d32be5304839f6f917a6ce4637d9a642829105ce8f9527f663830b8089">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/mac-integration-open-files.patch" strip="1"/>
+    </branch>
+    <dependencies>
+    </dependencies>
+    <after>
+      <dep package="gtk+-3.0"/>
+      <dep package="meta-gtk-osx-bootstrap"/>
+    </after>
+  </autotools>
+
+  <autotools id="glib-gtk3" autogen-sh="configure">
+    <branch module="glib/2.30/glib-2.30.1.tar.bz2"  version="2.30.1"
+            hash="sha256:4e560319450f31d85b6cdb2b530c3324a510ca04817e360943d0774327d21804">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/glib-iconv.patch" strip="1"/>
+    </branch>
+    <dependencies>
+      <dep package="libffi"/>
+      <dep package="gtk-doc"/>
+    </dependencies>
+    <after>
+      <dep package="meta-gtk-osx-bootstrap"/>
+    </after>
+  </autotools>
+
+  <autotools id="gst-plugins-ugly" autogen-sh="configure">
+     <branch repo="gst-plugins-ugly" module="gst-plugins-ugly-0.10.18.tar.gz" version="0.10.18" />
+  </autotools>
+
+  <autotools id="gst-plugins-bad" autogen-sh="configure">
+     <branch repo="gst-plugins-bad" module="gst-plugins-bad-0.10.22.tar.gz" version="0.10.22" />
+  </autotools>
+
+  <autotools id="gst-ffmpeg" autogen-sh="configure">
+     <branch repo="gst-ffmpeg" module="gst-ffmpeg-0.10.13.tar.gz" version="0.10.13" />
+  </autotools>
+
+  <autotools id="libmad" autogen-sh="configure">
+     <branch repo="libmad" module="libmad-0.15.1b.tar.gz" version="0.151bb" />
+  </autotools>
+
+  <metamodule id="eina-meta">
+    <dependencies>
+      <dep package="python"/>
+      <dep package="libxml2"/>
+      <dep package="libtiff"/>
+      <dep package="libpng"/>
+      <dep package="libjpeg"/>
+      <dep package="libcroco"/>
+      <dep package="librsvg"/>
+      <dep package="dbus"/>
+      <dep package="liboil"/>
+      <dep package="gstreamer"/>
+      <dep package="gst-plugins-good"/>
+      <dep package="libpeas"/>
+      <dep package="dconf"/>
+      <dep package="libmad"/>
+      <dep package="eina"/>
+      <!-- <dep package="gedit-plugins"/> -->
+    </dependencies>
+  </metamodule>
+
+</moduleset>
+<!-- vi:ex:ts=2:et -->
