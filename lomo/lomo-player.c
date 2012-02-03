@@ -1,5 +1,6 @@
 #include "lomo-player.h"
 #include <glib/gi18n.h>
+#include <gel/gel.h>
 #include "lomo/lomo-playlist.h"
 #include "lomo/lomo-metadata-parser.h"
 #include "lomo/lomo-em-art-provider.h"
@@ -173,14 +174,7 @@ static gboolean player_bus_watcher(GstBus *bus, GstMessage *message, LomoPlayer 
 static void     player_notify_cb(LomoPlayer *self, GParamSpec *pspec, gpointer user_data);
 #endif
 
-static const GQuark
-player_quark(void)
-{
-	static GQuark ret = 0;
-	if (ret == 0)
-		ret = g_quark_from_static_string("lomo-player");
-	return ret;
-}
+GEL_DEFINE_QUARK_FUNC(player)
 
 static void
 player_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)

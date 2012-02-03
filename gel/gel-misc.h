@@ -121,7 +121,7 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
  * Defines a quark function
  **/
 #define GEL_DEFINE_QUARK_FUNC(name) \
-	static const GQuark name##_quark(void) \
+	static GQuark name##_quark(void) \
 	{ \
 		static GQuark ret = 0; \
 		if (ret == 0) \

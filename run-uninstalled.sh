@@ -10,6 +10,7 @@ R="$D/tools/run"
 
 # Setup path for libs
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$D/eina/ext/.libs:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$D/eina/ext/.libs:$DYLD_LIBRARY_PATH"
 export GI_TYPELIB_PATH="$D/lomo:$D/gel:$D/eina:$GI_TYPELIB_PATH"
 export EINA_TYPELIB_DIR="$D/eina"
 
@@ -76,9 +77,9 @@ done
 P=${P:="eina"}
 
 BIN=""
-for i in $(find "$D/eina" -name "$P")
+for i in $(find "$D/eina" -name "$P" -type f -perm -0700 )
 do
-	if [ "$(file -ib "$i" | cut -d ';' -f 1)" = "application/x-executable" ]; then
+	if [ "$(file -ib "$i" | cut -d '/' -f 1)" = "application" ]; then
 		BIN="$i"
 		break;
 	fi
