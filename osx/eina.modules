@@ -141,7 +141,7 @@
     <dependencies>
     </dependencies>
   </autotools>
-<!--
+
   <autotools id="gvfs">
     <branch module="gvfs/1.10/gvfs-1.10.1.tar.bz2"
             version="1.10.1"
@@ -152,7 +152,7 @@
       <dep package="glib-gtk3"/>
     </dependencies>
   </autotools>
--->
+
   <autotools id="gsettings-desktop-schemas">
     <branch module="gsettings-desktop-schemas/3.2/gsettings-desktop-schemas-3.2.0.tar.bz2"
             version="3.2.0"
@@ -296,9 +296,6 @@
     </dependencies>
   </autotools>
 
-  <autotools id="eina" autogenargs="DATADIRNAME=share">
-    <branch repo="github" module="ldotlopez/eina" revision="osx" />
-  </autotools>
 <!--
   <autotools id="gedit" autogenargs="DATADIRNAME=share">
     <branch repo="git.gnome.org" module="gedit" revision="3.2.6-osx-3"/>
@@ -357,6 +354,7 @@
     </after>
   </autotools>
 
+  <!-- Gstreamer plugins and deps -->
   <autotools id="gst-plugins-ugly" autogen-sh="configure">
      <branch repo="gst-plugins-ugly" module="gst-plugins-ugly-0.10.18.tar.gz" version="0.10.18" />
   </autotools>
@@ -373,24 +371,55 @@
      <branch repo="libmad" module="libmad-0.15.1b.tar.gz" version="0.151bb" />
   </autotools>
 
-  <metamodule id="eina-meta">
+  <autotools id="eina" autogenargs="DATADIRNAME=share">
+    <branch repo="github" module="ldotlopez/eina" revision="osx" />
+      <dependencies>
+        <dep package="gtk+-3.0" />
+        <dep package="gstreamer" />
+        <dep package="libpeas" />
+      </dependencies>
+  </autotools>
+
+  <metamodule id="meta-eina">
     <dependencies>
-      <dep package="python"/>
+      <!-- Some base libs -->
       <dep package="libxml2"/>
       <dep package="libtiff"/>
       <dep package="libpng"/>
       <dep package="libjpeg"/>
+
+      <!-- Base GTK+ -->
+      <dev package="meta-gtk-osx-bootstrap"/>
+      <dev package="meta-gtk-osx-gtk3"/>
+
+      <!--
       <dep package="libcroco"/>
       <dep package="librsvg"/>
+      -->
+
+      <!-- Misc -->
+      <dep package="python"/>
       <dep package="dbus"/>
-      <dep package="liboil"/>
-      <dep package="gstreamer"/>
-      <dep package="gst-plugins-good"/>
-      <dep package="libpeas"/>
       <dep package="dconf"/>
+      <dep package="gvfs"/>
+      <!-- <dep package="liboil"/> -->
+
+      <!-- <dep package="gstreamer"/> -->
       <dep package="libmad"/>
+      <dep package="gst-plugins-good"/>
+      <dep package="gst-plugins-bad"/>
+      <dep package="gst-plugins-ugly"/>
+
+      <dep package="gsettings-desktop-schemas"/>
+      <dep package="gnome-themes-standard"/>
+      <dep package="icon-naming-utils"/>
+      <dep package="gnome-icon-theme"/>
+      <dep package="gnome-icon-theme-extras"/>
+      <dep package="gnome-icon-theme-symbolic"/>
+      <dep package="iso-codes"/>
+
       <dep package="eina"/>
-      <!-- <dep package="gedit-plugins"/> -->
+
     </dependencies>
   </metamodule>
 
