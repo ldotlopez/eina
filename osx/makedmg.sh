@@ -7,7 +7,7 @@ pushd $(dirname $0) &>/dev/null
 echo "Generating bundle..."
 ./makebundle.sh
 
-VOLUME_NAME=eina
+VOLUME_NAME=Eina
 
 if [ "$1x" = "x" ]; then
 	DMG_FILE=$VOLUME_NAME.dmg
@@ -15,14 +15,14 @@ else
 	DMG_FILE=$1.dmg
 fi
 
-DMG_APP=eina.app
+DMG_APP=Eina.app
 MOUNT_POINT=$VOLUME_NAME.mounted
 
 rm -f $DMG_FILE
 rm -f $DMG_FILE.master
 
 # Compute an approximated image size in MB, and bloat by 15 MB
-image_size=$(du -ck $DMG_APP dmg-data | tail -n1 | cut -f1)
+image_size=$(du -ck $DMG_APP template.dmg | tail -n1 | cut -f1)
 image_size=$((($image_size + 15000) / 1000))
 
 echo "Creating disk image (${image_size}MB)..."

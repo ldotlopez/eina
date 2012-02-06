@@ -357,11 +357,16 @@
   <!-- Gstreamer plugins and deps -->
   <autotools id="gst-plugins-ugly" autogen-sh="configure">
      <branch repo="gst-plugins-ugly" module="gst-plugins-ugly-0.10.18.tar.gz" version="0.10.18" />
+	 <dependencies>
+	   <dep package="libmad"/>
+	 </dependencies>
   </autotools>
 
+  <!--
   <autotools id="gst-plugins-bad" autogen-sh="configure">
      <branch repo="gst-plugins-bad" module="gst-plugins-bad-0.10.22.tar.gz" version="0.10.22" />
   </autotools>
+  -->
 
   <autotools id="gst-ffmpeg" autogen-sh="configure">
      <branch repo="gst-ffmpeg" module="gst-ffmpeg-0.10.13.tar.gz" version="0.10.13" />
@@ -405,7 +410,6 @@
       <!-- <dep package="liboil"/> -->
 
       <!-- <dep package="gstreamer"/> -->
-      <dep package="libmad"/>
       <dep package="gst-plugins-good"/>
       <dep package="gst-plugins-bad"/>
       <dep package="gst-plugins-ugly"/>
@@ -417,7 +421,7 @@
       <dep package="gnome-icon-theme-extras"/>
       <dep package="gnome-icon-theme-symbolic"/>
       <dep package="iso-codes"/>
-
+		<dep package="shared-mime-info"/>
       <dep package="eina"/>
 
     </dependencies>

@@ -1,13 +1,17 @@
 #!/bin/bash
 
-if [ -d eina.app ] && [ "$1x" = "-fx" ]; then
-	rm -rf eina.app
+if [ -d Eina.app ] && [ "$1x" = "-fx" ]; then
+	rm -rf Eina.app
 fi
 
-if [ ! -d eina.app ]; then
-    gtk-mac-bundler eina.bundle
+if [ ! -d Eina.app ]; then
+    gtk-mac-bundler Eina.bundle
 else
-	echo "Note eina.app bundle already exists, only stripping it..."
+	echo "Note Eina.app bundle already exists, only stripping it..."
+fi
+
+if [ -d eina.app ]; then
+	mv eina.app Eina.app
 fi
 
 function do_strip {
@@ -30,21 +34,21 @@ function do_strip {
 echo "Removing unneeded files from bundle"
 
 # Remove pyc and pyo files
-for i in $(find eina.app/Contents/Resources/lib/python2.7 -type f -regex '.*\.py[oc]'); do
+for i in $(find Eina.app/Contents/Resources/lib/python2.7 -type f -regex '.*\.py[oc]'); do
     rm -f "$i"
 done
 
 echo "Strip debug symbols from bundle binaries"
 
 # Strip debug symbols
-for i in $(find -E eina.app/Contents/Resources -type f -regex '.*\.(so|dylib)$'); do
+for i in $(find -E Eina.app/Contents/Resources -type f -regex '.*\.(so|dylib)$'); do
     do_strip "$i"
 done
 
-for i in $(find eina.app/Contents/Resources/bin -type f); do
+for i in $(find Eina.app/Contents/Resources/bin -type f); do
     if [ -x "$i" ]; then
         do_strip "$i"
     fi
 done
 
-do_strip eina.app/Contents/MacOS/eina-bin
+do_strip Eina.app/Contents/MacOS/eina-bin

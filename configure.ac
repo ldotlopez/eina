@@ -498,6 +498,7 @@ pixmaps/Makefile
 plugins/lastfm/net.sourceforge.eina.plugins.lastfm.gschema.xml.in
 po/Makefile.in
 osx/Makefile
+osx/Info.plist
 ])
 AC_OUTPUT
 

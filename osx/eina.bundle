@@ -59,11 +59,23 @@
 
   <!-- Copy in plugins and plugin loaders -->
   <binary>${prefix}/lib/libpeas-1.0/loaders/*.so</binary>
-  <binary>${prefix}/lib/eina/plugins/*.so</binary>
-  <!-- data!! -->
 
-  <!-- Take the applespell enchant provider -->
-  <!-- <binary>${prefix}/lib/enchant/libenchant_applespell.so</binary> -->
+  <!-- Plugins -->
+  <!--
+  <binary>${prefix}/lib/eina/adb/*.so</binary>
+  <data>${prefix}/lib/eina/adb/*.{plugin,png,svg}</data>
+  <binary>${prefix}/lib/eina/dbus/*.so</binary>
+  <binary>${prefix}/lib/eina/dock/*.so</binary>
+  <binary>${prefix}/lib/eina/fieshta/*.so</binary>
+  <binary>${prefix}/lib/eina/lomo/*.so</binary>
+  <binary>${prefix}/lib/eina/muine/*.so</binary>
+  <binary>${prefix}/lib/eina/player/*.so</binary>
+  <binary>${prefix}/lib/eina/playlist/*.so</binary>
+  <binary>${prefix}/lib/eina/preferences/*.so</binary>
+  <binary>${prefix}/lib/eina/pythonconsole/*.so</binary>
+  <binary>${prefix}/lib/eina/stars/*.so</binary>
+  <binary>${prefix}/lib/eina/status-icon/*.so</binary>
+  -->
 
   <!-- Copy in gio modules -->
   <binary>${prefix}/lib/gio/modules/*.so</binary>
@@ -112,6 +124,9 @@
   <!-- eina -->
   <data>${prefix}/share/eina</data>
   <data>${prefix}/lib/eina</data>
+  <binary>${prefix}/lib/gstreamer-0.10</binary>
+  <binary>${prefix}/bin/gst-inspect-0.10</binary>
+  <binary>${prefix}/libexec/gstreamer-0.10/gst-plugin-scanner</binary>
 
   <!-- locale (TODO: trim) -->
   <data>${prefix}/share/locale</data>
@@ -126,7 +141,6 @@
 
   <!-- App icon -->
   <data dest="${bundle}/Contents/Resources">${project}/eina.icns</data>
-  <data dest="${bundle}/Contents/Resources">${project}/eina.icns</data>
 
   <!-- gsettings schema -->
   <data>${prefix}/share/glib-2.0/schemas/gschemas.compiled</data>
@@ -135,9 +149,22 @@
 
   <!-- Icon theme -->
   <icon-theme icons="auto">gnome</icon-theme>
-  <!--<data>${prefix}/share/icons/gnome/16x16/apps/system-file-manager.png</data>
-  <data>${prefix}/share/icons/gnome/22x22/apps/system-file-manager.png</data>
-  <data>${prefix}/share/icons/gnome/24x24/apps/system-file-manager.png</data>
-  <data>${prefix}/share/icons/gnome/32x32/apps/system-file-manager.png</data>
-  <data>${prefix}/share/icons/gnome/scalable/apps/system-file-manager.svg</data>-->
+  <!-- Extra icons 
+  for i in $(grep -r symbolic $HOME/Source/eina 2>/dev/null | grep icon_name | cut -d ">" -f 2 | cut -d "<" -f 1 | sort | uniq)
+  do
+    echo "  <data>\${prefix}/$(find ~/Source/eina-sdk/10.6/inst/share/icons/gnome -name "$i.svg" | sed -e 's,/Users/luis/Source/eina-sdk/10.6/inst/,,')</data>"
+  done
+  -->
+  <data>${prefix}/share/icons/gnome/scalable/actions/document-open-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/list-add-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/list-remove-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/media-playback-start-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/media-playback-pause-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/media-playback-stop-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/status/media-playlist-repeat-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/status/media-playlist-shuffle-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/media-skip-backward-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/media-skip-forward-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/actions/window-close-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/emblems/emblem-favorite-symbolic.svg</data>
 </app-bundle>
