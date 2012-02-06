@@ -1,0 +1,81 @@
+This is a guide to building eina on OS X. This guide assumes that you are
+already familiar with building gtk+ software on OS X (natively) using jhbuild.
+Please make sure to read https://live.gnome.org/GTK%2B/OSX/Building
+before proceeding.
+
+Note: Terminal commands are preceded by dollar signs.
+
+1) Building eina for OS X
+=============================================================================
+
+Get and install the gtk-osx-build-setup.sh from:
+http://git.gnome.org/browse/gtk-osx/plain/gtk-osx-build-setup.sh
+
+$ curl -O http://git.gnome.org/browse/gtk-osx/plain/gtk-osx-build-setup.sh
+$ sh gtk-osx-build-setup.sh
+
+Some of the newer releases of gnome software are only providing .xz packages.
+To be able to extract the contents of these packages, you will need to install
+xz utils. The easiest way to install is to use a dmg package available on:
+
+http://macpkg.sourceforge.net/
+
+Make sure to include /usr/local/bin in your PATH and alsothat you are not
+conflicting anything from fink/macports. If you are using fink/macports, you
+can add the following to your ~/.bashrc to remove any PATHS related to 
+fink/macports when using jhbuild:
+
+    # Add /usr/local/bin
+    export PATH="$PATH:/usr/local/bin"
+
+    # Remove fink/macports path from PATH and store in local var origpath
+    origpath=$(echo $PATH | sed -E -e 's;:?/opt/local/bin;;' -e 's;:?/opt/local/sbin;;')
+
+    # Alias jhbuild
+    alias jhbuild="PATH=$origpath:$HOME/.local/bin jhbuild"
+
+For eina we need to modify some configuration for jhbuild. A special
+jhbuildrc is provided in the eina source (osx/jhbuild/jhbuildrc-eina). Copy
+this file to your home.
+
+$ curl -o ~/.jhbuildrc-eina https://raw.github.com/ldotlopez/eina/osx/osx/jhbuildrc-eina
+
+eina provides a custom moduleset for jhbuild that you can use to built eina. This moduleset is specified in jhbuildrc-eina (together with some other
+configurations for jhbuild specific for eina).
+
+To use the special eina jhbuild configuration you will have to set the
+environment variables JHB=eina and EINA_SDK=<sdk>. Where <sdk> is the SDK
+version you want to built for (i.e. 10.4, 10.5, 10.6, etc.).
+
+IMPORTANT: jhbuildrc-eina will call setup_sdk for the right sdk. However, by
+default setup_sdk is already called from ~/.jhbuildrc-custom. Please make sure
+to comment out the call to setup_sdk in ~/.jhbuildrc-custom!
+
+Finally we are ready to built eina:
+
+$ JHB=eina EINA_SDK=10.6 jhbuild bootstrap --ignore-system
+$ JHB=eina EINA_SDK=10.6 jhbuild build eina-meta
+
+Note that it's perfectly possible that something might fail during the built,
+as the OS X (quartz) port of eina, gtk+, glib etc. is under development.
+Please feel free to drop by on IRC or send an e-mail to the eina mailing list
+(or gtk-osx-users mailing list) if you are not able to make things work.
+
+Packages will be downloaded in ~/Source/eina-sdk/pkgs. Sources are extracted in ~/Source/eina-sdk/<sdk>/source and installation of the binaries is in ~/Source/eina-sdk/<sdk>/inst.
+ 
+
+2) Making a eina bundle
+=============================================================================
+
+You can make a eina bundle (i.e. a eina.app) with a script provided by
+eina. Note that you have to execute script from within the jhbuild shell:
+
+$ JHB=eina EINA_SDK=10.6 jhbuild shell
+
+Then, go to the osx directory in the eina source and execute:
+
+$ sh makebundle.sh
+
+If succeeded, you will now have a eina.app bundle in the osx directory.
+Similarly, if you want to built the final dmg image, you can use the script
+makedmg.sh

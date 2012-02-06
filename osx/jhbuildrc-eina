@@ -20,9 +20,9 @@ else:
     _architecture = "x86_64"
     append_autogenargs('glib-gtk3', '--with-libiconv=native')
 
-checkoutroot = os.path.expanduser("~/gedit/" + _gsdk + "/source")
-prefix = os.path.expanduser("~/gedit/" + _gsdk + "/inst")
-tarballdir = os.path.expanduser("~/gedit/pkgs")
+checkoutroot = os.path.expanduser("~/Source/eina-sdk/" + _gsdk + "/source")
+prefix = os.path.expanduser("~/Source/eina-sdk/" + _gsdk + "/inst")
+tarballdir = os.path.expanduser("~/Source/eina-sdk/pkgs")
 
 # Main setup
 setup_sdk(target=_gsdk, sdk_version=_sdkversion, architectures=[_architecture])
@@ -38,4 +38,4 @@ environ_append("OBJCFLAGS", "-mmacosx-version-min=" + _gsdk)
 skip.append("libiconv")
 
 # Main module set
-moduleset = "http://git.gnome.org/browse/gedit/plain/osx/jhbuild/gedit.modules"
+moduleset = "https://raw.github.com/ldotlopez/eina/osx/osx/eina.modules"
