@@ -38,4 +38,4 @@ environ_append("OBJCFLAGS", "-mmacosx-version-min=" + _gsdk)
 skip.append("libiconv")
 
 # Main module set
-moduleset = "https://raw.github.com/ldotlopez/eina/osx/osx/eina.modules"
+moduleset = "https://raw.github.com/ldotlopez/eina/master/osx/eina.modules"

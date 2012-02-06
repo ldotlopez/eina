@@ -38,7 +38,7 @@ For eina we need to modify some configuration for jhbuild. A special
 jhbuildrc is provided in the eina source (osx/jhbuild/jhbuildrc-eina). Copy
 this file to your home.
 
-$ curl -o ~/.jhbuildrc-eina https://raw.github.com/ldotlopez/eina/osx/osx/jhbuildrc-eina
+$ curl -o ~/.jhbuildrc-eina https://raw.github.com/ldotlopez/eina/master/osx/jhbuildrc-eina
 
 eina provides a custom moduleset for jhbuild that you can use to built eina. This moduleset is specified in jhbuildrc-eina (together with some other
 configurations for jhbuild specific for eina).
