@@ -40,6 +40,8 @@
 #include "eina-stock.h"
 #include "eina-file-utils.h"
 
+#define GFILE_INFO_KEY "x-gfile-info"
+
 G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CHOOSER_DIALOG)
 
 struct _EinaFileChooserDialogPrivate {
@@ -48,8 +50,13 @@ struct _EinaFileChooserDialogPrivate {
 
 	gboolean      user_cancel;
 	GtkBox       *info_box;    // Info widgets
-	GelIOScanner *scanner;     // RecurseTree operation in progress
 };
+
+typedef struct EinaFileChooserDialogIOSchedulerJobContext {
+	EinaFileChooserDialog *self;
+	gpointer input;
+	gpointer result;
+} EinaFileChooserDialogIOSchedulerJobContext;
 
 void
 set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
@@ -62,37 +69,27 @@ clear_message(EinaFileChooserDialog *self);
 static void
 cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
 
-// Async ops
+GList *
+recursive_scan_files(GList *input, GCancellable *cancellable);
+static gboolean
+get_uris_scheduler_job_helper(GIOSchedulerJob *job,
+	GCancellable *cancellable, EinaFileChooserDialogIOSchedulerJobContext *ctx);
 static void
-scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaFileChooserDialog *self);
-static void
-scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaFileChooserDialog *self);
+eina_file_chooser_dialog_scheduler_io_job_context_destroy(EinaFileChooserDialogIOSchedulerJobContext *ctx);
+static gint
+g_file_compare_by_name(GFile *a, GFile *b);
 
 static void
-reset_resources(EinaFileChooserDialog *self)
+free_resources(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = self->priv;
 
-	/*
-	if (priv->scanner)
-	{
-		gel_io_scan_close(priv->scanner);
-		priv->scanner = NULL;
-	}
-	*/
-	gel_free_and_invalidate(priv->scanner, NULL, g_object_unref);
 	if (priv->uris)
 	{
 		g_list_foreach(priv->uris, (GFunc) g_free, NULL);
 		g_list_free(priv->uris);
 		priv->uris = NULL;
 	}
-}
-
-static void
-free_resources(EinaFileChooserDialog *self)
-{
-	reset_resources(self);
 }
 
 static void
@@ -248,6 +245,26 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 		GTK_WIDGET(button));
 }
 
+static gboolean
+unblock_ui(EinaFileChooserDialogIOSchedulerJobContext *ctx)
+{
+	// Transfer information from context to self
+	EinaFileChooserDialog *self = ctx->self;
+
+	GList *iter = (GList *) ctx->result;
+	while (iter)
+	{
+		GFile *f = G_FILE(iter->data);
+		if (eina_file_utils_is_supported_file(f))
+			self->priv->uris = g_list_prepend(self->priv->uris, g_strdup(g_file_get_uri(f)));
+		iter = iter->next;
+	}
+
+	// Unlock UI
+	gtk_main_quit();
+	return FALSE;
+}
+
 /*
  * eina_file_chooser_dialog_get_uris:
  * @self: An #EinaFileChooserDialog
@@ -256,7 +273,7 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
  * This function is synchronous, while transversing the tree it puts itself in
  * a unsensitive state and enters in deeper gtk main-loop.
  *
- * Operation is cancelable using a button.
+ * Operation is cancellable using a button.
  *
  * Returns: (transfer full) (element-type utf-8): The URIs. Elements of the
  * list must be freed with g_free and list with g_list_free
@@ -267,24 +284,28 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	g_return_val_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(self), NULL);
 
 	EinaFileChooserDialogPrivate *priv = self->priv;
-	reset_resources(self);
+	free_resources(self);
 
-	GSList *s_uris = gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self));
-	GSList *l = s_uris;
-	GList  *uris = NULL;
-	while (l)
-	{
-		uris = g_list_prepend(uris, l->data);
-		l = l->next;
-	}
-	uris = g_list_reverse(uris);
-	g_slist_free(s_uris);
+	/*
+	 * Prepare context
+	 */
+	EinaFileChooserDialogIOSchedulerJobContext *ctx = g_new0(EinaFileChooserDialogIOSchedulerJobContext, 1);
+	ctx->self  = self;
+	ctx->input = NULL;
 
-	priv->scanner = gel_io_scanner_new_full(uris, "standard::*", TRUE);
-	g_signal_connect(priv->scanner, "finish", (GCallback) scanner_success_cb, self);
-	g_signal_connect(priv->scanner, "error",  (GCallback) scanner_error_cb,   self);
+	GSList *uris = g_slist_sort(gtk_file_chooser_get_uris(GTK_FILE_CHOOSER(self)), (GCompareFunc) strcmp);
 
-	gel_list_deep_free(uris, (GFunc) g_free);
+	for (GSList *iter = uris; iter != NULL; iter = iter->next)
+		ctx->input = g_list_prepend(ctx->input, g_file_new_for_uri((gchar *) iter->data));
+	ctx->input = g_list_reverse(ctx->input);
+
+	g_slist_foreach(uris, (GFunc) g_free, NULL);
+	g_slist_free(uris);
+
+	g_io_scheduler_push_job((GIOSchedulerJobFunc) get_uris_scheduler_job_helper, ctx,
+		NULL,                /* destroy-notify */
+		G_PRIORITY_DEFAULT,
+		g_cancellable_new());
 
 	// Put UI in busy state
 	update_sensitiviness(self, FALSE);
@@ -309,7 +330,7 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	{
 		clear_message(self);
 		priv->user_cancel = FALSE;
-		reset_resources(self);
+		free_resources(self);
 		return NULL;
 	}
 
@@ -327,6 +348,7 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 
 	GList *ret = priv->uris;
 	priv->uris = NULL;
+
 	return ret;
 }
 
@@ -418,52 +440,126 @@ cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = self->priv;
 	priv->user_cancel = TRUE;
-	reset_resources(self);
+	free_resources(self);
 	clear_message(self);
 	update_sensitiviness(self, TRUE);
 }
 
-static void
-scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaFileChooserDialog *self)
+static gboolean
+get_uris_scheduler_job_helper(GIOSchedulerJob *job,
+	GCancellable *cancellable, EinaFileChooserDialogIOSchedulerJobContext *ctx)
 {
-	EinaFileChooserDialogPrivate *priv = self->priv;
+	ctx->result = recursive_scan_files((GList *) ctx->input, cancellable);
 
-	// GList *flatten = gel_io_scan_flatten_result(forest);
-	GList *flatten = gel_io_scanner_flatten_result(forest);
-	GList *l = flatten;
-	while (l)
+	/*
+	GList *result = ctx->result;
+	g_debug ("[out main] Got %d files:", g_list_length (result));
+	for (GList *l = result; l ; l = l->next)
+		g_debug ("+ %s", g_file_get_uri (G_FILE(l->data)));
+	*/
+
+	g_io_scheduler_job_send_to_mainloop_async(job,
+		(GSourceFunc) unblock_ui, ctx,
+		(GDestroyNotify) eina_file_chooser_dialog_scheduler_io_job_context_destroy);
+
+	return FALSE;
+}
+
+GList *
+recursive_scan_files(GList *input, GCancellable *cancellable)
+{
+	GList *ret = NULL;
+	GList *files = NULL;
+
+	if (g_cancellable_is_cancelled(cancellable))
+		return ret;
+
+	for (GList *iter = input; iter != NULL; iter = iter->next)
 	{
-		GFile     *file = G_FILE(l->data);
-		GFileInfo *info = g_object_get_data((GObject *) file, "g-file-info");
-		gchar *uri = g_file_get_uri(G_FILE(l->data));
-
-		if ((g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR) &&
-			eina_file_utils_is_supported_extension(uri))
-			priv->uris = g_list_prepend(priv->uris, uri);
-		else
+		// Ensure GFile
+		GFile *f = (GFile *) iter->data;
+		if (!G_IS_FILE(f))
 		{
-			g_free(uri);
+			g_warn_if_fail(G_IS_FILE(f));
+			continue;
 		}
-		l = l->next;
+
+		// Ensure GFileInfo attached
+		GFileInfo *info = g_object_get_data((GObject *) f, GFILE_INFO_KEY);
+		if (!info)
+		{
+			info = g_file_query_info(f, "standard::*", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, NULL, NULL);
+			if (!info)
+			{
+				g_warn_if_fail(G_IS_FILE_INFO(info));
+				continue;
+			}
+			g_object_set_data_full((GObject *) f, GFILE_INFO_KEY, info, g_object_unref);
+		}
+
+		// Examine dirs
+		if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
+		{
+			GFileEnumerator *enumerator = g_file_enumerate_children(f, "standard::*",
+				G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, NULL, NULL);
+
+			GList *children = NULL;
+			while (TRUE)
+			{
+				GError *err = NULL;
+				GFileInfo *child_info = g_file_enumerator_next_file(enumerator, NULL, &err);
+
+				if (!child_info && (err == NULL))
+					break;
+				if (!child_info)
+					continue;
+				GFile *child = g_file_get_child(f, g_file_info_get_name(child_info));
+				g_object_set_data_full((GObject *) child, GFILE_INFO_KEY, child_info, g_object_unref);
+
+				children = g_list_prepend(children, child);
+			}
+			g_object_unref(enumerator);
+
+			children = g_list_sort(children, (GCompareFunc) g_file_compare_by_name);
+			ret = g_list_concat(ret, recursive_scan_files(children, cancellable));
+		}
+
+		else if (g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR)
+		{
+			files = g_list_prepend(files, g_object_ref(f));
+		}
 	}
-	priv->uris = g_list_reverse(priv->uris);
 
-	// Get and parse result
-	if (gtk_main_level() > 1)
-		gtk_main_quit();
-
-	// Close this operation and go to next element in queue
-	// gel_io_scan_close(scanner);
-	//priv->scanner = NULL;
-	gel_free_and_invalidate(priv->scanner, NULL, g_object_unref);
+	return g_list_concat(ret, g_list_reverse(files));
 }
 
-// Show errors from GelIOOp and update UI to reflect them
-static void
-scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaFileChooserDialog *self)
+
+/*
+ * Utils
+ */
+static gint
+g_file_compare_by_name(GFile *a, GFile *b)
 {
-	gchar *uri = g_file_get_uri((GFile *) source);
-	g_warning("Error reading '%s': %s", uri, error->message);
-	g_free(uri);
+	GFileInfo *ai = g_object_get_data((GObject *) a, GFILE_INFO_KEY);
+	GFileInfo *bi = g_object_get_data((GObject *) b, GFILE_INFO_KEY);
+
+	if (ai && bi)
+		return strcmp(g_file_info_get_name(ai), g_file_info_get_name(bi));
+	else
+		return strcmp(g_file_get_uri(a), g_file_get_uri(b));
 }
 
+static void
+eina_file_chooser_dialog_scheduler_io_job_context_destroy(EinaFileChooserDialogIOSchedulerJobContext *ctx)
+{
+	GList *all = g_list_concat((GList *) ctx->input, (GList *) ctx->result);
+
+	GList *iter = all;
+	while (iter)
+	{
+		g_object_unref ((GFile *) iter->data);
+		iter = iter->next;
+	}
+	g_list_free(all);
+	g_free(ctx);
+}
