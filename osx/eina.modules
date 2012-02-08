@@ -38,7 +38,6 @@
   <autotools id="iso-codes" autogen-sh="configure" >
     <branch repo="iso-codes" version="3.32"
             module="iso-codes-3.32.tar.bz2"/>
-
   </autotools>
 
    <autotools id="pygobject3" autogen-sh="configure" >
@@ -51,19 +50,7 @@
       <dep package="python"/>
     </after>
   </autotools>
-<!--
-  <autotools id="gtksourceview" autogenargs="DATADIRNAME=share">
-    <branch module="gtksourceview/3.2/gtksourceview-3.2.3.tar.bz2"
-            version="3.2.3"
-            hash="sha256:b6a62a41d84ec2f6264a2b6126950ca1b49488b4cd084a894c39535f60f95f6c"/>
-    <dependencies>
-      <dep package="intltool"/>
-      <dep package="libxml2"/>
-      <dep package="shared-mime-info"/>
-      <dep package="gtk+-3.0"/>
-    </dependencies>
-  </autotools>
--->
+
   <autotools id="gtk+-3.0" autogen-sh="configure"
              autogenargs="--enable-quartz-backend">
     <branch module="gtk+/3.2/gtk+-3.2.3.tar.xz" version="3.2.3"
@@ -90,7 +77,7 @@
              makeargs="-k -C modules; make">
     <branch version="1.29.4" module="pango/1.29/pango-1.29.4.tar.bz2"
             hash="sha256:f15deecaecf1e9dcb7db0e4947d12b5bcff112586434f8d30a5afd750747ff2b">
-      <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/pangoatsui-fontname.patch" strip="1"/>
+      <!-- <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/pangoatsui-fontname.patch" strip="1"/> -->
       <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/0001-Make-ATSUI-backend-compile-again.patch" strip="1"/>
       <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/pango-coretext-invisible.patch" strip="1"/>
     </branch>
@@ -238,7 +225,8 @@
       <dep package="cairo"/>
     </dependencies>
   </autotools>
-<!--
+
+  <!--
   <autotools id="enchant" autogen-sh="autogen.sh">
     <branch module="1.6.0/enchant-1.6.0.tar.gz" version="1.6.0"
 	    repo="abisource/enchant">
@@ -248,7 +236,8 @@
       <dep package="glib-gtk3"/>
     </dependencies>
   </autotools>
--->
+  -->
+
   <tarball id="shared-mime-info" supports-non-srcdir-builds="no" version="0.71">
     <source href="http://people.freedesktop.org/~hadess/shared-mime-info-0.71.tar.bz2"
             hash="sha256:1d8f97f17de77ae0d8a3a4ef357280ef444da87f4ce19170392712d0c2f6d04f"
@@ -259,7 +248,8 @@
       <dep package="glib-gtk3"/>
     </dependencies>
   </tarball>
-<!--
+
+  <!--
   <autotools id="libgnome-keyring">
     <branch module="libgnome-keyring/3.2/libgnome-keyring-3.2.2.tar.bz2"
             version="3.2.2"
@@ -271,17 +261,21 @@
       <dep package="libgcrypt"/>
     </dependencies>
   </autotools>
--->
+  -->
+
+  <!-- Update from 1.4.1 -->
   <autotools id="dbus" autogen-sh='configure'
 	   autogenargs="--disable-selinux --without-x --disable-launchd
 	   --with-session-socket-dir=/var/tmp">
-    <branch module="dbus/dbus-1.4.1.tar.gz"  version="1.4.1"
+    <branch module="dbus/dbus-1.4.16.tar.gz"  version="1.4.16"
 	    repo="dbus.freedesktop.org">
-		<!-- Missing patches?
+    <!--
+    <branch module="dbus/dbus-1.4.16.tar.gz"  version="1.4.16"
+	    repo="dbus.freedesktop.org">
       <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/dbus-install.patch"/>
       <patch file="http://git.gnome.org/browse/gtk-osx/plain/patches/dbus-msg-nosignal.patch" strip="1"/>
       <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/dbus-relocatable-services.patch" strip="1"/>
-	  -->
+    -->
     </branch>
     <after>
       <dep package="gtk+-3.0"/>
@@ -340,10 +334,11 @@
     </after>
   </autotools>
 
+  <!-- Update from 2.30.6 iconv patch is still needed -->
   <autotools id="glib-gtk3" autogen-sh="configure">
-    <branch module="glib/2.30/glib-2.30.1.tar.bz2"  version="2.30.1"
-            hash="sha256:4e560319450f31d85b6cdb2b530c3324a510ca04817e360943d0774327d21804">
-      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/glib-iconv.patch" strip="1"/>
+    <branch module="glib/2.31/glib-2.31.16.tar.xz" version="2.31.16"
+            hash="sha256:bf3da4e3b7e3d7a5a1a0d801a113fcd1b2464c48dda475f6c6c6cea6137c1281">
+      <patch file="http://git.gnome.org/browse/gedit/plain/osx/jhbuild/patches/glib-iconv.patch" strip="1"/> 
     </branch>
     <dependencies>
       <dep package="libffi"/>
@@ -362,12 +357,6 @@
 	 </dependencies>
   </autotools>
 
-  <!--
-  <autotools id="gst-plugins-bad" autogen-sh="configure">
-     <branch repo="gst-plugins-bad" module="gst-plugins-bad-0.10.22.tar.gz" version="0.10.22" />
-  </autotools>
-  -->
-
   <autotools id="gst-ffmpeg" autogen-sh="configure">
      <branch repo="gst-ffmpeg" module="gst-ffmpeg-0.10.13.tar.gz" version="0.10.13" />
   </autotools>
@@ -376,23 +365,70 @@
      <branch repo="libmad" module="libmad-0.15.1b.tar.gz" version="0.151bb" />
   </autotools>
 
+  <!-- Fix icon-naming-utils (Site is broken at 2012-02-07 -->
+  <tarball id="icon-naming-utils" checkoutdir="icon-naming-utils-0.8.90" version="0.9.80">
+      <source href="http://ftp.de.debian.org/debian/pool/main/i/icon-naming-utils/icon-naming-utils_0.8.90.orig.tar.gz"
+              hash="sha256:044ab2199ed8c6a55ce36fd4fcd8b8021a5e21f5bab028c0a7cdcf52a5902e1c" />
+      <after>
+        <dep package="meta-gtk-osx-bootstrap"/>
+      </after>
+  </tarball>
+
+  <!-- gtk-mac-bundler with patches 
+  git clone git://git.gnome.org/gtk-mac-bundler
+  <autotools id="gtk-mac-bundler" skip-autogen="true">
+    <branch repo="git.gnome.org" module="gtk-mac-bundler" revision="master">
+      <patch file="https://bugzilla.gnome.org/attachment.cgi?id=205067" strip="1" />
+    </branch>
+    <dependencies>
+      <dep package="python"/>
+    </dependencies>
+  </autotools>
+  -->
+ 
+  <!-- eina and meta-eina -->
   <autotools id="eina" autogenargs="DATADIRNAME=share">
-    <branch repo="github" module="ldotlopez/eina" revision="osx" />
+    <branch repo="github" module="ldotlopez/eina" revision="master" />
       <dependencies>
+        <!-- Not sure if this belongs to eina package
+        <dev package="meta-gtk-osx-bootstrap"/>
+        <dev package="meta-gtk-osx-gtk3"/>
+        -->
         <dep package="gtk+-3.0" />
         <dep package="gstreamer" />
         <dep package="libpeas" />
+        <dep package="dbus" />
       </dependencies>
   </autotools>
 
   <metamodule id="meta-eina">
     <dependencies>
+      <dep package="eina"/>
+
+      <dep package="gst-plugins-good"/>
+      <dep package="gst-plugins-ugly"/>
+
+      <dep package="gnome-themes-standard"/>
+      <dep package="gnome-icon-theme"/>
+      <dep package="gnome-icon-theme-extras"/>
+      <dep package="gnome-icon-theme-symbolic"/>
+
+      <!-- Nothing special
+      <dep package="dconf"/>
+      <dep package="gvfs"/>
+      -->
+    </dependencies>
+  </metamodule>
+
+  <metamodule id="old-meta-eina">
+    <dependencies>
       <!-- Some base libs -->
+<!--
       <dep package="libxml2"/>
       <dep package="libtiff"/>
       <dep package="libpng"/>
       <dep package="libjpeg"/>
-
+-->
       <!-- Base GTK+ -->
       <dev package="meta-gtk-osx-bootstrap"/>
       <dev package="meta-gtk-osx-gtk3"/>
@@ -407,11 +443,9 @@
       <dep package="dbus"/>
       <dep package="dconf"/>
       <dep package="gvfs"/>
-      <!-- <dep package="liboil"/> -->
 
       <!-- <dep package="gstreamer"/> -->
       <dep package="gst-plugins-good"/>
-      <dep package="gst-plugins-bad"/>
       <dep package="gst-plugins-ugly"/>
 
       <dep package="gsettings-desktop-schemas"/>
@@ -421,7 +455,7 @@
       <dep package="gnome-icon-theme-extras"/>
       <dep package="gnome-icon-theme-symbolic"/>
       <dep package="iso-codes"/>
-		<dep package="shared-mime-info"/>
+      <dep package="shared-mime-info"/>
       <dep package="eina"/>
 
     </dependencies>

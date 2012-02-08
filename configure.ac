@@ -300,6 +300,20 @@ dnl =====================================================================
 dnl =====================================================================
 dnl
 
+#HAVE_OSX_OS="no"
+#case "$host_os" in
+#*darwin* | *rhapsody* | *macosx*)
+#	AC_DEFINE_UNQUOTED(OS_OSX, 1, [This is an OS X system])
+#	HAVE_OSX_OS="yes"
+#	;;
+#linux*)
+#	AC_DEFINE_UNQUOTED(OS_LINUX, 1, [This is a Linux system])
+#	;;
+#*)
+#	AC_DEFINE_UNQUOTED(OS_UNKNOW, 1, [This is an unknow system])
+#	;;
+#esac
+
 dnl
 dnl Clutter (core, fieshta)
 dnl
@@ -424,6 +438,20 @@ else
 fi
 
 dnl
+dnl gtk-mac-integration
+dnl
+GTKMAC_VERSION="1.0.0"
+gtkmac_modules="gtk-mac-integration >= $GTKMAC_VERSION"
+PKG_CHECK_MODULES(GTKMAC, $gtkmac_modules, [ HAVE_GTKMAC=yes ], [ HAVE_GTKMAC=no ])
+if test x"$HAVE_GTKMAC" = "xyes"; then
+	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_GTKMAC=1"
+	AC_SUBST(GTKMAC_CFLAGS)
+	AC_SUBST(GTKMAC_LIBS)
+else
+	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_GTKMAC=0"
+fi
+
+dnl
 dnl Conditionals
 dnl
 AM_CONDITIONAL(BUILD_ADB,      test x"$HAVE_SQLITE3"     = "xyes")
@@ -432,6 +460,7 @@ AM_CONDITIONAL(BUILD_HIPSTER,  test x"$HAVE_CLASTFM"     = "xyes")
 AM_CONDITIONAL(BUILD_CLUTTY,   test x"$HAVE_CLUTTER_GTK" = "xyes")
 AM_CONDITIONAL(BUILD_INDICATE, test x"$HAVE_INDICATE"    = "xyes")
 AM_CONDITIONAL(BUILD_NTFY,     test x"$HAVE_NOTIFY"      = "xyes")
+AM_CONDITIONAL(BUILD_GTKMAC,   test x"$HAVE_GTKMAC"      = "xyes")
 
 dnl Keep in alphabetical order
 AC_CONFIG_FILES([
@@ -478,6 +507,8 @@ eina/muine/muine.plugin
 eina/muine/Makefile
 eina/ntfy/ntfy.plugin
 eina/ntfy/Makefile
+eina/osx/osx.plugin
+eina/osx/Makefile
 eina/player/player.plugin
 eina/player/Makefile
 eina/playlist/playlist.plugin

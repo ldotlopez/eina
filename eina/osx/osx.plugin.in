@@ -1,0 +1,11 @@
+[Plugin]
+Module=osx
+IAge=2
+Hidden=1
+Depends=
+Name=OS X integration
+Description=Integrate @PACKAGE_NAME@ with OS X
+Authors=@EINA_AUTHORS@
+Copyright=@EINA_ONELINE_COPYRIGHT@
+Website=@EINA_URL@
+Help=@EINA_URL_HELP@

@@ -35,6 +35,10 @@ if BUILD_NTFY
 SUBDIRS += ntfy
 endif
 
+if BUILD_GTKMAC
+SUBDIRS += osx
+endif
+
 bin_PROGRAMS = eina
 eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"

@@ -118,6 +118,9 @@ initialize_peas_engine(gboolean from_source)
 	if (from_source)
 	{
 		gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player",
+			#if HAVE_GTKMAC
+			"osx",
+			#endif
 			#if HAVE_SQLITE3
 			"adb", "muine",
 			#endif
@@ -179,7 +182,11 @@ app_activate_cb (GApplication *application, gpointer user_data)
 	PeasEngine *engine = initialize_peas_engine(FALSE);
 	application_set_plugin_engine(EINA_APPLICATION(application), engine);
 
-	gchar  *req_plugins[] = { "dbus", "player", "playlist", NULL };
+	gchar  *req_plugins[] = { "dbus", "player", "playlist",
+		#ifdef HAVE_GTKMAC
+		"osx",
+		#endif
+		NULL };
 
 	gchar **opt_plugins = g_settings_get_strv(
 			eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
