@@ -93,40 +93,40 @@
   <binary>${prefix}/lib/libpeas-1.0/loaders/*.so</binary>
 
   <!-- python -->
+  <!--
   <binary>${prefix}/lib/python2.7/site-packages/cairo/*.so</binary>
+  <binary>${prefix}/lib/python2.7/site-packages/libxml2mod.so</binary>
+  <data>${prefix}/lib/python2.7/site-packages/cairo</data>
+  <data>${prefix}/lib/python2.7/site-packages/libxml2.py</data>
+  -->
   <binary>${prefix}/lib/python2.7/site-packages/gi/*.so</binary>
   <binary>${prefix}/lib/python2.7/site-packages/gi/_glib/*.so</binary>
   <binary>${prefix}/lib/python2.7/site-packages/gi/_gobject/*.so</binary>
-  <binary>${prefix}/lib/python2.7/site-packages/libxml2mod.so</binary>
 
-  <data>${prefix}/lib/python2.7/site-packages/cairo</data>
   <data>${prefix}/lib/python2.7/site-packages/gi</data>
-  <data>${prefix}/lib/python2.7/site-packages/libxml2.py</data>
-  <data>${prefix}/include/python2.7/pyconfig.h</data>
 
   <binary>${prefix}/lib/python2.7/lib-dynload/*.so</binary>
   <data>${prefix}/lib/python2.7</data>
   <binary>${prefix}/bin/python*</binary>
+  <data>${prefix}/include/python2.7/pyconfig.h</data>
 
   <!-- GTK+3 data -->
   <data>${prefix}/etc/gtk-3.0/*</data>
 
-  <!-- dconf -->
+  <!-- dconf
   <binary>${prefix}/libexec/dconf-service</binary>
-
-  <!-- gvfs -->
+  -->
+  <!-- gvfs 
   <binary>${prefix}/libexec/gvfsd-*</binary>
   <data>${prefix}/share/gvfs</data>
-
-  <!-- gtksourceview -->
-  <!-- <data>${prefix}/share/gtksourceview-3.0</data> -->
+  -->
 
   <!-- eina -->
   <data>${prefix}/share/eina</data>
   <data>${prefix}/lib/eina</data>
   <binary>${prefix}/lib/gstreamer-0.10</binary>
   <binary>${prefix}/bin/gst-inspect-0.10</binary>
-  <binary>${prefix}/libexec/gstreamer-0.10/gst-plugin-scanner</binary>
+  <!-- <binary>${prefix}/libexec/gstreamer-0.10/gst-plugin-scanner</binary> -->
 
   <!-- locale (TODO: trim) -->
   <data>${prefix}/share/locale</data>
@@ -166,5 +166,9 @@
   <data>${prefix}/share/icons/gnome/scalable/actions/media-skip-backward-symbolic.svg</data>
   <data>${prefix}/share/icons/gnome/scalable/actions/media-skip-forward-symbolic.svg</data>
   <data>${prefix}/share/icons/gnome/scalable/actions/window-close-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/status/audio-volume-muted-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/status/audio-volume-low-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/status/audio-volume-medium-symbolic.svg</data>
+  <data>${prefix}/share/icons/gnome/scalable/status/audio-volume-high-symbolic.svg</data>
   <data>${prefix}/share/icons/gnome/scalable/emblems/emblem-favorite-symbolic.svg</data>
 </app-bundle>

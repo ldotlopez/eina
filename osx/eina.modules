@@ -403,6 +403,7 @@
 
   <metamodule id="meta-eina">
     <dependencies>
+      <dep package="python"/>
       <dep package="eina"/>
 
       <dep package="gst-plugins-good"/>
@@ -413,6 +414,9 @@
       <dep package="gnome-icon-theme-extras"/>
       <dep package="gnome-icon-theme-symbolic"/>
 
+      <dep package="gsettings-desktop-schemas"/>
+      <dep package="shared-mime-info"/>
+      <dep package="iso-codes"/>
       <!-- Nothing special
       <dep package="dconf"/>
       <dep package="gvfs"/>
