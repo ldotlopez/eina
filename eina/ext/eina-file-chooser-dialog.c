@@ -46,10 +46,11 @@ G_DEFINE_TYPE (EinaFileChooserDialog, eina_file_chooser_dialog, GTK_TYPE_FILE_CH
 
 struct _EinaFileChooserDialogPrivate {
 	EinaFileChooserDialogAction action;
-	GList *uris; // Store output from eina_file_chooser_dialog_run
+	GList  *uris;     // Store output from eina_file_chooser_dialog_run
+	GtkBox *info_box; // Info widgets
 
-	gboolean      user_cancel;
-	GtkBox       *info_box;    // Info widgets
+	gboolean in_nested_loop;
+	GCancellable *cancellable;
 };
 
 typedef struct EinaFileChooserDialogIOSchedulerJobContext {
@@ -58,26 +59,34 @@ typedef struct EinaFileChooserDialogIOSchedulerJobContext {
 	gpointer result;
 } EinaFileChooserDialogIOSchedulerJobContext;
 
+/*
+ * Private API
+ */
 void
-set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
-
+_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action);
 static void
-update_sensitiviness(EinaFileChooserDialog *self, gboolean value);
+_set_sensitive(EinaFileChooserDialog *self, gboolean value);
 static void
-clear_message(EinaFileChooserDialog *self);
-
+_message_clear(EinaFileChooserDialog *self);
 static void
-cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self);
+_block_ui(EinaFileChooserDialog *self);
+static void
+_unblock_ui(EinaFileChooserDialog *self);
+static void
+_merge_job_context(EinaFileChooserDialogIOSchedulerJobContext *ctx);
 
-GList *
-recursive_scan_files(GList *input, GCancellable *cancellable);
+/*
+ * Callbacks
+ */
 static gboolean
 get_uris_scheduler_job_helper(GIOSchedulerJob *job,
 	GCancellable *cancellable, EinaFileChooserDialogIOSchedulerJobContext *ctx);
-static void
-eina_file_chooser_dialog_scheduler_io_job_context_destroy(EinaFileChooserDialogIOSchedulerJobContext *ctx);
+GList *
+recursive_scan_files(GList *input, GCancellable *cancellable);
 static gint
 g_file_compare_by_name(GFile *a, GFile *b);
+static void
+eina_file_chooser_dialog_scheduler_io_job_context_destroy(EinaFileChooserDialogIOSchedulerJobContext *ctx);
 
 static void
 free_resources(EinaFileChooserDialog *self)
@@ -161,7 +170,7 @@ eina_file_chooser_dialog_new (GtkWindow *parent, EinaFileChooserDialogAction act
 		"modal", FALSE,
 		"destroy-with-parent", TRUE,
 		NULL);
-	set_action(self, action);
+	_set_action(self, action);
 
 	return self;
 }
@@ -187,7 +196,7 @@ void eina_file_chooser_dialog_set_custom_msg(EinaFileChooserDialog *self,
 
 	EinaFileChooserDialogPrivate *priv = self->priv;
 
-	clear_message(self);
+	_message_clear(self);
 
 	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(image),  FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(priv->info_box), GTK_WIDGET(label),  TRUE,  TRUE, 0);
@@ -237,32 +246,12 @@ void eina_file_chooser_dialog_set_msg(EinaFileChooserDialog *self,
 	GtkButton *button = (GtkButton *) gtk_button_new();
 	gtk_button_set_relief(button, GTK_RELIEF_NONE);
 	gtk_container_add(GTK_CONTAINER(button), gtk_image_new_from_stock("gtk-close", GTK_ICON_SIZE_MENU));
-	g_signal_connect_swapped(button, "clicked", (GCallback) clear_message, self);
+	g_signal_connect_swapped(button, "clicked", (GCallback) _message_clear, self);
 
 	eina_file_chooser_dialog_set_custom_msg(self,
 		gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_MENU),
 		(GtkLabel *) gtk_label_new(msg),
 		GTK_WIDGET(button));
-}
-
-static gboolean
-unblock_ui(EinaFileChooserDialogIOSchedulerJobContext *ctx)
-{
-	// Transfer information from context to self
-	EinaFileChooserDialog *self = ctx->self;
-
-	GList *iter = (GList *) ctx->result;
-	while (iter)
-	{
-		GFile *f = G_FILE(iter->data);
-		if (eina_file_utils_is_supported_file(f))
-			self->priv->uris = g_list_prepend(self->priv->uris, g_strdup(g_file_get_uri(f)));
-		iter = iter->next;
-	}
-
-	// Unlock UI
-	gtk_main_quit();
-	return FALSE;
 }
 
 /*
@@ -302,19 +291,18 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 	g_slist_foreach(uris, (GFunc) g_free, NULL);
 	g_slist_free(uris);
 
+	g_warn_if_fail(priv->cancellable == NULL);
+	priv->cancellable = g_cancellable_new();
 	g_io_scheduler_push_job((GIOSchedulerJobFunc) get_uris_scheduler_job_helper, ctx,
-		NULL,                /* destroy-notify */
+		(GDestroyNotify) eina_file_chooser_dialog_scheduler_io_job_context_destroy, /* destroy-notify */
 		G_PRIORITY_DEFAULT,
-		g_cancellable_new());
-
-	// Put UI in busy state
-	update_sensitiviness(self, FALSE);
+		priv->cancellable);
 
 	// The 'cancel' button
 	GtkButton *cancel = (GtkButton *) gtk_button_new();
 	gtk_button_set_relief(cancel, GTK_RELIEF_NONE);
 	gtk_container_add(GTK_CONTAINER(cancel), gtk_image_new_from_stock(GTK_STOCK_STOP, GTK_ICON_SIZE_MENU));
-	g_signal_connect(cancel, "clicked", (GCallback) cancel_button_clicked_cb, self);
+	g_signal_connect_swapped(cancel, "clicked", (GCallback) g_cancellable_cancel, priv->cancellable);
 
 	// Show busy UI
 	eina_file_chooser_dialog_set_custom_msg(self,
@@ -322,22 +310,24 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 		(GtkLabel *) gtk_label_new(_("Loading files...")),
 		GTK_WIDGET(cancel));
 
-	gtk_main();
+	_block_ui(self);
 
-	update_sensitiviness(self, TRUE);
-
-	if (priv->user_cancel)
+	gboolean user_cancel = g_cancellable_is_cancelled(priv->cancellable);
+	gel_free_and_invalidate(priv->cancellable, NULL, g_object_unref);
+	if (user_cancel)
 	{
-		clear_message(self);
-		priv->user_cancel = FALSE;
+		_message_clear(self);
 		free_resources(self);
 		return NULL;
 	}
 
+	/*
+	 * Create custom message for UI feedback
+	 */
 	GtkButton *close = (GtkButton *) gtk_button_new();
 	gtk_button_set_relief(close, GTK_RELIEF_NONE);
 	gtk_container_add(GTK_CONTAINER(close), gtk_image_new_from_stock(GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU));
-	g_signal_connect_swapped(close, "clicked", (GCallback) clear_message, self);
+	g_signal_connect_swapped(close, "clicked", (GCallback) _message_clear, self);
 
 	gchar *str = g_strdup_printf(N_("Loaded %d streams"), g_list_length(priv->uris));
 	eina_file_chooser_dialog_set_custom_msg(self,
@@ -346,6 +336,9 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 		GTK_WIDGET(close));
 	g_free(str);
 
+	/*
+	 * Return URLs
+	 */
 	GList *ret = priv->uris;
 	priv->uris = NULL;
 
@@ -355,8 +348,17 @@ eina_file_chooser_dialog_get_uris(EinaFileChooserDialog *self)
 // --
 // Internal
 // --
+
+/**
+ * _set_action:
+ * @self: An #EinaFileChooserDialog
+ * @action: Action type
+ *
+ * Sets the action for the dialog. Currently only
+ * %EINA_FILE_CHOOSER_DIALOG_ACTION_LOAD_FILES is supported
+ */
 void
-set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
+_set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 {
 	GtkFileFilter *filter;
 	const gchar *music_folder;
@@ -388,8 +390,15 @@ set_action(EinaFileChooserDialog *self, EinaFileChooserDialogAction action)
 	}
 }
 
+/**
+ * _set_sensitive:
+ * @self: An #EinaFileChooserDialog
+ * @value: Value for sensitiviness
+ *
+ * Sets the sensitiviness for @self
+ */
 static void
-update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
+_set_sensitive(EinaFileChooserDialog *self, gboolean value)
 {
 	EinaFileChooserDialogPrivate *priv = self->priv;
 
@@ -421,8 +430,14 @@ update_sensitiviness(EinaFileChooserDialog *self, gboolean value)
 	}
 }
 
+/**
+ * _message_clear:
+ * @self: An #EinaFileChooserDialog
+ *
+ * Clears any previous message from @self
+ */
 static void
-clear_message(EinaFileChooserDialog *self)
+_message_clear(EinaFileChooserDialog *self)
 {
 	EinaFileChooserDialogPrivate *priv = self->priv;
 	GList *children = gtk_container_get_children(GTK_CONTAINER(priv->info_box));
@@ -435,36 +450,96 @@ clear_message(EinaFileChooserDialog *self)
 	g_list_free(children);
 }
 
+/**
+ * _block_ui:
+ * @self: An #EinaFileChooserDialog
+ *
+ * Sets UI sensitiviness to FALSE and enters in a nested main loop
+ */
 static void
-cancel_button_clicked_cb(GtkWidget *w, EinaFileChooserDialog *self)
+_block_ui(EinaFileChooserDialog *self)
 {
+	g_return_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(self));
 	EinaFileChooserDialogPrivate *priv = self->priv;
-	priv->user_cancel = TRUE;
-	free_resources(self);
-	clear_message(self);
-	update_sensitiviness(self, TRUE);
+
+	g_return_if_fail(priv->in_nested_loop == FALSE);
+	priv->in_nested_loop = TRUE;
+
+	_set_sensitive(self, FALSE);
+	gtk_main();
 }
 
+/**
+ * _unblock_ui:
+ * @self: An #EinaFileChooserDialog
+ *
+ * Sets UI sensitiviness to TRUE and exists from a previous nested main loop
+ */
+static void
+_unblock_ui(EinaFileChooserDialog *self)
+{
+	g_return_if_fail(EINA_IS_FILE_CHOOSER_DIALOG(self));
+	EinaFileChooserDialogPrivate *priv = self->priv;
+
+	g_return_if_fail(priv->in_nested_loop == TRUE);
+	priv->in_nested_loop = FALSE;
+
+	_set_sensitive(self, TRUE);
+	gtk_main_quit();
+}
+
+/**
+ * _merge_job_context:
+ * @ctx: An #EinaFileChooserDialogIOSchedulerJobContext
+ *
+ * Meant to be called from g_io_scheduler_job_send_to_mainloop. Gets result
+ * from @ctx and saves it to the #EinaFileChooserDialog associated with @self
+ * before the GDestroyNotify function gets called
+ */
+static void
+_merge_job_context(EinaFileChooserDialogIOSchedulerJobContext *ctx)
+{
+	// Transfer information from context to self
+	EinaFileChooserDialog *self = ctx->self;
+
+	GList *iter = (GList *) ctx->result;
+	while (iter)
+	{
+		GFile *f = G_FILE(iter->data);
+		if (eina_file_utils_is_supported_file(f))
+			self->priv->uris = g_list_prepend(self->priv->uris, g_strdup(g_file_get_uri(f)));
+		iter = iter->next;
+	}
+
+	g_warning("=> priv uris got %d", g_list_length((GList *) self->priv->uris));
+
+	// Unlock UI
+	_unblock_ui(self);
+}
+
+/**
+ * get_uris_scheduler_job_helper:
+ * @job: A #GIOSchedulerJob
+ * @cancellable: A #GCancellable
+ * @ctx: An #EinaFileChooserDialogIOSchedulerJobContext
+ *
+ */
 static gboolean
 get_uris_scheduler_job_helper(GIOSchedulerJob *job,
 	GCancellable *cancellable, EinaFileChooserDialogIOSchedulerJobContext *ctx)
 {
 	ctx->result = recursive_scan_files((GList *) ctx->input, cancellable);
 
-	/*
-	GList *result = ctx->result;
-	g_debug ("[out main] Got %d files:", g_list_length (result));
-	for (GList *l = result; l ; l = l->next)
-		g_debug ("+ %s", g_file_get_uri (G_FILE(l->data)));
-	*/
-
-	g_io_scheduler_job_send_to_mainloop_async(job,
-		(GSourceFunc) unblock_ui, ctx,
-		(GDestroyNotify) eina_file_chooser_dialog_scheduler_io_job_context_destroy);
+	g_io_scheduler_job_send_to_mainloop(job,
+		(GSourceFunc) _merge_job_context, ctx,
+		NULL /* destroy-notify */);
 
 	return FALSE;
 }
 
+/**
+ * recursive_scan_files:
+ */
 GList *
 recursive_scan_files(GList *input, GCancellable *cancellable)
 {
@@ -552,6 +627,7 @@ g_file_compare_by_name(GFile *a, GFile *b)
 static void
 eina_file_chooser_dialog_scheduler_io_job_context_destroy(EinaFileChooserDialogIOSchedulerJobContext *ctx)
 {
+	g_warning("Destroy ALL the GFiles");
 	GList *all = g_list_concat((GList *) ctx->input, (GList *) ctx->result);
 
 	GList *iter = all;
