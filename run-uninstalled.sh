@@ -76,11 +76,11 @@ done
 # Find real binary
 P=${P:="eina"}
 
-BIN=${BIN:="bin"}
 if [ -z "$BIN" ]; then
-	for i in $(find "$D/eina" -name "$P" -type f -perm -0700 )
+	for i in $D/eina/.libs/eina $D/eina/eina
 	do
-		if [ "$(file -ib "$i" | cut -d '/' -f 1)" = "application" ]; then
+		echo $i
+		if [ -x "$i" ]; then
 			BIN="$i"
 			break;
 		fi
