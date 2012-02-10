@@ -17,6 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "eina-dock.h"
 #include <glib/gi18n.h>
 #include <gel/gel.h>
@@ -198,7 +201,11 @@ eina_dock_init (EinaDock *self)
 	g_object_set((GObject *) (priv->expander = (GtkExpander *) gtk_expander_new(NULL)),
 		"use-markup", TRUE,
 		"visible", FALSE,
+		#ifdef OS_OSX
+		"expanded", TRUE,
+		#endif
 		NULL);
+
 	g_object_set((GObject *) (priv->notebook = (GtkNotebook *) gtk_notebook_new()),
 		"show-border", FALSE,
 		"show-tabs", FALSE,
@@ -210,12 +217,12 @@ eina_dock_init (EinaDock *self)
 	gtk_container_add((GtkContainer *) priv->expander,  (GtkWidget *) priv->notebook);
 	gtk_box_pack_start((GtkBox *) self,  (GtkWidget *) priv->expander, TRUE, TRUE, 0);
 
+	g_signal_connect_after(priv->expander, "notify::expanded", G_CALLBACK(expander_notify_cb), self);
+	g_signal_connect(priv->notebook, "page-reordered", G_CALLBACK(page_reorder_cb), self);
+
 	priv->tabs = NULL;
 	priv->n_tabs = 0;
 	priv->page_order = NULL;
-
-	g_signal_connect_after(priv->expander, "notify::expanded", G_CALLBACK(expander_notify_cb), self);
-	g_signal_connect(priv->notebook, "page-reordered", G_CALLBACK(page_reorder_cb), self);
 }
 
 EinaDock*
@@ -281,6 +288,7 @@ dock_update_properties(EinaDock *self)
 	}
 }
 
+#ifndef OS_OSX
 static gboolean
 dock_update_property_resizable_idle(EinaDock *self)
 {
@@ -292,6 +300,7 @@ dock_update_property_resizable_idle(EinaDock *self)
 
 	return FALSE;
 }
+#endif
 
 static void
 dock_reorder_pages(EinaDock *self)
@@ -605,7 +614,12 @@ expander_notify_cb(GtkExpander *w, GParamSpec *pspec, EinaDock *self)
 {
 	if (g_str_equal("expanded", pspec->name))
 	{
+		#if OS_OSX
+		if (!gtk_expander_get_expanded(w))
+			gtk_expander_set_expanded(w, TRUE);
+		#else
 		g_idle_add((GSourceFunc) dock_update_property_resizable_idle, self);
+		#endif
 	}
 	else
 		g_warning(_("Unhanded notify::%s"), pspec->name);

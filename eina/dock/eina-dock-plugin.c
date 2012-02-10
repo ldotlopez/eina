@@ -17,6 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "eina-dock-plugin.h"
 #include <eina/ext/eina-extension.h>
 
@@ -29,16 +32,19 @@
 
 typedef struct {
 	GtkWidget *dock;
+#ifndef OS_OSX
 	gboolean prev_state, delayed_open;
+#endif
 } EinaDockPluginPrivate;
 
 EINA_PLUGIN_REGISTER(EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin, eina_dock_plugin)
 
+#ifndef OS_OSX
 static void
 dock_widget_add_cb(EinaDock *dock, const gchar *name, EinaDockPlugin *plugin);
 static void
 dock_notify_cb(EinaDock *dock, GParamSpec *pspec, EinaDockPlugin *plugin);
-
+#endif
 static gboolean
 eina_dock_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError **error)
 {
@@ -47,7 +53,9 @@ eina_dock_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError 
 
 	// Setup dock
 	priv->dock = (GtkWidget *) g_object_ref(eina_dock_new());
+	#ifndef OS_OSX
 	priv->prev_state = eina_dock_get_resizable(EINA_DOCK(priv->dock));
+	#endif
 
 	// Insert into applicatin
 	GtkWindow *window = GTK_WINDOW(eina_application_get_window(app));
@@ -59,13 +67,17 @@ eina_dock_plugin_activate(EinaActivatable *plugin, EinaApplication *app, GError 
 	eina_dock_set_page_order((EinaDock *) priv->dock, (gchar **) g_settings_get_strv (settings, EINA_DOCK_ORDER_KEY));
 	g_settings_bind (settings, EINA_DOCK_ORDER_KEY, priv->dock, "page-order", G_SETTINGS_BIND_DEFAULT);
 
+	#ifndef OS_OSX
 	priv->delayed_open = g_settings_get_boolean(settings, EINA_DOCK_EXPANDED_KEY);
 	g_settings_bind(settings, EINA_DOCK_EXPANDED_KEY, priv->dock, "resizable", G_SETTINGS_BIND_DEFAULT);
-
+	
 	g_object_bind_property(priv->dock, "resizable", window, "resizable", G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
 
 	g_signal_connect(priv->dock, "notify::resizable", (GCallback) dock_notify_cb,     plugin);
 	g_signal_connect(priv->dock, "widget-add",        (GCallback) dock_widget_add_cb, plugin);
+	#else
+	gtk_window_set_resizable(window, TRUE);
+	#endif
 
 	// Run
 	gtk_widget_show(priv->dock);
@@ -83,9 +95,6 @@ eina_dock_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GErro
 
 	GtkContainer *container = (GtkContainer *) gtk_widget_get_parent(priv->dock);
 	g_return_val_if_fail(container && GTK_IS_CONTAINER(container), FALSE);
-
-	GtkWindow *window = (GtkWindow *) gtk_widget_get_toplevel(priv->dock);
-	g_return_val_if_fail(window && GTK_IS_WINDOW(window), FALSE);
 
 	eina_application_set_interface(app, "dock", NULL);
 
@@ -107,49 +116,6 @@ eina_dock_plugin_deactivate(EinaActivatable *plugin, EinaApplication *app, GErro
 EinaDock *eina_application_get_dock(EinaApplication *application)
 {
 	return (EinaDock *) eina_application_get_interface(application, "dock");
-}
-
-/*
- * Internal API
- */
-static void
-save_size(EinaDockPlugin *plugin)
-{
-	g_return_if_fail(EINA_IS_DOCK_PLUGIN(plugin));
-	EinaDockPluginPrivate *priv = plugin->priv;
-
-	GSettings *settings = eina_application_get_settings(
-		eina_activatable_get_application (EINA_ACTIVATABLE(plugin)),
-		EINA_DOCK_PREFERENCES_DOMAIN);
-	g_return_if_fail (G_IS_SETTINGS(settings));
-
-	GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(priv->dock));
-	g_return_if_fail(window != NULL);
-
-	gint w, h;
-	gtk_window_get_size(window, &w, &h);
-
-	g_settings_set_int(settings, EINA_DOCK_WINDOW_W_KEY, w);
-	g_settings_set_int(settings, EINA_DOCK_WINDOW_H_KEY, h);
-}
-
-static void
-restore_size(EinaDockPlugin *plugin)
-{
-	g_return_if_fail(EINA_IS_DOCK_PLUGIN(plugin));
-	EinaDockPluginPrivate *priv = plugin->priv;
-
-	GSettings *settings = eina_application_get_settings(
-		eina_activatable_get_application (EINA_ACTIVATABLE(plugin)),
-		EINA_DOCK_PREFERENCES_DOMAIN);
-	g_return_if_fail (G_IS_SETTINGS(settings));
-
-	GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(priv->dock));
-	g_return_if_fail(GTK_IS_WINDOW(window));
-
-	gtk_window_resize(window,
-		g_settings_get_int(settings, EINA_DOCK_WINDOW_W_KEY),
-		g_settings_get_int(settings, EINA_DOCK_WINDOW_H_KEY));
 }
 
 /**
@@ -211,8 +177,54 @@ eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *t
 }
 
 /*
+ * Internal API
+ */
+#ifndef OS_OSX
+static void
+save_size(EinaDockPlugin *plugin)
+{
+	g_return_if_fail(EINA_IS_DOCK_PLUGIN(plugin));
+	EinaDockPluginPrivate *priv = plugin->priv;
+
+	GSettings *settings = eina_application_get_settings(
+		eina_activatable_get_application (EINA_ACTIVATABLE(plugin)),
+		EINA_DOCK_PREFERENCES_DOMAIN);
+	g_return_if_fail (G_IS_SETTINGS(settings));
+
+	GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(priv->dock));
+	g_return_if_fail(window != NULL);
+
+	gint w, h;
+	gtk_window_get_size(window, &w, &h);
+
+	g_settings_set_int(settings, EINA_DOCK_WINDOW_W_KEY, w);
+	g_settings_set_int(settings, EINA_DOCK_WINDOW_H_KEY, h);
+}
+
+static void
+restore_size(EinaDockPlugin *plugin)
+{
+	g_return_if_fail(EINA_IS_DOCK_PLUGIN(plugin));
+	EinaDockPluginPrivate *priv = plugin->priv;
+
+	GSettings *settings = eina_application_get_settings(
+		eina_activatable_get_application (EINA_ACTIVATABLE(plugin)),
+		EINA_DOCK_PREFERENCES_DOMAIN);
+	g_return_if_fail (G_IS_SETTINGS(settings));
+
+	GtkWindow *window = GTK_WINDOW(gtk_widget_get_toplevel(priv->dock));
+	g_return_if_fail(GTK_IS_WINDOW(window));
+
+	gtk_window_resize(window,
+		g_settings_get_int(settings, EINA_DOCK_WINDOW_W_KEY),
+		g_settings_get_int(settings, EINA_DOCK_WINDOW_H_KEY));
+}
+#endif
+
+/*
  * Event callbacks
  */
+#ifndef OS_OSX
 static void
 dock_widget_add_cb(EinaDock *dock, const gchar *name, EinaDockPlugin *plugin)
 {
@@ -244,4 +256,4 @@ dock_notify_cb(EinaDock *dock, GParamSpec *pspec, EinaDockPlugin *plugin)
 		priv->prev_state = resizable;
 	}
 }
-
+#endif

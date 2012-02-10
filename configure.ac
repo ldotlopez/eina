@@ -300,19 +300,19 @@ dnl =====================================================================
 dnl =====================================================================
 dnl
 
-#HAVE_OSX_OS="no"
-#case "$host_os" in
-#*darwin* | *rhapsody* | *macosx*)
-#	AC_DEFINE_UNQUOTED(OS_OSX, 1, [This is an OS X system])
-#	HAVE_OSX_OS="yes"
-#	;;
-#linux*)
-#	AC_DEFINE_UNQUOTED(OS_LINUX, 1, [This is a Linux system])
-#	;;
-#*)
-#	AC_DEFINE_UNQUOTED(OS_UNKNOW, 1, [This is an unknow system])
-#	;;
-#esac
+HAVE_OSX_OS="no"
+case "$host_os" in
+*darwin* | *rhapsody* | *macosx*)
+	AC_DEFINE_UNQUOTED(OS_OSX, 1, [This is an OS X system])
+	HAVE_OSX_OS="yes"
+	;;
+linux*)
+	AC_DEFINE_UNQUOTED(OS_LINUX, 1, [This is a Linux system])
+	;;
+*)
+	AC_DEFINE_UNQUOTED(OS_UNKNOW, 1, [This is an unknow system])
+	;;
+esac
 
 dnl
 dnl Clutter (core, fieshta)
