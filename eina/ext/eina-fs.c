@@ -36,12 +36,10 @@
 #include "eina-file-utils.h"
 #include "eina-stock.h"
 
-static void
-load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaApplication *app);
-static void
-load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaApplication *app);
-
 GEL_DEFINE_QUARK_FUNC(eina_fs)
+
+static void
+fs_scanner_ready_cb(GList *results, EinaApplication *app);
 
 /**
  * eina_fs_load_gfile_array:
@@ -78,9 +76,12 @@ eina_fs_load_uri_strv(EinaApplication *app,  const gchar *const *uris)
 		uri_list = g_list_prepend(uri_list, (gpointer) uris[i]);
 	uri_list = g_list_reverse(uri_list);
 
-	GelIOScanner *scanner = gel_io_scanner_new_full(uri_list, "standard::*", TRUE);
-	g_signal_connect(scanner, "finish", (GCallback) load_from_uri_multiple_scanner_success_cb, app);
-	g_signal_connect(scanner, "error",  (GCallback) load_from_uri_multiple_scanner_error_cb,   app);
+	gel_fs_scanner_scan_uri_list(uri_list, NULL,
+		(GelFSScannerReadyFunc) fs_scanner_ready_cb,
+		(GCompareFunc)          gel_fs_scaner_compare_gfile_by_type_name,
+		NULL, /* filter-func */
+		app,
+		NULL);
 
 	g_list_free(uri_list);
 }
@@ -133,40 +134,33 @@ eina_fs_load_playlist(EinaApplication *app, const gchar *playlist)
 }
 
 static void
-load_from_uri_multiple_scanner_success_cb(GelIOScanner *scanner, GList *forest, EinaApplication *app)
+fs_scanner_ready_cb(GList *results, EinaApplication *app)
 {
-	// Flatten is container transfer
-	GList *flatten = gel_io_scanner_flatten_result(forest);
+	guint n_results = g_list_length(results);
+	g_return_if_fail(n_results > 0);
 
-	gchar **uri_strv = g_new0(gchar *, g_list_length(flatten) + 1);
-	guint  i = 0;
-	GList *l = flatten;
-	while (l)
+	gchar **uriv = g_new0(gchar*, n_results + 1);
+
+	guint i = 0;
+	GList *iter = results;
+
+	while (iter)
 	{
-		GFile     *file = G_FILE(l->data);
-		GFileInfo *info = g_object_get_data((GObject *) file, "g-file-info");
-		gchar *uri = g_file_get_uri(file);
+		GFile     *file = G_FILE(iter->data);
+		GFileInfo *info = g_object_get_data((GObject *) file, GEL_FS_SCANNER_INFO_KEY);
 
 		if ((g_file_info_get_file_type(info) == G_FILE_TYPE_REGULAR) &&
-			(eina_file_utils_is_supported_extension(uri)))
-			uri_strv[i++] = uri;
-		else
-			g_free(uri);
+			(eina_file_utils_is_supported_file(file)))
+			uriv[i] = g_file_get_uri(file);
 
-		l = l->next;
+		i = i + 1;
+		iter = iter->next;
 	}
 
 	LomoPlayer *lomo = eina_application_get_interface(app, "lomo");
-	lomo_player_insert_strv(lomo,  (const gchar * const*) uri_strv, -1);
-	g_strfreev(uri_strv);
-}
+	lomo_player_insert_strv(lomo, (const gchar *const *) uriv, -1);
 
-static void
-load_from_uri_multiple_scanner_error_cb(GelIOScanner *scanner, GFile *source, GError *error, EinaApplication *app)
-{
-	gchar *uri = g_file_get_uri(source);
-	g_warning(_("'%s' throw an error: %s"), uri, error->message);
-	g_free(uri);
+	g_strfreev(uriv);
 }
 
 /*

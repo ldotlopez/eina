@@ -16,16 +16,26 @@ _scheduler_job_helper(GIOSchedulerJob *job, GCancellable *cancellable, GelFSScan
 static void
 _scheduler_job_helper_finalize(GelFSScannerContext *ctx);
 static void
-gel_fs_scanner_context_destroy(GelFSScannerContext *ctx);
+_scanner_context_destroy(GelFSScannerContext *ctx);
 
 /**
  * gel_fs_scanner_scan:
- * @file_objects: (element-type GFile) (transfer none):
- * @cancellable: (allow-none):
- * @ready_func: (scope call):
- * @user_data:
- * @nofity:
+ * @file_objects: (element-type GFile) (transfer none): List of GFiles
+ * @cancellable: (transfer full): A #GCancellable object
+ * @ready_func: (scope call) (closure user_data): Function to run after scan is completed
+ * @compare_func: (scope call) (allow-none): Function to compare and sort elements
+ * @filter_func: (scope call) (allow-none): Filter function
+ * @user_data: (closure) (allow-none): Custom data to pass to @ready_func
+ * @notify: (scope notified) (allow-none): GDestroyNotify function for @user_data
  *
+ * Scan a set of GFile objects recusivelly with an optional cancellable object.
+ * After the scan is completed, the @ready_func is called to handle the results.
+ * During scan @compare_func and @filter_func can be called multiple times in order to
+ * sort and filter the elements found.
+ *
+ * Optionally the @ready_func can recieve extra data using the @user_data parameter. Whatever
+ * the scan has been canceled or not @notify is called on @user_data after it has been
+ * finished or canceled.
  */
 void
 gel_fs_scanner_scan(GList *file_objects, GCancellable *cancellable,
@@ -63,8 +73,37 @@ gel_fs_scanner_scan(GList *file_objects, GCancellable *cancellable,
 
 	/* Run job in separate thread */
 	g_io_scheduler_push_job ((GIOSchedulerJobFunc) _scheduler_job_helper,
-		ctx, (GDestroyNotify) gel_fs_scanner_context_destroy,
+		ctx, (GDestroyNotify) _scanner_context_destroy,
 		0, cancellable);
+}
+
+/**
+ * gel_fs_scanner_scan_uri_list:
+ * @uri_list: (element-type utf8) (transfer none): List of URIs
+ * @cancellable: (transfer full): A #GCancellable object
+ * @ready_func: (scope call) (closure user_data): Function to run after scan is completed
+ * @compare_func: (scope call) (allow-none): Function to compare and sort elements
+ * @filter_func: (scope call) (allow-none): Filter function
+ * @user_data: (closure) (allow-none): Custom data to pass to @ready_func
+ * @notify: (scope notified) (allow-none): GDestroyNotify function for @user_data
+ *
+ * See gel_fs_scanner_scan()
+ */
+void gel_fs_scanner_scan_uri_list(GList *uri_list, GCancellable *cancellable,
+    GelFSScannerReadyFunc ready_func,
+    GCompareFunc compare_func,
+    GSourceFunc  filter_func,
+    gpointer user_data,
+    GDestroyNotify notify)
+{
+	GList  *fs = NULL;
+	for (GList *iter = uri_list; iter != NULL; iter = iter->next)
+		fs = g_list_prepend(fs, g_file_new_for_uri((gchar *) iter->data));
+	fs = g_list_reverse(fs);
+
+	gel_fs_scanner_scan(fs, cancellable, ready_func, compare_func, filter_func, user_data, notify);
+	g_list_foreach(fs, (GFunc) g_object_unref, NULL);
+	g_list_free(fs);
 }
 
 /**
@@ -216,14 +255,8 @@ _scheduler_job_helper_finalize(GelFSScannerContext *ctx)
 	ctx->ready_func(ctx->output_file_objects, ctx->user_data);
 }
 
-/**
- * gel_fs_scanner_context_destroy:
- * @ctx: A #GelFSScannerContext
- *
- * Destroys the context
- */
 static void
-gel_fs_scanner_context_destroy(GelFSScannerContext *ctx)
+_scanner_context_destroy(GelFSScannerContext *ctx)
 {
 	if (ctx->notify)
 		ctx->notify(ctx->user_data);
@@ -240,6 +273,17 @@ gel_fs_scanner_context_destroy(GelFSScannerContext *ctx)
 	g_free(ctx);
 }
 
+/**
+ * gel_fs_scaner_compare_gfile_by_type_name:
+ * @a: A #GFile objet
+ * @b: A #GFile object
+ *
+ * Provides a compatible #GCompareFunc function to compare two #GFile based
+ * on their type (folders first) at first and their name (simple strcmp) as
+ * a second option
+ *
+ * Returns: 0, 1 or -1. See strcmp()
+ */
 gint
 gel_fs_scaner_compare_gfile_by_type_name(GFile *a, GFile *b)
 {
@@ -247,6 +291,16 @@ gel_fs_scaner_compare_gfile_by_type_name(GFile *a, GFile *b)
 	return (r == 0) ? gel_fs_scaner_compare_gfile_by_name(a,b) : r ;
 }
 
+
+/**
+ * gel_fs_scaner_compare_gfile_by_type:
+ * @a: A #GFile objet
+ * @b: A #GFile object
+ *
+ * See gel_fs_scaner_compare_gfile_by_type_name()
+ *
+ * Returns: 0, 1 or -1. See strcmp()
+ */
 gint
 gel_fs_scaner_compare_gfile_by_type (GFile *a, GFile *b)
 {
@@ -269,6 +323,15 @@ gel_fs_scaner_compare_gfile_by_type (GFile *a, GFile *b)
 	return gel_fs_scaner_compare_gfile_by_name(a, b);
 }
 
+/**
+ * gel_fs_scaner_compare_gfile_by_name:
+ * @a: A #GFile objet
+ * @b: A #GFile object
+ *
+ * See gel_fs_scaner_compare_gfile_by_type_name()
+ *
+ * Returns: 0, 1 or -1. See strcmp()
+ */
 gint
 gel_fs_scaner_compare_gfile_by_name(GFile *a, GFile *b)
 {

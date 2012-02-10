@@ -252,12 +252,14 @@ AC_SUBST(GTK_API_VERSION)
 AC_SUBST(GST_API_VERSION)
 
 EINA_CFLAGS="\
-	$GLIB_CFLAGS         \
-	$GTK_CFLAGS          \
-	$GST_CFLAGS          \
-	$PEAS_CFLAGS         \
-	$COMMON_CFLAGS       \
-	$EXPERIMENTAL_CFLAGS \
+	$GLIB_CFLAGS             \
+	$GTK_CFLAGS              \
+	$GST_CFLAGS              \
+	$PEAS_CFLAGS             \
+	$COMMON_CFLAGS           \
+	$EXPERIMENTAL_CFLAGS     \
+	-I\$(top_builddir)/gel  \
+	-I\$(top_builddir)/lomo \
 	"
 EINA_LIBS="\
 	$GLIB_LIBS         \
