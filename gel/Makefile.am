@@ -2,7 +2,7 @@ include $(top_srcdir)/build/Makefile.am.common
 
 lib_LTLIBRARIES = libgel-2.0.la libgel-ui-2.0.la
 
-libgel_2_0_la_CFLAGS  = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@ @DEBUG_CFLAGS@
+libgel_2_0_la_CFLAGS  = -DGEL_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@ @DEBUG_CFLAGS@ 
 libgel_2_0_la_LDFLAGS = -export-dynamic -version-info 2:0:0 -export-dynamic @GLIB_LIBS@
 
 libgel_ui_2_0_la_CFLAGS  = -DGEL_UI_COMPILATION @GLIB_CFLAGS@ @GTK_CFLAGS@ @DEBUG_CFLAGS@

@@ -8,7 +8,8 @@
 typedef struct _GelFSScannerContext GelFSScannerContext;
 typedef void (*GelFSScannerReadyFunc) (GList *result, gpointer user_data);
 
-void gel_fs_scanner_scan(GList *file_objects, GCancellable *cancellable, GelFSScannerReadyFunc ready_callback,
+void gel_fs_scanner_scan(GList *file_objects, GCancellable *cancellable,
+	GelFSScannerReadyFunc ready_func,
 	GCompareFunc compare_func,
 	GSourceFunc  filter_func,
 	gpointer user_data,

@@ -4,13 +4,12 @@
 struct _GelFSScannerContext {
 	GList *input_file_objects;
 	GList *output_file_objects;
-	GelFSScannerReadyFunc ready_callback;
+	GelFSScannerReadyFunc ready_func;
 	GCompareFunc compare_func;
 	GSourceFunc filter_func;
 	gpointer user_data;
 	GDestroyNotify notify;
 };
-
 
 static gboolean
 _scheduler_job_helper(GIOSchedulerJob *job, GCancellable *cancellable, GelFSScannerContext *ctx);
@@ -23,14 +22,14 @@ gel_fs_scanner_context_destroy(GelFSScannerContext *ctx);
  * gel_fs_scanner_scan:
  * @file_objects: (element-type GFile) (transfer none):
  * @cancellable: (allow-none):
- * @ready_callback: (scope call):
+ * @ready_func: (scope call):
  * @user_data:
  * @nofity:
  *
  */
 void
 gel_fs_scanner_scan(GList *file_objects, GCancellable *cancellable,
-	GelFSScannerReadyFunc ready_callback,
+	GelFSScannerReadyFunc ready_func,
 	GCompareFunc      compare_func,
 	GSourceFunc       filter_func,
 	gpointer user_data, GDestroyNotify notify)
@@ -38,7 +37,7 @@ gel_fs_scanner_scan(GList *file_objects, GCancellable *cancellable,
 	GelFSScannerContext *ctx = g_new0(GelFSScannerContext, 1);
 
 	/* Store callbacks */
-	ctx->ready_callback = ready_callback;
+	ctx->ready_func = ready_func;
 	ctx->compare_func   = compare_func;
 	ctx->filter_func   = filter_func;
 
@@ -214,7 +213,7 @@ _scheduler_job_helper(GIOSchedulerJob *job, GCancellable *cancellable, GelFSScan
 static void
 _scheduler_job_helper_finalize(GelFSScannerContext *ctx)
 {
-	ctx->ready_callback(ctx->output_file_objects, ctx->user_data);
+	ctx->ready_func(ctx->output_file_objects, ctx->user_data);
 }
 
 /**
@@ -257,8 +256,8 @@ gel_fs_scaner_compare_gfile_by_type (GFile *a, GFile *b)
 	if (!aa || !bb)
 		return gel_fs_scaner_compare_gfile_by_name(a, b);
 
-	GFileType ta = g_file_info_get_type(aa);
-	GFileType tb = g_file_info_get_type(ab);
+	GFileType ta = g_file_info_get_file_type(aa);
+	GFileType tb = g_file_info_get_file_type(bb);
 
 	if ((ta == tb) && (ta == G_FILE_TYPE_DIRECTORY))
 		return gel_fs_scaner_compare_gfile_by_name(a, b);
@@ -267,7 +266,7 @@ gel_fs_scaner_compare_gfile_by_type (GFile *a, GFile *b)
 	if ((ta != tb) && (tb == G_FILE_TYPE_DIRECTORY))
 		return  1;
 
-	return gel_fs_scaner_compare_gfile_by_name(GFile *a, GFile *b)
+	return gel_fs_scaner_compare_gfile_by_name(a, b);
 }
 
 gint
