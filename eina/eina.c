@@ -146,7 +146,7 @@ initialize_peas_engine(gboolean from_source)
 		gchar *user_plugin_path = NULL;
 
 		#if defined OS_LINUX
-		gchar *user_plugin_path = g_build_filename(g_get_user_data_dir(),
+		user_plugin_path = g_build_filename(g_get_user_data_dir(),
 			PACKAGE, "plugins",
 			NULL);
 
