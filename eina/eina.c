@@ -142,6 +142,26 @@ initialize_peas_engine(gboolean from_source)
 
 		if ((libdir = g_getenv("EINA_LIB_PATH")) != NULL)
 			peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
+
+		gchar *user_plugin_path = NULL;
+
+		#if defined OS_LINUX
+		gchar *user_plugin_path = g_build_filename(g_get_user_data_dir(),
+			PACKAGE, "plugins",
+			NULL);
+
+		#elif defined OS_OSX
+		user_plugin_path = g_build_filename(g_get_home_dir(),
+			"Library", "Application Support",
+			PACKAGE_NAME, "Plugins",
+			NULL);
+		#endif
+
+		if (user_plugin_path)
+		{
+			peas_engine_add_search_path(engine, user_plugin_path, user_plugin_path);
+			g_free(user_plugin_path);
+		}
 	}
 
 	gel_free_and_invalidate(builddir, NULL, g_free);
