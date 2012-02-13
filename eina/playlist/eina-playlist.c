@@ -322,9 +322,23 @@ playlist_set_lomo_player(EinaPlaylist *self, LomoPlayer *lomo)
 	g_object_bind_property(lomo, "repeat",
 		gel_ui_generic_get_typed(self, GTK_TOGGLE_ACTION, "repeat-action"), "active",
 		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	g_object_bind_property(lomo, "repeat",
+		gel_ui_generic_get_typed(self, GTK_WIDGET, "repeat-image-on"), "visible",
+		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	g_object_bind_property(lomo, "repeat",
+		gel_ui_generic_get_typed(self, GTK_WIDGET, "repeat-image-off"), "visible",
+		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
+
 	g_object_bind_property(lomo, "random",
 		gel_ui_generic_get_typed(self, GTK_TOGGLE_ACTION, "random-action"), "active",
 		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	g_object_bind_property(lomo, "random",
+		gel_ui_generic_get_typed(self, GTK_WIDGET, "random-image-on"), "visible",
+		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	g_object_bind_property(lomo, "random",
+		gel_ui_generic_get_typed(self, GTK_WIDGET, "random-image-off"), "visible",
+		G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
+
 }
 
 /**
