@@ -1,7 +1,37 @@
+/*
+ * gel/gel-fs-scanner.c
+ *
+ * Copyright (C) 2004-2011 Eina
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * SECTION:gel-fs-scanner
+ * @title: GelFSScanner
+ * @short_description: Gel filesystem scanner functions
+ *
+ * gel_fs_scanner_scan() function family provides a flexible framework to transverse a filesystem.
+ * This framework is asynchronous, it runs blocking operations in a separate thread.
+ *
+ * gel_fs_scanner_scan() supports user_data (closures) and custom filter and sort functions.
+ */
+
 #include "gel-fs-scanner.h"
 #include <string.h>
 
-struct _GelFSScannerContext {
+typedef struct {
 	GList *input_file_objects;
 	GList *output_file_objects;
 	GelFSScannerReadyFunc ready_func;
@@ -9,7 +39,7 @@ struct _GelFSScannerContext {
 	GSourceFunc filter_func;
 	gpointer user_data;
 	GDestroyNotify notify;
-};
+} GelFSScannerContext;
 
 static gboolean
 _scheduler_job_helper(GIOSchedulerJob *job, GCancellable *cancellable, GelFSScannerContext *ctx);
@@ -255,6 +285,12 @@ _scheduler_job_helper_finalize(GelFSScannerContext *ctx)
 	ctx->ready_func(ctx->output_file_objects, ctx->user_data);
 }
 
+/**
+ * _scanner_context_destroy:
+ * @ctx: A #GelFSScannerContext
+ *
+ * Destroy a #GelFSScannerContext
+ */
 static void
 _scanner_context_destroy(GelFSScannerContext *ctx)
 {
