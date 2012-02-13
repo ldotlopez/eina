@@ -37,7 +37,6 @@
 #include <gdk/gdk.h>
 #include <gel/gel-io.h>
 #include <gel/gel-ui.h>
-#include <gel/gel-fs-scanner.h>
 #include "eina-stock.h"
 #include "eina-file-utils.h"
 

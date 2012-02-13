@@ -16,8 +16,7 @@ libgel_include_HEADERS = \
 	gel-misc.h              \
 	gel-str-parser.h        \
 	gel-io.h                \
-	gel-fs-scanner.h        \
-	gel-io-scanner.h
+	gel-fs-scanner.h
 
 libgel_ui_includedir = $(common_includedir)
 libgel_ui_include_HEADERS = \
@@ -35,8 +34,7 @@ libgel_2_0_la_SOURCES = \
 	gel-misc.c                \
 	gel-str-parser.c          \
 	gel-marshallers.c         \
-	gel-fs-scanner.c          \
-	gel-io-scanner.c
+	gel-fs-scanner.c
 
 libgel_uidir = $(common_geldir)
 libgel_ui_2_0_la_SOURCES = \

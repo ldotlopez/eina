@@ -21,7 +21,6 @@
 #define _GEL_IO
 
 #include <gel/gel.h>
-#include <gel/gel-io-scanner.h>
 #include <gel/gel-fs-scanner.h>
 
 #endif
