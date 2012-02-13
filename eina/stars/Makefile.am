@@ -5,6 +5,7 @@ plugindir = $(pkglibdir)/stars
 plugin_PYTHON = stars.py widgets.py
 
 plugin_DATA = stars.plugin \
+	dock.ui     \
 	star-on.svg \
 	star-off.svg
 EXTRA_DIST += $(plugin_DATA)

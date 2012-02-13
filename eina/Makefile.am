@@ -55,8 +55,8 @@ include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = \
 	--warn-all \
-	--add-include-path=$(top_builddir)/lomo \
-	--add-include-path=$(top_builddir)/gel
+	--add-include-path=$(top_srcdir)/lomo \
+	--add-include-path=$(top_srcdir)/gel
 INTROSPECTION_COMPILER_ARGS = \
 	--includedir=$(top_builddir)/lomo \
 	--includedir=$(top_builddir)/gel

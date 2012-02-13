@@ -69,7 +69,7 @@ INTROSPECTION_GIRS += Gel-2.0.gir
 GelUI-2.0.gir: libgel-ui-2.0.la
 GelUI_2_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Gtk-3.0 Gel-2.0
 GelUI_2_0_gir_CFLAGS = -I$(top_srcdir)
-GelUI_2_0_gir_LDFLAGS = -L$(top_buildir)/.libs -lgel-2.0
+GelUI_2_0_gir_LDFLAGS = -L$(top_builddir)/gel/.libs -lgel-2.0
 GelUI_2_0_gir_LIBS = libgel-ui-2.0.la
 GelUI_2_0_gir_FILES = $(libgel_ui_2_0_la_SOURCES)
 INTROSPECTION_GIRS += GelUI-2.0.gir
