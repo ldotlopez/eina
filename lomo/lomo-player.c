@@ -1100,6 +1100,32 @@ lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error)
 }
 
 /**
+ * lomo_player_toggle_playback_state:
+ * @self: A #LomoPlayer
+ * @error: Location for errors
+ *
+ * Toggles play/pause state. If current state is %LOMO_STATE_STOP sets it to %LOMO_STATE_PLAY
+ *
+ * Returns: %TRUE on successfull, %FALSE otherwise
+ */
+gboolean
+lomo_player_toggle_playback_state(LomoPlayer *self, GError **error)
+{
+	if (!LOMO_IS_PLAYER(self))
+	{
+		g_set_error(error, player_quark(), LOMO_PLAYER_ERROR_WRONG_ARGUMENT,
+			N_("Invalid arguments"));
+		return FALSE;
+	}
+
+	LomoState state = lomo_player_get_state(self);
+	if ((state == LOMO_STATE_STOP) || (state == LOMO_STATE_PAUSE))
+		return lomo_player_set_state(self, LOMO_STATE_PLAY, error);
+	else
+		return lomo_player_set_state(self, LOMO_STATE_PAUSE, error);
+}
+
+/**
  * lomo_player_get_current:
  * @self: A #LomoPlayer
  *

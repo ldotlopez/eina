@@ -165,7 +165,8 @@ typedef enum {
 	LOMO_PLAYER_ERROR_MISSING_PIPELINE,
 	LOMO_PLAYER_ERROR_UNKNOW_STATE,
 	LOMO_PLAYER_ERROR_SET_STATE,
-	LOMO_PLAYER_ERROR_BLOCK_BY_HOOK
+	LOMO_PLAYER_ERROR_BLOCK_BY_HOOK,
+	LOMO_PLAYER_ERROR_WRONG_ARGUMENT
 } LomoPlayerError;
 
 /**
@@ -282,6 +283,7 @@ void     lomo_player_set_gapless_mode(LomoPlayer *self, gboolean gapless_mode);
 /* state */
 LomoState lomo_player_get_state(LomoPlayer *self);
 gboolean  lomo_player_set_state(LomoPlayer *self, LomoState state, GError **error);
+gboolean  lomo_player_toggle_playback_state(LomoPlayer *self, GError **error);
 
 /* current stream */
 gint     lomo_player_get_current(LomoPlayer *self);
