@@ -130,7 +130,7 @@ AC_SEARCH_LIBS([strerror],[cposix])
 #
 # checks for header files
 #
-AC_HEADER_STDC
+AC_PROG_CC_C99
 AC_CHECK_HEADERS([fcntl.h])
 
 # Detect OSX
