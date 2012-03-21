@@ -326,6 +326,9 @@ gint main(gint argc, gchar *argv[])
 		}
 	}
 
+	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+	textdomain(GETTEXT_PACKAGE);
 
 	gchar *tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);
 	g_set_application_name(tmp);
