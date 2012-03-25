@@ -20,6 +20,7 @@
 
 #include "gel-io-scanner.h"
 #include <string.h>
+#include <glib/gi18n.h>
 #include <gel/gel.h>
 #include "gel-marshallers.h"
 
@@ -413,9 +414,9 @@ _scanner_run_queue(GelIOScanner *self)
 		if ((parent == NULL) || (pnode == NULL))
 		{
 			if (parent == NULL)
-				g_warning("GFile has no parent");
+				g_warning(_("GFile has no parent"));
 			if (pnode == NULL)
-				g_warning("Parent has no GNode associated");
+				g_warning(_("Parent has no GNode associated"));
 			g_object_unref((GObject *) file);
 		}
 		else
@@ -432,7 +433,7 @@ _scanner_run_queue(GelIOScanner *self)
 			_scanner_run_queue(self);
 		else
 		{
-			g_warning("Unknow file type");
+			g_warning(_("Unknow file type"));
 			_scanner_run_queue(self);
 		}
 	}
