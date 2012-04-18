@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eina\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-10 19:34+0100\n"
+"POT-Creation-Date: 2012-03-25 21:17+0200\n"
 "PO-Revision-Date: 2011-08-26 08:57+0000\n"
 "Last-Translator: Velikanov Dmitry <Unknown>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -18,331 +18,271 @@ msgstr ""
 "X-Launchpad-Export-Date: 2011-11-19 17:00+0000\n"
 "X-Generator: Launchpad (build 14299)\n"
 
-#: ../gel/gel-app.c:108
-#, c-format
-msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
+#: ../gel/gel-io-scanner.c:416
+msgid "GFile has no parent"
 msgstr ""
-"%d надстроек задействовано при выходе. Используйте возможность завершения "
-"для их выгрузки."
 
-#: ../gel/gel-app.c:114
+#: ../gel/gel-io-scanner.c:418
+msgid "Parent has no GNode associated"
+msgstr ""
+
+#: ../gel/gel-io-scanner.c:435
+msgid "Unknow file type"
+msgstr ""
+
+#: ../gel/gel-misc.c:252
 #, c-format
-msgid "  %s (usage:%d enabled:%d locked:%d %s)"
-msgstr "  %s (используется:%d задействовано:%d заблокировано:%d %s)"
+msgid "Contents of %p\n"
+msgstr ""
 
-#: ../gel/gel-app.c:129
+#: ../gel/gel-misc.c:261
+#, c-format
+msgid "End of list\n"
+msgstr ""
+
+#: ../gel/gel-misc.c:365
+#, fuzzy, c-format
+msgid "Unknow GelResourceType %d"
+msgstr "Неизвестное действие: %s"
+
+#. *
+#. * GEL_DEFINE_WEAK_REF_CALLBACK:
+#. *
+#. * @name: Name for use in the weak ref callback, use 'foo' for foo_weak_ref_cb
+#. *
+#. * Defines a weak ref function for use with g_object_weak_ref
+#.
+#: ../gel/gel-misc.h:143
 #, c-format
 msgid ""
-"%d plugins still loaded, will be leaked. Use a dispose func "
-"(gel_app_set_dispose_func) to unload them at exit"
-msgstr ""
-"%d надстройки до сих пор загружены и будут проявляться. Используйте "
-"возможность (gel_app_set_dispose_func) для их выгрузки на выходе"
-
-#: ../gel/gel-app.c:317
-msgid "Invalid arguments"
-msgstr "Недопустимые аргументы"
-
-#: ../gel/gel-app.c:361
-msgid "Plugin not found"
-msgstr "Модуль не найден"
-
-#: ../gel/gel-app.c:392
-#, c-format
-msgid "Cannot load %s: %s"
-msgstr "Невозможно загрузить %s: %s"
-
-#: ../gel/gel-app.c:426
-#, c-format
-msgid "Dependecy %s for %s not found"
-msgstr "Зависимость %s для %s не найдена"
-
-#: ../gel/gel-app.c:444
-#, c-format
-msgid "Invalid arguments, set breakpoint on %s to debug"
+"Protected object %p is begin destroyed. There is a bug somewhere, set a "
+"breakpoint on %s"
 msgstr ""
 
-#: ../gel/gel-app.c:460
-#, c-format
-msgid "Plugin %p has NULL name"
-msgstr "Надстройка %p имеет NULL имя"
-
-#: ../gel/gel-app.c:572 ../gel/gel-app.c:574
-#, c-format
-msgid "Cannot unload plugin %s, its used by %d plugins"
-msgstr "Невозможно выгрузить надстройку %s, она используется %d надстройками"
-
-#: ../gel/gel-app.c:586 ../gel/gel-plugin.c:421
-#, c-format
-msgid "Cannot finalize plugin %s: %s"
-msgstr "Невозможно завершить надстройку %s: %s"
-
-#: ../gel/gel-app.c:601
-#, c-format
-msgid "Dependency %s for plugin %s not found"
-msgstr "Зависимость %s для надстройки %s не найдена"
-
-#: ../gel/gel-app.c:613
-#, c-format
-msgid "Cannot free plugin after all: %s"
-msgstr "Невозможно высвободить надстройку после всех: %s"
-
-#: ../gel/gel-app.c:645
-#, c-format
-msgid "Cannot free plugin %s: %s"
-msgstr "Невозможно освободить надстройку %s: %s"
-
-#: ../gel/gel-plugin.c:62
-msgid "Module loading is not supported on this platform"
-msgstr "Загружаемый модуль не поддерживается этой платформой"
-
-#: ../gel/gel-plugin.c:69
-#, c-format
-msgid "%s is not loadable"
-msgstr "%s невозможно загрузить"
-
-#: ../gel/gel-plugin.c:76
-#, c-format
-msgid "Cannot find symbol %s in %s"
-msgstr "Невозможно найти символ %s в %s"
-
-#: ../gel/gel-plugin.c:84
-#, c-format
-msgid "Invalid serial in object %s:%s (app:%d, plugin:%d)"
-msgstr ""
-
-#: ../gel/gel-plugin.c:99
+#.
+#. * gel_warn_fix_implementation:
+#. *
+#. * Warns about some buggy method
+#.
+#: ../gel/gel-misc.h:320
 #, c-format
 msgid ""
-"%s plugin has no deps, are you sure? if you are sure use GEL_PLUGIN_NO_DEPS"
-msgstr ""
-"%s надстройка не имеет зависимостей, вы действительно уверены? Если вы "
-"уверены, используйте GEL_PLUGIN_NO_DEPS"
-
-#: ../gel/gel-plugin.c:111
-#, c-format
-msgid "Plugin %s created"
-msgstr "Надстройка %s создана"
-
-#: ../gel/gel-plugin.c:124
-#, c-format
-msgid "Plugin %s is in use"
-msgstr "Надстройка %s используется"
-
-#: ../gel/gel-plugin.c:132
-#, c-format
-msgid "Plugin %s is still enabled"
-msgstr "Надстройка %s задействована"
-
-#: ../gel/gel-plugin.c:140
-#, c-format
-msgid "Plugin %s is locked"
-msgstr "Надстройка %s заблокирована"
-
-#: ../gel/gel-plugin.c:144
-#, c-format
-msgid "Plugin %s destroyed"
-msgstr "Надстройка %s удалена"
-
-#: ../gel/gel-plugin.c:201 ../gel/gel-plugin.c:219
-#, c-format
-msgid "Invalid reference from %s on %s"
-msgstr "Неправильная ссылка от %s на %s"
-
-#: ../gel/gel-plugin.c:209 ../gel/gel-plugin.c:228
-msgid "none"
-msgstr "нет"
-
-#: ../gel/gel-plugin.c:270
-#, c-format
-msgid ""
-"You call %s with plugin == NULL, its OK but:\n"
-"- %s is meant for use with plugin def\n"
-"- For general, non-plugin dependand version of %s use the wrapper "
-"gel_resource_locate\n"
-"- If none of previous points fits your needs, pass a plugin variable to this "
-"function\n"
-"Set breakpoint on '%s if plugin == 0' to find the caller for this "
-"invocation\n"
+"%s needs to be fixed. Method is incomplete, buggy or does not match "
+"documentation."
 msgstr ""
 
-#: ../gel/gel-plugin.c:367
-#, c-format
-msgid "Plugin %s already initialized"
-msgstr "Надстройка %s уже инициализирована"
-
-#: ../gel/gel-plugin.c:374
-#, c-format
-msgid "Plugin %s has not init hook"
+#: ../gel/gel-ui-dialogs.c:101
+msgid "Details"
 msgstr ""
 
-#: ../gel/gel-plugin.c:381
-#, c-format
-msgid "Cannot init plugin %s: %s"
-msgstr "Невозможно инициализировать надстройку %s: %s"
+#: ../gel/gel-ui-generic.c:110
+#, fuzzy, c-format
+msgid "Cannot load UI from file '%s': %s"
+msgstr "Не могу загрузить интерфейс пользователя из %s: %s"
 
-#: ../gel/gel-plugin.c:386
-#, c-format
-msgid "Cannot init plugin %s, unknow reason"
-msgstr "Невозможно инициализировать надстройку %s, причина неизвестна"
+#: ../gel/gel-ui-generic.c:148
+#, fuzzy, c-format
+msgid "Cannot load UI from string: %s"
+msgstr "Невозможно объединить с диспетчером интерфейса пользователя: %s"
 
-#: ../gel/gel-plugin.c:390
-#, c-format
-msgid "Plugin %s initialized"
-msgstr "Надстройка %s инициализирована"
+#: ../gel/gel-ui-generic.c:156
+msgid "Cannot find widget 'main-widget' on UI"
+msgstr ""
 
-#: ../gel/gel-plugin.c:401
-#, c-format
-msgid "Plugin %s is not initialized"
-msgstr "Надстройка %s не инициализирована"
-
-#: ../gel/gel-plugin.c:426
-#, c-format
-msgid "Cannot finalize plugin %s: unknow reason"
-msgstr "Невозможно завершить надстройку %s: причина неизвестна"
-
-#: ../gel/gel-plugin.c:430
-#, c-format
-msgid "Plugin %s finalized"
-msgstr "Надстройка %s завершена"
-
-#: ../gel/gel-ui.c:49 ../eina/cover.c:356
+#: ../gel/gel-ui-utils.c:60
 #, c-format
 msgid "Cannot locate resource '%s'"
 msgstr "Невозможно обнаружить ресурс '%s'"
 
-#: ../gel/gel-ui.c:153
+#: ../gel/gel-ui-utils.c:116
+#, fuzzy, c-format
+msgid "Unable to read GFile('%s'): %s"
+msgstr "Невозможно загрузить ресурс '%s': '%s'"
+
+#: ../gel/gel-ui-utils.c:147
+#, fuzzy, c-format
+msgid "Cannot load image from input stream %p: %s"
+msgstr "Невозможно объединить с диспетчером интерфейса пользователя: %s"
+
+#: ../gel/gel-ui-utils.c:180
+#, c-format
+msgid "Unable to load image buffer from type '%s'. Please file a bug"
+msgstr ""
+
+#: ../gel/gel-ui-utils.c:190
+#, fuzzy, c-format
+msgid "Can not find object '%s' at GelUI %p"
+msgstr "Невозможно найти символ %s в %s"
+
+#: ../gel/gel-ui-utils.c:275
+#, fuzzy, c-format
+msgid "Unable to locate %s"
+msgstr "Невозможно обнаружить %s"
+
+#: ../gel/gel-ui-utils.c:399
 #, c-format
 msgid "Invalid GtkTreePath in selection, use %s only with ListModels"
 msgstr ""
 
-#: ../lomo/lomo-player.c:108 ../lomo/lomo-player.c:119
-#: ../lomo/lomo-player.c:121
+#: ../gel/gel-ui-utils.c:593
+msgid "Widget has been already made droppable by GelUI, ignoring."
+msgstr ""
+
+#: ../gel/gel-ui-utils.c:624
+msgid "Widget has not been made droppable by GelUI, ignoring."
+msgstr ""
+
+#: ../lomo/lomo-em-art-backends.c:60
+#, fuzzy, c-format
+msgid "Unable to compile regex '%s': %s"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../lomo/lomo-em-art-provider.c:131 ../lomo/lomo-em-art-provider.c:136
+#, fuzzy, c-format
+msgid "Unable to locate '%s'"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../lomo/lomo-em-art-search.c:61
+#, c-format
+msgid "Referenced %s from search '%s' was destroyed."
+msgstr ""
+
+#: ../lomo/lomo-em-art-search.c:75
+#, c-format
+msgid ""
+"Search '%s' is running at dispose phase, calling callback and expect "
+"problems."
+msgstr ""
+
+#: ../lomo/lomo-em-art-search.c:234
+#, c-format
+msgid ""
+"Trying to set a bpointer while search '%s' already has a bpointer, this is a "
+"bug. You should set bpointer to NULL before trying to do this."
+msgstr ""
+
+#: ../lomo/lomo-em-art-search.c:275
+#, c-format
+msgid ""
+"Trying to set a result in search '%s' while it already has one, this is a "
+"bug and will be ignored"
+msgstr ""
+
+#: ../lomo/lomo-metadata-parser.c:365
+#, fuzzy, c-format
+msgid "Unable to copy GstTagList for %s"
+msgstr "Невозможно обнаружить %s"
+
+#: ../lomo/lomo-player.c:140 ../lomo/lomo-player.c:151
+#: ../lomo/lomo-player.c:153 ../lomo/lomo-player.c:161
 #, c-format
 msgid "Missing method %s"
 msgstr "Отсутствующий метод %s"
 
-#: ../lomo/lomo-player.c:859
-msgid "Cannot create pipeline for NULL stream"
-msgstr ""
-
-#: ../lomo/lomo-player.c:867
-#, c-format
-msgid "Cannot create pipeline for stream %s"
-msgstr ""
-
-#: ../lomo/lomo-player.c:966
+#: ../lomo/lomo-player.c:1073
 msgid "Cannot set state: missing pipeline"
 msgstr ""
 
-#: ../lomo/lomo-player.c:983
+#: ../lomo/lomo-player.c:1091
 msgid "Error setting state"
 msgstr "Ошибка установки области"
 
-#: ../lomo/lomo-player.c:1063
-msgid "Player not seekable"
-msgstr ""
+#: ../lomo/lomo-player.c:1117
+#, fuzzy
+msgid "Invalid arguments"
+msgstr "Недопустимые аргументы"
 
-#: ../lomo/lomo-player.c:1071
-msgid "Invalid format"
-msgstr "Неверный формат"
+#: ../lomo/lomo-player.c:1180
+#, c-format
+msgid "Action blocked by hook"
+msgstr "Действие заблокировано перехватчиком"
 
-#: ../lomo/lomo-player.c:1089
-msgid "Error seeking"
-msgstr "Ошибка поиска"
-
-#: ../lomo/lomo-player.c:1169
+#: ../lomo/lomo-player.c:1381
 msgid "Error setting volume"
 msgstr "Ошибка установки громкости"
 
-#: ../lomo/lomo-player.c:1199
-msgid "Error getting volume"
-msgstr "Ошибка назначения громкости"
-
-#: ../lomo/lomo-player.c:1217
+#: ../lomo/lomo-player.c:1428
 msgid "Missing set_mute and set_volume methods, cannot mute"
 msgstr "Ошибка методов set_mute и set_volume, невозможно выключить"
 
-#: ../lomo/lomo-player.c:1248
-msgid "Error setting mute"
-msgstr "Ошибка выключения звука"
+#: ../lomo/lomo-player.c:1664
+msgid "Player not seekable"
+msgstr ""
 
-#: ../lomo/lomo-player.c:1426
+#: ../lomo/lomo-player.c:1682
+msgid "Error seeking"
+msgstr "Ошибка поиска"
+
+#: ../lomo/lomo-player.c:1776
+#, fuzzy, c-format
+msgid "Invalid URI or path: '%s'"
+msgstr "Неверный формат"
+
+#: ../lomo/lomo-player.c:1847
 #, c-format
 msgid "Error creating pipeline: %s"
 msgstr ""
 
-#: ../lomo/lomo-player.c:1709
-msgid "Cannot change stream, it's in queue but can't dequeue it"
+#: ../lomo/lomo-player.c:2494
+#, c-format
+msgid "Bus got something like... '%s'"
 msgstr ""
-"Невозможно изменить поток, он находится в очереди, но не может быть удалён "
-"из неё"
 
-#: ../lomo/lomo-player.c:1728
-msgid "Action blocked by hook"
-msgstr "Действие заблокировано перехватчиком"
+#: ../lomo/lomo-playlist.c:583
+#, c-format
+msgid "Unknow transform mode: %d"
+msgstr ""
 
-#: ../eina/ext/curl-engine.c:245 ../plugins/adb/adb.c:221
-msgid "Unknow error"
-msgstr "Неизвестная ошибка"
+#: ../lomo/lomo-stats.c:259
+msgid "Unknow state. Expect undefined behaviour"
+msgstr ""
 
-#: ../eina/ext/eina-file-chooser-dialog.c:288
+#: ../lomo/lomo-stream.c:190 ../lomo/lomo-stream.c:193
+#, fuzzy, c-format
+msgid "'%s' is not a valid URI"
+msgstr "%s невозможно загрузить"
+
+#: ../eina/ext/eina-application.c:144
+#, fuzzy, c-format
+msgid "Unable to load resource '%s': %s"
+msgstr "Невозможно загрузить ресурс '%s': '%s'"
+
+#: ../eina/ext/eina-application.c:156
+#, fuzzy, c-format
+msgid "Unable to locate resource '%s'"
+msgstr "Невозможно обнаружить ресурс '%s'"
+
+#: ../eina/ext/eina-file-chooser-dialog.c:301
 msgid "Loading files..."
 msgstr "Загрузка файлов..."
 
-#: ../eina/ext/eina-file-chooser-dialog.c:342 ../eina/fs.c:64
+#: ../eina/ext/eina-file-chooser-dialog.c:321
+#, fuzzy, c-format
+msgid "Loaded %d streams"
+msgstr "Обнаружены %d потоков"
+
+#: ../eina/ext/eina-file-chooser-dialog.c:361 ../eina/ext/eina-fs.c:196
 msgid "Add or queue files"
 msgstr "Добавление файлов"
 
-#: ../eina/ext/eina-file-chooser-dialog.c:414
+#: ../eina/ext/eina-fs.c:168
 #, c-format
-msgid "Found %d streams"
-msgstr "Обнаружены %d потоков"
+msgid "'%s' throw an error: %s"
+msgstr ""
 
-#: ../eina/ext/eina-plugin-dialog.c:180 ../eina/plugins.c:53
-msgid "Select plugins"
-msgstr "Выбрать надстройки"
-
-#: ../eina/ext/eina-plugin-dialog.c:334
+#: ../eina/ext/eina-fs.c:391
 #, c-format
-msgid "Loaded unknow plugin: %s"
-msgstr "Загружена неизвестная надстройка: %s"
+msgid "Cannot convert UTF8 path '%s' to on-disk encoding: %s"
+msgstr ""
 
-#: ../eina/ext/eina-plugin-properties.c:157
-msgid "No name"
-msgstr "Без названия"
-
-#: ../eina/ext/eina-plugin-properties.c:158
-msgid "No description"
-msgstr "Нет описания"
-
-#: ../eina/ext/eina-plugin-properties.c:159
-msgid "No more information"
-msgstr "Дополнительные сведения недоступны"
-
-#: ../eina/ext/eina-plugin-properties.c:161
-msgid "[Internal plugin]"
-msgstr "[внутренняя надстройка]"
-
-#: ../eina/ext/eina-plugin-properties.c:163
-msgid "No dependencies"
-msgstr "Нет зависимостей"
-
-#: ../eina/ext/eina-plugin-properties.c:166
-msgid "No reverse dependencies"
-msgstr "Нет обратных зависимостей"
-
-#: ../eina/ext/eina-stock.c:44
-msgid "Status icon"
-msgstr "Значок состояния"
-
-#: ../eina/ext/eina-stock.c:45
-msgid "_Random"
-msgstr "Случайный"
+#: ../eina/ext/eina-fs.c:407
+#, c-format
+msgid "Cannot convert on-disk encoding '%s' to UTF8: %s"
+msgstr ""
 
 #: ../eina/ext/eina-stock.c:46
-msgid "_Shuffle"
-msgstr "_Случайным образом"
+msgid "Status icon"
+msgstr "Значок состояния"
 
 #: ../eina/ext/eina-stock.c:47
 msgid "_Queue"
@@ -352,771 +292,1089 @@ msgstr "В _Очередь"
 msgid "Report a bug"
 msgstr "Сообщить об ошибке"
 
-#: ../eina/ext/eina-window.c:60
+#: ../eina/ext/eina-window.c:77
 msgid "_File"
 msgstr "_Файл"
 
-#: ../eina/ext/eina-window.c:61
+#: ../eina/ext/eina-window.c:78
 msgid "_Edit"
 msgstr "_Правка"
 
-#: ../eina/ext/eina-window.c:62
-msgid "_Add-ons"
-msgstr "_Дополнения"
+#: ../eina/ext/eina-window.c:79 ../eina/ext/eina-window.c:82
+#, fuzzy
+msgid "_Plugins"
+msgstr "Надстройки"
 
-#: ../eina/ext/eina-window.c:63
+#: ../eina/ext/eina-window.c:80 ../eina/player/eina-player-plugin.c:67
+#: ../eina/player/eina-player-plugin.c:68
 msgid "_Help"
 msgstr "_Справка"
 
-#: ../eina/about.c:88
+#: ../eina/ext/eina-window.c:198
+#, fuzzy, c-format
+msgid "Error adding UI string: %s"
+msgstr "Ошибка файла %s: %s"
+
+#: ../eina/ext/eina-window.c:358
+msgid "Select plugins"
+msgstr "Выбрать надстройки"
+
+#: ../eina/ext/eina-window.c:379
+#, fuzzy, c-format
+msgid "Unhandled unknow action '%s'"
+msgstr "Неизвестное действие: %s"
+
+#: ../eina/eina.c:59
+#, fuzzy, c-format
+msgid "Unable to activate plugin %s: %s"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../eina/eina.c:70
+#, fuzzy, c-format
+msgid "Unable to deactivate plugin %s: %s"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../eina/eina.c:109
+#, fuzzy, c-format
+msgid "Unable to load typelib %s %s: %s"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../eina/eina.c:238
+msgid "Unable to load plugin info"
+msgstr ""
+
+#: ../eina/eina.c:245
+#, fuzzy, c-format
+msgid "Unable to load required plugin '%s'"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../eina/eina.c:266
+#, fuzzy
+msgid "Set play state"
+msgstr "Повторять список воспроизведения"
+
+#: ../eina/eina.c:267
+msgid "Set stop state"
+msgstr ""
+
+#: ../eina/eina.c:268
+msgid "Clear playlist (use it replace current playlist)"
+msgstr ""
+
+#: ../eina/eina.c:269
+msgid "[FILES/URIs...]"
+msgstr ""
+
+#: ../eina/eina.c:360
+#, c-format
+msgid "%s music player"
+msgstr ""
+
+#: ../eina/adb/eina-adb-plugin.c:58
+#, fuzzy, c-format
+msgid "Error setting database '%s'"
+msgstr "Ошибка установки области"
+
+#: ../eina/adb/eina-adb-plugin.c:70
+#, fuzzy
+msgid "Cannot register ADB interface"
+msgstr "Невозможно зарегистрировать сервер DBus: %s"
+
+#: ../eina/adb/eina-adb.c:210
+#, fuzzy
+msgid "No error message"
+msgstr "Информационные сообщения"
+
+#: ../eina/adb/eina-adb.c:306
+#, c-format
+msgid "Error %d in query '%s'"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:352
+#, fuzzy
+msgid "Cannot begin transaction"
+msgstr "Невозможно создать значок состояния"
+
+#: ../eina/adb/eina-adb.c:362
+#, c-format
+msgid "Query %d failed. Query was: %s"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:371
+#, fuzzy
+msgid "Cannot end transaction"
+msgstr "Невозможно создать значок состояния"
+
+#: ../eina/adb/eina-adb.c:453
+#, c-format
+msgid "Error in query for get variable '%s'"
+msgstr ""
+
+#: ../eina/adb/eina-adb.c:473
+#, fuzzy, c-format
+msgid "Error setting variable '%s'='%s'"
+msgstr "Ошибка установки громкости"
+
+#: ../eina/adb/eina-adb.c:502
+#, fuzzy
+msgid "Cannot finalize query"
+msgstr "Невозможно завершить надстройку %s: %s"
+
+#: ../eina/adb/eina-adb.c:516
+#, c-format
+msgid "Error setting schema version for '%s'=%d"
+msgstr ""
+
+#: ../eina/adb/eina-adb-lomo.c:48
+msgid "Cannot INSERT OR IGNORE"
+msgstr ""
+
+#: ../eina/adb/eina-adb-lomo.c:67
+msgid "Unable to retrieve sid for stream"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:30
+#, fuzzy
+msgid "<big><b>Dock</b></big>"
+msgstr "<big><b>Настройка Last FM</b></big>"
+
+#: ../eina/dock/eina-dock.c:530
+msgid "Removing primary tab is not supported"
+msgstr ""
+
+#: ../eina/dock/eina-dock.c:625
+#, c-format
+msgid "Unhanded notify::%s"
+msgstr ""
+
+#: ../eina/fieshta/eina-fieshta-plugin.c:56
+msgid "Party mode"
+msgstr ""
+
+#: ../eina/lastfm/eina-lastfm-plugin.c:112
+#, fuzzy
+msgid "Cannot create preferences UI"
+msgstr "Не могу создать движок"
+
+#: ../eina/lastfm/eina-lastfm-plugin.c:123
+msgid "Last FM"
+msgstr ""
+
+#: ../eina/lastfm/eina-lastfm-plugin.c:161
+#, fuzzy, c-format
+msgid "Cannot create spool folder '%s': %s"
+msgstr "Не могу создать папку конфигурации %s"
+
+#: ../eina/lastfm/eina-lastfm-plugin.c:185
+#, fuzzy, c-format
+msgid "Cannot spawn daemon (%s): %s"
+msgstr "Невозможно загрузить %s: %s"
+
+#: ../eina/lastfm/eina-lastfm-plugin.c:301
+#, fuzzy, c-format
+msgid "Cannot write spoolfile '%s'"
+msgstr "Невозможно обнаружить ресурс '%s'"
+
+#: ../eina/lastfm/eina-lastfm-plugin.c:498
+#, fuzzy, c-format
+msgid "Unknow key '%s'"
+msgstr "Неизвестное действие: %s"
+
+#: ../eina/lastfm/preferences.ui.h:1
+msgid "<b>Password</b>"
+msgstr "<b>Пароль</b>"
+
+#: ../eina/lastfm/preferences.ui.h:2
+msgid "<b>Username</b>"
+msgstr "<b>Имя пользователя</b>"
+
+#: ../eina/lastfm/preferences.ui.h:3
+msgid "New to Last FM?, get an account"
+msgstr "В первые в Last FM?, создайте учётную запись"
+
+#: ../eina/lastfm/preferences.ui.h:4
+msgid "Submit played tracks to Last.fm"
+msgstr "Подтверждайте воспроизведённые композиции на Last.fm"
+
+#: ../eina/lomo/eina-lomo-plugin.c:63
+msgid "Cannot create engine"
+msgstr "Не могу создать движок"
+
+#: ../eina/lomo/eina-lomo-plugin.c:70
+msgid "Cannot share engine"
+msgstr "Не могу разшарить движок"
+
+#: ../eina/lomo/eina-lomo-plugin.c:108
+msgid "Cannot destroy engine"
+msgstr "Не могу уничтожить движок"
+
+#: ../eina/lomo/eina-lomo-plugin.c:185
+#, fuzzy, c-format
+msgid "Can't create dir '%s': %s"
+msgstr "Невозможно загрузить '%s': '%s'"
+
+#: ../eina/lomo/eina-lomo-plugin.c:195
+#, fuzzy, c-format
+msgid "Unble to save playlist: %s"
+msgstr "Очистить список воспроизведения"
+
+#: ../eina/lomo/eina-lomo-plugin.c:195
+msgid "Missing parent directory"
+msgstr ""
+
+#: ../eina/mpris/eina-mpris-player.c:280
+#, fuzzy, c-format
+msgid "Unable to get session bus: '%s'"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../eina/mpris/eina-mpris-player.c:287
+#, c-format
+msgid "Unable to parse MPRIS spec XML: '%s'"
+msgstr ""
+
+#: ../eina/mpris/eina-mpris-player.c:300 ../eina/mpris/eina-mpris-player.c:313
+#, fuzzy, c-format
+msgid "Unable to register interface %s: '%s'"
+msgstr "Невозможно завершить действие '%s': %s"
+
+#: ../eina/mpris/eina-mpris-player.c:328
+#, c-format
+msgid "Unable to own bus name '%s'"
+msgstr ""
+
+#: ../eina/mpris/eina-mpris-player.c:538
+#, fuzzy, c-format
+msgid "Unknow status %d"
+msgstr "Неизвестное действие: %s"
+
+#: ../eina/muine/eina-muine-plugin.c:58
+msgid "Muine"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:324
+#, fuzzy, c-format
+msgid "Unknow mode: %d"
+msgstr "Неизвестное действие: %s"
+
+#: ../eina/muine/eina-muine.c:370
+#, c-format
+msgid "Unable to fetch sample URI for %s '%s', query was %s"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:513
+#, fuzzy
+msgid "Unknow mode"
+msgstr "Неизвестная ошибка"
+
+#: ../eina/muine/eina-muine.c:521
+#, c-format
+msgid "Unable to build query '%s'"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:565
+msgid "Cannot get iter  for model"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:572
+msgid "NULL result from ADB"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:618
+msgid "Unhandled situation"
+msgstr ""
+
+#: ../eina/muine/eina-muine.c:646
+#, fuzzy, c-format
+msgid "Unknow action %s"
+msgstr "Неизвестное действие: %s"
+
+#: ../eina/muine/eina-muine.ui.h:1
+msgid "Group by"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:2
+msgid "album"
+msgstr ""
+
+#: ../eina/muine/eina-muine.ui.h:3
+msgid "artist"
+msgstr ""
+
+#: ../eina/ntfy/eina-ntfy-plugin.c:99 ../eina/ntfy/eina-ntfy-plugin.c:101
+#, fuzzy
+msgid "Now playing"
+msgstr "Воспроизводится:"
+
+#: ../eina/ntfy/eina-ntfy-plugin.c:185
+#, fuzzy
+msgid "Playing now"
+msgstr "Воспроизводится:"
+
+#: ../eina/ntfy/eina-ntfy-plugin.c:282
+#, c-format
+msgid "Unhanded key '%s'"
+msgstr ""
+
+#: ../eina/player/eina-player-plugin.c:66
+#, fuzzy
+msgid "_Add or queue files"
+msgstr "Добавление файлов"
+
+#: ../eina/player/eina-player-plugin.c:69
+#, fuzzy
+msgid "_Report a bug"
+msgstr "Сообщить об ошибке"
+
+#: ../eina/player/eina-player-plugin.c:70
+#, fuzzy
+msgid "_About"
+msgstr "О Eina"
+
+#: ../eina/player/eina-player-plugin.c:133
+#: ../eina/player/eina-player-plugin.c:155
+#, fuzzy
+msgid "Player"
+msgstr "Воспроизвести"
+
+#: ../eina/player/eina-player-plugin.c:140
+#, c-format
+msgid "Unable to add UI to window GtkUIManager: '%s'"
+msgstr ""
+
+#: ../eina/player/eina-player-plugin.c:231
+msgid ""
+"Eina is free software; you can redistribute it and/or modify it under the "
+"terms of the GNU General Public License as published by the Free Software "
+"Foundation; either version 2 of the License, or (at your option) any later "
+"version.\n"
+"\n"
+"Eina is distributed in the hope that it will be useful, but WITHOUT ANY "
+"WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS "
+"FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more "
+"details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License along with "
+"Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin "
+"Street, Fifth Floor, Boston, MA 02110-1301, USA."
+msgstr ""
+
+#: ../eina/player/eina-player-plugin.c:240
 #, c-format
 msgid "Missing resource: %s"
 msgstr "Отсутствует ресурс: %s"
 
-#: ../eina/about.c:95
+#: ../eina/player/eina-player-plugin.c:247
 msgid "A classic player for the modern era"
 msgstr "Классический плеер для современности"
 
-#: ../eina/about.c:108
-msgid "About Eina"
+#: ../eina/player/eina-player-plugin.c:248
+#, fuzzy, c-format
+msgid "About %s"
 msgstr "О Eina"
 
-#: ../eina/about.c:130
-msgid "About window plugin"
-msgstr "Сведения об оконной надстройке"
-
-#: ../eina/art.c:736
-msgid "Art"
-msgstr ""
-
-#: ../eina/art.c:736
-msgid "Art framework"
-msgstr ""
-
-#: ../eina/cover.c:366
-#, c-format
-msgid "Cannot load resource '%s': '%s'"
-msgstr "Невозможно загрузить ресурс '%s': '%s'"
-
-#: ../eina/cover.c:382
-msgid "Invalid cover mask"
-msgstr ""
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/cover.c:411
-msgid "Cover plugin"
-msgstr "Надстройка обложки"
-
-#: ../eina/dbus.c:93
-msgid "Cannot get DBus proxy"
-msgstr "Невозможно получить DBus прокси"
-
-#: ../eina/dbus.c:124
-#, c-format
-msgid "Cannot register DBus server: %s"
-msgstr "Невозможно зарегистрировать сервер DBus: %s"
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/dbus.c:198
-msgid "DBus interface for Eina"
-msgstr "DBus интерфейс для Eina"
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/dock.c:305
-msgid "Build-in dock plugin"
-msgstr "Встроенная надстройка стыковки"
-
-#: ../eina/eina-ige.c:62
-#, c-format
-msgid "Cannot locate %s"
-msgstr "Невозможно обнаружить %s"
-
-#: ../eina/eina-ige.c:65
-#, c-format
-msgid "Cannot load '%s': '%s'"
-msgstr "Невозможно загрузить '%s': '%s'"
-
-#: ../eina/eina-ige.c:148
-msgid "OSX integration"
-msgstr "Интеграция с OSX"
-
-#: ../eina/eina-obj.c:53
-msgid "Trying to free a NULL pointer"
-msgstr ""
-
-#: ../eina/eina-obj.c:107
-#, c-format
-msgid "Resource not found: %s"
-msgstr "Ресурс не найден: %s"
-
-#: ../eina/log.c:196
-#, c-format
-msgid "Cannot load UI from %s: %s"
-msgstr "Не могу загрузить интерфейс пользователя из %s: %s"
-
-#: ../eina/log.c:212
-msgid "Not all required widgets are valids"
-msgstr "Не все необходимые виджеты валидны"
-
-#: ../eina/log.c:230
-#, c-format
-msgid "Cannot create menu item: %s"
-msgstr "Не могу создать элемент меню: %s"
-
-#: ../eina/log.c:236
-msgid "Debug window"
-msgstr "Окно отладки"
-
-#: ../eina/log.c:300
-msgid "Severe errors"
-msgstr "Критические ошибки"
-
-#: ../eina/log.c:301
-msgid "Errors"
-msgstr "Ошибки"
-
-#: ../eina/log.c:302
-msgid "Warnings"
-msgstr "Предупреждения"
-
-#: ../eina/log.c:303
-msgid "Information messages"
-msgstr "Информационные сообщения"
-
-#: ../eina/log.c:304
-msgid "Debug information"
-msgstr "Информация дебаггера"
-
-#: ../eina/log.c:305
-msgid "Full debug"
-msgstr "Полн"
-
-#: ../eina/log.c:310
-#, c-format
-msgid "Set level to %s"
-msgstr "Установить уровень на %s"
-
-#: ../eina/log.c:406
-msgid "Cannot not shot dialog, it doest exists"
-msgstr "Такого диалогового окна не существует."
-
-#: ../eina/log.c:455
-msgid "Build-in log"
-msgstr "Встроенный лог"
-
-#: ../eina/lomo.c:42
-msgid "Cannot create engine"
-msgstr "Не могу создать движок"
-
-#: ../eina/lomo.c:50
-msgid "Cannot share engine"
-msgstr "Не могу разшарить движок"
-
-#: ../eina/lomo.c:74
-msgid "Cannot destroy engine"
-msgstr "Не могу уничтожить движок"
-
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/lomo.c:111
-msgid "Build-in lomo plugin"
-msgstr "Встроенный lomo плагин"
-
-#: ../eina/player.c:170
-#, c-format
-msgid "Cannot merge with UI Manager: %s"
-msgstr "Невозможно объединить с диспетчером интерфейса пользователя: %s"
-
-#: ../eina/player.c:388 ../eina/plugins.c:123
-#, c-format
-msgid "Unknow action: %s"
-msgstr "Неизвестное действие: %s"
-
-#: ../eina/player.c:394
+#: ../eina/player/eina-player-plugin.c:302
 #, c-format
 msgid "Unable to complete action '%s': %s"
 msgstr "Невозможно завершить действие '%s': %s"
 
-#: ../eina/player.c:603 ../eina/playlist.c:1119
+#: ../eina/player/eina-player-plugin.c:331
 #, c-format
-msgid "Error on file %s: %s"
-msgstr "Ошибка файла %s: %s"
+msgid "Unknow action: %s"
+msgstr "Неизвестное действие: %s"
 
-#: ../eina/player.c:616
-msgid "Build-in player plugin"
-msgstr "Встроенная надстройка проигрывателя"
+#: ../eina/player/eina-cover-image.c:166
+#, fuzzy, c-format
+msgid "Unable to load cover mask: %s"
+msgstr "Невозможно завершить действие '%s': %s"
 
-#: ../eina/playlist.c:219
-msgid "Cannot init dock widget"
-msgstr "Невозможно инициализировать стыковочный виджет"
-
-#: ../eina/playlist.c:235
-#, c-format
-msgid "Missing action: %s"
-msgstr "Отсутствует действие: %s"
-
-#: ../eina/playlist.c:702
-#, c-format
-msgid "Cannot go to stream #%d: '%s'"
-msgstr "Невозможно перейти к потоку #%d: '%s'"
-
-#: ../eina/playlist.c:712
-#, c-format
-msgid "Cannot set state to LOMO_STATE_PLAY: '%s'"
-msgstr "Невозможно назначить область для LOMO_STATE_PLAY: '%s'"
-
-#: ../eina/playlist.c:1011
-#, c-format
-msgid "Cannot find index for stream %p (%s)"
-msgstr "Невозможно найти индекс для потока %p (%s)"
-
-#: ../eina/playlist.c:1019
-#, c-format
-msgid "Cannot get iter for index %d"
+#: ../eina/player/eina-player.c:395
+msgid "Eina music player"
 msgstr ""
 
-#. version
-#. deps
-#. author
-#. url
-#: ../eina/playlist.c:1526
-msgid "Build-in playlist plugin"
-msgstr "Встроенная надстройка списка воспроизведения"
+#: ../eina/player/eina-player.c:437
+#, fuzzy
+msgid "Eina player"
+msgstr "Надстройки Eina"
 
-#: ../eina/plugins.c:52
-msgid "Plugins"
-msgstr "Надстройки"
+#: ../eina/player/eina-player.c:487
+#, fuzzy, c-format
+msgid "Action %s was not handled"
+msgstr "%s невозможно загрузить"
 
-#: ../eina/plugins.c:80
+#: ../eina/player/eina-player.c:493
+#, fuzzy, c-format
+msgid "Error executing action '%s': %s"
+msgstr "Ошибка файла %s: %s"
+
+#: ../eina/player/eina-player.ui.h:2
+#, fuzzy, no-c-format
+msgid "<small><tt>%d:%02d</tt></small>"
+msgstr "<small><tt></tt></small>"
+
+#: ../eina/player/eina-player.ui.h:3
+#, fuzzy
+msgid "<span size=\"x-large\" weight=\"bold\">Title</span>"
+msgstr ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+
+#: ../eina/player/eina-player.ui.h:4
+#, fuzzy
+msgid "<span size=\"x-large\" weight=\"normal\">Artist</span>"
+msgstr ""
+"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
+"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
+
+#: ../eina/player/preferences.ui.h:1
+#, fuzzy
+msgid "<b>Interface</b>"
+msgstr "<b>Имя пользователя</b>"
+
+#: ../eina/player/preferences.ui.h:2
+#, fuzzy
+msgid "<b>Miscelaneous</b>"
+msgstr "<b>Имя файла</b>"
+
+#: ../eina/player/preferences.ui.h:3
+#, fuzzy
+msgid "<b>Playback</b>"
+msgstr "<b>Поиск</b>"
+
+#: ../eina/player/preferences.ui.h:4
+msgid "Enable repeat mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:5
+msgid "Enable shuffle mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:6
+msgid "Gapless mode"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:7
+msgid "Prefer dark theme for UI"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:8
+msgid ""
+"Show streams' labels (metadata). \n"
+"<small>Only affects new streams</small>"
+msgstr ""
+
+#: ../eina/player/preferences.ui.h:10
+msgid "Start playback automatically"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist-plugin.c:63
+#: ../eina/playlist/eina-playlist.ui.h:3
+msgid "Playlist"
+msgstr "Список воспроизведения"
+
+#: ../eina/playlist/eina-playlist.c:511
 #, c-format
-msgid "Cannot merge menu: %s"
-msgstr "Невозможно объединить меню: %s"
+msgid "Unhanded state: %d"
+msgstr ""
 
-#: ../eina/plugins.c:136
-msgid "No plugin selected"
-msgstr "Дополнение не выбрано"
+#: ../eina/playlist/eina-playlist.c:752
+#, fuzzy, c-format
+msgid "Unable to set_current to %d: %s"
+msgstr "Невозможно завершить действие '%s': %s"
 
-#: ../eina/plugins.c:158
-msgid "Build-in plugin manager plugin"
-msgstr "Встроенная надстройка диспетчера надстроек"
+#: ../eina/playlist/eina-playlist.c:759
+#, fuzzy, c-format
+msgid "Unable to set_sate to LOMO_STATE_PLAY: %s"
+msgstr "Невозможно назначить область для LOMO_STATE_PLAY: '%s'"
 
-#: ../eina/preferences.c:67 ../eina/preferences.c:117
+#: ../eina/playlist/eina-playlist.c:835
+#, fuzzy, c-format
+msgid "Unhanded action '%s'"
+msgstr "Неизвестное действие: %s"
+
+#: ../eina/playlist/eina-playlist.c:854
+#, c-format
+msgid "Unable to get GtkTreeIter for index %d"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.ui.h:1
+msgid "<big><b>There are no tracks in your playlist</b></big>"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.ui.h:2
+msgid "Load some music"
+msgstr ""
+
+#: ../eina/playlist/eina-playlist.ui.h:4
+#, fuzzy
+msgid "Search"
+msgstr "<b>Поиск</b>"
+
+#: ../eina/preferences/eina-preferences-plugin.c:201
 msgid "Preferences"
 msgstr "Свойства"
 
-#: ../eina/preferences.c:180
-msgid "Build-in preferences plugin"
-msgstr "Встроенная надстройка настроек"
-
-#: ../eina/settings.c:46
-#, c-format
-msgid "Cannot create config folder %s"
-msgstr "Не могу создать папку конфигурации %s"
-
-#: ../eina/settings.c:77
-msgid "Conf object not found"
-msgstr "Не найден conf объект"
-
-#: ../eina/settings.c:92
-msgid "Build-in settings plugin"
-msgstr "Встроенный плагин настроек"
-
-#: ../eina/template.c:95
-msgid "Build-in template plugin"
-msgstr "Встроенная надстройка шаблонов"
-
-#: ../eina/vogon-app.c:398
-#, c-format
-msgid "Cannot find loaded plugin %s"
-msgstr "Невозможно найти загруженную надстройку %s"
-
-#: ../eina/vogon-app.c:405
-#, c-format
-msgid "Cannot fini plugin %s: %s"
+#: ../eina/preferences/eina-preferences-plugin.c:218
+msgid ""
+"Cannot get GtkUIManager for main menu, unable to attach preferences menu"
 msgstr ""
 
-#: ../eina/vogon.c:94 ../plugins/recently/recently.c:357
+#: ../eina/preferences/eina-preferences-plugin.c:225
+#, fuzzy, c-format
+msgid "Cannot attach menu: %s"
+msgstr "Невозможно объединить меню: %s"
+
+#: ../eina/preferences/eina-preferences-plugin.c:245
+msgid ""
+"Cannot get GtkUIManager for main menu, unable to deattach preferences menu"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-dialog.c:77
+#, fuzzy, c-format
+msgid "%s preferences"
+msgstr "Свойства"
+
+#: ../eina/preferences/eina-preferences-dialog.c:120
+msgid "Widget is not on notebook"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:269
+#, fuzzy, c-format
+msgid "Cannot parse UI string: %s"
+msgstr "Невозможно объединить с диспетчером интерфейса пользователя: %s"
+
+#: ../eina/preferences/eina-preferences-tab.c:279
+msgid "Object 'main-widget' not found in UI string"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:338
+msgid "Invalid GSettings parameter"
+msgstr ""
+
+#: ../eina/preferences/eina-preferences-tab.c:347
+#, fuzzy
+msgid "Invalid parameters"
+msgstr "Недопустимые аргументы"
+
+#: ../eina/preferences/eina-preferences-tab.c:371
+#, fuzzy, c-format
+msgid "Missing widget named '%s'"
+msgstr "Отсутствующий метод %s"
+
+#: ../eina/status-icon/eina-status-icon-plugin.c:89
+#, fuzzy
+msgid "Show Eina"
+msgstr "О Eina"
+
+#: ../eina/status-icon/eina-status-icon-plugin.c:90
+#, fuzzy
+msgid "Hide Eina"
+msgstr "Выйти из программы Eina"
+
+#: ../eina/status-icon/eina-status-icon-plugin.c:91
 msgid "Play"
 msgstr "Воспроизвести"
 
-#: ../eina/vogon.c:95
+#: ../eina/status-icon/eina-status-icon-plugin.c:92
 msgid "Pause"
 msgstr "Приостановить"
 
-#: ../eina/vogon.c:96
+#: ../eina/status-icon/eina-status-icon-plugin.c:93
 msgid "Next"
 msgstr "Следующий"
 
-#: ../eina/vogon.c:96
+#: ../eina/status-icon/eina-status-icon-plugin.c:93
 msgid "Next stream"
 msgstr "Следующий поток"
 
-#: ../eina/vogon.c:97
+#: ../eina/status-icon/eina-status-icon-plugin.c:94
 msgid "Previous"
 msgstr "Предыдущий"
 
-#: ../eina/vogon.c:97
+#: ../eina/status-icon/eina-status-icon-plugin.c:94
 msgid "Previous stream"
 msgstr "Предыдущий поток"
 
-#: ../eina/vogon.c:98
+#: ../eina/status-icon/eina-status-icon-plugin.c:95
 msgid "_Open"
 msgstr "_Открыть"
 
-#: ../eina/vogon.c:98
+#: ../eina/status-icon/eina-status-icon-plugin.c:95
 msgid "Add or queue stream(s)"
 msgstr "Добавить или поставить в очередь поток(и)"
 
-#: ../eina/vogon.c:99
+#: ../eina/status-icon/eina-status-icon-plugin.c:96
 msgid "C_lear"
 msgstr "О_чистить"
 
-#: ../eina/vogon.c:99
+#: ../eina/status-icon/eina-status-icon-plugin.c:96
 msgid "Clear playlist"
 msgstr "Очистить список воспроизведения"
 
-#: ../eina/vogon.c:100
+#: ../eina/status-icon/eina-status-icon-plugin.c:97
 msgid "_Quit"
 msgstr "_Выйти"
 
-#: ../eina/vogon.c:100
+#: ../eina/status-icon/eina-status-icon-plugin.c:97
 msgid "Quit Eina"
 msgstr "Выйти из программы Eina"
 
-#: ../eina/vogon.c:103
+#: ../eina/status-icon/eina-status-icon-plugin.c:101
 msgid "Random"
 msgstr "В случайном порядке"
 
-#: ../eina/vogon.c:103
+#: ../eina/status-icon/eina-status-icon-plugin.c:101
 msgid "Random playlist"
 msgstr "Случайный список воспроизведения"
 
-#: ../eina/vogon.c:104
+#: ../eina/status-icon/eina-status-icon-plugin.c:102
 msgid "Repeat"
 msgstr "Повторять"
 
-#: ../eina/vogon.c:104
+#: ../eina/status-icon/eina-status-icon-plugin.c:102
 msgid "Repeat playlist"
 msgstr "Повторять список воспроизведения"
 
-#: ../eina/vogon.c:110
+#: ../eina/status-icon/eina-status-icon-plugin.c:113
 msgid "Gtk+ X11 backend is not supported"
 msgstr ""
 
-#: ../eina/vogon.c:133
+#: ../eina/status-icon/eina-status-icon-plugin.c:123
 msgid "Cannot create status icon"
 msgstr "Невозможно создать значок состояния"
 
-#: ../eina/vogon.c:173
+#: ../eina/status-icon/eina-status-icon-plugin.c:169
 msgid ""
 "Systray implementation is buggy on OSX. You have been warned, dont file any "
 "bugs about this."
 msgstr ""
 
-#: ../eina/vogon.c:365
-msgid "Build-in systray and notification plugin"
-msgstr "Встроенная надстройка системной панели и уведомления"
-
-#: ../eina/window.c:35
-msgid "Cannot register EinaWindow object into GelApp"
-msgstr "Невозможно зарегистрировать EinaWindow объект в GelApp"
-
-#: ../eina/window.c:57
-msgid "EinaWindow not found in GelApp"
-msgstr ""
-
-#: ../eina/window.c:72
-msgid "Main window plugin"
-msgstr "Надстройка основного окна"
-
-#: ../plugins/adb/adb.c:51
-#, c-format
-msgid "Version mismatch. source:%s runtime:%s"
-msgstr ""
-
-#: ../plugins/adb/adb.c:208
-msgid "Cannot get schema version"
-msgstr ""
-
-#: ../plugins/adb/iface.c:35
-msgid "Cannot access lomo"
-msgstr ""
-
-#: ../plugins/adb/iface.c:44
-msgid "Cannot register ADB object into GelApp"
-msgstr ""
-
-#: ../plugins/adb/iface.c:66
-msgid "Audio database"
-msgstr "Звуковая база данных"
-
-#: ../plugins/coverplus/iface.c:63
-msgid "Art object not found"
-msgstr "Иллюстрация не найдена"
-
-#: ../plugins/coverplus/iface.c:118
-msgid "Enhace your covers"
-msgstr "Показать обложки"
-
-#: ../plugins/coverplus/iface.c:119
-msgid ""
-"Brings Eina several simple but fundamental cover providers like:\n"
-"· In-folder cover discover\n"
-"· Banshee (on Linux) covers"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:99
-msgid "Fieshta"
-msgstr ""
-
-#: ../plugins/fieshta/fieshta.c:103
-msgid "Set fieshta mode"
-msgstr "Назначить режим fieshta"
-
-#: ../plugins/fieshta/fieshta.c:338
-msgid "Party plugin"
-msgstr "Клубная надстройка"
-
-#: ../plugins/ntfy/ntfy.c:92
-msgid "Cannot get settings object"
-msgstr ""
-
-#: ../plugins/ntfy/ntfy.c:171 ../plugins/ntfy/ntfy.c:173
-msgid "Playing:"
-msgstr "Воспроизводится:"
-
-#: ../plugins/ntfy/ntfy.c:238
-msgid "Show notifications"
-msgstr "Показывать уведомления"
-
-#: ../plugins/ntfy/ntfy.c:392
-msgid "Notifications plugin"
-msgstr "Надстройка уведомлений"
-
-#: ../plugins/recently/recently.c:215
-msgid "Unable to find matching row for search"
-msgstr ""
-
-#: ../plugins/recently/recently.c:231
-msgid "Cannot get resource cover-default.png"
-msgstr ""
-
-#: ../plugins/recently/recently.c:239
-#, c-format
-msgid "Cannot load pixbuf from %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:264
-msgid "Monday"
-msgstr "Понедельник"
-
-#: ../plugins/recently/recently.c:265
-msgid "Tuesday"
-msgstr "Вторник"
-
-#: ../plugins/recently/recently.c:266
-msgid "Wednesday"
-msgstr "Среда"
-
-#: ../plugins/recently/recently.c:267
-msgid "Thursday"
-msgstr "Четверг"
-
-#: ../plugins/recently/recently.c:268
-msgid "Saturday"
-msgstr "Суббота"
-
-#: ../plugins/recently/recently.c:269
-msgid "Sunday"
-msgstr "Воскресенье"
-
-#: ../plugins/recently/recently.c:274
-msgid "Today"
-msgstr "Сегодня"
-
-#: ../plugins/recently/recently.c:276
-msgid "Yesterday"
-msgstr "Вчера"
-
-#: ../plugins/recently/recently.c:286
-msgid "More than 7 days ago"
-msgstr "Более семи дней назад"
-
-#: ../plugins/recently/recently.c:288
-msgid "More than a month ago"
-msgstr "Более месяца назад"
-
-#: ../plugins/recently/recently.c:290
-msgid "More than a year ago"
-msgstr "Более года назад"
-
-#: ../plugins/recently/recently.c:307
-#, c-format
-msgid "Cannot load ui from %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:340
-msgid "Timestamp"
-msgstr "Отметка времени"
-
-#: ../plugins/recently/recently.c:347
-msgid "Cover"
-msgstr "Обложка"
-
-#: ../plugins/recently/recently.c:352
-msgid "Title"
-msgstr "Название"
-
-#: ../plugins/recently/recently.c:362
-msgid "Enqueue"
-msgstr "Поставить в очередь"
-
-#: ../plugins/recently/recently.c:367
-msgid "Delete"
-msgstr "Удалить"
-
-#: ../plugins/recently/recently.c:805
-msgid ", "
-msgstr ""
-
-#: ../plugins/recently/recently.c:807
-msgid " and "
-msgstr " и "
-
-#: ../plugins/recently/recently.c:883
-#, c-format
-msgid "Error %d with query %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:923
-#, c-format
-msgid "Cannot prepare query %s: (%d) %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:997
-#, c-format
-msgid "Cannot prepare query %s: %s"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1013
-#, c-format
-msgid ""
-"<b>%s (Artist)</b>\n"
-" %d matches"
-msgstr ""
-"<b>%s (Исполнитель)</b>\n"
-" %d совпадений"
-
-#: ../plugins/recently/recently.c:1016
-#, c-format
-msgid ""
-"<b>%s (Album)</b>\n"
-" %d matches"
-msgstr ""
-"<b>%s (Альбом)</b>\n"
-" %d совпадений"
-
-#: ../plugins/recently/recently.c:1019
-#, c-format
-msgid "<b>%s</b>\n"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1182
-msgid "Cannot get first iter"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1211
-msgid "Cannot fetch Adb object"
-msgstr ""
-
-#: ../plugins/recently/recently.c:1250
-msgid "Stores your recent playlists"
-msgstr "Сохраняет ваши недавние списки воспроизведения"
-
-#: ../plugins/recently/recently.c:1251
-msgid "Recently plugin. ADB based version"
-msgstr ""
-
-#: ../ui/dock.ui.h:1
-msgid "\t"
-msgstr "\t"
-
-#: ../ui/dock.ui.h:2
-msgid "Dock"
-msgstr "Прикрепить"
-
-#: ../ui/log.ui.h:1
-msgid "<b>Log level:</b> "
-msgstr "<b>Уровень лога:</b> "
-
-#: ../ui/log.ui.h:2
-msgid "gtk-clear"
-msgstr "gtk-clear"
-
-#: ../ui/log.ui.h:3
-msgid "gtk-close"
-msgstr "gtk-close"
-
-#: ../ui/log.ui.h:4 ../ui/plugins.ui.h:15
-msgid "label"
-msgstr "label"
-
-#: ../ui/player-preferences.ui.h:1
-msgid "<b>Information format</b>"
-msgstr "<b>Формат данных</b>"
-
-#: ../ui/player-preferences.ui.h:2
-msgid "Custom format:"
-msgstr "Пользовательский формат:"
-
-#: ../ui/player-preferences.ui.h:3
-msgid "More info about Pango markup language"
-msgstr "Узнайте больше о языке разметки Pango"
-
-#: ../ui/player-preferences.ui.h:5
-#, no-c-format
-msgid ""
-"This format uses the pango markup, follow next link to learn about it.\n"
-"\n"
-"The following 'tags' can be used: %a for artist, %b for album, %t for title "
-"and %n for track number.\n"
-"\n"
-"Embracing any text with curly brackets makes it optional, disapearing if no "
-"matches for its content is found.\n"
-msgstr ""
-"Этот формат использует разметку pango, перейдите по следующей ссылке, чтобы "
-"узнать больше.\n"
-"\n"
-"Разрешены следующие теги: %a для имени исполнителя, %b для названия альбома, "
-"%t для названия дорожки, %n для номера дорожки.\n"
-"\n"
-"Текст внутри фигурных скобок считается опциональным, он пропадает в случае, "
-"если не найдено совпадений.\n"
-
-#: ../ui/player.ui.h:1
-msgid "<small><tt></tt></small>"
-msgstr "<small><tt></tt></small>"
-
-#: ../ui/player.ui.h:3
-#, no-c-format
-msgid ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
-msgstr ""
-"<span size=\"x-large\" weight=\"bold\">%t</span>\n"
-"<span size=\"x-large\" weight=\"normal\">{%a}</span>"
-
-#: ../ui/playlist.ui.h:1
-msgid "Filter"
-msgstr "Фильтр"
-
-#: ../ui/playlist.ui.h:2
-msgid "Playlist"
-msgstr "Список воспроизведения"
-
-#: ../ui/plugins.ui.h:2
-#, no-c-format
-msgid "%s"
-msgstr ""
-
-#: ../ui/plugins.ui.h:3
-msgid "<b>Description</b>"
-msgstr "<b>Описание</b>"
-
-#: ../ui/plugins.ui.h:4
-msgid "<b>Filename</b>"
-msgstr "<b>Имя файла</b>"
-
-#: ../ui/plugins.ui.h:6
-#, no-c-format
-msgid ""
-"<big><b>%s</b></big>\n"
-"%s"
-msgstr ""
-
-#: ../ui/plugins.ui.h:8
-msgid ""
-"<big><b>No plugins available</b></big>\n"
-"\n"
-"There are no plugins instaled on your system"
-msgstr ""
-"<big><b>Нет доступных надстроек</b></big>\n"
-"\n"
-"В вашей системе не установлены надстройки"
-
-#: ../ui/plugins.ui.h:11
-msgid "Contact"
-msgstr "Связаться"
-
-#: ../ui/plugins.ui.h:12
-msgid "Eina plugins"
-msgstr "Надстройки Eina"
-
-#: ../ui/plugins.ui.h:13
-msgid "Show internal plugins"
-msgstr "Показать встроенные надстройки"
-
-#: ../ui/plugins.ui.h:14
-msgid "Website"
-msgstr "Веб-сайт"
-
-#: ../ui/plugins.ui.h:16 ../plugins/recently/dock.ui.h:5
-msgid "page 1"
-msgstr "страница 1"
-
-#: ../ui/plugins.ui.h:17 ../plugins/recently/dock.ui.h:6
-msgid "page 2"
-msgstr "страница 2"
-
-#: ../plugins/lastfm/lastfm.ui.h:1
-msgid "<b>Password</b>"
-msgstr "<b>Пароль</b>"
-
-#: ../plugins/lastfm/lastfm.ui.h:2
-msgid "<b>Username</b>"
-msgstr "<b>Имя пользователя</b>"
-
-#: ../plugins/lastfm/lastfm.ui.h:3
-msgid "<big><b>Last FM configuration</b></big>"
-msgstr "<big><b>Настройка Last FM</b></big>"
-
-#: ../plugins/lastfm/lastfm.ui.h:4
-msgid "New to Last FM?, get an account"
-msgstr "В первые в Last FM?, создайте учётную запись"
-
-#: ../plugins/lastfm/lastfm.ui.h:5
-msgid "Submit played tracks to Last.fm"
-msgstr "Подтверждайте воспроизведённые композиции на Last.fm"
-
-#: ../plugins/recently/dock.ui.h:1
-msgid "<b>Search</b>"
-msgstr "<b>Поиск</b>"
-
-#: ../plugins/recently/dock.ui.h:2
-msgid "<span color=\"#666\">Type at least 3 characters</span>"
-msgstr "<span color=\"#666\">Введите более 3 символов</span>"
-
-#: ../plugins/recently/dock.ui.h:3
-msgid ""
-"Here you can find your previous playlist and reload or search over them.\n"
-"It seems you dont listen anything, so, there is nothing to see, come back "
-"later"
-msgstr ""
-"Здесь вы можете найти ваш предыдущий список воспроизведения, перезагрузить "
-"или произвести поиск.\n"
-"Похоже вы ничего не прослушивали, здесь пусто, возвращайтесь сюда позже"
-
-#: ../plugins/recently/dock.ui.h:7
-msgid "page 3"
-msgstr "страница 3"
+#: ../eina/status-icon/eina-status-icon-plugin.c:289
+#, fuzzy, c-format
+msgid "Error invoking action '%s': %s"
+msgstr "Ошибка файла %s: %s"
+
+#, fuzzy
+#~ msgid "Unable to set cover from stream %p: %s"
+#~ msgstr "Невозможно завершить действие '%s': %s"
+
+#, fuzzy
+#~ msgid "Cannot load xml UI definition: %s"
+#~ msgstr "Не могу загрузить интерфейс пользователя из %s: %s"
+
+#, fuzzy
+#~ msgid "Unable to load artwork from '%s'"
+#~ msgstr "Невозможно завершить действие '%s': %s"
+
+#~ msgid "%d plugins are enabled at exit. Use a dispose func to unload them."
+#~ msgstr ""
+#~ "%d надстроек задействовано при выходе. Используйте возможность завершения "
+#~ "для их выгрузки."
+
+#~ msgid "  %s (usage:%d enabled:%d locked:%d %s)"
+#~ msgstr "  %s (используется:%d задействовано:%d заблокировано:%d %s)"
+
+#~ msgid ""
+#~ "%d plugins still loaded, will be leaked. Use a dispose func "
+#~ "(gel_app_set_dispose_func) to unload them at exit"
+#~ msgstr ""
+#~ "%d надстройки до сих пор загружены и будут проявляться. Используйте "
+#~ "возможность (gel_app_set_dispose_func) для их выгрузки на выходе"
+
+#~ msgid "Plugin not found"
+#~ msgstr "Модуль не найден"
+
+#~ msgid "Dependecy %s for %s not found"
+#~ msgstr "Зависимость %s для %s не найдена"
+
+#~ msgid "Plugin %p has NULL name"
+#~ msgstr "Надстройка %p имеет NULL имя"
+
+#~ msgid "Cannot unload plugin %s, its used by %d plugins"
+#~ msgstr ""
+#~ "Невозможно выгрузить надстройку %s, она используется %d надстройками"
+
+#~ msgid "Dependency %s for plugin %s not found"
+#~ msgstr "Зависимость %s для надстройки %s не найдена"
+
+#~ msgid "Cannot free plugin after all: %s"
+#~ msgstr "Невозможно высвободить надстройку после всех: %s"
+
+#~ msgid "Cannot free plugin %s: %s"
+#~ msgstr "Невозможно освободить надстройку %s: %s"
+
+#~ msgid "Module loading is not supported on this platform"
+#~ msgstr "Загружаемый модуль не поддерживается этой платформой"
+
+#~ msgid ""
+#~ "%s plugin has no deps, are you sure? if you are sure use "
+#~ "GEL_PLUGIN_NO_DEPS"
+#~ msgstr ""
+#~ "%s надстройка не имеет зависимостей, вы действительно уверены? Если вы "
+#~ "уверены, используйте GEL_PLUGIN_NO_DEPS"
+
+#~ msgid "Plugin %s created"
+#~ msgstr "Надстройка %s создана"
+
+#~ msgid "Plugin %s is in use"
+#~ msgstr "Надстройка %s используется"
+
+#~ msgid "Plugin %s is still enabled"
+#~ msgstr "Надстройка %s задействована"
+
+#~ msgid "Plugin %s is locked"
+#~ msgstr "Надстройка %s заблокирована"
+
+#~ msgid "Plugin %s destroyed"
+#~ msgstr "Надстройка %s удалена"
+
+#~ msgid "Invalid reference from %s on %s"
+#~ msgstr "Неправильная ссылка от %s на %s"
+
+#~ msgid "none"
+#~ msgstr "нет"
+
+#~ msgid "Plugin %s already initialized"
+#~ msgstr "Надстройка %s уже инициализирована"
+
+#~ msgid "Cannot init plugin %s: %s"
+#~ msgstr "Невозможно инициализировать надстройку %s: %s"
+
+#~ msgid "Cannot init plugin %s, unknow reason"
+#~ msgstr "Невозможно инициализировать надстройку %s, причина неизвестна"
+
+#~ msgid "Plugin %s initialized"
+#~ msgstr "Надстройка %s инициализирована"
+
+#~ msgid "Plugin %s is not initialized"
+#~ msgstr "Надстройка %s не инициализирована"
+
+#~ msgid "Cannot finalize plugin %s: unknow reason"
+#~ msgstr "Невозможно завершить надстройку %s: причина неизвестна"
+
+#~ msgid "Plugin %s finalized"
+#~ msgstr "Надстройка %s завершена"
+
+#~ msgid "Error getting volume"
+#~ msgstr "Ошибка назначения громкости"
+
+#~ msgid "Error setting mute"
+#~ msgstr "Ошибка выключения звука"
+
+#~ msgid "Cannot change stream, it's in queue but can't dequeue it"
+#~ msgstr ""
+#~ "Невозможно изменить поток, он находится в очереди, но не может быть "
+#~ "удалён из неё"
+
+#~ msgid "Loaded unknow plugin: %s"
+#~ msgstr "Загружена неизвестная надстройка: %s"
+
+#~ msgid "No name"
+#~ msgstr "Без названия"
+
+#~ msgid "No description"
+#~ msgstr "Нет описания"
+
+#~ msgid "No more information"
+#~ msgstr "Дополнительные сведения недоступны"
+
+#~ msgid "[Internal plugin]"
+#~ msgstr "[внутренняя надстройка]"
+
+#~ msgid "No dependencies"
+#~ msgstr "Нет зависимостей"
+
+#~ msgid "No reverse dependencies"
+#~ msgstr "Нет обратных зависимостей"
+
+#~ msgid "_Random"
+#~ msgstr "Случайный"
+
+#~ msgid "_Shuffle"
+#~ msgstr "_Случайным образом"
+
+#~ msgid "_Add-ons"
+#~ msgstr "_Дополнения"
+
+#~ msgid "About window plugin"
+#~ msgstr "Сведения об оконной надстройке"
+
+#~ msgid "Cover plugin"
+#~ msgstr "Надстройка обложки"
+
+#~ msgid "Cannot get DBus proxy"
+#~ msgstr "Невозможно получить DBus прокси"
+
+#~ msgid "DBus interface for Eina"
+#~ msgstr "DBus интерфейс для Eina"
+
+#~ msgid "Build-in dock plugin"
+#~ msgstr "Встроенная надстройка стыковки"
+
+#~ msgid "OSX integration"
+#~ msgstr "Интеграция с OSX"
+
+#~ msgid "Resource not found: %s"
+#~ msgstr "Ресурс не найден: %s"
+
+#~ msgid "Not all required widgets are valids"
+#~ msgstr "Не все необходимые виджеты валидны"
+
+#~ msgid "Cannot create menu item: %s"
+#~ msgstr "Не могу создать элемент меню: %s"
+
+#~ msgid "Debug window"
+#~ msgstr "Окно отладки"
+
+#~ msgid "Severe errors"
+#~ msgstr "Критические ошибки"
+
+#~ msgid "Errors"
+#~ msgstr "Ошибки"
+
+#~ msgid "Warnings"
+#~ msgstr "Предупреждения"
+
+#~ msgid "Debug information"
+#~ msgstr "Информация дебаггера"
+
+#~ msgid "Full debug"
+#~ msgstr "Полн"
+
+#~ msgid "Set level to %s"
+#~ msgstr "Установить уровень на %s"
+
+#~ msgid "Cannot not shot dialog, it doest exists"
+#~ msgstr "Такого диалогового окна не существует."
+
+#~ msgid "Build-in log"
+#~ msgstr "Встроенный лог"
+
+#~ msgid "Build-in lomo plugin"
+#~ msgstr "Встроенный lomo плагин"
+
+#~ msgid "Build-in player plugin"
+#~ msgstr "Встроенная надстройка проигрывателя"
+
+#~ msgid "Cannot init dock widget"
+#~ msgstr "Невозможно инициализировать стыковочный виджет"
+
+#~ msgid "Missing action: %s"
+#~ msgstr "Отсутствует действие: %s"
+
+#~ msgid "Cannot go to stream #%d: '%s'"
+#~ msgstr "Невозможно перейти к потоку #%d: '%s'"
+
+#~ msgid "Cannot find index for stream %p (%s)"
+#~ msgstr "Невозможно найти индекс для потока %p (%s)"
+
+#~ msgid "Build-in playlist plugin"
+#~ msgstr "Встроенная надстройка списка воспроизведения"
+
+#~ msgid "No plugin selected"
+#~ msgstr "Дополнение не выбрано"
+
+#~ msgid "Build-in plugin manager plugin"
+#~ msgstr "Встроенная надстройка диспетчера надстроек"
+
+#~ msgid "Build-in preferences plugin"
+#~ msgstr "Встроенная надстройка настроек"
+
+#~ msgid "Conf object not found"
+#~ msgstr "Не найден conf объект"
+
+#~ msgid "Build-in settings plugin"
+#~ msgstr "Встроенный плагин настроек"
+
+#~ msgid "Build-in template plugin"
+#~ msgstr "Встроенная надстройка шаблонов"
+
+#~ msgid "Cannot find loaded plugin %s"
+#~ msgstr "Невозможно найти загруженную надстройку %s"
+
+#~ msgid "Build-in systray and notification plugin"
+#~ msgstr "Встроенная надстройка системной панели и уведомления"
+
+#~ msgid "Cannot register EinaWindow object into GelApp"
+#~ msgstr "Невозможно зарегистрировать EinaWindow объект в GelApp"
+
+#~ msgid "Main window plugin"
+#~ msgstr "Надстройка основного окна"
+
+#~ msgid "Audio database"
+#~ msgstr "Звуковая база данных"
+
+#~ msgid "Art object not found"
+#~ msgstr "Иллюстрация не найдена"
+
+#~ msgid "Enhace your covers"
+#~ msgstr "Показать обложки"
+
+#~ msgid "Set fieshta mode"
+#~ msgstr "Назначить режим fieshta"
+
+#~ msgid "Party plugin"
+#~ msgstr "Клубная надстройка"
+
+#~ msgid "Show notifications"
+#~ msgstr "Показывать уведомления"
+
+#~ msgid "Notifications plugin"
+#~ msgstr "Надстройка уведомлений"
+
+#~ msgid "Monday"
+#~ msgstr "Понедельник"
+
+#~ msgid "Tuesday"
+#~ msgstr "Вторник"
+
+#~ msgid "Wednesday"
+#~ msgstr "Среда"
+
+#~ msgid "Thursday"
+#~ msgstr "Четверг"
+
+#~ msgid "Saturday"
+#~ msgstr "Суббота"
+
+#~ msgid "Sunday"
+#~ msgstr "Воскресенье"
+
+#~ msgid "Today"
+#~ msgstr "Сегодня"
+
+#~ msgid "Yesterday"
+#~ msgstr "Вчера"
+
+#~ msgid "More than 7 days ago"
+#~ msgstr "Более семи дней назад"
+
+#~ msgid "More than a month ago"
+#~ msgstr "Более месяца назад"
+
+#~ msgid "More than a year ago"
+#~ msgstr "Более года назад"
+
+#~ msgid "Timestamp"
+#~ msgstr "Отметка времени"
+
+#~ msgid "Cover"
+#~ msgstr "Обложка"
+
+#~ msgid "Title"
+#~ msgstr "Название"
+
+#~ msgid "Enqueue"
+#~ msgstr "Поставить в очередь"
+
+#~ msgid "Delete"
+#~ msgstr "Удалить"
+
+#~ msgid " and "
+#~ msgstr " и "
+
+#~ msgid ""
+#~ "<b>%s (Artist)</b>\n"
+#~ " %d matches"
+#~ msgstr ""
+#~ "<b>%s (Исполнитель)</b>\n"
+#~ " %d совпадений"
+
+#~ msgid ""
+#~ "<b>%s (Album)</b>\n"
+#~ " %d matches"
+#~ msgstr ""
+#~ "<b>%s (Альбом)</b>\n"
+#~ " %d совпадений"
+
+#~ msgid "Stores your recent playlists"
+#~ msgstr "Сохраняет ваши недавние списки воспроизведения"
+
+#~ msgid "\t"
+#~ msgstr "\t"
+
+#~ msgid "Dock"
+#~ msgstr "Прикрепить"
+
+#~ msgid "<b>Log level:</b> "
+#~ msgstr "<b>Уровень лога:</b> "
+
+#~ msgid "gtk-clear"
+#~ msgstr "gtk-clear"
+
+#~ msgid "gtk-close"
+#~ msgstr "gtk-close"
+
+#~ msgid "label"
+#~ msgstr "label"
+
+#~ msgid "<b>Information format</b>"
+#~ msgstr "<b>Формат данных</b>"
+
+#~ msgid "Custom format:"
+#~ msgstr "Пользовательский формат:"
+
+#~ msgid "More info about Pango markup language"
+#~ msgstr "Узнайте больше о языке разметки Pango"
+
+#~ msgid ""
+#~ "This format uses the pango markup, follow next link to learn about it.\n"
+#~ "\n"
+#~ "The following 'tags' can be used: %a for artist, %b for album, %t for "
+#~ "title and %n for track number.\n"
+#~ "\n"
+#~ "Embracing any text with curly brackets makes it optional, disapearing if "
+#~ "no matches for its content is found.\n"
+#~ msgstr ""
+#~ "Этот формат использует разметку pango, перейдите по следующей ссылке, "
+#~ "чтобы узнать больше.\n"
+#~ "\n"
+#~ "Разрешены следующие теги: %a для имени исполнителя, %b для названия "
+#~ "альбома, %t для названия дорожки, %n для номера дорожки.\n"
+#~ "\n"
+#~ "Текст внутри фигурных скобок считается опциональным, он пропадает в "
+#~ "случае, если не найдено совпадений.\n"
+
+#~ msgid "Filter"
+#~ msgstr "Фильтр"
+
+#~ msgid "<b>Description</b>"
+#~ msgstr "<b>Описание</b>"
+
+#~ msgid ""
+#~ "<big><b>No plugins available</b></big>\n"
+#~ "\n"
+#~ "There are no plugins instaled on your system"
+#~ msgstr ""
+#~ "<big><b>Нет доступных надстроек</b></big>\n"
+#~ "\n"
+#~ "В вашей системе не установлены надстройки"
+
+#~ msgid "Contact"
+#~ msgstr "Связаться"
+
+#~ msgid "Show internal plugins"
+#~ msgstr "Показать встроенные надстройки"
+
+#~ msgid "Website"
+#~ msgstr "Веб-сайт"
+
+#~ msgid "page 1"
+#~ msgstr "страница 1"
+
+#~ msgid "page 2"
+#~ msgstr "страница 2"
+
+#~ msgid "<span color=\"#666\">Type at least 3 characters</span>"
+#~ msgstr "<span color=\"#666\">Введите более 3 символов</span>"
+
+#~ msgid ""
+#~ "Here you can find your previous playlist and reload or search over them.\n"
+#~ "It seems you dont listen anything, so, there is nothing to see, come back "
+#~ "later"
+#~ msgstr ""
+#~ "Здесь вы можете найти ваш предыдущий список воспроизведения, "
+#~ "перезагрузить или произвести поиск.\n"
+#~ "Похоже вы ничего не прослушивали, здесь пусто, возвращайтесь сюда позже"
+
+#~ msgid "page 3"
+#~ msgstr "страница 3"
