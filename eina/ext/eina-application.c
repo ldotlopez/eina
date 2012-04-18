@@ -28,11 +28,24 @@
  * programs or single instance model are provides by this class.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#define DEBUG 1
+#define DEBUG_PREFIX "EinaApplication"
+#if DEBUG
+#define debug(...) g_debug(DEBUG_PREFIX " " __VA_ARGS__)
+#else
+#define debug(...) ;
+#endif
+
 #include "eina-application.h"
 #include <gel/gel.h>
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 #include <gdk/gdk.h>
+#include <eina/ext/eina-activatable.h>
 #include <eina/ext/eina-window.h>
 
 G_DEFINE_TYPE (EinaApplication, eina_application, GTK_TYPE_APPLICATION)
@@ -47,10 +60,162 @@ struct _EinaApplicationPrivate {
 	EinaWindow *window;
 };
 
-static EinaWindow *
+static void
+eina_application_startup(GApplication *application);
+static void
 create_window(EinaApplication *self);
+static void
+activate_cb(EinaApplication *self);
+
 static gboolean
 window_delete_event_cb(EinaWindow *window, GdkEvent *ev, EinaApplication *self);
+
+static PeasEngine*
+application_get_plugin_engine(EinaApplication *app)
+{
+	g_return_val_if_fail(EINA_IS_APPLICATION(app), NULL);
+	return (PeasEngine *) g_object_get_data((GObject *) app, "x-eina-plugin-engine");
+}
+
+static void
+application_set_plugin_engine(EinaApplication *app, PeasEngine *engine)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(app));
+	g_return_if_fail(PEAS_IS_ENGINE(engine));
+
+	PeasEngine *test = application_get_plugin_engine(app);
+	if (test != NULL)
+		g_warning("EinaApplication object %p already has an PeasEngine", test);
+	g_object_set_data((GObject *) app, "x-eina-plugin-engine", engine);
+}
+
+static void
+extension_set_extension_added_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, EinaApplication *application)
+{
+	GError *error = NULL;
+	if (!eina_activatable_activate(EINA_ACTIVATABLE (exten), application, &error))
+	{
+		g_warning(_("Unable to activate plugin %s: %s"), peas_plugin_info_get_name(info), error->message);
+		g_error_free(error);
+	}
+}
+
+static void
+extension_set_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, PeasExtension *exten, EinaApplication *application)
+{
+	GError *error = NULL;
+	if (!eina_activatable_deactivate(EINA_ACTIVATABLE (exten), application, &error))
+	{
+		g_warning(_("Unable to deactivate plugin %s: %s"), peas_plugin_info_get_name(info), error->message);
+		g_error_free(error);
+	}
+}
+
+/**
+ * @eina_application_create_standalone_engine:
+ * @from_source: %TRUE if this code is run from source dir. Most of the time
+ * this should be %FALSE
+ *
+ * Creates a new plugin engine
+ *
+ * Returns: (transfer full): A #PeasEngine
+ */
+PeasEngine*
+eina_application_create_standalone_engine(gboolean from_source)
+{
+	gchar *builddir = NULL;
+	if (from_source)
+	{
+		g_type_init();
+		gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
+	}
+
+	// Setup girepository
+	if (from_source)
+	{
+		builddir = g_path_get_dirname(g_get_current_dir());
+		const gchar *subs[] = { "gel", "lomo", "eina", NULL };
+		for (guint i = 0; subs[i]; i++)
+		{
+			gchar *tmp = g_build_filename(builddir, subs[i], NULL);
+			g_debug("Add girepository search path: %s", tmp);
+			g_irepository_prepend_search_path(tmp);
+			g_free(tmp);
+		}
+	}
+
+	const gchar *g_ir_req_full[] = { PACKAGE_NAME, EINA_API_VERSION, NULL };
+	const gchar *g_ir_req_src[]  = { "Gel", GEL_API_VERSION, "Lomo", LOMO_API_VERSION, NULL };
+	const gchar **g_ir_reqs = (const gchar **) (from_source ? g_ir_req_src : g_ir_req_full);
+
+	GError *error = NULL;
+	GIRepository *repo = g_irepository_get_default();
+	for (guint i = 0; g_ir_reqs[i] != NULL; i = i + 2)
+	{
+		if (!g_irepository_require(repo, g_ir_reqs[i], g_ir_reqs[i+1], G_IREPOSITORY_LOAD_FLAG_LAZY, &error))
+		{
+			g_warning(N_("Unable to load typelib %s %s: %s"), g_ir_reqs[i], g_ir_reqs[i+1], error->message);
+			g_error_free(error);
+			return NULL;
+		}
+	}
+
+	PeasEngine *engine = peas_engine_get_default();
+	peas_engine_enable_loader (engine, "python");
+
+	if (from_source)
+	{
+		gchar *plugins[] = { "lomo", "preferences", "dock" , "playlist", "player",
+			#if HAVE_GTKMAC
+			"osx",
+			#endif
+			#if HAVE_SQLITE3
+			"adb", "muine",
+			#endif
+			NULL };
+		for (guint i = 0; plugins[i]; i++)
+		{
+			gchar *tmp = g_build_filename(builddir, "eina", plugins[i], NULL);
+			g_debug("Add PeasEngine search path: %s", tmp);
+			peas_engine_add_search_path(engine, tmp, tmp);
+			g_free(tmp);
+		}
+	}
+	else
+	{
+		const gchar *libdir = NULL;
+
+		if ((libdir = gel_get_package_lib_dir()) != NULL)
+			peas_engine_add_search_path(engine, gel_get_package_lib_dir(), gel_get_package_lib_dir());
+
+		if ((libdir = g_getenv("EINA_LIB_PATH")) != NULL)
+			peas_engine_add_search_path(engine, g_getenv("EINA_LIB_PATH"), g_getenv("EINA_LIB_PATH"));
+
+		gchar *user_plugin_path = NULL;
+
+		#if defined OS_LINUX
+		user_plugin_path = g_build_filename(g_get_user_data_dir(),
+			PACKAGE, "plugins",
+			NULL);
+
+		#elif defined OS_OSX
+		user_plugin_path = g_build_filename(g_get_home_dir(),
+			"Library", "Application Support",
+			PACKAGE_NAME, "Plugins",
+			NULL);
+		#endif
+
+		if (user_plugin_path)
+		{
+			peas_engine_add_search_path(engine, user_plugin_path, user_plugin_path);
+			g_free(user_plugin_path);
+		}
+	}
+
+	gel_free_and_invalidate(builddir, NULL, g_free);
+
+	return engine;
+}
 
 static void
 eina_application_dispose (GObject *object)
@@ -69,47 +234,6 @@ eina_application_dispose (GObject *object)
 	G_OBJECT_CLASS (eina_application_parent_class)->dispose (object);
 }
 
-static gboolean
-eina_application_local_command_line(GApplication   *application, gchar ***arguments, gint *exit_status)
-{
-	/*
-	If local_command_line() returns TRUE, the command line is expected to be
-	completely handled, including possibly registering as the primary instance,
-	calling g_application_activate() or g_application_open(), etc.
-
-	If local_command_line() returns FALSE then the application is registered and
-	the "command-line" signal is emitted in the primary instance (which may or
-	may not be this instance). The signal handler gets passed a
-	GApplicationCommandline object that (among other things) contains the
-	remaining commandline arguments that have not been handled by local_command_line().
-	*/
-
-	gboolean new_instance = FALSE;
-	gchar **argv = *arguments;
-
-	for (guint i = 0; argv[i]; i++)
-	{
-		g_printf("  * '%s'\n", argv[i]);
-		if (g_str_equal(argv[i], "-n") ||
-		    g_str_equal(argv[i], "--new-instance"))
-		{
-			*arguments = gel_strv_delete(argv, i);
-			new_instance = TRUE;
-			break;
-		}
-	}
-
-	if (new_instance)
-	{
-		const gchar *app_id = g_application_get_application_id(application);
-		gchar *new_id = g_strdup_printf("%s.id%d", app_id, getpid());
-		g_application_set_application_id(application, new_id);
-		g_free(new_id);
-	}
-
-	return FALSE;
-}
-
 static void
 eina_application_class_init (EinaApplicationClass *klass)
 {
@@ -119,7 +243,7 @@ eina_application_class_init (EinaApplicationClass *klass)
 	g_type_class_add_private (klass, sizeof (EinaApplicationPrivate));
 
 	object_class->dispose = eina_application_dispose;
- 	application_class->local_command_line = eina_application_local_command_line;
+	application_class->startup    = eina_application_startup;
 }
 
 static void
@@ -128,6 +252,13 @@ eina_application_init (EinaApplication *self)
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ((self), EINA_TYPE_APPLICATION, EinaApplicationPrivate);
 	self->priv->interfaces = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 	self->priv->settings   = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+}
+
+static void
+eina_application_startup(GApplication *application)
+{
+	EinaApplication *self = (EinaApplication *)application;
+	g_return_if_fail(EINA_IS_APPLICATION(self));
 
 	// Generate iconlist for windows
 	const gint sizes[] = { 16, 32, 48, 64, 128 };
@@ -154,6 +285,68 @@ eina_application_init (EinaApplication *self)
 	}
 	else
 		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
+
+	// Create main window
+	create_window(self);
+
+	// Setup engine
+	PeasEngine *engine = eina_application_create_standalone_engine(FALSE);
+	application_set_plugin_engine(EINA_APPLICATION(application), engine);
+
+	// ExtensionSet
+	PeasExtensionSet *es = peas_extension_set_new (engine,
+		EINA_TYPE_ACTIVATABLE,
+		"application", application,
+		NULL);
+	peas_extension_set_call(es, "activate", application, NULL);
+
+	g_signal_connect(es, "extension-added",   G_CALLBACK(extension_set_extension_added_cb),   application);
+	g_signal_connect(es, "extension-removed", G_CALLBACK(extension_set_extension_removed_cb), application);
+
+	// Load plugins
+	gchar  *req_plugins[] = { "dbus", "player", "playlist",
+		#if HAVE_GTKMAC
+		"osx",
+		#endif
+		NULL };
+
+	gchar **opt_plugins = g_settings_get_strv(
+			eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
+			"plugins");
+
+	gchar **plugins = gel_strv_concat(
+		req_plugins,
+		opt_plugins,
+		NULL);
+	g_strfreev(opt_plugins);
+
+	guint  n_req_plugins = g_strv_length(req_plugins);
+	guint  n_plugins = g_strv_length(plugins);
+	guint  i;
+	for (i = 0; i < n_plugins; i++)
+	{
+		PeasPluginInfo *info = peas_engine_get_plugin_info(engine, plugins[i]);
+		if (!info)
+			g_warning(_("Unable to load plugin info"));
+
+		// If plugin is hidden and is optional dont load.
+		if (peas_plugin_info_is_hidden(info) && (i >= n_req_plugins))
+			continue;
+
+		if (!peas_engine_load_plugin(engine, info))
+			g_warning(N_("Unable to load required plugin '%s'"), plugins[i]);
+	}
+	g_strfreev(plugins);
+
+	g_settings_bind (
+		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN), "plugins",
+		engine, "loaded-plugins",
+		G_SETTINGS_BIND_SET);
+	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
+
+	g_signal_connect(self, "activate", (GCallback) activate_cb, NULL);
+
+	debug("Completed.");
 }
 
 /**
@@ -369,18 +562,26 @@ eina_application_get_window_action_group(EinaApplication *self)
 	return GTK_ACTION_GROUP(eina_window_get_action_group(self->priv->window));
 }
 
-static EinaWindow *
+static void
+activate_cb(EinaApplication *self)
+{
+	g_return_if_fail(EINA_IS_APPLICATION(self));
+	g_return_if_fail(EINA_IS_WINDOW(self->priv->window));
+
+	gtk_window_present((GtkWindow *) self->priv->window);
+}
+
+static void
 create_window(EinaApplication *self)
 {
-	if (self->priv->window)
-		return self->priv->window;
+	g_return_if_fail(EINA_IS_APPLICATION(self));
+	if (!GTK_IS_WINDOW(self->priv->window))
+	{
+		self->priv->window = (EinaWindow *) eina_window_new();
 
-	self->priv->window = (EinaWindow *) eina_window_new();
-
-	gtk_application_add_window((GtkApplication *) self, (GtkWindow *) self->priv->window);
-	g_signal_connect(self->priv->window, "delete-event", (GCallback) window_delete_event_cb, self);
-
-	return EINA_WINDOW(self->priv->window);
+		gtk_application_add_window((GtkApplication *) self, (GtkWindow *) self->priv->window);
+		g_signal_connect(self->priv->window, "delete-event", (GCallback) window_delete_event_cb, self);
+	}
 }
 
 static gboolean

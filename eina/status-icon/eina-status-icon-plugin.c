@@ -178,6 +178,8 @@ eina_status_icon_plugin_deactivate(EinaActivatable *activatable, EinaApplication
 	EinaStatusIconPlugin *plugin = EINA_STATUS_ICON_PLUGIN(activatable);
 	EinaStatusIconPluginPrivate *priv = plugin->priv;
 
+	eina_window_set_persistant(eina_application_get_window(app), priv->window_persistant);
+
 	// Disconnect signals
 	g_signal_handlers_disconnect_by_func(eina_application_get_window(app), update_ui_manager, plugin);
 	g_signal_handlers_disconnect_by_func(eina_application_get_lomo  (app), update_ui_manager, plugin);

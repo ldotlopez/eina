@@ -24,6 +24,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
+#include <libpeas/peas.h>
 #include <eina/ext/eina-window.h>
 
 G_BEGIN_DECLS
@@ -66,6 +67,8 @@ GtkUIManager*   eina_application_get_window_ui_manager  (EinaApplication *self);
 GtkActionGroup* eina_application_get_window_action_group(EinaApplication *self);
 
 GSettings*      eina_application_get_settings(EinaApplication *self, const gchar *domain);
+
+PeasEngine*     eina_application_create_standalone_engine(gboolean from_source);
 
 G_END_DECLS
 
