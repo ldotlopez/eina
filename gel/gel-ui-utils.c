@@ -113,7 +113,7 @@ gel_ui_pixbuf_from_file(const GFile *file)
 	if (input == NULL)
 	{
 		gchar *uri = g_file_get_uri(f);
-		g_warning("Unable to read GFile('%s'): %s", uri, error->message);
+		g_warning(_("Unable to read GFile('%s'): %s"), uri, error->message);
 		g_free(uri);
 		g_error_free(error);
 		return NULL;
@@ -144,7 +144,7 @@ gel_ui_pixbuf_from_stream(const GInputStream *stream)
 	GdkPixbuf *ret = gdk_pixbuf_new_from_stream((GInputStream *) stream, NULL, &error);
 	if (ret == NULL)
 	{
-		g_warning("Unable to set cover from stream %p: %s", stream, error->message);
+		g_warning(_("Cannot load image from input stream %p: %s"), stream, error->message);
 		g_error_free(error);
 		return NULL;
 	}
@@ -177,7 +177,7 @@ gel_ui_pixbuf_from_value(const GValue *value)
 
 	else
 	{
-		g_warning("Unable to create a GdkPixbuf from type %s, please file a bug", g_type_name(type));
+		g_warning(_("Unable to load image buffer from type '%s'. Please file a bug"), g_type_name(type));
 		return NULL;
 	}
 }
@@ -396,7 +396,7 @@ gel_ui_tree_view_get_selected_indices(GtkTreeView *tv)
 		indices = gtk_tree_path_get_indices((GtkTreePath *) iter->data);
 		if (!indices || !indices[0] || !indices[1] || (indices[1] != -1))
 		{
-			g_warning(N_("Invalid GtkTreePath in selection, use %s only with ListModels"), __FUNCTION__);
+			g_warning(_("Invalid GtkTreePath in selection, use %s only with ListModels"), __FUNCTION__);
 			continue;
 		}
 
@@ -546,7 +546,8 @@ __gel_ui_drag_drop_cb(GtkWidget *widget, GdkDragContext *context, gint x, gint y
 }
 
 static void
-__gel_ui_drag_data_received (GtkWidget *widget, GdkDragContext *context, gint x, gint y, GtkSelectionData *selection_data, guint target_type, guint time, gpointer data)
+__gel_ui_drag_data_received (GtkWidget *widget,
+	GdkDragContext *context, gint x, gint y, GtkSelectionData *selection_data, guint target_type, guint time, gpointer data)
 {
 	gboolean success = FALSE;
 
@@ -565,7 +566,8 @@ __gel_ui_drag_data_received (GtkWidget *widget, GdkDragContext *context, gint x,
 			break;
 		}
 
-		void (*callback) (GtkWidget *w, GType type, const guchar *data, gpointer user_data) = g_object_get_data((GObject *) widget, "gel-ui-dnd-callback");
+		void (*callback) (GtkWidget *w, GType type, const guchar *data, gpointer user_data) =
+			g_object_get_data((GObject *) widget, "gel-ui-dnd-callback");
 		gpointer user_data = (gpointer)  g_object_get_data((GObject *) widget, "gel-ui-dnd-user-data");
 		if (callback)
 			callback(widget, G_TYPE_STRING, gtk_selection_data_get_data(selection_data), user_data);
@@ -588,7 +590,7 @@ gel_ui_widget_enable_drop(GtkWidget *widget, GCallback callback, gpointer user_d
 
 	if (g_object_get_data((GObject *) widget, "gel-ui-dnd-callback") != NULL)
 	{
-		g_warning(N_("Widget has been already made droppable by GelUI, ignoring."));
+		g_warning(_("Widget has been already made droppable by GelUI, ignoring."));
 		return;
 	}
 
@@ -619,7 +621,7 @@ gel_ui_widget_disable_drop(GtkWidget *widget)
 
 	if (g_object_get_data((GObject *) widget, "gel-ui-dnd-callback") == NULL)
 	{
-		g_warning(N_("Widget has been not made droppable by GelUI, ignoring."));
+		g_warning(_("Widget has not been made droppable by GelUI, ignoring."));
 		return;
 	}
 
@@ -632,4 +634,3 @@ gel_ui_widget_disable_drop(GtkWidget *widget)
 	g_signal_handlers_disconnect_by_func(widget, __gel_ui_drag_data_received, NULL);
 }
 
-G_END_DECLS

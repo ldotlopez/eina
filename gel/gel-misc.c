@@ -249,7 +249,7 @@ gel_strv_concat(gchar **strv_a, ...)
 void
 gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func)
 {
-	g_printf("Contents of %p\n", list);
+	g_printf(_("Contents of %p\n"), list);
 	while (list)
 	{
 		gchar *str = stringify_func((const gpointer) list->data);
@@ -258,7 +258,7 @@ gel_list_printf(GList *list, const gchar *format, GelPrintFunc stringify_func)
 		gel_str_free_and_invalidate(str);
 		list = list->next;
 	}
-	g_printf("End of list\n");
+	g_printf(_("End of list\n"));
 }
 
 // --

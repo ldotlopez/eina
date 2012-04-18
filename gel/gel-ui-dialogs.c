@@ -37,11 +37,12 @@
  * Returns: (transfer full) (allow-none): The dialog or %NULL
  */
 GtkWidget *
-gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy)
+gel_ui_dialog_generic(GtkWidget *parent,
+	GelUIDialogType type, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy)
 {
 	if (parent)
 		g_return_val_if_fail(GTK_IS_WINDOW(parent), NULL);
-	
+
 	g_return_val_if_fail((type >= 0) && (type < GEL_UI_DIALOG_N_TYPES), NULL);
 	g_return_val_if_fail(title   != NULL, NULL);
 	g_return_val_if_fail(message != NULL, NULL);
@@ -53,7 +54,7 @@ gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *titl
 		NULL);
 
 	/*
-	 * dialog 
+	 * dialog
 	 * `- hbox
 	 *    `+- (align) image
 	 *     `- vbox
@@ -146,7 +147,8 @@ gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *titl
  * Returns: (transfer full) (allow-none): The dialog or %NULL
  */
 GtkWidget *
-gel_ui_dialog_error(GtkWidget *parent, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy)
+gel_ui_dialog_error(GtkWidget *parent,
+	const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy)
 {
 	return gel_ui_dialog_generic(parent, GEL_UI_DIALOG_TYPE_ERROR, title, message, details, run_and_destroy);
 }

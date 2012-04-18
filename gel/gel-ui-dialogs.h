@@ -30,10 +30,12 @@ typedef enum {
 } GelUIDialogType;
 
 GtkWidget *
-gel_ui_dialog_generic(GtkWidget *parent, GelUIDialogType type, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy);
+gel_ui_dialog_generic(GtkWidget *parent,
+	GelUIDialogType type, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy);
 
 GtkWidget *
-gel_ui_dialog_error(GtkWidget *parent, const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy);
+gel_ui_dialog_error(GtkWidget *parent,
+	const gchar *title, const gchar *message, const gchar *details, gboolean run_and_destroy);
 
 
 G_END_DECLS

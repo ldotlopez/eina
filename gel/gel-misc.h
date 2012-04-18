@@ -121,12 +121,12 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
  * Defines a quark function
  **/
 #define GEL_DEFINE_QUARK_FUNC(name) \
-	static GQuark name##_quark(void) \
-	{ \
-		static GQuark ret = 0; \
-		if (ret == 0) \
+	static GQuark name##_quark(void)                             \
+	{                                                            \
+		static GQuark ret = 0;                                   \
+		if (ret == 0)                                            \
 			ret = g_quark_from_static_string(G_STRINGIFY(name)); \
-		return ret; \
+		return ret;                                              \
 	}
 
 /**
@@ -137,10 +137,11 @@ typedef gboolean (*GelFilterFunc)    (const gpointer data, gpointer user_data);
  * Defines a weak ref function for use with g_object_weak_ref
  */
 #define GEL_DEFINE_WEAK_REF_CALLBACK(name) \
-	static void \
-	name##_weak_ref_cb (gpointer data, GObject *_object) \
-	{ \
-	    g_warning("Protected object %p is begin destroyed. There is a bug somewhere, set a breakpoint on %s", _object, G_STRINGIFY(name)  "_weak_ref_cb"); \
+	static void                                           \
+	name##_weak_ref_cb (gpointer data, GObject *_object)  \
+	{                                                     \
+	    g_warning("Protected object %p is begin destroyed. There is a bug somewhere, set a breakpoint on %s", \
+			_object, G_STRINGIFY(name)  "_weak_ref_cb");  \
 	}
 
 // --
@@ -316,7 +317,8 @@ gel_8601_date_now(void);
  * Warns about some buggy method
  */
 #define gel_warn_fix_implementation() \
-	g_warning(_("%s needs to be fixed. Method is incomplete, buggy or does not match documentation."), __FUNCTION__)
+	g_warning(_("%s needs to be fixed. Method is incomplete, buggy or does not match documentation."), \
+		__FUNCTION__)
 
 void
 gel_object_class_print_properties(GObjectClass *object);

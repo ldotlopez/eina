@@ -112,8 +112,6 @@ gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer user_data)
 		if ((token2 = find_closer(token1)) == NULL)
 			goto transform_fail;
 
-		// g_printf("Got token: %s\n", token2);
-
 		// Got two tokens
 		buffer2 = g_string_new_len(buffer->str, token1 - buffer->str);
 
@@ -136,7 +134,6 @@ gel_str_parser(gchar *str, GelStrParserFunc callback, gpointer user_data)
 	}
 
 	ret = simple_solver(buffer->str, callback, user_data);
-	// g_printf("Resolving: '%s' => '%s'\n", buffer->str, ret);
 	g_string_free(buffer, TRUE);
 	return ret;
 

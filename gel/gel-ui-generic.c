@@ -107,7 +107,7 @@ gel_ui_generic_new_from_file (const gchar *filename)
 	GError *err = NULL;
 	if (!g_file_get_contents(filename, &buffer, NULL, &err))
 	{
-		g_warning(N_("Cannot load widget from file '%s': %s"), filename, err->message);
+		g_warning(_("Cannot load UI from file '%s': %s"), filename, err->message);
 		g_error_free(err);
 	}
 	GtkWidget *self = gel_ui_generic_new(buffer);
@@ -145,7 +145,7 @@ set_xml_string(GelUIGeneric *self, const gchar *xml_string)
 	GError *error = NULL;
 	if (!gtk_builder_add_from_string(priv->builder, xml_string, -1, &error))
 	{
-		g_warning(N_("Cannot load xml UI definition: %s"), error->message);
+		g_warning(_("Cannot load UI from string: %s"), error->message);
 		g_error_free(error);
 		return;
 	}
@@ -153,7 +153,7 @@ set_xml_string(GelUIGeneric *self, const gchar *xml_string)
 	GtkWidget *w = GTK_WIDGET(gtk_builder_get_object(priv->builder, "main-widget"));
 	if (w == NULL)
 	{
-		g_warning(N_("Unable to find widget 'main-widget' on xml UI definition"));
+		g_warning(_("Cannot find widget 'main-widget' on UI"));
 		return;
 	}
 
