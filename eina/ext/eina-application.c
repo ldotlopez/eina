@@ -345,8 +345,6 @@ eina_application_startup(GApplication *application)
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));
 
 	g_signal_connect(self, "activate", (GCallback) activate_cb, NULL);
-
-	debug("Completed.");
 }
 
 /**
