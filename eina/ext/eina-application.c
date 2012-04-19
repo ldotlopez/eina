@@ -112,7 +112,7 @@ extension_set_extension_removed_cb(PeasExtensionSet *set, PeasPluginInfo *info, 
 }
 
 /**
- * @eina_application_create_standalone_engine:
+ * eina_application_create_standalone_engine:
  * @from_source: %TRUE if this code is run from source dir. Most of the time
  * this should be %FALSE
  *
@@ -259,6 +259,8 @@ eina_application_startup(GApplication *application)
 {
 	EinaApplication *self = (EinaApplication *)application;
 	g_return_if_fail(EINA_IS_APPLICATION(self));
+
+	G_APPLICATION_CLASS (eina_application_parent_class)->startup(G_APPLICATION(self));
 
 	// Generate iconlist for windows
 	const gint sizes[] = { 16, 32, 48, 64, 128 };
