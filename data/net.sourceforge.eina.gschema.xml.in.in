@@ -1,7 +1,7 @@
 <schemalist>
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina" path="/apps/@PACKAGE@/">
-    <child name="preferences" schema="net.sourceforge.eina.preferences"/>
-    <child name="states"      schema="net.sourceforge.eina.states"     />
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@" path="@EINA_SLASHED_DOMAIN_R@/">
+    <child name="preferences" schema="@EINA_DOMAIN@.preferences"/>
+    <child name="states"      schema="@EINA_DOMAIN@.states"     />
     <!-- plugins -->
     <key name="plugins" type="as">
       <default>[]</default>
@@ -16,18 +16,18 @@
   <!--
   preferences
   -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences" path="/apps/@PACKAGE@/preferences/">
-    <child name="dock"     schema="net.sourceforge.eina.preferences.dock"     />
-    <child name="lastfm"   schema="net.sourceforge.eina.preferences.lastfm"   />
-    <child name="lomo"     schema="net.sourceforge.eina.preferences.lomo"     />
-    <child name="muine"    schema="net.sourceforge.eina.preferences.muine"    />
-    <child name="ntfy"     schema="net.sourceforge.eina.preferences.ntfy"     />
-    <child name="player"   schema="net.sourceforge.eina.preferences.player"   />
-    <child name="playlist" schema="net.sourceforge.eina.preferences.playlist" />
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences" path="@EINA_SLASHED_DOMAIN_R@/preferences/">
+    <child name="dock"     schema="@EINA_DOMAIN@.preferences.dock"     />
+    <child name="lastfm"   schema="@EINA_DOMAIN@.preferences.lastfm"   />
+    <child name="lomo"     schema="@EINA_DOMAIN@.preferences.lomo"     />
+    <child name="muine"    schema="@EINA_DOMAIN@.preferences.muine"    />
+    <child name="ntfy"     schema="@EINA_DOMAIN@.preferences.ntfy"     />
+    <child name="player"   schema="@EINA_DOMAIN@.preferences.player"   />
+    <child name="playlist" schema="@EINA_DOMAIN@.preferences.playlist" />
   </schema>
 
   <!-- dock -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.dock" path="/apps/@PACKAGE@/preferences/dock/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.dock" path="@EINA_SLASHED_DOMAIN_R@/preferences/dock/">
   <key name="expanded" type="b">
       <default>true</default>
 	  <_summary>Whatever dock is expanded or not</_summary>
@@ -47,7 +47,7 @@
   </schema>
 
   <!-- lastfm -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lastfm" path="/apps/@PACKAGE@/preferences/lastfm/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.lastfm" path="@EINA_SLASHED_DOMAIN_R@/preferences/lastfm/">
     <key name="submit-enabled" type="b">
       <default>false</default>
       <_summary>Enable submission to LastFM</_summary>
@@ -63,7 +63,7 @@
   </schema>
 
   <!-- lomo -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.lomo" path="/apps/@PACKAGE@/preferences/lomo/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.lomo" path="@EINA_SLASHED_DOMAIN_R@/preferences/lomo/">
     <key name="volume" type="i">
       <default>50</default>
       <_summary>Volume</_summary>
@@ -99,7 +99,7 @@
   </schema>
 
   <!-- muine -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.muine" path="/apps/@PACKAGE@/preferences/muine/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.muine" path="@EINA_SLASHED_DOMAIN_R@/preferences/muine/">
     <key name="group-by" type="i">
       <default>0</default>
 	  <_summary>Group streams based on this field</_summary>
@@ -107,7 +107,7 @@
   </schema>
 
   <!-- ntfy -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.ntfy" path="/apps/@PACKAGE@/preferences/ntfy/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.ntfy" path="@EINA_SLASHED_DOMAIN_R@/preferences/ntfy/">
     <key name="enabled" type="b">
       <default>true</default>
 	  <_summary>Enable notifications</_summary>
@@ -116,11 +116,11 @@
 
 
   <!-- player -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.player" path="/apps/@PACKAGE@/preferences/player/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.player" path="@EINA_SLASHED_DOMAIN_R@/preferences/player/">
   </schema>
 
   <!-- playlist -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.preferences.playlist" path="/apps/@PACKAGE@/preferences/playlist/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.preferences.playlist" path="@EINA_SLASHED_DOMAIN_R@/preferences/playlist/">
     <key name="stream-markup" type="s">
       <default>'{%a -} %t'</default>
       <_summary>Format to use for display stream title's</_summary>
@@ -130,12 +130,12 @@
   <!--
   states
   -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states"      path="/apps/@PACKAGE@/states/">
-    <child name="file-chooser" schema="net.sourceforge.eina.states.file-chooser" />
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.states"      path="@EINA_SLASHED_DOMAIN_R@/states/">
+    <child name="file-chooser" schema="@EINA_DOMAIN@.states.file-chooser" />
   </schema>
 
   <!-- filechooser -->
-  <schema gettext-domain="@GETTEXT_PACKAGE@" id="net.sourceforge.eina.states.file-chooser" path="/apps/@PACKAGE@/states/file-chooser/">
+  <schema gettext-domain="@GETTEXT_PACKAGE@" id="@EINA_DOMAIN@.states.file-chooser" path="@EINA_SLASHED_DOMAIN_R@/states/file-chooser/">
     <key name="last-folder" type="s">
       <default>''</default>
       <_summary>Last used folder for file chooser</_summary>
