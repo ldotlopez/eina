@@ -346,7 +346,6 @@ action_activated_cb(GtkAction *action, EinaWindow *self)
 	if (g_str_equal(name, "quit-action"))
 	{
 		GtkApplication *app = gtk_window_get_application((GtkWindow *) self);
-		gtk_application_remove_window(app, (GtkWindow *) self);
 		g_application_release(G_APPLICATION(app));
 		return;
 	}
