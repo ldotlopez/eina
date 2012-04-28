@@ -313,7 +313,7 @@ eina_application_startup(GApplication *application)
 		NULL };
 
 	gchar **opt_plugins = g_settings_get_strv(
-			eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN),
+			eina_application_get_settings(EINA_APPLICATION(application), EINA_APP_DOMAIN),
 			"plugins");
 
 	gchar **plugins = gel_strv_concat(
@@ -341,7 +341,7 @@ eina_application_startup(GApplication *application)
 	g_strfreev(plugins);
 
 	g_settings_bind (
-		eina_application_get_settings(EINA_APPLICATION(application), EINA_DOMAIN), "plugins",
+		eina_application_get_settings(EINA_APPLICATION(application), EINA_APP_DOMAIN), "plugins",
 		engine, "loaded-plugins",
 		G_SETTINGS_BIND_SET);
 	gtk_widget_show((GtkWidget *) eina_application_get_window((EinaApplication *) application));

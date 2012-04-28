@@ -32,7 +32,7 @@ EinaDockTab* eina_application_add_dock_widget   (EinaApplication *application,
 gboolean     eina_application_switch_dock_widget(EinaApplication *application, EinaDockTab *tab);
 gboolean     eina_application_remove_dock_widget(EinaApplication *application, EinaDockTab *tab);
 
-#define EINA_DOCK_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.dock"
+#define EINA_DOCK_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.dock"
 #define EINA_DOCK_ORDER_KEY          "page-order"
 #define EINA_DOCK_EXPANDED_KEY       "expanded"
 #define EINA_DOCK_WINDOW_H_KEY       "window-height"

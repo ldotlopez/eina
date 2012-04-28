@@ -25,7 +25,7 @@
 
 #include "eina-fs.h"
 
-#define EINA_FS_STATE_DOMAIN    EINA_DOMAIN".states.file-chooser"
+#define EINA_FS_STATE_DOMAIN    EINA_APP_DOMAIN".states.file-chooser"
 #define EINA_FS_LAST_FOLDER_KEY "last-folder"
 
 #include <errno.h>

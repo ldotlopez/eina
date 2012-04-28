@@ -27,7 +27,7 @@ G_BEGIN_DECLS
 /**
  * API
  */
-#define EINA_NTFY_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.ntfy"
+#define EINA_NTFY_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.ntfy"
 #define EINA_NTFY_ENABLED_KEY        "enabled"
 
 /**

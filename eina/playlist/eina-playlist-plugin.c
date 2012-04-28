@@ -35,7 +35,7 @@ typedef struct {
 } EinaPlaylistPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYLIST_PLUGIN, EinaPlaylistPlugin, eina_playlist_plugin)
 
-#define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.playlist"
+#define EINA_PLAYLIST_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.playlist"
 #define EINA_PLAYLIST_STREAM_MARKUP_KEY "stream-markup"
 
 static void

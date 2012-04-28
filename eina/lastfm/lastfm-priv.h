@@ -24,7 +24,7 @@
 #include <lomo/lomo-player.h>
 #include <eina/preferences/eina-preferences-plugin.h>
 
-#define LASTFM_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.lastfm"
+#define LASTFM_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.lastfm"
 #define LASTFM_SUBMIT_ENABLED_KEY "submit-enabled"
 #define LASTFM_USERNAME_KEY       "username"
 #define LASTFM_PASSWORD_KEY       "password"

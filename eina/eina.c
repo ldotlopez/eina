@@ -164,13 +164,13 @@ gint main(gint argc, gchar *argv[])
 	EinaApplication *app = NULL;
 	if ((argc >= 2) && (g_str_equal("-n", argv[1]) || g_str_equal("--new-instance", argv[1])))
 	{
-		gchar *id = g_strdup_printf("%s-%u", EINA_DOMAIN, g_random_int());
+		gchar *id = g_strdup_printf("%s-%u", EINA_APP_DOMAIN, g_random_int());
 		app = eina_application_new(id);
 	}
 	else
-		app = eina_application_new(EINA_DOMAIN);
+		app = eina_application_new(EINA_APP_DOMAIN);
 
-	g_settings_bind(eina_application_get_settings(EINA_APPLICATION(app), EINA_DOMAIN), "prefer-dark-theme",
+	g_settings_bind(eina_application_get_settings(EINA_APPLICATION(app), EINA_APP_DOMAIN), "prefer-dark-theme",
 		G_OBJECT(gtk_settings_get_default()), "gtk-application-prefer-dark-theme",
 		G_SETTINGS_BIND_DEFAULT);
 

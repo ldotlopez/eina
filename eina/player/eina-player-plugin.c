@@ -40,7 +40,7 @@ typedef struct {
 } EinaPlayerPluginPrivate;
 EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin, eina_player_plugin)
 
-#define EINA_PLAYER_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.player"
+#define EINA_PLAYER_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
 
 static void
@@ -163,7 +163,7 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 		lomo_sets, "auto-play",    "auto-play",    "active",
 		lomo_sets, "auto-parse",   "auto-parse",   "active",
 		lomo_sets, "gapless-mode", "gapless-mode", "active",
-		eina_application_get_settings(app, EINA_DOMAIN), "prefer-dark-theme", "prefer-dark-theme", "active",
+		eina_application_get_settings(app, EINA_APP_DOMAIN), "prefer-dark-theme", "prefer-dark-theme", "active",
 		NULL);
 
 	eina_application_add_preferences_tab(app, priv->prefs_tab);

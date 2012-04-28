@@ -22,7 +22,7 @@
 
 #include <eina/muine/eina-muine.h>
 
-#define EINA_MUINE_PREFERENCES_DOMAIN  EINA_DOMAIN".preferences.muine"
+#define EINA_MUINE_PREFERENCES_DOMAIN  EINA_APP_DOMAIN".preferences.muine"
 #define EINA_MUINE_GROUP_BY_KEY        "group-by"
 
 #endif // __EINA_MUINE_PLUGIN_H__

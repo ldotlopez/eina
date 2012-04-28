@@ -60,7 +60,7 @@ LomoPlayer* eina_application_get_lomo(EinaApplication *application);
  *
  * Domain for EinaLomoPlugin preferences
  */
-#define EINA_LOMO_PREFERENCES_DOMAIN  EINA_DOMAIN".preferences.lomo"
+#define EINA_LOMO_PREFERENCES_DOMAIN  EINA_APP_DOMAIN".preferences.lomo"
 
 /**
  * EINA_LOMO_VOLUME_KEY:

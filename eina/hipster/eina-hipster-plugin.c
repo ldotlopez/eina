@@ -29,7 +29,7 @@
 
 #define API_KEY    "2c8ac587be681fcfe69e226690414ad8"
 #define API_SECRET "b7318c221263c4b1faccbf617a19b329"
-#define CLASTFM_PREFERENCES_DOMAIN EINA_DOMAIN".preferences.lastfm"
+#define CLASTFM_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.lastfm"
 #define CLASTFM_SUBMIT_ENABLED_KEY "submit-enabled"
 #define CLASTFM_USERNAME_KEY       "username"
 #define CLASTFM_PASSWORD_KEY       "password"
