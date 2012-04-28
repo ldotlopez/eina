@@ -35,7 +35,7 @@ struct _EinaMprisPlayerPrivate {
 	gchar           *bus_name_suffix;
 	GDBusConnection *conn;
 	GDBusNodeInfo   *nodeinfo;
-	guint bus_id, root_id, player_id;
+	guint bus_id, root_id, player_id, playlist_id;
 	GHashTable    *prop_changes;
 	guint prop_change_id;
 };
@@ -72,6 +72,10 @@ static void
 server_name_lost_cb (GDBusConnection *connection, const gchar *name, gpointer user_data);
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, gpointer user_data);
+
+/*
+ * Root node call/get/set
+ */
 static void
 root_method_call_cb (GDBusConnection *connection,
 	const char *sender,
@@ -98,6 +102,17 @@ root_set_property_cb (GDBusConnection *connection,
 	GVariant *value,
 	GError **error,
 	EinaMprisPlayer *self);
+
+GDBusInterfaceVTable root_vtable =
+{
+	(GDBusInterfaceMethodCallFunc)  root_method_call_cb,
+	(GDBusInterfaceGetPropertyFunc) root_get_property_cb,
+	(GDBusInterfaceSetPropertyFunc) root_set_property_cb
+};
+
+/*
+ * Player node call/get/set
+ */
 static void
 player_method_call_cb (GDBusConnection *connection,
 	const char *sender,
@@ -125,18 +140,48 @@ player_set_property_cb (GDBusConnection *connection,
 	GError **error,
 	EinaMprisPlayer *self);
 
-GDBusInterfaceVTable root_vtable =
-{
-	(GDBusInterfaceMethodCallFunc)  root_method_call_cb,
-	(GDBusInterfaceGetPropertyFunc) root_get_property_cb,
-	(GDBusInterfaceSetPropertyFunc) root_set_property_cb
-};
-
 GDBusInterfaceVTable player_vtable =
 {
 	(GDBusInterfaceMethodCallFunc)  player_method_call_cb,
 	(GDBusInterfaceGetPropertyFunc) player_get_property_cb,
 	(GDBusInterfaceSetPropertyFunc) player_set_property_cb
+};
+
+/*
+ * Player node call/get/set
+ */
+static void
+playlist_method_call_cb (GDBusConnection *connection,
+	const char *sender,
+	const char *object_path,
+	const char *interface_name,
+	const char *method_name,
+	GVariant *parameters,
+	GDBusMethodInvocation *invocation,
+	EinaMprisPlayer *self);
+static GVariant*
+playlist_get_property_cb (GDBusConnection *connection,
+	const char *sender,
+	const char *object_path,
+	const char *interface_name,
+	const char *property_name,
+	GError **error,
+	EinaMprisPlayer *self);
+static gboolean
+playlist_set_property_cb (GDBusConnection *connection,
+	const char *sender,
+	const char *object_path,
+	const char *interface_name,
+	const char *property_name,
+	GVariant *value,
+	GError **error,
+	EinaMprisPlayer *self);
+
+GDBusInterfaceVTable playlist_vtable =
+{
+	(GDBusInterfaceMethodCallFunc)  playlist_method_call_cb,
+	(GDBusInterfaceGetPropertyFunc) playlist_get_property_cb,
+	(GDBusInterfaceSetPropertyFunc) playlist_set_property_cb
 };
 
 static void
@@ -151,35 +196,7 @@ eina_mpris_player_get_property (GObject *object, guint property_id, GValue *valu
 	case PROP_BUS_NAME_SUFFIX:
 		g_value_set_string(value, eina_mpris_player_get_bus_name_suffix(EINA_MPRIS_PLAYER(object)));
 		break;
-#if 0
-	case PROP_CAN_QUIT:
-		g_value_set_boolean(value, eina_mpris_player_get_can_quit(EINA_MPRIS_PLAYER(object)));
-		break;
 
-	case PROP_CAN_RAISE:
-		g_value_set_boolean(value, eina_mpris_player_get_can_raise(EINA_MPRIS_PLAYER(object)));
-		break;
-
-	case PROP_HAS_TRACK_LIST:
-		g_value_set_boolean(value, eina_mpris_player_get_has_track_list(EINA_MPRIS_PLAYER(object)));
-		break;
-
-	case PROP_IDENTITY:
-		g_value_set_static_string(value, eina_mpris_player_get_identify(EINA_MPRIS_PLAYER(object)));
-		break;
-
-	case PROP_DESKTOP_ENTRY:
-		g_value_set_static_string(value, eina_mpris_player_get_desktop_entry(EINA_MPRIS_PLAYER(object)));
-		break;
-
-	case PROP_SUPPORTED_URI_SCHEMES:
-		g_value_set_boxed(value, eina_mpris_player_get_supported_uri_schemes(EINA_MPRIS_PLAYER(object)));
-		break;
-
-	case PROP_SUPPORTED_MIME_TYPES:
-		g_value_set_boxed(value, eina_mpris_player_get_supported_mime_types(EINA_MPRIS_PLAYER(object)));
-		break;
-#endif
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 	}
@@ -216,6 +233,13 @@ eina_mpris_player_dispose (GObject *object)
 		g_dbus_connection_unregister_object(self->priv->conn, self->priv->player_id);
 		self->priv->player_id = 0;
 	}
+
+	if (self->priv->playlist_id)
+	{
+		g_dbus_connection_unregister_object(self->priv->conn, self->priv->playlist_id);
+		self->priv->playlist_id = 0;
+	}
+
 	if (self->priv->root_id)
 	{
 		g_dbus_connection_unregister_object(self->priv->conn, self->priv->root_id);
@@ -310,7 +334,20 @@ complete_setup(EinaMprisPlayer *self)
 		&error);
 	if (!self->priv->player_id)
 	{
-		g_warning(_("Unable to register interface %s: '%s'"), MPRIS_SPEC_ROOT_INTERFACE, error->message);
+		g_warning(_("Unable to register interface %s: '%s'"), MPRIS_SPEC_PLAYER_INTERFACE, error->message);
+		goto complete_setup_error;
+	}
+
+	self->priv->playlist_id = g_dbus_connection_register_object(self->priv->conn,
+		MPRIS_SPEC_OBJECT_PATH,
+		g_dbus_node_info_lookup_interface(self->priv->nodeinfo, MPRIS_SPEC_PLAYLIST_INTERFACE),
+		&playlist_vtable,
+		self,
+		NULL,
+		&error);
+	if (!self->priv->playlist_id)
+	{
+		g_warning(_("Unable to register interface %s: '%s'"), MPRIS_SPEC_PLAYER_INTERFACE, error->message);
 		goto complete_setup_error;
 	}
 
@@ -347,6 +384,11 @@ complete_setup_error:
 		g_dbus_connection_unregister_object(self->priv->conn, self->priv->player_id);
 		self->priv->player_id = 0;
 	}
+	if (self->priv->playlist_id)
+	{
+		g_dbus_connection_unregister_object(self->priv->conn, self->priv->playlist_id);
+		self->priv->playlist_id = 0;
+	}
 	if (self->priv->root_id)
 	{
 		g_dbus_connection_unregister_object(self->priv->conn, self->priv->root_id);
@@ -356,56 +398,6 @@ complete_setup_error:
 	gel_free_and_invalidate(self->priv->nodeinfo, NULL, g_dbus_node_info_unref);
 	gel_free_and_invalidate(self->priv->conn,     NULL, g_object_unref);
 }
-
-#if 0
-gboolean
-eina_mpris_player_get_can_quit(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return FALSE;
-}
-
-gboolean
-eina_mpris_player_get_can_raise(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return FALSE;
-}
-
-gboolean
-eina_mpris_player_get_has_track_list(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return FALSE;
-}
-
-const gchar*
-eina_mpris_player_get_identify(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return "Eina music player";
-}
-
-const gchar*
-eina_mpris_player_get_desktop_entry(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return NULL;
-}
-const gchar* const *
-eina_mpris_player_get_supported_uri_schemes(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return NULL;
-}
-
-const gchar* const *
-eina_mpris_player_get_supported_mime_types(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-	return NULL;
-}
-#endif
 
 EinaApplication *
 eina_mpris_player_get_application (EinaMprisPlayer *self)
@@ -559,20 +551,6 @@ lomo_change_cb(LomoPlayer *lomo, gint from, gint to, EinaMprisPlayer *self)
 	}
 }
 
-#if 0
-void
-eina_mpris_player_raise(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-}
-
-void
-eina_mpris_player_quit(EinaMprisPlayer *self)
-{
-	g_warning("%s", __FUNCTION__);
-}
-#endif
-
 static void
 server_name_acquired_cb(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
@@ -608,17 +586,15 @@ root_method_call_cb (GDBusConnection *connection,
 		}
 
 		gtk_window_present(window);
-		return;
 	}
 
 	else if (g_str_equal("Quit", method_name))
-	{
 		g_application_release(G_APPLICATION(self->priv->app));
-		return;
-	}
 
 	else
 		goto root_method_call_cb_error;
+
+	g_dbus_method_invocation_return_value(invocation, NULL);
 
 root_method_call_cb_error:
 	g_dbus_method_invocation_return_error (invocation,
@@ -724,18 +700,21 @@ player_method_call_cb(GDBusConnection *connection,
 	{
 		lomo_player_set_state(lomo,
 			(lomo_player_get_state(lomo) == LOMO_STATE_PLAY) ? LOMO_STATE_PAUSE : LOMO_STATE_PLAY, NULL);
+		g_dbus_method_invocation_return_value(invocation, NULL);
 		return;
 	}
 
 	else if (g_str_equal("Next", method_name))
 	{
 		lomo_player_go_next(lomo, NULL);
+		g_dbus_method_invocation_return_value(invocation, NULL);
 		return;
 	}
 
 	else if (g_str_equal("Previous", method_name))
 	{
 		lomo_player_go_previous(lomo, NULL);
+		g_dbus_method_invocation_return_value(invocation, NULL);
 		return;
 	}
 
@@ -749,9 +728,6 @@ player_method_call_cb(GDBusConnection *connection,
 		}
 	}
 
-	goto player_method_call_cb_error;
-
-player_method_call_cb_error:
 	g_dbus_method_invocation_return_error (invocation,
 		G_DBUS_ERROR,
 		G_DBUS_ERROR_NOT_SUPPORTED,
@@ -974,6 +950,171 @@ player_set_property_cb_error:
 		     "Property %s.%s not supported",
 		     interface_name,
 		     property_name);
+	return FALSE;
+}
+
+static void
+playlist_method_call_cb (GDBusConnection *connection,
+	const char *sender,
+	const char *object_path,
+	const char *interface_name,
+	const char *method_name,
+	GVariant *parameters,
+	GDBusMethodInvocation *invocation,
+	EinaMprisPlayer *self)
+{
+	if (g_strcmp0 (object_path, MPRIS_SPEC_OBJECT_PATH) != 0 ||
+	    g_strcmp0 (interface_name, MPRIS_SPEC_PLAYLIST_INTERFACE) != 0)
+	{
+		g_dbus_method_invocation_return_error (invocation,
+			G_DBUS_ERROR,
+			G_DBUS_ERROR_NOT_SUPPORTED,
+			"Method %s.%s not supported",
+			interface_name,
+			method_name);
+		return;
+	}
+
+	if (g_strcmp0 (method_name, "ActivatePlaylist") == 0) {
+		/*
+		ActivateSourceData data;
+
+		data.plugin = plugin;
+		g_variant_get (parameters, "(&o)", &data.playlist_id);
+		gtk_tree_model_foreach (GTK_TREE_MODEL (plugin->page_model),
+			(GtkTreeModelForeachFunc) activate_source_by_id,
+			&data);
+		*/
+		g_dbus_method_invocation_return_value (invocation, NULL);
+		return;
+    }
+
+	else if (g_strcmp0 (method_name, "GetPlaylists") == 0) {
+		guint index;
+		guint max_count;
+		const gchar *order;
+		gboolean reverse;
+
+		g_variant_get (parameters, "(uu&sb)", &index, &max_count, &order, &reverse);
+		GVariantBuilder *builder = g_variant_builder_new (G_VARIANT_TYPE ("a(oss)"));
+
+		if (max_count > 0)
+		{
+			gchar *path = g_strdup_printf("%s/Playlists/default", EINA_APP_PATH_DOMAIN);
+			g_variant_builder_add (builder, "(oss)", path, "default", "");
+			g_free(path);
+		}
+		g_dbus_method_invocation_return_value (invocation, g_variant_new ("(a(oss))", builder));
+		g_variant_builder_unref (builder);
+
+		#if 0
+		gtk_tree_model_foreach (GTK_TREE_MODEL (plugin->page_model),
+			(GtkTreeModelForeachFunc) get_playlist_list,
+			&playlists);
+
+		/* list is already in reverse order, reverse it again if we want normal order */
+		if (reverse == FALSE) {
+			playlists = g_list_reverse (playlists);
+		}
+
+		builder = g_variant_builder_new (G_VARIANT_TYPE ("a(oss)"));
+		for (l = playlists; l != NULL; l = l->next) {
+			RBSource *source;
+			const char *id;
+			char *name;
+
+			if (index > 0) {
+				index--;
+				continue;
+			}
+
+			source = l->data;
+			id = g_object_get_data (G_OBJECT (source), MPRIS_PLAYLIST_ID_ITEM);
+			g_object_get (source, "name", &name, NULL);
+			g_variant_builder_add (builder, "(oss)", id, name, "");
+			g_free (name);
+
+			if (max_count > 0) {
+				max_count--;
+				if (max_count == 0) {
+					break;
+				}
+			}
+		}
+
+		g_list_free (playlists);
+		g_dbus_method_invocation_return_value (invocation, g_variant_new ("(a(oss))", builder));
+		g_variant_builder_unref (builder);
+		#endif
+	}
+
+	else
+	{
+		g_dbus_method_invocation_return_error (invocation,
+			G_DBUS_ERROR,
+			G_DBUS_ERROR_NOT_SUPPORTED,
+			"Method %s.%s not supported",
+			interface_name,
+			method_name);
+	}
+}
+
+static GVariant*
+playlist_get_property_cb (GDBusConnection *connection,
+	const char *sender,
+	const char *object_path,
+	const char *interface_name,
+	const char *property_name,
+	GError **error,
+	EinaMprisPlayer *self)
+{
+	if (g_strcmp0(property_name, "PlaylistCount") == 0)
+	{
+		return g_variant_new_uint32(1);
+	}
+
+	else if (g_strcmp0(property_name, "Orderings") == 0)
+	{
+		const char *orderings[] = {
+			/* "Alphabetical", */ NULL
+		};
+		return g_variant_new_strv (orderings, -1);
+	}
+
+	else if (g_strcmp0 (property_name, "ActivePlaylist") == 0)
+	{
+		gchar *playlist_path = g_strdup_printf("%s/Playlists/default", EINA_APP_PATH_DOMAIN);
+		GVariant *ret = g_variant_new ("(b(oss))", TRUE, playlist_path, "default", "");
+		g_free(playlist_path);
+
+		return ret;
+	}
+
+	g_set_error (error,
+		G_DBUS_ERROR,
+		G_DBUS_ERROR_NOT_SUPPORTED,
+		"get_property %s.%s not supported",
+		interface_name,
+		property_name);
+	return NULL;
+}
+
+static gboolean
+playlist_set_property_cb (GDBusConnection *connection,
+	const char *sender,
+	const char *object_path,
+	const char *interface_name,
+	const char *property_name,
+	GVariant *value,
+	GError **error,
+	EinaMprisPlayer *self)
+{
+	g_set_error (error,
+		G_DBUS_ERROR,
+		G_DBUS_ERROR_NOT_SUPPORTED,
+		"set_property %s.%s not supported",
+		interface_name,
+		property_name);
 	return FALSE;
 }
 

@@ -49,21 +49,6 @@ EinaMprisPlayer* eina_mpris_player_new (EinaApplication *app, const gchar *bus_n
 EinaApplication*  eina_mpris_player_get_application    (EinaMprisPlayer *self);
 const gchar*      eina_mpris_player_get_bus_name_suffix(EinaMprisPlayer *self);
 
-#if 0
-gboolean     eina_mpris_player_get_can_quit(EinaMprisPlayer *self);
-gboolean     eina_mpris_player_get_can_raise(EinaMprisPlayer *self);
-gboolean     eina_mpris_player_get_has_track_list(EinaMprisPlayer *self);
-const gchar* eina_mpris_player_get_identify(EinaMprisPlayer *self);
-const gchar* eina_mpris_player_get_desktop_entry(EinaMprisPlayer *self);
-const gchar* const *
-             eina_mpris_player_get_supported_uri_schemes(EinaMprisPlayer *self);
-const gchar* const *
-             eina_mpris_player_get_supported_mime_types(EinaMprisPlayer *self);
-
-void eina_mpris_player_raise(EinaMprisPlayer *self);
-void eina_mpris_player_quit (EinaMprisPlayer *self);
-#endif
-
 G_END_DECLS
 
 #endif /* __EINA_MPRIS_PLAYER_H__ */

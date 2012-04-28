@@ -20,10 +20,11 @@
 #ifndef _MPRIS_MPRIS_SPEC_H
 #define _MPRIS_MPRIS_SPEC_H
 
-#define MPRIS_SPEC_BUS_NAME_PREFIX  "org.mpris.MediaPlayer2"
-#define MPRIS_SPEC_OBJECT_PATH     "/org/mpris/MediaPlayer2"
-#define MPRIS_SPEC_ROOT_INTERFACE   "org.mpris.MediaPlayer2"
-#define MPRIS_SPEC_PLAYER_INTERFACE "org.mpris.MediaPlayer2.Player"
+#define MPRIS_SPEC_BUS_NAME_PREFIX    "org.mpris.MediaPlayer2"
+#define MPRIS_SPEC_OBJECT_PATH       "/org/mpris/MediaPlayer2"
+#define MPRIS_SPEC_ROOT_INTERFACE     "org.mpris.MediaPlayer2"
+#define MPRIS_SPEC_PLAYER_INTERFACE   "org.mpris.MediaPlayer2.Player"
+#define MPRIS_SPEC_PLAYLIST_INTERFACE "org.mpris.MediaPlayer2.Playlist"
 
 const char *mpris_spec_xml =
 	"<node>"
@@ -74,6 +75,22 @@ const char *mpris_spec_xml =
 	"    <property name='CanSeek' type='b' access='read'/>"
 	"    <property name='CanControl' type='b' access='read'/>"
 	"  </interface>"
+	"  <interface name='" MPRIS_SPEC_PLAYLIST_INTERFACE "'>"
+	"    <method name='ActivatePlaylist'>"
+	"      <arg direction='in' name='PlaylistId' type='o'/>"
+	"    </method>"
+	"    <method name='GetPlaylists'>"
+	"      <arg direction='in' name='Index' type='u'/>"
+	"      <arg direction='in' name='MaxCount' type='u'/>"
+	"      <arg direction='in' name='Order' type='s'/>"
+	"      <arg direction='in' name='ReverseOrder' type='b'/>"
+	"      <arg direction='out' type='a(oss)'/>"
+	"    </method>"
+	"    <property name='PlaylistCount' type='u' access='read'/>"
+	"    <property name='Orderings' type='as' access='read'/>"
+	"    <property name='ActivePlaylist' type='(b(oss))' access='read'/>"
+	"  </interface>"
+
 	/*
 	"  <interface name='org.mpris.MediaPlayer2.TrackList'>"
 	"    <method name='GetTracksMetadata'>"
