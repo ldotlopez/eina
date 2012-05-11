@@ -1,0 +1,12 @@
+[Plugin]
+Loader=python
+Module=lyrics
+Depends=lomo;dock
+IAge=2
+Name=Lyrics
+Version=0.1.0
+Description=Song lyrics from lyrics.wikia.org
+Authors=Jacobo Tarragón <jacobo.tarragon@gmail.com>
+Copyright=Copyright © 2012 Jacobo Tarragón
+Website=http://twitter.com/jminuscula
+Help=@EINA_URL_HELP@
