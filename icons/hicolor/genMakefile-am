@@ -8,7 +8,7 @@ EOF
 
 for S in 16x16 22x22 24x24 32x32 36x36 48x48 64x64 72x72 96x96 128x128 192x192 scalable
 do
-	for T in "actions" "apps"
+	for T in "actions" "apps" "status"
 	do
 		[ -d "$S/$T" ] || continue
 		cat <<-EOF

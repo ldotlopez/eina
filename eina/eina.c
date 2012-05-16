@@ -47,15 +47,15 @@ static gint
 app_command_line_cb (EinaApplication *self, GApplicationCommandLine *command_line)
 {
 	gboolean opt_b_ign = FALSE;
-    gboolean opt_play  = FALSE;
-    gboolean opt_stop  = FALSE;
+	gboolean opt_play  = FALSE;
+	gboolean opt_stop  = FALSE;
 	gboolean opt_pause = FALSE;
 	gboolean opt_clear = FALSE;
-    gchar**  opt_uris  = NULL;
-    const GOptionEntry opt_entries[] = {
-	    { "new-instance",    'n', 0, G_OPTION_ARG_NONE,           &opt_b_ign, _("Don't reuse existing windows"), NULL },
-	    { "play",            's', 0, G_OPTION_ARG_NONE,           &opt_play,  _("Set play state"), NULL },
-	    { "stop",            'S', 0, G_OPTION_ARG_NONE,           &opt_stop,  _("Set stop state"), NULL },
+	gchar**  opt_uris  = NULL;
+	const GOptionEntry opt_entries[] = {
+		{ "new-instance",    'n', 0, G_OPTION_ARG_NONE,           &opt_b_ign, _("Don't reuse existing windows"), NULL },
+		{ "play",            's', 0, G_OPTION_ARG_NONE,           &opt_play,  _("Set play state"), NULL },
+		{ "stop",            'S', 0, G_OPTION_ARG_NONE,           &opt_stop,  _("Set stop state"), NULL },
 		{ "pause",           'p', 0, G_OPTION_ARG_NONE,           &opt_pause, _("Set pause state"), NULL },
 		{ "clear",           'c', 0, G_OPTION_ARG_NONE,           &opt_clear, _("Clear playlist (use it replace current playlist)"), NULL },
 		{ G_OPTION_REMAINING, 0,  0, G_OPTION_ARG_FILENAME_ARRAY, &opt_uris,   NULL, _("[FILES/URIs...]") },
@@ -63,7 +63,7 @@ app_command_line_cb (EinaApplication *self, GApplicationCommandLine *command_lin
 	};
 
 	GOptionContext *opt_ctx = g_option_context_new(NULL);
-    g_option_context_set_help_enabled(opt_ctx, TRUE);
+	g_option_context_set_help_enabled(opt_ctx, TRUE);
 	g_option_context_add_main_entries(opt_ctx, opt_entries, GETTEXT_PACKAGE);
 
 	gint    argc;
@@ -153,13 +153,30 @@ gint main(gint argc, gchar *argv[])
 
 	if ((themedir = (gchar*) g_getenv("EINA_THEME_DIR")) != NULL)
 		gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (), themedir);
+
 	eina_stock_init();
 
 	// Pulse audio
 	g_setenv("PULSE_PROP_media.role", "audio", TRUE);
 
+	// Setup GI_TYPELIB_PATH
+	gchar *tmp = g_build_filename(PACKAGE_PREFIX, "lib", "girepository-1.0", NULL);
+	GSList *curr_paths = g_irepository_get_search_path();
+	GSList *iter = curr_paths;
+	while (iter && (g_strcmp0(tmp, (gchar *) iter->data) != 0))
+		iter = iter->next;
+
+	if (iter == NULL)
+		g_irepository_prepend_search_path(tmp);
+	g_free(tmp);
+
+	// Setup GSETTINGS_SCHEMA_DIR
+	tmp = g_build_filename(PACKAGE_PREFIX, "share", "glib-2.0", "schemas", NULL);
+	g_setenv("GSETTINGS_SCHEMA_DIR", tmp, FALSE);
+	g_free(tmp);
+
 	// Misc stuff
-	gchar *tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);
+	tmp = g_strdup_printf(_("%s music player"), PACKAGE_NAME);
 	g_set_application_name(tmp);
 	g_free(tmp);
 

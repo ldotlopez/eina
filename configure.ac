@@ -504,6 +504,8 @@ eina/lastfm/lastfm.plugin
 eina/lastfm/Makefile
 eina/lomo/lomo.plugin
 eina/lomo/Makefile
+eina/lyrics/lyrics.plugin
+eina/lyrics/Makefile
 eina/mpris/mpris.plugin
 eina/mpris/Makefile
 eina/muine/muine.plugin
