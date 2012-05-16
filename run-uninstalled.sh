@@ -12,7 +12,6 @@ R="$D/tools/run"
 export LD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$D/eina/ext/.libs:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$D/lomo/.libs:$D/gel/.libs:$D/eina/ext/.libs:$DYLD_LIBRARY_PATH"
 export GI_TYPELIB_PATH="$D/lomo:$D/gel:$D/eina:$GI_TYPELIB_PATH"
-export EINA_TYPELIB_DIR="$D/eina"
 
 # Resource handling (gel-related)
 export EINA_PIXMAP_PATH="$D/pixmaps"
