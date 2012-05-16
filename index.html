@@ -1,67 +1,126 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Eina music player by ldotlopez</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<title>Eina :: a classic player for a modern era</title>
+		<link rel="stylesheet" href="media/main.css" type="text/css" media="screen" title="main" charset="utf-8">
+	</head>
 
-  </head>
-  <body>
+	<body>
+	<div id="wrapper">
+	<div id="content">
 
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/ldotlopez/eina">Fork On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/ldotlopez/eina/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/ldotlopez/eina/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
+		<header>
+			<a href="#about">
+				<img src="media/img/eina.svg" role="logo" alt="eina">
+			</a>
+			<hgroup>
+				<h1><a href="#about">eina</a></h1>
+				<h2>a classic player for a modern era</h2>
+			</hgroup>
+		</header>
 
-    <div class="wrapper">
+		<section id="slideshow">
+			
+		</section>
 
-      <section>
-        <div id="title">
-          <h1>Eina music player</h1>
-          <p>it just plays music. but does it pretty well</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/ldotlopez">ldotlopez</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/mattgraham">mattgraham</a></span>
-        </div>
+		<nav>
+			<li><a href="#about" class="active">about</a></li>
+			<li><a href="#features">features</a></li>
+			<li><a href="#plugins">plugins</a></li>
+			<li><a href="#development">development</a></li>
+			<li><a href="#faq">faq</a></li>
+			<li><a href="#download">download</a></li>
+			<li><a href="#contact">contact</a></li>
+		</nav>
 
-        <h2>Your music belongs to you</h2>
+		<!-- about -->
+		<section class="columns about">
+			<a name="about"></a>
+			<article>
+				<h3>★ Your music belongs to you</h3>
+				<p>Current music players are focused on managing your music collection, while using mandatory criteria about how they organize it.</p>
+				<p>Eina does not care about it at all. If your are an organized person, chances are your music collection is organized too, and you won't like to spend your time rearranging it to follow your player's specific rules. In addition, having those players to arrange music that's randomly stored, named or tagged, is usually counterproductive.</p>
+			</article>
+			<article>
+				<h3>★ Get all functionality</h3>
+				<p>Eina works like a common portable music player. Just plays what you want to listen.</p>
 
-<p>Current music players are focused on managing your music collection, while using mandatory criteria about how they organize it.</p>
+				<p>Apart from simplicity, today users expect more from a player than just reading files. Artwork, lyrics, network support, artist data and other music information find their right place in Eina.</p>
 
-<p>Eina does not care about it at all. If your are an organized person, chances are your music collection is organized too, and you won't like to spend your time rearranging it to follow your player's specific rules. In addition, having those players to arrange music that's randomly stored, named or tagged, is usually counterproductive.</p>
+				<p>Plugins can take care of all the extra functionality, since Eina exposes everything from its internals. It's fairly easy to extend the player capabilities and change the way it works inside. Feel free to request new features and make things the way you like.</p>
+			</article>
+			<article>
+				<h3>★ Based on free technology</h3>
+				<p>Eina is written in plain C, using Gtk+-3.0 for the graphic interface and GStreamer for playback.</p>
+				<p>Gtk means portatility, accesibility, and internationalization. GStreamer means extensibility and support for every audio format out there. These two elements make Eina an unlimited application.</p>
 
-<h2>Get all functionality</h2>
+				<p>By the way, Eina is also free (as in free beer) software. Eina is licensed under GPL-2 or later.</p>
+			</article>
+		</section>
 
-<p>Eina works like a common portable music player. Just plays what you want to listen.</p>
+		<!-- features -->
+		<section class="columns features">
+			<a name="features"></a>
+			<article>
+				<img src="media/img/ft_size.png">
+				<h3>Minimal screen footprint</h3>
+				<p>In its default state, Eina tries to reduce the space used for displaying information about your music. Music is meant to be listened, not viewed. Reclaim your desktop space.</p>
+			</article>
+			<article>
+				<img src="media/img/ft_efficency.png">
+				<h3>Extremely efficient</h3>
+				<p>Eina has been highly optimized to do what matters: playing music. We are proud to keep the memory and CPU usage at a minimum so you can enjoy Eina in every computer.</p>
+			</article>
+			<article>
+				<img src="media/img/ft_library.png">
+				<h3>There's no need for a library</h3>
+				<p>Our philosophy is all about playing music. Eina will not try to organize your music collection in its own way; it won't even try to build a library out of your files. Just drag the files or folders containing what you want to play and let it do its job. Eina does provide history and search functions for your convenience.</p>
+			</article>
+			<article>
+				<img src="media/img/ft_extra.png">
+				<h3>Get the most out of your music</h3>
+				<p>We also love details. Even though Eina's main goal is to play your music, there's still room for some eyecandy. Eina is bundled with plugins to show your music artwork and lyrics.</p>
+			</article>
+			<article>
+				<img src="media/img/ft_os.png">
+				<h3>Linux and OS X compatible</h3>
+				<p>Choose your favorite operative system. Eina is offered for several Linux distributions as well as for Mac OS X.</p>
+			</article>
+			<article>
+				<img src="media/img/ft_integration.png">
+				<h3>Desktop integration</h3>
+				<p>System tray minimization, desktop notifications, multimedia keys…</p>
+			</article>
+			<article>
+				<img src="media/img/ft_plugins.png">
+				<h3>Plugins</h3>
+				<p>Artwork and lyrics are just two of the plugins bundled with the player. Discover a whole world of features provided through the powerful plugin api. Muine playlist, last.fm integration, playing history, party mode… you name it!</p>
+			</article>
+			<article>
+				<img src="media/img/ft_themes.png">
+				<h3>Themes</h3>
+				<p>Choose between a bright and dark theme to better integrate Eina into your desktop.</p>
+			</article>
+		</section>
 
-<p>Apart from simplicity, today users expect more from a player than just reading files. Artwork, lyrics, network support, artist data and other music information find their right place in Eina.</p>
+		
 
-<p>Plugins can take care of all the extra functionality, since Eina exposes everything from its internals. It's fairly easy to extend the player capabilities and change the way it works inside. Feel free to request new features and make things the way you like.</p>
+	</div> <!-- content -->
+	</div> <!-- wrapper -->
 
-<h2>Based on free technology</h2>
+	<footer>
+		<section>
+			<div>
+				<h3>dadas</h3>
+				<ul>
+					<li>adasd</li>
+					<li>adasd</li>
+				</ul>
+			</div>
+		</section>
+	</footer>
 
-<p>Eina is written in plain C, using Gtk+-3.0 for the graphic interface and GStreamer for playback.
-Gtk means portatility, accesibility, and internationalization. GStreamer means extensibility and support for every audio format out there. These two elements make Eina an unlimited application. (Someone said emacs support?)</p>
-
-<p>By the way, Eina is also free (as in free beer) software. Eina is licensed under GPL-2 or later.</p>
-      </section>
-
-    </div>
-    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
-  </body>
+	</body>
 </html>
