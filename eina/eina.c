@@ -90,6 +90,9 @@ app_command_line_cb (EinaApplication *self, GApplicationCommandLine *command_lin
 	if (state != LOMO_STATE_INVALID)
 		lomo_player_set_state(lomo, state, NULL);
 
+	if (opt_clear)
+		lomo_player_clear(lomo);
+
 	if (opt_uris)
 	{
 		GFile **gfiles = g_new0(GFile*, g_strv_length(opt_uris));
