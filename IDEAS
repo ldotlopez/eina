@@ -1,0 +1,9 @@
+* Arreglar jaleo de makefiels, usar un xxxx.mk para agrupar los datos comunes como source files ertc
+* Fix MPRIS
+* Caracteristicas experimentales promocionables (--enable-experimental)
+* Muine como SQLplaylist generic
+* Reescribir ADB
+* Cover mega-update
+- Reconocer tags de cover
+* Guardar stars en el fichero
+* ADB debe tener algun sistema para ver si el fichero ha sido modificado
