@@ -51,7 +51,8 @@ eina_clutty_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	if (GTK_IS_WIDGET(priv->prev_render))
 		g_object_ref(priv->prev_render);
 
-	gtk_clutter_init(NULL, NULL);
+	if (gtk_clutter_init(NULL, NULL) != CLUTTER_INIT_SUCCESS)
+		g_warning("Failed to init clutter-gtk");
 
 	priv->renderer = (GtkWidget *) eina_cover_clutter_new();
 	eina_cover_set_renderer(cover, priv->renderer);
