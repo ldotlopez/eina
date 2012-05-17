@@ -33,6 +33,11 @@ const gchar *lomo_em_art_provider_get_default_cover_uri (void);
 const gchar *lomo_em_art_provider_get_loading_cover_path(void);
 const gchar *lomo_em_art_provider_get_loading_cover_uri (void);
 
+/**
+ * LOMO_STREAM_EM_ART_DATA:
+ *
+ * Defines the key for extended metadata
+ */
 #define LOMO_STREAM_EM_ART_DATA "art-data"
 
 #define lomo_em_art_value_equal_to(v,x) \
