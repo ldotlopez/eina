@@ -1,3 +1,9 @@
+eina-player (0.15.0-0extras12.04.0) precise; urgency=low
+
+  * Release for oneiric (extras)
+
+ -- Luis Lopez <luis@cuarentaydos.com>  Thu, 17 May 2012 10:16:12 +0200
+
 eina-player (0.13.91-ppa0) oneiric; urgency=low
 
   * New upstream release
