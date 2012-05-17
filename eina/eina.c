@@ -116,6 +116,14 @@ app_command_line_cb (EinaApplication *self, GApplicationCommandLine *command_lin
 
 gint main(gint argc, gchar *argv[])
 {
+	// Setup environment variables as soon as posible
+	gchar *tmp = g_build_filename(PACKAGE_PREFIX, "share", "glib-2.0", "schemas", NULL);
+	g_setenv("GSETTINGS_SCHEMA_DIR", tmp, TRUE);
+	g_free(tmp);
+
+	// Pulse audio
+	g_setenv("PULSE_PROP_media.role", "audio", TRUE);
+
 	// Minimal bootstrap (gtype system and libgel)
 	g_type_init();
 	gel_init(PACKAGE, PACKAGE_LIB_DIR, PACKAGE_DATA_DIR);
@@ -156,11 +164,8 @@ gint main(gint argc, gchar *argv[])
 
 	eina_stock_init();
 
-	// Pulse audio
-	g_setenv("PULSE_PROP_media.role", "audio", TRUE);
-
 	// Setup GI_TYPELIB_PATH
-	gchar *tmp = g_build_filename(PACKAGE_PREFIX, "lib", "girepository-1.0", NULL);
+	tmp = g_build_filename(PACKAGE_PREFIX, "lib", "girepository-1.0", NULL);
 	GSList *curr_paths = g_irepository_get_search_path();
 	GSList *iter = curr_paths;
 	while (iter && (g_strcmp0(tmp, (gchar *) iter->data) != 0))
@@ -168,11 +173,6 @@ gint main(gint argc, gchar *argv[])
 
 	if (iter == NULL)
 		g_irepository_prepend_search_path(tmp);
-	g_free(tmp);
-
-	// Setup GSETTINGS_SCHEMA_DIR
-	tmp = g_build_filename(PACKAGE_PREFIX, "share", "glib-2.0", "schemas", NULL);
-	g_setenv("GSETTINGS_SCHEMA_DIR", tmp, FALSE);
 	g_free(tmp);
 
 	// Misc stuff
