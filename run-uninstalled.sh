@@ -31,15 +31,19 @@ export VACA_THEME_PATH="$EINA_UI_PATH"
 
 
 if [ ! -z "$(which glib-compile-schemas)" ]; then
-	mkdir -p "$R/schemas"
+	EINA_DATA_DIR="$R/share"
+	EINA_SCHEMAS_DIR="$EINA_DATA_DIR/glib-2.0/schemas"
+	[ -d "$EINA_SCHEMAS_DIR" ] || mkdir -p "$EINA_SCHEMAS_DIR"
+
 	for schema in $(find "$D/data" "$D/plugins" -name '*gschema.valid' | sed -e 's,.valid$,.xml,')
 	do
 		echo "[*] Added schema $(basename -- $schema)"
-		ln -s "$schema" "$R/schemas/$(basename -- $schema)"
+		ln -s "$schema" "$EINA_SCHEMAS_DIR/$(basename -- $schema)"
 	done
 
-	export GSETTINGS_SCHEMA_DIR="$R/schemas"
-	glib-compile-schemas "$GSETTINGS_SCHEMA_DIR"
+	export XDG_DATA_DIRS="$EINA_DATA_DIR:$XDG_DATA_DIRS"
+	export GSETTINGS_SCHEMA_DIR="$EINA_SCHEMAS_DIR" # Backwards compatibility
+	glib-compile-schemas "$EINA_SCHEMAS_DIR"
 fi
 
 # DConf
