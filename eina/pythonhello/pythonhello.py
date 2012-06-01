@@ -3,7 +3,7 @@ from gi.repository import GObject, Eina
 class PythonHelloPlugin(GObject.Object, Eina.Activatable):
 	__gtype_name__ = 'PythonHelloPlugin'
 
-	application = GObject.property(type=GObject.GObject)
+	application = GObject.property(type = Eina.Application)
 
 	def do_activate(self, app):
 		print "Python test plugin, display current playlist:"

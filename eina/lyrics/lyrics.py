@@ -105,7 +105,7 @@ class LyricsPlugin(GObject.Object, Eina.Activatable):
     """Creates a new dock tab which shows the lyrics for the current stream"""
 
     __gtype_name__ = 'EinaLyricsPlugin'
-    application = GObject.property(type=GObject.Object)
+    application = GObject.property(type = Eina.Application)
 
     def __init__(self, *args, **kwargs):
         super(LyricsPlugin, self).__init__(*args, **kwargs)

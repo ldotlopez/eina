@@ -9,7 +9,7 @@ class StarsException(Exception): pass
 class StarsPlugin(GObject.Object, Eina.Activatable):
 	__gtype_name__ = 'EinaStarsPlugin'
 
-	application = GObject.property (type = GObject.Object)
+	application = GObject.property (type = Eina.Application)
 
 	def __init__(self):
 		GObject.Object.__init__ (self)

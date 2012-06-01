@@ -8,7 +8,7 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -54,7 +54,7 @@ ui_mng_str = """
 class PythonConsolePlugin(GObject.Object, Eina.Activatable):
 	__gtype_name__ = 'EinaPythonConsolePlugin'
 
-	application = GObject.property (type = GObject.Object)
+	application = GObject.property (type = Eina.Application)
 
 	def __init__(self):
 		GObject.Object.__init__ (self)
@@ -109,7 +109,7 @@ class PythonConsolePlugin(GObject.Object, Eina.Activatable):
 			console.set_size_request(600, 400)
 
 			v = {
-				'Eina' : _(u"Eina namespace")          , 
+				'Eina' : _(u"Eina namespace")          ,
 				'Lomo' : _(u"Lomo namespace")          ,
 				'app'  : _(u"EinaApplication instance"),
 				'core' : _(u"LomoPlayer instance")     }
