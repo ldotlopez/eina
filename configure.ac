@@ -320,7 +320,13 @@ esac
 dnl
 dnl Clutter (core, fieshta)
 dnl
-CLUTTER_GTK_VERSION="1.0.0"
+AC_ARG_WITH([clutter-gtk],
+    [AS_HELP_STRING([--with-clutter-gtk],
+        [disable support for clutter-gtk])],
+    [],
+    [with_clutter_gtk=yes])
+AS_IF([test "x$with_clutter_gtk" != xno],
+[CLUTTER_GTK_VERSION="1.0.0"
 clutter_modules="clutter-gtk-1.0 >= $CLUTTER_GTK_VERSION"
 PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 [
@@ -339,13 +345,19 @@ PKG_CHECK_MODULES(CLUTTER_GTK, $clutter_modules,
 [
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLUTTER_GTK=0"
 	HAVE_CLUTTER_GTK=no
-])
+])])
 AM_CONDITIONAL(USE_CLUTTER_GTK, test x"$HAVE_CLUTTER_GTK" = "xyes")
 
 dnl
 dnl clastfm
 dnl
-CLASTFM_VERSION="0.4"
+AC_ARG_WITH([clastfm],
+    [AS_HELP_STRING([--with-clastfm],
+        [disable support for clastfm])],
+    [],
+    [with_clastfm=yes])
+AS_IF([test "x$with_clastfm" != xno],
+[CLASTFM_VERSION="0.4"
 clastfm_modules="libclastfm >= $CLASTFM_VERSION"
 PKG_CHECK_MODULES(CLASTFM, $clastfm_modules,
 [
@@ -358,13 +370,19 @@ PKG_CHECK_MODULES(CLASTFM, $clastfm_modules,
 [
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_CLASTFM=0"
 	HAVE_CLASTFM=no
-])
+])])
 AM_CONDITIONAL(USE_CLASTFM, test x"$HAVE_CLASTFM" = "xyes")
 
 dnl
 dnl notify (ntfy)
 dnl
-notify_modules="libnotify >= 0.7.0"
+AC_ARG_WITH([libnotify],
+    [AS_HELP_STRING([--with-libnotify],
+        [disable support for libnotify])],
+    [],
+    [with_libnotify=yes])
+AS_IF([test "x$with_libnotify" != xno],
+[notify_modules="libnotify >= 0.7.0"
 PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 [
 	AC_SUBST(NOTIFY_CFLAGS)
@@ -385,11 +403,18 @@ PKG_CHECK_MODULES(NOTIFY, $notify_modules,
 		EINA_CFLAGS="$EINA_CFLAGS -DHAVE_NOTIFY=0"
 		HAVE_NOTIFY=no
 	])
-])
+])])
 
 dnl
 dnl indicate (!mpris)
 dnl
+AC_ARG_WITH([indicate],
+    [AS_HELP_STRING([--with-indicate],
+        [disable support for indicate])],
+    [],
+    [with_indicate=yes])
+AS_IF([test "x$with_indicate" != xno],
+[
 INDICATE_VERSION="0.5.0"
 indicate_modules="indicate-0.5 >= $INDICATE_VERSION"
 PKG_CHECK_MODULES(INDICATE, $indicate_modules,
@@ -412,11 +437,18 @@ PKG_CHECK_MODULES(INDICATE, $indicate_modules,
 		[
 			HAVE_INDICATE=no
 		])
-	])
+	])])
 
 dnl
 dnl sqlite3 (!core, adb)
 dnl
+AC_ARG_WITH([sqlite3],
+    [AS_HELP_STRING([--with-sqlite3],
+        [disable support for sqlite3])],
+    [],
+    [with_sqlite3=yes])
+AS_IF([test "x$with_sqlite3" != xno],
+[
 SQLITE3_VERSION="3.2.0"
 sqlite3_modules="sqlite3 >= $SQLITE3_VERSION"
 PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
@@ -431,7 +463,7 @@ PKG_CHECK_MODULES(SQLITE3, $sqlite3_modules,
 			SQLITE3_LIBS="-lsqlite3"
 		fi
 	]
-	)
+	)])
 if test x"$HAVE_SQLITE3" = "xyes"; then
 	EINA_CFLAGS="$EINA_CFLAGS -DHAVE_SQLITE3=1"
 	AC_SUBST(SQLITE3_CFLAGS)
