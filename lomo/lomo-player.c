@@ -103,9 +103,9 @@ get_state(GstElement *pipeline);
 static gboolean
 set_position(GstElement *pipeline, GstFormat format, gint64 position);
 static gboolean
-get_position(GstElement *pipeline, GstFormat *format, gint64 *position);
+get_position(GstElement *pipeline, GstFormat format, gint64 *position);
 static gboolean
-get_length(GstElement *pipeline, GstFormat *format, gint64 *duration);
+get_length(GstElement *pipeline, GstFormat format, gint64 *duration);
 static gboolean
 set_volume(GstElement *pipeline, gint volume);
 
@@ -1641,11 +1641,9 @@ lomo_player_get_position(LomoPlayer *self)
 	if (!priv->pipeline || (lomo_player_get_current(self) < 0))
 		return -1;
 
-	GstFormat gst_format = GST_FORMAT_TIME;
 	gint64 ret;
-	if (!priv->vtable.get_position(priv->pipeline, &gst_format, &ret))
+	if (!priv->vtable.get_position(priv->pipeline, GST_FORMAT_TIME, &ret))
 		return -1;
-	g_return_val_if_fail(gst_format == GST_FORMAT_TIME, -1);
 
 	return ret;
 }
@@ -1696,11 +1694,9 @@ lomo_player_get_length(LomoPlayer *self)
 	if ((priv->pipeline == NULL) || (lomo_player_get_current(self) < 0))
 		return -1;
 
-	GstFormat gst_format = GST_FORMAT_TIME;
 	gint64 ret;
-	if (!priv->vtable.get_length(priv->pipeline, &gst_format, &ret))
+	if (!priv->vtable.get_length(priv->pipeline, GST_FORMAT_TIME, &ret))
 		return -1;
-	g_return_val_if_fail(gst_format == GST_FORMAT_TIME, -1);
 
 	return ret;
 }
@@ -2607,7 +2603,7 @@ set_uri(GstElement *old_pipeline, const gchar *uri, GHashTable *opts)
 	if (old_pipeline && (get_state(old_pipeline) != GST_STATE_NULL))
 		set_state(old_pipeline, GST_STATE_NULL);
 
-	GstElement *ret = old_pipeline ? old_pipeline : gst_element_factory_make("playbin2", "playbin2");
+	GstElement *ret = old_pipeline ? old_pipeline : gst_element_factory_make("playbin", "playbin");
 	const gchar *audio_sink_str = (const gchar *) g_hash_table_lookup(opts, (gpointer) "audio-output");
 	if (audio_sink_str == NULL)
 			audio_sink_str = "autoaudiosink";
@@ -2652,13 +2648,13 @@ set_position(GstElement *pipeline, GstFormat format, gint64 position)
 }
 
 static gboolean
-get_position(GstElement *pipeline, GstFormat *format, gint64 *position)
+get_position(GstElement *pipeline, GstFormat format, gint64 *position)
 {
 	return gst_element_query_position(pipeline, format, position);
 }
 
 static gboolean
-get_length(GstElement *pipeline, GstFormat *format, gint64 *duration)
+get_length(GstElement *pipeline, GstFormat format, gint64 *duration)
 {
 	return gst_element_query_duration(pipeline, format, duration);
 }

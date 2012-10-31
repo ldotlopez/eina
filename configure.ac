@@ -219,7 +219,7 @@ COMMON_CFLAGS="\
 
 GLIB_API_VERSION="2.0"
 GTK_API_VERSION="3.0"
-GST_API_VERSION="0.10"
+GST_API_VERSION="1.0"
 PEAS_API_VERSION="1.0"
 
 GLIB_VERSION="2.28.0"
@@ -236,7 +236,7 @@ gtk_modules="\
 	gtk+-$GTK_API_VERSION >= $GTK_VERSION \
 	"
 gst_modules="\
-	gstreamer-0.10 >= $GST_VERSION \
+	gstreamer-1.0 >= $GST_VERSION \
 	"
 peas_modules="\
 	libpeas-$PEAS_API_VERSION >= $PEAS_VERSION \

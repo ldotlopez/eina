@@ -138,6 +138,9 @@ lomo_em_art_infolder_sync_backend_search(LomoEMArtBackend *backend, LomoEMArtSea
 void
 lomo_em_art_embeded_metadata_backend_search(LomoEMArtBackend *backend, LomoEMArtSearch *search, gpointer data)
 {
+	/* XXX: Port to Gstreamer1.0 */
+
+	#if 0
 	LomoStream *stream = lomo_em_art_search_get_stream(search);
 
 	debug("Stream %p all-tags: %s", stream, lomo_stream_get_all_tags_flag(stream) ? "yes" : "no");
@@ -150,6 +153,8 @@ lomo_em_art_embeded_metadata_backend_search(LomoEMArtBackend *backend, LomoEMArt
 		lomo_em_art_backend_finish(backend, search);
 		return;
 	}
+
+	return;
 
 	GstBuffer *buffer  = GST_BUFFER(gst_value_get_buffer (v));
 	GstCaps *caps = GST_BUFFER_CAPS(buffer);
@@ -175,5 +180,6 @@ lomo_em_art_embeded_metadata_backend_search(LomoEMArtBackend *backend, LomoEMArt
 	}
 
 	lomo_em_art_backend_finish(backend, search);
+	#endif
 }
 

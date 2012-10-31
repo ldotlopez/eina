@@ -268,7 +268,6 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 	GstState old, new, pending;
 	GstTagList *tags = NULL;
 
-	GstFormat duration_format = GST_FORMAT_TIME;
 	gint64 duration = -1;
 
 	// Handle some messages
@@ -324,15 +323,8 @@ bus_watcher (GstBus *bus, GstMessage *message, LomoMetadataParser *self)
 disconnect:
 
 	// Set duration on LomoStream
-	if (gst_element_query_duration(priv->pipeline, &duration_format, &duration))
-	{
-		if (duration_format != GST_FORMAT_TIME)
-		{
-			g_warn_if_fail(duration_format == GST_FORMAT_TIME);
-			duration = -1;
-		}
+	if (gst_element_query_duration(priv->pipeline, GST_FORMAT_TIME, &duration))
 		lomo_stream_set_length(priv->stream, duration);
-	}
 	else
 		g_warning("Unable to query duration");
 

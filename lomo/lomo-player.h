@@ -84,9 +84,9 @@ typedef struct {
 	GstStateChangeReturn (*set_state) (GstElement *pipeline, GstState state);
 	GstState             (*get_state) (GstElement *pipeline);
 
-	gboolean (*set_position) (GstElement *pipeline, GstFormat  format, gint64  position);
-	gboolean (*get_position) (GstElement *pipeline, GstFormat *format, gint64 *position);
-	gboolean (*get_length)   (GstElement *pipeline, GstFormat *format, gint64 *duration);
+	gboolean (*set_position) (GstElement *pipeline, GstFormat format, gint64  position);
+	gboolean (*get_position) (GstElement *pipeline, GstFormat format, gint64 *position);
+	gboolean (*get_length)   (GstElement *pipeline, GstFormat format, gint64 *duration);
 
 	// 0 lowest, 100 highest (there is not a common range over all posible
 	// sinks, so make it relative and let vfunc set it
