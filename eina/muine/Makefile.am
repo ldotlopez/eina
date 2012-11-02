@@ -9,15 +9,16 @@ libmuine_la_SOURCES = \
 	eina-muine.h        \
 	eina-muine-ui.h     \
 	eina-muine-plugin.h \
-	eina-muine-plugin.c
+	eina-muine-plugin.c \
+	resources.c
 
 plugin_DATA = \
 	muine.plugin
 
-eina_ui2h_ui = eina-muine.ui
-eina_ui2h_name = __eina_muine_ui_xml
-include $(top_srcdir)/build/Makefile.am.ui2h
+eina_gresources_xml  = resources.xml
+eina_gresources_name = eina_muine
+include $(top_srcdir)/build/Makefile.am.gresources
 
-EXTRA_DIST += $(plugin_DATA)
+EXTRA_DIST += $(plugin_DATA) resources.xml.in
 
 -include $(top_srcdir)/git.mk

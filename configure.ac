@@ -542,6 +542,7 @@ eina/lyrics/Makefile
 eina/mpris/mpris.plugin
 eina/mpris/Makefile
 eina/muine/muine.plugin
+eina/muine/resources.xml
 eina/muine/Makefile
 eina/ntfy/ntfy.plugin
 eina/ntfy/Makefile
