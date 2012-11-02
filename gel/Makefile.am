@@ -34,6 +34,7 @@ libgel_2_0_la_SOURCES = \
 	gel-misc.c                \
 	gel-str-parser.c          \
 	gel-marshallers.c         \
+	gel-io-resources.c        \
 	gel-io-scanner.c
 
 libgel_uidir = $(common_geldir)

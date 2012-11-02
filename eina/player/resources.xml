@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="/net/sourceforge/eina/player">
+	  <file preprocess="xml-stripblanks" compressed="true">eina-player.ui</file>
+	  <file preprocess="to-pixdata" compressed="true">cover-mask.png</file>
+	</gresource>
+</gresources>

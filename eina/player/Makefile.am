@@ -19,27 +19,17 @@ libplayer_la_SOURCES = \
 	eina-cover-image.c \
 	eina-seek.c        \
 	eina-player.c      \
-	eina-player-plugin.c
+	eina-player-plugin.c \
+	resources.c
 
-plugin_DATA = preferences.ui player.plugin
+plugin_DATA = player.plugin
 
-eina-cover-image-mask.h: $(top_srcdir)/pixmaps/cover-mask.png
-	$(AM_V_GEN)$(GDK_PIXBUF_CSOURCE) --raw --name=__cover_mask_png $<  > $@
+eina_gresource_xml = resources.xml
+eina_gresource_name = eina_player_resources
+include $(top_srcdir)/build/Makefile.am.gresources
 
-png_h_files = \
-	eina-cover-image-mask.h
-
-CLEANFILES += $(png_h_files)
-DISTCLEANFILES += $(png_h_files)
-BUILT_SOURCES += $(png_h_files)
-EXTRA_DIST += $(png_h_files)
-MAINTAINERCLEANFILES += $(png_h_files)
-libplayer_la_SOURCES += $(png_h_files)
-
-eina_ui2h_ui = eina-player.ui
-eina_ui2h_name = __eina_player_ui_xml
-include $(top_srcdir)/build/Makefile.am.ui2h
-
-EXTRA_DIST += $(plugin_DATA)
+EXTRA_DIST += \
+	$(plugin_DATA) \
+	eina-player.ui cover-mask.png
 
 -include $(top_srcdir)/git.mk
