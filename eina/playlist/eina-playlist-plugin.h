@@ -20,7 +20,7 @@
 #ifndef __EINA_PLAYLIST_PLUGIN_H__
 #define __EINA_PLAYLIST_PLUGIN_H__
 
-#include <eina/ext/eina-application.h>
+#include <eina/core/eina-application.h>
 #include <eina/playlist/eina-playlist.h>
 
 EinaPlaylist *

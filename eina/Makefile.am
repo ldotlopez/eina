@@ -1,6 +1,6 @@
 include $(top_srcdir)/build/Makefile.am.common
 
-SUBDIRS = ext   \
+SUBDIRS = core    \
 	dbus          \
 	dock          \
 	fieshta       \
@@ -41,7 +41,7 @@ SUBDIRS += osx
 endif
 
 bin_PROGRAMS = eina
-eina_LDADD = $(top_builddir)/eina/ext/.libs/libeinaext.la
+eina_LDADD = $(top_builddir)/eina/core/.libs/libeinaext.la
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_LDFLAGS = \
 	@EINA_LIBS@
@@ -82,12 +82,12 @@ Eina_0_14_gir_PROGRAM = $(top_builddir)/eina/eina
 #	$(top_builddir)/playlist/libplaylist.la
 #   ...
 Eina_0_16_gir_FILES = $(eina_SOURCES) $(include_HEADERS) \
-	$(top_srcdir)/eina/ext/eina-application.h  \
-	$(top_srcdir)/eina/ext/eina-application.c  \
-	$(top_srcdir)/eina/ext/eina-activatable.h  \
-	$(top_srcdir)/eina/ext/eina-activatable.c  \
-	$(top_srcdir)/eina/ext/eina-window.h       \
-	$(top_srcdir)/eina/ext/eina-window.c       \
+	$(top_srcdir)/eina/core/eina-application.h  \
+	$(top_srcdir)/eina/core/eina-application.c  \
+	$(top_srcdir)/eina/core/eina-activatable.h  \
+	$(top_srcdir)/eina/core/eina-activatable.c  \
+	$(top_srcdir)/eina/core/eina-window.h       \
+	$(top_srcdir)/eina/core/eina-window.c       \
 	\
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.h \
 	$(top_srcdir)/eina/lomo/eina-lomo-plugin.c \

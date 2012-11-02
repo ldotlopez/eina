@@ -517,7 +517,7 @@ icons/Makefile
 icons/hicolor/Makefile
 gel/Makefile
 eina/Makefile
-eina/ext/Makefile
+eina/core/Makefile
 eina/adb/adb.plugin
 eina/adb/Makefile
 eina/clutty/clutty.plugin

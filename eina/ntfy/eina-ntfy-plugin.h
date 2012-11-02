@@ -20,7 +20,7 @@
 #ifndef __EINA_NTFY_PLUGIN_H__
 #define __EINA_NTFY_PLUGIN_H__
 
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 
 G_BEGIN_DECLS
 

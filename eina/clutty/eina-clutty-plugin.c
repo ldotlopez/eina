@@ -18,7 +18,7 @@
  */
 
 #include "eina-cover-clutter.h"
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/player/eina-player-plugin.h>
 
 

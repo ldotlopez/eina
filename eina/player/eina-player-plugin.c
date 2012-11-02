@@ -19,9 +19,9 @@
 
 #include "eina-player-plugin.h"
 #include <lomo/lomo-em-art-provider.h>
-#include <eina/ext/eina-fs.h>
-#include <eina/ext/eina-stock.h>
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-fs.h>
+#include <eina/core/eina-stock.h>
+#include <eina/core/eina-extension.h>
 #include <eina/dock/eina-dock-plugin.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>

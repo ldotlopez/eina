@@ -18,7 +18,7 @@
  */
 
 #include "eina-fieshta-behaviour.h"
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
 #define DEBUG_PREFIX "EinaFieshta"
