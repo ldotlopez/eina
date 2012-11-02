@@ -1,8 +1,8 @@
 # Rules for generating -ui.h files using gresource
 #
 # Define:
-# 	eina_gresource_xml = GtkBuilder compatible interface definition file
-# 	eina_gresource_name = name for the variable
+# 	eina_gresources_xml = GtkBuilder compatible interface definition file
+# 	eina_gresources_name = name for the variable
 #
 # before including Makefile.am.gresource. You will also need to have
 # the following targets already defined:
@@ -15,22 +15,22 @@
 # Author: Luis Lopez <luis.lopez@cuarentaydos.com>
 # (based on Makefile.am.marshal from Emmanuele Bassi <ebassi@linux.intel.com>)
 
-gresource_h = $(eina_gresource_xml:.xml=.h)
-gresource_c = $(eina_gresource_xml:.xml=.c)
+gresources_h = $(eina_gresources_xml:.xml=.h)
+gresources_c = $(eina_gresources_xml:.xml=.c)
 
 CLEANFILES += stamp-gresource
-DISTCLEANFILES += $(gresource_h) $(gresource_c)
-BUILT_SOURCES += $(gresource_h) $(gresource_c)
-EXTRA_DIST += $(eina_gresource_xml)
+DISTCLEANFILES += $(gresources_h) $(gresources_c)
+BUILT_SOURCES += $(gresources_h) $(gresources_c)
+EXTRA_DIST += $(eina_gresources_xml)
 
-stamp-gresource: $(eina_gresource_xml)
-	$(AM_V_GEN)$(GLIB_COMPILE_RESOURCES) --generate-source $(eina_gresource_xml) --c-name $(eina_gresource_name) --target $(gresource_c) \
-	&& $(GLIB_COMPILE_RESOURCES) --generate-header $(eina_gresource_xml) --c-name $(eina_gresource_name) --target $(gresource_h) \
+stamp-gresource: $(eina_gresources_xml)
+	$(AM_V_GEN)$(GLIB_COMPILE_RESOURCES) --generate-source $(eina_gresources_xml) --c-name $(eina_gresources_name) --target $(gresources_c) \
+	&& $(GLIB_COMPILE_RESOURCES) --generate-header $(eina_gresources_xml) --c-name $(eina_gresources_name) --target $(gresources_h) \
 	&& echo timestamp > $(@F)
 
-$(gresource_h): stamp-gresource
+$(gresources_h): stamp-gresource
 	@true
 
-$(gresource_c): stamp-gresource
+$(gresources_c): stamp-gresource
 	@true
 

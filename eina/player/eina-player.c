@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "eina-player.h"
 #include <glib/gi18n.h>
 #include <gel/gel-io.h>
@@ -24,13 +28,10 @@
 #include "eina-seek.h"
 #include "eina-cover.h"
 #include "eina-cover-image.h"
-#include "resources.h"
 
 G_DEFINE_TYPE (EinaPlayer, eina_player, GEL_UI_TYPE_GENERIC)
 
 struct _EinaPlayerPrivate {
-  	GResource *resource;
-
 	// Props.
 	LomoPlayer *lomo;
 
@@ -152,7 +153,7 @@ GtkWidget*
 eina_player_new (void)
 {
 	gchar *xml_string = NULL;
-	gel_io_resources_load_file_contents_or_error("/net/sourceforge/eina/player/eina-player.ui", &xml_string, NULL);
+	gel_io_resources_load_file_contents_or_error(EINA_APP_PATH_DOMAIN "/player/main.ui", &xml_string, NULL);
 
 	EinaPlayer *self = EINA_PLAYER(g_object_new (EINA_TYPE_PLAYER,
 		"xml-string", xml_string,

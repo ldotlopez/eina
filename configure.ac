@@ -548,8 +548,10 @@ eina/ntfy/Makefile
 eina/osx/osx.plugin
 eina/osx/Makefile
 eina/player/player.plugin
+eina/player/resources.xml
 eina/player/Makefile
 eina/playlist/playlist.plugin
+eina/playlist/resources.xml
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile

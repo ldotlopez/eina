@@ -24,8 +24,8 @@ libplayer_la_SOURCES = \
 
 plugin_DATA = player.plugin
 
-eina_gresource_xml = resources.xml
-eina_gresource_name = eina_player_resources
+eina_gresources_xml = resources.xml
+eina_gresources_name = eina_player_resources
 include $(top_srcdir)/build/Makefile.am.gresources
 
 EXTRA_DIST += \
