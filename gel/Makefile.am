@@ -16,6 +16,7 @@ libgel_include_HEADERS = \
 	gel-misc.h              \
 	gel-str-parser.h        \
 	gel-io.h                \
+	gel-io-resources.h      \
 	gel-io-scanner.h
 
 libgel_ui_includedir = $(common_includedir)

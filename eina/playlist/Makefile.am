@@ -19,11 +19,12 @@ libplaylist_la_SOURCES = \
 plugin_DATA = playlist.plugin
 
 eina_gresources_xml = resources.xml
-eina_gresources_name = eina_playlist_resources
+eina_gresources_name = eina_playlist
 include $(top_srcdir)/build/Makefile.am.gresources
 
 EXTRA_DIST += \
-	$(plugin_DATA) \
+	$(plugin_DATA)   \
+	resources.xml.in \
 	main.ui
 
 -include $(top_srcdir)/git.mk

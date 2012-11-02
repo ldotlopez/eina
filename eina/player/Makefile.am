@@ -25,11 +25,13 @@ libplayer_la_SOURCES = \
 plugin_DATA = player.plugin
 
 eina_gresources_xml = resources.xml
-eina_gresources_name = eina_player_resources
+eina_gresources_name = eina_player
 include $(top_srcdir)/build/Makefile.am.gresources
 
 EXTRA_DIST += \
-	$(plugin_DATA) \
-	eina-player.ui cover-mask.png
+	$(plugin_DATA)   \
+	resources.xml.in \
+	main.ui preferences.ui \
+	cover-mask.png
 
 -include $(top_srcdir)/git.mk
