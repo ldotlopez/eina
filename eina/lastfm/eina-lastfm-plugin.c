@@ -19,10 +19,15 @@
 
 #define _POSIX_SOURCE
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "lastfm-priv.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <gel/gel-io.h>
 #include <gel/gel-ui.h>
 #include <eina/core/eina-fs.h>
 #include <eina/core/eina-extension.h>
@@ -101,21 +106,21 @@ lastfm_plugin_build_preferences(EinaLastfmPlugin *plugin)
 	g_return_if_fail(EINA_IS_LASTFM_PLUGIN(plugin));
 	EinaLastfmPluginPrivate *priv = plugin->priv;
 
-	gchar *datadir = peas_extension_base_get_data_dir(PEAS_EXTENSION_BASE(plugin));
-	gchar *prefs_ui_path = g_build_filename(datadir, "preferences.ui", NULL);
-	g_free(datadir);
+	gchar *prefs_ui_str = NULL;
+	gel_io_resources_load_file_contents_or_error(EINA_APP_PATH_DOMAIN"/lastfm/preferences.ui", &prefs_ui_str, NULL);
 
-	GtkWidget *prefs_ui = gel_ui_generic_new_from_file(prefs_ui_path);
-	g_free(prefs_ui_path);
+	GtkWidget *prefs_ui = gel_ui_generic_new(prefs_ui_str);
+	g_free(prefs_ui_str);
 	if (!prefs_ui)
 	{
 		g_warning(N_("Cannot create preferences UI"));
 		return;
 	}
 
-	gchar *icon_filename = g_build_filename(datadir, "lastfm.png", NULL);
-	GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(icon_filename, 16, 16, TRUE, NULL);
-	gel_free_and_invalidate(icon_filename, NULL, g_free);
+	GError *error = NULL;
+	GdkPixbuf *pb = gdk_pixbuf_new_from_resource_at_scale(EINA_APP_PATH_DOMAIN"/lastfm/lastfm.png", 16, 16, TRUE, &error);
+	if (!pb)
+		g_error("Can't load lastfm.png: %s", error->message);
 
 	priv->prefs_tab = eina_preferences_tab_new();
 	g_object_set(priv->prefs_tab,

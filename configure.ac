@@ -534,6 +534,7 @@ eina/hipster/Makefile
 eina/importer/importer.plugin
 eina/importer/Makefile
 eina/lastfm/lastfm.plugin
+eina/lastfm/resources.xml
 eina/lastfm/Makefile
 eina/lomo/lomo.plugin
 eina/lomo/Makefile
