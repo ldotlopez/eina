@@ -22,7 +22,7 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 # documenting the functions and macros.
 # e.g. DOC_SOURCE_DIR=../../../gtk
 DOC_SOURCE_DIR=\
-	../../eina/ext         \
+	../../eina/core        \
 	../../eina/dock        \
 	../../eina/lomo        \
 	../../eina/player      \
