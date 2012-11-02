@@ -109,7 +109,7 @@ GTKDOC_LIBS = \
 #GTKDOC_LIBS += $(top_builddir)/eina/ntfy/.libs/libntfy.a
 #endif
 GTKDOC_LIBS += \
-	$(top_builddir)/eina/core/libeinaext.la                 \
+	$(top_builddir)/eina/core/libeina-core.la               \
 	$(top_builddir)/eina/dock/.libs/libdock.a               \
 	$(top_builddir)/eina/lomo/.libs/liblomo.a               \
 	$(top_builddir)/eina/player/.libs/libplayer.a           \

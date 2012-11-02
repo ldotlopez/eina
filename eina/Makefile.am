@@ -41,7 +41,7 @@ SUBDIRS += osx
 endif
 
 bin_PROGRAMS = eina
-eina_LDADD = $(top_builddir)/eina/core/.libs/libeinaext.la
+eina_LDADD = $(top_builddir)/eina/core/.libs/libeina-core.la
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_LDFLAGS = \
 	@EINA_LIBS@
