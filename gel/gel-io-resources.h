@@ -22,6 +22,11 @@
 #ifndef _GEL_IO_RESOURCES
 #define _GEL_IO_RESOURCES
 
+GFile *gel_io_file_new(const gchar *path_or_uri);
+
+GInputStream *gel_io_open(const gchar *path_or_uri, GError **error);
+GInputStream *gel_io_open_or_error(const gchar *path_or_uri);
+
 gboolean gel_io_resources_load_file_contents(const gchar *path, gchar **contents, gsize *length, GError **error);
 
 #define gel_io_resources_load_file_contents_or_error(path,contents,length) \

@@ -518,7 +518,9 @@ icons/Makefile
 icons/hicolor/Makefile
 gel/Makefile
 eina/Makefile
+eina/resources.xml
 eina/core/Makefile
+eina/data/Makefile
 eina/adb/adb.plugin
 eina/adb/Makefile
 eina/clutty/clutty.plugin
@@ -567,7 +569,6 @@ eina/stars/stars.plugin
 eina/stars/Makefile
 Makefile
 lomo/Makefile
-pixmaps/Makefile
 po/Makefile.in
 osx/Makefile
 osx/Info.plist

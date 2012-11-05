@@ -18,7 +18,7 @@
 gresources_h = $(eina_gresources_xml:.xml=.h)
 gresources_c = $(eina_gresources_xml:.xml=.c)
 
-CLEANFILES += stamp-gresource
+CLEANFILES += stamp-gresource $(gresources_c) $(gresources_h)
 DISTCLEANFILES += $(gresources_h) $(gresources_c)
 BUILT_SOURCES += $(gresources_h) $(gresources_c)
 EXTRA_DIST += $(eina_gresources_xml)

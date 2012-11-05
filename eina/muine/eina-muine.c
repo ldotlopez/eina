@@ -432,8 +432,15 @@ muine_update(EinaMuine *self)
 		}
 
 		static GdkPixbuf *default_pb = NULL;
-		if (!default_pb)
-			default_pb = gdk_pixbuf_new_from_file_at_scale(lomo_em_art_provider_get_default_cover_path(), DEFAULT_SIZE, DEFAULT_SIZE, TRUE, NULL);
+		if (!default_pb) {
+			GError *e = NULL;
+			GInputStream *stream = gel_io_open(lomo_em_art_provider_get_default_cover(), &e);
+			if (stream == NULL)
+				g_error(_("Can't open `%s': %s"), lomo_em_art_provider_get_default_cover(), e->message);
+
+			default_pb = gdk_pixbuf_new_from_stream_at_scale(stream, DEFAULT_SIZE, DEFAULT_SIZE, TRUE, NULL, NULL);
+			g_input_stream_close(stream, NULL, NULL);
+		}
 
 		GtkTreeIter iter;
 		gtk_list_store_insert_with_values(model, &iter, 0,
@@ -466,10 +473,6 @@ muine_update_icon(EinaMuine *self, LomoStream *stream)
 {
 	g_return_if_fail(EINA_IS_MUINE(self));
 	g_return_if_fail(LOMO_IS_STREAM(stream));
-
-	static const gchar *loading_cover_uri = NULL;
-	if (!loading_cover_uri)
-		loading_cover_uri = lomo_em_art_provider_get_loading_cover_uri();
 
 	EinaMuinePrivate *priv = self->priv;
 

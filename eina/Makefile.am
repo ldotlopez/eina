@@ -1,6 +1,7 @@
 include $(top_srcdir)/build/Makefile.am.common
 
 SUBDIRS = core    \
+	data          \
 	dbus          \
 	dock          \
 	fieshta       \
@@ -41,7 +42,9 @@ SUBDIRS += osx
 endif
 
 bin_PROGRAMS = eina
-eina_LDADD = $(top_builddir)/eina/core/.libs/libeina-core.la
+eina_LDADD = \
+	$(top_builddir)/eina/core/.libs/libeina-core.la
+
 eina_CFLAGS = @EINA_CFLAGS@ -DEINA_COMPILATION -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 eina_LDFLAGS = \
 	@EINA_LIBS@
@@ -50,7 +53,12 @@ includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina
 include_HEADERS =
 
 eina_SOURCES = \
+	resources.c \
 	eina.c
+
+eina_gresources_xml = resources.xml
+eina_gresources_name = eina_core
+include $(top_srcdir)/build/Makefile.am.gresources
 
 include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =

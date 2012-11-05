@@ -105,7 +105,7 @@ LomoPlayer* eina_application_get_lomo(EinaApplication *application);
 #define EINA_LOMO_AUTO_PLAY_KEY       "auto-play"
 
 /**
- * EINA_LOMO_GAPLESS_MODE_KEY
+ * EINA_LOMO_GAPLESS_MODE_KEY:
  *
  * Preferences key for the gapless-mode setting
  */

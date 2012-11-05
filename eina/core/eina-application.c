@@ -42,11 +42,14 @@
 
 #include "eina-application.h"
 #include <gel/gel.h>
+#include <gel/gel-io.h>
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 #include <gdk/gdk.h>
 #include <eina/core/eina-activatable.h>
 #include <eina/core/eina-window.h>
+
+#define EINA_LOGO_URI "resource://"EINA_APP_PATH_DOMAIN"/core/data/eina.svg"
 
 G_DEFINE_TYPE (EinaApplication, eina_application, GTK_TYPE_APPLICATION)
 
@@ -262,31 +265,38 @@ eina_application_startup(GApplication *application)
 
 	G_APPLICATION_CLASS (eina_application_parent_class)->startup(G_APPLICATION(self));
 
-	// Generate iconlist for windows
-	const gint sizes[] = { 16, 32, 48, 64, 128 };
+	// Generate iconlist for windows (the biggest must be the first element. DON'T remove this comment)
+	const gint sizes[] = { 192, 128, 64, 48, 32, 16 };
 	GList *icon_list = NULL;
-	gchar *icon_filename = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "eina.svg");
-	if (icon_filename)
-	{
-		GError *e = NULL;
-		GdkPixbuf *pb = NULL;
-		for (guint i = 0; i < G_N_ELEMENTS(sizes); i++)
-		{
-			if (!(pb = gdk_pixbuf_new_from_file_at_scale(icon_filename, sizes[i], sizes[i], TRUE, &e)))
-			{
-				g_warning(N_("Unable to load resource '%s': %s"), icon_filename, e->message);
-				break;
-			}
-			else
-				icon_list = g_list_prepend(icon_list, pb);
-		}
-		gel_free_and_invalidate(e, NULL, g_error_free);
+	
+	GdkPixbuf *base_pb = NULL;
 
-		gtk_window_set_default_icon_list(icon_list);
-		gel_list_deep_free(icon_list, g_object_unref);
+	GError *e = NULL;
+	for (guint i = 0; i < G_N_ELEMENTS(sizes); i++)
+	{
+		GdkPixbuf *pb = NULL;
+		if (base_pb == NULL)
+		{
+			GError *e = NULL;
+			GInputStream *stream = gel_io_open_or_error(EINA_LOGO_URI);
+			base_pb = pb = gdk_pixbuf_new_from_stream_at_scale(stream, sizes[i], sizes[i], TRUE, NULL, &e);
+		}
+		else
+		{
+			pb = gdk_pixbuf_scale_simple(base_pb, sizes[i], sizes[i], GDK_INTERP_BILINEAR);
+		}
+
+		if (pb == NULL)
+		{
+			g_error(_("Can't load `%s'@%dx%d: %s"),
+			        EINA_LOGO_URI, sizes[i], sizes[i], e ? e->message: _("unknow error"));
+		}
+		icon_list = g_list_prepend(icon_list, pb);
 	}
-	else
-		g_warning(N_("Unable to locate resource '%s'"), "eina.svg");
+	gel_free_and_invalidate(e, NULL, g_error_free);
+
+	gtk_window_set_default_icon_list(g_list_reverse(icon_list));
+	gel_list_deep_free(icon_list, g_object_unref);
 
 	// Create main window
 	create_window(self);
@@ -445,7 +455,8 @@ eina_application_set_interface(EinaApplication *self, const gchar *name, gpointe
 }
 
 /**
- * eina_application_get_interface: (skip):
+ * eina_application_get_interface:
+ *
  * @self: An #EinaApplication
  * @name: The interface's name
  *

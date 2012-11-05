@@ -18,6 +18,40 @@
  */
 
 #include "gel-io-resources.h"
+#include <glib/gi18n.h>
+
+GFile *
+gel_io_file_new(const gchar *path_or_uri)
+{
+	static GRegex *regex = NULL;
+	if (regex == NULL)
+		regex = g_regex_new("^[a-z]+://", G_REGEX_CASELESS, 0, NULL);
+
+	if (g_regex_match(regex, path_or_uri, 0, NULL))
+		return g_file_new_for_uri(path_or_uri);
+	else
+		return g_file_new_for_path(path_or_uri);
+}
+
+GInputStream *
+gel_io_open(const gchar *path_or_uri, GError **error)
+{
+	GFile *f = gel_io_file_new(path_or_uri);
+	GInputStream *ret = G_INPUT_STREAM(g_file_read(f, NULL, error));
+	g_object_unref(f);
+
+	return ret;
+}
+
+GInputStream*
+gel_io_open_or_error(const gchar *path_or_uri)
+{
+	GError *e = NULL;
+	GInputStream *ret = gel_io_open(path_or_uri, &e);
+	if (ret == NULL)
+		g_error(_("Can't open `%s': %s"), path_or_uri, e->message);
+	return ret;
+}
 
 gboolean
 gel_io_resources_load_file_contents(const gchar *path, gchar **contents, gsize *length, GError **error)

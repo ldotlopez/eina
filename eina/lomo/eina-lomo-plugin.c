@@ -33,6 +33,9 @@
 #define EINA_IS_LOMO_PLUGIN_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k),    EINA_TYPE_LOMO_PLUGIN))
 #define EINA_LOMO_PLUGIN_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o),  EINA_TYPE_LOMO_PLUGIN, EinaLomoPluginClass
 
+#define DEFAULT_COVER_URI "resource://"EINA_APP_PATH_DOMAIN"/core/data/cover-default.png"
+#define LOADING_COVER_URI "resource://"EINA_APP_PATH_DOMAIN"/core/data/cover-loading.png"
+
 typedef struct {
 	guint timeout_id;
 	LomoPlayer *lomo;
@@ -90,6 +93,9 @@ eina_lomo_plugin_activate (EinaActivatable *activatable, EinaApplication *applic
 
 	g_signal_connect_swapped(priv->lomo, "insert", (GCallback) schedule_save_playlist, plugin);
 	g_signal_connect_swapped(priv->lomo, "clear",  (GCallback) save_playlist, plugin);
+
+	lomo_em_art_provider_set_default_cover(DEFAULT_COVER_URI);
+	lomo_em_art_provider_set_loading_cover(LOADING_COVER_URI);
 
 	return TRUE;
 }

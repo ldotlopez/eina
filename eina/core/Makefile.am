@@ -5,6 +5,7 @@ noinst_LTLIBRARIES = libeina-core.la
 libeina_core_la_LDFLAGS = @EINA_LIBS@
 libeina_core_la_CFLAGS = @EINA_CFLAGS@
 includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/core
+
 include_HEADERS = \
 	eina-application.h         \
 	eina-activatable.h         \

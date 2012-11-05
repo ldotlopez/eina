@@ -47,6 +47,7 @@ EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin, eina_player_plug
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
+#define EINA_LOGO_URI "resource://"EINA_APP_PATH_DOMAIN"/core/eina.svg"
 
 static void
 player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app);
@@ -111,12 +112,19 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	EinaPlayerPlugin      *plugin = EINA_PLAYER_PLUGIN(activatable);
 	EinaPlayerPluginPrivate *priv = plugin->priv;
 
+	const gchar *default_cover_uri = lomo_em_art_provider_get_default_cover();
+	GError *e = NULL;
+
+	GInputStream *stream = NULL;
+	stream = gel_io_open_or_error(default_cover_uri);
+
 	GtkWidget *player = eina_player_new();
 	g_object_set(player,
 		"lomo-player",    eina_application_get_interface(app, "lomo"),
-		"default-pixbuf", gdk_pixbuf_new_from_file(lomo_em_art_provider_get_default_cover_path(), NULL),
+		"default-pixbuf", gdk_pixbuf_new_from_stream(stream, NULL, NULL),
 		NULL);
 	gel_ui_widget_enable_drop(player, (GCallback) player_dnd_cb, app);
+	g_input_stream_close(stream, NULL, NULL);
 
 	g_object_set_data((GObject *) player, "eina-application", app);
 	g_object_set_data((GObject *) player, "eina-plugin", plugin);
@@ -139,7 +147,6 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 
 	// Attach menus
 	GtkUIManager *ui_mng = eina_application_get_window_ui_manager(app);
-	GError *e = NULL;
 	if ((priv->ui_merge_id = gtk_ui_manager_add_ui_from_string (ui_mng, ui_mng_xml, -1 , &e)) == 0)
 	{
 		g_warning(N_("Unable to add UI to window GtkUIManager: '%s'"), e->message);
@@ -239,15 +246,9 @@ about_show(EinaPlayer *player)
 	"\n"
 	"You should have received a copy of the GNU General Public License along with Eina; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.");
 
-	GdkPixbuf *logo_pb = NULL;
-	gchar *logo_path = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "eina.svg");
-	if (!logo_path)
-		g_warning(N_("Missing resource: %s"), "eina.svg");
-	else
-	{
-		logo_pb = gdk_pixbuf_new_from_file_at_size(logo_path, 128, 128, NULL);
-		g_free(logo_path);
-	}
+	GInputStream *stream = gel_io_open_or_error(EINA_LOGO_URI);
+	GdkPixbuf *logo_pb = gdk_pixbuf_new_from_stream_at_scale(stream, 128, 128, TRUE, NULL, NULL);
+	g_input_stream_close(stream, NULL, NULL);
 
 	gchar *comments = g_strconcat("(" EINA_CODENAME ")\n\n", N_("A classic player for the modern era"), NULL);
 	gchar *title = g_strdup_printf(_("About %s"), PACKAGE_NAME);

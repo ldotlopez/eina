@@ -2,11 +2,10 @@ SUBDIRS = \
 	build   \
 	gel     \
 	lomo    \
-	eina    \
-	pixmaps \
-	data    \
-	docs    \
 	icons   \
+	data    \
+	eina    \
+	docs    \
 	po      \
 	osx
 

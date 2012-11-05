@@ -28,10 +28,11 @@ typedef struct {
 	GObjectClass parent_class;
 } LomoEMArtProviderClass;
 
-const gchar *lomo_em_art_provider_get_default_cover_path(void);
-const gchar *lomo_em_art_provider_get_default_cover_uri (void);
-const gchar *lomo_em_art_provider_get_loading_cover_path(void);
-const gchar *lomo_em_art_provider_get_loading_cover_uri (void);
+void lomo_em_art_provider_set_default_cover(const gchar *default_uri);
+void lomo_em_art_provider_set_loading_cover(const gchar *loading_uri);
+
+const gchar *lomo_em_art_provider_get_default_cover(void);
+const gchar *lomo_em_art_provider_get_loading_cover(void);
 
 /**
  * LOMO_STREAM_EM_ART_DATA:
@@ -43,23 +44,11 @@ const gchar *lomo_em_art_provider_get_loading_cover_uri (void);
 #define lomo_em_art_value_equal_to(v,x) \
 	((v && G_VALUE_HOLDS_STRING(v)) ? g_str_equal(g_value_get_string(v), x) : FALSE)
 
-#define lomo_em_art_provider_value_is_default_path(v) \
-	lomo_em_art_value_equal_to(v, lomo_em_art_provider_get_default_cover_path())
-
-#define lomo_em_art_provider_value_is_default_uri(v) \
-	lomo_em_art_value_equal_to(v, lomo_em_art_provider_get_default_cover_uri())
-
-#define lomo_em_art_provider_value_is_loading_path(v) \
-	lomo_em_art_value_equal_to(v, lomo_em_art_provider_get_loading_cover_path())
-
-#define lomo_em_art_provider_value_is_loading_uri(v) \
-	lomo_em_art_value_equal_to(v, lomo_em_art_provider_get_loading_cover_uri())
-
 #define lomo_em_art_provider_value_is_default(v) \
-	(lomo_em_art_provider_value_is_default_path(v) || lomo_em_art_provider_value_is_default_uri(v))
+	lomo_em_art_value_equal_to(v, lomo_em_art_provider_get_default_cover())
 
 #define lomo_em_art_provider_value_is_loading(v) \
-	(lomo_em_art_provider_value_is_loading_path(v) || lomo_em_art_provider_value_is_loading_uri(v))
+	lomo_em_art_value_equal_to(v, lomo_em_art_provider_get_loading_cover())
 
 GType lomo_em_art_provider_get_type (void);
 

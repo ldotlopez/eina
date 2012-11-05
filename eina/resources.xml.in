@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="@EINA_APP_PATH_DOMAIN@/core">
+	  <file compressed="true">data/cover-default.png</file>
+	  <file compressed="true">data/cover-loading.png</file>
+	  <file compressed="true">data/eina.svg</file>
+	</gresource>
+</gresources>

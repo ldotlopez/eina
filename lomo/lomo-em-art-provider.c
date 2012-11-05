@@ -20,16 +20,12 @@ struct _LomoEMArtProviderPrivate {
 };
 
 enum {
-	DEFAULT_COVER_PATH,
-	LOADING_COVER_PATH,
-	DEFAULT_COVER_URI,
-	LOADING_COVER_URI,
+	DEFAULT_COVER,
+	LOADING_COVER,
 
 	COVER_N_STRINGS
 };
 static gchar *cover_strings[COVER_N_STRINGS] = { NULL };
-
-static void init_paths(void);
 
 static void lomo_weak_ref_cb(LomoEMArtProvider *self, LomoPlayer *lomo);
 
@@ -116,82 +112,44 @@ lomo_em_art_provider_set_player(LomoEMArtProvider *self, LomoPlayer *lomo)
 	}
 }
 
-static void init_paths(void)
+void
+lomo_em_art_provider_set_default_cover(const gchar *default_uri)
 {
-	static gboolean _init = FALSE;
-	if (_init)
-		return;
+	gel_free_and_invalidate(cover_strings[DEFAULT_COVER], NULL, g_free);
+	cover_strings[DEFAULT_COVER] = g_strdup(default_uri);
+}
 
-	_init = TRUE;
-
-	cover_strings[DEFAULT_COVER_PATH] = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "cover-default.png");
-	cover_strings[LOADING_COVER_PATH] = gel_resource_locate(GEL_RESOURCE_TYPE_IMAGE, "cover-loading.png");
-
-	if (!cover_strings[DEFAULT_COVER_PATH])
-		g_warning(_("Unable to locate '%s'"), "cover-default.png");
-	else
-		cover_strings[DEFAULT_COVER_URI] = g_filename_to_uri(cover_strings[DEFAULT_COVER_PATH], NULL, NULL);
-
-	if (!cover_strings[LOADING_COVER_PATH])
-		g_warning(_("Unable to locate '%s'"), "cover-loading.png");
-	else
-		cover_strings[LOADING_COVER_URI] = g_filename_to_uri(cover_strings[LOADING_COVER_PATH], NULL, NULL);
+void
+lomo_em_art_provider_set_loading_cover(const gchar *loading_uri)
+{
+	gel_free_and_invalidate(cover_strings[LOADING_COVER], NULL, g_free);
+	cover_strings[LOADING_COVER] = g_strdup(loading_uri);
 }
 
 /**
- * lomo_em_art_provider_get_default_cover_path:
- *
- * Get the path for the default cover art.
- *
- * Returns: The path
- */
-const gchar *
-lomo_em_art_provider_get_default_cover_path()
-{
-	init_paths();
-	return cover_strings[DEFAULT_COVER_PATH];
-}
-
-/**
- * lomo_em_art_provider_get_default_cover_uri:
+ * lomo_em_art_provider_get_default_cover:
  *
  * Get the URI for the default cover art.
  *
  * Returns: The URI
  */
 const gchar *
-lomo_em_art_provider_get_default_cover_uri()
+lomo_em_art_provider_get_default_cover()
 {
-	init_paths();
-	return cover_strings[DEFAULT_COVER_URI];
+	return cover_strings[DEFAULT_COVER];
 }
 
 /**
- * lomo_em_art_provider_get_loading_cover_path:
- *
- * Get the path for the loading cover art
- *
- * Returns: The path
- */
-const gchar *
-lomo_em_art_provider_get_loading_cover_path()
-{
-	init_paths();
-	return cover_strings[LOADING_COVER_PATH];
-}
-
-/**
- * lomo_em_art_provider_get_loading_cover_uri:
+ * lomo_em_art_provider_get_loading_cover:
  *
  * Get the URI for the loading cover URI.
  *
  * Returns: The URI
  */
 const gchar *
-lomo_em_art_provider_get_loading_cover_uri()
+lomo_em_art_provider_get_loading_cover()
 {
-	init_paths();
-	return cover_strings[LOADING_COVER_URI];
+	return cover_strings[LOADING_COVER];
 }
 
 /**
@@ -238,12 +196,12 @@ lomo_em_art_provider_init_stream(LomoEMArtProvider *self, LomoStream *stream)
 		LomoEMArtSearch *search = lomo_em_art_search(self->priv->art, stream, art_search_cb, NULL);
 		debug("Stream %p has all_tags flag, search started %p", stream, search);
 		if (search)
-			art_uri = (gchar *) lomo_em_art_provider_get_loading_cover_uri();
+			art_uri = (gchar *) lomo_em_art_provider_get_loading_cover();
 	}
 	else
 	{
 		debug("Stream %p doesnt have all_tags flags, wait for it. default cover is set", stream);
-		art_uri = (gchar *) lomo_em_art_provider_get_default_cover_uri();
+		art_uri = (gchar *) lomo_em_art_provider_get_default_cover();
 	}
 
 	if (art_uri)
@@ -279,7 +237,7 @@ art_search_cb(LomoEMArtSearch *search, gpointer data)
 	else
 	{
 		GValue fallback = { 0 };
-		g_value_set_static_string (g_value_init (&fallback, G_TYPE_STRING), cover_strings[DEFAULT_COVER_URI]);
+		g_value_set_static_string (g_value_init (&fallback, G_TYPE_STRING), cover_strings[DEFAULT_COVER]);
 		lomo_stream_set_extended_metadata(stream, LOMO_STREAM_EM_ART_DATA, (const GValue *) &fallback);
 	}
 	g_object_set_data((GObject *) stream, "art-uri-searched", (gpointer) TRUE);
