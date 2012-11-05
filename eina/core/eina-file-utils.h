@@ -1,5 +1,5 @@
 /*
- * gel/gel-io.h
+ * eina/core/eina-file-utils.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,12 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GEL_IO
-#define _GEL_IO
+#ifndef _EINA_FILE_UTIS_H
+#define _EINA_FILE_UTIS_H
 
-#include <gel/gel.h>
-#include <gel/gel-io-resources.h>
-#include <gel/gel-io-scanner.h>
+#include <glib.h>
+#include <gio/gio.h>
+
+gboolean eina_file_utils_is_supported_extension(gchar *uri);
+gboolean eina_file_utils_is_supported_file     (GFile *file);
 
 #endif
 

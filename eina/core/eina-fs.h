@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-fs.h
+ * eina/core/eina-fs.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -22,8 +22,8 @@
 
 #include <glib.h>
 #include <gel/gel.h>
-#include <eina/ext/eina-application.h>
-#include <eina/ext/eina-file-chooser-dialog.h>
+#include <eina/core/eina-application.h>
+#include <eina/core/eina-file-chooser-dialog.h>
 
 // Loaders
 void eina_fs_load_gfile_array(EinaApplication *app, GFile **files, guint n_files);

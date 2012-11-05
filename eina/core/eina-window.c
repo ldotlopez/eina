@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-window.c
+ * eina/core/eina-window.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -38,7 +38,7 @@
 #include <glib/gi18n.h>
 #include <libpeas-gtk/peas-gtk.h>
 #include <gel/gel-ui.h>
-#include <eina/ext/eina-stock.h>
+#include <eina/core/eina-stock.h>
 
 G_DEFINE_TYPE (EinaWindow, eina_window, GTK_TYPE_WINDOW)
 

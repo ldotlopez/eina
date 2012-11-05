@@ -21,7 +21,7 @@
 #define __EINA_LOMO_PLUGIN_H__
 
 #include <lomo/lomo.h>
-#include <eina/ext/eina-application.h>
+#include <eina/core/eina-application.h>
 
 G_BEGIN_DECLS
 

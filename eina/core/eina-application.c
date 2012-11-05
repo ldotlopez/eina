@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-application.c
+ * eina/core/eina-application.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -45,8 +45,8 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 #include <gdk/gdk.h>
-#include <eina/ext/eina-activatable.h>
-#include <eina/ext/eina-window.h>
+#include <eina/core/eina-activatable.h>
+#include <eina/core/eina-window.h>
 
 G_DEFINE_TYPE (EinaApplication, eina_application, GTK_TYPE_APPLICATION)
 

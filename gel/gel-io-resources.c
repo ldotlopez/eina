@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-file-utils.h
+ * gel/gel-io-resources.c
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,14 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_FILE_UTIS_H
-#define _EINA_FILE_UTIS_H
+#include "gel-io-resources.h"
 
-#include <glib.h>
-#include <gio/gio.h>
+gboolean
+gel_io_resources_load_file_contents(const gchar *path, gchar **contents, gsize *length, GError **error)
+{
+  	gchar *tmp = g_strconcat("resource://", path, NULL);
+	GFile *f = g_file_new_for_uri(tmp);
+	gboolean ret = g_file_load_contents(f, NULL, contents, length, NULL, error);
+	g_object_unref(f);
 
-gboolean eina_file_utils_is_supported_extension(gchar *uri);
-gboolean eina_file_utils_is_supported_file     (GFile *file);
-
-#endif
+	return ret;
+}
 

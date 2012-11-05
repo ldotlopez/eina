@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <gel/gel.h>
 #include <gtkosxapplication.h>
 

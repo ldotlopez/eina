@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-application.h
+ * eina/core/eina-application.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -25,7 +25,7 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
-#include <eina/ext/eina-window.h>
+#include <eina/core/eina-window.h>
 
 G_BEGIN_DECLS
 

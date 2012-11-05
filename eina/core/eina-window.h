@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-window.h
+ * eina/core/eina-window.h
  *
  * Copyright (C) 2004-2011 Eina
  *

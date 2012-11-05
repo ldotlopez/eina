@@ -21,7 +21,7 @@
 #define __EINA_DOCK_PLUGIN_H__
 
 #include <eina/dock/eina-dock.h>
-#include <eina/ext/eina-application.h>
+#include <eina/core/eina-application.h>
 
 G_BEGIN_DECLS
 
