@@ -17,9 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "eina-cover-image.h"
-#include "eina-cover-image-mask.h"
 #include <glib/gi18n.h>
 #include <gel/gel.h>
 
@@ -161,7 +163,7 @@ eina_cover_image_init (EinaCoverImage *self)
 	if (priv->mask == NULL)
 	{
 		GError *err = NULL;
-		if ((priv->mask = gdk_pixbuf_new_from_inline(-1, __cover_mask_png, FALSE, &err)) == NULL)
+		if ((priv->mask = gdk_pixbuf_new_from_resource(EINA_APP_PATH_DOMAIN"/player/cover-mask.png", &err)) == NULL)
 		{
 			g_warning(N_("Unable to load cover mask: %s"), err->message);
 			priv->m_w = priv->m_h = -1;

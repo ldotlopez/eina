@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-extension.h
+ * eina/core/eina-extension.h
  *
  * Plugin engine for Eina, heavily based on the code from Rhythmbox
  *
@@ -36,8 +36,8 @@
 #include <glib/gi18n.h>
 #include <libpeas/peas.h>
 #include <gel/gel.h>
-#include <eina/ext/eina-activatable.h>
-#include <eina/ext/eina-application.h>
+#include <eina/core/eina-activatable.h>
+#include <eina/core/eina-application.h>
 
 G_BEGIN_DECLS
 

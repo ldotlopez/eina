@@ -18,7 +18,7 @@
  */
 
 #include "eina-muine-plugin.h"
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/adb/eina-adb-plugin.h>
 #include <eina/dock/eina-dock-plugin.h>
 #include <eina/lomo/eina-lomo-plugin.h>

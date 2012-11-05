@@ -18,8 +18,8 @@
  */
 
 #include "eina-playlist-plugin.h"
-#include <eina/ext/eina-fs.h>
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-fs.h>
+#include <eina/core/eina-extension.h>
 #include <eina/dock/eina-dock-plugin.h>
 
 #define EINA_TYPE_PLAYLIST_PLUGIN         (eina_playlist_plugin_get_type ())

@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-file-utils.c
+ * eina/core/eina-file-utils.c
  *
  * Copyright (C) 2004-2011 Eina
  *

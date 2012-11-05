@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="@EINA_APP_PATH_DOMAIN@/lastfm">
+      <file preprocess="xml-stripblanks" compressed="true">preferences.ui</file>
+	  <file preprocess="to-pixdata" compressed="true">lastfm.png</file>
+	</gresource>
+</gresources>

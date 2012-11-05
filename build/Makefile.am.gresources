@@ -1,0 +1,36 @@
+# Rules for generating -ui.h files using gresource
+#
+# Define:
+# 	eina_gresources_xml = GtkBuilder compatible interface definition file
+# 	eina_gresources_name = name for the variable
+#
+# before including Makefile.am.gresource. You will also need to have
+# the following targets already defined:
+#
+# 	CLEANFILES
+#	DISTCLEANFILES
+#	BUILT_SOURCES
+#	EXTRA_DIST
+#
+# Author: Luis Lopez <luis.lopez@cuarentaydos.com>
+# (based on Makefile.am.marshal from Emmanuele Bassi <ebassi@linux.intel.com>)
+
+gresources_h = $(eina_gresources_xml:.xml=.h)
+gresources_c = $(eina_gresources_xml:.xml=.c)
+
+CLEANFILES += stamp-gresource
+DISTCLEANFILES += $(gresources_h) $(gresources_c)
+BUILT_SOURCES += $(gresources_h) $(gresources_c)
+EXTRA_DIST += $(eina_gresources_xml)
+
+stamp-gresource: $(eina_gresources_xml)
+	$(AM_V_GEN)$(GLIB_COMPILE_RESOURCES) --generate-source $(eina_gresources_xml) --c-name $(eina_gresources_name) --target $(gresources_c) \
+	&& $(GLIB_COMPILE_RESOURCES) --generate-header $(eina_gresources_xml) --c-name $(eina_gresources_name) --target $(gresources_h) \
+	&& echo timestamp > $(@F)
+
+$(gresources_h): stamp-gresource
+	@true
+
+$(gresources_c): stamp-gresource
+	@true
+

@@ -21,7 +21,7 @@
 #if HAVE_INDICATE
 #include <libindicate/server.h>
 #endif
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
 #define EINA_TYPE_MPRIS_PLUGIN         (eina_mpris_plugin_get_type ())

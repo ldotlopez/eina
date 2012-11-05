@@ -20,7 +20,7 @@
 #ifndef __EINA_ADB_PLUGIN_H__
 #define __EINA_ADB_PLUGIN_H__
 
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/adb/eina-adb.h>
 
 G_BEGIN_DECLS

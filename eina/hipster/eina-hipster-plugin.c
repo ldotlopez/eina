@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <gel/gel-ui.h>
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>
 #include <glib/gstdio.h>

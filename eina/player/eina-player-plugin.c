@@ -17,11 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "eina-player-plugin.h"
 #include <lomo/lomo-em-art-provider.h>
-#include <eina/ext/eina-fs.h>
-#include <eina/ext/eina-stock.h>
-#include <eina/ext/eina-extension.h>
+#include <gel/gel-io.h>
+#include <eina/core/eina-fs.h>
+#include <eina/core/eina-stock.h>
+#include <eina/core/eina-extension.h>
 #include <eina/dock/eina-dock-plugin.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 #include <eina/preferences/eina-preferences-plugin.h>
@@ -144,11 +149,11 @@ eina_player_plugin_activate(EinaActivatable *activatable, EinaApplication *app, 
 	gtk_action_group_add_actions(ag, ui_mng_actions, G_N_ELEMENTS(ui_mng_actions), player);
 	gtk_ui_manager_insert_action_group(ui_mng, ag, G_MAXINT);
 
-	gchar *datadir = peas_extension_base_get_data_dir((PeasExtensionBase *) plugin);
-	gchar *prefs_ui_file = g_build_filename(datadir, "preferences.ui", NULL);
-	GtkWidget *widget = gel_ui_generic_new_from_file(prefs_ui_file);
-	g_free(datadir);
-	g_free(prefs_ui_file);
+	gchar *ui_string = NULL;
+	gel_io_resources_load_file_contents_or_error(EINA_APP_PATH_DOMAIN "/player/preferences.ui", &ui_string, NULL);
+
+	GtkWidget *widget = gel_ui_generic_new(ui_string);
+	g_free(ui_string);
 
 	priv->prefs_tab = eina_preferences_tab_new();
 	g_object_set(priv->prefs_tab,

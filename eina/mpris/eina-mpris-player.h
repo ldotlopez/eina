@@ -21,7 +21,7 @@
 #define __EINA_MPRIS_PLAYER_H__
 
 #include <glib-object.h>
-#include <eina/ext/eina-application.h>
+#include <eina/core/eina-application.h>
 
 G_BEGIN_DECLS
 

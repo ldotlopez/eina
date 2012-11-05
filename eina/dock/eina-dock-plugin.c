@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 #include "eina-dock-plugin.h"
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 
 #define EINA_TYPE_DOCK_PLUGIN         (eina_dock_plugin_get_type ())
 #define EINA_DOCK_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_DOCK_PLUGIN, EinaDockPlugin))

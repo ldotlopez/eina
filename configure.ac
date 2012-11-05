@@ -113,6 +113,7 @@ AC_PATH_PROG(PKG_CONFIG, pkg-config)
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 AC_PATH_PROG(GDK_PIXBUF_CSOURCE, gdk-pixbuf-csource)
 AC_PATH_PROG(GLIB_COMPILE_SCHEMAS, glib-compile-schemas)
+AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
 #AC_PATH_PROG(VALA_GEN_INTROSPECT, vala-gen-introspect)
 #AC_PATH_PROG(VAPIGEN, vapigen)
 #AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
@@ -517,7 +518,7 @@ icons/Makefile
 icons/hicolor/Makefile
 gel/Makefile
 eina/Makefile
-eina/ext/Makefile
+eina/core/Makefile
 eina/adb/adb.plugin
 eina/adb/Makefile
 eina/clutty/clutty.plugin
@@ -533,6 +534,7 @@ eina/hipster/Makefile
 eina/importer/importer.plugin
 eina/importer/Makefile
 eina/lastfm/lastfm.plugin
+eina/lastfm/resources.xml
 eina/lastfm/Makefile
 eina/lomo/lomo.plugin
 eina/lomo/Makefile
@@ -541,14 +543,17 @@ eina/lyrics/Makefile
 eina/mpris/mpris.plugin
 eina/mpris/Makefile
 eina/muine/muine.plugin
+eina/muine/resources.xml
 eina/muine/Makefile
 eina/ntfy/ntfy.plugin
 eina/ntfy/Makefile
 eina/osx/osx.plugin
 eina/osx/Makefile
 eina/player/player.plugin
+eina/player/resources.xml
 eina/player/Makefile
 eina/playlist/playlist.plugin
+eina/playlist/resources.xml
 eina/playlist/Makefile
 eina/preferences/preferences.plugin
 eina/preferences/Makefile

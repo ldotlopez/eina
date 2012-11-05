@@ -6,13 +6,17 @@ liblastfm_la_CFLAGS  = @EINA_CFLAGS@
 liblastfm_la_LDFLAGS = @EINA_LIBS@ -module -avoid-version
 liblastfm_la_SOURCES = \
 	lastfm-priv.h \
-	eina-lastfm-plugin.c
+	eina-lastfm-plugin.c \
+	resources.c
 
 plugin_DATA = \
-	lastfm.plugin  \
-	preferences.ui \
-	lastfm.png
-EXTRA_DIST += $(plugin_DATA)
+	lastfm.plugin
+
+eina_gresources_xml  = resources.xml
+eina_gresources_name = eina_lastfm
+include $(top_srcdir)/build/Makefile.am.gresources
+
+EXTRA_DIST += $(plugin_DATA) preferences.ui lastfm.png
 
 lastfmsubmitddir = $(plugindir)/lastfmsubmitd
 lastfmsubmitd_DATA = \

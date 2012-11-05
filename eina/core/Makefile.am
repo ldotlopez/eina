@@ -1,10 +1,10 @@
 include $(top_srcdir)/build/Makefile.am.common
 
-noinst_LTLIBRARIES = libeinaext.la
+noinst_LTLIBRARIES = libeina-core.la
 
-libeinaext_la_LDFLAGS = @EINA_LIBS@
-libeinaext_la_CFLAGS = @EINA_CFLAGS@
-includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/ext
+libeina_core_la_LDFLAGS = @EINA_LIBS@
+libeina_core_la_CFLAGS = @EINA_CFLAGS@
+includedir = $(prefix)/include/@PACKAGE@-@EINA_API_VERSION@/eina/core
 include_HEADERS = \
 	eina-application.h         \
 	eina-activatable.h         \
@@ -15,7 +15,7 @@ include_HEADERS = \
 	eina-stock.h               \
 	eina-window.h
 
-libeinaext_la_SOURCES = \
+libeina_core_la_SOURCES = \
 	$(include_HEADERS)         \
 	eina-application.c         \
 	eina-activatable.c         \

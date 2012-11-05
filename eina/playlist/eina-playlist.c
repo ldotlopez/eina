@@ -26,9 +26,13 @@
  * relative to the playlist from #LomoPlayer
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "eina-playlist.h"
-#include "eina-playlist-ui.h"
 #include <glib/gi18n.h>
+#include <gel/gel-io.h>
 
 #define DEBUG 0
 #define DEBUG_PREFIX "EinaPlaylist"
@@ -235,9 +239,13 @@ eina_playlist_init (EinaPlaylist *self)
 EinaPlaylist*
 eina_playlist_new (LomoPlayer *lomo)
 {
+	gchar *xml_string = NULL;
+	gel_io_resources_load_file_contents_or_error(EINA_APP_PATH_DOMAIN "/playlist/main.ui", &xml_string, NULL);
+
  	EinaPlaylist *self = g_object_new (EINA_TYPE_PLAYLIST,
-		"xml-string", __ui_xml,
+		"xml-string", xml_string,
 		NULL);
+	g_free(xml_string);
 
  	EinaPlaylistPrivate *priv = self->priv;
 	priv->tv     = gel_ui_generic_get_typed(GEL_UI_GENERIC(self), GTK_TREE_VIEW,         "playlist-treeview");

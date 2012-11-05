@@ -22,7 +22,7 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 # documenting the functions and macros.
 # e.g. DOC_SOURCE_DIR=../../../gtk
 DOC_SOURCE_DIR=\
-	../../eina/ext         \
+	../../eina/core        \
 	../../eina/dock        \
 	../../eina/lomo        \
 	../../eina/player      \
@@ -55,8 +55,8 @@ FIXXREF_OPTIONS=
 # Used for dependencies. The docs will be rebuilt if any of these change.
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
-HFILE_GLOB=$(top_srcdir)/eina/ext/*.h
-CFILE_GLOB=$(top_srcdir)/eina/ext/*.c
+HFILE_GLOB=$(top_srcdir)/eina/core/*.h
+CFILE_GLOB=$(top_srcdir)/eina/core/*.c
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
@@ -109,7 +109,7 @@ GTKDOC_LIBS = \
 #GTKDOC_LIBS += $(top_builddir)/eina/ntfy/.libs/libntfy.a
 #endif
 GTKDOC_LIBS += \
-	$(top_builddir)/eina/ext/libeinaext.la                  \
+	$(top_builddir)/eina/core/libeina-core.la               \
 	$(top_builddir)/eina/dock/.libs/libdock.a               \
 	$(top_builddir)/eina/lomo/.libs/liblomo.a               \
 	$(top_builddir)/eina/player/.libs/libplayer.a           \

@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-file-chooser-dialog.c
+ * eina/core/eina-file-chooser-dialog.c
  *
  * Copyright (C) 2004-2011 Eina
  *

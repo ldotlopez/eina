@@ -20,7 +20,7 @@
 #ifndef __EINA_PLAYER_PLUGIN_H__
 #define __EINA_PLAYER_PLUGIN_H__
 
-#include <eina/ext/eina-application.h>
+#include <eina/core/eina-application.h>
 #include <eina/player/eina-player.h>
 
 G_BEGIN_DECLS

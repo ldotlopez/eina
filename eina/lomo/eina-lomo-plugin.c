@@ -24,7 +24,7 @@
 #endif
 
 #include "eina-lomo-plugin.h"
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 
 #define EINA_TYPE_LOMO_PLUGIN         (eina_lomo_plugin_get_type ())
 #define EINA_LOMO_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_LOMO_PLUGIN, EinaLomoPlugin))

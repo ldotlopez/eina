@@ -33,9 +33,9 @@
 #include <gtk/gtk.h>
 #include <gel/gel.h>
 #include <eina/lomo/eina-lomo-plugin.h>
-#include "eina/ext/eina-application.h"
-#include "eina/ext/eina-fs.h"
-#include "eina/ext/eina-stock.h"
+#include "eina/core/eina-application.h"
+#include "eina/core/eina-fs.h"
+#include "eina/core/eina-stock.h"
 
 static void
 app_open_cb(GApplication *application, gpointer files, gint n_files, gchar *hint, gpointer data)

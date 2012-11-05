@@ -1,5 +1,5 @@
 /*
- * eina/ext/eina-stock.h
+ * gel/gel-io-resources.h
  *
  * Copyright (C) 2004-2011 Eina
  *
@@ -17,18 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EINA_STOCK_H
-#define _EINA_STOCK_H
+#include <gio/gio.h>
 
-#define EINA_STOCK_STATUS_ICON "eina-status-icon"
-#define EINA_STOCK_RANDOM      "eina-random"
-#define EINA_STOCK_REPEAT      "eina-repeat"
-#define EINA_STOCK_QUEUE       "eina-queue"
-#define EINA_STOCK_BUG         "eina-bug"
-#define EINA_STOCK_PLUGIN      "eina-plugin"
+#ifndef _GEL_IO_RESOURCES
+#define _GEL_IO_RESOURCES
 
-void
-eina_stock_init(void);
+gboolean gel_io_resources_load_file_contents(const gchar *path, gchar **contents, gsize *length, GError **error);
+
+#define gel_io_resources_load_file_contents_or_error(path,contents,length) \
+	G_STMT_START { \
+		GError *error = NULL; \
+		if (!gel_io_resources_load_file_contents(path,contents,length,&error)) \
+			g_error("Can't load file contents of '%s': %s", path, error->message); \
+	} G_STMT_END
 
 #endif
 

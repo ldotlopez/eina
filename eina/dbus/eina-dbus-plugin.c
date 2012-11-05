@@ -42,7 +42,7 @@
 #	define debug(...) ;
 #endif
 
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
 #define EINA_TYPE_DBUS_PLUGIN         (eina_dbus_plugin_get_type ())

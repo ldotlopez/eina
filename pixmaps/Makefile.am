@@ -5,7 +5,6 @@ pixmapsdir = $(pkgdatadir)/pixmaps
 pixmaps_DATA =  \
 	cover-default.png      \
 	cover-loading.png      \
-	cover-mask.png         \
 	eina.svg               \
 	loading-spin-16x16.gif \
 	plugin.png

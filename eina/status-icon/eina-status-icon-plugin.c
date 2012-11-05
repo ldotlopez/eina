@@ -18,9 +18,9 @@
  */
 
 #include "eina-status-icon-plugin.h"
-#include <eina/ext/eina-fs.h>
-#include <eina/ext/eina-stock.h>
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-fs.h>
+#include <eina/core/eina-stock.h>
+#include <eina/core/eina-extension.h>
 #include <eina/lomo/eina-lomo-plugin.h>
 
 #define EINA_TYPE_STATUS_ICON_PLUGIN         (eina_status_icon_plugin_get_type ())

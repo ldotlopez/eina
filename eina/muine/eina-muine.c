@@ -19,9 +19,13 @@
 
 #define LIBLOMO_USE_PRIVATE_API
 #include "eina-muine.h"
-#include "eina-muine-ui.h"
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <glib/gi18n.h>
+#include <gel/gel-io.h>
 #include <lomo/lomo-em-art-provider.h>
 
 G_DEFINE_TYPE (EinaMuine, eina_muine, GEL_UI_TYPE_GENERIC)
@@ -162,8 +166,12 @@ eina_muine_init (EinaMuine *self)
 EinaMuine*
 eina_muine_new (void)
 {
-	EinaMuine *self = g_object_new (EINA_TYPE_MUINE, "xml-string", __eina_muine_ui_xml, NULL);
+  	gchar *xml_string = NULL;
+	gel_io_resources_load_file_contents_or_error(EINA_APP_PATH_DOMAIN "/muine/main.ui", &xml_string, NULL);
+
+	EinaMuine *self = g_object_new (EINA_TYPE_MUINE, "xml-string", xml_string , NULL);
 	EinaMuinePrivate *priv = self->priv;
+	g_free(xml_string);
 
 	GelUIGeneric *ui_generic = GEL_UI_GENERIC(self);
 

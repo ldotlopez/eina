@@ -18,7 +18,7 @@
  */
 
 #include "eina-preferences-plugin.h"
-#include <eina/ext/eina-extension.h>
+#include <eina/core/eina-extension.h>
 
 #define EINA_TYPE_PREFERENCES_PLUGIN         (eina_preferences_plugin_get_type ())
 #define EINA_PREFERENCES_PLUGIN(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), EINA_TYPE_PREFERENCES_PLUGIN, EinaPreferencesPlugin))
