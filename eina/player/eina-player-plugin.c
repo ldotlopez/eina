@@ -47,7 +47,7 @@ EINA_PLUGIN_REGISTER(EINA_TYPE_PLAYER_PLUGIN, EinaPlayerPlugin, eina_player_plug
 
 #define EINA_PLAYER_PREFERENCES_DOMAIN EINA_APP_DOMAIN".preferences.player"
 #define EINA_PLAYER_STREAM_MARKUP_KEY  "stream-markup"
-#define EINA_LOGO_URI "resource://"EINA_APP_PATH_DOMAIN"/core/eina.svg"
+#define EINA_LOGO_URI "resource://"EINA_APP_PATH_DOMAIN"/core/data/eina.svg"
 
 static void
 player_dnd_cb(GtkWidget *w, GType type, const guchar *data, EinaApplication *app);
